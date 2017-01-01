@@ -18,7 +18,7 @@ Frame::Frame(wxWindow* parent,
 	m_mgr.SetManagedWindow(this);
 
 	// set frame icon
-	SetIcon(wxIcon(sample_xpm));
+	SetIcon(wxIcon(wxString("cryptox.ico"), wxBITMAP_TYPE_PNG_RESOURCE));
 
 	// set up default notebook style
 	m_notebook_style = wxAUI_NB_DEFAULT_STYLE | wxAUI_NB_TAB_EXTERNAL_MOVE | wxNO_BORDER;
@@ -28,7 +28,7 @@ Frame::Frame(wxWindow* parent,
 	wxMenuBar* mb = new wxMenuBar;
 
 	wxMenu* file_menu = new wxMenu;
-	file_menu->Append(wxID_EXIT);
+	file_menu->Append(wxID_EXIT, _("&Exit"));
 
 	wxMenu* view_menu = new wxMenu;
 	view_menu->Append(ID_CreateText, _("Create Text Control"));
@@ -255,9 +255,9 @@ Frame::Frame(wxWindow* parent,
 		CloseButton(true).MaximizeButton(true));
 
 	m_mgr.AddPane(CreateTreeCtrl(), wxAuiPaneInfo().
-		Name(wxT("test8")).Caption(wxT("Tree Pane")).
+		Name(wxT("test8")).Caption(wxT("Algorithms")).
 		Left().Layer(1).Position(1).
-		CloseButton(true).MaximizeButton(true));
+		CloseButton(false));
 
 	m_mgr.AddPane(CreateSizeReportCtrl(), wxAuiPaneInfo().
 		Name(wxT("test9")).Caption(wxT("Min Size 200x100")).
@@ -891,7 +891,7 @@ void Frame::OnExit(wxCommandEvent& WXUNUSED(event))
 
 void Frame::OnAbout(wxCommandEvent& WXUNUSED(event))
 {
-	wxMessageBox(_("wxAUI Demo\nAn advanced window management library for wxWidgets\n(c) Copyright 2017, Quenza Inc."), _("Cryptex"), wxOK, this);
+	wxMessageBox(_("Cryptox\nCryptography management studio\n\nCopyright 2017, Quenza Inc."), _("Cryptox"), wxOK, this);
 }
 
 wxTextCtrl* Frame::CreateTextCtrl(const wxString& ctrl_text)
@@ -920,10 +920,10 @@ wxGrid* Frame::CreateGrid()
 	return grid;
 }
 
-wxTreeCtrl* Frame::CreateTreeCtrl()
+wxTreeCtrl *Frame::CreateTreeCtrl()
 {
 	wxTreeCtrl* tree = new wxTreeCtrl(this, wxID_ANY,
-		wxPoint(0, 0), wxSize(160, 250),
+		wxPoint(0, 0), wxSize(190, 250),
 		wxTR_DEFAULT_STYLE | wxNO_BORDER);
 
 	wxImageList* imglist = new wxImageList(16, 16, true, 2);
@@ -931,10 +931,8 @@ wxTreeCtrl* Frame::CreateTreeCtrl()
 	imglist->Add(wxArtProvider::GetBitmap(wxART_NORMAL_FILE, wxART_OTHER, wxSize(16, 16)));
 	tree->AssignImageList(imglist);
 
-	wxTreeItemId root = tree->AddRoot(wxT("Algorithms"), 0);
+	wxTreeItemId root = tree->AddRoot(wxT("Primitives"), 0);
 	wxArrayTreeItemIds items;
-
-
 
 	items.Add(tree->AppendItem(root, wxT("Block ciphers"), 0));
 	items.Add(tree->AppendItem(root, wxT("Stream ciphers"), 0));
@@ -943,7 +941,6 @@ wxTreeCtrl* Frame::CreateTreeCtrl()
 	items.Add(tree->AppendItem(root, wxT("Authentication"), 0));
 	items.Add(tree->AppendItem(root, wxT("DH Groups"), 0));
 	items.Add(tree->AppendItem(root, wxT("Asymmetric"), 0));
-
 
 	int i, count;
 	for (i = 0, count = items.Count(); i < count; ++i)

@@ -27,7 +27,7 @@ public:
 			wxID_ANY,
 			wxT(APPNAME),
 			wxDefaultPosition,
-			wxSize(800, 600));
+			wxSize(1000, 750));
 		frame->Show();
 
 		return true;
