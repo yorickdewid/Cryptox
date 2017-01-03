@@ -111,7 +111,8 @@ private:
 	void OnNotebookPageClosed(wxAuiNotebookEvent& evt);
 	void OnExit(wxCommandEvent& evt);
 	void OnAbout(wxCommandEvent& evt);
-	void OnTabAlignment(wxCommandEvent &evt);
+	void OnTabAlignment(wxCommandEvent& evt);
+	void OnItemMenu(wxTreeEvent& evt);
 
 	void OnGradient(wxCommandEvent& evt);
 	void OnToolbarResizing(wxCommandEvent& evt);

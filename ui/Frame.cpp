@@ -24,16 +24,19 @@ Frame::Frame(wxWindow* parent,
 	GetDockArt()->SetMetric(wxAUI_DOCKART_PANE_BORDER_SIZE, 0);
 
 	// set up default notebook style
-	m_notebook_style = wxAUI_NB_DEFAULT_STYLE | wxAUI_NB_TAB_EXTERNAL_MOVE | wxNO_BORDER;
+	m_notebook_style = wxAUI_NB_DEFAULT_STYLE | wxAUI_NB_WINDOWLIST_BUTTON | wxAUI_NB_TAB_EXTERNAL_MOVE | wxNO_BORDER;
 	m_notebook_theme = 0;
 
 	// Create menu
 	wxMenuBar *mb = new wxMenuBar;
 
 	wxMenu *file_menu = new wxMenu;
-	file_menu->Append(wxID_EXIT, _("&New"));
-	file_menu->Append(wxID_EXIT, _("&Open"));
-	file_menu->Append(wxID_EXIT, _("&Save"));
+	file_menu->Append(wxID_NEW);
+	file_menu->Append(wxID_OPEN);
+	file_menu->Append(wxID_CLOSE);
+	file_menu->Append(wxID_SAVE);
+	file_menu->Append(wxID_SAVEAS);
+	file_menu->Append(wxID_REVERT, _("Re&vert..."));
 	file_menu->AppendSeparator();
 	file_menu->Append(wxID_EXIT, _("&Exit"));
 
@@ -447,9 +450,9 @@ void Frame::OnGradient(wxCommandEvent& event)
 
 	switch (event.GetId())
 	{
-	case ID_NoGradient:         gradient = wxAUI_GRADIENT_NONE; break;
-	case ID_VerticalGradient:   gradient = wxAUI_GRADIENT_VERTICAL; break;
-	case ID_HorizontalGradient: gradient = wxAUI_GRADIENT_HORIZONTAL; break;
+		case ID_NoGradient:         gradient = wxAUI_GRADIENT_NONE; break;
+		case ID_VerticalGradient:   gradient = wxAUI_GRADIENT_VERTICAL; break;
+		case ID_HorizontalGradient: gradient = wxAUI_GRADIENT_HORIZONTAL; break;
 	}
 
 	m_mgr.GetArtProvider()->SetMetric(wxAUI_DOCKART_GRADIENT_TYPE, gradient);
@@ -604,97 +607,96 @@ void Frame::OnUpdateUI(wxUpdateUIEvent& event)
 
 	switch (event.GetId())
 	{
-	case ID_NoGradient:
-		event.Check(m_mgr.GetArtProvider()->GetMetric(wxAUI_DOCKART_GRADIENT_TYPE) == wxAUI_GRADIENT_NONE);
-		break;
-	case ID_VerticalGradient:
-		event.Check(m_mgr.GetArtProvider()->GetMetric(wxAUI_DOCKART_GRADIENT_TYPE) == wxAUI_GRADIENT_VERTICAL);
-		break;
-	case ID_HorizontalGradient:
-		event.Check(m_mgr.GetArtProvider()->GetMetric(wxAUI_DOCKART_GRADIENT_TYPE) == wxAUI_GRADIENT_HORIZONTAL);
-		break;
-	case ID_AllowToolbarResizing:
-	{
-		wxAuiPaneInfoArray& all_panes = m_mgr.GetAllPanes();
-		const size_t count = all_panes.GetCount();
-		for (size_t i = 0; i < count; ++i)
+		case ID_NoGradient:
+			event.Check(m_mgr.GetArtProvider()->GetMetric(wxAUI_DOCKART_GRADIENT_TYPE) == wxAUI_GRADIENT_NONE);
+			break;
+		case ID_VerticalGradient:
+			event.Check(m_mgr.GetArtProvider()->GetMetric(wxAUI_DOCKART_GRADIENT_TYPE) == wxAUI_GRADIENT_VERTICAL);
+			break;
+		case ID_HorizontalGradient:
+			event.Check(m_mgr.GetArtProvider()->GetMetric(wxAUI_DOCKART_GRADIENT_TYPE) == wxAUI_GRADIENT_HORIZONTAL);
+			break;
+		case ID_AllowToolbarResizing:
 		{
-			wxAuiToolBar* toolbar = wxDynamicCast(all_panes[i].window, wxAuiToolBar);
-			if (toolbar)
+			wxAuiPaneInfoArray& all_panes = m_mgr.GetAllPanes();
+			const size_t count = all_panes.GetCount();
+			for (size_t i = 0; i < count; ++i)
 			{
-				event.Check(all_panes[i].IsResizable());
-				break;
+				wxAuiToolBar* toolbar = wxDynamicCast(all_panes[i].window, wxAuiToolBar);
+				if (toolbar)
+				{
+					event.Check(all_panes[i].IsResizable());
+					break;
+				}
 			}
+			break;
 		}
-		break;
-	}
-	case ID_AllowFloating:
-		event.Check((flags & wxAUI_MGR_ALLOW_FLOATING) != 0);
-		break;
-	case ID_TransparentDrag:
-		event.Check((flags & wxAUI_MGR_TRANSPARENT_DRAG) != 0);
-		break;
-	case ID_TransparentHint:
-		event.Check((flags & wxAUI_MGR_TRANSPARENT_HINT) != 0);
-		break;
-	case ID_LiveUpdate:
-		event.Check((flags & wxAUI_MGR_LIVE_RESIZE) != 0);
-		break;
-	case ID_VenetianBlindsHint:
-		event.Check((flags & wxAUI_MGR_VENETIAN_BLINDS_HINT) != 0);
-		break;
-	case ID_RectangleHint:
-		event.Check((flags & wxAUI_MGR_RECTANGLE_HINT) != 0);
-		break;
-	case ID_NoHint:
-		event.Check(((wxAUI_MGR_TRANSPARENT_HINT |
-			wxAUI_MGR_VENETIAN_BLINDS_HINT |
-			wxAUI_MGR_RECTANGLE_HINT) & flags) == 0);
-		break;
-	case ID_HintFade:
-		event.Check((flags & wxAUI_MGR_HINT_FADE) != 0);
-		break;
-	case ID_NoVenetianFade:
-		event.Check((flags & wxAUI_MGR_NO_VENETIAN_BLINDS_FADE) != 0);
-		break;
+		case ID_AllowFloating:
+			event.Check((flags & wxAUI_MGR_ALLOW_FLOATING) != 0);
+			break;
+		case ID_TransparentDrag:
+			event.Check((flags & wxAUI_MGR_TRANSPARENT_DRAG) != 0);
+			break;
+		case ID_TransparentHint:
+			event.Check((flags & wxAUI_MGR_TRANSPARENT_HINT) != 0);
+			break;
+		case ID_LiveUpdate:
+			event.Check((flags & wxAUI_MGR_LIVE_RESIZE) != 0);
+			break;
+		case ID_VenetianBlindsHint:
+			event.Check((flags & wxAUI_MGR_VENETIAN_BLINDS_HINT) != 0);
+			break;
+		case ID_RectangleHint:
+			event.Check((flags & wxAUI_MGR_RECTANGLE_HINT) != 0);
+			break;
+		case ID_NoHint:
+			event.Check(((wxAUI_MGR_TRANSPARENT_HINT |
+				wxAUI_MGR_VENETIAN_BLINDS_HINT |
+				wxAUI_MGR_RECTANGLE_HINT) & flags) == 0);
+			break;
+		case ID_HintFade:
+			event.Check((flags & wxAUI_MGR_HINT_FADE) != 0);
+			break;
+		case ID_NoVenetianFade:
+			event.Check((flags & wxAUI_MGR_NO_VENETIAN_BLINDS_FADE) != 0);
+			break;
 
-	case ID_NotebookNoCloseButton:
-		event.Check((m_notebook_style & (wxAUI_NB_CLOSE_BUTTON | wxAUI_NB_CLOSE_ON_ALL_TABS | wxAUI_NB_CLOSE_ON_ACTIVE_TAB)) != 0);
-		break;
-	case ID_NotebookCloseButton:
-		event.Check((m_notebook_style & wxAUI_NB_CLOSE_BUTTON) != 0);
-		break;
-	case ID_NotebookCloseButtonAll:
-		event.Check((m_notebook_style & wxAUI_NB_CLOSE_ON_ALL_TABS) != 0);
-		break;
-	case ID_NotebookCloseButtonActive:
-		event.Check((m_notebook_style & wxAUI_NB_CLOSE_ON_ACTIVE_TAB) != 0);
-		break;
-	case ID_NotebookAllowTabSplit:
-		event.Check((m_notebook_style & wxAUI_NB_TAB_SPLIT) != 0);
-		break;
-	case ID_NotebookAllowTabMove:
-		event.Check((m_notebook_style & wxAUI_NB_TAB_MOVE) != 0);
-		break;
-	case ID_NotebookAllowTabExternalMove:
-		event.Check((m_notebook_style & wxAUI_NB_TAB_EXTERNAL_MOVE) != 0);
-		break;
-	case ID_NotebookScrollButtons:
-		event.Check((m_notebook_style & wxAUI_NB_SCROLL_BUTTONS) != 0);
-		break;
-	case ID_NotebookWindowList:
-		event.Check((m_notebook_style & wxAUI_NB_WINDOWLIST_BUTTON) != 0);
-		break;
-	case ID_NotebookTabFixedWidth:
-		event.Check((m_notebook_style & wxAUI_NB_TAB_FIXED_WIDTH) != 0);
-		break;
-	case ID_NotebookArtGloss:
-		event.Check(m_notebook_style == 0);
-		break;
-	case ID_NotebookArtSimple:
-		event.Check(m_notebook_style == 1);
-		break;
-
+		case ID_NotebookNoCloseButton:
+			event.Check((m_notebook_style & (wxAUI_NB_CLOSE_BUTTON | wxAUI_NB_CLOSE_ON_ALL_TABS | wxAUI_NB_CLOSE_ON_ACTIVE_TAB)) != 0);
+			break;
+		case ID_NotebookCloseButton:
+			event.Check((m_notebook_style & wxAUI_NB_CLOSE_BUTTON) != 0);
+			break;
+		case ID_NotebookCloseButtonAll:
+			event.Check((m_notebook_style & wxAUI_NB_CLOSE_ON_ALL_TABS) != 0);
+			break;
+		case ID_NotebookCloseButtonActive:
+			event.Check((m_notebook_style & wxAUI_NB_CLOSE_ON_ACTIVE_TAB) != 0);
+			break;
+		case ID_NotebookAllowTabSplit:
+			event.Check((m_notebook_style & wxAUI_NB_TAB_SPLIT) != 0);
+			break;
+		case ID_NotebookAllowTabMove:
+			event.Check((m_notebook_style & wxAUI_NB_TAB_MOVE) != 0);
+			break;
+		case ID_NotebookAllowTabExternalMove:
+			event.Check((m_notebook_style & wxAUI_NB_TAB_EXTERNAL_MOVE) != 0);
+			break;
+		case ID_NotebookScrollButtons:
+			event.Check((m_notebook_style & wxAUI_NB_SCROLL_BUTTONS) != 0);
+			break;
+		case ID_NotebookWindowList:
+			event.Check((m_notebook_style & wxAUI_NB_WINDOWLIST_BUTTON) != 0);
+			break;
+		case ID_NotebookTabFixedWidth:
+			event.Check((m_notebook_style & wxAUI_NB_TAB_FIXED_WIDTH) != 0);
+			break;
+		case ID_NotebookArtGloss:
+			event.Check(m_notebook_style == 0);
+			break;
+		case ID_NotebookArtSimple:
+			event.Check(m_notebook_style == 1);
+			break;
 	}
 }
 
@@ -763,7 +765,7 @@ void Frame::OnNotebookPageClose(wxAuiNotebookEvent& evt)
 
 void Frame::OnNotebookPageClosed(wxAuiNotebookEvent& evt)
 {
-	wxAuiNotebook* ctrl = (wxAuiNotebook*)evt.GetEventObject();
+	wxAuiNotebook *ctrl = (wxAuiNotebook *)evt.GetEventObject();
 
 	// selection should always be a valid index
 	wxASSERT_MSG(ctrl->GetSelection() < (int)ctrl->GetPageCount(),
@@ -777,7 +779,7 @@ void Frame::OnNotebookPageClosed(wxAuiNotebookEvent& evt)
 void Frame::OnAllowNotebookDnD(wxAuiNotebookEvent& evt)
 {
 	// for the purpose of this test application, explicitly
-	// allow all noteboko drag and drop events
+	// allow all notebook drag and drop events
 	evt.Allow();
 }
 
@@ -858,7 +860,7 @@ void Frame::OnDropDownToolbarItem(wxAuiToolBarEvent& evt)
 {
 	if (evt.IsDropDownClicked())
 	{
-		wxAuiToolBar* tb = static_cast<wxAuiToolBar*>(evt.GetEventObject());
+		wxAuiToolBar *tb = static_cast<wxAuiToolBar*>(evt.GetEventObject());
 
 		tb->SetToolSticky(evt.GetId(), true);
 
@@ -907,7 +909,7 @@ void Frame::OnTabAlignment(wxCommandEvent &evt)
 		wxAuiPaneInfo& pane = all_panes.Item(i);
 		if (pane.window->IsKindOf(CLASSINFO(wxAuiNotebook)))
 		{
-			wxAuiNotebook* nb = (wxAuiNotebook*)pane.window;
+			wxAuiNotebook* nb = (wxAuiNotebook *)pane.window;
 
 			long style = nb->GetWindowStyleFlag();
 			style &= ~(wxAUI_NB_TOP | wxAUI_NB_BOTTOM);
@@ -948,7 +950,7 @@ wxTextCtrl *Frame::CreateTextCtrl(const wxString& ctrl_text)
 }
 
 
-wxGrid* Frame::CreateGrid()
+wxGrid *Frame::CreateGrid()
 {
 	wxGrid* grid = new wxGrid(this, wxID_ANY,
 		wxPoint(0, 0),
@@ -960,18 +962,20 @@ wxGrid* Frame::CreateGrid()
 
 wxTreeCtrl *Frame::CreateTreeCtrl()
 {
-	wxTreeCtrl *tree = new wxTreeCtrl(this, wxID_ANY,
+	wxTreeCtrl *tree = new wxTreeCtrl(this, 10009,
 		wxPoint(0, 0), wxSize(190, 250),
 		wxTR_DEFAULT_STYLE | wxNO_BORDER);
+
+	tree->SetWindowStyle(wxTR_HIDE_ROOT);
 
 	wxImageList* imglist = new wxImageList(16, 16, true, 2);
 	imglist->Add(wxArtProvider::GetBitmap(wxART_FOLDER, wxART_OTHER, wxSize(16, 16)));
 	imglist->Add(wxArtProvider::GetBitmap(wxART_NORMAL_FILE, wxART_OTHER, wxSize(16, 16)));
 	tree->AssignImageList(imglist);
 
-	wxTreeItemId root = tree->AddRoot(wxT("Primitives"), 0);
-	wxArrayTreeItemIds items;
+	wxTreeItemId root = tree->AddRoot("NoRoot", 0);
 
+	wxArrayTreeItemIds items;
 	items.Add(tree->AppendItem(root, wxT("Block ciphers"), 0));
 	items.Add(tree->AppendItem(root, wxT("Stream ciphers"), 0));
 	items.Add(tree->AppendItem(root, wxT("Random generators"), 0));
@@ -991,8 +995,11 @@ wxTreeCtrl *Frame::CreateTreeCtrl()
 		tree->AppendItem(id, wxT("Subitem 5"), 1);
 	}
 
+	wxTreeItemId id = tree->AppendItem(root, wxT("Random generators"), 0);
+	tree->AppendItem(id, wxT("MT19937"), 1);
+	tree->AppendItem(id, wxT("MT19937ar"), 1);
 
-	tree->Expand(root);
+	//tree->Expand(root);
 
 	return tree;
 }
@@ -1005,12 +1012,12 @@ wxSizeReportCtrl *Frame::CreateSizeReportCtrl(int width, int height)
 	return ctrl;
 }
 
-wxHtmlWindow *Frame::CreateHTMLCtrl(wxWindow* parent)
+wxHtmlWindow *Frame::CreateHTMLCtrl(wxWindow *parent)
 {
 	if (!parent)
 		parent = this;
 
-	wxHtmlWindow* ctrl = new wxHtmlWindow(parent, wxID_ANY,
+	wxHtmlWindow *ctrl = new wxHtmlWindow(parent, wxID_ANY,
 		wxDefaultPosition,
 		wxSize(400, 300));
 	ctrl->SetPage(GetIntroText());
@@ -1022,7 +1029,7 @@ wxAuiNotebook *Frame::CreateNotebook()
 	// create the notebook off-window to avoid flicker
 	wxSize client_size = GetClientSize();
 
-	wxAuiNotebook* ctrl = new wxAuiNotebook(this, wxID_ANY,
+	wxAuiNotebook *ctrl = new wxAuiNotebook(this, wxID_ANY,
 		wxPoint(client_size.x, client_size.y),
 		wxSize(430, 200),
 		m_notebook_style);
@@ -1039,50 +1046,51 @@ wxAuiNotebook *Frame::CreateNotebook()
 	flex->AddGrowableRow(3);
 	flex->AddGrowableCol(1);
 	flex->Add(5, 5);   flex->Add(5, 5);
-	flex->Add(new wxStaticText(panel, -1, wxT("wxTextCtrl:")), 0, wxALL | wxALIGN_CENTRE, 5);
-	flex->Add(new wxTextCtrl(panel, -1, wxT(""), wxDefaultPosition, wxSize(100, -1)),
-		1, wxALL | wxALIGN_CENTRE, 5);
-	flex->Add(new wxStaticText(panel, -1, wxT("wxSpinCtrl:")), 0, wxALL | wxALIGN_CENTRE, 5);
-	flex->Add(new wxSpinCtrl(panel, -1, wxT("5"), wxDefaultPosition, wxSize(100, -1),
+	flex->Add(new wxStaticText(panel, wxID_ANY, wxT("wxTextCtrl:")), 0, wxALL | wxALIGN_CENTRE, 5);
+	flex->Add(new wxTextCtrl(panel, wxID_ANY, wxT(""), wxDefaultPosition, wxSize(100, -1)), 1, wxALL | wxALIGN_CENTRE, 5);
+	flex->Add(new wxStaticText(panel, wxID_ANY, wxT("wxSpinCtrl:")), 0, wxALL | wxALIGN_CENTRE, 5);
+	flex->Add(new wxSpinCtrl(panel, wxID_ANY, wxT("5"), wxDefaultPosition, wxSize(100, -1),
 		wxSP_ARROW_KEYS, 5, 50, 5), 0, wxALL | wxALIGN_CENTRE, 5);
 	flex->Add(5, 5);   flex->Add(5, 5);
 	panel->SetSizer(flex);
 	ctrl->AddPage(panel, wxT("wxPanel"), false, page_bmp);
 
+	wxTextCtrl *console = new wxTextCtrl(ctrl, wxID_ANY, wxT("Type 'help' to get started\n\n>> "),
+		wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE | wxNO_BORDER);
+	console->SetInsertionPointEnd();
 
-	ctrl->AddPage(new wxTextCtrl(ctrl, wxID_ANY, wxT("Some text"),
-		wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE | wxNO_BORDER), wxT("wxTextCtrl 1"), false, page_bmp);
-
-	ctrl->AddPage(new wxTextCtrl(ctrl, wxID_ANY, wxT("Some more text"),
-		wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE | wxNO_BORDER), wxT("wxTextCtrl 2"));
-
-	ctrl->AddPage(new wxTextCtrl(ctrl, wxID_ANY, wxT("Some more text"),
-		wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE | wxNO_BORDER), wxT("wxTextCtrl 3"));
-
-	ctrl->AddPage(new wxTextCtrl(ctrl, wxID_ANY, wxT("Some more text"),
-		wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE | wxNO_BORDER), wxT("wxTextCtrl 4"));
-
-	ctrl->AddPage(new wxTextCtrl(ctrl, wxID_ANY, wxT("Some more text"),
-		wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE | wxNO_BORDER), wxT("wxTextCtrl 5"));
-
-	ctrl->AddPage(new wxTextCtrl(ctrl, wxID_ANY, wxT("Some more text"),
-		wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE | wxNO_BORDER), wxT("wxTextCtrl 6"));
-
-	ctrl->AddPage(new wxTextCtrl(ctrl, wxID_ANY, wxT("Some more text"),
-		wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE | wxNO_BORDER), wxT("wxTextCtrl 7 (longer title)"));
-	ctrl->SetPageToolTip(ctrl->GetPageCount() - 1,
-		"wxTextCtrl 7: and the tooltip message can be even longer!");
-
-	ctrl->AddPage(new wxTextCtrl(ctrl, wxID_ANY, wxT("Some more text"),
-		wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE | wxNO_BORDER), wxT("wxTextCtrl 8"));
+	ctrl->AddPage(console, wxT("Console"), false, page_bmp);
 
 	ctrl->Thaw();
 	return ctrl;
 }
 
+void Frame::OnItemMenu(wxTreeEvent& event)
+{
+	wxTreeCtrl *tree = static_cast<wxTreeCtrl *>(event.GetEventObject());
+
+	// Skip parents
+	wxTreeItemId itemId = event.GetItem();
+	if (tree->GetChildrenCount(itemId) > 0)
+		return;
+
+	wxPoint pt = tree->ClientToScreen(event.GetPoint());
+	pt = ScreenToClient(pt);
+
+	// Build menu
+	wxMenu menu(wxT("Run"));
+	menu.Append(wxID_ANY, wxT("&Use as template"));
+	menu.AppendSeparator();
+	menu.Append(wxID_ANY, wxT("&Highlight item"));
+	menu.Append(wxID_ANY, wxT("&Dump"));
+
+	PopupMenu(&menu, pt);
+	event.Skip();
+}
+
 wxString Frame::GetIntroText()
 {
-	const char* text =
+	static const char *text =
 		"<html><body>"
 		"<h3>Welcome to Cryptox</h3>"
 		"<br/><b>Overview</b><br/>"
@@ -1226,4 +1234,5 @@ wxBEGIN_EVENT_TABLE(Frame, wxFrame)
 	EVT_AUINOTEBOOK_ALLOW_DND(wxID_ANY, Frame::OnAllowNotebookDnD)
 	EVT_AUINOTEBOOK_PAGE_CLOSE(wxID_ANY, Frame::OnNotebookPageClose)
 	EVT_AUINOTEBOOK_PAGE_CLOSED(wxID_ANY, Frame::OnNotebookPageClosed)
+	EVT_TREE_ITEM_RIGHT_CLICK(10009, Frame::OnItemMenu)
 wxEND_EVENT_TABLE()

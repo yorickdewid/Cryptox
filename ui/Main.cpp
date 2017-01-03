@@ -23,6 +23,13 @@ public:
 		if (!wxApp::OnInit())
 			return false;
 
+		SetVendorName(wxT("Quenza Inc."));
+		SetAppName(wxT("Cryptox"));
+		SetAppDisplayName(wxT("Cryptox Crypto IDE"));
+
+		wxConfigBase *config = wxConfigBase::Get();
+		config->SetRecordDefaults();
+
 		wxFrame *frame = new Frame(NULL,
 			wxID_ANY,
 			wxT(APPNAME),
