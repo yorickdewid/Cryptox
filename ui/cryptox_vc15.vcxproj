@@ -37,6 +37,7 @@
   <PropertyGroup Label="Globals">
     <ProjectName>cryptox</ProjectName>
     <ProjectGuid>{0E9842D2-3DC8-59FB-ABC5-F26CD815E2AD}</ProjectGuid>
+    <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DLL Release|Win32'" Label="Configuration">
@@ -119,8 +120,8 @@
     <_ProjectFileVersion>14.0.25431.1</_ProjectFileVersion>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <OutDir>vc_mswud\</OutDir>
-    <IntDir>vc_mswud\cryptox\</IntDir>
+    <OutDir>$(SolutionDir)$(Configuration)\</OutDir>
+    <IntDir>$(Configuration)\</IntDir>
     <LinkIncremental>true</LinkIncremental>
     <GenerateManifest>true</GenerateManifest>
   </PropertyGroup>
@@ -181,8 +182,8 @@
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <BufferSecurityCheck>true</BufferSecurityCheck>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
-      <ObjectFileName>vc_mswud\cryptox\</ObjectFileName>
-      <ProgramDataBaseFileName>vc_mswud\cryptox.pdb</ProgramDataBaseFileName>
+      <ObjectFileName>$(IntDir)</ObjectFileName>
+      <ProgramDataBaseFileName>$(IntDir)vc$(PlatformToolsetVersion).pdb</ProgramDataBaseFileName>
       <WarningLevel>Level4</WarningLevel>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
@@ -193,17 +194,17 @@
       <AdditionalIncludeDirectories>C:\wxWidgets-3.1.0\lib\vc_lib\mswud;C:\wxWidgets-3.1.0\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
     <Link>
-      <AdditionalDependencies>wxmsw31ud_aui.lib;wxmsw31ud_html.lib;wxmsw31ud_adv.lib;wxmsw31ud_core.lib;wxbase31ud_xml.lib;wxbase31ud.lib;wxtiffd.lib;wxjpegd.lib;wxpngd.lib;wxzlibd.lib;wxregexud.lib;wxexpatd.lib;kernel32.lib;user32.lib;gdi32.lib;comdlg32.lib;winspool.lib;winmm.lib;shell32.lib;shlwapi.lib;comctl32.lib;ole32.lib;oleaut32.lib;uuid.lib;rpcrt4.lib;advapi32.lib;version.lib;wsock32.lib;wininet.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <OutputFile>vc_mswud\cryptox.exe</OutputFile>
+      <AdditionalDependencies>wxmsw31ud_aui.lib;wxmsw31ud_html.lib;wxmsw31ud_adv.lib;wxmsw31ud_core.lib;wxbase31ud_xml.lib;wxbase31ud.lib;wxtiffd.lib;wxjpegd.lib;wxpngd.lib;wxzlibd.lib;wxregexud.lib;wxexpatd.lib;cryptopp.lib;kernel32.lib;user32.lib;gdi32.lib;comdlg32.lib;winspool.lib;winmm.lib;shell32.lib;shlwapi.lib;comctl32.lib;ole32.lib;oleaut32.lib;uuid.lib;rpcrt4.lib;advapi32.lib;version.lib;wsock32.lib;wininet.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
       <SuppressStartupBanner>true</SuppressStartupBanner>
-      <AdditionalLibraryDirectories>C:\wxWidgets-3.1.0\lib\vc_lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>C:\wxWidgets-3.1.0\lib\vc_lib;$(SolutionDir)packages\cryptopp.v140.5.6.5.2\lib\native\v140\windesktop\msvcstl\Win32\Debug\md;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <ProgramDatabaseFile>vc_mswud\cryptox.pdb</ProgramDatabaseFile>
+      <ProgramDatabaseFile>$(OutDir)$(TargetName).pdb</ProgramDatabaseFile>
       <SubSystem>Windows</SubSystem>
       <TargetMachine>MachineX86</TargetMachine>
     </Link>
     <Bscmake>
-      <OutputFile>vc_mswud\cryptox_vc9.bsc</OutputFile>
+      <OutputFile>vc_mswud\cryptox_vc15.bsc</OutputFile>
       <SuppressStartupBanner>true</SuppressStartupBanner>
     </Bscmake>
   </ItemDefinitionGroup>
@@ -244,7 +245,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
     </Link>
     <Bscmake>
-      <OutputFile>vc_mswu\cryptox_vc9.bsc</OutputFile>
+      <OutputFile>vc_mswu\cryptox_vc15.bsc</OutputFile>
       <SuppressStartupBanner>true</SuppressStartupBanner>
     </Bscmake>
   </ItemDefinitionGroup>
@@ -285,7 +286,7 @@
       <TargetMachine>MachineX86</TargetMachine>
     </Link>
     <Bscmake>
-      <OutputFile>vc_mswuddll\cryptox_vc9.bsc</OutputFile>
+      <OutputFile>vc_mswuddll\cryptox_vc15.bsc</OutputFile>
       <SuppressStartupBanner>true</SuppressStartupBanner>
     </Bscmake>
   </ItemDefinitionGroup>
@@ -326,7 +327,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
     </Link>
     <Bscmake>
-      <OutputFile>vc_mswudll\cryptox_vc9.bsc</OutputFile>
+      <OutputFile>vc_mswudll\cryptox_vc15.bsc</OutputFile>
       <SuppressStartupBanner>true</SuppressStartupBanner>
     </Bscmake>
   </ItemDefinitionGroup>
@@ -367,7 +368,7 @@
       <TargetMachine>MachineX64</TargetMachine>
     </Link>
     <Bscmake>
-      <OutputFile>vc_mswud_x64\cryptox_vc9.bsc</OutputFile>
+      <OutputFile>vc_mswud_x64\cryptox_vc15.bsc</OutputFile>
       <SuppressStartupBanner>true</SuppressStartupBanner>
     </Bscmake>
   </ItemDefinitionGroup>
@@ -408,7 +409,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
     </Link>
     <Bscmake>
-      <OutputFile>vc_mswu_x64\cryptox_vc9.bsc</OutputFile>
+      <OutputFile>vc_mswu_x64\cryptox_vc15.bsc</OutputFile>
       <SuppressStartupBanner>true</SuppressStartupBanner>
     </Bscmake>
   </ItemDefinitionGroup>
@@ -449,7 +450,7 @@
       <TargetMachine>MachineX64</TargetMachine>
     </Link>
     <Bscmake>
-      <OutputFile>vc_mswuddll_x64\cryptox_vc9.bsc</OutputFile>
+      <OutputFile>vc_mswuddll_x64\cryptox_vc15.bsc</OutputFile>
       <SuppressStartupBanner>true</SuppressStartupBanner>
     </Bscmake>
   </ItemDefinitionGroup>
@@ -490,32 +491,47 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
     </Link>
     <Bscmake>
-      <OutputFile>vc_mswudll_x64\cryptox_vc9.bsc</OutputFile>
+      <OutputFile>vc_mswudll_x64\cryptox_vc15.bsc</OutputFile>
       <SuppressStartupBanner>true</SuppressStartupBanner>
     </Bscmake>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="Frame.cpp" />
-    <ClCompile Include="Main.cpp" />
-    <ClCompile Include="SettingsPanel.cpp" />
-    <ClCompile Include="wxSizeReportCtrl.cpp" />
+    <ClCompile Include="..\ui\Frame.cpp" />
+    <ClCompile Include="..\ui\Main.cpp" />
+    <ClCompile Include="..\ui\SettingsPanel.cpp" />
+    <ClCompile Include="..\ui\wxSizeReportCtrl.cpp" />
+    <ClCompile Include="RandonGenerator.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="sample.rc" />
+    <ClInclude Include="..\ui\Frame.h" />
+    <ClInclude Include="..\ui\SettingsPanel.h" />
+    <ClInclude Include="..\ui\wxSizeReportCtrl.h" />
+    <ClInclude Include="RandonGenerator.h" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="sample.xpm" />
+    <Image Include="..\ui\cryptox.ico" />
+    <Image Include="..\ui\locked.png" />
   </ItemGroup>
   <ItemGroup>
-    <Image Include="cryptox.ico" />
-    <Image Include="locked.png" />
+    <ResourceCompile Include="..\ui\sample.rc" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Frame.h" />
-    <ClInclude Include="SettingsPanel.h" />
-    <ClInclude Include="wxSizeReportCtrl.h" />
+    <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
+    <Import Project="..\packages\cryptopp.android.5.6.5.2\build\native\cryptopp.android.targets" Condition="Exists('..\packages\cryptopp.android.5.6.5.2\build\native\cryptopp.android.targets')" />
+    <Import Project="..\packages\cryptopp.v120.5.6.5.2\build\native\cryptopp.v120.targets" Condition="Exists('..\packages\cryptopp.v120.5.6.5.2\build\native\cryptopp.v120.targets')" />
+    <Import Project="..\packages\cryptopp.v140.5.6.5.2\build\native\cryptopp.v140.targets" Condition="Exists('..\packages\cryptopp.v140.5.6.5.2\build\native\cryptopp.v140.targets')" />
+    <Import Project="..\packages\cryptopp.5.6.5.4\build\native\cryptopp.targets" Condition="Exists('..\packages\cryptopp.5.6.5.4\build\native\cryptopp.targets')" />
   </ImportGroup>
+  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
+    </PropertyGroup>
+    <Error Condition="!Exists('..\packages\cryptopp.android.5.6.5.2\build\native\cryptopp.android.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\cryptopp.android.5.6.5.2\build\native\cryptopp.android.targets'))" />
+    <Error Condition="!Exists('..\packages\cryptopp.v120.5.6.5.2\build\native\cryptopp.v120.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\cryptopp.v120.5.6.5.2\build\native\cryptopp.v120.targets'))" />
+    <Error Condition="!Exists('..\packages\cryptopp.v140.5.6.5.2\build\native\cryptopp.v140.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\cryptopp.v140.5.6.5.2\build\native\cryptopp.v140.targets'))" />
+    <Error Condition="!Exists('..\packages\cryptopp.5.6.5.4\build\native\cryptopp.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\cryptopp.5.6.5.4\build\native\cryptopp.targets'))" />
+  </Target>
 </Project>

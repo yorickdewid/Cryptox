@@ -14,46 +14,48 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Main.cpp">
+    <ClCompile Include="..\ui\Frame.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Frame.cpp">
+    <ClCompile Include="..\ui\Main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="SettingsPanel.cpp">
+    <ClCompile Include="..\ui\SettingsPanel.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="wxSizeReportCtrl.cpp">
+    <ClCompile Include="..\ui\wxSizeReportCtrl.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="RandonGenerator.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="sample.rc">
+    <ClInclude Include="..\ui\Frame.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ui\SettingsPanel.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ui\wxSizeReportCtrl.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="RandonGenerator.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="..\ui\cryptox.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\ui\locked.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="..\ui\sample.rc">
       <Filter>Resource Files</Filter>
     </ResourceCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="sample.xpm">
-      <Filter>Resource Files</Filter>
-    </None>
-  </ItemGroup>
-  <ItemGroup>
-    <Image Include="locked.png">
-      <Filter>Resource Files</Filter>
-    </Image>
-    <Image Include="cryptox.ico">
-      <Filter>Resource Files</Filter>
-    </Image>
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="wxSizeReportCtrl.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Frame.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="SettingsPanel.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
+    <None Include="packages.config" />
   </ItemGroup>
 </Project>

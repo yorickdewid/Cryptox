@@ -23,6 +23,7 @@ class SettingsPanel : public wxPanel
 		ID_BorderColor,
 		ID_GripperColor
 	};
+
 public:
 	SettingsPanel(wxWindow *parent, Frame *frame);
 

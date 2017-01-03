@@ -10,7 +10,7 @@ SettingsPanel::SettingsPanel(wxWindow *parent, Frame *frame)
 
 	//vert->Add(1, 1, 1, wxEXPAND);
 
-	wxBoxSizer* s1 = new wxBoxSizer(wxHORIZONTAL);
+	wxBoxSizer *s1 = new wxBoxSizer(wxHORIZONTAL);
 	m_border_size = new wxSpinCtrl(this, ID_PaneBorderSize, wxString::Format(wxT("%d"), frame->GetDockArt()->GetMetric(wxAUI_DOCKART_PANE_BORDER_SIZE)), wxDefaultPosition, wxSize(50, 20), wxSP_ARROW_KEYS, 0, 100, frame->GetDockArt()->GetMetric(wxAUI_DOCKART_PANE_BORDER_SIZE));
 	s1->Add(1, 1, 1, wxEXPAND);
 	s1->Add(new wxStaticText(this, wxID_ANY, wxT("Pane Border Size:")));
@@ -19,7 +19,7 @@ SettingsPanel::SettingsPanel(wxWindow *parent, Frame *frame)
 	s1->SetItemMinSize((size_t)1, 180, 20);
 	//vert->Add(s1, 0, wxEXPAND | wxLEFT | wxBOTTOM, 5);
 
-	wxBoxSizer* s2 = new wxBoxSizer(wxHORIZONTAL);
+	wxBoxSizer *s2 = new wxBoxSizer(wxHORIZONTAL);
 	m_sash_size = new wxSpinCtrl(this, ID_SashSize, wxString::Format(wxT("%d"), frame->GetDockArt()->GetMetric(wxAUI_DOCKART_SASH_SIZE)), wxDefaultPosition, wxSize(50, 20), wxSP_ARROW_KEYS, 0, 100, frame->GetDockArt()->GetMetric(wxAUI_DOCKART_SASH_SIZE));
 	s2->Add(1, 1, 1, wxEXPAND);
 	s2->Add(new wxStaticText(this, wxID_ANY, wxT("Sash Size:")));
@@ -28,7 +28,7 @@ SettingsPanel::SettingsPanel(wxWindow *parent, Frame *frame)
 	s2->SetItemMinSize((size_t)1, 180, 20);
 	//vert->Add(s2, 0, wxEXPAND | wxLEFT | wxBOTTOM, 5);
 
-	wxBoxSizer* s3 = new wxBoxSizer(wxHORIZONTAL);
+	wxBoxSizer *s3 = new wxBoxSizer(wxHORIZONTAL);
 	m_caption_size = new wxSpinCtrl(this, ID_CaptionSize, wxString::Format(wxT("%d"), frame->GetDockArt()->GetMetric(wxAUI_DOCKART_CAPTION_SIZE)), wxDefaultPosition, wxSize(50, 20), wxSP_ARROW_KEYS, 0, 100, frame->GetDockArt()->GetMetric(wxAUI_DOCKART_CAPTION_SIZE));
 	s3->Add(1, 1, 1, wxEXPAND);
 	s3->Add(new wxStaticText(this, wxID_ANY, wxT("Caption Size:")));
@@ -38,7 +38,6 @@ SettingsPanel::SettingsPanel(wxWindow *parent, Frame *frame)
 	//vert->Add(s3, 0, wxEXPAND | wxLEFT | wxBOTTOM, 5);
 
 	//vert->Add(1, 1, 1, wxEXPAND);
-
 
 	wxBitmap b = CreateColorBitmap(*wxBLACK);
 
@@ -122,7 +121,7 @@ SettingsPanel::SettingsPanel(wxWindow *parent, Frame *frame)
 	s13->Add(1, 1, 1, wxEXPAND);
 	s13->SetItemMinSize((size_t)1, 180, 20);
 
-	wxGridSizer* grid_sizer = new wxGridSizer(2);
+	wxGridSizer *grid_sizer = new wxGridSizer(2);
 	grid_sizer->SetHGap(5);
 	grid_sizer->Add(s1);  grid_sizer->Add(s4);
 	grid_sizer->Add(s2);  grid_sizer->Add(s5);
@@ -132,7 +131,7 @@ SettingsPanel::SettingsPanel(wxWindow *parent, Frame *frame)
 	grid_sizer->Add(s7);  grid_sizer->Add(s10);
 	grid_sizer->Add(s8);  grid_sizer->Add(s11);
 
-	wxBoxSizer* cont_sizer = new wxBoxSizer(wxVERTICAL);
+	wxBoxSizer *cont_sizer = new wxBoxSizer(wxVERTICAL);
 	cont_sizer->Add(grid_sizer, 1, wxEXPAND | wxALL, 5);
 	SetSizer(cont_sizer);
 	GetSizer()->SetSizeHints(this);
@@ -223,17 +222,17 @@ void SettingsPanel::OnSetColor(wxCommandEvent& event)
 	int var = 0;
 	switch (event.GetId())
 	{
-	case ID_BackgroundColor:              var = wxAUI_DOCKART_BACKGROUND_COLOUR; break;
-	case ID_SashColor:                    var = wxAUI_DOCKART_SASH_COLOUR; break;
-	case ID_InactiveCaptionColor:         var = wxAUI_DOCKART_INACTIVE_CAPTION_COLOUR; break;
-	case ID_InactiveCaptionGradientColor: var = wxAUI_DOCKART_INACTIVE_CAPTION_GRADIENT_COLOUR; break;
-	case ID_InactiveCaptionTextColor:     var = wxAUI_DOCKART_INACTIVE_CAPTION_TEXT_COLOUR; break;
-	case ID_ActiveCaptionColor:           var = wxAUI_DOCKART_ACTIVE_CAPTION_COLOUR; break;
-	case ID_ActiveCaptionGradientColor:   var = wxAUI_DOCKART_ACTIVE_CAPTION_GRADIENT_COLOUR; break;
-	case ID_ActiveCaptionTextColor:       var = wxAUI_DOCKART_ACTIVE_CAPTION_TEXT_COLOUR; break;
-	case ID_BorderColor:                  var = wxAUI_DOCKART_BORDER_COLOUR; break;
-	case ID_GripperColor:                 var = wxAUI_DOCKART_GRIPPER_COLOUR; break;
-	default: return;
+		case ID_BackgroundColor:              var = wxAUI_DOCKART_BACKGROUND_COLOUR; break;
+		case ID_SashColor:                    var = wxAUI_DOCKART_SASH_COLOUR; break;
+		case ID_InactiveCaptionColor:         var = wxAUI_DOCKART_INACTIVE_CAPTION_COLOUR; break;
+		case ID_InactiveCaptionGradientColor: var = wxAUI_DOCKART_INACTIVE_CAPTION_GRADIENT_COLOUR; break;
+		case ID_InactiveCaptionTextColor:     var = wxAUI_DOCKART_INACTIVE_CAPTION_TEXT_COLOUR; break;
+		case ID_ActiveCaptionColor:           var = wxAUI_DOCKART_ACTIVE_CAPTION_COLOUR; break;
+		case ID_ActiveCaptionGradientColor:   var = wxAUI_DOCKART_ACTIVE_CAPTION_GRADIENT_COLOUR; break;
+		case ID_ActiveCaptionTextColor:       var = wxAUI_DOCKART_ACTIVE_CAPTION_TEXT_COLOUR; break;
+		case ID_BorderColor:                  var = wxAUI_DOCKART_BORDER_COLOUR; break;
+		case ID_GripperColor:                 var = wxAUI_DOCKART_GRIPPER_COLOUR; break;
+		default: return;
 	}
 
 	m_frame->GetDockArt()->SetColor(var, dlg.GetColourData().GetColour());

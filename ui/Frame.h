@@ -41,6 +41,7 @@ class Frame : public wxFrame
 		ID_LiveUpdate,
 		ID_AllowToolbarResizing,
 		ID_Settings,
+		ID_RandomGeneratorWindow,
 		ID_CustomizeToolbar,
 		ID_DropDownToolbarItem,
 		ID_NotebookNoCloseButton,
@@ -103,6 +104,7 @@ private:
 	void OnCopyPerspectiveCode(wxCommandEvent& evt);
 	void OnRestorePerspective(wxCommandEvent& evt);
 	void OnSettings(wxCommandEvent& evt);
+	void OnRandomGeneratorWindow(wxCommandEvent& evt);
 	void OnCustomizeToolbar(wxCommandEvent& evt);
 	void OnAllowNotebookDnD(wxAuiNotebookEvent& evt);
 	void OnNotebookPageClose(wxAuiNotebookEvent& evt);

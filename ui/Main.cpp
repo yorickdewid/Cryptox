@@ -13,7 +13,7 @@
 #include <wx/wxprec.h>
 #include <wx/app.h>
 
-#define APPNAME "Cryptox"
+#define APPNAME "Cryptox IDE"
 
 class CyApp : public wxApp
 {
@@ -27,7 +27,7 @@ public:
 			wxID_ANY,
 			wxT(APPNAME),
 			wxDefaultPosition,
-			wxSize(1000, 750));
+			wxSize(1100, 750));
 		frame->Show();
 
 		return true;
