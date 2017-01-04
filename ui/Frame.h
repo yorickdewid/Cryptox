@@ -6,6 +6,8 @@
 #include <wx/grid.h>
 #include <wx/treectrl.h>
 #include <wx/wxhtml.h>
+#include <wx/propgrid/propgrid.h>
+#include <wx/propgrid/manager.h>
 #include <wx/aui/aui.h>
 
 class Frame : public wxFrame
@@ -78,9 +80,11 @@ public:
 	void DoUpdate();
 
 private:
+	wxMenuBar *CreateMenuBar();
 	wxTextCtrl *CreateTextCtrl(const wxString& text = wxEmptyString);
 	wxGrid *CreateGrid();
 	wxTreeCtrl *CreateTreeCtrl();
+	wxPropertyGridManager *CreatePropCtrl();
 	wxSizeReportCtrl *CreateSizeReportCtrl(int width = 80, int height = 80);
 	wxPoint GetStartPosition();
 	wxHtmlWindow *CreateHTMLCtrl(wxWindow* parent = NULL);
@@ -113,6 +117,7 @@ private:
 	void OnAbout(wxCommandEvent& evt);
 	void OnTabAlignment(wxCommandEvent& evt);
 	void OnItemMenu(wxTreeEvent& evt);
+	void OnConsoleEnter(wxCommandEvent& evt);
 
 	void OnGradient(wxCommandEvent& evt);
 	void OnToolbarResizing(wxCommandEvent& evt);
