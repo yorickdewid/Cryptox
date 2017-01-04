@@ -46,7 +46,7 @@ class Frame : public wxFrame
 		ID_RandomGeneratorWindow,
 		ID_CustomizeToolbar,
 		ID_DropDownToolbarItem,
-		ID_NotebookNoCloseButton,
+		/*ID_NotebookNoCloseButton,
 		ID_NotebookCloseButton,
 		ID_NotebookCloseButtonAll,
 		ID_NotebookCloseButtonActive,
@@ -59,7 +59,7 @@ class Frame : public wxFrame
 		ID_NotebookArtGloss,
 		ID_NotebookArtSimple,
 		ID_NotebookAlignTop,
-		ID_NotebookAlignBottom,
+		ID_NotebookAlignBottom,*/
 
 		ID_SampleItem,
 
@@ -93,9 +93,6 @@ private:
 	wxString GetIntroText();
 
 private:
-	void OnEraseBackground(wxEraseEvent& evt);
-	void OnSize(wxSizeEvent& evt);
-
 	void OnCreateTree(wxCommandEvent& evt);
 	void OnCreateGrid(wxCommandEvent& evt);
 	void OnCreateHTML(wxCommandEvent& evt);
@@ -115,14 +112,12 @@ private:
 	void OnNotebookPageClosed(wxAuiNotebookEvent& evt);
 	void OnExit(wxCommandEvent& evt);
 	void OnAbout(wxCommandEvent& evt);
-	void OnTabAlignment(wxCommandEvent& evt);
 	void OnItemMenu(wxTreeEvent& evt);
 	void OnConsoleEnter(wxCommandEvent& evt);
 
 	void OnGradient(wxCommandEvent& evt);
 	void OnToolbarResizing(wxCommandEvent& evt);
 	void OnManagerFlag(wxCommandEvent& evt);
-	void OnNotebookFlag(wxCommandEvent& evt);
 	void OnUpdateUI(wxUpdateUIEvent& evt);
 
 	void OnPaneClose(wxAuiManagerEvent& evt);
@@ -131,6 +126,7 @@ private:
 	wxAuiManager m_mgr;
 	wxArrayString m_perspectives;
 	wxMenu *m_perspectives_menu;
+	wxTextCtrl *m_output;
 	long m_notebook_style;
 	long m_notebook_theme;
 
