@@ -175,7 +175,7 @@
     <ClCompile>
       <AdditionalOptions>/MP %(AdditionalOptions)</AdditionalOptions>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>C:\wxWidgets-3.1.0\lib\vc_lib\mswud;C:\wxWidgets-3.1.0\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\wxWidgets-3.1.0\lib\vc_lib\mswud;C:\wxWidgets-3.1.0\include;$(SolutionDir)packages\cryptopp.5.6.5.4\build\native\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CRT_SECURE_NO_DEPRECATE=1;_CRT_NON_CONFORMING_SWPRINTFS=1;_SCL_SECURE_NO_WARNINGS=1;__WXMSW__;_UNICODE;_WINDOWS;NOPCH;WX_PRECOMP;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ExceptionHandling>Sync</ExceptionHandling>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
@@ -516,6 +516,7 @@
   <ItemGroup>
     <Image Include="..\ui\cryptox.ico" />
     <Image Include="..\ui\locked.png" />
+    <Image Include="unlocked.ico" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\ui\sample.rc" />

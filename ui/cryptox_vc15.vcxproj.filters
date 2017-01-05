@@ -53,6 +53,9 @@
     <Image Include="..\ui\locked.png">
       <Filter>Resource Files</Filter>
     </Image>
+    <Image Include="unlocked.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\ui\sample.rc">

@@ -236,11 +236,10 @@ void Frame::OnSettings(wxCommandEvent& WXUNUSED(evt))
 #include "BlockCipherFrame.h"
 void Frame::CreatePrimitiveFrame()
 {
-	//RandonGenerator dialog(this);
-	//dialog.ShowModal();
-
 	wxFrame *frame = new BlockCipherFrame(this);
+	frame->SetIcon(wxIcon(wxString("unlocked.ico"), wxBITMAP_TYPE_ICO));
 	frame->Show();
+	frame->SetFocus();
 }
 
 void Frame::OnCustomizeToolbar(wxCommandEvent& WXUNUSED(evt))
@@ -631,6 +630,7 @@ wxMenuBar *Frame::CreateMenuBar()
 	
 	wxMenu *tools_menu = new wxMenu;
 	tools_menu->Append(wxID_ANY, wxT("Password Generator"));
+	tools_menu->Append(ID_RandomGeneratorWindow, wxT("Block Cipher Encryption"));
 	tools_menu->AppendSeparator();
 	tools_menu->Append(ID_Settings, wxT("Settings Pane"));
 
@@ -736,7 +736,7 @@ wxTreeCtrl *Frame::CreateTreeCtrl()
 	int i, count;
 	for (i = 0, count = items.Count(); i < count; ++i)
 	{
-		wxTreeItemId id = items.Item(i);
+		id = items.Item(i);
 		tree->AppendItem(id, wxT("Subitem 1"), 1);
 		tree->AppendItem(id, wxT("Subitem 2"), 1);
 		tree->AppendItem(id, wxT("Subitem 3"), 1);
@@ -864,8 +864,7 @@ void Frame::OnItemMenu(wxTreeEvent& event)
 	menu.Append(ID_RandomGeneratorWindow, wxT("&Run"));
 	menu.AppendSeparator();
 	menu.Append(wxID_ANY, wxT("&Use as template"));
-	menu.Append(wxID_ANY, wxT("&Highlight item"));
-	menu.Append(wxID_ANY, wxT("&Dump"));
+	menu.Append(wxID_ANY, wxT("&Attack database"));
 
 	PopupMenu(&menu, pt);
 	event.Skip();
