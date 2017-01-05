@@ -14,7 +14,9 @@
 *.o
 *.obj
 *.pdb
+*.idb
 *.ilk
+*.exe
 
 # Precompiled Headers
 *.gch
@@ -39,3 +41,8 @@
 *.exe
 *.out
 *.app
+
+# Directories
+/packages
+/Debug
+/Release

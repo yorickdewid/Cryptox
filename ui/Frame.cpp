@@ -694,7 +694,38 @@ wxTreeCtrl *Frame::CreateTreeCtrl()
 	wxTreeItemId root = tree->AddRoot("NoRoot", 0);
 
 	wxArrayTreeItemIds items;
-	items.Add(tree->AppendItem(root, wxT("Block ciphers"), 0));
+	wxTreeItemId id = tree->AppendItem(root, wxT("Block ciphers"), 0);
+
+	tree->AppendItem(id, wxT("AES"), 1);
+	tree->AppendItem(id, wxT("Blowfish"), 1);
+	tree->AppendItem(id, wxT("Twofish"), 1);
+	tree->AppendItem(id, wxT("Serpent"), 1);
+	tree->AppendItem(id, wxT("Camellia"), 1);
+	tree->AppendItem(id, wxT("CAST128"), 1);
+	tree->AppendItem(id, wxT("CAST256"), 1);
+	tree->AppendItem(id, wxT("GOST"), 1);
+	tree->AppendItem(id, wxT("MARS"), 1);
+	tree->AppendItem(id, wxT("RC2"), 1);
+	tree->AppendItem(id, wxT("RC4"), 1);
+	tree->AppendItem(id, wxT("RC5"), 1);
+	tree->AppendItem(id, wxT("RC6"), 1);
+	tree->AppendItem(id, wxT("DES"), 1);
+	tree->AppendItem(id, wxT("DESX"), 1);
+	tree->AppendItem(id, wxT("3DES"), 1);
+	tree->AppendItem(id, wxT("3kDES"), 1);
+	tree->AppendItem(id, wxT("SAFER-K"), 1);
+	tree->AppendItem(id, wxT("SAFER-SK"), 1);
+	tree->AppendItem(id, wxT("SEED"), 1);
+	tree->AppendItem(id, wxT("SHACAL-2"), 1);
+	tree->AppendItem(id, wxT("SHARK"), 1);
+	tree->AppendItem(id, wxT("Skipjack"), 1);
+	tree->AppendItem(id, wxT("Square"), 1);
+	tree->AppendItem(id, wxT("TEA"), 1);
+	tree->AppendItem(id, wxT("IDEA"), 1);
+	tree->AppendItem(id, wxT("BTEA"), 1);
+	tree->AppendItem(id, wxT("XTEA"), 1);
+	tree->AppendItem(id, wxT("NULL"), 1);
+
 	items.Add(tree->AppendItem(root, wxT("Stream ciphers"), 0));
 	items.Add(tree->AppendItem(root, wxT("Random generators"), 0));
 	items.Add(tree->AppendItem(root, wxT("Elliptic curves"), 0));
@@ -713,7 +744,7 @@ wxTreeCtrl *Frame::CreateTreeCtrl()
 		tree->AppendItem(id, wxT("Subitem 5"), 1);
 	}
 
-	wxTreeItemId id = tree->AppendItem(root, wxT("Random generators"), 0);
+	id = tree->AppendItem(root, wxT("Random generators"), 0);
 	tree->AppendItem(id, wxT("MT19937"), 1);
 	tree->AppendItem(id, wxT("MT19937ar"), 1);
 
