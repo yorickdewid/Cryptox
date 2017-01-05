@@ -20,12 +20,6 @@ class Frame : public wxFrame
 		ID_CreateHTML,
 		ID_CreateNotebook,
 		ID_CreateSizeReport,
-		ID_GridContent,
-		ID_TextContent,
-		ID_TreeContent,
-		ID_HTMLContent,
-		ID_NotebookContent,
-		ID_SizeReportContent,
 		ID_CreatePerspective,
 		ID_CopyPerspectiveCode,
 		ID_AllowFloating,
@@ -46,20 +40,6 @@ class Frame : public wxFrame
 		ID_RandomGeneratorWindow,
 		ID_CustomizeToolbar,
 		ID_DropDownToolbarItem,
-		/*ID_NotebookNoCloseButton,
-		ID_NotebookCloseButton,
-		ID_NotebookCloseButtonAll,
-		ID_NotebookCloseButtonActive,
-		ID_NotebookAllowTabMove,
-		ID_NotebookAllowTabExternalMove,
-		ID_NotebookAllowTabSplit,
-		ID_NotebookWindowList,
-		ID_NotebookScrollButtons,
-		ID_NotebookTabFixedWidth,
-		ID_NotebookArtGloss,
-		ID_NotebookArtSimple,
-		ID_NotebookAlignTop,
-		ID_NotebookAlignBottom,*/
 
 		ID_SampleItem,
 
@@ -87,8 +67,9 @@ private:
 	wxPropertyGridManager *CreatePropCtrl();
 	wxSizeReportCtrl *CreateSizeReportCtrl(int width = 80, int height = 80);
 	wxPoint GetStartPosition();
-	wxHtmlWindow *CreateHTMLCtrl(wxWindow* parent = NULL);
+	wxHtmlWindow *CreateHTMLCtrl(wxWindow *parent = NULL);
 	wxAuiNotebook *CreateNotebook();
+	void CreatePrimitiveFrame();
 
 	wxString GetIntroText();
 
@@ -99,13 +80,11 @@ private:
 	void OnCreateNotebook(wxCommandEvent& evt);
 	void OnCreateText(wxCommandEvent& evt);
 	void OnCreateSizeReport(wxCommandEvent& evt);
-	void OnChangeContentPane(wxCommandEvent& evt);
 	void OnDropDownToolbarItem(wxAuiToolBarEvent& evt);
 	void OnCreatePerspective(wxCommandEvent& evt);
 	void OnCopyPerspectiveCode(wxCommandEvent& evt);
 	void OnRestorePerspective(wxCommandEvent& evt);
 	void OnSettings(wxCommandEvent& evt);
-	void OnRandomGeneratorWindow(wxCommandEvent& evt);
 	void OnCustomizeToolbar(wxCommandEvent& evt);
 	void OnAllowNotebookDnD(wxAuiNotebookEvent& evt);
 	void OnNotebookPageClose(wxAuiNotebookEvent& evt);
@@ -114,6 +93,21 @@ private:
 	void OnAbout(wxCommandEvent& evt);
 	void OnItemMenu(wxTreeEvent& evt);
 	void OnConsoleEnter(wxCommandEvent& evt);
+	void OnMenuPrimitiveRun(wxCommandEvent& WXUNUSED(evt))
+	{
+		CreatePrimitiveFrame();
+	}
+	void OnTreeDoubleClick(wxTreeEvent& evt)
+	{
+		wxTreeCtrl *tree = static_cast<wxTreeCtrl *>(evt.GetEventObject());
+
+		// Skip parents
+		wxTreeItemId itemId = evt.GetItem();
+		if (tree->ItemHasChildren(itemId))
+			return;
+
+		CreatePrimitiveFrame();
+	}
 
 	void OnGradient(wxCommandEvent& evt);
 	void OnToolbarResizing(wxCommandEvent& evt);

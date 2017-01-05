@@ -500,12 +500,14 @@
     <ClCompile Include="..\ui\Main.cpp" />
     <ClCompile Include="..\ui\SettingsPanel.cpp" />
     <ClCompile Include="..\ui\wxSizeReportCtrl.cpp" />
+    <ClCompile Include="BlockCipherFrame.cpp" />
     <ClCompile Include="RandonGenerator.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\ui\Frame.h" />
     <ClInclude Include="..\ui\SettingsPanel.h" />
     <ClInclude Include="..\ui\wxSizeReportCtrl.h" />
+    <ClInclude Include="BlockCipherFrame.h" />
     <ClInclude Include="RandonGenerator.h" />
   </ItemGroup>
   <ItemGroup>

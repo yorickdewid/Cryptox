@@ -233,20 +233,19 @@ void Frame::OnSettings(wxCommandEvent& WXUNUSED(evt))
 
 	m_mgr.Update();
 }
-
-void Frame::OnRandomGeneratorWindow(wxCommandEvent& WXUNUSED(evt))
+#include "BlockCipherFrame.h"
+void Frame::CreatePrimitiveFrame()
 {
-	RandonGenerator dialog(this);
-	dialog.ShowModal();
-	//if (dialog.ShowModal() != wxID_OK)
-		//dialogText->AppendText(_("The about box was cancelled.\n"));
-	//else
-		//dialogText->AppendText(dialog.GetText());
+	//RandonGenerator dialog(this);
+	//dialog.ShowModal();
+
+	wxFrame *frame = new BlockCipherFrame(this);
+	frame->Show();
 }
 
 void Frame::OnCustomizeToolbar(wxCommandEvent& WXUNUSED(evt))
 {
-	wxMessageBox(_("Customize Toolbar clicked"));
+	wxMessageBox(wxT("Customize Toolbar clicked"));
 }
 
 void Frame::OnGradient(wxCommandEvent& event)
@@ -536,17 +535,6 @@ void Frame::OnCreateSizeReport(wxCommandEvent& WXUNUSED(event))
 	m_mgr.Update();
 }
 
-void Frame::OnChangeContentPane(wxCommandEvent& evt)
-{
-	m_mgr.GetPane(wxT("grid_content")).Show(evt.GetId() == ID_GridContent);
-	m_mgr.GetPane(wxT("text_content")).Show(evt.GetId() == ID_TextContent);
-	m_mgr.GetPane(wxT("tree_content")).Show(evt.GetId() == ID_TreeContent);
-	m_mgr.GetPane(wxT("sizereport_content")).Show(evt.GetId() == ID_SizeReportContent);
-	m_mgr.GetPane(wxT("html_content")).Show(evt.GetId() == ID_HTMLContent);
-	m_mgr.GetPane(wxT("notebook_content")).Show(evt.GetId() == ID_NotebookContent);
-	m_mgr.Update();
-}
-
 void Frame::OnDropDownToolbarItem(wxAuiToolBarEvent& evt)
 {
 	if (evt.IsDropDownClicked())
@@ -621,13 +609,6 @@ wxMenuBar *Frame::CreateMenuBar()
 	view_menu->Append(ID_CreateGrid, wxT("Create Grid"));
 	view_menu->Append(ID_CreateNotebook, wxT("Create Notebook"));
 	view_menu->Append(ID_CreateSizeReport, wxT("Create Size Reporter"));
-	view_menu->AppendSeparator();
-	view_menu->Append(ID_GridContent, wxT("Use a Grid for the Content Pane"));
-	view_menu->Append(ID_TextContent, wxT("Use a Text Control for the Content Pane"));
-	view_menu->Append(ID_HTMLContent, wxT("Use an HTML Control for the Content Pane"));
-	view_menu->Append(ID_TreeContent, wxT("Use a Tree Control for the Content Pane"));
-	view_menu->Append(ID_NotebookContent, wxT("Use a wxAuiNotebook control for the Content Pane"));
-	view_menu->Append(ID_SizeReportContent, wxT("Use a Size Reporter for the Content Pane"));
 
 	wxMenu *options_menu = new wxMenu;
 	options_menu->AppendRadioItem(ID_TransparentHint, wxT("Transparent Hint"));
@@ -647,29 +628,9 @@ wxMenuBar *Frame::CreateMenuBar()
 	options_menu->AppendRadioItem(ID_HorizontalGradient, wxT("Horizontal Caption Gradient"));
 	options_menu->AppendSeparator();
 	options_menu->AppendCheckItem(ID_AllowToolbarResizing, wxT("Allow Toolbar Resizing"));
-	options_menu->AppendSeparator();
-	options_menu->Append(ID_Settings, wxT("Settings Pane"));
-
+	
 	wxMenu *tools_menu = new wxMenu;
 	tools_menu->Append(wxID_ANY, wxT("Password Generator"));
-	tools_menu->AppendSeparator();
-	tools_menu->AppendRadioItem(ID_TransparentHint, wxT("Transparent Hint"));
-	tools_menu->AppendRadioItem(ID_VenetianBlindsHint, wxT("Venetian Blinds Hint"));
-	tools_menu->AppendRadioItem(ID_RectangleHint, wxT("Rectangle Hint"));
-	tools_menu->AppendRadioItem(ID_NoHint, wxT("No Hint"));
-	tools_menu->AppendSeparator();
-	tools_menu->AppendCheckItem(ID_HintFade, wxT("Hint Fade-in"));
-	tools_menu->AppendCheckItem(ID_AllowFloating, wxT("Allow Floating"));
-	tools_menu->AppendCheckItem(ID_NoVenetianFade, wxT("Disable Venetian Blinds Hint Fade-in"));
-	tools_menu->AppendCheckItem(ID_TransparentDrag, wxT("Transparent Drag"));
-	tools_menu->AppendCheckItem(ID_AllowActivePane, wxT("Allow Active Pane"));
-	tools_menu->AppendCheckItem(ID_LiveUpdate, wxT("Live Resize Update"));
-	tools_menu->AppendSeparator();
-	tools_menu->AppendRadioItem(ID_NoGradient, wxT("No Caption Gradient"));
-	tools_menu->AppendRadioItem(ID_VerticalGradient, wxT("Vertical Caption Gradient"));
-	tools_menu->AppendRadioItem(ID_HorizontalGradient, wxT("Horizontal Caption Gradient"));
-	tools_menu->AppendSeparator();
-	tools_menu->AppendCheckItem(ID_AllowToolbarResizing, wxT("Allow Toolbar Resizing"));
 	tools_menu->AppendSeparator();
 	tools_menu->Append(ID_Settings, wxT("Settings Pane"));
 
@@ -761,26 +722,34 @@ wxTreeCtrl *Frame::CreateTreeCtrl()
 
 wxPropertyGridManager *Frame::CreatePropCtrl()
 {
-	wxPropertyGridManager *pgman = new wxPropertyGridManager(this, wxID_ANY, wxPoint(0, 0), wxSize(250, 250));
+	wxPropertyGridManager *pgman = new wxPropertyGridManager(this, wxID_ANY, wxPoint(0, 0), wxSize(250, 250),
+		wxPG_DESCRIPTION |
+		wxPG_SPLITTER_AUTO_CENTER);
 
 	wxPropertyGridPage *page =  pgman->AddPage();
 	page->Append(new wxPropertyCategory(wxT("General"), wxPG_LABEL));
 	page->Append(new wxStringProperty(wxT("Application"), wxPG_LABEL, GetTitle()));
-
-	page->Append(new wxPropertyCategory(wxT("Environment"), wxPG_LABEL));
-	page->Append(new wxStringProperty(wxT("Operating System"), wxPG_LABEL, ::wxGetOsDescription()));
+	page->Append(new wxStringProperty(wxT("OS"), wxPG_LABEL, ::wxGetOsDescription()));
 	page->Append(new wxStringProperty(wxT("Hostname"), wxPG_LABEL, ::wxGetHostName()));
 	page->Append(new wxStringProperty(wxT("User Id"), wxPG_LABEL, ::wxGetUserId()));
 	page->Append(new wxDirProperty(wxT("User Home"), wxPG_LABEL, ::wxGetUserHome()));
 	page->Append(new wxStringProperty(wxT("User Name"), wxPG_LABEL, ::wxGetUserName()));
 
-	page->SetPropertyReadOnly(wxT("Operating System"));
-	page->SetPropertyReadOnly(wxT("Hostname"));
-	page->SetPropertyReadOnly(wxT("User Id"));
-	page->SetPropertyReadOnly(wxT("User Home"));
-	page->SetPropertyReadOnly(wxT("User Name"));
+	page->SetPropertyHelpString(wxT("Application"), wxT("Application name."));
+	page->SetPropertyHelpString(wxT("OS"), wxT("Operating system name."));
+	page->SetPropertyHelpString(wxT("Hostname"), wxT("Current hostname."));
+	page->SetPropertyHelpString(wxT("User Id"), wxT("Operating system user ID."));
+	page->SetPropertyHelpString(wxT("User Home"), wxT("User home directory."));
+	page->SetPropertyHelpString(wxT("User Name"), wxT("Username executing process."));
 
-	page->Append(new wxPropertyCategory(wxT("Properties"), wxPG_LABEL));
+	page->DisableProperty(wxT("Application"));
+	page->DisableProperty(wxT("OS"));
+	page->DisableProperty(wxT("Hostname"));
+	page->DisableProperty(wxT("User Id"));
+	page->DisableProperty(wxT("User Home"));
+	page->DisableProperty(wxT("User Name"));
+
+	// page->Append(new wxPropertyCategory(wxT("Properties"), wxPG_LABEL));
 
 	return pgman;
 }
@@ -873,10 +842,11 @@ void Frame::OnItemMenu(wxTreeEvent& event)
 
 void Frame::OnConsoleEnter(wxCommandEvent& event)
 {
+	wxDateTime timestamp(wxDateTime::Now());
+
 	wxTextCtrl *console = static_cast<wxTextCtrl *>(event.GetEventObject());
 	console->AppendText(wxT("\nUnrecognized command\n\n>> "));
 	m_output->AppendText("\n[");
-	wxDateTime timestamp(wxDateTime::Now());
 	m_output->AppendText(timestamp.FormatISOTime());
 	m_output->AppendText("] The console caused an error");
 	event.Skip();
@@ -972,14 +942,8 @@ wxBEGIN_EVENT_TABLE(Frame, wxFrame)
 	EVT_MENU(ID_HorizontalGradient, Frame::OnGradient)
 	EVT_MENU(ID_AllowToolbarResizing, Frame::OnToolbarResizing)
 	EVT_MENU(ID_Settings, Frame::OnSettings)
-	EVT_MENU(ID_RandomGeneratorWindow, Frame::OnRandomGeneratorWindow)
+	EVT_MENU(ID_RandomGeneratorWindow, Frame::OnMenuPrimitiveRun)
 	EVT_MENU(ID_CustomizeToolbar, Frame::OnCustomizeToolbar)
-	EVT_MENU(ID_GridContent, Frame::OnChangeContentPane)
-	EVT_MENU(ID_TreeContent, Frame::OnChangeContentPane)
-	EVT_MENU(ID_TextContent, Frame::OnChangeContentPane)
-	EVT_MENU(ID_SizeReportContent, Frame::OnChangeContentPane)
-	EVT_MENU(ID_HTMLContent, Frame::OnChangeContentPane)
-	EVT_MENU(ID_NotebookContent, Frame::OnChangeContentPane)
 	EVT_MENU(wxID_EXIT, Frame::OnExit)
 	EVT_MENU(wxID_ABOUT, Frame::OnAbout)
 	EVT_UPDATE_UI(ID_AllowFloating, Frame::OnUpdateUI)
@@ -1002,6 +966,7 @@ wxBEGIN_EVENT_TABLE(Frame, wxFrame)
 	EVT_AUINOTEBOOK_ALLOW_DND(wxID_ANY, Frame::OnAllowNotebookDnD)
 	EVT_AUINOTEBOOK_PAGE_CLOSE(wxID_ANY, Frame::OnNotebookPageClose)
 	EVT_AUINOTEBOOK_PAGE_CLOSED(wxID_ANY, Frame::OnNotebookPageClosed)
-	EVT_TREE_ITEM_RIGHT_CLICK(10009, Frame::OnItemMenu)
+	EVT_TREE_ITEM_MENU(10009, Frame::OnItemMenu)
+	EVT_TREE_ITEM_ACTIVATED(10009, Frame::OnTreeDoubleClick)
 	EVT_TEXT_ENTER(10010, Frame::OnConsoleEnter)
 wxEND_EVENT_TABLE()
