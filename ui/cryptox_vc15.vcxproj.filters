@@ -35,6 +35,9 @@
     <ClCompile Include="SecretListModel.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="HashFrame.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\ui\Frame.h">
@@ -49,6 +52,7 @@
     <ClInclude Include="RandonGenerator.h" />
     <ClInclude Include="BlockCipherFrame.h" />
     <ClInclude Include="SecretListModel.h" />
+    <ClInclude Include="HashFrame.h" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="..\ui\cryptox.ico">
@@ -58,6 +62,9 @@
       <Filter>Resource Files</Filter>
     </Image>
     <Image Include="unlocked.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="calculator.ico">
       <Filter>Resource Files</Filter>
     </Image>
   </ItemGroup>

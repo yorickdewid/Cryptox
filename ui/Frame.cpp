@@ -1,6 +1,8 @@
 #include "Frame.h"
 #include "SettingsPanel.h"
 #include "SecretListModel.h"
+#include "BlockCipherFrame.h"
+#include "HashFrame.h"
 #include "RandonGenerator.h"
 
 #include <wx/artprov.h>
@@ -236,13 +238,21 @@ void Frame::OnSettings(wxCommandEvent& WXUNUSED(evt))
 
 	m_mgr.Update();
 }
-#include "BlockCipherFrame.h"
+
 void Frame::CreatePrimitiveFrame()
 {
-	wxFrame *frame = new BlockCipherFrame(this);
-	frame->SetIcon(wxIcon(wxString("unlocked.ico"), wxBITMAP_TYPE_ICO));
-	frame->Show();
-	frame->SetFocus();
+	BlockCipherFrame *toolBlockCiper = new BlockCipherFrame(this);
+	toolBlockCiper->SetIcon(wxIcon(wxString("unlocked.ico"), wxBITMAP_TYPE_ICO));
+	toolBlockCiper->Show();
+	toolBlockCiper->SetFocus();
+}
+
+void Frame::StartHashTool()
+{
+	HashFrame *toolHash = new HashFrame(this);
+	toolHash->SetIcon(wxIcon(wxString("calculator.ico"), wxBITMAP_TYPE_ICO));
+	toolHash->Show();
+	toolHash->SetFocus();
 }
 
 void Frame::OnCustomizeToolbar(wxCommandEvent& WXUNUSED(evt))
@@ -256,9 +266,15 @@ void Frame::OnGradient(wxCommandEvent& event)
 
 	switch (event.GetId())
 	{
-		case ID_NoGradient:         gradient = wxAUI_GRADIENT_NONE; break;
-		case ID_VerticalGradient:   gradient = wxAUI_GRADIENT_VERTICAL; break;
-		case ID_HorizontalGradient: gradient = wxAUI_GRADIENT_HORIZONTAL; break;
+		case ID_NoGradient:
+			gradient = wxAUI_GRADIENT_NONE;
+			break;
+		case ID_VerticalGradient:
+			gradient = wxAUI_GRADIENT_VERTICAL;
+			break;
+		case ID_HorizontalGradient:
+			gradient = wxAUI_GRADIENT_HORIZONTAL;
+			break;
 	}
 
 	m_mgr.GetArtProvider()->SetMetric(wxAUI_DOCKART_GRADIENT_TYPE, gradient);
@@ -595,7 +611,7 @@ void Frame::OnAbout(wxCommandEvent& WXUNUSED(event))
 	info.SetLicence("GPL 3");
 	info.SetVersion("0.5", "Alpha version 0.5");
 	info.SetWebSite("https://github.com/yorickdewid/Cryptox");
-	info.AddDeveloper("Yorick de Wid");
+	info.AddDeveloper("Yorick de Wid <ydw@x3.quenza.net>");
 
 	wxAboutBox(info);
 }
@@ -643,7 +659,8 @@ wxMenuBar *Frame::CreateMenuBar()
 	
 	wxMenu *tools_menu = new wxMenu;
 	tools_menu->Append(wxID_ANY, wxT("Password Generator"));
-	tools_menu->Append(ID_RandomGeneratorWindow, wxT("Block Cipher Encryption"));
+	tools_menu->Append(ID_StartBlockCipherEncryptionTool, wxT("Block Cipher Encryption"));
+	tools_menu->Append(ID_StartHashTool, wxT("Hash Calculation"));
 	tools_menu->AppendSeparator();
 	tools_menu->Append(ID_Settings, wxT("Settings Pane"));
 
@@ -694,14 +711,15 @@ wxGrid *Frame::CreateGrid()
 wxTreeCtrl *Frame::CreateTreeCtrl()
 {
 	wxTreeCtrl *tree = new wxTreeCtrl(this, 10009,
-		wxPoint(0, 0), wxSize(190, 250),
+		wxPoint(0, 0), wxSize(200, 250),
 		wxTR_DEFAULT_STYLE | wxNO_BORDER);
 
 	tree->SetWindowStyle(wxTR_HIDE_ROOT);
 
-	wxImageList* imglist = new wxImageList(16, 16, true, 2);
+	wxImageList *imglist = new wxImageList(16, 16, true, 2);
 	imglist->Add(wxArtProvider::GetBitmap(wxART_FOLDER, wxART_OTHER, wxSize(16, 16)));
 	imglist->Add(wxArtProvider::GetBitmap(wxART_NORMAL_FILE, wxART_OTHER, wxSize(16, 16)));
+	imglist->Add(wxIcon(wxString("calculator.ico"), wxBITMAP_TYPE_ICO));
 	tree->AssignImageList(imglist);
 
 	wxTreeItemId root = tree->AddRoot("NoRoot", 0);
@@ -750,24 +768,24 @@ wxTreeCtrl *Frame::CreateTreeCtrl()
 	tree->AppendItem(id, wxT("WAKE"), 1);
 
 	id = tree->AppendItem(root, wxT("Hash functions"), 0);
-	tree->AppendItem(id, wxT("BLAKE2s"), 1);
-	tree->AppendItem(id, wxT("BLAKE2b"), 1);
-	tree->AppendItem(id, wxT("Keccak"), 1);
-	tree->AppendItem(id, wxT("SHA1"), 1);
-	tree->AppendItem(id, wxT("SHA224"), 1);
-	tree->AppendItem(id, wxT("SHA256"), 1);
-	tree->AppendItem(id, wxT("SHA384"), 1);
-	tree->AppendItem(id, wxT("SHA512"), 1);
-	tree->AppendItem(id, wxT("SHA3"), 1);
-	tree->AppendItem(id, wxT("Tiger"), 1);
-	tree->AppendItem(id, wxT("Whirlpool"), 1);
-	tree->AppendItem(id, wxT("RIPEMD128"), 1);
-	tree->AppendItem(id, wxT("RIPEMD160"), 1);
-	tree->AppendItem(id, wxT("RIPEMD256"), 1);
-	tree->AppendItem(id, wxT("RIPEMD320"), 1);
-	tree->AppendItem(id, wxT("MD2"), 1);
-	tree->AppendItem(id, wxT("MD4"), 1);
-	tree->AppendItem(id, wxT("MD5"), 1);
+	tree->AppendItem(id, wxT("BLAKE2s"), 2, -1, 0);
+	tree->AppendItem(id, wxT("BLAKE2b"), 2);
+	tree->AppendItem(id, wxT("Keccak"), 2);
+	tree->AppendItem(id, wxT("SHA1"), 2);
+	tree->AppendItem(id, wxT("SHA224"), 2);
+	tree->AppendItem(id, wxT("SHA256"), 2);
+	tree->AppendItem(id, wxT("SHA384"), 2);
+	tree->AppendItem(id, wxT("SHA512"), 2);
+	tree->AppendItem(id, wxT("SHA3"), 2);
+	tree->AppendItem(id, wxT("Tiger"), 2);
+	tree->AppendItem(id, wxT("Whirlpool"), 2);
+	tree->AppendItem(id, wxT("RIPEMD128"), 2);
+	tree->AppendItem(id, wxT("RIPEMD160"), 2);
+	tree->AppendItem(id, wxT("RIPEMD256"), 2);
+	tree->AppendItem(id, wxT("RIPEMD320"), 2);
+	tree->AppendItem(id, wxT("MD2"), 2);
+	tree->AppendItem(id, wxT("MD4"), 2);
+	tree->AppendItem(id, wxT("MD5"), 2);
 
 	id = tree->AppendItem(root, wxT("Public key schemes"), 0);
 	tree->AppendItem(id, wxT("DLIES"), 1);
@@ -972,7 +990,7 @@ void Frame::OnItemMenu(wxTreeEvent& event)
 
 	// Build popup menu
 	wxMenu menu;
-	menu.Append(ID_RandomGeneratorWindow, wxT("&Run"));
+	menu.Append(ID_StartBlockCipherEncryptionTool, wxT("&Run"));
 	menu.AppendSeparator();
 	menu.Append(wxID_ANY, wxT("&Use as template"));
 	menu.Append(wxID_ANY, wxT("&Attack database"));
@@ -1083,7 +1101,8 @@ wxBEGIN_EVENT_TABLE(Frame, wxFrame)
 	EVT_MENU(ID_HorizontalGradient, Frame::OnGradient)
 	EVT_MENU(ID_AllowToolbarResizing, Frame::OnToolbarResizing)
 	EVT_MENU(ID_Settings, Frame::OnSettings)
-	EVT_MENU(ID_RandomGeneratorWindow, Frame::OnMenuPrimitiveRun)
+	EVT_MENU(ID_StartBlockCipherEncryptionTool, Frame::OnMenuPrimitiveRun)
+	EVT_MENU(ID_StartHashTool, Frame::OnMenuHashToolRun)
 	EVT_MENU(ID_CustomizeToolbar, Frame::OnCustomizeToolbar)
 	EVT_MENU(wxID_EXIT, Frame::OnExit)
 	EVT_MENU(wxID_ABOUT, Frame::OnAbout)

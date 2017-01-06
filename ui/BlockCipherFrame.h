@@ -1,12 +1,9 @@
 #pragma once
 
 #include <wx/wxprec.h>
-#include <wx/aui/aui.h>
 
 class BlockCipherFrame : public wxFrame
 {
-private:
-
 	enum
 	{
 		wxID_Encrypt,
@@ -44,7 +41,7 @@ private:
 	wxDECLARE_EVENT_TABLE();
 
 public:
-	BlockCipherFrame(wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = wxT("Block Cipher Encryption"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize(520, 610), long style = wxCAPTION | wxCLOSE_BOX | wxFRAME_NO_TASKBAR | wxSTAY_ON_TOP | wxSYSTEM_MENU | wxTAB_TRAVERSAL);
+	BlockCipherFrame(wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = wxT("Block Cipher Encryption"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize(520, 600), long style = wxCAPTION | wxCLOSE_BOX | wxFRAME_NO_TASKBAR | wxSTAY_ON_TOP | wxSYSTEM_MENU | wxTAB_TRAVERSAL);
 	~BlockCipherFrame();
 };
 

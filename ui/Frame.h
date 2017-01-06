@@ -37,10 +37,11 @@ class Frame : public wxFrame
 		ID_LiveUpdate,
 		ID_AllowToolbarResizing,
 		ID_Settings,
-		ID_RandomGeneratorWindow,
 		ID_CustomizeToolbar,
 		ID_DropDownToolbarItem,
 
+		ID_StartBlockCipherEncryptionTool,
+		ID_StartHashTool,
 		ID_SampleItem,
 
 		ID_FirstPerspective = ID_CreatePerspective + 1000
@@ -69,7 +70,9 @@ private:
 	wxPoint GetStartPosition();
 	wxHtmlWindow *CreateHTMLCtrl(wxWindow *parent = NULL);
 	wxAuiNotebook *CreateNotebook();
+
 	void CreatePrimitiveFrame();
+	void StartHashTool();
 
 	wxString GetIntroText();
 
@@ -93,6 +96,11 @@ private:
 	void OnAbout(wxCommandEvent& evt);
 	void OnItemMenu(wxTreeEvent& evt);
 	void OnConsoleEnter(wxCommandEvent& evt);
+
+	void OnMenuHashToolRun(wxCommandEvent& WXUNUSED(evt))
+	{
+		StartHashTool();
+	}
 	void OnMenuPrimitiveRun(wxCommandEvent& WXUNUSED(evt))
 	{
 		CreatePrimitiveFrame();

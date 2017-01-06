@@ -6,7 +6,8 @@
 
 #include "BlockCipherFrame.h"
 
-BlockCipherFrame::BlockCipherFrame(wxWindow* parent, wxWindowID id, const wxString& title, const wxPoint& pos, const wxSize& size, long style) : wxFrame(parent, id, title, pos, size, style)
+BlockCipherFrame::BlockCipherFrame(wxWindow* parent, wxWindowID id, const wxString& title, const wxPoint& pos, const wxSize& size, long style)
+	: wxFrame(parent, id, title, pos, size, style)
 {
 	this->SetSizeHints(wxDefaultSize, wxDefaultSize);
 	this->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNFACE));
@@ -212,12 +213,8 @@ void BlockCipherFrame::OnEncrypt(wxCommandEvent& evt)
 			) // StreamTransformationFilter      
 		); // StringSource
 
-		   // Pretty print cipher text
-		CryptoPP::StringSource(cipher, true,
-			new CryptoPP::HexEncoder(
-				new CryptoPP::StringSink(encoded)
-			) // HexEncoder
-		); // StringSource
+		// Pretty print cipher text
+		CryptoPP::StringSource(cipher, true, new CryptoPP::HexEncoder(new CryptoPP::StringSink(encoded)));
 
 	} catch (CryptoPP::Exception const& e) {
 		std::cerr << e.what() << std::endl;
