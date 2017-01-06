@@ -706,7 +706,6 @@ wxTreeCtrl *Frame::CreateTreeCtrl()
 
 	wxTreeItemId root = tree->AddRoot("NoRoot", 0);
 
-	wxArrayTreeItemIds items;
 	wxTreeItemId id = tree->AppendItem(root, wxT("Block ciphers"), 0);
 	tree->AppendItem(id, wxT("AES"), 1);
 	tree->AppendItem(id, wxT("Blowfish"), 1);
@@ -750,26 +749,87 @@ wxTreeCtrl *Frame::CreateTreeCtrl()
 	tree->AppendItem(id, wxT("Seal-BE"), 1);
 	tree->AppendItem(id, wxT("WAKE"), 1);
 
-	items.Add(tree->AppendItem(root, wxT("Random generators"), 0));
-	items.Add(tree->AppendItem(root, wxT("Elliptic curves"), 0));
-	items.Add(tree->AppendItem(root, wxT("Authentication"), 0));
-	items.Add(tree->AppendItem(root, wxT("DH Groups"), 0));
-	items.Add(tree->AppendItem(root, wxT("Asymmetric"), 0));
+	id = tree->AppendItem(root, wxT("Hash functions"), 0);
+	tree->AppendItem(id, wxT("BLAKE2s"), 1);
+	tree->AppendItem(id, wxT("BLAKE2b"), 1);
+	tree->AppendItem(id, wxT("Keccak"), 1);
+	tree->AppendItem(id, wxT("SHA1"), 1);
+	tree->AppendItem(id, wxT("SHA224"), 1);
+	tree->AppendItem(id, wxT("SHA256"), 1);
+	tree->AppendItem(id, wxT("SHA384"), 1);
+	tree->AppendItem(id, wxT("SHA512"), 1);
+	tree->AppendItem(id, wxT("SHA3"), 1);
+	tree->AppendItem(id, wxT("Tiger"), 1);
+	tree->AppendItem(id, wxT("Whirlpool"), 1);
+	tree->AppendItem(id, wxT("RIPEMD128"), 1);
+	tree->AppendItem(id, wxT("RIPEMD160"), 1);
+	tree->AppendItem(id, wxT("RIPEMD256"), 1);
+	tree->AppendItem(id, wxT("RIPEMD320"), 1);
+	tree->AppendItem(id, wxT("MD2"), 1);
+	tree->AppendItem(id, wxT("MD4"), 1);
+	tree->AppendItem(id, wxT("MD5"), 1);
 
-	int i, count;
-	for (i = 0, count = items.Count(); i < count; ++i)
-	{
-		id = items.Item(i);
-		tree->AppendItem(id, wxT("Subitem 1"), 1);
-		tree->AppendItem(id, wxT("Subitem 2"), 1);
-		tree->AppendItem(id, wxT("Subitem 3"), 1);
-		tree->AppendItem(id, wxT("Subitem 4"), 1);
-		tree->AppendItem(id, wxT("Subitem 5"), 1);
-	}
+	id = tree->AppendItem(root, wxT("Public key schemes"), 0);
+	tree->AppendItem(id, wxT("DLIES"), 1);
+	tree->AppendItem(id, wxT("ECIES"), 1);
+	tree->AppendItem(id, wxT("LUCES"), 1);
+	tree->AppendItem(id, wxT("RSAES"), 1);
+	tree->AppendItem(id, wxT("RabinES"), 1);
+	tree->AppendItem(id, wxT("LUC_IES"), 1);
+
+	id = tree->AppendItem(root, wxT("Signature schemes"), 0);
+	tree->AppendItem(id, wxT("DSA2"), 1);
+	tree->AppendItem(id, wxT("GDSA"), 1);
+	tree->AppendItem(id, wxT("ECDSA"), 1);
+	tree->AppendItem(id, wxT("NR"), 1);
+	tree->AppendItem(id, wxT("ECNR"), 1);
+	tree->AppendItem(id, wxT("LUCSS"), 1);
+	tree->AppendItem(id, wxT("RSASS"), 1);
+	tree->AppendItem(id, wxT("RSASS-ISO"), 1);
+	tree->AppendItem(id, wxT("RabinSS"), 1);
+	tree->AppendItem(id, wxT("RWSS"), 1);
+	tree->AppendItem(id, wxT("ESIGN"), 1);
+
+	id = tree->AppendItem(root, wxT("Key agreement"), 0);
+	tree->AppendItem(id, wxT("DH"), 1);
+	tree->AppendItem(id, wxT("DH2"), 1);
+	tree->AppendItem(id, wxT("ECDH"), 1);
+	tree->AppendItem(id, wxT("MQV"), 1);
+	tree->AppendItem(id, wxT("ECMQV"), 1);
+	tree->AppendItem(id, wxT("HMQV"), 1);
+	tree->AppendItem(id, wxT("ECHMQV"), 1);
+	tree->AppendItem(id, wxT("FHMQV"), 1);
+	tree->AppendItem(id, wxT("ECFHMQV"), 1);
+	tree->AppendItem(id, wxT("XTR_DH "), 1);
+
+	id = tree->AppendItem(root, wxT("Universal checksums"), 0);
+	tree->AppendItem(id, wxT("CRC32"), 1);
+	tree->AppendItem(id, wxT("Adler32"), 1);
+
+	id = tree->AppendItem(root, wxT("Message authentication"), 0);
+	tree->AppendItem(id, wxT("VMAC"), 1);
+	tree->AppendItem(id, wxT("HMAC"), 1);
+	tree->AppendItem(id, wxT("CBC-MAC"), 1);
+	tree->AppendItem(id, wxT("CMAC"), 1);
+	tree->AppendItem(id, wxT("DMAC"), 1);
+	tree->AppendItem(id, wxT("TTMAC"), 1);
+	tree->AppendItem(id, wxT("GMAC"), 1);
+	tree->AppendItem(id, wxT("BLAKE2b"), 1);
+	tree->AppendItem(id, wxT("BLAKE2s"), 1);
+	tree->AppendItem(id, wxT("Poly1305"), 1);
+
+	id = tree->AppendItem(root, wxT("Key derivation"), 0);
+	tree->AppendItem(id, wxT("HKDF"), 1);
+	tree->AppendItem(id, wxT("PBKDF"), 1);
+	tree->AppendItem(id, wxT("PBKDF1"), 1);
+	tree->AppendItem(id, wxT("PBKDF2-HMAC"), 1);
 
 	id = tree->AppendItem(root, wxT("Random generators"), 0);
+	tree->AppendItem(id, wxT("LCRNG"), 1);
 	tree->AppendItem(id, wxT("MT19937"), 1);
 	tree->AppendItem(id, wxT("MT19937ar"), 1);
+	tree->AppendItem(id, wxT("RDRAND"), 1);
+	tree->AppendItem(id, wxT("RDSEED"), 1);
 
 	return tree;
 }

@@ -103,8 +103,13 @@ private:
 
 		// Skip parents
 		wxTreeItemId itemId = evt.GetItem();
-		if (tree->ItemHasChildren(itemId))
+		if (tree->ItemHasChildren(itemId)) {
+			if (tree->IsExpanded(itemId))
+				tree->Collapse(itemId);
+			else
+				tree->Expand(itemId);
 			return;
+		}			
 
 		CreatePrimitiveFrame();
 	}
