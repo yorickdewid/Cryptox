@@ -505,6 +505,7 @@
     <ClCompile Include="..\ui\wxSizeReportCtrl.cpp" />
     <ClCompile Include="BlockCipherFrame.cpp" />
     <ClCompile Include="RandonGenerator.cpp" />
+    <ClCompile Include="SecretListModel.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\ui\Frame.h" />
@@ -512,6 +513,7 @@
     <ClInclude Include="..\ui\wxSizeReportCtrl.h" />
     <ClInclude Include="BlockCipherFrame.h" />
     <ClInclude Include="RandonGenerator.h" />
+    <ClInclude Include="SecretListModel.h" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="..\ui\cryptox.ico" />

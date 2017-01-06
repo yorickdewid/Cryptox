@@ -16,6 +16,7 @@ private:
 	wxMenuBar* m_menubar;
 	wxMenu* m_menu1;
 	wxMenu* m_menu3;
+	wxMenu* m_menu5;
 	wxMenu* m_menu31;
 	wxStaticText* m_staticText1;
 	wxTextCtrl* m_txtInput;
@@ -37,7 +38,6 @@ private:
 	wxButton* m_btnEncrypt;
 	wxButton* m_btnDecrypt;
 	wxStatusBar* m_statusBar;
-
 
 	void OnEncrypt(wxCommandEvent& evt);
 

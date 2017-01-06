@@ -26,6 +26,21 @@ BlockCipherFrame::BlockCipherFrame(wxWindow* parent, wxWindowID id, const wxStri
 
 	m_menubar->Append(m_menu3, wxT("Export"));
 
+	m_menu5 = new wxMenu();
+	wxMenuItem* m_menuItem6;
+	m_menuItem6 = new wxMenuItem(m_menu5, wxID_ANY, wxString(wxT("Reseed pool")), wxEmptyString, wxITEM_NORMAL);
+	m_menu5->Append(m_menuItem6);
+
+	wxMenuItem* m_menuItem7;
+	m_menuItem7 = new wxMenuItem(m_menu5, wxID_ANY, wxString(wxT("New key")), wxEmptyString, wxITEM_NORMAL);
+	m_menu5->Append(m_menuItem7);
+
+	wxMenuItem* m_menuItem8;
+	m_menuItem8 = new wxMenuItem(m_menu5, wxID_ANY, wxString(wxT("New IV")), wxEmptyString, wxITEM_NORMAL);
+	m_menu5->Append(m_menuItem8);
+
+	m_menubar->Append(m_menu5, wxT("Material"));
+
 	m_menu31 = new wxMenu();
 	wxMenuItem* m_menuItem5;
 	m_menuItem5 = new wxMenuItem(m_menu31, wxID_ANY, wxString(wxT("Autoseed pool")), wxEmptyString, wxITEM_CHECK);
@@ -108,6 +123,8 @@ BlockCipherFrame::BlockCipherFrame(wxWindow* parent, wxWindowID id, const wxStri
 
 	m_staticText5 = new wxStaticText(this, wxID_ANY, wxT("IV"), wxDefaultPosition, wxDefaultSize, 0);
 	m_staticText5->Wrap(-1);
+	m_staticText5->SetToolTip(wxT("Initialization Vector"));
+
 	fgSizer1->Add(m_staticText5, 0, wxALIGN_CENTER_VERTICAL | wxALL, 5);
 
 	m_txtIV = new wxTextCtrl(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0);
@@ -115,10 +132,13 @@ BlockCipherFrame::BlockCipherFrame(wxWindow* parent, wxWindowID id, const wxStri
 
 	m_staticText6 = new wxStaticText(this, wxID_ANY, wxT("AAD"), wxDefaultPosition, wxDefaultSize, 0);
 	m_staticText6->Wrap(-1);
+	m_staticText6->SetToolTip(wxT("Additional Authenticated Dara"));
+
 	fgSizer1->Add(m_staticText6, 0, wxALL, 5);
 
 	m_txtAAD = new wxTextCtrl(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(-1, 75), wxTE_MULTILINE);
 	m_txtAAD->Enable(false);
+
 	fgSizer1->Add(m_txtAAD, 0, wxALL | wxEXPAND, 5);
 
 
@@ -183,11 +203,7 @@ void BlockCipherFrame::OnEncrypt(wxCommandEvent& evt)
 		byte iv[CryptoPP::AES::BLOCKSIZE];
 		rnd.GenerateBlock(iv, CryptoPP::AES::BLOCKSIZE);
 
-		//wxString plain = "kaas en shit";
-
-		//
 		// Create Cipher Text
-		//
 		CryptoPP::CBC_Mode<CryptoPP::AES>::Encryption cbcEncryption(key, key.size(), iv);
 
 		CryptoPP::StringSource ss(m_txtInput->GetValue(), true,

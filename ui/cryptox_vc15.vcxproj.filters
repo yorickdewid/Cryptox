@@ -32,6 +32,9 @@
     <ClCompile Include="BlockCipherFrame.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="SecretListModel.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\ui\Frame.h">
@@ -45,6 +48,7 @@
     </ClInclude>
     <ClInclude Include="RandonGenerator.h" />
     <ClInclude Include="BlockCipherFrame.h" />
+    <ClInclude Include="SecretListModel.h" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="..\ui\cryptox.ico">

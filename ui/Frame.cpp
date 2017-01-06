@@ -1,10 +1,13 @@
 #include "Frame.h"
 #include "SettingsPanel.h"
+#include "SecretListModel.h"
 #include "RandonGenerator.h"
 
 #include <wx/artprov.h>
 #include <wx/clipbrd.h>
 #include <wx/spinctrl.h>
+#include <wx/aboutdlg.h>
+#include <wx/dataview.h>
 
 Frame::Frame(wxWindow* parent,
 	wxWindowID id,
@@ -584,7 +587,17 @@ void Frame::OnExit(wxCommandEvent& WXUNUSED(event))
 
 void Frame::OnAbout(wxCommandEvent& WXUNUSED(event))
 {
-	wxMessageBox(wxT("Cryptox\nCryptography management studio\n\nCopyright 2017, Quenza Inc."), _("Cryptox"), wxOK, this);
+	wxAboutDialogInfo info;
+	info.SetName(wxT("Cryptox"));
+	info.SetDescription(wxT("Cryptography management and development studio"));
+	info.SetCopyright(wxT("(C) 2017 Quenza Inc."));
+	info.SetIcon(wxIcon(wxString("cryptox.ico"), wxBITMAP_TYPE_ICO));
+	info.SetLicence("GPL 3");
+	info.SetVersion("0.5", "Alpha version 0.5");
+	info.SetWebSite("https://github.com/yorickdewid/Cryptox");
+	info.AddDeveloper("Yorick de Wid");
+
+	wxAboutBox(info);
 }
 
 wxMenuBar *Frame::CreateMenuBar()
@@ -695,7 +708,6 @@ wxTreeCtrl *Frame::CreateTreeCtrl()
 
 	wxArrayTreeItemIds items;
 	wxTreeItemId id = tree->AppendItem(root, wxT("Block ciphers"), 0);
-
 	tree->AppendItem(id, wxT("AES"), 1);
 	tree->AppendItem(id, wxT("Blowfish"), 1);
 	tree->AppendItem(id, wxT("Twofish"), 1);
@@ -726,7 +738,18 @@ wxTreeCtrl *Frame::CreateTreeCtrl()
 	tree->AppendItem(id, wxT("XTEA"), 1);
 	tree->AppendItem(id, wxT("NULL"), 1);
 
-	items.Add(tree->AppendItem(root, wxT("Stream ciphers"), 0));
+	id = tree->AppendItem(root, wxT("Stream ciphers"), 0);
+	tree->AppendItem(id, wxT("ChaCha8"), 1);
+	tree->AppendItem(id, wxT("ChaCha12"), 1);
+	tree->AppendItem(id, wxT("ChaCha20"), 1);
+	tree->AppendItem(id, wxT("Salsa20"), 1);
+	tree->AppendItem(id, wxT("XSalsa20"), 1);
+	tree->AppendItem(id, wxT("Panama-LE"), 1);
+	tree->AppendItem(id, wxT("Panama-BE"), 1);
+	tree->AppendItem(id, wxT("Seal-LE"), 1);
+	tree->AppendItem(id, wxT("Seal-BE"), 1);
+	tree->AppendItem(id, wxT("WAKE"), 1);
+
 	items.Add(tree->AppendItem(root, wxT("Random generators"), 0));
 	items.Add(tree->AppendItem(root, wxT("Elliptic curves"), 0));
 	items.Add(tree->AppendItem(root, wxT("Authentication"), 0));
@@ -814,7 +837,6 @@ wxAuiNotebook *Frame::CreateNotebook()
 		wxPoint(client_size.x, client_size.y),
 		wxSize(430, 200),
 		m_notebook_style);
-	ctrl->Freeze();
 
 	//wxBitmap page_bmp = wxArtProvider::GetBitmap(wxART_NORMAL_FILE, wxART_OTHER, wxSize(16, 16));
 	wxBitmap page_bmp = wxNullBitmap;
@@ -822,28 +844,57 @@ wxAuiNotebook *Frame::CreateNotebook()
 	ctrl->AddPage(CreateHTMLCtrl(ctrl), wxT("Start page"), false, page_bmp);
 	ctrl->SetPageToolTip(0, "Welcome to Cryptox");
 
+	// Panel
 	wxPanel *panel = new wxPanel(ctrl, wxID_ANY);
 	wxFlexGridSizer *flex = new wxFlexGridSizer(4, 2, 0, 0);
 	flex->AddGrowableRow(0);
 	flex->AddGrowableRow(3);
 	flex->AddGrowableCol(1);
-	flex->Add(5, 5);   flex->Add(5, 5);
+	flex->Add(5, 5);
+	flex->Add(5, 5);
 	flex->Add(new wxStaticText(panel, wxID_ANY, wxT("wxTextCtrl:")), 0, wxALL | wxALIGN_CENTRE, 5);
 	flex->Add(new wxTextCtrl(panel, wxID_ANY, wxT(""), wxDefaultPosition, wxSize(100, -1)), 1, wxALL | wxALIGN_CENTRE, 5);
 	flex->Add(new wxStaticText(panel, wxID_ANY, wxT("wxSpinCtrl:")), 0, wxALL | wxALIGN_CENTRE, 5);
-	flex->Add(new wxSpinCtrl(panel, wxID_ANY, wxT("5"), wxDefaultPosition, wxSize(100, -1),
-		wxSP_ARROW_KEYS, 5, 50, 5), 0, wxALL | wxALIGN_CENTRE, 5);
-	flex->Add(5, 5);   flex->Add(5, 5);
+	flex->Add(new wxSpinCtrl(panel, wxID_ANY, wxT("5"), wxDefaultPosition, wxSize(100, -1), wxSP_ARROW_KEYS, 5, 50, 5), 0, wxALL | wxALIGN_CENTRE, 5);
+	flex->Add(5, 5);
+	flex->Add(5, 5);
 	panel->SetSizer(flex);
-	ctrl->AddPage(panel, wxT("wxPanel"), false, page_bmp);
+	ctrl->AddPage(panel, wxT("Panel"), false, page_bmp);
 
-	wxTextCtrl *console = new wxTextCtrl(ctrl, 10010, wxT("Type 'help' to get started\n\n>> "),
-		wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE | wxNO_BORDER | wxTE_PROCESS_ENTER);
+	// Dataview
+	wxDataViewCtrl *dataview = new wxDataViewCtrl(ctrl, wxID_ANY);
+	SecretListModel *listmodel = new SecretListModel;
+	dataview->AssociateModel(listmodel);
+	dataview->AppendTextColumn("editable string",
+		SecretListModel::Col_EditableText,
+		wxDATAVIEW_CELL_EDITABLE,
+		wxCOL_WIDTH_AUTOSIZE,
+		wxALIGN_NOT,
+		wxDATAVIEW_COL_SORTABLE);
+	dataview->AppendIconTextColumn("icon",
+		SecretListModel::Col_IconText,
+		wxDATAVIEW_CELL_EDITABLE,
+		wxCOL_WIDTH_AUTOSIZE,
+		wxALIGN_NOT,
+		wxDATAVIEW_COL_REORDERABLE | wxDATAVIEW_COL_SORTABLE);
+
+	dataview->AppendDateColumn("date", SecretListModel::Col_Date);
+	wxDataViewColumn *attributes = new wxDataViewColumn("attributes", new wxDataViewTextRenderer,
+			SecretListModel::Col_TextWithAttr,
+			wxCOL_WIDTH_AUTOSIZE,
+			wxALIGN_RIGHT,
+			wxDATAVIEW_COL_REORDERABLE | wxDATAVIEW_COL_RESIZABLE | wxDATAVIEW_COL_SORTABLE);
+	dataview->AppendColumn(attributes);
+	ctrl->AddPage(dataview, wxT("List"), false, page_bmp);
+	
+	// Console
+	wxTextCtrl *console = new wxTextCtrl(ctrl, 10010, wxT("Type 'help' to get started\n\n>> "), wxDefaultPosition, wxDefaultSize,
+		wxTE_MULTILINE |
+		wxNO_BORDER |
+		wxTE_PROCESS_ENTER);
 	console->SetInsertionPointEnd();
-
 	ctrl->AddPage(console, wxT("Console"), false, page_bmp);
 
-	ctrl->Thaw();
 	return ctrl;
 }
 
