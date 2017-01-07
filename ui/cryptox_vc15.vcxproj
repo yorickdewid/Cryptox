@@ -504,6 +504,7 @@
     <ClCompile Include="..\ui\SettingsPanel.cpp" />
     <ClCompile Include="..\ui\wxSizeReportCtrl.cpp" />
     <ClCompile Include="BlockCipherFrame.cpp" />
+    <ClCompile Include="DataViewer.cpp" />
     <ClCompile Include="HashFrame.cpp" />
     <ClCompile Include="RandonGenerator.cpp" />
     <ClCompile Include="SecretListModel.cpp" />
@@ -513,6 +514,7 @@
     <ClInclude Include="..\ui\SettingsPanel.h" />
     <ClInclude Include="..\ui\wxSizeReportCtrl.h" />
     <ClInclude Include="BlockCipherFrame.h" />
+    <ClInclude Include="DataViewer.h" />
     <ClInclude Include="HashFrame.h" />
     <ClInclude Include="RandonGenerator.h" />
     <ClInclude Include="SecretListModel.h" />

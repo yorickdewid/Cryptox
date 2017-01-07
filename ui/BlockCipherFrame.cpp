@@ -196,6 +196,8 @@ void BlockCipherFrame::OnEncrypt(wxCommandEvent& evt)
 	try {
 		CryptoPP::AutoSeededRandomPool rnd;
 
+		m_statusBar->SetStatusText(wxT("Encrypting message..."));
+
 		// Generate a random key
 		CryptoPP::SecByteBlock key(0x00, CryptoPP::AES::DEFAULT_KEYLENGTH);
 		rnd.GenerateBlock(key, key.size());
@@ -214,7 +216,7 @@ void BlockCipherFrame::OnEncrypt(wxCommandEvent& evt)
 		); // StringSource
 
 		// Pretty print cipher text
-		CryptoPP::StringSource(cipher, true, new CryptoPP::HexEncoder(new CryptoPP::StringSink(encoded)));
+		CryptoPP::StringSource(cipher, true, new CryptoPP::HexEncoder(new CryptoPP::StringSink(encoded), false));
 
 	} catch (CryptoPP::Exception const& e) {
 		std::cerr << e.what() << std::endl;

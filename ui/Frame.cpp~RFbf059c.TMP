@@ -246,15 +246,13 @@ void Frame::CreatePrimitiveFrame()
 	toolBlockCiper->Show();
 	toolBlockCiper->SetFocus();
 }
-#include "DataViewer.h"
+
 void Frame::StartHashTool()
 {
-	/*HashFrame *toolHash = new HashFrame(this);
+	HashFrame *toolHash = new HashFrame(this);
 	toolHash->SetIcon(wxIcon(wxString("calculator.ico"), wxBITMAP_TYPE_ICO));
 	toolHash->Show();
-	toolHash->SetFocus();*/
-	DataViewer *dialog = new DataViewer(this);
-	dialog->ShowModal();
+	toolHash->SetFocus();
 }
 
 void Frame::OnCustomizeToolbar(wxCommandEvent& WXUNUSED(evt))
@@ -646,7 +644,7 @@ wxMenuBar *Frame::CreateMenuBar()
 	options_menu->AppendRadioItem(ID_RectangleHint, wxT("Rectangle Hint"));
 	options_menu->AppendRadioItem(ID_NoHint, wxT("No Hint"));
 	options_menu->AppendSeparator();
-	options_menu->AppendCheckItem(wxID_ANY, wxT("Show weak primitives"));
+	options_menu->AppendCheckItem(xwIDANY, wxT("Show weak primitives"));
 	options_menu->AppendCheckItem(ID_HintFade, wxT("Hint Fade-in"));
 	options_menu->AppendCheckItem(ID_AllowFloating, wxT("Allow Floating"));
 	options_menu->AppendCheckItem(ID_NoVenetianFade, wxT("Disable Venetian Blinds Hint Fade-in"));

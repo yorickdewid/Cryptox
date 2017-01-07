@@ -38,6 +38,9 @@
     <ClCompile Include="HashFrame.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="DataViewer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\ui\Frame.h">
@@ -53,6 +56,7 @@
     <ClInclude Include="BlockCipherFrame.h" />
     <ClInclude Include="SecretListModel.h" />
     <ClInclude Include="HashFrame.h" />
+    <ClInclude Include="DataViewer.h" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="..\ui\cryptox.ico">

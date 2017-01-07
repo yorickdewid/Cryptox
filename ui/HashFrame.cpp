@@ -119,6 +119,8 @@ void HashFrame::OnHash(wxCommandEvent& evt)
 	CryptoPP::SHA1 hash;
 	std::string encoded;
 
+	m_statusBar->SetStatusText(wxT("Calculating hash..."));
+
 	CryptoPP::StringSource s(m_txtInput->GetValue(), true, new CryptoPP::HashFilter(hash, new CryptoPP::HexEncoder(new CryptoPP::StringSink(encoded), false)));
 
 	m_txtOutput->SetValue(encoded);
