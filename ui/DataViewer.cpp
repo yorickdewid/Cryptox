@@ -20,8 +20,6 @@ DataViewer::DataViewer(wxWindow* parent, wxWindowID id, const wxString& title, c
 	m_choice7 = new wxChoice(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, m_choice7NChoices, m_choice7Choices, 0);
 	m_choice7->SetSelection(0);
 	bSizer9->Add(m_choice7, 0, wxALIGN_BOTTOM | wxLEFT | wxTOP, 5);
-
-
 	bSizer9->Add(0, 0, 1, wxEXPAND, 5);
 
 	m_btnClipboard = new wxButton(this, wxID_ANY, wxT("Copy to Clipboard"), wxDefaultPosition, wxDefaultSize, 0);

@@ -52,11 +52,27 @@
     <ClInclude Include="..\ui\wxSizeReportCtrl.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="RandonGenerator.h" />
-    <ClInclude Include="BlockCipherFrame.h" />
-    <ClInclude Include="SecretListModel.h" />
-    <ClInclude Include="HashFrame.h" />
-    <ClInclude Include="DataViewer.h" />
+    <ClInclude Include="BlockCipherFrame.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DataViewer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="HashFrame.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="RandonGenerator.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="SecretListModel.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Algorithm.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="wxOutputConsoleCtrl.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Image Include="..\ui\cryptox.ico">

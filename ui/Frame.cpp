@@ -1,4 +1,5 @@
 #include "Frame.h"
+#include "Algorithm.h"
 #include "SettingsPanel.h"
 #include "SecretListModel.h"
 #include "BlockCipherFrame.h"
@@ -30,12 +31,22 @@ Frame::Frame(wxWindow* parent,
 	GetDockArt()->SetMetric(wxAUI_DOCKART_PANE_BORDER_SIZE, 0);
 
 	// Set up default notebook style
-	m_notebook_style = wxAUI_NB_DEFAULT_STYLE | wxAUI_NB_WINDOWLIST_BUTTON | wxAUI_NB_TAB_EXTERNAL_MOVE | wxNO_BORDER;
+	m_notebook_style = wxAUI_NB_DEFAULT_STYLE | wxAUI_NB_WINDOWLIST_BUTTON | wxAUI_NB_TAB_EXTERNAL_MOVE | wxNO_BORDER | wxAUI_NB_CLOSE_ON_ALL_TABS;
 	m_notebook_theme = 0;
 
 	// Create menu
 	CreateMenu();
 	SetMenuBar(CreateMenuBar());
+
+	CryDB::SHA1 sha1;
+	sha1.GetName();
+	sha1.GetYear();
+	sha1.IsBroken();
+	sha1.CalculateHash(nullptr, nullptr, 0);
+
+	CryDB::HashCollector *m_hashList = new CryDB::HashCollector;
+	m_hashList->Add(&sha1);
+	m_hashList->Get()->GetName();
 
 	// Create statusbar
 	CreateStatusBar();
@@ -113,71 +124,29 @@ Frame::Frame(wxWindow* parent,
 	subtb->AddControl(choice);
 	subtb->Realize();
 
-	// add a bunch of panes
-	m_mgr.AddPane(CreateSizeReportCtrl(), wxAuiPaneInfo().
-		Name(wxT("test1")).Caption(wxT("Pane Caption")).
-		Top());
-
-	m_mgr.AddPane(CreateSizeReportCtrl(), wxAuiPaneInfo().
-		Name(wxT("test2")).Caption(wxT("Client Size Reporter")).
-		Bottom().Position(1).
-		CloseButton(true).MaximizeButton(true));
-
-	m_mgr.AddPane(CreateSizeReportCtrl(), wxAuiPaneInfo().
-		Name(wxT("test3")).Caption(wxT("Client Size Reporter")).
-		Bottom().
-		CloseButton(true).MaximizeButton(true));
-
-	m_mgr.AddPane(CreateSizeReportCtrl(), wxAuiPaneInfo().
-		Name(wxT("test4")).Caption(wxT("Pane Caption")).
-		Left());
-
-	m_mgr.AddPane(CreateSizeReportCtrl(), wxAuiPaneInfo().
-		Name(wxT("test5")).Caption(wxT("No Close Button")).
-		Right().CloseButton(false));
-
-	m_mgr.AddPane(CreateSizeReportCtrl(), wxAuiPaneInfo().
-		Name(wxT("test6")).Caption(wxT("Client Size Reporter")).
-		Right().Row(1).
-		CloseButton(true).MaximizeButton(true));
-
-	m_mgr.AddPane(CreateSizeReportCtrl(), wxAuiPaneInfo().
-		Name(wxT("test7")).Caption(wxT("Client Size Reporter")).
-		Left().Layer(1).
-		CloseButton(true).MaximizeButton(true));
-
+	// Setup default planes
 	m_mgr.AddPane(CreateTreeCtrl(), wxAuiPaneInfo().
-		Name(wxT("test8")).Caption(wxT("Primitives")).
-		Left().Layer(1).Position(1).
+		Name(wxT("primitivetr")).Caption(wxT("Primitives")).
+		Left().Layer(0).Row(0).Position(0).
 		CloseButton(false));
 
-	m_mgr.AddPane(CreateSizeReportCtrl(), wxAuiPaneInfo().
-		Name(wxT("test9")).Caption(wxT("Min Size 200x100")).
-		BestSize(wxSize(200, 100)).MinSize(wxSize(200, 100)).
-		Bottom().Layer(1).
-		CloseButton(true).MaximizeButton(true));
-
 	m_mgr.AddPane(CreatePropCtrl(), wxAuiPaneInfo().
-		Name(wxT("test17")).
-		Layer(1).Right().
+		Name(wxT("mainprop")).
+		Layer(1).Right().Position(0).
 		CloseButton(false).CaptionVisible(false));
 
-	m_output = CreateTextCtrl(wxT("Primitives loaded"));
+	m_output = CreateOutputCtrl(wxT("Primitives loaded"));
 	m_mgr.AddPane(m_output, wxAuiPaneInfo().
-		Name(wxT("test10")).Caption(wxT("Output")).
-		Bottom().Layer(1).Position(1).MinimizeButton());
-
-	m_mgr.AddPane(CreateSizeReportCtrl(), wxAuiPaneInfo().
-		Name(wxT("test11")).Caption(wxT("Fixed Pane")).
-		Bottom().Layer(1).Position(2).Fixed());
-
+		Name(wxT("outputtxt")).Caption(wxT("Output")).
+		Bottom().Layer(0).Row(0).Position(0).MinimizeButton());
 
 	m_mgr.AddPane(new SettingsPanel(this, this), wxAuiPaneInfo().
 		Name(wxT("settings")).Caption(wxT("Dock Manager Settings")).
 		Dockable(false).Float().Hide());
 
 	// Set notebook on center page
-	m_mgr.AddPane(CreateNotebook(), wxAuiPaneInfo().Name(wxT("notebook_content")).
+	m_mgr.AddPane(CreateNotebook(), wxAuiPaneInfo().
+		Name(wxT("centernb")).
 		CenterPane().PaneBorder(false));
 
 	// Add toolbars to frame
@@ -192,7 +161,6 @@ Frame::Frame(wxWindow* parent,
 		Gripper(false));
 
 	// make some default perspectives
-
 	wxString perspective_all = m_mgr.SavePerspective();
 
 	int i, count;
@@ -200,10 +168,11 @@ Frame::Frame(wxWindow* parent,
 	for (i = 0, count = all_panes.GetCount(); i < count; ++i)
 		if (!all_panes.Item(i).IsToolbar())
 			all_panes.Item(i).Hide();
-	m_mgr.GetPane(wxT("test8")).Show().Left().Layer(0).Row(0).Position(0);
-	m_mgr.GetPane(wxT("test10")).Show().Bottom().Layer(0).Row(0).Position(0);
-	m_mgr.GetPane(wxT("test17")).Show().Layer(1).Right().Position(0);
-	m_mgr.GetPane(wxT("notebook_content")).Show();
+
+	m_mgr.GetPane(wxT("primitivetr")).Show();
+	m_mgr.GetPane(wxT("outputtxt")).Show();
+	m_mgr.GetPane(wxT("mainprop")).Show();
+	m_mgr.GetPane(wxT("centernb")).Show();
 	wxString perspective_default = m_mgr.SavePerspective();
 
 	m_perspectives.Add(perspective_default);
@@ -246,15 +215,15 @@ void Frame::CreatePrimitiveFrame()
 	toolBlockCiper->Show();
 	toolBlockCiper->SetFocus();
 }
-#include "DataViewer.h"
+//#include "DataViewer.h"
 void Frame::StartHashTool()
 {
-	/*HashFrame *toolHash = new HashFrame(this);
+	HashFrame *toolHash = new HashFrame(this);
 	toolHash->SetIcon(wxIcon(wxString("calculator.ico"), wxBITMAP_TYPE_ICO));
 	toolHash->Show();
-	toolHash->SetFocus();*/
-	DataViewer *dialog = new DataViewer(this);
-	dialog->ShowModal();
+	toolHash->SetFocus();
+	//DataViewer *dialog = new DataViewer(this);
+	//dialog->ShowModal();
 }
 
 void Frame::OnCustomizeToolbar(wxCommandEvent& WXUNUSED(evt))
@@ -639,6 +608,12 @@ wxMenuBar *Frame::CreateMenuBar()
 	view_menu->Append(ID_CreateGrid, wxT("Create Grid"));
 	view_menu->Append(ID_CreateNotebook, wxT("Create Notebook"));
 	view_menu->Append(ID_CreateSizeReport, wxT("Create Size Reporter"));
+	view_menu->AppendSeparator();
+	view_menu->Append(ID_CreatePerspective, wxT("Create Perspective"));
+	view_menu->Append(ID_CopyPerspectiveCode, wxT("Copy Perspective Data To Clipboard"));
+	view_menu->AppendSeparator();
+	view_menu->Append(ID_FirstPerspective + 0, wxT("Default Startup"));
+	view_menu->Append(ID_FirstPerspective + 1, wxT("All Panes"));
 
 	wxMenu *options_menu = new wxMenu;
 	options_menu->AppendRadioItem(ID_TransparentHint, wxT("Transparent Hint"));
@@ -667,25 +642,25 @@ wxMenuBar *Frame::CreateMenuBar()
 	tools_menu->AppendSeparator();
 	tools_menu->Append(ID_Settings, wxT("Settings Pane"));
 
-	m_perspectives_menu = new wxMenu;
-	m_perspectives_menu->Append(ID_CreatePerspective, wxT("Create Perspective"));
-	m_perspectives_menu->Append(ID_CopyPerspectiveCode, wxT("Copy Perspective Data To Clipboard"));
-	m_perspectives_menu->AppendSeparator();
-	m_perspectives_menu->Append(ID_FirstPerspective + 0, wxT("Default Startup"));
-	m_perspectives_menu->Append(ID_FirstPerspective + 1, wxT("All Panes"));
-
 	wxMenu *help_menu = new wxMenu;
 	help_menu->Append(wxID_ABOUT);
 
 	mb->Append(file_menu, wxT("&File"));
 	mb->Append(view_menu, wxT("&View"));
-	mb->Append(m_perspectives_menu, wxT("&Perspectives"));
 	mb->Append(options_menu, wxT("&Options"));
 	mb->Append(tools_menu, wxT("&Tools"));
 	mb->Append(help_menu, wxT("&Help"));
 
 	return mb;
 }
+
+
+wxOutputConsoleCtrl *Frame::CreateOutputCtrl(const wxString& ctrl_text)
+{
+	return new wxOutputConsoleCtrl(this, wxID_ANY, ctrl_text,
+		wxPoint(0, 0), wxSize(150, 90));
+}
+
 
 wxTextCtrl *Frame::CreateTextCtrl(const wxString& ctrl_text)
 {
@@ -1005,13 +980,9 @@ void Frame::OnItemMenu(wxTreeEvent& event)
 
 void Frame::OnConsoleEnter(wxCommandEvent& event)
 {
-	wxDateTime timestamp(wxDateTime::Now());
-
 	wxTextCtrl *console = static_cast<wxTextCtrl *>(event.GetEventObject());
 	console->AppendText(wxT("\nUnrecognized command\n\n>> "));
-	m_output->AppendText("\n[");
-	m_output->AppendText(timestamp.FormatISOTime());
-	m_output->AppendText("] The console caused an error");
+	m_output->WriteConsole(wxT("The console caused an error"));
 	event.Skip();
 }
 

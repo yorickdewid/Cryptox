@@ -1,6 +1,7 @@
 #pragma once
 
 #include "wxSizeReportCtrl.h"
+#include "wxOutputConsoleCtrl.h"
 
 #include <wx/wxprec.h>
 #include <wx/grid.h>
@@ -63,6 +64,7 @@ public:
 private:
 	wxMenuBar *CreateMenuBar();
 	wxTextCtrl *CreateTextCtrl(const wxString& text = wxEmptyString);
+	wxOutputConsoleCtrl *CreateOutputCtrl(const wxString& ctrl_text);
 	wxGrid *CreateGrid();
 	wxTreeCtrl *CreateTreeCtrl();
 	wxPropertyGridManager *CreatePropCtrl();
@@ -133,7 +135,7 @@ private:
 	wxAuiManager m_mgr;
 	wxArrayString m_perspectives;
 	wxMenu *m_perspectives_menu;
-	wxTextCtrl *m_output;
+	wxOutputConsoleCtrl *m_output;
 	long m_notebook_style;
 	long m_notebook_theme;
 
