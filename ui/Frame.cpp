@@ -38,16 +38,6 @@ Frame::Frame(wxWindow* parent,
 	CreateMenu();
 	SetMenuBar(CreateMenuBar());
 
-	CryDB::SHA1 sha1;
-	sha1.GetName();
-	sha1.GetYear();
-	sha1.IsBroken();
-	sha1.CalculateHash(nullptr, nullptr, 0);
-
-	CryDB::HashCollector *m_hashList = new CryDB::HashCollector;
-	m_hashList->Add(&sha1);
-	m_hashList->Get()->GetName();
-
 	// Create statusbar
 	CreateStatusBar();
 	SetStatusText(wxT("Ready"));
@@ -62,6 +52,11 @@ Frame::Frame(wxWindow* parent,
 	item.SetId(ID_CustomizeToolbar);
 	item.SetLabel(wxT("Customize..."));
 	append_items.Add(item);
+
+	//CryDB::HashCollector *hashlist = CryDB::Core::InitHash();
+	//for (CryDB::HashCollector::iterator it = hashlist->begin(); it != hashlist->end(); ++it) {
+		//it
+	//}
 
 	wxBitmap tb2_bmp1 = wxArtProvider::GetBitmap(wxART_QUESTION, wxART_OTHER, wxSize(16, 16));
 	wxBitmap tb3_bmp1 = wxArtProvider::GetBitmap(wxART_FOLDER, wxART_OTHER, wxSize(16, 16));
@@ -85,10 +80,8 @@ Frame::Frame(wxWindow* parent,
 	maintb->AddTool(ID_SampleItem + 14, wxT("Test"), tb2_bmp1);
 	maintb->AddTool(ID_SampleItem + 15, wxT("Test"), tb2_bmp1);
 	maintb->AddSeparator();
-	maintb->AddTool(ID_SampleItem + 16, wxT("Check 1"), tb3_bmp1, wxT("Check 1"), wxITEM_CHECK);
-	maintb->AddTool(ID_SampleItem + 17, wxT("Check 2"), tb3_bmp1, wxT("Check 2"), wxITEM_CHECK);
-	maintb->AddTool(ID_SampleItem + 18, wxT("Check 3"), tb3_bmp1, wxT("Check 3"), wxITEM_CHECK);
-	maintb->AddTool(ID_SampleItem + 19, wxT("Check 4"), tb3_bmp1, wxT("Check 4"), wxITEM_CHECK);
+	maintb->AddTool(ID_SampleItem + 16, wxT("weak"), tb3_bmp1, wxT("Allow weak crypto"), wxITEM_CHECK);
+	maintb->AddTool(ID_SampleItem + 17, wxT("classic"), tb3_bmp1, wxT("Enable classic crypto"), wxITEM_CHECK);
 	maintb->AddSeparator();
 	maintb->AddTool(ID_SampleItem + 20, wxT("Radio 1"), tb3_bmp1, wxT("Radio 1"), wxITEM_RADIO);
 	maintb->AddTool(ID_SampleItem + 21, wxT("Radio 2"), tb3_bmp1, wxT("Radio 2"), wxITEM_RADIO);
@@ -107,10 +100,10 @@ Frame::Frame(wxWindow* parent,
 		wxAUI_TB_TEXT |
 		wxAUI_TB_HORZ_TEXT);
 	subtb->SetToolBitmapSize(wxSize(16, 16));
-	subtb->AddTool(ID_DropDownToolbarItem, wxT("Item 1"), tb4_bmp1);
-	subtb->AddTool(ID_SampleItem + 23, wxT("Item 2"), tb4_bmp1);
-	subtb->AddTool(ID_SampleItem + 24, wxT("Item 3"), tb4_bmp1);
-	subtb->AddTool(ID_SampleItem + 25, wxT("Item 4"), tb4_bmp1);
+	subtb->AddTool(ID_DropDownToolbarItem, wxT("Elliptic Curves"), tb4_bmp1);
+	subtb->AddTool(ID_SampleItem + 23, wxT("Primality Testing"), tb4_bmp1);
+	subtb->AddTool(ID_SampleItem + 24, wxT("Symmetric Encryption"), tb4_bmp1);
+	subtb->AddTool(ID_SampleItem + 25, wxT("Hash Calculator"), tb4_bmp1);
 	subtb->AddSeparator();
 	subtb->AddTool(ID_SampleItem + 26, wxT("Item 5"), tb4_bmp1);
 	subtb->AddTool(ID_SampleItem + 27, wxT("Item 6"), tb4_bmp1);
@@ -537,19 +530,19 @@ void Frame::OnDropDownToolbarItem(wxAuiToolBarEvent& evt)
 
 		wxBitmap bmp = wxArtProvider::GetBitmap(wxART_QUESTION, wxART_OTHER, wxSize(16, 16));
 
-		wxMenuItem* m1 = new wxMenuItem(&menuPopup, 10001, _("Drop Down Item 1"));
+		wxMenuItem* m1 = new wxMenuItem(&menuPopup, 10001, wxT("Generate Parameters"));
 		m1->SetBitmap(bmp);
 		menuPopup.Append(m1);
 
-		wxMenuItem* m2 = new wxMenuItem(&menuPopup, 10002, _("Drop Down Item 2"));
+		wxMenuItem* m2 = new wxMenuItem(&menuPopup, 10002, _("Plot Function"));
 		m2->SetBitmap(bmp);
 		menuPopup.Append(m2);
 
-		wxMenuItem* m3 = new wxMenuItem(&menuPopup, 10003, _("Drop Down Item 3"));
+		wxMenuItem* m3 = new wxMenuItem(&menuPopup, 10003, _("Determine Basepoint"));
 		m3->SetBitmap(bmp);
 		menuPopup.Append(m3);
 
-		wxMenuItem* m4 = new wxMenuItem(&menuPopup, 10004, _("Drop Down Item 4"));
+		wxMenuItem* m4 = new wxMenuItem(&menuPopup, 10004, _("Transconvert"));
 		m4->SetBitmap(bmp);
 		menuPopup.Append(m4);
 
@@ -615,6 +608,14 @@ wxMenuBar *Frame::CreateMenuBar()
 	view_menu->Append(ID_FirstPerspective + 0, wxT("Default Startup"));
 	view_menu->Append(ID_FirstPerspective + 1, wxT("All Panes"));
 
+	wxMenu *remote_menu = new wxMenu;
+	remote_menu->Append(wxID_ANY, wxT("TLS Client"));
+	remote_menu->Append(wxID_ANY, wxT("TLS Extension"));
+	remote_menu->Append(wxID_ANY, wxT("Secure Shell"));
+	remote_menu->Append(wxID_ANY, wxT("Fuzz Load"));
+	remote_menu->AppendSeparator();
+	remote_menu->Append(wxID_ANY, wxT("Show ciphersuites"));
+
 	wxMenu *options_menu = new wxMenu;
 	options_menu->AppendRadioItem(ID_TransparentHint, wxT("Transparent Hint"));
 	options_menu->AppendRadioItem(ID_VenetianBlindsHint, wxT("Venetian Blinds Hint"));
@@ -634,20 +635,34 @@ wxMenuBar *Frame::CreateMenuBar()
 	options_menu->AppendRadioItem(ID_HorizontalGradient, wxT("Horizontal Caption Gradient"));
 	options_menu->AppendSeparator();
 	options_menu->AppendCheckItem(ID_AllowToolbarResizing, wxT("Allow Toolbar Resizing"));
-	
+
+	wxMenu *analyze_menu = new wxMenu;
+	analyze_menu->Append(wxID_ANY, wxT("Launch Profiling"));
+	analyze_menu->Append(wxID_ANY, wxT("Performance Profiling"));
+	analyze_menu->AppendSeparator();
+	analyze_menu->Append(wxID_ANY, wxT("Data Analysis"));
+	analyze_menu->Append(wxID_ANY, wxT("Frequency analysis"));
+
 	wxMenu *tools_menu = new wxMenu;
 	tools_menu->Append(wxID_ANY, wxT("Password Generator"));
 	tools_menu->Append(ID_StartBlockCipherEncryptionTool, wxT("Block Cipher Encryption"));
 	tools_menu->Append(ID_StartHashTool, wxT("Hash Calculation"));
+	tools_menu->Append(wxID_ANY, wxT("Curve plot"));
 	tools_menu->AppendSeparator();
 	tools_menu->Append(ID_Settings, wxT("Settings Pane"));
 
 	wxMenu *help_menu = new wxMenu;
+	help_menu->Append(wxID_ANY, wxT("View Help"));
+	help_menu->Append(wxID_ANY, wxT("Fetch AttackDB"));
+	help_menu->Append(wxID_ANY, wxT("Check for update"));
+	help_menu->AppendSeparator();
 	help_menu->Append(wxID_ABOUT);
 
 	mb->Append(file_menu, wxT("&File"));
 	mb->Append(view_menu, wxT("&View"));
+	mb->Append(remote_menu, wxT("&Remote"));
 	mb->Append(options_menu, wxT("&Options"));
+	mb->Append(analyze_menu, wxT("&Analyze"));
 	mb->Append(tools_menu, wxT("&Tools"));
 	mb->Append(help_menu, wxT("&Help"));
 
@@ -701,9 +716,16 @@ wxTreeCtrl *Frame::CreateTreeCtrl()
 	imglist->Add(wxIcon(wxString("unlocked.ico"), wxBITMAP_TYPE_ICO));
 	tree->AssignImageList(imglist);
 
-	wxTreeItemId root = tree->AddRoot("NoRoot", 0);
+	wxTreeItemId root = tree->AddRoot("", 0);
 
-	wxTreeItemId id = tree->AppendItem(root, wxT("Block ciphers"), 0);
+	wxTreeItemId id = tree->AppendItem(root, wxT("Logic"), 0);
+	tree->AppendItem(id, wxT("OR"), 1);
+	tree->AppendItem(id, wxT("XOR"), 1);
+	tree->AppendItem(id, wxT("AND"), 1);
+	tree->AppendItem(id, wxT("NAND"), 1);
+	tree->AppendItem(id, wxT("NOT"), 1);
+
+	id = tree->AppendItem(root, wxT("Block ciphers"), 0);
 	tree->AppendItem(id, wxT("AES"), 3);
 	tree->AppendItem(id, wxT("Blowfish"), 3);
 	tree->AppendItem(id, wxT("Twofish"), 3);
@@ -918,6 +940,8 @@ wxAuiNotebook *Frame::CreateNotebook()
 	panel->SetSizer(flex);
 	ctrl->AddPage(panel, wxT("Panel"), false, page_bmp);
 
+	// 
+
 	// Dataview
 	wxDataViewCtrl *dataview = new wxDataViewCtrl(ctrl, wxID_ANY);
 	SecretListModel *listmodel = new SecretListModel;
@@ -942,7 +966,7 @@ wxAuiNotebook *Frame::CreateNotebook()
 			wxALIGN_RIGHT,
 			wxDATAVIEW_COL_REORDERABLE | wxDATAVIEW_COL_RESIZABLE | wxDATAVIEW_COL_SORTABLE);
 	dataview->AppendColumn(attributes);
-	ctrl->AddPage(dataview, wxT("List"), false, page_bmp);
+	ctrl->AddPage(dataview, wxT("AttackDB"), false, page_bmp);
 	
 	// Console
 	wxTextCtrl *console = new wxTextCtrl(ctrl, 10010, wxT("Type 'help' to get started\n\n>> "), wxDefaultPosition, wxDefaultSize,
