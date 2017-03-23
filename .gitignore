@@ -17,6 +17,7 @@
 *.idb
 *.ilk
 *.exe
+*/tmp
 
 # Precompiled Headers
 *.gch
@@ -26,10 +27,6 @@
 *.so
 *.dylib
 *.dll
-
-# Fortran module files
-*.mod
-*.smod
 
 # Compiled Static libraries
 *.lai
@@ -46,3 +43,4 @@
 /packages
 /Debug
 /Release
+.vs/
