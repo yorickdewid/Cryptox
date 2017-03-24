@@ -87,13 +87,16 @@
     <Image Include="calculator.ico">
       <Filter>Resource Files</Filter>
     </Image>
+    <Image Include="shuffle.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="shuffle.png">
+      <Filter>Resource Files</Filter>
+    </Image>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\ui\sample.rc">
       <Filter>Resource Files</Filter>
     </ResourceCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="packages.config" />
   </ItemGroup>
 </Project>

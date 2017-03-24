@@ -33,7 +33,7 @@ Frame::Frame(wxWindow* parent,
 	// Set up default notebook style
 	m_notebook_style = wxAUI_NB_DEFAULT_STYLE | wxAUI_NB_WINDOWLIST_BUTTON | wxAUI_NB_TAB_EXTERNAL_MOVE | wxNO_BORDER | wxAUI_NB_CLOSE_ON_ALL_TABS;
 	m_notebook_theme = 0;
-
+	
 	// Create menu
 	CreateMenu();
 	SetMenuBar(CreateMenuBar());
@@ -53,17 +53,26 @@ Frame::Frame(wxWindow* parent,
 	item.SetLabel(wxT("Customize..."));
 	append_items.Add(item);
 
-	//CryDB::HashCollector *hashlist = CryDB::Core::InitHash();
-	//for (CryDB::HashCollector::iterator it = hashlist->begin(); it != hashlist->end(); ++it) {
-		//it
-	//}
-
 	wxBitmap tb2_bmp1 = wxArtProvider::GetBitmap(wxART_QUESTION, wxART_OTHER, wxSize(16, 16));
 	wxBitmap tb3_bmp1 = wxArtProvider::GetBitmap(wxART_FOLDER, wxART_OTHER, wxSize(16, 16));
 	wxBitmap tb4_bmp1 = wxArtProvider::GetBitmap(wxART_NORMAL_FILE, wxART_OTHER, wxSize(16, 16));
 
+	wxAuiToolBar *subtb = new wxAuiToolBar(this, wxID_ANY, wxDefaultPosition, wxDefaultSize,
+		wxAUI_TB_DEFAULT_STYLE |
+		wxAUI_TB_OVERFLOW |
+		wxAUI_TB_TEXT |
+		wxAUI_TB_HORZ_TEXT);
+	subtb->SetToolBitmapSize(wxSize(16, 16));
+	subtb->AddTool(ID_DropDownToolbarItem, wxT("Elliptic Curves"), tb4_bmp1);
+	subtb->AddTool(ID_SampleItem + 23, wxT("Primality Testing"), tb4_bmp1);
+	subtb->AddTool(ID_SampleItem + 24, wxT("Symmetric Encryption"), tb4_bmp1);
+	subtb->AddTool(ID_SampleItem + 25, wxT("Hash Calculator"), tb4_bmp1);
+	subtb->SetToolDropDown(ID_DropDownToolbarItem, true);
+	subtb->SetCustomOverflowItems(prepend_items, append_items);
+	subtb->Realize();
+
 	wxAuiToolBar *maintb = new wxAuiToolBar(this, wxID_ANY, wxDefaultPosition, wxDefaultSize,
-		wxAUI_TB_DEFAULT_STYLE | 
+		wxAUI_TB_DEFAULT_STYLE |
 		wxAUI_TB_OVERFLOW |
 		wxAUI_TB_HORIZONTAL);
 	maintb->SetToolBitmapSize(wxSize(16, 16));
@@ -90,36 +99,24 @@ Frame::Frame(wxWindow* parent,
 	maintb->AddTool(ID_SampleItem + 23, wxT("Radio 1 (Group 2)"), tb3_bmp1, wxT("Radio 1 (Group 2)"), wxITEM_RADIO);
 	maintb->AddTool(ID_SampleItem + 24, wxT("Radio 2 (Group 2)"), tb3_bmp1, wxT("Radio 2 (Group 2)"), wxITEM_RADIO);
 	maintb->AddTool(ID_SampleItem + 25, wxT("Radio 3 (Group 2)"), tb3_bmp1, wxT("Radio 3 (Group 2)"), wxITEM_RADIO);
-	//tb2->SetCustomOverflowItems(prepend_items, append_items);
+	maintb->AddSeparator();
+	wxChoice* choice = new wxChoice(maintb, ID_SampleItem + 35);
+	choice->AppendString(wxT("x86 Instruction Set"));
+	choice->AppendString(wxT("x64 Instruction Set"));
+	choice->SetSelection(0);
+	maintb->AddControl(choice);
+	maintb->AddTool(ID_SampleItem + 26, wxT("Run"), tb4_bmp1);
+	maintb->AddTool(ID_SampleItem + 27, wxT("Debug"), tb4_bmp1);
+	maintb->AddTool(ID_SampleItem + 28, wxT("Item 7"), tb4_bmp1);
+	maintb->AddTool(ID_SampleItem + 29, wxT("Item 8"), tb4_bmp1);
+
+	maintb->SetCustomOverflowItems(prepend_items, append_items);
 	maintb->EnableTool(ID_SampleItem + 6, false);
 	maintb->Realize();
 
-	wxAuiToolBar *subtb = new wxAuiToolBar(this, wxID_ANY, wxDefaultPosition, wxDefaultSize,
-		wxAUI_TB_DEFAULT_STYLE |
-		wxAUI_TB_OVERFLOW |
-		wxAUI_TB_TEXT |
-		wxAUI_TB_HORZ_TEXT);
-	subtb->SetToolBitmapSize(wxSize(16, 16));
-	subtb->AddTool(ID_DropDownToolbarItem, wxT("Elliptic Curves"), tb4_bmp1);
-	subtb->AddTool(ID_SampleItem + 23, wxT("Primality Testing"), tb4_bmp1);
-	subtb->AddTool(ID_SampleItem + 24, wxT("Symmetric Encryption"), tb4_bmp1);
-	subtb->AddTool(ID_SampleItem + 25, wxT("Hash Calculator"), tb4_bmp1);
-	subtb->AddSeparator();
-	subtb->AddTool(ID_SampleItem + 26, wxT("Item 5"), tb4_bmp1);
-	subtb->AddTool(ID_SampleItem + 27, wxT("Item 6"), tb4_bmp1);
-	subtb->AddTool(ID_SampleItem + 28, wxT("Item 7"), tb4_bmp1);
-	subtb->AddTool(ID_SampleItem + 29, wxT("Item 8"), tb4_bmp1);
-	subtb->SetToolDropDown(ID_DropDownToolbarItem, true);
-	subtb->SetCustomOverflowItems(prepend_items, append_items);
-	wxChoice* choice = new wxChoice(subtb, ID_SampleItem + 35);
-	choice->AppendString(wxT("One choice"));
-	choice->AppendString(wxT("Another choice"));
-	subtb->AddControl(choice);
-	subtb->Realize();
-
 	// Setup default planes
 	m_mgr.AddPane(CreateTreeCtrl(), wxAuiPaneInfo().
-		Name(wxT("primitivetr")).Caption(wxT("Primitives")).
+		Name(wxT("primitivetree")).Caption(wxT("Object Library")).
 		Left().Layer(0).Row(0).Position(0).
 		CloseButton(false));
 
@@ -143,26 +140,25 @@ Frame::Frame(wxWindow* parent,
 		CenterPane().PaneBorder(false));
 
 	// Add toolbars to frame
-	m_mgr.AddPane(maintb, wxAuiPaneInfo().
-		Name(wxT("maintb")).
+	m_mgr.AddPane(subtb, wxAuiPaneInfo().
+		Name(wxT("subtb")).
 		ToolbarPane().Top().Row(1).Floatable(false).
 		Gripper(false));
 
-	m_mgr.AddPane(subtb, wxAuiPaneInfo().
-		Name(wxT("subtb")).
+	m_mgr.AddPane(maintb, wxAuiPaneInfo().
+		Name(wxT("maintb")).
 		ToolbarPane().Top().Row(2).Floatable(false).
 		Gripper(false));
 
 	// make some default perspectives
 	wxString perspective_all = m_mgr.SavePerspective();
 
-	int i, count;
 	wxAuiPaneInfoArray& all_panes = m_mgr.GetAllPanes();
-	for (i = 0, count = all_panes.GetCount(); i < count; ++i)
+	for (int i = 0, count = all_panes.GetCount(); i < count; ++i)
 		if (!all_panes.Item(i).IsToolbar())
 			all_panes.Item(i).Hide();
 
-	m_mgr.GetPane(wxT("primitivetr")).Show();
+	m_mgr.GetPane(wxT("primitivetree")).Show();
 	m_mgr.GetPane(wxT("outputtxt")).Show();
 	m_mgr.GetPane(wxT("mainprop")).Show();
 	m_mgr.GetPane(wxT("centernb")).Show();
@@ -208,15 +204,15 @@ void Frame::CreatePrimitiveFrame()
 	toolBlockCiper->Show();
 	toolBlockCiper->SetFocus();
 }
-//#include "DataViewer.h"
+#include "DataViewer.h"
 void Frame::StartHashTool()
 {
-	HashFrame *toolHash = new HashFrame(this);
-	toolHash->SetIcon(wxIcon(wxString("calculator.ico"), wxBITMAP_TYPE_ICO));
-	toolHash->Show();
-	toolHash->SetFocus();
-	//DataViewer *dialog = new DataViewer(this);
-	//dialog->ShowModal();
+	//HashFrame *toolHash = new HashFrame(this);
+	//toolHash->SetIcon(wxIcon(wxString("calculator.ico"), wxBITMAP_TYPE_ICO));
+	//toolHash->Show();
+	//toolHash->SetFocus();
+	DataViewer *dialog = new DataViewer(this);
+	dialog->ShowModal();
 }
 
 void Frame::OnCustomizeToolbar(wxCommandEvent& WXUNUSED(evt))
@@ -265,7 +261,6 @@ void Frame::OnManagerFlag(wxCommandEvent& event)
 {
 	unsigned int flag = 0;
 
-#if !defined(__WXMSW__) && !defined(__WXMAC__) && !defined(__WXGTK__)
 	if (event.GetId() == ID_TransparentDrag ||
 		event.GetId() == ID_TransparentHint ||
 		event.GetId() == ID_HintFade)
@@ -273,7 +268,6 @@ void Frame::OnManagerFlag(wxCommandEvent& event)
 		wxMessageBox(wxT("This option is presently only available on wxGTK, wxMSW and wxMac"));
 		return;
 	}
-#endif
 
 	int id = event.GetId();
 
@@ -551,9 +545,7 @@ void Frame::OnDropDownToolbarItem(wxAuiToolBarEvent& evt)
 		wxPoint pt = tb->ClientToScreen(rect.GetBottomLeft());
 		pt = ScreenToClient(pt);
 
-
 		PopupMenu(&menuPopup, pt);
-
 
 		// make sure the button is "un-stuck"
 		tb->SetToolSticky(evt.GetId(), false);
@@ -587,12 +579,17 @@ wxMenuBar *Frame::CreateMenuBar()
 	wxMenu *file_menu = new wxMenu;
 	file_menu->Append(wxID_NEW);
 	file_menu->Append(wxID_OPEN);
+	file_menu->Append(wxID_ANY, wxT("Open As..."));
+	file_menu->AppendSeparator();
 	file_menu->Append(wxID_CLOSE);
 	file_menu->Append(wxID_SAVE);
 	file_menu->Append(wxID_SAVEAS);
-	file_menu->Append(wxID_REVERT, wxT("Re&vert..."));
+	file_menu->Append(wxID_ANY, wxT("Save All"));
 	file_menu->AppendSeparator();
 	file_menu->Append(wxID_EXIT, wxT("&Exit"));
+
+	wxMenu *edit_menu = new wxMenu;
+	edit_menu->Append(wxID_REVERT, wxT("Re&vert..."));
 
 	wxMenu *view_menu = new wxMenu;
 	view_menu->Append(ID_CreateText, wxT("Create Text Control"));
@@ -608,11 +605,13 @@ wxMenuBar *Frame::CreateMenuBar()
 	view_menu->Append(ID_FirstPerspective + 0, wxT("Default Startup"));
 	view_menu->Append(ID_FirstPerspective + 1, wxT("All Panes"));
 
+	wxMenu *project_menu = new wxMenu;
+
 	wxMenu *remote_menu = new wxMenu;
-	remote_menu->Append(wxID_ANY, wxT("TLS Client"));
-	remote_menu->Append(wxID_ANY, wxT("TLS Extension"));
-	remote_menu->Append(wxID_ANY, wxT("Secure Shell"));
-	remote_menu->Append(wxID_ANY, wxT("Fuzz Load"));
+	remote_menu->Append(wxID_ANY, wxT("Connect to Server"));
+	remote_menu->AppendSeparator();
+	remote_menu->AppendCheckItem(wxID_ANY, wxT("ALPN"));
+	remote_menu->AppendCheckItem(wxID_ANY, wxT("NPN"));
 	remote_menu->AppendSeparator();
 	remote_menu->Append(wxID_ANY, wxT("Show ciphersuites"));
 
@@ -659,8 +658,10 @@ wxMenuBar *Frame::CreateMenuBar()
 	help_menu->Append(wxID_ABOUT);
 
 	mb->Append(file_menu, wxT("&File"));
+	mb->Append(edit_menu, wxT("&Edit"));
 	mb->Append(view_menu, wxT("&View"));
-	mb->Append(remote_menu, wxT("&Remote"));
+	mb->Append(project_menu, wxT("&Project"));
+	mb->Append(remote_menu, wxT("&TLS"));
 	mb->Append(options_menu, wxT("&Options"));
 	mb->Append(analyze_menu, wxT("&Analyze"));
 	mb->Append(tools_menu, wxT("&Tools"));
@@ -714,16 +715,17 @@ wxTreeCtrl *Frame::CreateTreeCtrl()
 	imglist->Add(wxArtProvider::GetBitmap(wxART_NORMAL_FILE, wxART_OTHER, wxSize(16, 16)));
 	imglist->Add(wxIcon(wxString("calculator.ico"), wxBITMAP_TYPE_ICO));
 	imglist->Add(wxIcon(wxString("unlocked.ico"), wxBITMAP_TYPE_ICO));
+	imglist->Add(wxIcon(wxString("shuffle.ico"), wxBITMAP_TYPE_ICO));
 	tree->AssignImageList(imglist);
 
 	wxTreeItemId root = tree->AddRoot("", 0);
 
-	wxTreeItemId id = tree->AppendItem(root, wxT("Logic"), 0);
-	tree->AppendItem(id, wxT("OR"), 1);
-	tree->AppendItem(id, wxT("XOR"), 1);
-	tree->AppendItem(id, wxT("AND"), 1);
-	tree->AppendItem(id, wxT("NAND"), 1);
-	tree->AppendItem(id, wxT("NOT"), 1);
+	wxTreeItemId id = tree->AppendItem(root, wxT("Gates"), 0);
+	tree->AppendItem(id, wxT("OR"), 4);
+	tree->AppendItem(id, wxT("XOR"), 4);
+	tree->AppendItem(id, wxT("AND"), 4);
+	tree->AppendItem(id, wxT("NAND"), 4);
+	tree->AppendItem(id, wxT("NOT"), 4);
 
 	id = tree->AppendItem(root, wxT("Block ciphers"), 0);
 	tree->AppendItem(id, wxT("AES"), 3);
@@ -996,7 +998,10 @@ void Frame::OnItemMenu(wxTreeEvent& event)
 	menu.Append(ID_StartBlockCipherEncryptionTool, wxT("&Run"));
 	menu.AppendSeparator();
 	menu.Append(wxID_ANY, wxT("&Use as template"));
-	menu.Append(wxID_ANY, wxT("&Attack database"));
+	menu.Append(wxID_ANY, wxT("&Attack vector"));
+	menu.Append(wxID_ANY, wxT("&Cryptanalysis"));
+	menu.AppendSeparator();
+	menu.Append(wxID_ANY, wxT("&Properties"));
 
 	PopupMenu(&menu, pt);
 	event.Skip();

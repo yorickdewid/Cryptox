@@ -1,9 +1,3 @@
-#include <cryptopp/aes.h>
-#include <cryptopp/modes.h>
-#include <cryptopp/filters.h>
-#include <cryptopp/hex.h>
-#include <cryptopp/osrng.h>
-
 #include "BlockCipherFrame.h"
 
 BlockCipherFrame::BlockCipherFrame(wxWindow* parent, wxWindowID id, const wxString& title, const wxPoint& pos, const wxSize& size, long style)
@@ -185,13 +179,13 @@ BlockCipherFrame::~BlockCipherFrame()
 {
 }
 
-void BlockCipherFrame::OnEncrypt(wxCommandEvent& evt)
+void BlockCipherFrame::OnEncrypt(wxCommandEvent& WXUNUSED(evt))
 {
 	if (m_txtInput->IsEmpty()) {
 		m_statusBar->SetStatusText(wxT("Input is empty"));
 		return;
 	}
-
+#if 0
 	std::string cipher, encoded, recovered;
 	try {
 		CryptoPP::AutoSeededRandomPool rnd;
@@ -222,8 +216,8 @@ void BlockCipherFrame::OnEncrypt(wxCommandEvent& evt)
 		std::cerr << e.what() << std::endl;
 		m_statusBar->SetStatusText(e.what());
 	}
-
-	m_txtOutput->SetValue(encoded);
+#endif
+	m_txtOutput->SetValue("magic encoding");
 	m_statusBar->SetStatusText(wxT("Done"));
 }
 

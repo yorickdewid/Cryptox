@@ -1,7 +1,3 @@
-#include <cryptopp/sha.h>
-#include <cryptopp/hex.h>
-#include <cryptopp/filters.h>
-
 #include "HashFrame.h"
 
 HashFrame::HashFrame(wxWindow* parent, wxWindowID id, const wxString& title, const wxPoint& pos, const wxSize& size, long style)
@@ -109,19 +105,19 @@ HashFrame::HashFrame(wxWindow* parent, wxWindowID id, const wxString& title, con
 	this->Centre(wxBOTH);
 }
 
-void HashFrame::OnHash(wxCommandEvent& evt)
+void HashFrame::OnHash(wxCommandEvent& WXUNUSED(evt))
 {
 	if (m_txtInput->IsEmpty()) {
 		m_statusBar->SetStatusText(wxT("Input is empty"));
 		return;
 	}
 
-	CryptoPP::SHA1 hash;
-	std::string encoded;
+	//CryptoPP::SHA1 hash;
+	std::string encoded("Magic hash");
 
 	m_statusBar->SetStatusText(wxT("Calculating hash..."));
 
-	CryptoPP::StringSource s(m_txtInput->GetValue(), true, new CryptoPP::HashFilter(hash, new CryptoPP::HexEncoder(new CryptoPP::StringSink(encoded), false)));
+	//CryptoPP::StringSource s(m_txtInput->GetValue(), true, new CryptoPP::HashFilter(hash, new CryptoPP::HexEncoder(new CryptoPP::StringSink(encoded), false)));
 
 	m_txtOutput->SetValue(encoded);
 	m_statusBar->SetStatusText(wxT("Done"));
