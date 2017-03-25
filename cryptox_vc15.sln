@@ -5,6 +5,8 @@ VisualStudioVersion = 15.0.26228.9
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "cryptox", "ui\cryptox_vc15.vcxproj", "{0E9842D2-3DC8-59FB-ABC5-F26CD815E2AD}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "EntropyServer", "EntropyServer\EntropyServer.vcxproj", "{E1EC6AD2-1DBB-40A8-9B09-704D3A250037}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|ARM = Debug|ARM
@@ -25,6 +27,16 @@ Global
 		{0E9842D2-3DC8-59FB-ABC5-F26CD815E2AD}.Release|x64.Build.0 = Release|x64
 		{0E9842D2-3DC8-59FB-ABC5-F26CD815E2AD}.Release|x86.ActiveCfg = Release|Win32
 		{0E9842D2-3DC8-59FB-ABC5-F26CD815E2AD}.Release|x86.Build.0 = Release|Win32
+		{E1EC6AD2-1DBB-40A8-9B09-704D3A250037}.Debug|ARM.ActiveCfg = Debug|Win32
+		{E1EC6AD2-1DBB-40A8-9B09-704D3A250037}.Debug|x64.ActiveCfg = Debug|x64
+		{E1EC6AD2-1DBB-40A8-9B09-704D3A250037}.Debug|x64.Build.0 = Debug|x64
+		{E1EC6AD2-1DBB-40A8-9B09-704D3A250037}.Debug|x86.ActiveCfg = Debug|Win32
+		{E1EC6AD2-1DBB-40A8-9B09-704D3A250037}.Debug|x86.Build.0 = Debug|Win32
+		{E1EC6AD2-1DBB-40A8-9B09-704D3A250037}.Release|ARM.ActiveCfg = Release|Win32
+		{E1EC6AD2-1DBB-40A8-9B09-704D3A250037}.Release|x64.ActiveCfg = Release|x64
+		{E1EC6AD2-1DBB-40A8-9B09-704D3A250037}.Release|x64.Build.0 = Release|x64
+		{E1EC6AD2-1DBB-40A8-9B09-704D3A250037}.Release|x86.ActiveCfg = Release|Win32
+		{E1EC6AD2-1DBB-40A8-9B09-704D3A250037}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
