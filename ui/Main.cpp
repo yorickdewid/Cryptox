@@ -13,7 +13,7 @@
 #include <wx/wxprec.h>
 #include <wx/app.h>
 
-#define APPNAME "Cryptox IDE"
+#define APPNAME "Cryptox IDE 0.2.4"
 
 class CyApp : public wxApp
 {
@@ -30,7 +30,7 @@ public:
 		wxConfigBase *config = wxConfigBase::Get();
 		config->SetRecordDefaults();
 
-		wxFrame *frame = new Frame(NULL,
+		wxFrame *frame = new Frame(nullptr,
 			wxID_ANY,
 			wxT(APPNAME),
 			wxDefaultPosition,

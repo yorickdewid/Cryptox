@@ -29,7 +29,8 @@ Frame::Frame(wxWindow* parent,
 
 	// Set border size
 	GetDockArt()->SetMetric(wxAUI_DOCKART_PANE_BORDER_SIZE, 0);
-
+	GetDockArt()->SetColor(wxAUI_DOCKART_BACKGROUND_COLOUR, *wxWHITE);
+	
 	// Set up default notebook style
 	m_notebook_style = wxAUI_NB_DEFAULT_STYLE | wxAUI_NB_WINDOWLIST_BUTTON | wxAUI_NB_TAB_EXTERNAL_MOVE | wxNO_BORDER | wxAUI_NB_CLOSE_ON_ALL_TABS;
 	m_notebook_theme = 0;
@@ -57,48 +58,55 @@ Frame::Frame(wxWindow* parent,
 	wxBitmap tb3_bmp1 = wxArtProvider::GetBitmap(wxART_FOLDER, wxART_OTHER, wxSize(16, 16));
 	wxBitmap tb4_bmp1 = wxArtProvider::GetBitmap(wxART_NORMAL_FILE, wxART_OTHER, wxSize(16, 16));
 
+	wxBitmap back_bmp1 = wxIcon("left-arrow.ico", wxBITMAP_TYPE_ICO, 16, 16);
+	wxBitmap forward_bmp1 = wxIcon("right-arrow.ico", wxBITMAP_TYPE_ICO, 16, 16);
+
+	wxBitmap calc_bmp1 = wxIcon("calculator.ico", wxBITMAP_TYPE_ICO, 16, 16);
+	wxBitmap unlock_bmp1 = wxIcon("unlocked.ico", wxBITMAP_TYPE_ICO, 16, 16);
+	wxBitmap certificate_bmp1 = wxIcon("diploma.ico", wxBITMAP_TYPE_ICO, 16, 16);
+	wxBitmap formula_bmp1 = wxIcon("homework.ico", wxBITMAP_TYPE_ICO, 16, 16);
+
 	wxAuiToolBar *subtb = new wxAuiToolBar(this, wxID_ANY, wxDefaultPosition, wxDefaultSize,
 		wxAUI_TB_DEFAULT_STYLE |
 		wxAUI_TB_OVERFLOW |
 		wxAUI_TB_TEXT |
 		wxAUI_TB_HORZ_TEXT);
 	subtb->SetToolBitmapSize(wxSize(16, 16));
+	subtb->AddTool(ID_SampleItem + 24, wxT("Encryption"), unlock_bmp1);
+	subtb->AddTool(ID_SampleItem + 25, wxT("Hash Calculator"), calc_bmp1);
 	subtb->AddTool(ID_DropDownToolbarItem, wxT("Elliptic Curves"), tb4_bmp1);
-	subtb->AddTool(ID_SampleItem + 23, wxT("Primality Testing"), tb4_bmp1);
-	subtb->AddTool(ID_SampleItem + 24, wxT("Symmetric Encryption"), tb4_bmp1);
-	subtb->AddTool(ID_SampleItem + 25, wxT("Hash Calculator"), tb4_bmp1);
+	subtb->AddTool(ID_SampleItem + 22, wxT("Certificate Manager"), certificate_bmp1);
+	subtb->AddTool(ID_SampleItem + 23, wxT("Prime Generator"), formula_bmp1);
 	subtb->SetToolDropDown(ID_DropDownToolbarItem, true);
 	subtb->SetCustomOverflowItems(prepend_items, append_items);
 	subtb->Realize();
 
 	wxAuiToolBar *maintb = new wxAuiToolBar(this, wxID_ANY, wxDefaultPosition, wxDefaultSize,
 		wxAUI_TB_DEFAULT_STYLE |
-		wxAUI_TB_OVERFLOW |
-		wxAUI_TB_HORIZONTAL);
+		wxAUI_TB_OVERFLOW | wxAUI_TB_TEXT |
+		wxAUI_TB_HORZ_TEXT);
 	maintb->SetToolBitmapSize(wxSize(16, 16));
-	maintb->AddTool(ID_SampleItem + 6, wxT("Disabled"), tb2_bmp1);
-	maintb->AddTool(ID_SampleItem + 7, wxT("Test"), tb2_bmp1);
-	maintb->AddTool(ID_SampleItem + 8, wxT("Test"), tb2_bmp1);
-	maintb->AddTool(ID_SampleItem + 9, wxT("Test"), tb2_bmp1);
+	maintb->AddTool(ID_SampleItem + 6, wxEmptyString, back_bmp1);
+	maintb->AddTool(ID_SampleItem + 7, wxEmptyString, forward_bmp1);
 	maintb->AddSeparator();
-	maintb->AddTool(ID_SampleItem + 10, wxT("Test"), tb2_bmp1);
-	maintb->AddTool(ID_SampleItem + 11, wxT("Test"), tb2_bmp1);
+	maintb->AddTool(ID_SampleItem + 10, wxEmptyString, tb2_bmp1);
+	maintb->AddTool(ID_SampleItem + 11, wxEmptyString, tb2_bmp1);
 	maintb->AddSeparator();
-	maintb->AddTool(ID_SampleItem + 12, wxT("Test"), tb2_bmp1);
-	maintb->AddTool(ID_SampleItem + 13, wxT("Test"), tb2_bmp1);
-	maintb->AddTool(ID_SampleItem + 14, wxT("Test"), tb2_bmp1);
-	maintb->AddTool(ID_SampleItem + 15, wxT("Test"), tb2_bmp1);
+	maintb->AddTool(ID_SampleItem + 12, wxEmptyString, tb2_bmp1);
+	maintb->AddTool(ID_SampleItem + 13, wxEmptyString, tb2_bmp1);
+	maintb->AddTool(ID_SampleItem + 14, wxEmptyString, tb2_bmp1);
+	maintb->AddTool(ID_SampleItem + 15, wxEmptyString, tb2_bmp1);
 	maintb->AddSeparator();
-	maintb->AddTool(ID_SampleItem + 16, wxT("weak"), tb3_bmp1, wxT("Allow weak crypto"), wxITEM_CHECK);
-	maintb->AddTool(ID_SampleItem + 17, wxT("classic"), tb3_bmp1, wxT("Enable classic crypto"), wxITEM_CHECK);
+	maintb->AddTool(ID_SampleItem + 16, wxEmptyString, tb3_bmp1, wxT("Allow weak crypto"), wxITEM_CHECK);
+	maintb->AddTool(ID_SampleItem + 17, wxEmptyString, tb3_bmp1, wxT("Enable classic crypto"), wxITEM_CHECK);
 	maintb->AddSeparator();
-	maintb->AddTool(ID_SampleItem + 20, wxT("Radio 1"), tb3_bmp1, wxT("Radio 1"), wxITEM_RADIO);
-	maintb->AddTool(ID_SampleItem + 21, wxT("Radio 2"), tb3_bmp1, wxT("Radio 2"), wxITEM_RADIO);
-	maintb->AddTool(ID_SampleItem + 22, wxT("Radio 3"), tb3_bmp1, wxT("Radio 3"), wxITEM_RADIO);
+	maintb->AddTool(ID_SampleItem + 20, wxEmptyString, tb3_bmp1, wxT("Radio 1"), wxITEM_RADIO);
+	maintb->AddTool(ID_SampleItem + 21, wxEmptyString, tb3_bmp1, wxT("Radio 2"), wxITEM_RADIO);
+	maintb->AddTool(ID_SampleItem + 22, wxEmptyString, tb3_bmp1, wxT("Radio 3"), wxITEM_RADIO);
 	maintb->AddSeparator();
-	maintb->AddTool(ID_SampleItem + 23, wxT("Radio 1 (Group 2)"), tb3_bmp1, wxT("Radio 1 (Group 2)"), wxITEM_RADIO);
-	maintb->AddTool(ID_SampleItem + 24, wxT("Radio 2 (Group 2)"), tb3_bmp1, wxT("Radio 2 (Group 2)"), wxITEM_RADIO);
-	maintb->AddTool(ID_SampleItem + 25, wxT("Radio 3 (Group 2)"), tb3_bmp1, wxT("Radio 3 (Group 2)"), wxITEM_RADIO);
+	maintb->AddTool(ID_SampleItem + 23, wxEmptyString, tb3_bmp1, wxT("Radio 1 (Group 2)"), wxITEM_RADIO);
+	maintb->AddTool(ID_SampleItem + 24, wxEmptyString, tb3_bmp1, wxT("Radio 2 (Group 2)"), wxITEM_RADIO);
+	maintb->AddTool(ID_SampleItem + 25, wxEmptyString, tb3_bmp1, wxT("Radio 3 (Group 2)"), wxITEM_RADIO);
 	maintb->AddSeparator();
 	wxChoice* choice = new wxChoice(maintb, ID_SampleItem + 35);
 	choice->AppendString(wxT("x86 Instruction Set"));
@@ -107,11 +115,9 @@ Frame::Frame(wxWindow* parent,
 	maintb->AddControl(choice);
 	maintb->AddTool(ID_SampleItem + 26, wxT("Run"), tb4_bmp1);
 	maintb->AddTool(ID_SampleItem + 27, wxT("Debug"), tb4_bmp1);
-	maintb->AddTool(ID_SampleItem + 28, wxT("Item 7"), tb4_bmp1);
-	maintb->AddTool(ID_SampleItem + 29, wxT("Item 8"), tb4_bmp1);
 
 	maintb->SetCustomOverflowItems(prepend_items, append_items);
-	maintb->EnableTool(ID_SampleItem + 6, false);
+	//maintb->EnableTool(ID_SampleItem + 6, false);
 	maintb->Realize();
 
 	// Setup default planes
@@ -142,21 +148,18 @@ Frame::Frame(wxWindow* parent,
 	// Add toolbars to frame
 	m_mgr.AddPane(subtb, wxAuiPaneInfo().
 		Name(wxT("subtb")).
-		ToolbarPane().Top().Row(1).Floatable(false).
+		ToolbarPane().Top().Row(2).Floatable(false).
+		MinSize(wxSize(0, 29)).
 		Gripper(false));
 
 	m_mgr.AddPane(maintb, wxAuiPaneInfo().
 		Name(wxT("maintb")).
-		ToolbarPane().Top().Row(2).Floatable(false).
+		ToolbarPane().Top().Row(3).Floatable(false).
+		MinSize(wxSize(0, 29)).
 		Gripper(false));
 
 	// make some default perspectives
 	wxString perspective_all = m_mgr.SavePerspective();
-
-	wxAuiPaneInfoArray& all_panes = m_mgr.GetAllPanes();
-	for (int i = 0, count = all_panes.GetCount(); i < count; ++i)
-		if (!all_panes.Item(i).IsToolbar())
-			all_panes.Item(i).Hide();
 
 	m_mgr.GetPane(wxT("primitivetree")).Show();
 	m_mgr.GetPane(wxT("outputtxt")).Show();
@@ -576,15 +579,26 @@ wxMenuBar *Frame::CreateMenuBar()
 {
 	wxMenuBar *mb = new wxMenuBar;
 
+	wxMenu *file_new_menu = new wxMenu;
+	file_new_menu->Append(wxID_NEW, wxT("Project..."));
+	file_new_menu->Append(wxID_NEW, wxT("Keypair..."));
+	file_new_menu->Append(wxID_NEW, wxT("File..."));
+
+	wxMenu *file_open_menu = new wxMenu;
+	file_open_menu->Append(wxID_NEW, wxT("&Project..."));
+	file_open_menu->Append(wxID_NEW, wxT("F&older..."));
+	file_open_menu->Append(wxID_NEW, wxT("&File..."));
+
 	wxMenu *file_menu = new wxMenu;
-	file_menu->Append(wxID_NEW);
-	file_menu->Append(wxID_OPEN);
-	file_menu->Append(wxID_ANY, wxT("Open As..."));
+	file_menu->Append(wxID_NEW, wxT("&New"), file_new_menu);
+	file_menu->Append(wxID_OPEN, wxT("&Open"), file_open_menu);
 	file_menu->AppendSeparator();
 	file_menu->Append(wxID_CLOSE);
+	file_menu->Append(wxID_CLOSE, wxT("&Close Project"));
+	file_menu->AppendSeparator();
 	file_menu->Append(wxID_SAVE);
-	file_menu->Append(wxID_SAVEAS);
-	file_menu->Append(wxID_ANY, wxT("Save All"));
+	file_menu->Append(wxID_SAVEAS, wxT("Save &As"));
+	file_menu->Append(wxID_ANY, wxT("Save A&ll"));
 	file_menu->AppendSeparator();
 	file_menu->Append(wxID_EXIT, wxT("&Exit"));
 
@@ -606,6 +620,12 @@ wxMenuBar *Frame::CreateMenuBar()
 	view_menu->Append(ID_FirstPerspective + 1, wxT("All Panes"));
 
 	wxMenu *project_menu = new wxMenu;
+	project_menu->Append(wxID_ANY, wxT("Add New Item..."));
+	project_menu->Append(wxID_ANY, wxT("Add Existing Item..."));
+	project_menu->AppendSeparator();
+	project_menu->AppendCheckItem(wxID_ANY, wxT("Set as Startup Project"));
+	project_menu->AppendSeparator();
+	project_menu->Append(wxID_ANY, wxT("Project Properties"));
 
 	wxMenu *remote_menu = new wxMenu;
 	remote_menu->Append(wxID_ANY, wxT("Connect to Server"));
@@ -643,6 +663,11 @@ wxMenuBar *Frame::CreateMenuBar()
 	analyze_menu->Append(wxID_ANY, wxT("Frequency analysis"));
 
 	wxMenu *tools_menu = new wxMenu;
+	tools_menu->Append(wxID_ANY, wxT("Extensions and Plugins"));
+	tools_menu->AppendSeparator();
+	tools_menu->Append(wxID_ANY, wxT("Connect to Server..."));
+	tools_menu->Append(wxID_ANY, wxT("Remote Entropy Source..."));
+	tools_menu->AppendSeparator();
 	tools_menu->Append(wxID_ANY, wxT("Password Generator"));
 	tools_menu->Append(ID_StartBlockCipherEncryptionTool, wxT("Block Cipher Encryption"));
 	tools_menu->Append(ID_StartHashTool, wxT("Hash Calculation"));
@@ -652,9 +677,12 @@ wxMenuBar *Frame::CreateMenuBar()
 
 	wxMenu *help_menu = new wxMenu;
 	help_menu->Append(wxID_ANY, wxT("View Help"));
-	help_menu->Append(wxID_ANY, wxT("Fetch AttackDB"));
-	help_menu->Append(wxID_ANY, wxT("Check for update"));
+	help_menu->Append(wxID_ANY, wxT("Online Documentation"));
 	help_menu->AppendSeparator();
+	help_menu->Append(wxID_ANY, wxT("Examples"));
+	help_menu->AppendSeparator();
+	help_menu->Append(wxID_ANY, wxT("Check for update"));
+	help_menu->Append(wxID_ANY, wxT("Send Feedback"));
 	help_menu->Append(wxID_ABOUT);
 
 	mb->Append(file_menu, wxT("&File"));
