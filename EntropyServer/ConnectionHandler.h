@@ -23,8 +23,16 @@ class ConnectionHandler : public wxEvtHandler
 	void OnSocketEvent(wxSocketEvent& pEvent);
 	void DoWrite();
 	void DoRead();
+	void ParseQuery(EntropyProtocol& proto);
+
+	template <typename T>
+	void inline Log(T input)
+	{
+		wxLogMessage("%s:%d => %s", m_peer.IPAddress(), m_peer.Service(), input);
+	}
 
 public:
 	ConnectionHandler(wxSocketBase* socket);
 	virtual ~ConnectionHandler();
+
 };

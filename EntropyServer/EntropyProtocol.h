@@ -20,7 +20,11 @@ struct EntropyProtocolHdr {
 
 struct EntropyProtocol : EntropyProtocolHdr {
 
-	uint8_t flags;
+	struct {
+		uint8_t stream : 1;
+		uint8_t unused : 7;
+	} flag;
+
 	int32_t requestSize;
 	int32_t magic;
 

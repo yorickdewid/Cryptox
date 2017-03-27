@@ -26,120 +26,56 @@ ConnectionHandler::~ConnectionHandler()
 
 void ConnectionHandler::DoRead()
 {
+	EntropyProtocol protocol;
 	unsigned char m_buffer[sizeof(EntropyProtocol)];
 
-	if (!m_inbuf) {
-		// Read message header
-		do {
-			m_socket->Read(m_buffer, sizeof(EntropyProtocol));
-			if (m_socket->Error()) {
-				if (m_socket->LastError() != wxSOCKET_WOULDBLOCK) {
-					wxLogError("Socket error %d", m_socket->LastError());
-					//LogWorker(wxString::Format("Read error (%d): %s", m_socket->LastError(), GetSocketErrorMsg(m_socket->LastError())), wxLOG_Error);
-					m_socket->Close();
-					return;
-				}
+	//do {
+		m_socket->Read(m_buffer, sizeof(EntropyProtocol));
+		if (m_socket->Error()) {
+			if (m_socket->LastError() != wxSOCKET_WOULDBLOCK && m_socket->LastError() != wxSOCKET_IOERR) {
+				this->Log(wxString::Format("Socket error %d", m_socket->LastError()));
+				m_socket->Close();
+				return;
 			}
+		}
 
-			wxLogMessage("We'll see if this is an valid headerst");
-
-			/*m_infill += m_socket->LastCount();
-			if (m_infill == 2) {
-				unsigned char chunks = m_signature[1];
-				unsigned char type = m_signature[0];
-				if (type == 0xCE)
-				{
-					//LogWorker("This server does not support test2 from GUI client", wxLOG_Error);
-					m_written = -1; //wxSOCKET_LOST will interpret this as failure
-					m_socket->Close();
-				}
-				else if (type == 0xBE || type == 0xDE)
-				{
-					m_size = chunks * (type == 0xBE ? 1 : 1024);
-					m_inbuf = new char[m_size];
-					m_outbuf = new char[m_size];
-					m_infill = 0;
-					m_outfill = 0;
-					m_written = 0;
-					//LogWorker(wxString::Format("Message signature: len: %d, type: %s, size: %d (bytes)", chunks, type == 0xBE ? "b" : "kB", m_size));
-					break;
-				}
-				else
-				{
-					//LogWorker(wxString::Format("Unknown test type %x", type));
-					m_socket->Close();
-				}
-			}*/
-
-		//} while (!m_socket->Error() && (2 - m_infill != 0));
-		} while (!m_socket->Error());
-	}
-#if 0
-	if (!m_inbuf == NULL)
-		return;
-
-	//read message data
-	do
-	{
-		if (m_size == m_infill)
-		{
-			m_signature[0] = m_signature[1] = 0x0;
-			wxDELETEA(m_inbuf);
-			m_infill = 0;
+		::memcpy(&protocol, m_buffer, sizeof(EntropyProtocol));
+		if (wxStrcmp(protocol.bannerString, protobanner)) {
+			this->Log("Malformed request");
+			m_socket->Close();
 			return;
 		}
-		m_socket->Read(m_inbuf + m_infill, m_size - m_infill);
-		if (m_socket->Error())
-		{
-			if (m_socket->LastError() != wxSOCKET_WOULDBLOCK)
-			{
-				//LogWorker(wxString::Format("Read error (%d): %s",
-				//	m_socket->LastError(),
-				//	GetSocketErrorMsg(m_socket->LastError())),
-				//	wxLOG_Error);
 
-				m_socket->Close();
-			}
-		}
-		else
-		{
-			memcpy(m_outbuf + m_outfill, m_inbuf + m_infill, m_socket->LastCount());
-			m_infill += m_socket->LastCount();
-			m_outfill += m_socket->LastCount();
-			DoWrite();
-		}
-	} while (!m_socket->Error());
-#endif
+		this->ParseQuery(protocol);
+
+	//} while (!m_socket->Error());
 }
 
 
 void ConnectionHandler::OnSocketEvent(wxSocketEvent& pEvent)
 {
-	switch (pEvent.GetSocketEvent())
-	{
-	case wxSOCKET_INPUT:
-		DoRead();
-		break;
+	switch (pEvent.GetSocketEvent()) {
+		case wxSOCKET_INPUT:
+			DoRead();
+			break;
 
-	case wxSOCKET_OUTPUT:
-		if (m_outbuf)
-			DoWrite();
-		break;
+		//TODO: remove?
+		case wxSOCKET_OUTPUT:
+			if (m_outbuf)
+				DoWrite();
+			break;
 
-	case wxSOCKET_CONNECTION:
-		//LogWorker("Unexpected wxSOCKET_CONNECTION in EventWorker", wxLOG_Error);
-		wxLogError("Unexpected wxSOCKET_CONNECTION in EventWorker", wxLOG_Error);
-		break;
+		case wxSOCKET_CONNECTION:
+			this->Log("Unexpected wxSOCKET_CONNECTION in EventWorker");
+			break;
 
-	case wxSOCKET_LOST:
-	{
-		//LogWorker("Connection lost");
-		wxLogError("Connection lost");
-		//WorkerEvent e(this);
-		//e.m_workerFailed = m_written != m_size;
-		//wxGetApp().AddPendingEvent(e);
-	}
-	break;
+		case wxSOCKET_LOST: {
+			this->Log("Connection lost");
+			//WorkerEvent e(this);
+			//e.m_workerFailed = m_written != m_size;
+			//wxGetApp().AddPendingEvent(e);
+		}
+		break;
 	}
 }
 
@@ -185,6 +121,17 @@ void ConnectionHandler::DoWrite()
 		//	m_written, m_size, m_size - m_written));
 	} while (!m_socket->Error());
 }
+
+
+void ConnectionHandler::ParseQuery(EntropyProtocol& proto)
+{
+	this->Log(wxString::Format("Request client version: %d", proto.protoVersion));
+	this->Log(wxString::Format("Request block size: %d", proto.requestSize));
+
+	if (proto.flag.stream)
+		this->Log("Rquested stream");
+}
+
 
 wxBEGIN_EVENT_TABLE(ConnectionHandler, wxEvtHandler)
 	EVT_SOCKET(wxID_ANY, ConnectionHandler::OnSocketEvent)
