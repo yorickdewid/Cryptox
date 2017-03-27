@@ -15,19 +15,19 @@
 #include <wx/cmdline.h>
 #include <wx/datetime.h>
 #include <wx/timer.h>
-#include <wx/thread.h>
+
+#include "ConnectionHandler.h"
 
 class Daemon : public wxApp
 {
 	wxDECLARE_EVENT_TABLE();
 
-	unsigned short m_port = 52630;
+	unsigned short m_port;
 
-	wxSocketServer *m_listeningSocket;
+	wxSocketServer *m_listeningSocket = nullptr;
 
 public:
-	Daemon() {}
-	~Daemon() {}
+	Daemon() : m_port{ 52630 } {}
 
 	virtual bool OnInit() wxOVERRIDE;
 	virtual int OnExit() wxOVERRIDE;
@@ -44,7 +44,6 @@ wxIMPLEMENT_APP_CONSOLE(Daemon);
 wxBEGIN_EVENT_TABLE(Daemon, wxEvtHandler)
 	EVT_SOCKET(wxID_ANY, Daemon::OnSocketEvent)
 	//EVT_WORKER(Daemon::OnWorkerEvent)
-	//EVT_TIMER(wxID_ANY, Daemon::OnTimerEvent)
 wxEND_EVENT_TABLE()
 
 
@@ -58,12 +57,11 @@ void Daemon::OnInitCmdLine(wxCmdLineParser& parser)
 }
 
 
-bool Daemon::OnCmdLineParsed(wxCmdLineParser& pParser)
+bool Daemon::OnCmdLineParsed(wxCmdLineParser& parser)
 {
 	wxLogMessage("Parsing arguments");
 
-	if (pParser.Found("verbose"))
-	{
+	if (parser.Found("verbose")) {
 		wxLog::AddTraceMask("wxSocket");
 		wxLog::AddTraceMask("epolldispatcher");
 		wxLog::AddTraceMask("selectdispatcher");
@@ -72,19 +70,20 @@ bool Daemon::OnCmdLineParsed(wxCmdLineParser& pParser)
 		wxLog::AddTraceMask("timer");
 	}
 
-	return wxApp::OnCmdLineParsed(pParser);
+	return wxApp::OnCmdLineParsed(parser);
 }
 
 
-bool Daemon::OnInit() {
+bool Daemon::OnInit()
+{
+	wxLogMessage("Initializing application");
 	if (!wxApp::OnInit())
 		return false;
-
-	wxLogMessage("I am here");
 
 	wxIPV4address addr;
 	addr.Service(m_port);
 
+	wxLogMessage("Accepting connections...");
 	m_listeningSocket = new wxSocketServer(addr, wxSOCKET_NOWAIT | wxSOCKET_REUSEADDR);
 	m_listeningSocket->SetEventHandler(*this);
 	m_listeningSocket->SetNotify(wxSOCKET_CONNECTION_FLAG);
@@ -104,8 +103,6 @@ int Daemon::OnExit() {
 	wxLogMessage("Shutdown server");
 
 	m_listeningSocket->Destroy();
-	return 0;
-
 	return 0;
 }
 
@@ -131,6 +128,9 @@ void Daemon::OnSocketEvent(wxSocketEvent& evt)
 		else {
 			wxLogMessage("Got connection from %s:%d", addr.IPAddress().c_str(), addr.Service());
 		}
+
+		//ConnectionHandler::ConnectionHandler(wxSocketBase *socket)
+		ConnectionHandler *w = new ConnectionHandler(sock);
 #if 0
 		bool createThread;
 
