@@ -892,14 +892,18 @@ wxPropertyGridManager *Frame::CreatePropCtrl()
 	wxPropertyGridPage *page =  pgman->AddPage();
 	page->Append(new wxPropertyCategory(wxT("General"), wxPG_LABEL));
 	page->Append(new wxStringProperty(wxT("Application"), wxPG_LABEL, GetTitle()));
-	page->Append(new wxStringProperty(wxT("OS"), wxPG_LABEL, ::wxGetOsDescription()));
-	page->Append(new wxStringProperty(wxT("Hostname"), wxPG_LABEL, ::wxGetHostName()));
-	page->Append(new wxStringProperty(wxT("User Id"), wxPG_LABEL, ::wxGetUserId()));
-	page->Append(new wxDirProperty(wxT("User Home"), wxPG_LABEL, ::wxGetUserHome()));
-	page->Append(new wxStringProperty(wxT("User Name"), wxPG_LABEL, ::wxGetUserName()));
+	page->Append(new wxStringProperty(wxT("OS"), wxPG_LABEL, wxGetOsDescription()));
+	page->Append(new wxStringProperty(wxT("Architecture"), wxPG_LABEL, wxIsPlatform64Bit() ? "x64" : "x86"));
+	page->Append(new wxStringProperty(wxT("Endianness"), wxPG_LABEL, wxIsPlatformLittleEndian() ? "Little Endian" : "Big Endian"));
+	page->Append(new wxStringProperty(wxT("Hostname"), wxPG_LABEL, wxGetHostName()));
+	page->Append(new wxStringProperty(wxT("User Id"), wxPG_LABEL, wxGetUserId()));
+	page->Append(new wxDirProperty(wxT("User Home"), wxPG_LABEL, wxGetUserHome()));
+	page->Append(new wxStringProperty(wxT("User Name"), wxPG_LABEL, wxGetUserName()));
 
 	page->SetPropertyHelpString(wxT("Application"), wxT("Application name."));
 	page->SetPropertyHelpString(wxT("OS"), wxT("Operating system name."));
+	page->SetPropertyHelpString(wxT("Architecture"), wxT("Processor architecture."));
+	page->SetPropertyHelpString(wxT("Endianness"), wxT("Little or big endian processor architecture."));
 	page->SetPropertyHelpString(wxT("Hostname"), wxT("Current hostname."));
 	page->SetPropertyHelpString(wxT("User Id"), wxT("Operating system user ID."));
 	page->SetPropertyHelpString(wxT("User Home"), wxT("User home directory."));
@@ -907,6 +911,8 @@ wxPropertyGridManager *Frame::CreatePropCtrl()
 
 	page->DisableProperty(wxT("Application"));
 	page->DisableProperty(wxT("OS"));
+	page->DisableProperty(wxT("Architecture"));
+	page->DisableProperty(wxT("Endianness"));
 	page->DisableProperty(wxT("Hostname"));
 	page->DisableProperty(wxT("User Id"));
 	page->DisableProperty(wxT("User Home"));
@@ -917,6 +923,7 @@ wxPropertyGridManager *Frame::CreatePropCtrl()
 	return pgman;
 }
 
+
 wxSizeReportCtrl *Frame::CreateSizeReportCtrl(int width, int height)
 {
 	wxSizeReportCtrl *ctrl = new wxSizeReportCtrl(this, wxID_ANY,
@@ -924,6 +931,7 @@ wxSizeReportCtrl *Frame::CreateSizeReportCtrl(int width, int height)
 		wxSize(width, height), &m_mgr);
 	return ctrl;
 }
+
 
 wxHtmlWindow *Frame::CreateHTMLCtrl(wxWindow *parent)
 {
@@ -936,6 +944,7 @@ wxHtmlWindow *Frame::CreateHTMLCtrl(wxWindow *parent)
 	ctrl->SetPage(GetIntroText());
 	return ctrl;
 }
+
 
 wxAuiNotebook *Frame::CreateNotebook()
 {
@@ -1009,6 +1018,7 @@ wxAuiNotebook *Frame::CreateNotebook()
 	return ctrl;
 }
 
+
 void Frame::OnItemMenu(wxTreeEvent& event)
 {
 	wxTreeCtrl *tree = static_cast<wxTreeCtrl *>(event.GetEventObject());
@@ -1035,6 +1045,7 @@ void Frame::OnItemMenu(wxTreeEvent& event)
 	event.Skip();
 }
 
+
 void Frame::OnConsoleEnter(wxCommandEvent& event)
 {
 	wxTextCtrl *console = static_cast<wxTextCtrl *>(event.GetEventObject());
@@ -1042,6 +1053,7 @@ void Frame::OnConsoleEnter(wxCommandEvent& event)
 	m_output->WriteConsole(wxT("The console caused an error"));
 	event.Skip();
 }
+
 
 wxString Frame::GetIntroText()
 {
@@ -1151,8 +1163,7 @@ wxBEGIN_EVENT_TABLE(Frame, wxFrame)
 	EVT_UPDATE_UI(ID_VerticalGradient, Frame::OnUpdateUI)
 	EVT_UPDATE_UI(ID_HorizontalGradient, Frame::OnUpdateUI)
 	EVT_UPDATE_UI(ID_AllowToolbarResizing, Frame::OnUpdateUI)
-	EVT_MENU_RANGE(Frame::ID_FirstPerspective, Frame::ID_FirstPerspective + 1000,
-		Frame::OnRestorePerspective)
+	EVT_MENU_RANGE(Frame::ID_FirstPerspective, Frame::ID_FirstPerspective + 1000, Frame::OnRestorePerspective)
 	EVT_AUITOOLBAR_TOOL_DROPDOWN(ID_DropDownToolbarItem, Frame::OnDropDownToolbarItem)
 	EVT_AUI_PANE_CLOSE(Frame::OnPaneClose)
 	EVT_AUINOTEBOOK_ALLOW_DND(wxID_ANY, Frame::OnAllowNotebookDnD)
