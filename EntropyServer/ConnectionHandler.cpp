@@ -1,5 +1,5 @@
 #include "ConnectionHandler.h"
-
+#include "CryptRand.h"
 
 ConnectionHandler::ConnectionHandler(wxSocketBase *socket)
 	: m_socket{socket}
@@ -26,29 +26,26 @@ ConnectionHandler::~ConnectionHandler()
 
 void ConnectionHandler::DoRead()
 {
-	EntropyProtocol protocol;
-	unsigned char m_buffer[sizeof(EntropyProtocol)];
+	EntropyRequest protocol;
+	unsigned char m_buffer[sizeof(EntropyRequest)];
 
-	//do {
-		m_socket->Read(m_buffer, sizeof(EntropyProtocol));
-		if (m_socket->Error()) {
-			if (m_socket->LastError() != wxSOCKET_WOULDBLOCK && m_socket->LastError() != wxSOCKET_IOERR) {
-				this->Log(wxString::Format("Socket error %d", m_socket->LastError()));
-				m_socket->Close();
-				return;
-			}
-		}
-
-		::memcpy(&protocol, m_buffer, sizeof(EntropyProtocol));
-		if (wxStrcmp(protocol.bannerString, protobanner)) {
-			this->Log("Malformed request");
+	m_socket->Read(m_buffer, sizeof(EntropyRequest));
+	if (m_socket->Error()) {
+		if (m_socket->LastError() != wxSOCKET_WOULDBLOCK && m_socket->LastError() != wxSOCKET_IOERR) {
+			this->Log(wxString::Format("Socket error %d", m_socket->LastError()));
 			m_socket->Close();
 			return;
 		}
+	}
 
-		this->ParseQuery(protocol);
+	::memcpy(&protocol, m_buffer, sizeof(EntropyRequest));
+	if (wxStrcmp(protocol.bannerString, protobanner)) {
+		this->Log("Malformed request");
+		m_socket->Close();
+		return;
+	}
 
-	//} while (!m_socket->Error());
+	this->ParseQuery(protocol);
 }
 
 
@@ -123,13 +120,15 @@ void ConnectionHandler::DoWrite()
 }
 
 
-void ConnectionHandler::ParseQuery(EntropyProtocol& proto)
+void ConnectionHandler::ParseQuery(EntropyRequest& proto)
 {
 	this->Log(wxString::Format("Request client version: %d", proto.protoVersion));
 	this->Log(wxString::Format("Request block size: %d", proto.requestSize));
 
 	if (proto.flag.stream)
 		this->Log("Rquested stream");
+
+	m_outbuf = CryptRand::GenerateRandomBlock(32);
 }
 
 

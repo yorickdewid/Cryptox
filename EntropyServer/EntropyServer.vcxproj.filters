@@ -24,12 +24,18 @@
     <ClCompile Include="ConnectionHandler.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="CryptRand.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ConnectionHandler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="EntropyProtocol.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="CryptRand.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

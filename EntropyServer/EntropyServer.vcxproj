@@ -143,10 +143,12 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ConnectionHandler.cpp" />
+    <ClCompile Include="CryptRand.cpp" />
     <ClCompile Include="Main.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ConnectionHandler.h" />
+    <ClInclude Include="CryptRand.h" />
     <ClInclude Include="EntropyProtocol.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

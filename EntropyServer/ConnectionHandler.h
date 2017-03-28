@@ -23,7 +23,7 @@ class ConnectionHandler : public wxEvtHandler
 	void OnSocketEvent(wxSocketEvent& pEvent);
 	void DoWrite();
 	void DoRead();
-	void ParseQuery(EntropyProtocol& proto);
+	void ParseQuery(EntropyRequest& proto);
 
 	template <typename T>
 	void inline Log(T input)
