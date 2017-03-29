@@ -12,12 +12,7 @@
 #include <wx/aboutdlg.h>
 #include <wx/dataview.h>
 
-Frame::Frame(wxWindow* parent,
-	wxWindowID id,
-	const wxString& title,
-	const wxPoint& pos,
-	const wxSize& size,
-	long style)
+Frame::Frame(wxWindow *parent, wxWindowID id, const wxString& title, const wxPoint& pos, const wxSize& size, long style)
 	: wxFrame(parent, id, title, pos, size, style)
 {
 	// AUI manage this frame
@@ -174,20 +169,24 @@ Frame::Frame(wxWindow* parent,
 	m_mgr.Update();
 }
 
+
 Frame::~Frame()
 {
 	m_mgr.UnInit();
 }
+
 
 wxAuiDockArt *Frame::GetDockArt()
 {
 	return m_mgr.GetArtProvider();
 }
 
+
 void Frame::DoUpdate()
 {
 	m_mgr.Update();
 }
+
 
 void Frame::OnSettings(wxCommandEvent& WXUNUSED(evt))
 {
@@ -200,6 +199,7 @@ void Frame::OnSettings(wxCommandEvent& WXUNUSED(evt))
 	m_mgr.Update();
 }
 
+
 void Frame::CreatePrimitiveFrame()
 {
 	BlockCipherFrame *toolBlockCiper = new BlockCipherFrame(this);
@@ -207,6 +207,7 @@ void Frame::CreatePrimitiveFrame()
 	toolBlockCiper->Show();
 	toolBlockCiper->SetFocus();
 }
+
 #include "DataViewer.h"
 void Frame::StartHashTool()
 {
@@ -218,10 +219,12 @@ void Frame::StartHashTool()
 	dialog->ShowModal();
 }
 
+
 void Frame::OnCustomizeToolbar(wxCommandEvent& WXUNUSED(evt))
 {
 	wxMessageBox(wxT("Customize Toolbar clicked"));
 }
+
 
 void Frame::OnGradient(wxCommandEvent& event)
 {
@@ -244,6 +247,7 @@ void Frame::OnGradient(wxCommandEvent& event)
 	m_mgr.Update();
 }
 
+
 void Frame::OnToolbarResizing(wxCommandEvent& WXUNUSED(evt))
 {
 	wxAuiPaneInfoArray& all_panes = m_mgr.GetAllPanes();
@@ -259,6 +263,7 @@ void Frame::OnToolbarResizing(wxCommandEvent& WXUNUSED(evt))
 
 	m_mgr.Update();
 }
+
 
 void Frame::OnManagerFlag(wxCommandEvent& event)
 {
@@ -306,6 +311,7 @@ void Frame::OnManagerFlag(wxCommandEvent& event)
 
 	m_mgr.Update();
 }
+
 
 void Frame::OnUpdateUI(wxUpdateUIEvent& event)
 {
@@ -369,6 +375,7 @@ void Frame::OnUpdateUI(wxUpdateUIEvent& event)
 	}
 }
 
+
 void Frame::OnPaneClose(wxAuiManagerEvent& evt)
 {
 	if (evt.pane->name == wxT("test10"))
@@ -381,6 +388,7 @@ void Frame::OnPaneClose(wxAuiManagerEvent& evt)
 			evt.Veto();
 	}
 }
+
 
 void Frame::OnCreatePerspective(wxCommandEvent& WXUNUSED(event))
 {
@@ -400,6 +408,7 @@ void Frame::OnCreatePerspective(wxCommandEvent& WXUNUSED(event))
 	m_perspectives.Add(m_mgr.SavePerspective());
 }
 
+
 void Frame::OnCopyPerspectiveCode(wxCommandEvent& WXUNUSED(evt))
 {
 	wxString s = m_mgr.SavePerspective();
@@ -413,10 +422,12 @@ void Frame::OnCopyPerspectiveCode(wxCommandEvent& WXUNUSED(evt))
 #endif
 }
 
+
 void Frame::OnRestorePerspective(wxCommandEvent& evt)
 {
 	m_mgr.LoadPerspective(m_perspectives.Item(evt.GetId() - ID_FirstPerspective));
 }
+
 
 void Frame::OnNotebookPageClose(wxAuiNotebookEvent& evt)
 {
@@ -432,6 +443,7 @@ void Frame::OnNotebookPageClose(wxAuiNotebookEvent& evt)
 	}
 }
 
+
 void Frame::OnNotebookPageClosed(wxAuiNotebookEvent& evt)
 {
 	wxAuiNotebook *ctrl = (wxAuiNotebook *)evt.GetEventObject();
@@ -445,12 +457,14 @@ void Frame::OnNotebookPageClosed(wxAuiNotebookEvent& evt)
 	evt.Skip();
 }
 
+
 void Frame::OnAllowNotebookDnD(wxAuiNotebookEvent& evt)
 {
 	// for the purpose of this test application, explicitly
 	// allow all notebook drag and drop events
 	evt.Allow();
 }
+
 
 wxPoint Frame::GetStartPosition()
 {
@@ -459,6 +473,7 @@ wxPoint Frame::GetStartPosition()
 	wxPoint pt = ClientToScreen(wxPoint(0, 0));
 	return wxPoint(pt.x + x, pt.y + x);
 }
+
 
 void Frame::OnCreateTree(wxCommandEvent& WXUNUSED(event))
 {
@@ -469,6 +484,7 @@ void Frame::OnCreateTree(wxCommandEvent& WXUNUSED(event))
 	m_mgr.Update();
 }
 
+
 void Frame::OnCreateGrid(wxCommandEvent& WXUNUSED(event))
 {
 	m_mgr.AddPane(CreateGrid(), wxAuiPaneInfo().
@@ -478,6 +494,7 @@ void Frame::OnCreateGrid(wxCommandEvent& WXUNUSED(event))
 	m_mgr.Update();
 }
 
+
 void Frame::OnCreateHTML(wxCommandEvent& WXUNUSED(event))
 {
 	m_mgr.AddPane(CreateHTMLCtrl(), wxAuiPaneInfo().
@@ -486,6 +503,7 @@ void Frame::OnCreateHTML(wxCommandEvent& WXUNUSED(event))
 		FloatingSize(wxSize(300, 200)));
 	m_mgr.Update();
 }
+
 
 void Frame::OnCreateNotebook(wxCommandEvent& WXUNUSED(event))
 {
@@ -497,6 +515,7 @@ void Frame::OnCreateNotebook(wxCommandEvent& WXUNUSED(event))
 	m_mgr.Update();
 }
 
+
 void Frame::OnCreateText(wxCommandEvent& WXUNUSED(event))
 {
 	m_mgr.AddPane(CreateTextCtrl(), wxAuiPaneInfo().
@@ -504,6 +523,7 @@ void Frame::OnCreateText(wxCommandEvent& WXUNUSED(event))
 		Float().FloatingPosition(GetStartPosition()));
 	m_mgr.Update();
 }
+
 
 void Frame::OnCreateSizeReport(wxCommandEvent& WXUNUSED(event))
 {
@@ -513,6 +533,7 @@ void Frame::OnCreateSizeReport(wxCommandEvent& WXUNUSED(event))
 		CloseButton(true).MaximizeButton(true));
 	m_mgr.Update();
 }
+
 
 void Frame::OnDropDownToolbarItem(wxAuiToolBarEvent& evt)
 {
@@ -555,10 +576,12 @@ void Frame::OnDropDownToolbarItem(wxAuiToolBarEvent& evt)
 	}
 }
 
+
 void Frame::OnExit(wxCommandEvent& WXUNUSED(event))
 {
 	Close(true);
 }
+
 
 void Frame::OnAbout(wxCommandEvent& WXUNUSED(event))
 {
@@ -574,6 +597,7 @@ void Frame::OnAbout(wxCommandEvent& WXUNUSED(event))
 
 	wxAboutBox(info);
 }
+
 
 wxMenuBar *Frame::CreateMenuBar()
 {
@@ -730,6 +754,7 @@ wxGrid *Frame::CreateGrid()
 	return grid;
 }
 
+
 wxTreeCtrl *Frame::CreateTreeCtrl()
 {
 	wxTreeCtrl *tree = new wxTreeCtrl(this, 10009,
@@ -882,6 +907,7 @@ wxTreeCtrl *Frame::CreateTreeCtrl()
 
 	return tree;
 }
+
 
 wxPropertyGridManager *Frame::CreatePropCtrl()
 {
