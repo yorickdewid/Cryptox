@@ -25,6 +25,7 @@ Frame::Frame(wxWindow *parent, wxWindowID id, const wxString& title, const wxPoi
 	// Set border size
 	GetDockArt()->SetMetric(wxAUI_DOCKART_PANE_BORDER_SIZE, 0);
 	GetDockArt()->SetColor(wxAUI_DOCKART_BACKGROUND_COLOUR, *wxWHITE);
+	GetDockArt()->SetMetric(wxAUI_DOCKART_SASH_SIZE, 2);
 	
 	// Set up default notebook style
 	m_notebook_style = wxAUI_NB_DEFAULT_STYLE | wxAUI_NB_WINDOWLIST_BUTTON | wxAUI_NB_TAB_EXTERNAL_MOVE | wxNO_BORDER | wxAUI_NB_CLOSE_ON_ALL_TABS;
@@ -71,9 +72,9 @@ Frame::Frame(wxWindow *parent, wxWindowID id, const wxString& title, const wxPoi
 	subtb->AddTool(ID_SampleItem + 25, wxT("Hash Calculator"), calc_bmp1);
 #ifdef CYFULL
 	subtb->AddTool(ID_DropDownToolbarItem, wxT("Elliptic Curves"), tb4_bmp1);
-#endif
 	subtb->AddTool(ID_SampleItem + 22, wxT("Certificate Manager"), certificate_bmp1);
 	subtb->AddTool(ID_SampleItem + 23, wxT("Prime Generator"), formula_bmp1);
+#endif
 	subtb->SetToolDropDown(ID_DropDownToolbarItem, true);
 	subtb->SetCustomOverflowItems(prepend_items, append_items);
 	subtb->Realize();
@@ -281,8 +282,7 @@ void Frame::OnManagerFlag(wxCommandEvent& event)
 	if (id == ID_TransparentHint ||
 		id == ID_VenetianBlindsHint ||
 		id == ID_RectangleHint ||
-		id == ID_NoHint)
-	{
+		id == ID_NoHint) {
 		unsigned int flags = m_mgr.GetFlags();
 		flags &= ~wxAUI_MGR_TRANSPARENT_HINT;
 		flags &= ~wxAUI_MGR_VENETIAN_BLINDS_HINT;
@@ -290,8 +290,7 @@ void Frame::OnManagerFlag(wxCommandEvent& event)
 		m_mgr.SetFlags(flags);
 	}
 
-	switch (id)
-	{
+	switch (id) {
 		case ID_AllowFloating: flag = wxAUI_MGR_ALLOW_FLOATING; break;
 		case ID_TransparentDrag: flag = wxAUI_MGR_TRANSPARENT_DRAG; break;
 		case ID_HintFade: flag = wxAUI_MGR_HINT_FADE; break;
@@ -303,8 +302,7 @@ void Frame::OnManagerFlag(wxCommandEvent& event)
 		case ID_LiveUpdate: flag = wxAUI_MGR_LIVE_RESIZE; break;
 	}
 
-	if (flag)
-	{
+	if (flag) {
 		m_mgr.SetFlags(m_mgr.GetFlags() ^ flag);
 	}
 
@@ -316,8 +314,7 @@ void Frame::OnUpdateUI(wxUpdateUIEvent& event)
 {
 	unsigned int flags = m_mgr.GetFlags();
 
-	switch (event.GetId())
-	{
+	switch (event.GetId()) {
 		case ID_NoGradient:
 			event.Check(m_mgr.GetArtProvider()->GetMetric(wxAUI_DOCKART_GRADIENT_TYPE) == wxAUI_GRADIENT_NONE);
 			break;
@@ -327,8 +324,7 @@ void Frame::OnUpdateUI(wxUpdateUIEvent& event)
 		case ID_HorizontalGradient:
 			event.Check(m_mgr.GetArtProvider()->GetMetric(wxAUI_DOCKART_GRADIENT_TYPE) == wxAUI_GRADIENT_HORIZONTAL);
 			break;
-		case ID_AllowToolbarResizing:
-		{
+		case ID_AllowToolbarResizing: {
 			wxAuiPaneInfoArray& all_panes = m_mgr.GetAllPanes();
 			const size_t count = all_panes.GetCount();
 			for (size_t i = 0; i < count; ++i)
@@ -377,8 +373,7 @@ void Frame::OnUpdateUI(wxUpdateUIEvent& event)
 
 void Frame::OnPaneClose(wxAuiManagerEvent& evt)
 {
-	if (evt.pane->name == wxT("outputtxt"))
-	{
+	if (evt.pane->name == wxT("outputtxt")) {
 		int res = wxMessageBox(wxT("Are you sure you want to close the output log?"),
 			wxT("Close output panel"),
 			wxYES_NO,
@@ -391,15 +386,13 @@ void Frame::OnPaneClose(wxAuiManagerEvent& evt)
 
 void Frame::OnCreatePerspective(wxCommandEvent& WXUNUSED(event))
 {
-	wxTextEntryDialog dlg(this, wxT("Enter a name for the new perspective:"),
-		wxT("wxAUI Test"));
+	wxTextEntryDialog dlg(this, wxT("Enter a name for the new perspective:"), wxT("wxAUI Test"));
 
 	dlg.SetValue(wxString::Format(wxT("Perspective %u"), unsigned(m_perspectives.GetCount() + 1)));
 	if (dlg.ShowModal() != wxID_OK)
 		return;
 
-	if (m_perspectives.GetCount() == 0)
-	{
+	if (m_perspectives.GetCount() == 0) {
 		m_perspectives_menu->AppendSeparator();
 	}
 
@@ -413,8 +406,7 @@ void Frame::OnCopyPerspectiveCode(wxCommandEvent& WXUNUSED(evt))
 	wxString s = m_mgr.SavePerspective();
 
 #if wxUSE_CLIPBOARD
-	if (wxTheClipboard->Open())
-	{
+	if (wxTheClipboard->Open()) {
 		wxTheClipboard->SetData(new wxTextDataObject(s));
 		wxTheClipboard->Close();
 	}
@@ -629,6 +621,8 @@ wxMenuBar *Frame::CreateMenuBar()
 	view_menu->AppendSeparator();
 	view_menu->Append(ID_FirstPerspective + 0, wxT("Default Startup"));
 	view_menu->Append(ID_FirstPerspective + 1, wxT("All Panes"));
+	view_menu->AppendSeparator();
+	view_menu->Append(ID_Settings, wxT("Settings Pane"));
 
 	wxMenu *project_menu = new wxMenu;
 	project_menu->Append(wxID_ANY, wxT("Add New Item..."));
@@ -686,8 +680,6 @@ wxMenuBar *Frame::CreateMenuBar()
 	tools_menu->Append(ID_StartBlockCipherEncryptionTool, wxT("Block Cipher Encryption"));
 	tools_menu->Append(ID_StartHashTool, wxT("Hash Calculation"));
 	tools_menu->Append(wxID_ANY, wxT("Curve plot"));
-	tools_menu->AppendSeparator();
-	tools_menu->Append(ID_Settings, wxT("Settings Pane"));
 #endif
 
 	wxMenu *help_menu = new wxMenu;
@@ -1141,7 +1133,7 @@ wxString Frame::GetIntroText()
 		"<p>See README.txt for more information.</p>"
 		"</body></html>";
 
-	return wxString::FromAscii(text);
+	return text;
 }
 
 wxBEGIN_EVENT_TABLE(Frame, wxFrame)
