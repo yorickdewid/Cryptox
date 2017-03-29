@@ -77,6 +77,8 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PrecompiledHeaderFile>wx_pch.h</PrecompiledHeaderFile>
+      <AdditionalIncludeDirectories>$(WXWIN)\lib\vc_lib\mswud;$(WXWIN)\include;include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -124,19 +126,98 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <Text Include="ReadMe.txt" />
+    <ClCompile Include="src\ArrowBase.cpp" />
+    <ClCompile Include="src\AutoLayout.cpp" />
+    <ClCompile Include="src\BitmapShape.cpp" />
+    <ClCompile Include="src\BitmapShapeXml.cpp" />
+    <ClCompile Include="src\CanvasHistory.cpp" />
+    <ClCompile Include="src\CanvasState.cpp" />
+    <ClCompile Include="src\CircleArrow.cpp" />
+    <ClCompile Include="src\CircleShape.cpp" />
+    <ClCompile Include="src\CommonFcn.cpp" />
+    <ClCompile Include="src\ControlShape.cpp" />
+    <ClCompile Include="src\CurveShape.cpp" />
+    <ClCompile Include="src\DiagramManager.cpp" />
+    <ClCompile Include="src\DiamondArrow.cpp" />
+    <ClCompile Include="src\DiamondShape.cpp" />
+    <ClCompile Include="src\EditTextShape.cpp" />
+    <ClCompile Include="src\EllipseShape.cpp" />
+    <ClCompile Include="src\FixedRectShape.cpp" />
+    <ClCompile Include="src\FlexGridShape.cpp" />
+    <ClCompile Include="src\GridShape.cpp" />
+    <ClCompile Include="src\LineShape.cpp" />
+    <ClCompile Include="src\MultiSelRect.cpp" />
+    <ClCompile Include="src\OpenArrow.cpp" />
+    <ClCompile Include="src\OrthoShape.cpp" />
+    <ClCompile Include="src\PolygonShape.cpp" />
+    <ClCompile Include="src\PolygonShapeXml.cpp" />
+    <ClCompile Include="src\Printout.cpp" />
+    <ClCompile Include="src\RectShape.cpp" />
+    <ClCompile Include="src\RoundOrthoShape.cpp" />
+    <ClCompile Include="src\RoundRectShape.cpp" />
+    <ClCompile Include="src\ScaledDC.cpp" />
+    <ClCompile Include="src\SFEvents.cpp" />
+    <ClCompile Include="src\ShapeBase.cpp" />
+    <ClCompile Include="src\ShapeBaseXml.cpp" />
+    <ClCompile Include="src\ShapeCanvas.cpp" />
+    <ClCompile Include="src\ShapeDataObject.cpp" />
+    <ClCompile Include="src\ShapeDockpoint.cpp" />
+    <ClCompile Include="src\ShapeHandle.cpp" />
+    <ClCompile Include="src\SolidArrow.cpp" />
+    <ClCompile Include="src\TextShape.cpp" />
+    <ClCompile Include="src\TextShapeXml.cpp" />
+    <ClCompile Include="src\Thumbnail.cpp" />
+    <ClCompile Include="src\wxxmlserializer\PropertyIO.cpp" />
+    <ClCompile Include="src\wxxmlserializer\XmlSerializer.cpp" />
+    <ClCompile Include="src\wx_pch.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="stdafx.h" />
-    <ClInclude Include="targetver.h" />
+    <ClInclude Include="include\wx\wxsf\ArrowBase.h" />
+    <ClInclude Include="include\wx\wxsf\AutoLayout.h" />
+    <ClInclude Include="include\wx\wxsf\BitmapShape.h" />
+    <ClInclude Include="include\wx\wxsf\CanvasHistory.h" />
+    <ClInclude Include="include\wx\wxsf\CanvasState.h" />
+    <ClInclude Include="include\wx\wxsf\CircleArrow.h" />
+    <ClInclude Include="include\wx\wxsf\CircleShape.h" />
+    <ClInclude Include="include\wx\wxsf\CommonFcn.h" />
+    <ClInclude Include="include\wx\wxsf\ControlShape.h" />
+    <ClInclude Include="include\wx\wxsf\CurveShape.h" />
+    <ClInclude Include="include\wx\wxsf\Defs.h" />
+    <ClInclude Include="include\wx\wxsf\DiagramManager.h" />
+    <ClInclude Include="include\wx\wxsf\DiamondArrow.h" />
+    <ClInclude Include="include\wx\wxsf\DiamondShape.h" />
+    <ClInclude Include="include\wx\wxsf\EditTextShape.h" />
+    <ClInclude Include="include\wx\wxsf\EllipseShape.h" />
+    <ClInclude Include="include\wx\wxsf\FixedRectShape.h" />
+    <ClInclude Include="include\wx\wxsf\FlexGridShape.h" />
+    <ClInclude Include="include\wx\wxsf\GridShape.h" />
+    <ClInclude Include="include\wx\wxsf\LineShape.h" />
+    <ClInclude Include="include\wx\wxsf\MultiSelRect.h" />
+    <ClInclude Include="include\wx\wxsf\OpenArrow.h" />
+    <ClInclude Include="include\wx\wxsf\OrthoShape.h" />
+    <ClInclude Include="include\wx\wxsf\PolygonShape.h" />
+    <ClInclude Include="include\wx\wxsf\Printout.h" />
+    <ClInclude Include="include\wx\wxsf\RectShape.h" />
+    <ClInclude Include="include\wx\wxsf\RoundOrthoShape.h" />
+    <ClInclude Include="include\wx\wxsf\RoundRectShape.h" />
+    <ClInclude Include="include\wx\wxsf\ScaledDC.h" />
+    <ClInclude Include="include\wx\wxsf\SFEvents.h" />
+    <ClInclude Include="include\wx\wxsf\ShapeBase.h" />
+    <ClInclude Include="include\wx\wxsf\ShapeCanvas.h" />
+    <ClInclude Include="include\wx\wxsf\ShapeDataObject.h" />
+    <ClInclude Include="include\wx\wxsf\ShapeDockpoint.h" />
+    <ClInclude Include="include\wx\wxsf\ShapeHandle.h" />
+    <ClInclude Include="include\wx\wxsf\SolidArrow.h" />
+    <ClInclude Include="include\wx\wxsf\TextShape.h" />
+    <ClInclude Include="include\wx\wxsf\Thumbnail.h" />
+    <ClInclude Include="include\wx\wxsf\wxShapeFramework.h" />
+    <ClInclude Include="include\wx\wxxmlserializer\Defs.h" />
+    <ClInclude Include="include\wx\wxxmlserializer\PropertyIO.h" />
+    <ClInclude Include="include\wx\wxxmlserializer\XmlSerializer.h" />
+    <ClInclude Include="src\wx_pch.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="stdafx.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
-    </ClCompile>
+    <ResourceCompile Include="src\wxSF.rc" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
