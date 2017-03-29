@@ -84,7 +84,6 @@ private:
 	void OnCreateHTML(wxCommandEvent& evt);
 	void OnCreateNotebook(wxCommandEvent& evt);
 	void OnCreateText(wxCommandEvent& evt);
-	void OnCreateSizeReport(wxCommandEvent& evt);
 	void OnDropDownToolbarItem(wxAuiToolBarEvent& evt);
 	void OnCreatePerspective(wxCommandEvent& evt);
 	void OnCopyPerspectiveCode(wxCommandEvent& evt);

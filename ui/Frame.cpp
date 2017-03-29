@@ -69,7 +69,9 @@ Frame::Frame(wxWindow *parent, wxWindowID id, const wxString& title, const wxPoi
 	subtb->SetToolBitmapSize(wxSize(16, 16));
 	subtb->AddTool(ID_SampleItem + 24, wxT("Encryption"), unlock_bmp1);
 	subtb->AddTool(ID_SampleItem + 25, wxT("Hash Calculator"), calc_bmp1);
+#ifdef CYFULL
 	subtb->AddTool(ID_DropDownToolbarItem, wxT("Elliptic Curves"), tb4_bmp1);
+#endif
 	subtb->AddTool(ID_SampleItem + 22, wxT("Certificate Manager"), certificate_bmp1);
 	subtb->AddTool(ID_SampleItem + 23, wxT("Prime Generator"), formula_bmp1);
 	subtb->SetToolDropDown(ID_DropDownToolbarItem, true);
@@ -252,11 +254,9 @@ void Frame::OnToolbarResizing(wxCommandEvent& WXUNUSED(evt))
 {
 	wxAuiPaneInfoArray& all_panes = m_mgr.GetAllPanes();
 	const size_t count = all_panes.GetCount();
-	for (size_t i = 0; i < count; ++i)
-	{
+	for (size_t i = 0; i < count; ++i) {
 		wxAuiToolBar* toolbar = wxDynamicCast(all_panes[i].window, wxAuiToolBar);
-		if (toolbar)
-		{
+		if (toolbar) {
 			all_panes[i].Resizable(!all_panes[i].IsResizable());
 		}
 	}
@@ -271,8 +271,7 @@ void Frame::OnManagerFlag(wxCommandEvent& event)
 
 	if (event.GetId() == ID_TransparentDrag ||
 		event.GetId() == ID_TransparentHint ||
-		event.GetId() == ID_HintFade)
-	{
+		event.GetId() == ID_HintFade) {
 		wxMessageBox(wxT("This option is presently only available on wxGTK, wxMSW and wxMac"));
 		return;
 	}
@@ -378,10 +377,10 @@ void Frame::OnUpdateUI(wxUpdateUIEvent& event)
 
 void Frame::OnPaneClose(wxAuiManagerEvent& evt)
 {
-	if (evt.pane->name == wxT("test10"))
+	if (evt.pane->name == wxT("outputtxt"))
 	{
-		int res = wxMessageBox(wxT("Are you sure you want to close/hide this pane?"),
-			wxT("wxAUI"),
+		int res = wxMessageBox(wxT("Are you sure you want to close the output log?"),
+			wxT("Close output panel"),
 			wxYES_NO,
 			this);
 		if (res != wxYES)
@@ -432,8 +431,7 @@ void Frame::OnRestorePerspective(wxCommandEvent& evt)
 void Frame::OnNotebookPageClose(wxAuiNotebookEvent& evt)
 {
 	wxAuiNotebook *ctrl = (wxAuiNotebook*)evt.GetEventObject();
-	if (ctrl->GetPage(evt.GetSelection())->IsKindOf(CLASSINFO(wxHtmlWindow)))
-	{
+	if (ctrl->GetPage(evt.GetSelection())->IsKindOf(CLASSINFO(wxHtmlWindow))) {
 		int res = wxMessageBox(wxT("Are you sure you want to close/hide this notebook page?"),
 			wxT("wxAUI"),
 			wxYES_NO,
@@ -521,16 +519,6 @@ void Frame::OnCreateText(wxCommandEvent& WXUNUSED(event))
 	m_mgr.AddPane(CreateTextCtrl(), wxAuiPaneInfo().
 		Caption(wxT("Text Control")).
 		Float().FloatingPosition(GetStartPosition()));
-	m_mgr.Update();
-}
-
-
-void Frame::OnCreateSizeReport(wxCommandEvent& WXUNUSED(event))
-{
-	m_mgr.AddPane(CreateSizeReportCtrl(), wxAuiPaneInfo().
-		Caption(wxT("Client Size Reporter")).
-		Float().FloatingPosition(GetStartPosition()).
-		CloseButton(true).MaximizeButton(true));
 	m_mgr.Update();
 }
 
@@ -635,7 +623,6 @@ wxMenuBar *Frame::CreateMenuBar()
 	view_menu->Append(ID_CreateTree, wxT("Create Tree"));
 	view_menu->Append(ID_CreateGrid, wxT("Create Grid"));
 	view_menu->Append(ID_CreateNotebook, wxT("Create Notebook"));
-	view_menu->Append(ID_CreateSizeReport, wxT("Create Size Reporter"));
 	view_menu->AppendSeparator();
 	view_menu->Append(ID_CreatePerspective, wxT("Create Perspective"));
 	view_menu->Append(ID_CopyPerspectiveCode, wxT("Copy Perspective Data To Clipboard"));
@@ -651,6 +638,7 @@ wxMenuBar *Frame::CreateMenuBar()
 	project_menu->AppendSeparator();
 	project_menu->Append(wxID_ANY, wxT("Project Properties"));
 
+#ifdef CYFULL
 	wxMenu *remote_menu = new wxMenu;
 	remote_menu->Append(wxID_ANY, wxT("Connect to Server"));
 	remote_menu->AppendSeparator();
@@ -658,6 +646,7 @@ wxMenuBar *Frame::CreateMenuBar()
 	remote_menu->AppendCheckItem(wxID_ANY, wxT("NPN"));
 	remote_menu->AppendSeparator();
 	remote_menu->Append(wxID_ANY, wxT("Show ciphersuites"));
+#endif
 
 	wxMenu *options_menu = new wxMenu;
 	options_menu->AppendRadioItem(ID_TransparentHint, wxT("Transparent Hint"));
@@ -679,6 +668,7 @@ wxMenuBar *Frame::CreateMenuBar()
 	options_menu->AppendSeparator();
 	options_menu->AppendCheckItem(ID_AllowToolbarResizing, wxT("Allow Toolbar Resizing"));
 
+#ifdef CYFULL
 	wxMenu *analyze_menu = new wxMenu;
 	analyze_menu->Append(wxID_ANY, wxT("Launch Profiling"));
 	analyze_menu->Append(wxID_ANY, wxT("Performance Profiling"));
@@ -698,25 +688,30 @@ wxMenuBar *Frame::CreateMenuBar()
 	tools_menu->Append(wxID_ANY, wxT("Curve plot"));
 	tools_menu->AppendSeparator();
 	tools_menu->Append(ID_Settings, wxT("Settings Pane"));
+#endif
 
 	wxMenu *help_menu = new wxMenu;
 	help_menu->Append(wxID_ANY, wxT("View Help"));
 	help_menu->Append(wxID_ANY, wxT("Online Documentation"));
 	help_menu->AppendSeparator();
-	help_menu->Append(wxID_ANY, wxT("Examples"));
-	help_menu->AppendSeparator();
+#ifdef CYFULL
 	help_menu->Append(wxID_ANY, wxT("Check for update"));
 	help_menu->Append(wxID_ANY, wxT("Send Feedback"));
+#endif
 	help_menu->Append(wxID_ABOUT);
 
 	mb->Append(file_menu, wxT("&File"));
 	mb->Append(edit_menu, wxT("&Edit"));
 	mb->Append(view_menu, wxT("&View"));
 	mb->Append(project_menu, wxT("&Project"));
+#ifdef CYFULL
 	mb->Append(remote_menu, wxT("&TLS"));
+#endif
 	mb->Append(options_menu, wxT("&Options"));
+#ifdef CYFULL
 	mb->Append(analyze_menu, wxT("&Analyze"));
 	mb->Append(tools_menu, wxT("&Tools"));
+#endif
 	mb->Append(help_menu, wxT("&Help"));
 
 	return mb;
@@ -1007,6 +1002,7 @@ wxAuiNotebook *Frame::CreateNotebook()
 
 	// 
 
+#ifdef CYFULL
 	// Dataview
 	wxDataViewCtrl *dataview = new wxDataViewCtrl(ctrl, wxID_ANY);
 	SecretListModel *listmodel = new SecretListModel;
@@ -1032,7 +1028,8 @@ wxAuiNotebook *Frame::CreateNotebook()
 			wxDATAVIEW_COL_REORDERABLE | wxDATAVIEW_COL_RESIZABLE | wxDATAVIEW_COL_SORTABLE);
 	dataview->AppendColumn(attributes);
 	ctrl->AddPage(dataview, wxT("AttackDB"), false, page_bmp);
-	
+#endif
+
 	// Console
 	wxTextCtrl *console = new wxTextCtrl(ctrl, 10010, wxT("Type 'help' to get started\n\n>> "), wxDefaultPosition, wxDefaultSize,
 		wxTE_MULTILINE |
@@ -1152,7 +1149,6 @@ wxBEGIN_EVENT_TABLE(Frame, wxFrame)
 	EVT_MENU(Frame::ID_CreateGrid, Frame::OnCreateGrid)
 	EVT_MENU(Frame::ID_CreateText, Frame::OnCreateText)
 	EVT_MENU(Frame::ID_CreateHTML, Frame::OnCreateHTML)
-	EVT_MENU(Frame::ID_CreateSizeReport, Frame::OnCreateSizeReport)
 	EVT_MENU(Frame::ID_CreateNotebook, Frame::OnCreateNotebook)
 	EVT_MENU(Frame::ID_CreatePerspective, Frame::OnCreatePerspective)
 	EVT_MENU(Frame::ID_CopyPerspectiveCode, Frame::OnCopyPerspectiveCode)
