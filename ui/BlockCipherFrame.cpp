@@ -93,7 +93,7 @@ BlockCipherFrame::BlockCipherFrame(wxWindow* parent, wxWindowID id, const wxStri
 	m_staticText2->Wrap(-1);
 	fgSizer1->Add(m_staticText2, 0, wxALIGN_CENTER_VERTICAL | wxALL, 5);
 
-	wxString m_choice1Choices[] = { wxT("AES"), wxT("3DES"), wxT("Blowfish"), wxT("Serpent"), wxT("XTEA") };
+	wxString m_choice1Choices[] = {wxT("AES"), wxT("3DES"), wxT("Blowfish"), wxT("Serpent"), wxT("XTEA")};
 	int m_choice1NChoices = sizeof(m_choice1Choices) / sizeof(wxString);
 	m_choice1 = new wxChoice(this, wxID_ANY, wxDefaultPosition, wxSize(100, -1), m_choice1NChoices, m_choice1Choices, wxCB_SORT);
 	m_choice1->SetSelection(0);
@@ -103,7 +103,7 @@ BlockCipherFrame::BlockCipherFrame(wxWindow* parent, wxWindowID id, const wxStri
 	m_staticText3->Wrap(-1);
 	fgSizer1->Add(m_staticText3, 0, wxALIGN_CENTER_VERTICAL | wxALL, 5);
 
-	wxString m_choice2Choices[] = { wxT("CCM"), wxT("EAX"), wxT("CBC"), wxT("ECB"), wxT("CTR"), wxT("OFB"), wxT("CFB"), wxT("GCM") };
+	wxString m_choice2Choices[] = {wxT("CCM"), wxT("EAX"), wxT("CBC"), wxT("ECB"), wxT("CTR"), wxT("OFB"), wxT("CFB"), wxT("GCM")};
 	int m_choice2NChoices = sizeof(m_choice2Choices) / sizeof(wxString);
 	m_choice2 = new wxChoice(this, wxID_ANY, wxDefaultPosition, wxSize(100, -1), m_choice2NChoices, m_choice2Choices, wxCB_SORT);
 	m_choice2->SetSelection(0);
@@ -204,9 +204,9 @@ void BlockCipherFrame::OnEncrypt(wxCommandEvent& WXUNUSED(evt))
 		CryptoPP::CBC_Mode<CryptoPP::AES>::Encryption cbcEncryption(key, key.size(), iv);
 
 		CryptoPP::StringSource ss(m_txtInput->GetValue(), true,
-			new CryptoPP::StreamTransformationFilter(cbcEncryption,
-				new CryptoPP::StringSink(cipher)
-			) // StreamTransformationFilter      
+								  new CryptoPP::StreamTransformationFilter(cbcEncryption,
+								  new CryptoPP::StringSink(cipher)
+		) // StreamTransformationFilter      
 		); // StringSource
 
 		// Pretty print cipher text
@@ -222,5 +222,5 @@ void BlockCipherFrame::OnEncrypt(wxCommandEvent& WXUNUSED(evt))
 }
 
 wxBEGIN_EVENT_TABLE(BlockCipherFrame, wxFrame)
-	EVT_BUTTON(wxID_Encrypt, BlockCipherFrame::OnEncrypt)
+EVT_BUTTON(wxID_Encrypt, BlockCipherFrame::OnEncrypt)
 wxEND_EVENT_TABLE()

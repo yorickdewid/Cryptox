@@ -1,5 +1,4 @@
 #include "Frame.h"
-#include "Algorithm.h"
 #include "SettingsPanel.h"
 #include "SecretListModel.h"
 #include "BlockCipherFrame.h"

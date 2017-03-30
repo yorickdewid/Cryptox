@@ -66,7 +66,7 @@ HashFrame::HashFrame(wxWindow* parent, wxWindowID id, const wxString& title, con
 	m_staticText2->Wrap(-1);
 	fgSizer1->Add(m_staticText2, 0, wxALIGN_CENTER_VERTICAL | wxALL, 5);
 
-	wxString m_choice1Choices[] = { wxT("SHA1"), wxT("SHA2"), wxT("MD5") };
+	wxString m_choice1Choices[] = {wxT("SHA1"), wxT("SHA2"), wxT("MD5")};
 	int m_choice1NChoices = sizeof(m_choice1Choices) / sizeof(wxString);
 	m_choice1 = new wxChoice(this, wxID_ANY, wxDefaultPosition, wxSize(100, -1), m_choice1NChoices, m_choice1Choices, wxCB_SORT);
 	m_choice1->SetSelection(0);
@@ -105,6 +105,7 @@ HashFrame::HashFrame(wxWindow* parent, wxWindowID id, const wxString& title, con
 	this->Centre(wxBOTH);
 }
 
+
 void HashFrame::OnHash(wxCommandEvent& WXUNUSED(evt))
 {
 	if (m_txtInput->IsEmpty()) {
@@ -112,17 +113,16 @@ void HashFrame::OnHash(wxCommandEvent& WXUNUSED(evt))
 		return;
 	}
 
-	//CryptoPP::SHA1 hash;
 	std::string encoded("Magic hash");
 
 	m_statusBar->SetStatusText(wxT("Calculating hash..."));
 
-	//CryptoPP::StringSource s(m_txtInput->GetValue(), true, new CryptoPP::HashFilter(hash, new CryptoPP::HexEncoder(new CryptoPP::StringSink(encoded), false)));
+	// TODO
 
 	m_txtOutput->SetValue(encoded);
 	m_statusBar->SetStatusText(wxT("Done"));
 }
 
 wxBEGIN_EVENT_TABLE(HashFrame, wxFrame)
-	EVT_BUTTON(wxID_Hash, HashFrame::OnHash)
+EVT_BUTTON(wxID_Hash, HashFrame::OnHash)
 wxEND_EVENT_TABLE()

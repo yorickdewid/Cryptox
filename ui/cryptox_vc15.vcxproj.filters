@@ -61,9 +61,6 @@
     <ClInclude Include="SecretListModel.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Algorithm.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="wxOutputConsoleCtrl.h">
       <Filter>Header Files</Filter>
     </ClInclude>

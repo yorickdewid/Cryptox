@@ -9,6 +9,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "entropysrv", "entropysrv\en
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "shapework", "shapework\shapework.vcxproj", "{BC163E1A-CBD3-49BE-A696-3843C31EA95D}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "primcore", "primcore\primcore.vcxproj", "{CC59368D-C7A8-45F2-9B8D-AC7555E1651B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|ARM = Debug|ARM
@@ -49,6 +51,16 @@ Global
 		{BC163E1A-CBD3-49BE-A696-3843C31EA95D}.Release|x64.Build.0 = Release|x64
 		{BC163E1A-CBD3-49BE-A696-3843C31EA95D}.Release|x86.ActiveCfg = Release|Win32
 		{BC163E1A-CBD3-49BE-A696-3843C31EA95D}.Release|x86.Build.0 = Release|Win32
+		{CC59368D-C7A8-45F2-9B8D-AC7555E1651B}.Debug|ARM.ActiveCfg = Debug|Win32
+		{CC59368D-C7A8-45F2-9B8D-AC7555E1651B}.Debug|x64.ActiveCfg = Debug|x64
+		{CC59368D-C7A8-45F2-9B8D-AC7555E1651B}.Debug|x64.Build.0 = Debug|x64
+		{CC59368D-C7A8-45F2-9B8D-AC7555E1651B}.Debug|x86.ActiveCfg = Debug|Win32
+		{CC59368D-C7A8-45F2-9B8D-AC7555E1651B}.Debug|x86.Build.0 = Debug|Win32
+		{CC59368D-C7A8-45F2-9B8D-AC7555E1651B}.Release|ARM.ActiveCfg = Release|Win32
+		{CC59368D-C7A8-45F2-9B8D-AC7555E1651B}.Release|x64.ActiveCfg = Release|x64
+		{CC59368D-C7A8-45F2-9B8D-AC7555E1651B}.Release|x64.Build.0 = Release|x64
+		{CC59368D-C7A8-45F2-9B8D-AC7555E1651B}.Release|x86.ActiveCfg = Release|Win32
+		{CC59368D-C7A8-45F2-9B8D-AC7555E1651B}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

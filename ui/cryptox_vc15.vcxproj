@@ -516,7 +516,6 @@
     <ClInclude Include="..\ui\SettingsPanel.h" />
     <ClInclude Include="..\ui\wxSizeReportCtrl.h" />
     <ClInclude Include="BlockCipherFrame.h" />
-    <ClInclude Include="Algorithm.h" />
     <ClInclude Include="DataViewer.h" />
     <ClInclude Include="HashFrame.h" />
     <ClInclude Include="SecretListModel.h" />

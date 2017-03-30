@@ -1,0 +1,46 @@
+#pragma once
+
+#include "Algorithm.h"
+
+namespace Primitives
+{
+
+class Hash : public Algorithm
+{
+	const unsigned short m_blockSize;
+	const unsigned short m_digestSize;
+	unsigned short m_Rounds;
+	const char *m_structure;
+
+protected:
+	void SetStructure(const char *structure)
+	{
+		m_structure = structure;
+	}
+
+	void SetRounds(int rounds)
+	{
+		m_Rounds = rounds;
+	}
+
+public:
+	virtual int GetBlockSize() const
+	{
+		return m_blockSize;
+	}
+
+	virtual int GetDigestSize() const
+	{
+		return m_digestSize;
+	}
+
+public:
+	Hash(const char *name, unsigned short blockSize = 0, unsigned short digestSize = 0)
+		: Algorithm(name), m_blockSize(blockSize), m_digestSize(digestSize)
+	{
+	}
+
+	virtual void CalculateHash(char *output, char *data, size_t szdata) = 0;
+};
+
+}
