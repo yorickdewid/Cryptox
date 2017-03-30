@@ -68,8 +68,8 @@ Frame::Frame(wxWindow *parent, wxWindowID id, const wxString& title, const wxPoi
 		wxAUI_TB_TEXT |
 		wxAUI_TB_HORZ_TEXT);
 	subtb->SetToolBitmapSize(wxSize(16, 16));
-	subtb->AddTool(ID_SampleItem + 24, wxT("Encryption"), unlock_bmp1);
-	subtb->AddTool(ID_SampleItem + 25, wxT("Hash Calculator"), calc_bmp1);
+	subtb->AddTool(ID_OpenBlockCipherEncryptionFrame, wxT("Encryption"), unlock_bmp1);
+	subtb->AddTool(ID_OpenHashFrame, wxT("Hash Calculator"), calc_bmp1);
 #ifdef CYFULL
 	subtb->AddTool(ID_DropDownToolbarItem, wxT("Elliptic Curves"), tb4_bmp1);
 	subtb->AddTool(ID_SampleItem + 22, wxT("Certificate Manager"), certificate_bmp1);
@@ -607,22 +607,24 @@ wxMenuBar *Frame::CreateMenuBar()
 	file_menu->Append(wxID_EXIT, wxT("&Exit"));
 
 	wxMenu *edit_menu = new wxMenu;
-	edit_menu->Append(wxID_REVERT, wxT("Re&vert..."));
+	edit_menu->Append(wxID_REVERT, wxT("Undo"));
+	edit_menu->Append(wxID_RETRY, wxT("Redo"));
+	edit_menu->AppendSeparator();
+	edit_menu->Append(wxID_CUT, wxT("Cut"));
+	edit_menu->Append(wxID_COPY, wxT("Copy"));
+	edit_menu->Append(wxID_PASTE, wxT("Paste"));
+	edit_menu->Append(wxID_DELETE, wxT("Delete"));
 
 	wxMenu *view_menu = new wxMenu;
-	view_menu->Append(ID_CreateText, wxT("Create Text Control"));
-	view_menu->Append(ID_CreateHTML, wxT("Create HTML Control"));
-	view_menu->Append(ID_CreateTree, wxT("Create Tree"));
-	view_menu->Append(ID_CreateGrid, wxT("Create Grid"));
-	view_menu->Append(ID_CreateNotebook, wxT("Create Notebook"));
+	view_menu->Append(ID_CreateGrid, wxT("Show Grid"));
 	view_menu->AppendSeparator();
-	view_menu->Append(ID_CreatePerspective, wxT("Create Perspective"));
-	view_menu->Append(ID_CopyPerspectiveCode, wxT("Copy Perspective Data To Clipboard"));
+	view_menu->Append(ID_CreatePerspective, wxT("Save Workspace"));
+	view_menu->Append(ID_CopyPerspectiveCode, wxT("Save Workspace to Clipboard"));
 	view_menu->AppendSeparator();
 	view_menu->Append(ID_FirstPerspective + 0, wxT("Default Startup"));
 	view_menu->Append(ID_FirstPerspective + 1, wxT("All Panes"));
 	view_menu->AppendSeparator();
-	view_menu->Append(ID_Settings, wxT("Settings Pane"));
+	view_menu->Append(ID_Settings, wxT("Settings"));
 
 	wxMenu *project_menu = new wxMenu;
 	project_menu->Append(wxID_ANY, wxT("Add New Item..."));
@@ -677,8 +679,8 @@ wxMenuBar *Frame::CreateMenuBar()
 	tools_menu->Append(wxID_ANY, wxT("Remote Entropy Source..."));
 	tools_menu->AppendSeparator();
 	tools_menu->Append(wxID_ANY, wxT("Password Generator"));
-	tools_menu->Append(ID_StartBlockCipherEncryptionTool, wxT("Block Cipher Encryption"));
-	tools_menu->Append(ID_StartHashTool, wxT("Hash Calculation"));
+	tools_menu->Append(wxID_ANY, wxT("Block Cipher Encryption"));
+	tools_menu->Append(wxID_ANY, wxT("Hash Calculation"));
 	tools_menu->Append(wxID_ANY, wxT("Curve plot"));
 #endif
 
@@ -733,7 +735,7 @@ wxTextCtrl *Frame::CreateTextCtrl(const wxString& ctrl_text)
 
 wxGrid *Frame::CreateGrid()
 {
-	wxGrid* grid = new wxGrid(this, wxID_ANY,
+	auto grid = new wxGrid(this, wxID_ANY,
 		wxPoint(0, 0),
 		wxSize(150, 250),
 		wxNO_BORDER | wxWANTS_CHARS);
@@ -744,7 +746,7 @@ wxGrid *Frame::CreateGrid()
 
 wxTreeCtrl *Frame::CreateTreeCtrl()
 {
-	wxTreeCtrl *tree = new wxTreeCtrl(this, 10009,
+	auto tree = new wxTreeCtrl(this, 10009,
 		wxPoint(0, 0), wxSize(200, 250),
 		wxTR_DEFAULT_STYLE | wxNO_BORDER);
 
@@ -758,9 +760,9 @@ wxTreeCtrl *Frame::CreateTreeCtrl()
 	imglist->Add(wxIcon(wxString("shuffle.ico"), wxBITMAP_TYPE_ICO));
 	tree->AssignImageList(imglist);
 
-	wxTreeItemId root = tree->AddRoot("", 0);
+	auto root = tree->AddRoot("", 0);
 
-	wxTreeItemId id = tree->AppendItem(root, wxT("Gates"), 0);
+	auto id = tree->AppendItem(root, wxT("Gates"), 0);
 	tree->AppendItem(id, wxT("OR"), 4);
 	tree->AppendItem(id, wxT("XOR"), 4);
 	tree->AppendItem(id, wxT("AND"), 4);
@@ -898,11 +900,11 @@ wxTreeCtrl *Frame::CreateTreeCtrl()
 
 wxPropertyGridManager *Frame::CreatePropCtrl()
 {
-	wxPropertyGridManager *pgman = new wxPropertyGridManager(this, wxID_ANY, wxPoint(0, 0), wxSize(250, 250),
+	auto pgman = new wxPropertyGridManager(this, wxID_ANY, wxPoint(0, 0), wxSize(250, 250),
 		wxPG_DESCRIPTION |
 		wxPG_SPLITTER_AUTO_CENTER);
 
-	wxPropertyGridPage *page =  pgman->AddPage();
+	auto page = pgman->AddPage();
 	page->Append(new wxPropertyCategory(wxT("General"), wxPG_LABEL));
 	page->Append(new wxStringProperty(wxT("Application"), wxPG_LABEL, GetTitle()));
 	page->Append(new wxStringProperty(wxT("OS"), wxPG_LABEL, wxGetOsDescription()));
@@ -937,15 +939,6 @@ wxPropertyGridManager *Frame::CreatePropCtrl()
 }
 
 
-wxSizeReportCtrl *Frame::CreateSizeReportCtrl(int width, int height)
-{
-	wxSizeReportCtrl *ctrl = new wxSizeReportCtrl(this, wxID_ANY,
-		wxDefaultPosition,
-		wxSize(width, height), &m_mgr);
-	return ctrl;
-}
-
-
 wxHtmlWindow *Frame::CreateHTMLCtrl(wxWindow *parent)
 {
 	if (!parent)
@@ -976,7 +969,7 @@ wxAuiNotebook *Frame::CreateNotebook()
 	ctrl->SetPageToolTip(0, "Welcome to Cryptox");
 
 	// Panel
-	wxPanel *panel = new wxPanel(ctrl, wxID_ANY);
+	auto panel = new wxPanel(ctrl, wxID_ANY);
 	wxFlexGridSizer *flex = new wxFlexGridSizer(4, 2, 0, 0);
 	flex->AddGrowableRow(0);
 	flex->AddGrowableRow(3);
@@ -1020,7 +1013,6 @@ wxAuiNotebook *Frame::CreateNotebook()
 			wxDATAVIEW_COL_REORDERABLE | wxDATAVIEW_COL_RESIZABLE | wxDATAVIEW_COL_SORTABLE);
 	dataview->AppendColumn(attributes);
 	ctrl->AddPage(dataview, wxT("AttackDB"), false, page_bmp);
-#endif
 
 	// Console
 	wxTextCtrl *console = new wxTextCtrl(ctrl, 10010, wxT("Type 'help' to get started\n\n>> "), wxDefaultPosition, wxDefaultSize,
@@ -1029,6 +1021,7 @@ wxAuiNotebook *Frame::CreateNotebook()
 		wxTE_PROCESS_ENTER);
 	console->SetInsertionPointEnd();
 	ctrl->AddPage(console, wxT("Console"), false, page_bmp);
+#endif
 
 	return ctrl;
 }
@@ -1036,19 +1029,19 @@ wxAuiNotebook *Frame::CreateNotebook()
 
 void Frame::OnItemMenu(wxTreeEvent& event)
 {
-	wxTreeCtrl *tree = static_cast<wxTreeCtrl *>(event.GetEventObject());
+	auto tree = static_cast<wxTreeCtrl *>(event.GetEventObject());
 
 	// Skip parents
-	wxTreeItemId itemId = event.GetItem();
+	auto itemId = event.GetItem();
 	if (tree->ItemHasChildren(itemId))
 		return;
 
-	wxPoint pt = tree->ClientToScreen(event.GetPoint());
+	auto pt = tree->ClientToScreen(event.GetPoint());
 	pt = ScreenToClient(pt);
 
 	// Build popup menu
 	wxMenu menu;
-	menu.Append(ID_StartBlockCipherEncryptionTool, wxT("&Run"));
+	menu.Append(ID_OpenBlockCipherEncryptionFrame, wxT("&Run"));
 	menu.AppendSeparator();
 	menu.Append(wxID_ANY, wxT("&Use as template"));
 	menu.Append(wxID_ANY, wxT("&Attack vector"));
@@ -1063,7 +1056,7 @@ void Frame::OnItemMenu(wxTreeEvent& event)
 
 void Frame::OnConsoleEnter(wxCommandEvent& event)
 {
-	wxTextCtrl *console = static_cast<wxTextCtrl *>(event.GetEventObject());
+	auto console = static_cast<wxTextCtrl *>(event.GetEventObject());
 	console->AppendText(wxT("\nUnrecognized command\n\n>> "));
 	m_output->WriteConsole(wxT("The console caused an error"));
 	event.Skip();
@@ -1137,11 +1130,7 @@ wxString Frame::GetIntroText()
 }
 
 wxBEGIN_EVENT_TABLE(Frame, wxFrame)
-	EVT_MENU(Frame::ID_CreateTree, Frame::OnCreateTree)
 	EVT_MENU(Frame::ID_CreateGrid, Frame::OnCreateGrid)
-	EVT_MENU(Frame::ID_CreateText, Frame::OnCreateText)
-	EVT_MENU(Frame::ID_CreateHTML, Frame::OnCreateHTML)
-	EVT_MENU(Frame::ID_CreateNotebook, Frame::OnCreateNotebook)
 	EVT_MENU(Frame::ID_CreatePerspective, Frame::OnCreatePerspective)
 	EVT_MENU(Frame::ID_CopyPerspectiveCode, Frame::OnCopyPerspectiveCode)
 	EVT_MENU(ID_AllowFloating, Frame::OnManagerFlag)
@@ -1159,8 +1148,8 @@ wxBEGIN_EVENT_TABLE(Frame, wxFrame)
 	EVT_MENU(ID_HorizontalGradient, Frame::OnGradient)
 	EVT_MENU(ID_AllowToolbarResizing, Frame::OnToolbarResizing)
 	EVT_MENU(ID_Settings, Frame::OnSettings)
-	EVT_MENU(ID_StartBlockCipherEncryptionTool, Frame::OnMenuPrimitiveRun)
-	EVT_MENU(ID_StartHashTool, Frame::OnMenuHashToolRun)
+	EVT_MENU(ID_OpenBlockCipherEncryptionFrame, Frame::OnMenuPrimitiveRun)
+	EVT_MENU(ID_OpenHashFrame, Frame::OnMenuHashToolRun)
 	EVT_MENU(ID_CustomizeToolbar, Frame::OnCustomizeToolbar)
 	EVT_MENU(wxID_EXIT, Frame::OnExit)
 	EVT_MENU(wxID_ABOUT, Frame::OnAbout)

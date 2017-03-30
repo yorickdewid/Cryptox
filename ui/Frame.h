@@ -13,14 +13,9 @@
 
 class Frame : public wxFrame
 {
-	enum
-	{
-		ID_CreateTree = wxID_HIGHEST + 1,
+	enum {
+		ID_NULL = wxID_HIGHEST + 1,
 		ID_CreateGrid,
-		ID_CreateText,
-		ID_CreateHTML,
-		ID_CreateNotebook,
-		ID_CreateSizeReport,
 		ID_CreatePerspective,
 		ID_CopyPerspectiveCode,
 		ID_AllowFloating,
@@ -41,15 +36,15 @@ class Frame : public wxFrame
 		ID_CustomizeToolbar,
 		ID_DropDownToolbarItem,
 
-		ID_StartBlockCipherEncryptionTool,
-		ID_StartHashTool,
+		ID_OpenBlockCipherEncryptionFrame,
+		ID_OpenHashFrame,
 		ID_SampleItem,
 
 		ID_FirstPerspective = ID_CreatePerspective + 1000
 	};
 
 public:
-	Frame(wxWindow* parent,
+	Frame(wxWindow *parent,
 		wxWindowID id,
 		const wxString& title,
 		const wxPoint& pos = wxDefaultPosition,
@@ -68,7 +63,6 @@ private:
 	wxGrid *CreateGrid();
 	wxTreeCtrl *CreateTreeCtrl();
 	wxPropertyGridManager *CreatePropCtrl();
-	wxSizeReportCtrl *CreateSizeReportCtrl(int width = 80, int height = 80);
 	wxPoint GetStartPosition();
 	wxHtmlWindow *CreateHTMLCtrl(wxWindow *parent = NULL);
 	wxAuiNotebook *CreateNotebook();
@@ -102,10 +96,12 @@ private:
 	{
 		StartHashTool();
 	}
+
 	void OnMenuPrimitiveRun(wxCommandEvent& WXUNUSED(evt))
 	{
 		CreatePrimitiveFrame();
 	}
+
 	void OnTreeDoubleClick(wxTreeEvent& evt)
 	{
 		wxTreeCtrl *tree = static_cast<wxTreeCtrl *>(evt.GetEventObject());
