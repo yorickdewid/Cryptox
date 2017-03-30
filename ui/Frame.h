@@ -36,7 +36,7 @@ class Frame : public wxFrame
 		ID_CustomizeToolbar,
 		ID_DropDownToolbarItem,
 
-		ID_OpenBlockCipherEncryptionFrame,
+		ID_OpenBlockCipherFrame,
 		ID_OpenHashFrame,
 		ID_SampleItem,
 

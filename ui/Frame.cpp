@@ -4,7 +4,6 @@
 #include "SecretListModel.h"
 #include "BlockCipherFrame.h"
 #include "HashFrame.h"
-#include "RandonGenerator.h"
 
 #include <wx/artprov.h>
 #include <wx/clipbrd.h>
@@ -68,7 +67,7 @@ Frame::Frame(wxWindow *parent, wxWindowID id, const wxString& title, const wxPoi
 		wxAUI_TB_TEXT |
 		wxAUI_TB_HORZ_TEXT);
 	subtb->SetToolBitmapSize(wxSize(16, 16));
-	subtb->AddTool(ID_OpenBlockCipherEncryptionFrame, wxT("Encryption"), unlock_bmp1);
+	subtb->AddTool(ID_OpenBlockCipherFrame, wxT("Encryption"), unlock_bmp1);
 	subtb->AddTool(ID_OpenHashFrame, wxT("Hash Calculator"), calc_bmp1);
 #ifdef CYFULL
 	subtb->AddTool(ID_DropDownToolbarItem, wxT("Elliptic Curves"), tb4_bmp1);
@@ -205,21 +204,21 @@ void Frame::OnSettings(wxCommandEvent& WXUNUSED(evt))
 
 void Frame::CreatePrimitiveFrame()
 {
-	BlockCipherFrame *toolBlockCiper = new BlockCipherFrame(this);
-	toolBlockCiper->SetIcon(wxIcon(wxString("unlocked.ico"), wxBITMAP_TYPE_ICO));
+	auto toolBlockCiper = new BlockCipherFrame(this);
+	toolBlockCiper->SetIcon(wxIcon("unlocked.ico", wxBITMAP_TYPE_ICO));
 	toolBlockCiper->Show();
 	toolBlockCiper->SetFocus();
 }
 
-#include "DataViewer.h"
+//#include "DataViewer.h"
 void Frame::StartHashTool()
 {
-	//HashFrame *toolHash = new HashFrame(this);
-	//toolHash->SetIcon(wxIcon(wxString("calculator.ico"), wxBITMAP_TYPE_ICO));
-	//toolHash->Show();
-	//toolHash->SetFocus();
-	DataViewer *dialog = new DataViewer(this);
-	dialog->ShowModal();
+	auto toolHash = new HashFrame(this);
+	toolHash->SetIcon(wxIcon("calculator.ico", wxBITMAP_TYPE_ICO));
+	toolHash->Show();
+	toolHash->SetFocus();
+	//DataViewer *dialog = new DataViewer(this);
+	//dialog->ShowModal();
 }
 
 
@@ -233,8 +232,7 @@ void Frame::OnGradient(wxCommandEvent& event)
 {
 	int gradient = 0;
 
-	switch (event.GetId())
-	{
+	switch (event.GetId()) {
 		case ID_NoGradient:
 			gradient = wxAUI_GRADIENT_NONE;
 			break;
@@ -1041,7 +1039,7 @@ void Frame::OnItemMenu(wxTreeEvent& event)
 
 	// Build popup menu
 	wxMenu menu;
-	menu.Append(ID_OpenBlockCipherEncryptionFrame, wxT("&Run"));
+	menu.Append(ID_OpenBlockCipherFrame, wxT("&Run"));
 	menu.AppendSeparator();
 	menu.Append(wxID_ANY, wxT("&Use as template"));
 	menu.Append(wxID_ANY, wxT("&Attack vector"));
@@ -1148,7 +1146,7 @@ wxBEGIN_EVENT_TABLE(Frame, wxFrame)
 	EVT_MENU(ID_HorizontalGradient, Frame::OnGradient)
 	EVT_MENU(ID_AllowToolbarResizing, Frame::OnToolbarResizing)
 	EVT_MENU(ID_Settings, Frame::OnSettings)
-	EVT_MENU(ID_OpenBlockCipherEncryptionFrame, Frame::OnMenuPrimitiveRun)
+	EVT_MENU(ID_OpenBlockCipherFrame, Frame::OnMenuPrimitiveRun)
 	EVT_MENU(ID_OpenHashFrame, Frame::OnMenuHashToolRun)
 	EVT_MENU(ID_CustomizeToolbar, Frame::OnCustomizeToolbar)
 	EVT_MENU(wxID_EXIT, Frame::OnExit)

@@ -509,7 +509,6 @@
     <ClCompile Include="BlockCipherFrame.cpp" />
     <ClCompile Include="DataViewer.cpp" />
     <ClCompile Include="HashFrame.cpp" />
-    <ClCompile Include="RandonGenerator.cpp" />
     <ClCompile Include="SecretListModel.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -520,7 +519,6 @@
     <ClInclude Include="Algorithm.h" />
     <ClInclude Include="DataViewer.h" />
     <ClInclude Include="HashFrame.h" />
-    <ClInclude Include="RandonGenerator.h" />
     <ClInclude Include="SecretListModel.h" />
     <ClInclude Include="wxOutputConsoleCtrl.h" />
   </ItemGroup>

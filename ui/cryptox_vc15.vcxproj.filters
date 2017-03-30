@@ -26,9 +26,6 @@
     <ClCompile Include="..\ui\wxSizeReportCtrl.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="RandonGenerator.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="BlockCipherFrame.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -59,9 +56,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="HashFrame.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="RandonGenerator.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="SecretListModel.h">
