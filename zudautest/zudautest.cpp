@@ -4,8 +4,6 @@
 
 #include <iostream>
 
-void Test1();
-
 void PrintBanner()
 {
 	std::cout << "***********************************" << std::endl;
@@ -20,7 +18,7 @@ int main()
 	PrintBanner();
 	TestCase::Instance();
 
-	Test1();
+	RUN_TEST(kaas);
 
 	TestCase::PrintResult();
 	return 0;
