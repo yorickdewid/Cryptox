@@ -13,10 +13,10 @@ UNIT_TEST(kaas)
 	TestCase::AssertString(sha1.Name().c_str(), "SHA1");
 
 	// Verify is working
-	sha1.CalculateHash(digest, "ABC@123", 7);
+	sha1.CalcHash(digest, "ABC@123", 7);
 	TestCase::AssertString(Util::Hex(digest, 20).c_str(), "9cfd6e7eb791b8aad23c2a729139bf6ee842991f");
 
 	// Verify is working
-	sha1.CalculateHash(digest, "3ea06253e100b0652a88d7d20356fdfb33b", 35);
-	TestCase::AssertString(Util::Hex(digest, 20).c_str(), "288adf07065e322c3b611f87259ad1ca462eaf3b");
+	auto result = Primitives::SHA1::Calculate("3ea06253e100b0652a88d7d20356fdfb33b");
+	TestCase::AssertString(Util::Hex(result).c_str(), "288adf07065e322c3b611f87259ad1ca462eaf3b");
 }

@@ -8,19 +8,26 @@ Primitives::SHA1::SHA1()
 }
 
 
-Primitives::SHA1::~SHA1()
-{
-}
-
-void Primitives::SHA1::CalculateHash(unsigned char *output, char *data, size_t szdata)
+std::string Primitives::SHA1::Calculate(const std::string& data)
 {
 	SHA_CTX ctx;
+	std::string output;
+
+	output.resize(SHA_DIGEST_LENGTH);
 	SHA1_Init(&ctx);
 
 	// Hash each piece of data as it comes in:
-	SHA1_Update(&ctx, data, szdata);
+	SHA1_Update(&ctx, data.data(), data.size());
 
 	// When you're done with the data, finalize it:
-	//unsigned char hash[SHA_DIGEST_LENGTH];
-	SHA1_Final(output, &ctx);
+	SHA1_Final(reinterpret_cast<unsigned char *>(&output[0]), &ctx);
+
+	return output;
+}
+
+
+void Primitives::SHA1::CalcHash(unsigned char *output, char *data, size_t szdata)
+{
+	auto result = Primitives::SHA1::Calculate(std::string(data, szdata));
+	result.copy(reinterpret_cast<char *>(output), SHA_DIGEST_LENGTH, 0);
 }

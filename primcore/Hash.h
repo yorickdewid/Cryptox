@@ -40,7 +40,7 @@ public:
 	{
 	}
 
-	virtual void CalculateHash(unsigned char *output, char *data, size_t szdata) = 0;
+	virtual void CalcHash(unsigned char *output, char *data, size_t szdata) = 0;
 };
 
 }

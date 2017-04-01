@@ -27,7 +27,7 @@ static std::string Hex(T data)
 	constexpr const char lut[] = "0123456789abcdef";
 
 	std::string output;
-	output.reserve(2 * len);
+	output.reserve(2 * data.size());
 	for (size_t i = 0; i < data.size(); ++i) {
 		const unsigned char c = data[i];
 		output.push_back(lut[c >> 4]);

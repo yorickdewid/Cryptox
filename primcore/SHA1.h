@@ -9,9 +9,10 @@ class PRIMAPI SHA1 : public Hash
 {
 public:
 	SHA1();
-	~SHA1();
 
-	void CalculateHash(unsigned char *output, char *data, size_t szdata);
+	void CalcHash(unsigned char *output, char *data, size_t szdata) override;
+
+	static std::string Calculate(const std::string& data);
 };
 
 }
