@@ -24,12 +24,12 @@ protected:
 	}
 
 public:
-	virtual int GetBlockSize() const
+	virtual unsigned short GetBlockSize() const
 	{
 		return m_blockSize;
 	}
 
-	virtual int GetDigestSize() const
+	virtual unsigned short GetDigestSize() const
 	{
 		return m_digestSize;
 	}

@@ -44,12 +44,12 @@ protected:
 	}
 
 public:
-	auto Name()
+	auto Name() const
 	{
 		return m_name;
 	}
 
-	auto Description()
+	auto Description() const
 	{
 		return m_description;
 	}
