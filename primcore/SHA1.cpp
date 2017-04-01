@@ -5,6 +5,9 @@
 Primitives::SHA1::SHA1()
 	: Hash("SHA1", 512, SHA_DIGEST_LENGTH * 8)
 {
+	SetInfo("Secure Hash Algorithm 1", 1995, true, {
+		"NSA",
+	});
 }
 
 

@@ -18,20 +18,29 @@ class PRIMAPI Algorithm
 	Algorithm *m_derived = nullptr;
 
 protected:
-	Algorithm(const std::string& name, unsigned int year = 0, bool isWeak = false)
+	Algorithm(const std::string name, unsigned int year = 0, bool isWeak = false)
 		: m_name{name}
 		, m_year{year}
 		, m_isWeak{isWeak}
 	{
 	}
 
-	Algorithm(const std::string& name, unsigned int year, bool isWeak, std::list<std::string>& designers, Algorithm *derived)
+	Algorithm(const std::string name, unsigned int year, bool isWeak, std::list<std::string> designers, Algorithm *derived = nullptr)
 		: m_name{name}
 		, m_year{year}
 		, m_isWeak{isWeak}
 		, m_designers{designers}
 		, m_derived{derived}
 	{
+	}
+
+	void SetInfo(std::string description, unsigned int year, bool isWeak, std::list<std::string> designers, Algorithm *derived = nullptr)
+	{
+		m_description = description;
+		m_year = year;
+		m_isWeak = isWeak;
+		m_designers = designers;
+		m_derived = derived;
 	}
 
 public:

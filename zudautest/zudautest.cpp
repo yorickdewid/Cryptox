@@ -1,4 +1,4 @@
-// zudautest.cpp : Defines the entry point for the console application.
+// zudautest.cpp : Defines the entry point for the test application.
 
 #include "TestCase.h"
 
