@@ -5,7 +5,7 @@
 namespace Primitives
 {
 
-class SHA1 : public Hash
+class PRIMAPI SHA1 : public Hash
 {
 public:
 	SHA1();

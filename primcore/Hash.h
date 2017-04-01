@@ -5,7 +5,7 @@
 namespace Primitives
 {
 
-class Hash : public Algorithm
+class PRIMAPI Hash : public Algorithm
 {
 	const unsigned short m_blockSize;
 	const unsigned short m_digestSize;
@@ -40,7 +40,7 @@ public:
 	{
 	}
 
-	virtual void CalculateHash(char *output, char *data, size_t szdata) = 0;
+	virtual void CalculateHash(unsigned char *output, char *data, size_t szdata) = 0;
 };
 
 }

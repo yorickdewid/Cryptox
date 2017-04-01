@@ -3,10 +3,12 @@
 #include <iostream>
 #include <list>
 
+#define PRIMAPI __declspec(dllexport)
+
 namespace Primitives
 {
 
-class Algorithm
+class PRIMAPI Algorithm
 {
 	std::string m_name;
 	std::string m_description;
