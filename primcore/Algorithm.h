@@ -9,6 +9,7 @@ namespace Primitives
 class Algorithm
 {
 	std::string m_name;
+	std::string m_description;
 	std::list<std::string> m_designers;
 	unsigned int m_year;
 	bool m_isWeak;
@@ -35,6 +36,11 @@ public:
 	auto Name()
 	{
 		return m_name;
+	}
+
+	auto Description()
+	{
+		return m_description;
 	}
 
 	auto Year()
