@@ -1,7 +1,9 @@
 #include "Util.h"
 #include "TestCase.h"
+
 #include "SHA0.h"
 #include "SHA1.h"
+#include "MD5.h"
 
 #include <string>
 
@@ -39,3 +41,19 @@ UNIT_TEST(SHA1)
 	TestCase::AssertString(Util::Hex(result).c_str(), "288adf07065e322c3b611f87259ad1ca462eaf3b");
 }
 
+UNIT_TEST(MD5)
+{
+	unsigned char digest[16];
+	Primitives::MD5 md5;
+
+	// Name must match function
+	TestCase::AssertString(md5.Name().c_str(), "MD5");
+
+	// Verify is working
+	md5.CalcHash(digest, "ABC@123", 7);
+	TestCase::AssertString(Util::Hex(digest, 16).c_str(), "28c15c0b405c1f7a107133edf5504367");
+
+	// Verify is working
+	auto result = Primitives::MD5::Calculate("3ea06253e100b0652a88d7d20356fdfb33b");
+	TestCase::AssertString(Util::Hex(result).c_str(), "d90055c0387a3dfc0bcfec64d7d00529");
+}
