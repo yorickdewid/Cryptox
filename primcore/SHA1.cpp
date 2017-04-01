@@ -29,6 +29,12 @@ std::string Primitives::SHA1::Calculate(const std::string& data)
 }
 
 
+std::string Primitives::SHA1::CalcHash(const std::string& data)
+{
+	return Primitives::SHA1::Calculate(data);
+}
+
+
 void Primitives::SHA1::CalcHash(unsigned char *output, char *data, size_t szdata)
 {
 	auto result = Primitives::SHA1::Calculate(std::string(data, szdata));
