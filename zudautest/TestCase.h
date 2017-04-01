@@ -7,8 +7,6 @@ class TestCase
 	unsigned int m_testPassed = 0;
 	unsigned int m_testFailed = 0;
 
-	TestCase();
-
 	void Passed()
 	{
 		m_testPassed++;

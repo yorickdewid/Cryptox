@@ -2,11 +2,6 @@
 
 #include <iostream>
 
-TestCase::TestCase()
-{
-	//
-}
-
 void TestCase::PrintResult()
 {
 	auto instance = Instance();

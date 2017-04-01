@@ -141,10 +141,12 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="TestCase.cpp" />
+    <ClCompile Include="TestPrimeCore.cpp" />
     <ClCompile Include="zudautest.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="TestCase.h" />
+    <ClInclude Include="Util.h" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\primcore\primcore.vcxproj">
