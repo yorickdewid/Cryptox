@@ -21,10 +21,12 @@
   <ItemGroup>
     <ClInclude Include="Algorithm.h" />
     <ClInclude Include="Hash.h" />
+    <ClInclude Include="SHA0.h" />
     <ClInclude Include="SHA1.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CoreList.cpp" />
+    <ClCompile Include="SHA0.cpp" />
     <ClCompile Include="SHA1.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

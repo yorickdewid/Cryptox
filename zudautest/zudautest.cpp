@@ -18,7 +18,8 @@ int main()
 	PrintBanner();
 	TestCase::Instance();
 
-	RUN_TEST(kaas);
+	RUN_TEST(SHA0);
+	RUN_TEST(SHA1);
 
 	TestCase::PrintResult();
 	return 0;

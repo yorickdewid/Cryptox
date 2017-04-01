@@ -69,26 +69,38 @@ public:
 
 	static void AssertString(const char *s1, const char *s2)
 	{
-		if (!strcmp(s1, s2))
+		if (!strcmp(s1, s2)) {
 			Instance().Passed();
-		else
-			Instance().Failed();
+			return;
+		}
+
+		Instance().Failed();
+		std::cerr << "\n Expected: " << s1 << std::endl;
+		std::cerr << " Got: " << s2 << std::endl;
 	}
 
 	static void AssertBool(bool s1, bool s2)
 	{
-		if (s1 == s2)
+		if (s1 == s2) {
 			Instance().Passed();
-		else
-			Instance().Failed();
+			return;
+		}
+
+		Instance().Failed();
+		std::cerr << "\n Expected: " << s1 << std::endl;
+		std::cerr << " Got: " << s2 << std::endl;
 	}
 
 	static void AssertInt(int s1, int s2)
 	{
-		if (s1 == s2)
+		if (s1 == s2) {
 			Instance().Passed();
-		else
-			Instance().Failed();
+			return;
+		}
+
+		Instance().Failed();
+		std::cerr << "\n Expected: " << s1 << std::endl;
+		std::cerr << " Got: " << s2 << std::endl;
 	}
 };
 

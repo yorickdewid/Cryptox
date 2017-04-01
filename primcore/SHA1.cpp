@@ -1,3 +1,4 @@
+#include "SHA0.h"
 #include "SHA1.h"
 
 #include <openssl\sha.h>
@@ -7,7 +8,7 @@ Primitives::SHA1::SHA1()
 {
 	SetInfo("Secure Hash Algorithm 1", 1995, true, {
 		"NSA",
-	});
+	}); //TODO: set SHA0
 }
 
 
