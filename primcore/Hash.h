@@ -9,8 +9,8 @@ class PRIMAPI Hash : public Algorithm
 {
 	const unsigned short m_blockSize;
 	const unsigned short m_digestSize;
-	unsigned short m_Rounds;
-	const char *m_structure;
+	unsigned short m_Rounds; //TODO
+	const char *m_structure; //TODO
 
 protected:
 	void SetStructure(const char *structure)
@@ -36,12 +36,15 @@ public:
 
 public:
 	Hash(const char *name, unsigned short blockSize = 0, unsigned short digestSize = 0)
-		: Algorithm(name), m_blockSize(blockSize), m_digestSize(digestSize)
+		: Algorithm{name}
+		, m_blockSize{blockSize}
+		, m_digestSize{digestSize}
 	{
 	}
 
 	virtual std::string CalcHash(const std::string& data) = 0;
 	virtual void CalcHash(unsigned char *output, char *data, size_t szdata) = 0;
+
 };
 
 }

@@ -36,6 +36,12 @@
     <ClInclude Include="MD4.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Logic.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="AND.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="SHA1.cpp">
