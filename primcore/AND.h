@@ -10,10 +10,9 @@ class PRIMAPI AND : public Logic
 public:
 	AND() : Logic("AND", "&&")
 	{
-		SetInfo("AND Gate (Inverter)", 0, false, {});
+		SetInfo("AND Gate", 0, false, {});
 	}
 
 };
 
 }
-#pragma once

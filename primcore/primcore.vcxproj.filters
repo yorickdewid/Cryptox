@@ -42,6 +42,18 @@
     <ClInclude Include="AND.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="NOT.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="OR.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="XOR.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="NAND.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="SHA1.cpp">
