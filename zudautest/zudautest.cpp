@@ -20,6 +20,7 @@ int main()
 
 	RUN_TEST(SHA0);
 	RUN_TEST(SHA1);
+	RUN_TEST(MD4);
 	RUN_TEST(MD5);
 
 	TestCase::PrintResult();

@@ -30,6 +30,12 @@
     <ClInclude Include="MD5.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Catalog.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="MD4.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="SHA1.cpp">
@@ -41,7 +47,7 @@
     <ClCompile Include="MD5.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Catalog.cpp">
+    <ClCompile Include="MD4.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
