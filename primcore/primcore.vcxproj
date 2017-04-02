@@ -21,7 +21,7 @@
   <ItemGroup>
     <ClInclude Include="Algorithm.h" />
     <ClInclude Include="AND.h" />
-    <ClInclude Include="Catalog.h" />
+    <ClInclude Include="Primitives.h" />
     <ClInclude Include="Hash.h" />
     <ClInclude Include="Logic.h" />
     <ClInclude Include="MD4.h" />

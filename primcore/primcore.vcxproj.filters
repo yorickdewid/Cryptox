@@ -16,27 +16,15 @@
     <Filter Include="Header Files\Logic">
       <UniqueIdentifier>{aad626ce-9848-4c0d-8fde-2944c0e0672b}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Hash">
+      <UniqueIdentifier>{4d4fd4e0-c38b-4a4e-bf6b-466bbb1e3c3b}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Algorithm.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Hash.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="SHA1.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="SHA0.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="MD5.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Catalog.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="MD4.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Logic.h">
@@ -62,6 +50,21 @@
     </ClInclude>
     <ClInclude Include="XNOR.h">
       <Filter>Header Files\Logic</Filter>
+    </ClInclude>
+    <ClInclude Include="MD4.h">
+      <Filter>Header Files\Hash</Filter>
+    </ClInclude>
+    <ClInclude Include="MD5.h">
+      <Filter>Header Files\Hash</Filter>
+    </ClInclude>
+    <ClInclude Include="SHA0.h">
+      <Filter>Header Files\Hash</Filter>
+    </ClInclude>
+    <ClInclude Include="SHA1.h">
+      <Filter>Header Files\Hash</Filter>
+    </ClInclude>
+    <ClInclude Include="Primitives.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
