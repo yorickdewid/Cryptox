@@ -12,8 +12,8 @@
     <Filter Include="Header Files">
       <UniqueIdentifier>{fc21b7aa-db62-4bfa-8992-a6bf8aaece3d}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\Exframe">
-      <UniqueIdentifier>{486e1d8a-350d-4f94-9b91-8b47ee16bd4d}</UniqueIdentifier>
+    <Filter Include="External Frames">
+      <UniqueIdentifier>{ce04919b-fea9-4897-ae20-6a086945e8b3}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -41,6 +41,9 @@
     <ClCompile Include="DataViewer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="ExUIFrame.cpp">
+      <Filter>External Frames</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\ui\Frame.h">
@@ -66,6 +69,9 @@
     </ClInclude>
     <ClInclude Include="wxOutputConsoleCtrl.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ExUIFrame.h">
+      <Filter>External Frames</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

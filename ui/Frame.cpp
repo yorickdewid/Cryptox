@@ -437,7 +437,7 @@ void Frame::OnNotebookPageClose(wxAuiNotebookEvent& evt)
 
 void Frame::OnNotebookPageClosed(wxAuiNotebookEvent& evt)
 {
-	wxAuiNotebook *ctrl = (wxAuiNotebook *)evt.GetEventObject();
+	auto ctrl = (wxAuiNotebook *)evt.GetEventObject();
 
 	// selection should always be a valid index
 	wxASSERT_MSG(ctrl->GetSelection() < (int)ctrl->GetPageCount(),
@@ -459,7 +459,7 @@ void Frame::OnAllowNotebookDnD(wxAuiNotebookEvent& evt)
 
 wxPoint Frame::GetStartPosition()
 {
-	static int x = 0;
+	static auto x = 0;
 	x += 20;
 	wxPoint pt = ClientToScreen(wxPoint(0, 0));
 	return wxPoint(pt.x + x, pt.y + x);
@@ -615,7 +615,7 @@ wxMenuBar *Frame::CreateMenuBar()
 	edit_menu->Append(wxID_PASTE, wxT("Paste"));
 	edit_menu->Append(wxID_DELETE, wxT("Delete"));
 
-	wxMenu *view_menu = new wxMenu;
+	auto view_menu = new wxMenu;
 	view_menu->Append(ID_CreateGrid, wxT("Show Grid"));
 	view_menu->AppendSeparator();
 	view_menu->Append(ID_CreatePerspective, wxT("Save Workspace"));
@@ -626,7 +626,7 @@ wxMenuBar *Frame::CreateMenuBar()
 	view_menu->AppendSeparator();
 	view_menu->Append(ID_Settings, wxT("Settings"));
 
-	wxMenu *project_menu = new wxMenu;
+	auto project_menu = new wxMenu;
 	project_menu->Append(wxID_ANY, wxT("Add New Item..."));
 	project_menu->Append(wxID_ANY, wxT("Add Existing Item..."));
 	project_menu->AppendSeparator();
@@ -644,7 +644,7 @@ wxMenuBar *Frame::CreateMenuBar()
 	remote_menu->Append(wxID_ANY, wxT("Show ciphersuites"));
 #endif
 
-	wxMenu *options_menu = new wxMenu;
+	auto options_menu = new wxMenu;
 	options_menu->AppendRadioItem(ID_TransparentHint, wxT("Transparent Hint"));
 	options_menu->AppendRadioItem(ID_VenetianBlindsHint, wxT("Venetian Blinds Hint"));
 	options_menu->AppendRadioItem(ID_RectangleHint, wxT("Rectangle Hint"));
@@ -684,7 +684,7 @@ wxMenuBar *Frame::CreateMenuBar()
 	tools_menu->Append(wxID_ANY, wxT("Curve plot"));
 #endif
 
-	wxMenu *help_menu = new wxMenu;
+	auto help_menu = new wxMenu;
 	help_menu->Append(wxID_ANY, wxT("View Help"));
 	help_menu->Append(wxID_ANY, wxT("Online Documentation"));
 	help_menu->AppendSeparator();
@@ -714,8 +714,7 @@ wxMenuBar *Frame::CreateMenuBar()
 
 wxOutputConsoleCtrl *Frame::CreateOutputCtrl(const wxString& ctrl_text)
 {
-	return new wxOutputConsoleCtrl(this, wxID_ANY, ctrl_text,
-								   wxPoint(0, 0), wxSize(150, 90));
+	return new wxOutputConsoleCtrl(this, wxID_ANY, ctrl_text, wxPoint(0, 0), wxSize(150, 90));
 }
 
 
@@ -961,8 +960,6 @@ wxPropertyGridManager *Frame::CreatePropCtrl()
 	page->DisableProperty(wxT("User Home"));
 	page->DisableProperty(wxT("User Name"));
 
-	// page->Append(new wxPropertyCategory(wxT("Properties"), wxPG_LABEL));
-
 	return pgman;
 }
 
@@ -983,9 +980,9 @@ wxHtmlWindow *Frame::CreateHTMLCtrl(wxWindow *parent)
 wxAuiNotebook *Frame::CreateNotebook()
 {
 	// create the notebook off-window to avoid flicker
-	wxSize client_size = GetClientSize();
+	auto client_size = GetClientSize();
 
-	wxAuiNotebook *ctrl = new wxAuiNotebook(this, wxID_ANY,
+	auto ctrl = new wxAuiNotebook(this, wxID_ANY,
 											wxPoint(client_size.x, client_size.y),
 											wxSize(430, 200),
 											m_notebook_style);
@@ -1119,6 +1116,7 @@ void Frame::OnTreeDoubleClick(wxTreeEvent& evt)
 
 	CreatePrimitiveFrame();
 }
+
 
 wxString Frame::GetIntroText()
 {

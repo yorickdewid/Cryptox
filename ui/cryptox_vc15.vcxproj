@@ -508,6 +508,7 @@
     <ClCompile Include="..\ui\wxSizeReportCtrl.cpp" />
     <ClCompile Include="BlockCipherFrame.cpp" />
     <ClCompile Include="DataViewer.cpp" />
+    <ClCompile Include="ExUIFrame.cpp" />
     <ClCompile Include="HashFrame.cpp" />
     <ClCompile Include="SecretListModel.cpp" />
   </ItemGroup>
@@ -517,6 +518,7 @@
     <ClInclude Include="..\ui\wxSizeReportCtrl.h" />
     <ClInclude Include="BlockCipherFrame.h" />
     <ClInclude Include="DataViewer.h" />
+    <ClInclude Include="ExUIFrame.h" />
     <ClInclude Include="HashFrame.h" />
     <ClInclude Include="SecretListModel.h" />
     <ClInclude Include="wxOutputConsoleCtrl.h" />
