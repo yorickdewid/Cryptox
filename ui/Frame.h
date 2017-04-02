@@ -13,7 +13,8 @@
 
 class Frame : public wxFrame
 {
-	enum {
+	enum
+	{
 		ID_NULL = wxID_HIGHEST + 1,
 		ID_CreateGrid,
 		ID_CreatePerspective,
@@ -45,11 +46,11 @@ class Frame : public wxFrame
 
 public:
 	Frame(wxWindow *parent,
-		wxWindowID id,
-		const wxString& title,
-		const wxPoint& pos = wxDefaultPosition,
-		const wxSize& size = wxDefaultSize,
-		long style = wxDEFAULT_FRAME_STYLE | wxSUNKEN_BORDER);
+		  wxWindowID id,
+		  const wxString& title,
+		  const wxPoint& pos = wxDefaultPosition,
+		  const wxSize& size = wxDefaultSize,
+		  long style = wxDEFAULT_FRAME_STYLE | wxSUNKEN_BORDER);
 
 	~Frame();
 
@@ -62,6 +63,7 @@ private:
 	wxOutputConsoleCtrl *CreateOutputCtrl(const wxString& ctrl_text);
 	wxGrid *CreateGrid();
 	wxTreeCtrl *CreateTreeCtrl();
+	wxTreeCtrl *CreateProjectTree();
 	wxPropertyGridManager *CreatePropCtrl();
 	wxPoint GetStartPosition();
 	wxHtmlWindow *CreateHTMLCtrl(wxWindow *parent = NULL);
@@ -91,34 +93,9 @@ private:
 	void OnAbout(wxCommandEvent& evt);
 	void OnItemMenu(wxTreeEvent& evt);
 	void OnConsoleEnter(wxCommandEvent& evt);
-
-	void OnMenuHashToolRun(wxCommandEvent& WXUNUSED(evt))
-	{
-		StartHashTool();
-	}
-
-	void OnMenuPrimitiveRun(wxCommandEvent& WXUNUSED(evt))
-	{
-		CreatePrimitiveFrame();
-	}
-
-	void OnTreeDoubleClick(wxTreeEvent& evt)
-	{
-		wxTreeCtrl *tree = static_cast<wxTreeCtrl *>(evt.GetEventObject());
-
-		// Skip parents
-		wxTreeItemId itemId = evt.GetItem();
-		if (tree->ItemHasChildren(itemId)) {
-			if (tree->IsExpanded(itemId))
-				tree->Collapse(itemId);
-			else
-				tree->Expand(itemId);
-			return;
-		}			
-
-		CreatePrimitiveFrame();
-	}
-
+	void OnMenuHashToolRun(wxCommandEvent& evt);
+	void OnMenuPrimitiveRun(wxCommandEvent& evt);
+	void OnTreeDoubleClick(wxTreeEvent& evt);
 	void OnGradient(wxCommandEvent& evt);
 	void OnToolbarResizing(wxCommandEvent& evt);
 	void OnManagerFlag(wxCommandEvent& evt);

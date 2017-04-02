@@ -12,6 +12,9 @@
     <Filter Include="Header Files">
       <UniqueIdentifier>{fc21b7aa-db62-4bfa-8992-a6bf8aaece3d}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\Exframe">
+      <UniqueIdentifier>{486e1d8a-350d-4f94-9b91-8b47ee16bd4d}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\ui\Frame.cpp">

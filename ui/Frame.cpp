@@ -24,11 +24,11 @@ Frame::Frame(wxWindow *parent, wxWindowID id, const wxString& title, const wxPoi
 	GetDockArt()->SetMetric(wxAUI_DOCKART_PANE_BORDER_SIZE, 0);
 	GetDockArt()->SetColor(wxAUI_DOCKART_BACKGROUND_COLOUR, *wxWHITE);
 	GetDockArt()->SetMetric(wxAUI_DOCKART_SASH_SIZE, 2);
-	
+
 	// Set up default notebook style
 	m_notebook_style = wxAUI_NB_DEFAULT_STYLE | wxAUI_NB_WINDOWLIST_BUTTON | wxAUI_NB_TAB_EXTERNAL_MOVE | wxNO_BORDER | wxAUI_NB_CLOSE_ON_ALL_TABS;
 	m_notebook_theme = 0;
-	
+
 	// Create menu
 	CreateMenu();
 	SetMenuBar(CreateMenuBar());
@@ -60,11 +60,11 @@ Frame::Frame(wxWindow *parent, wxWindowID id, const wxString& title, const wxPoi
 	wxBitmap certificate_bmp1 = wxIcon("diploma.ico", wxBITMAP_TYPE_ICO, 16, 16);
 	wxBitmap formula_bmp1 = wxIcon("homework.ico", wxBITMAP_TYPE_ICO, 16, 16);
 
-	wxAuiToolBar *subtb = new wxAuiToolBar(this, wxID_ANY, wxDefaultPosition, wxDefaultSize,
-		wxAUI_TB_DEFAULT_STYLE |
-		wxAUI_TB_OVERFLOW |
-		wxAUI_TB_TEXT |
-		wxAUI_TB_HORZ_TEXT);
+	auto subtb = new wxAuiToolBar(this, wxID_ANY, wxDefaultPosition, wxDefaultSize,
+										   wxAUI_TB_DEFAULT_STYLE |
+										   wxAUI_TB_OVERFLOW |
+										   wxAUI_TB_TEXT |
+										   wxAUI_TB_HORZ_TEXT);
 	subtb->SetToolBitmapSize(wxSize(16, 16));
 	subtb->AddTool(ID_OpenBlockCipherFrame, wxT("Encryption"), unlock_bmp1);
 	subtb->AddTool(ID_OpenHashFrame, wxT("Hash Calculator"), calc_bmp1);
@@ -77,10 +77,10 @@ Frame::Frame(wxWindow *parent, wxWindowID id, const wxString& title, const wxPoi
 	subtb->SetCustomOverflowItems(prepend_items, append_items);
 	subtb->Realize();
 
-	wxAuiToolBar *maintb = new wxAuiToolBar(this, wxID_ANY, wxDefaultPosition, wxDefaultSize,
-		wxAUI_TB_DEFAULT_STYLE |
-		wxAUI_TB_OVERFLOW | wxAUI_TB_TEXT |
-		wxAUI_TB_HORZ_TEXT);
+	auto maintb = new wxAuiToolBar(this, wxID_ANY, wxDefaultPosition, wxDefaultSize,
+											wxAUI_TB_DEFAULT_STYLE |
+											wxAUI_TB_OVERFLOW | wxAUI_TB_TEXT |
+											wxAUI_TB_HORZ_TEXT);
 	maintb->SetToolBitmapSize(wxSize(16, 16));
 	maintb->AddTool(ID_SampleItem + 6, wxEmptyString, back_bmp1);
 	maintb->AddTool(ID_SampleItem + 7, wxEmptyString, forward_bmp1);
@@ -104,7 +104,7 @@ Frame::Frame(wxWindow *parent, wxWindowID id, const wxString& title, const wxPoi
 	maintb->AddTool(ID_SampleItem + 24, wxEmptyString, tb3_bmp1, wxT("Radio 2 (Group 2)"), wxITEM_RADIO);
 	maintb->AddTool(ID_SampleItem + 25, wxEmptyString, tb3_bmp1, wxT("Radio 3 (Group 2)"), wxITEM_RADIO);
 	maintb->AddSeparator();
-	wxChoice* choice = new wxChoice(maintb, ID_SampleItem + 35);
+	auto choice = new wxChoice(maintb, ID_SampleItem + 35);
 	choice->AppendString(wxT("x86 Instruction Set"));
 	choice->AppendString(wxT("x64 Instruction Set"));
 	choice->SetSelection(0);
@@ -118,41 +118,46 @@ Frame::Frame(wxWindow *parent, wxWindowID id, const wxString& title, const wxPoi
 
 	// Setup default planes
 	m_mgr.AddPane(CreateTreeCtrl(), wxAuiPaneInfo().
-		Name(wxT("primitivetree")).Caption(wxT("Object Library")).
-		Left().Layer(0).Row(0).Position(0).
-		CloseButton(false));
+				  Name(wxT("primitivetree")).Caption(wxT("Object Library")).
+				  Left().Layer(0).Row(0).Position(0).
+				  CloseButton(false));
+
+	m_mgr.AddPane(CreateProjectTree(), wxAuiPaneInfo().
+				  Name(wxT("projecttree")).Caption(wxT("Project")).
+				  Layer(1).Right().Position(0).
+				  CloseButton(false));
 
 	m_mgr.AddPane(CreatePropCtrl(), wxAuiPaneInfo().
-		Name(wxT("mainprop")).
-		Layer(1).Right().Position(0).
-		CloseButton(false).CaptionVisible(false));
+				  Name(wxT("mainprop")).
+				  Layer(1).Right().Position(0).
+				  CloseButton(false).CaptionVisible(false));
 
 	m_output = CreateOutputCtrl(wxT("Primitives loaded"));
 	m_mgr.AddPane(m_output, wxAuiPaneInfo().
-		Name(wxT("outputtxt")).Caption(wxT("Output")).
-		Bottom().Layer(0).Row(0).Position(0).MinimizeButton());
+				  Name(wxT("outputtxt")).Caption(wxT("Output")).
+				  Bottom().Layer(0).Row(0).Position(0).MinimizeButton());
 
 	m_mgr.AddPane(new SettingsPanel(this, this), wxAuiPaneInfo().
-		Name(wxT("settings")).Caption(wxT("Dock Manager Settings")).
-		Dockable(false).Float().Hide());
+				  Name(wxT("settings")).Caption(wxT("Dock Manager Settings")).
+				  Dockable(false).Float().Hide());
 
 	// Set notebook on center page
 	m_mgr.AddPane(CreateNotebook(), wxAuiPaneInfo().
-		Name(wxT("centernb")).
-		CenterPane().PaneBorder(false));
+				  Name(wxT("centernb")).
+				  CenterPane().PaneBorder(false));
 
 	// Add toolbars to frame
 	m_mgr.AddPane(subtb, wxAuiPaneInfo().
-		Name(wxT("subtb")).
-		ToolbarPane().Top().Row(2).Floatable(false).
-		MinSize(wxSize(0, 29)).
-		Gripper(false));
+				  Name(wxT("subtb")).
+				  ToolbarPane().Top().Row(2).Floatable(false).
+				  MinSize(wxSize(0, 29)).
+				  Gripper(false));
 
 	m_mgr.AddPane(maintb, wxAuiPaneInfo().
-		Name(wxT("maintb")).
-		ToolbarPane().Top().Row(3).Floatable(false).
-		MinSize(wxSize(0, 29)).
-		Gripper(false));
+				  Name(wxT("maintb")).
+				  ToolbarPane().Top().Row(3).Floatable(false).
+				  MinSize(wxSize(0, 29)).
+				  Gripper(false));
 
 	// make some default perspectives
 	wxString perspective_all = m_mgr.SavePerspective();
@@ -321,14 +326,13 @@ void Frame::OnUpdateUI(wxUpdateUIEvent& event)
 		case ID_HorizontalGradient:
 			event.Check(m_mgr.GetArtProvider()->GetMetric(wxAUI_DOCKART_GRADIENT_TYPE) == wxAUI_GRADIENT_HORIZONTAL);
 			break;
-		case ID_AllowToolbarResizing: {
+		case ID_AllowToolbarResizing:
+		{
 			wxAuiPaneInfoArray& all_panes = m_mgr.GetAllPanes();
 			const size_t count = all_panes.GetCount();
-			for (size_t i = 0; i < count; ++i)
-			{
+			for (size_t i = 0; i < count; ++i) {
 				wxAuiToolBar* toolbar = wxDynamicCast(all_panes[i].window, wxAuiToolBar);
-				if (toolbar)
-				{
+				if (toolbar) {
 					event.Check(all_panes[i].IsResizable());
 					break;
 				}
@@ -355,8 +359,8 @@ void Frame::OnUpdateUI(wxUpdateUIEvent& event)
 			break;
 		case ID_NoHint:
 			event.Check(((wxAUI_MGR_TRANSPARENT_HINT |
-				wxAUI_MGR_VENETIAN_BLINDS_HINT |
-				wxAUI_MGR_RECTANGLE_HINT) & flags) == 0);
+						wxAUI_MGR_VENETIAN_BLINDS_HINT |
+						wxAUI_MGR_RECTANGLE_HINT) & flags) == 0);
 			break;
 		case ID_HintFade:
 			event.Check((flags & wxAUI_MGR_HINT_FADE) != 0);
@@ -372,9 +376,9 @@ void Frame::OnPaneClose(wxAuiManagerEvent& evt)
 {
 	if (evt.pane->name == wxT("outputtxt")) {
 		int res = wxMessageBox(wxT("Are you sure you want to close the output log?"),
-			wxT("Close output panel"),
-			wxYES_NO,
-			this);
+							   wxT("Close output panel"),
+							   wxYES_NO,
+							   this);
 		if (res != wxYES)
 			evt.Veto();
 	}
@@ -422,9 +426,9 @@ void Frame::OnNotebookPageClose(wxAuiNotebookEvent& evt)
 	wxAuiNotebook *ctrl = (wxAuiNotebook*)evt.GetEventObject();
 	if (ctrl->GetPage(evt.GetSelection())->IsKindOf(CLASSINFO(wxHtmlWindow))) {
 		int res = wxMessageBox(wxT("Are you sure you want to close/hide this notebook page?"),
-			wxT("wxAUI"),
-			wxYES_NO,
-			this);
+							   wxT("wxAUI"),
+							   wxYES_NO,
+							   this);
 		if (res != wxYES)
 			evt.Veto();
 	}
@@ -437,9 +441,9 @@ void Frame::OnNotebookPageClosed(wxAuiNotebookEvent& evt)
 
 	// selection should always be a valid index
 	wxASSERT_MSG(ctrl->GetSelection() < (int)ctrl->GetPageCount(),
-		wxString::Format("Invalid selection %d, only %d pages left",
-			ctrl->GetSelection(),
-			(int)ctrl->GetPageCount()));
+				 wxString::Format("Invalid selection %d, only %d pages left",
+				 ctrl->GetSelection(),
+				 (int)ctrl->GetPageCount()));
 
 	evt.Skip();
 }
@@ -465,9 +469,9 @@ wxPoint Frame::GetStartPosition()
 void Frame::OnCreateTree(wxCommandEvent& WXUNUSED(event))
 {
 	m_mgr.AddPane(CreateTreeCtrl(), wxAuiPaneInfo().
-		Caption(wxT("Tree Control")).
-		Float().FloatingPosition(GetStartPosition()).
-		FloatingSize(wxSize(150, 300)));
+				  Caption(wxT("Tree Control")).
+				  Float().FloatingPosition(GetStartPosition()).
+				  FloatingSize(wxSize(150, 300)));
 	m_mgr.Update();
 }
 
@@ -475,9 +479,9 @@ void Frame::OnCreateTree(wxCommandEvent& WXUNUSED(event))
 void Frame::OnCreateGrid(wxCommandEvent& WXUNUSED(event))
 {
 	m_mgr.AddPane(CreateGrid(), wxAuiPaneInfo().
-		Caption(wxT("Grid")).
-		Float().FloatingPosition(GetStartPosition()).
-		FloatingSize(wxSize(300, 200)));
+				  Caption(wxT("Grid")).
+				  Float().FloatingPosition(GetStartPosition()).
+				  FloatingSize(wxSize(300, 200)));
 	m_mgr.Update();
 }
 
@@ -485,9 +489,9 @@ void Frame::OnCreateGrid(wxCommandEvent& WXUNUSED(event))
 void Frame::OnCreateHTML(wxCommandEvent& WXUNUSED(event))
 {
 	m_mgr.AddPane(CreateHTMLCtrl(), wxAuiPaneInfo().
-		Caption(wxT("HTML Control")).
-		Float().FloatingPosition(GetStartPosition()).
-		FloatingSize(wxSize(300, 200)));
+				  Caption(wxT("HTML Control")).
+				  Float().FloatingPosition(GetStartPosition()).
+				  FloatingSize(wxSize(300, 200)));
 	m_mgr.Update();
 }
 
@@ -495,10 +499,10 @@ void Frame::OnCreateHTML(wxCommandEvent& WXUNUSED(event))
 void Frame::OnCreateNotebook(wxCommandEvent& WXUNUSED(event))
 {
 	m_mgr.AddPane(CreateNotebook(), wxAuiPaneInfo().
-		Caption(wxT("Notebook")).
-		Float().FloatingPosition(GetStartPosition()).
-		//FloatingSize(300,200).
-		CloseButton(true).MaximizeButton(true));
+				  Caption(wxT("Notebook")).
+				  Float().FloatingPosition(GetStartPosition()).
+				  //FloatingSize(300,200).
+				  CloseButton(true).MaximizeButton(true));
 	m_mgr.Update();
 }
 
@@ -506,16 +510,15 @@ void Frame::OnCreateNotebook(wxCommandEvent& WXUNUSED(event))
 void Frame::OnCreateText(wxCommandEvent& WXUNUSED(event))
 {
 	m_mgr.AddPane(CreateTextCtrl(), wxAuiPaneInfo().
-		Caption(wxT("Text Control")).
-		Float().FloatingPosition(GetStartPosition()));
+				  Caption(wxT("Text Control")).
+				  Float().FloatingPosition(GetStartPosition()));
 	m_mgr.Update();
 }
 
 
 void Frame::OnDropDownToolbarItem(wxAuiToolBarEvent& evt)
 {
-	if (evt.IsDropDownClicked())
-	{
+	if (evt.IsDropDownClicked()) {
 		wxAuiToolBar *tb = static_cast<wxAuiToolBar*>(evt.GetEventObject());
 
 		tb->SetToolSticky(evt.GetId(), true);
@@ -712,7 +715,7 @@ wxMenuBar *Frame::CreateMenuBar()
 wxOutputConsoleCtrl *Frame::CreateOutputCtrl(const wxString& ctrl_text)
 {
 	return new wxOutputConsoleCtrl(this, wxID_ANY, ctrl_text,
-		wxPoint(0, 0), wxSize(150, 90));
+								   wxPoint(0, 0), wxSize(150, 90));
 }
 
 
@@ -725,17 +728,17 @@ wxTextCtrl *Frame::CreateTextCtrl(const wxString& ctrl_text)
 		text.Printf(wxT("This is text box %d"), 1);
 
 	return new wxTextCtrl(this, wxID_ANY, text,
-		wxPoint(0, 0), wxSize(150, 90),
-		wxNO_BORDER | wxTE_MULTILINE);
+						  wxPoint(0, 0), wxSize(150, 90),
+						  wxNO_BORDER | wxTE_MULTILINE);
 }
 
 
 wxGrid *Frame::CreateGrid()
 {
 	auto grid = new wxGrid(this, wxID_ANY,
-		wxPoint(0, 0),
-		wxSize(150, 250),
-		wxNO_BORDER | wxWANTS_CHARS);
+						   wxPoint(0, 0),
+						   wxSize(150, 250),
+						   wxNO_BORDER | wxWANTS_CHARS);
 	grid->CreateGrid(50, 20);
 	return grid;
 }
@@ -744,10 +747,8 @@ wxGrid *Frame::CreateGrid()
 wxTreeCtrl *Frame::CreateTreeCtrl()
 {
 	auto tree = new wxTreeCtrl(this, 10009,
-		wxPoint(0, 0), wxSize(200, 250),
-		wxTR_DEFAULT_STYLE | wxNO_BORDER);
-
-	tree->SetWindowStyle(wxTR_HIDE_ROOT);
+							   wxPoint(0, 0), wxSize(200, 250),
+							   wxTR_DEFAULT_STYLE | wxNO_BORDER | wxTR_HIDE_ROOT);
 
 	wxImageList *imglist = new wxImageList(16, 16, true, 2);
 	imglist->Add(wxArtProvider::GetBitmap(wxART_FOLDER, wxART_OTHER, wxSize(16, 16)));
@@ -895,11 +896,41 @@ wxTreeCtrl *Frame::CreateTreeCtrl()
 }
 
 
+wxTreeCtrl *Frame::CreateProjectTree()
+{
+	auto tree = new wxTreeCtrl(this, 11009,
+							   wxPoint(0, 0), wxSize(200, 250),
+							   wxTR_DEFAULT_STYLE | wxNO_BORDER | wxTR_EDIT_LABELS);
+
+	wxImageList *imglist = new wxImageList(16, 16, true, 2);
+	imglist->Add(wxArtProvider::GetBitmap(wxART_FOLDER, wxART_OTHER, wxSize(16, 16)));
+	imglist->Add(wxArtProvider::GetBitmap(wxART_EXECUTABLE_FILE, wxART_OTHER, wxSize(16, 16)));
+	tree->AssignImageList(imglist);
+
+	auto root = tree->AddRoot("Project", 0);
+	tree->SetItemBold(root);
+
+	auto id = tree->AppendItem(root, wxT("Diagram"), 0);
+	tree->AppendItem(id, wxT("SHA-CUSTOM"), 0);
+	tree->AppendItem(id, wxT("ChaCha40"), 0);
+
+	id = tree->AppendItem(root, wxT("Material"), 0);
+	tree->AppendItem(id, wxT("keypair"), 0);
+	tree->AppendItem(id, wxT("keypair2"), 0);
+
+	id = tree->AppendItem(root, wxT("Other"), 0);
+	tree->AppendItem(id, wxT("source.c"), 1);
+
+	tree->ExpandAll();
+	return tree;
+}
+
+
 wxPropertyGridManager *Frame::CreatePropCtrl()
 {
 	auto pgman = new wxPropertyGridManager(this, wxID_ANY, wxPoint(0, 0), wxSize(250, 250),
-		wxPG_DESCRIPTION |
-		wxPG_SPLITTER_AUTO_CENTER);
+										   wxPG_DESCRIPTION |
+										   wxPG_SPLITTER_AUTO_CENTER);
 
 	auto page = pgman->AddPage();
 	page->Append(new wxPropertyCategory(wxT("General"), wxPG_LABEL));
@@ -942,8 +973,8 @@ wxHtmlWindow *Frame::CreateHTMLCtrl(wxWindow *parent)
 		parent = this;
 
 	wxHtmlWindow *ctrl = new wxHtmlWindow(parent, wxID_ANY,
-		wxDefaultPosition,
-		wxSize(400, 300));
+										  wxDefaultPosition,
+										  wxSize(400, 300));
 	ctrl->SetPage(GetIntroText());
 	return ctrl;
 }
@@ -955,9 +986,9 @@ wxAuiNotebook *Frame::CreateNotebook()
 	wxSize client_size = GetClientSize();
 
 	wxAuiNotebook *ctrl = new wxAuiNotebook(this, wxID_ANY,
-		wxPoint(client_size.x, client_size.y),
-		wxSize(430, 200),
-		m_notebook_style);
+											wxPoint(client_size.x, client_size.y),
+											wxSize(430, 200),
+											m_notebook_style);
 
 	//wxBitmap page_bmp = wxArtProvider::GetBitmap(wxART_NORMAL_FILE, wxART_OTHER, wxSize(16, 16));
 	wxBitmap page_bmp = wxNullBitmap;
@@ -990,32 +1021,32 @@ wxAuiNotebook *Frame::CreateNotebook()
 	SecretListModel *listmodel = new SecretListModel;
 	dataview->AssociateModel(listmodel);
 	dataview->AppendTextColumn("editable string",
-		SecretListModel::Col_EditableText,
-		wxDATAVIEW_CELL_EDITABLE,
-		wxCOL_WIDTH_AUTOSIZE,
-		wxALIGN_NOT,
-		wxDATAVIEW_COL_SORTABLE);
+							   SecretListModel::Col_EditableText,
+							   wxDATAVIEW_CELL_EDITABLE,
+							   wxCOL_WIDTH_AUTOSIZE,
+							   wxALIGN_NOT,
+							   wxDATAVIEW_COL_SORTABLE);
 	dataview->AppendIconTextColumn("icon",
-		SecretListModel::Col_IconText,
-		wxDATAVIEW_CELL_EDITABLE,
-		wxCOL_WIDTH_AUTOSIZE,
-		wxALIGN_NOT,
-		wxDATAVIEW_COL_REORDERABLE | wxDATAVIEW_COL_SORTABLE);
+								   SecretListModel::Col_IconText,
+								   wxDATAVIEW_CELL_EDITABLE,
+								   wxCOL_WIDTH_AUTOSIZE,
+								   wxALIGN_NOT,
+								   wxDATAVIEW_COL_REORDERABLE | wxDATAVIEW_COL_SORTABLE);
 
 	dataview->AppendDateColumn("date", SecretListModel::Col_Date);
 	wxDataViewColumn *attributes = new wxDataViewColumn("attributes", new wxDataViewTextRenderer,
-			SecretListModel::Col_TextWithAttr,
-			wxCOL_WIDTH_AUTOSIZE,
-			wxALIGN_RIGHT,
-			wxDATAVIEW_COL_REORDERABLE | wxDATAVIEW_COL_RESIZABLE | wxDATAVIEW_COL_SORTABLE);
+														SecretListModel::Col_TextWithAttr,
+														wxCOL_WIDTH_AUTOSIZE,
+														wxALIGN_RIGHT,
+														wxDATAVIEW_COL_REORDERABLE | wxDATAVIEW_COL_RESIZABLE | wxDATAVIEW_COL_SORTABLE);
 	dataview->AppendColumn(attributes);
 	ctrl->AddPage(dataview, wxT("AttackDB"), false, page_bmp);
 
 	// Console
 	wxTextCtrl *console = new wxTextCtrl(ctrl, 10010, wxT("Type 'help' to get started\n\n>> "), wxDefaultPosition, wxDefaultSize,
-		wxTE_MULTILINE |
-		wxNO_BORDER |
-		wxTE_PROCESS_ENTER);
+										 wxTE_MULTILINE |
+										 wxNO_BORDER |
+										 wxTE_PROCESS_ENTER);
 	console->SetInsertionPointEnd();
 	ctrl->AddPage(console, wxT("Console"), false, page_bmp);
 #endif
@@ -1059,6 +1090,35 @@ void Frame::OnConsoleEnter(wxCommandEvent& event)
 	event.Skip();
 }
 
+
+void Frame::OnMenuHashToolRun(wxCommandEvent& WXUNUSED(evt))
+{
+	StartHashTool();
+}
+
+
+void Frame::OnMenuPrimitiveRun(wxCommandEvent& WXUNUSED(evt))
+{
+	CreatePrimitiveFrame();
+}
+
+
+void Frame::OnTreeDoubleClick(wxTreeEvent& evt)
+{
+	auto tree = static_cast<wxTreeCtrl *>(evt.GetEventObject());
+
+	// Skip parents
+	wxTreeItemId itemId = evt.GetItem();
+	if (tree->ItemHasChildren(itemId)) {
+		if (tree->IsExpanded(itemId))
+			tree->Collapse(itemId);
+		else
+			tree->Expand(itemId);
+		return;
+	}
+
+	CreatePrimitiveFrame();
+}
 
 wxString Frame::GetIntroText()
 {
@@ -1127,49 +1187,49 @@ wxString Frame::GetIntroText()
 }
 
 wxBEGIN_EVENT_TABLE(Frame, wxFrame)
-	EVT_MENU(Frame::ID_CreateGrid, Frame::OnCreateGrid)
-	EVT_MENU(Frame::ID_CreatePerspective, Frame::OnCreatePerspective)
-	EVT_MENU(Frame::ID_CopyPerspectiveCode, Frame::OnCopyPerspectiveCode)
-	EVT_MENU(ID_AllowFloating, Frame::OnManagerFlag)
-	EVT_MENU(ID_TransparentHint, Frame::OnManagerFlag)
-	EVT_MENU(ID_VenetianBlindsHint, Frame::OnManagerFlag)
-	EVT_MENU(ID_RectangleHint, Frame::OnManagerFlag)
-	EVT_MENU(ID_NoHint, Frame::OnManagerFlag)
-	EVT_MENU(ID_HintFade, Frame::OnManagerFlag)
-	EVT_MENU(ID_NoVenetianFade, Frame::OnManagerFlag)
-	EVT_MENU(ID_TransparentDrag, Frame::OnManagerFlag)
-	EVT_MENU(ID_LiveUpdate, Frame::OnManagerFlag)
-	EVT_MENU(ID_AllowActivePane, Frame::OnManagerFlag)
-	EVT_MENU(ID_NoGradient, Frame::OnGradient)
-	EVT_MENU(ID_VerticalGradient, Frame::OnGradient)
-	EVT_MENU(ID_HorizontalGradient, Frame::OnGradient)
-	EVT_MENU(ID_AllowToolbarResizing, Frame::OnToolbarResizing)
-	EVT_MENU(ID_Settings, Frame::OnSettings)
-	EVT_MENU(ID_OpenBlockCipherFrame, Frame::OnMenuPrimitiveRun)
-	EVT_MENU(ID_OpenHashFrame, Frame::OnMenuHashToolRun)
-	EVT_MENU(ID_CustomizeToolbar, Frame::OnCustomizeToolbar)
-	EVT_MENU(wxID_EXIT, Frame::OnExit)
-	EVT_MENU(wxID_ABOUT, Frame::OnAbout)
-	EVT_UPDATE_UI(ID_AllowFloating, Frame::OnUpdateUI)
-	EVT_UPDATE_UI(ID_TransparentHint, Frame::OnUpdateUI)
-	EVT_UPDATE_UI(ID_VenetianBlindsHint, Frame::OnUpdateUI)
-	EVT_UPDATE_UI(ID_RectangleHint, Frame::OnUpdateUI)
-	EVT_UPDATE_UI(ID_NoHint, Frame::OnUpdateUI)
-	EVT_UPDATE_UI(ID_HintFade, Frame::OnUpdateUI)
-	EVT_UPDATE_UI(ID_NoVenetianFade, Frame::OnUpdateUI)
-	EVT_UPDATE_UI(ID_TransparentDrag, Frame::OnUpdateUI)
-	EVT_UPDATE_UI(ID_LiveUpdate, Frame::OnUpdateUI)
-	EVT_UPDATE_UI(ID_NoGradient, Frame::OnUpdateUI)
-	EVT_UPDATE_UI(ID_VerticalGradient, Frame::OnUpdateUI)
-	EVT_UPDATE_UI(ID_HorizontalGradient, Frame::OnUpdateUI)
-	EVT_UPDATE_UI(ID_AllowToolbarResizing, Frame::OnUpdateUI)
-	EVT_MENU_RANGE(Frame::ID_FirstPerspective, Frame::ID_FirstPerspective + 1000, Frame::OnRestorePerspective)
-	EVT_AUITOOLBAR_TOOL_DROPDOWN(ID_DropDownToolbarItem, Frame::OnDropDownToolbarItem)
-	EVT_AUI_PANE_CLOSE(Frame::OnPaneClose)
-	EVT_AUINOTEBOOK_ALLOW_DND(wxID_ANY, Frame::OnAllowNotebookDnD)
-	EVT_AUINOTEBOOK_PAGE_CLOSE(wxID_ANY, Frame::OnNotebookPageClose)
-	EVT_AUINOTEBOOK_PAGE_CLOSED(wxID_ANY, Frame::OnNotebookPageClosed)
-	EVT_TREE_ITEM_MENU(10009, Frame::OnItemMenu)
-	EVT_TREE_ITEM_ACTIVATED(10009, Frame::OnTreeDoubleClick)
-	EVT_TEXT_ENTER(10010, Frame::OnConsoleEnter)
+EVT_MENU(Frame::ID_CreateGrid, Frame::OnCreateGrid)
+EVT_MENU(Frame::ID_CreatePerspective, Frame::OnCreatePerspective)
+EVT_MENU(Frame::ID_CopyPerspectiveCode, Frame::OnCopyPerspectiveCode)
+EVT_MENU(ID_AllowFloating, Frame::OnManagerFlag)
+EVT_MENU(ID_TransparentHint, Frame::OnManagerFlag)
+EVT_MENU(ID_VenetianBlindsHint, Frame::OnManagerFlag)
+EVT_MENU(ID_RectangleHint, Frame::OnManagerFlag)
+EVT_MENU(ID_NoHint, Frame::OnManagerFlag)
+EVT_MENU(ID_HintFade, Frame::OnManagerFlag)
+EVT_MENU(ID_NoVenetianFade, Frame::OnManagerFlag)
+EVT_MENU(ID_TransparentDrag, Frame::OnManagerFlag)
+EVT_MENU(ID_LiveUpdate, Frame::OnManagerFlag)
+EVT_MENU(ID_AllowActivePane, Frame::OnManagerFlag)
+EVT_MENU(ID_NoGradient, Frame::OnGradient)
+EVT_MENU(ID_VerticalGradient, Frame::OnGradient)
+EVT_MENU(ID_HorizontalGradient, Frame::OnGradient)
+EVT_MENU(ID_AllowToolbarResizing, Frame::OnToolbarResizing)
+EVT_MENU(ID_Settings, Frame::OnSettings)
+EVT_MENU(ID_OpenBlockCipherFrame, Frame::OnMenuPrimitiveRun)
+EVT_MENU(ID_OpenHashFrame, Frame::OnMenuHashToolRun)
+EVT_MENU(ID_CustomizeToolbar, Frame::OnCustomizeToolbar)
+EVT_MENU(wxID_EXIT, Frame::OnExit)
+EVT_MENU(wxID_ABOUT, Frame::OnAbout)
+EVT_UPDATE_UI(ID_AllowFloating, Frame::OnUpdateUI)
+EVT_UPDATE_UI(ID_TransparentHint, Frame::OnUpdateUI)
+EVT_UPDATE_UI(ID_VenetianBlindsHint, Frame::OnUpdateUI)
+EVT_UPDATE_UI(ID_RectangleHint, Frame::OnUpdateUI)
+EVT_UPDATE_UI(ID_NoHint, Frame::OnUpdateUI)
+EVT_UPDATE_UI(ID_HintFade, Frame::OnUpdateUI)
+EVT_UPDATE_UI(ID_NoVenetianFade, Frame::OnUpdateUI)
+EVT_UPDATE_UI(ID_TransparentDrag, Frame::OnUpdateUI)
+EVT_UPDATE_UI(ID_LiveUpdate, Frame::OnUpdateUI)
+EVT_UPDATE_UI(ID_NoGradient, Frame::OnUpdateUI)
+EVT_UPDATE_UI(ID_VerticalGradient, Frame::OnUpdateUI)
+EVT_UPDATE_UI(ID_HorizontalGradient, Frame::OnUpdateUI)
+EVT_UPDATE_UI(ID_AllowToolbarResizing, Frame::OnUpdateUI)
+EVT_MENU_RANGE(Frame::ID_FirstPerspective, Frame::ID_FirstPerspective + 1000, Frame::OnRestorePerspective)
+EVT_AUITOOLBAR_TOOL_DROPDOWN(ID_DropDownToolbarItem, Frame::OnDropDownToolbarItem)
+EVT_AUI_PANE_CLOSE(Frame::OnPaneClose)
+EVT_AUINOTEBOOK_ALLOW_DND(wxID_ANY, Frame::OnAllowNotebookDnD)
+EVT_AUINOTEBOOK_PAGE_CLOSE(wxID_ANY, Frame::OnNotebookPageClose)
+EVT_AUINOTEBOOK_PAGE_CLOSED(wxID_ANY, Frame::OnNotebookPageClosed)
+EVT_TREE_ITEM_MENU(10009, Frame::OnItemMenu)
+EVT_TREE_ITEM_ACTIVATED(10009, Frame::OnTreeDoubleClick)
+EVT_TEXT_ENTER(10010, Frame::OnConsoleEnter)
 wxEND_EVENT_TABLE()
