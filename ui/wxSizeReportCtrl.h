@@ -7,9 +7,9 @@ class wxSizeReportCtrl : public wxControl
 {
 public:
 	wxSizeReportCtrl(wxWindow *parent, wxWindowID id = wxID_ANY,
-		const wxPoint& pos = wxDefaultPosition,
-		const wxSize& size = wxDefaultSize,
-		wxAuiManager *mgr = NULL)
+					 const wxPoint& pos = wxDefaultPosition,
+					 const wxSize& size = wxDefaultSize,
+					 wxAuiManager *mgr = NULL)
 		: wxControl(parent, id, pos, size, wxNO_BORDER)
 	{
 		m_mgr = mgr;

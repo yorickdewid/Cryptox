@@ -18,7 +18,7 @@
 class CyApp : public wxApp
 {
 public:
-    bool OnInit()
+	bool OnInit()
 	{
 		if (!wxApp::OnInit())
 			return false;
@@ -31,10 +31,10 @@ public:
 		config->SetRecordDefaults();
 
 		wxFrame *frame = new Frame(nullptr,
-			wxID_ANY,
-			wxT(APPNAME),
-			wxDefaultPosition,
-			wxSize(1200, 750));
+								   wxID_ANY,
+								   wxT(APPNAME),
+								   wxDefaultPosition,
+								   wxSize(1200, 750));
 		frame->Show();
 
 		return true;

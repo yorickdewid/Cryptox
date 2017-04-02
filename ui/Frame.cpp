@@ -752,9 +752,9 @@ wxTreeCtrl *Frame::CreateTreeCtrl()
 	wxImageList *imglist = new wxImageList(16, 16, true, 2);
 	imglist->Add(wxArtProvider::GetBitmap(wxART_FOLDER, wxART_OTHER, wxSize(16, 16)));
 	imglist->Add(wxArtProvider::GetBitmap(wxART_NORMAL_FILE, wxART_OTHER, wxSize(16, 16)));
-	imglist->Add(wxIcon(wxString("calculator.ico"), wxBITMAP_TYPE_ICO));
-	imglist->Add(wxIcon(wxString("unlocked.ico"), wxBITMAP_TYPE_ICO));
-	imglist->Add(wxIcon(wxString("shuffle.ico"), wxBITMAP_TYPE_ICO));
+	imglist->Add(wxIcon("calculator.ico", wxBITMAP_TYPE_ICO));
+	imglist->Add(wxIcon("unlocked.ico", wxBITMAP_TYPE_ICO));
+	imglist->Add(wxIcon("shuffle.png", wxBITMAP_TYPE_PNG));
 	tree->AssignImageList(imglist);
 
 	auto root = tree->AddRoot("", 0);

@@ -19,7 +19,7 @@ public:
 							   wxT("Block Cipher Encryption"),
 							   wxDefaultPosition,
 							   size,
-							   wxCAPTION | wxCLOSE_BOX | wxFRAME_NO_TASKBAR | wxSTAY_ON_TOP | wxSYSTEM_MENU | wxTAB_TRAVERSAL)
+							   wxCAPTION | wxCLOSE_BOX | wxSYSTEM_MENU | wxTAB_TRAVERSAL)
 	{
 	}
 };

@@ -6,9 +6,9 @@ class wxOutputConsoleCtrl : public wxTextCtrl
 {
 public:
 	wxOutputConsoleCtrl(wxWindow *parent, wxWindowID id = wxID_ANY,
-		const wxString& value = wxEmptyString,
-		const wxPoint& pos = wxDefaultPosition,
-		const wxSize& size = wxDefaultSize)
+						const wxString& value = wxEmptyString,
+						const wxPoint& pos = wxDefaultPosition,
+						const wxSize& size = wxDefaultSize)
 		: wxTextCtrl(parent, id, wxEmptyString, pos, size, wxTE_READONLY | wxNO_BORDER | wxTE_MULTILINE)
 	{
 		WriteConsole(value);
@@ -37,13 +37,34 @@ public:
 		WriteConsole(text);
 	}
 
-	wxOutputConsoleCtrl& operator<<(const wxString& s) { WriteConsole(s); return *this; }
-	wxOutputConsoleCtrl& operator<<(int i) { WriteConsole(i); return *this; }
-	wxOutputConsoleCtrl& operator<<(long i) { WriteConsole(i); return *this; }
-	wxOutputConsoleCtrl& operator<<(float f) { return *this << double(f); }
-	wxOutputConsoleCtrl& operator<<(double d) { WriteConsole(d); return *this; }
-	wxOutputConsoleCtrl& operator<<(char c) { return *this << wxString(c); }
-	wxOutputConsoleCtrl& operator<<(wchar_t c) { return *this << wxString(c); }
+	wxOutputConsoleCtrl& operator<<(const wxString& s)
+	{
+		WriteConsole(s); return *this;
+	}
+	wxOutputConsoleCtrl& operator<<(int i)
+	{
+		WriteConsole(i); return *this;
+	}
+	wxOutputConsoleCtrl& operator<<(long i)
+	{
+		WriteConsole(i); return *this;
+	}
+	wxOutputConsoleCtrl& operator<<(float f)
+	{
+		return *this << double(f);
+	}
+	wxOutputConsoleCtrl& operator<<(double d)
+	{
+		WriteConsole(d); return *this;
+	}
+	wxOutputConsoleCtrl& operator<<(char c)
+	{
+		return *this << wxString(c);
+	}
+	wxOutputConsoleCtrl& operator<<(wchar_t c)
+	{
+		return *this << wxString(c);
+	}
 
 protected:
 	wxString GetTimestamp() const
