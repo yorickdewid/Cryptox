@@ -7,7 +7,7 @@ namespace Primitives
 
 class PRIMAPI Logic : public Algorithm
 {
-	const char m_logicOperator[2];
+	const char m_logicOperator[3];
 
 public:
 	auto GetLogicOperator() const
@@ -16,9 +16,9 @@ public:
 	}
 
 public:
-	Logic(const char *name, const char op[2])
+	Logic(const char *name, const char op[3])
 		: Algorithm{name}
-		, m_logicOperator({op[0], op[1]})
+		, m_logicOperator({op[0], op[1], op[2]})
 	{
 	}
 

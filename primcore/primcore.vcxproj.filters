@@ -13,6 +13,9 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="Header Files\Logic">
+      <UniqueIdentifier>{aad626ce-9848-4c0d-8fde-2944c0e0672b}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Algorithm.h">
@@ -39,20 +42,26 @@
     <ClInclude Include="Logic.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="AND.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="NOT.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="XOR.h">
+      <Filter>Header Files\Logic</Filter>
     </ClInclude>
     <ClInclude Include="OR.h">
-      <Filter>Header Files</Filter>
+      <Filter>Header Files\Logic</Filter>
     </ClInclude>
-    <ClInclude Include="XOR.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="NOT.h">
+      <Filter>Header Files\Logic</Filter>
+    </ClInclude>
+    <ClInclude Include="AND.h">
+      <Filter>Header Files\Logic</Filter>
     </ClInclude>
     <ClInclude Include="NAND.h">
-      <Filter>Header Files</Filter>
+      <Filter>Header Files\Logic</Filter>
+    </ClInclude>
+    <ClInclude Include="NOR.h">
+      <Filter>Header Files\Logic</Filter>
+    </ClInclude>
+    <ClInclude Include="XNOR.h">
+      <Filter>Header Files\Logic</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
