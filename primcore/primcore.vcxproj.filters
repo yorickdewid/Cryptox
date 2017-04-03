@@ -66,6 +66,9 @@
     <ClInclude Include="Primitives.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="BlockCipher.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="SHA1.cpp">

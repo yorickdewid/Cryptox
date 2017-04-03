@@ -23,6 +23,7 @@ Frame::Frame(wxWindow *parent, wxWindowID id, const wxString& title, const wxPoi
 	// Set border size
 	GetDockArt()->SetMetric(wxAUI_DOCKART_PANE_BORDER_SIZE, 0);
 	GetDockArt()->SetColor(wxAUI_DOCKART_BACKGROUND_COLOUR, *wxWHITE);
+	GetDockArt()->SetMetric(wxAUI_DOCKART_GRADIENT_TYPE, wxAUI_GRADIENT_NONE);
 	GetDockArt()->SetMetric(wxAUI_DOCKART_SASH_SIZE, 2);
 
 	// Set up default notebook style
@@ -61,10 +62,10 @@ Frame::Frame(wxWindow *parent, wxWindowID id, const wxString& title, const wxPoi
 	wxBitmap formula_bmp1 = wxIcon("homework.ico", wxBITMAP_TYPE_ICO, 16, 16);
 
 	auto subtb = new wxAuiToolBar(this, wxID_ANY, wxDefaultPosition, wxDefaultSize,
-										   wxAUI_TB_DEFAULT_STYLE |
-										   wxAUI_TB_OVERFLOW |
-										   wxAUI_TB_TEXT |
-										   wxAUI_TB_HORZ_TEXT);
+								  wxAUI_TB_DEFAULT_STYLE |
+								  wxAUI_TB_OVERFLOW |
+								  wxAUI_TB_TEXT |
+								  wxAUI_TB_HORZ_TEXT);
 	subtb->SetToolBitmapSize(wxSize(16, 16));
 	subtb->AddTool(ID_OpenBlockCipherFrame, wxT("Encryption"), unlock_bmp1);
 	subtb->AddTool(ID_OpenHashFrame, wxT("Hash Calculator"), calc_bmp1);
@@ -78,9 +79,9 @@ Frame::Frame(wxWindow *parent, wxWindowID id, const wxString& title, const wxPoi
 	subtb->Realize();
 
 	auto maintb = new wxAuiToolBar(this, wxID_ANY, wxDefaultPosition, wxDefaultSize,
-											wxAUI_TB_DEFAULT_STYLE |
-											wxAUI_TB_OVERFLOW | wxAUI_TB_TEXT |
-											wxAUI_TB_HORZ_TEXT);
+								   wxAUI_TB_DEFAULT_STYLE |
+								   wxAUI_TB_OVERFLOW | wxAUI_TB_TEXT |
+								   wxAUI_TB_HORZ_TEXT);
 	maintb->SetToolBitmapSize(wxSize(16, 16));
 	maintb->AddTool(ID_SampleItem + 6, wxEmptyString, back_bmp1);
 	maintb->AddTool(ID_SampleItem + 7, wxEmptyString, forward_bmp1);
@@ -232,27 +233,6 @@ void Frame::OnCustomizeToolbar(wxCommandEvent& WXUNUSED(evt))
 }
 
 
-void Frame::OnGradient(wxCommandEvent& event)
-{
-	int gradient = 0;
-
-	switch (event.GetId()) {
-		case ID_NoGradient:
-			gradient = wxAUI_GRADIENT_NONE;
-			break;
-		case ID_VerticalGradient:
-			gradient = wxAUI_GRADIENT_VERTICAL;
-			break;
-		case ID_HorizontalGradient:
-			gradient = wxAUI_GRADIENT_HORIZONTAL;
-			break;
-	}
-
-	m_mgr.GetArtProvider()->SetMetric(wxAUI_DOCKART_GRADIENT_TYPE, gradient);
-	m_mgr.Update();
-}
-
-
 void Frame::OnToolbarResizing(wxCommandEvent& WXUNUSED(evt))
 {
 	wxAuiPaneInfoArray& all_panes = m_mgr.GetAllPanes();
@@ -272,25 +252,7 @@ void Frame::OnManagerFlag(wxCommandEvent& event)
 {
 	unsigned int flag = 0;
 
-	if (event.GetId() == ID_TransparentDrag ||
-		event.GetId() == ID_TransparentHint ||
-		event.GetId() == ID_HintFade) {
-		wxMessageBox(wxT("This option is presently only available on wxGTK, wxMSW and wxMac"));
-		return;
-	}
-
 	int id = event.GetId();
-
-	if (id == ID_TransparentHint ||
-		id == ID_VenetianBlindsHint ||
-		id == ID_RectangleHint ||
-		id == ID_NoHint) {
-		unsigned int flags = m_mgr.GetFlags();
-		flags &= ~wxAUI_MGR_TRANSPARENT_HINT;
-		flags &= ~wxAUI_MGR_VENETIAN_BLINDS_HINT;
-		flags &= ~wxAUI_MGR_RECTANGLE_HINT;
-		m_mgr.SetFlags(flags);
-	}
 
 	switch (id) {
 		case ID_AllowFloating: flag = wxAUI_MGR_ALLOW_FLOATING; break;
@@ -298,8 +260,6 @@ void Frame::OnManagerFlag(wxCommandEvent& event)
 		case ID_HintFade: flag = wxAUI_MGR_HINT_FADE; break;
 		case ID_NoVenetianFade: flag = wxAUI_MGR_NO_VENETIAN_BLINDS_FADE; break;
 		case ID_AllowActivePane: flag = wxAUI_MGR_ALLOW_ACTIVE_PANE; break;
-		case ID_TransparentHint: flag = wxAUI_MGR_TRANSPARENT_HINT; break;
-		case ID_VenetianBlindsHint: flag = wxAUI_MGR_VENETIAN_BLINDS_HINT; break;
 		case ID_RectangleHint: flag = wxAUI_MGR_RECTANGLE_HINT; break;
 		case ID_LiveUpdate: flag = wxAUI_MGR_LIVE_RESIZE; break;
 	}
@@ -317,15 +277,6 @@ void Frame::OnUpdateUI(wxUpdateUIEvent& event)
 	unsigned int flags = m_mgr.GetFlags();
 
 	switch (event.GetId()) {
-		case ID_NoGradient:
-			event.Check(m_mgr.GetArtProvider()->GetMetric(wxAUI_DOCKART_GRADIENT_TYPE) == wxAUI_GRADIENT_NONE);
-			break;
-		case ID_VerticalGradient:
-			event.Check(m_mgr.GetArtProvider()->GetMetric(wxAUI_DOCKART_GRADIENT_TYPE) == wxAUI_GRADIENT_VERTICAL);
-			break;
-		case ID_HorizontalGradient:
-			event.Check(m_mgr.GetArtProvider()->GetMetric(wxAUI_DOCKART_GRADIENT_TYPE) == wxAUI_GRADIENT_HORIZONTAL);
-			break;
 		case ID_AllowToolbarResizing:
 		{
 			wxAuiPaneInfoArray& all_panes = m_mgr.GetAllPanes();
@@ -345,14 +296,8 @@ void Frame::OnUpdateUI(wxUpdateUIEvent& event)
 		case ID_TransparentDrag:
 			event.Check((flags & wxAUI_MGR_TRANSPARENT_DRAG) != 0);
 			break;
-		case ID_TransparentHint:
-			event.Check((flags & wxAUI_MGR_TRANSPARENT_HINT) != 0);
-			break;
 		case ID_LiveUpdate:
 			event.Check((flags & wxAUI_MGR_LIVE_RESIZE) != 0);
-			break;
-		case ID_VenetianBlindsHint:
-			event.Check((flags & wxAUI_MGR_VENETIAN_BLINDS_HINT) != 0);
 			break;
 		case ID_RectangleHint:
 			event.Check((flags & wxAUI_MGR_RECTANGLE_HINT) != 0);
@@ -501,7 +446,6 @@ void Frame::OnCreateNotebook(wxCommandEvent& WXUNUSED(event))
 	m_mgr.AddPane(CreateNotebook(), wxAuiPaneInfo().
 				  Caption(wxT("Notebook")).
 				  Float().FloatingPosition(GetStartPosition()).
-				  //FloatingSize(300,200).
 				  CloseButton(true).MaximizeButton(true));
 	m_mgr.Update();
 }
@@ -532,15 +476,15 @@ void Frame::OnDropDownToolbarItem(wxAuiToolBarEvent& evt)
 		m1->SetBitmap(bmp);
 		menuPopup.Append(m1);
 
-		wxMenuItem* m2 = new wxMenuItem(&menuPopup, 10002, _("Plot Function"));
+		wxMenuItem* m2 = new wxMenuItem(&menuPopup, 10002, wxT("Plot Function"));
 		m2->SetBitmap(bmp);
 		menuPopup.Append(m2);
 
-		wxMenuItem* m3 = new wxMenuItem(&menuPopup, 10003, _("Determine Basepoint"));
+		wxMenuItem* m3 = new wxMenuItem(&menuPopup, 10003, wxT("Determine Basepoint"));
 		m3->SetBitmap(bmp);
 		menuPopup.Append(m3);
 
-		wxMenuItem* m4 = new wxMenuItem(&menuPopup, 10004, _("Transconvert"));
+		wxMenuItem* m4 = new wxMenuItem(&menuPopup, 10004, wxT("Transconvert"));
 		m4->SetBitmap(bmp);
 		menuPopup.Append(m4);
 
@@ -586,6 +530,7 @@ wxMenuBar *Frame::CreateMenuBar()
 	wxMenu *file_new_menu = new wxMenu;
 	file_new_menu->Append(wxID_NEW, wxT("Project..."));
 	file_new_menu->Append(wxID_NEW, wxT("Keypair..."));
+	file_new_menu->Append(wxID_NEW, wxT("Password..."));
 	file_new_menu->Append(wxID_NEW, wxT("File..."));
 
 	wxMenu *file_open_menu = new wxMenu;
@@ -645,22 +590,15 @@ wxMenuBar *Frame::CreateMenuBar()
 #endif
 
 	auto options_menu = new wxMenu;
-	options_menu->AppendRadioItem(ID_TransparentHint, wxT("Transparent Hint"));
-	options_menu->AppendRadioItem(ID_VenetianBlindsHint, wxT("Venetian Blinds Hint"));
 	options_menu->AppendRadioItem(ID_RectangleHint, wxT("Rectangle Hint"));
 	options_menu->AppendRadioItem(ID_NoHint, wxT("No Hint"));
 	options_menu->AppendSeparator();
-	options_menu->AppendCheckItem(wxID_ANY, wxT("Show weak primitives"));
 	options_menu->AppendCheckItem(ID_HintFade, wxT("Hint Fade-in"));
 	options_menu->AppendCheckItem(ID_AllowFloating, wxT("Allow Floating"));
 	options_menu->AppendCheckItem(ID_NoVenetianFade, wxT("Disable Venetian Blinds Hint Fade-in"));
 	options_menu->AppendCheckItem(ID_TransparentDrag, wxT("Transparent Drag"));
 	options_menu->AppendCheckItem(ID_AllowActivePane, wxT("Allow Active Pane"));
 	options_menu->AppendCheckItem(ID_LiveUpdate, wxT("Live Resize Update"));
-	options_menu->AppendSeparator();
-	options_menu->AppendRadioItem(ID_NoGradient, wxT("No Caption Gradient"));
-	options_menu->AppendRadioItem(ID_VerticalGradient, wxT("Vertical Caption Gradient"));
-	options_menu->AppendRadioItem(ID_HorizontalGradient, wxT("Horizontal Caption Gradient"));
 	options_menu->AppendSeparator();
 	options_menu->AppendCheckItem(ID_AllowToolbarResizing, wxT("Allow Toolbar Resizing"));
 
@@ -969,9 +907,9 @@ wxHtmlWindow *Frame::CreateHTMLCtrl(wxWindow *parent)
 	if (!parent)
 		parent = this;
 
-	wxHtmlWindow *ctrl = new wxHtmlWindow(parent, wxID_ANY,
-										  wxDefaultPosition,
-										  wxSize(400, 300));
+	auto ctrl = new wxHtmlWindow(parent, wxID_ANY,
+								 wxDefaultPosition,
+								 wxSize(400, 300));
 	ctrl->SetPage(GetIntroText());
 	return ctrl;
 }
@@ -983,9 +921,9 @@ wxAuiNotebook *Frame::CreateNotebook()
 	auto client_size = GetClientSize();
 
 	auto ctrl = new wxAuiNotebook(this, wxID_ANY,
-											wxPoint(client_size.x, client_size.y),
-											wxSize(430, 200),
-											m_notebook_style);
+								  wxPoint(client_size.x, client_size.y),
+								  wxSize(430, 200),
+								  m_notebook_style);
 
 	//wxBitmap page_bmp = wxArtProvider::GetBitmap(wxART_NORMAL_FILE, wxART_OTHER, wxSize(16, 16));
 	wxBitmap page_bmp = wxNullBitmap;
@@ -1189,8 +1127,6 @@ EVT_MENU(Frame::ID_CreateGrid, Frame::OnCreateGrid)
 EVT_MENU(Frame::ID_CreatePerspective, Frame::OnCreatePerspective)
 EVT_MENU(Frame::ID_CopyPerspectiveCode, Frame::OnCopyPerspectiveCode)
 EVT_MENU(ID_AllowFloating, Frame::OnManagerFlag)
-EVT_MENU(ID_TransparentHint, Frame::OnManagerFlag)
-EVT_MENU(ID_VenetianBlindsHint, Frame::OnManagerFlag)
 EVT_MENU(ID_RectangleHint, Frame::OnManagerFlag)
 EVT_MENU(ID_NoHint, Frame::OnManagerFlag)
 EVT_MENU(ID_HintFade, Frame::OnManagerFlag)
@@ -1198,9 +1134,6 @@ EVT_MENU(ID_NoVenetianFade, Frame::OnManagerFlag)
 EVT_MENU(ID_TransparentDrag, Frame::OnManagerFlag)
 EVT_MENU(ID_LiveUpdate, Frame::OnManagerFlag)
 EVT_MENU(ID_AllowActivePane, Frame::OnManagerFlag)
-EVT_MENU(ID_NoGradient, Frame::OnGradient)
-EVT_MENU(ID_VerticalGradient, Frame::OnGradient)
-EVT_MENU(ID_HorizontalGradient, Frame::OnGradient)
 EVT_MENU(ID_AllowToolbarResizing, Frame::OnToolbarResizing)
 EVT_MENU(ID_Settings, Frame::OnSettings)
 EVT_MENU(ID_OpenBlockCipherFrame, Frame::OnMenuPrimitiveRun)
@@ -1209,17 +1142,12 @@ EVT_MENU(ID_CustomizeToolbar, Frame::OnCustomizeToolbar)
 EVT_MENU(wxID_EXIT, Frame::OnExit)
 EVT_MENU(wxID_ABOUT, Frame::OnAbout)
 EVT_UPDATE_UI(ID_AllowFloating, Frame::OnUpdateUI)
-EVT_UPDATE_UI(ID_TransparentHint, Frame::OnUpdateUI)
-EVT_UPDATE_UI(ID_VenetianBlindsHint, Frame::OnUpdateUI)
 EVT_UPDATE_UI(ID_RectangleHint, Frame::OnUpdateUI)
 EVT_UPDATE_UI(ID_NoHint, Frame::OnUpdateUI)
 EVT_UPDATE_UI(ID_HintFade, Frame::OnUpdateUI)
 EVT_UPDATE_UI(ID_NoVenetianFade, Frame::OnUpdateUI)
 EVT_UPDATE_UI(ID_TransparentDrag, Frame::OnUpdateUI)
 EVT_UPDATE_UI(ID_LiveUpdate, Frame::OnUpdateUI)
-EVT_UPDATE_UI(ID_NoGradient, Frame::OnUpdateUI)
-EVT_UPDATE_UI(ID_VerticalGradient, Frame::OnUpdateUI)
-EVT_UPDATE_UI(ID_HorizontalGradient, Frame::OnUpdateUI)
 EVT_UPDATE_UI(ID_AllowToolbarResizing, Frame::OnUpdateUI)
 EVT_MENU_RANGE(Frame::ID_FirstPerspective, Frame::ID_FirstPerspective + 1000, Frame::OnRestorePerspective)
 EVT_AUITOOLBAR_TOOL_DROPDOWN(ID_DropDownToolbarItem, Frame::OnDropDownToolbarItem)
