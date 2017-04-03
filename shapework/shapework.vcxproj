@@ -169,7 +169,9 @@
     <ClCompile Include="src\Thumbnail.cpp" />
     <ClCompile Include="src\wxxmlserializer\PropertyIO.cpp" />
     <ClCompile Include="src\wxxmlserializer\XmlSerializer.cpp" />
-    <ClCompile Include="src\wx_pch.cpp" />
+    <ClCompile Include="src\wx_pch.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\wx\wxsf\ArrowBase.h" />

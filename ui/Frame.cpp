@@ -4,6 +4,8 @@
 #include "BlockCipherFrame.h"
 #include "HashFrame.h"
 
+#include <wx/wxsf/wxShapeFramework.h>
+
 #include <wx/artprov.h>
 #include <wx/clipbrd.h>
 #include <wx/spinctrl.h>
@@ -15,6 +17,7 @@ Frame::Frame(wxWindow *parent, wxWindowID id, const wxString& title, const wxPoi
 {
 	// AUI manage this frame
 	m_mgr.SetManagedWindow(this);
+	wxSFShapeCanvas::EnableGC(false);
 
 	// Set frame min size and icon
 	SetIcon(wxIcon(wxString("cryptox.ico"), wxBITMAP_TYPE_ICO));
@@ -549,17 +552,17 @@ wxMenuBar *Frame::CreateMenuBar()
 	file_menu->Append(wxID_SAVEAS, wxT("Save &As"));
 	file_menu->Append(wxID_ANY, wxT("Save A&ll"));
 	file_menu->AppendSeparator();
-	file_menu->Append(wxID_EXIT, wxT("&Exit"));
+	file_menu->Append(wxID_EXIT, wxT("E&xit\tAlt+X"), wxT("Close application"), wxITEM_NORMAL);
 
 	auto edit_menu = new wxMenu;
-	edit_menu->Append(wxID_REVERT, wxT("Undo"));
-	edit_menu->Append(wxID_RETRY, wxT("Redo"));
+	edit_menu->Append(wxID_UNDO, wxT("&Undo\tCtrl+Z"), wxT("Discard previous action"), wxITEM_NORMAL);
+	edit_menu->Append(wxID_REDO, wxT("&Redo\tCtrl+Y"), wxT("Re-do previously discarded action"), wxITEM_NORMAL);
 	edit_menu->AppendSeparator();
-	edit_menu->Append(wxID_SELECTALL, wxT("Select All"));
+	edit_menu->Append(wxID_SELECTALL, wxT("Select &All\tCtrl+A"), wxT("Select all shapes"), wxITEM_NORMAL);
 	edit_menu->AppendSeparator();
-	edit_menu->Append(wxID_CUT, wxT("Cut"));
-	edit_menu->Append(wxID_COPY, wxT("Copy"));
-	edit_menu->Append(wxID_PASTE, wxT("Paste"));
+	edit_menu->Append(wxID_CUT, wxT("Cu&t\tCtrl+X"), wxT("Cut shapes to the clipboard"), wxITEM_NORMAL);
+	edit_menu->Append(wxID_COPY, wxT("&Copy\tCtrl+C"), wxT("Copy shapes to the clipboard"), wxITEM_NORMAL);
+	edit_menu->Append(wxID_PASTE, wxT("&Paste\tCtrl+V"), wxT("Paste shapes to the canvas"), wxITEM_NORMAL);
 	edit_menu->Append(wxID_DELETE, wxT("Delete"));
 
 	auto view_menu = new wxMenu;
@@ -689,7 +692,7 @@ wxTreeCtrl *Frame::CreateTreeCtrl()
 							   wxPoint(0, 0), wxSize(200, 250),
 							   wxTR_DEFAULT_STYLE | wxNO_BORDER | wxTR_HIDE_ROOT);
 
-	wxImageList *imglist = new wxImageList(16, 16, true, 2);
+	auto imglist = new wxImageList(16, 16, true, 2);
 	imglist->Add(wxArtProvider::GetBitmap(wxART_FOLDER, wxART_OTHER, wxSize(16, 16)));
 	imglist->Add(wxArtProvider::GetBitmap(wxART_NORMAL_FILE, wxART_OTHER, wxSize(16, 16)));
 	imglist->Add(wxIcon("calculator.ico", wxBITMAP_TYPE_ICO));
@@ -928,14 +931,33 @@ wxAuiNotebook *Frame::CreateNotebook()
 								  m_notebook_style);
 
 	//wxBitmap page_bmp = wxArtProvider::GetBitmap(wxART_NORMAL_FILE, wxART_OTHER, wxSize(16, 16));
-	wxBitmap page_bmp = wxNullBitmap;
+	auto page_bmp = wxNullBitmap;
 
 	ctrl->AddPage(CreateHTMLCtrl(ctrl), wxT("Start page"), false, page_bmp);
 	ctrl->SetPageToolTip(0, "Welcome to Cryptox");
 
+	//m_pCanvasPanel = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
+	//m_pCanvasPanel->SetExtraStyle(wxWS_EX_BLOCK_EVENTS);
+
+	//m_pCanvasSizer = new wxBoxSizer(wxVERTICAL);
+
+	//m_pCanvasPanel->SetSizer(m_pCanvasSizer);
+	//m_pCanvasPanel->Layout();
+	//m_pCanvasSizer->Fit(m_pCanvasPanel);
+	//mainSizer->Add(m_pCanvasPanel, 1, wxEXPAND, 5);
+
+	// Design
+	auto panel2 = new wxPanel(ctrl, wxID_ANY);
+	auto canvasSizer = new wxBoxSizer(wxVERTICAL);
+
+	panel2->SetExtraStyle(wxWS_EX_BLOCK_EVENTS);
+	panel2->SetSizer(canvasSizer);
+	canvasSizer->Fit(panel2);
+	ctrl->AddPage(panel2, wxT("Design"), false, page_bmp);
+
 	// Panel
 	auto panel = new wxPanel(ctrl, wxID_ANY);
-	wxFlexGridSizer *flex = new wxFlexGridSizer(4, 2, 0, 0);
+	auto flex = new wxFlexGridSizer(4, 2, 0, 0);
 	flex->AddGrowableRow(0);
 	flex->AddGrowableRow(3);
 	flex->AddGrowableCol(1);
@@ -949,8 +971,6 @@ wxAuiNotebook *Frame::CreateNotebook()
 	flex->Add(5, 5);
 	panel->SetSizer(flex);
 	ctrl->AddPage(panel, wxT("Panel"), false, page_bmp);
-
-	// 
 
 #ifdef CYFULL
 	// Dataview
