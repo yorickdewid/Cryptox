@@ -525,20 +525,20 @@ void Frame::OnAbout(wxCommandEvent& WXUNUSED(event))
 
 wxMenuBar *Frame::CreateMenuBar()
 {
-	wxMenuBar *mb = new wxMenuBar;
+	auto mb = new wxMenuBar;
 
-	wxMenu *file_new_menu = new wxMenu;
+	auto file_new_menu = new wxMenu;
 	file_new_menu->Append(wxID_NEW, wxT("Project..."));
 	file_new_menu->Append(wxID_NEW, wxT("Keypair..."));
 	file_new_menu->Append(wxID_NEW, wxT("Password..."));
 	file_new_menu->Append(wxID_NEW, wxT("File..."));
 
-	wxMenu *file_open_menu = new wxMenu;
+	auto file_open_menu = new wxMenu;
 	file_open_menu->Append(wxID_NEW, wxT("&Project..."));
 	file_open_menu->Append(wxID_NEW, wxT("F&older..."));
 	file_open_menu->Append(wxID_NEW, wxT("&File..."));
 
-	wxMenu *file_menu = new wxMenu;
+	auto file_menu = new wxMenu;
 	file_menu->Append(wxID_NEW, wxT("&New"), file_new_menu);
 	file_menu->Append(wxID_OPEN, wxT("&Open"), file_open_menu);
 	file_menu->AppendSeparator();
@@ -551,9 +551,11 @@ wxMenuBar *Frame::CreateMenuBar()
 	file_menu->AppendSeparator();
 	file_menu->Append(wxID_EXIT, wxT("&Exit"));
 
-	wxMenu *edit_menu = new wxMenu;
+	auto edit_menu = new wxMenu;
 	edit_menu->Append(wxID_REVERT, wxT("Undo"));
 	edit_menu->Append(wxID_RETRY, wxT("Redo"));
+	edit_menu->AppendSeparator();
+	edit_menu->Append(wxID_SELECTALL, wxT("Select All"));
 	edit_menu->AppendSeparator();
 	edit_menu->Append(wxID_CUT, wxT("Cut"));
 	edit_menu->Append(wxID_COPY, wxT("Copy"));
@@ -580,7 +582,7 @@ wxMenuBar *Frame::CreateMenuBar()
 	project_menu->Append(wxID_ANY, wxT("Project Properties"));
 
 #ifdef CYFULL
-	wxMenu *remote_menu = new wxMenu;
+	auto remote_menu = new wxMenu;
 	remote_menu->Append(wxID_ANY, wxT("Connect to Server"));
 	remote_menu->AppendSeparator();
 	remote_menu->AppendCheckItem(wxID_ANY, wxT("ALPN"));
@@ -603,14 +605,14 @@ wxMenuBar *Frame::CreateMenuBar()
 	options_menu->AppendCheckItem(ID_AllowToolbarResizing, wxT("Allow Toolbar Resizing"));
 
 #ifdef CYFULL
-	wxMenu *analyze_menu = new wxMenu;
+	auto analyze_menu = new wxMenu;
 	analyze_menu->Append(wxID_ANY, wxT("Launch Profiling"));
 	analyze_menu->Append(wxID_ANY, wxT("Performance Profiling"));
 	analyze_menu->AppendSeparator();
 	analyze_menu->Append(wxID_ANY, wxT("Data Analysis"));
 	analyze_menu->Append(wxID_ANY, wxT("Frequency analysis"));
 
-	wxMenu *tools_menu = new wxMenu;
+	auto tools_menu = new wxMenu;
 	tools_menu->Append(wxID_ANY, wxT("Extensions and Plugins"));
 	tools_menu->AppendSeparator();
 	tools_menu->Append(wxID_ANY, wxT("Connect to Server..."));

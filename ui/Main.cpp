@@ -35,6 +35,7 @@ public:
 								   wxT(APPNAME),
 								   wxDefaultPosition,
 								   wxSize(1200, 750));
+		SetTopWindow(frame);
 		frame->Show();
 
 		return true;
