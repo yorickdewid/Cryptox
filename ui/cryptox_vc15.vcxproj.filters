@@ -44,15 +44,15 @@
     <ClCompile Include="ExUIFrame.cpp">
       <Filter>External Frames</Filter>
     </ClCompile>
+    <ClCompile Include="DiagramCanvas.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\ui\Frame.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\ui\SettingsPanel.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\ui\wxSizeReportCtrl.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="BlockCipherFrame.h">
@@ -72,6 +72,12 @@
     </ClInclude>
     <ClInclude Include="ExUIFrame.h">
       <Filter>External Frames</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ui\wxSizeReportCtrl.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DiagramCanvas.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

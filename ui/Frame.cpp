@@ -3,8 +3,7 @@
 #include "SecretListModel.h"
 #include "BlockCipherFrame.h"
 #include "HashFrame.h"
-
-#include <wx/wxsf/wxShapeFramework.h>
+#include "DiagramCanvas.h"
 
 #include <wx/artprov.h>
 #include <wx/clipbrd.h>
@@ -949,6 +948,9 @@ wxAuiNotebook *Frame::CreateNotebook()
 	// Design
 	auto panel2 = new wxPanel(ctrl, wxID_ANY);
 	auto canvasSizer = new wxBoxSizer(wxVERTICAL);
+
+	auto ShapeCanvas = new DiagramCanvas(&m_DiagramManager, panel2, wxID_ANY);
+	canvasSizer->Add(ShapeCanvas, 1, wxEXPAND, 0);
 
 	panel2->SetExtraStyle(wxWS_EX_BLOCK_EVENTS);
 	panel2->SetSizer(canvasSizer);

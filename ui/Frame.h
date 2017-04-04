@@ -3,6 +3,8 @@
 #include "wxSizeReportCtrl.h"
 #include "wxOutputConsoleCtrl.h"
 
+#include <wx/wxsf/wxShapeFramework.h>
+
 #include <wx/wxprec.h>
 #include <wx/grid.h>
 #include <wx/treectrl.h>
@@ -92,7 +94,6 @@ private:
 	void OnMenuHashToolRun(wxCommandEvent& evt);
 	void OnMenuPrimitiveRun(wxCommandEvent& evt);
 	void OnTreeDoubleClick(wxTreeEvent& evt);
-	void OnGradient(wxCommandEvent& evt);
 	void OnToolbarResizing(wxCommandEvent& evt);
 	void OnManagerFlag(wxCommandEvent& evt);
 	void OnUpdateUI(wxUpdateUIEvent& evt);
@@ -104,6 +105,7 @@ private:
 	wxArrayString m_perspectives;
 	wxMenu *m_perspectives_menu;
 	wxOutputConsoleCtrl *m_output;
+	wxSFDiagramManager m_DiagramManager;
 	long m_notebook_style;
 	long m_notebook_theme;
 
