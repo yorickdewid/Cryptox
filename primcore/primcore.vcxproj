@@ -19,6 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="AES128.h" />
     <ClInclude Include="Algorithm.h" />
     <ClInclude Include="BlockCipher.h" />
     <ClInclude Include="Primitives.h" />
@@ -29,6 +30,7 @@
     <ClInclude Include="SHA1.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="AES128.cpp" />
     <ClCompile Include="MD4.cpp" />
     <ClCompile Include="MD5.cpp" />
     <ClCompile Include="SHA0.cpp" />

@@ -29,21 +29,23 @@ public:
 		return m_blockSize;
 	}
 
-	virtual unsigned short GetDigestSize() const
+	virtual unsigned short GetKeySize() const
 	{
-		return m_digestSize;
+		return m_keySize;
 	}
 
 public:
-	BlockCipher(const char *name, unsigned short blockSize = 0, unsigned short digestSize = 0)
+	BlockCipher(const char *name, unsigned short blockSize = 0, unsigned short keySize = 0)
 		: Algorithm{name}
 		, m_blockSize{blockSize}
-		, m_digestSize{digestSize}
+		, m_keySize{keySize}
 	{
 	}
 
-	virtual std::string CalcHash(const std::string& data) = 0;
-	virtual void CalcHash(unsigned char *output, char *data, size_t szdata) = 0;
+	virtual std::string Encrypt(const std::string& data, const std::string& iv, const std::string& key) = 0;
+	virtual void Encrypt(unsigned char *output, char *data, size_t szdata, char *iv, size_t sziv, char *key, size_t szkey) = 0;
+	virtual std::string Decrypt(const std::string& data, const std::string& iv, const std::string& key) = 0;
+	virtual void Decrypt(unsigned char *output, char *data, size_t szdata, char *iv, size_t sziv, char *key, size_t szkey) = 0;
 
 };
 
