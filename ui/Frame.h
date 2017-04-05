@@ -90,6 +90,7 @@ private:
 	void OnExit(wxCommandEvent& evt);
 	void OnAbout(wxCommandEvent& evt);
 	void OnItemMenu(wxTreeEvent& evt);
+	void OnItemMenu2(wxTreeEvent& evt);
 	void OnConsoleEnter(wxCommandEvent& evt);
 	void OnMenuHashToolRun(wxCommandEvent& evt);
 	void OnMenuPrimitiveRun(wxCommandEvent& evt);

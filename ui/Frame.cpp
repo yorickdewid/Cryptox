@@ -840,9 +840,10 @@ wxTreeCtrl *Frame::CreateProjectTree()
 	wxImageList *imglist = new wxImageList(16, 16, true, 2);
 	imglist->Add(wxArtProvider::GetBitmap(wxART_FOLDER, wxART_OTHER, wxSize(16, 16)));
 	imglist->Add(wxArtProvider::GetBitmap(wxART_EXECUTABLE_FILE, wxART_OTHER, wxSize(16, 16)));
+	imglist->Add(wxIcon("folder.png", wxBITMAP_TYPE_PNG));
 	tree->AssignImageList(imglist);
 
-	auto root = tree->AddRoot("Project", 0);
+	auto root = tree->AddRoot("Project", 2);
 	tree->SetItemBold(root);
 
 	auto id = tree->AppendItem(root, wxT("Diagram"), 0);
@@ -1025,6 +1026,55 @@ void Frame::OnItemMenu(wxTreeEvent& event)
 }
 
 
+void Frame::OnItemMenu2(wxTreeEvent& event)
+{
+	auto tree = static_cast<wxTreeCtrl *>(event.GetEventObject());
+	if (!tree->GetItemParent(event.GetItem())) {
+
+		auto pt = tree->ClientToScreen(event.GetPoint());
+		pt = ScreenToClient(pt);
+
+		// Item menu
+		auto itemmenu = new wxMenu;
+		itemmenu->Append(wxID_ANY, wxT("&New Item..."));
+		itemmenu->Append(wxID_ANY, wxT("&Existing Item..."));
+		itemmenu->Append(wxID_ANY, wxT("&New Project Folder"));
+
+		// Build popup menu
+		wxMenu menu;
+		menu.Append(wxID_ANY, wxT("&Add"), itemmenu);
+		menu.AppendSeparator();
+		menu.Append(wxID_ANY, wxT("&Paste"));
+		menu.Append(wxID_ANY, wxT("&Rename"));
+		menu.AppendSeparator();
+		menu.Append(wxID_ANY, wxT("&Properties"));
+
+		PopupMenu(&menu, pt);
+	}
+	/*
+		// Skip parents
+		auto itemId = event.GetItem();
+		if (tree->ItemHasChildren(itemId))
+			return;
+
+		auto pt = tree->ClientToScreen(event.GetPoint());
+		pt = ScreenToClient(pt);
+
+		// Build popup menu
+		wxMenu menu;
+		menu.Append(ID_OpenBlockCipherFrame, wxT("&Run"));
+		menu.AppendSeparator();
+		menu.Append(wxID_ANY, wxT("&Use as template"));
+		menu.Append(wxID_ANY, wxT("&Attack vector"));
+		menu.Append(wxID_ANY, wxT("&Cryptanalysis"));
+		menu.AppendSeparator();
+		menu.Append(wxID_ANY, wxT("&Properties"));
+
+		PopupMenu(&menu, pt);
+		event.Skip();*/
+}
+
+
 void Frame::OnConsoleEnter(wxCommandEvent& event)
 {
 	auto console = static_cast<wxTextCtrl *>(event.GetEventObject());
@@ -1164,6 +1214,7 @@ EVT_AUINOTEBOOK_ALLOW_DND(wxID_ANY, Frame::OnAllowNotebookDnD)
 EVT_AUINOTEBOOK_PAGE_CLOSE(wxID_ANY, Frame::OnNotebookPageClose)
 EVT_AUINOTEBOOK_PAGE_CLOSED(wxID_ANY, Frame::OnNotebookPageClosed)
 EVT_TREE_ITEM_MENU(10009, Frame::OnItemMenu)
+EVT_TREE_ITEM_MENU(11009, Frame::OnItemMenu2)
 EVT_TREE_ITEM_ACTIVATED(10009, Frame::OnTreeDoubleClick)
 EVT_TEXT_ENTER(10010, Frame::OnConsoleEnter)
 wxEND_EVENT_TABLE()
