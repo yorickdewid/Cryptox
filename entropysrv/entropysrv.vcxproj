@@ -139,9 +139,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <Text Include="ReadMe.txt" />
-  </ItemGroup>
-  <ItemGroup>
     <ClCompile Include="ConnectionHandler.cpp" />
     <ClCompile Include="CryptRand.cpp" />
     <ClCompile Include="Main.cpp" />
