@@ -96,27 +96,30 @@ Frame::Frame(wxWindow *parent, wxWindowID id, const wxString& title, const wxPoi
 	maintb->AddTool(ID_SampleItem + 14, wxEmptyString, tb2_bmp1);
 	maintb->AddTool(ID_SampleItem + 15, wxEmptyString, tb2_bmp1);
 	maintb->AddSeparator();
-	maintb->AddTool(ID_SampleItem + 16, wxEmptyString, tb3_bmp1, wxT("Allow weak crypto"), wxITEM_CHECK);
-	maintb->AddTool(ID_SampleItem + 17, wxEmptyString, tb3_bmp1, wxT("Enable classic crypto"), wxITEM_CHECK);
-	maintb->AddSeparator();
-	maintb->AddTool(ID_SampleItem + 20, wxEmptyString, tb3_bmp1, wxT("Radio 1"), wxITEM_RADIO);
-	maintb->AddTool(ID_SampleItem + 21, wxEmptyString, tb3_bmp1, wxT("Radio 2"), wxITEM_RADIO);
-	maintb->AddTool(ID_SampleItem + 22, wxEmptyString, tb3_bmp1, wxT("Radio 3"), wxITEM_RADIO);
-	maintb->AddSeparator();
-	maintb->AddTool(ID_SampleItem + 23, wxEmptyString, tb3_bmp1, wxT("Radio 1 (Group 2)"), wxITEM_RADIO);
-	maintb->AddTool(ID_SampleItem + 24, wxEmptyString, tb3_bmp1, wxT("Radio 2 (Group 2)"), wxITEM_RADIO);
-	maintb->AddTool(ID_SampleItem + 25, wxEmptyString, tb3_bmp1, wxT("Radio 3 (Group 2)"), wxITEM_RADIO);
+	maintb->AddTool(ID_SampleItem + 20, wxEmptyString, tb3_bmp1, wxT("Pointer"), wxITEM_RADIO);
+	maintb->AddTool(ID_SampleItem + 21, wxEmptyString, tb3_bmp1, wxT("Exclusive OR"), wxITEM_RADIO);
+	maintb->AddTool(ID_SampleItem + 22, wxEmptyString, tb3_bmp1, wxT("Addition"), wxITEM_RADIO);
+	maintb->AddTool(ID_SampleItem + 23, wxEmptyString, tb3_bmp1, wxT("Rotate Right"), wxITEM_RADIO);
+	maintb->AddTool(ID_SampleItem + 24, wxEmptyString, tb3_bmp1, wxT("Rotate Left"), wxITEM_RADIO);
+	maintb->AddTool(ID_SampleItem + 25, wxEmptyString, tb3_bmp1, wxT("Input"), wxITEM_RADIO);
+	maintb->AddTool(ID_SampleItem + 26, wxEmptyString, tb3_bmp1, wxT("Ooutput"), wxITEM_RADIO);
 	maintb->AddSeparator();
 	auto choice = new wxChoice(maintb, ID_SampleItem + 35);
 	choice->AppendString(wxT("x86 Instruction Set"));
 	choice->AppendString(wxT("x64 Instruction Set"));
 	choice->SetSelection(0);
 	maintb->AddControl(choice);
-	maintb->AddTool(ID_SampleItem + 26, wxT("Run"), tb4_bmp1);
-	maintb->AddTool(ID_SampleItem + 27, wxT("Debug"), tb4_bmp1);
+	maintb->AddTool(ID_SampleItem + 27, wxT("Run"), tb4_bmp1);
+	maintb->AddTool(ID_SampleItem + 28, wxT("Debug"), tb4_bmp1);
 
 	maintb->SetCustomOverflowItems(prepend_items, append_items);
-	//maintb->EnableTool(ID_SampleItem + 6, false);
+	maintb->EnableTool(ID_SampleItem + 20, false);
+	maintb->EnableTool(ID_SampleItem + 21, false);
+	maintb->EnableTool(ID_SampleItem + 22, false);
+	maintb->EnableTool(ID_SampleItem + 23, false);
+	maintb->EnableTool(ID_SampleItem + 24, false);
+	maintb->EnableTool(ID_SampleItem + 25, false);
+	maintb->EnableTool(ID_SampleItem + 26, false);
 	maintb->Realize();
 
 	// Setup default planes
@@ -163,13 +166,13 @@ Frame::Frame(wxWindow *parent, wxWindowID id, const wxString& title, const wxPoi
 				  Gripper(false));
 
 	// make some default perspectives
-	wxString perspective_all = m_mgr.SavePerspective();
+	auto perspective_all = m_mgr.SavePerspective();
 
 	m_mgr.GetPane(wxT("primitivetree")).Show();
 	m_mgr.GetPane(wxT("outputtxt")).Show();
 	m_mgr.GetPane(wxT("mainprop")).Show();
 	m_mgr.GetPane(wxT("centernb")).Show();
-	wxString perspective_default = m_mgr.SavePerspective();
+	auto perspective_default = m_mgr.SavePerspective();
 
 	m_perspectives.Add(perspective_default);
 	m_perspectives.Add(perspective_all);
@@ -696,19 +699,11 @@ wxTreeCtrl *Frame::CreateTreeCtrl()
 	imglist->Add(wxArtProvider::GetBitmap(wxART_NORMAL_FILE, wxART_OTHER, wxSize(16, 16)));
 	imglist->Add(wxIcon("calculator.ico", wxBITMAP_TYPE_ICO));
 	imglist->Add(wxIcon("unlocked.ico", wxBITMAP_TYPE_ICO));
-	imglist->Add(wxIcon("shuffle.png", wxBITMAP_TYPE_PNG));
 	tree->AssignImageList(imglist);
 
 	auto root = tree->AddRoot("", 0);
 
-	auto id = tree->AppendItem(root, wxT("Gates"), 0);
-	tree->AppendItem(id, wxT("OR"), 4);
-	tree->AppendItem(id, wxT("XOR"), 4);
-	tree->AppendItem(id, wxT("AND"), 4);
-	tree->AppendItem(id, wxT("NAND"), 4);
-	tree->AppendItem(id, wxT("NOT"), 4);
-
-	id = tree->AppendItem(root, wxT("Block ciphers"), 0);
+	auto id = tree->AppendItem(root, wxT("Block ciphers"), 0);
 	tree->AppendItem(id, wxT("AES"), 3);
 	tree->AppendItem(id, wxT("Blowfish"), 3);
 	tree->AppendItem(id, wxT("Twofish"), 3);
@@ -737,7 +732,6 @@ wxTreeCtrl *Frame::CreateTreeCtrl()
 	tree->AppendItem(id, wxT("IDEA"), 3);
 	tree->AppendItem(id, wxT("BTEA"), 3);
 	tree->AppendItem(id, wxT("XTEA"), 3);
-	tree->AppendItem(id, wxT("NULL"), 3);
 
 	id = tree->AppendItem(root, wxT("Stream ciphers"), 0);
 	tree->AppendItem(id, wxT("ChaCha8"), 1);
@@ -935,17 +929,7 @@ wxAuiNotebook *Frame::CreateNotebook()
 	ctrl->AddPage(CreateHTMLCtrl(ctrl), wxT("Start page"), false, page_bmp);
 	ctrl->SetPageToolTip(0, "Welcome to Cryptox");
 
-	//m_pCanvasPanel = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
-	//m_pCanvasPanel->SetExtraStyle(wxWS_EX_BLOCK_EVENTS);
-
-	//m_pCanvasSizer = new wxBoxSizer(wxVERTICAL);
-
-	//m_pCanvasPanel->SetSizer(m_pCanvasSizer);
-	//m_pCanvasPanel->Layout();
-	//m_pCanvasSizer->Fit(m_pCanvasPanel);
-	//mainSizer->Add(m_pCanvasPanel, 1, wxEXPAND, 5);
-
-	// Design
+	// Designer
 	auto panel2 = new wxPanel(ctrl, wxID_ANY);
 	auto canvasSizer = new wxBoxSizer(wxVERTICAL);
 
@@ -955,7 +939,7 @@ wxAuiNotebook *Frame::CreateNotebook()
 	panel2->SetExtraStyle(wxWS_EX_BLOCK_EVENTS);
 	panel2->SetSizer(canvasSizer);
 	canvasSizer->Fit(panel2);
-	ctrl->AddPage(panel2, wxT("Design"), false, page_bmp);
+	ctrl->AddPage(panel2, wxT("Designer"), false, page_bmp);
 
 	// Panel
 	auto panel = new wxPanel(ctrl, wxID_ANY);
