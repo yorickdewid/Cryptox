@@ -20,21 +20,13 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Algorithm.h" />
-    <ClInclude Include="AND.h" />
     <ClInclude Include="BlockCipher.h" />
     <ClInclude Include="Primitives.h" />
     <ClInclude Include="Hash.h" />
-    <ClInclude Include="Logic.h" />
     <ClInclude Include="MD4.h" />
     <ClInclude Include="MD5.h" />
-    <ClInclude Include="NAND.h" />
-    <ClInclude Include="NOR.h" />
-    <ClInclude Include="NOT.h" />
-    <ClInclude Include="OR.h" />
     <ClInclude Include="SHA0.h" />
     <ClInclude Include="SHA1.h" />
-    <ClInclude Include="XNOR.h" />
-    <ClInclude Include="XOR.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="MD4.cpp" />
