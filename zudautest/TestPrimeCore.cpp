@@ -6,6 +6,8 @@
 #include "MD4.h"
 #include "MD5.h"
 
+#include "AES128.h"
+
 #include <string>
 
 UNIT_TEST(SHA0)
@@ -75,3 +77,24 @@ UNIT_TEST(MD5)
 	auto result = Primitives::MD5::Calculate("3ea06253e100b0652a88d7d20356fdfb33b");
 	TestCase::AssertString(Util::Hex(result).c_str(), "d90055c0387a3dfc0bcfec64d7d00529");
 }
+
+UNIT_TEST(AES128)
+{
+	unsigned char output[16];
+	Primitives::AES128 aes;
+
+	// Name must match function
+	TestCase::AssertString(aes.Name().c_str(), "AES-128");
+
+	// Verify is working
+	aes.Encrypt(output, "ABC@1234ABC@1234", 16, "", 0, "kaaskaaskaaskaas", 16);
+	std::cout << std::endl << Util::Hex(output, 16) << std::endl;
+	//TestCase::AssertString(Util::Hex(output, 16).c_str(), "28c15c0b405c1f7a107133edf5504367");
+
+	// Verify is working
+	auto result = Primitives::AES128::LocalEncrypt("ABC@1234ABC@1234", "", "kaaskaaskaaskaas", true);
+	std::cout << std::endl << Util::Hex(result) << std::endl;
+	//auto result = Primitives::MD5::Calculate("3ea06253e100b0652a88d7d20356fdfb33b");
+	//TestCase::AssertString(Util::Hex(result).c_str(), "d90055c0387a3dfc0bcfec64d7d00529");
+}
+

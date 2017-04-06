@@ -26,10 +26,11 @@ std::string Primitives::AES128::LocalEncrypt(const std::string& data, const std:
 
 	EVP_CipherInit(&ctx, EVP_aes_128_ecb(), ckey, civ, encrypt ? 1 : 0);
 	blocksize = EVP_CIPHER_CTX_block_size(&ctx);
-	output.resize(data.size() + blocksize);
+	output.resize(data.size());
+	out_len = data.size();
 
 	// Encrypt each piece of data as it comes in:
-	EVP_CipherUpdate(&ctx, (unsigned char *)&output[0], &out_len, cdata, 1);
+	EVP_CipherUpdate(&ctx, (unsigned char *)&output[0], &out_len, cdata, data.size());
 
 	// When you're done with the data, finalize it:
 	EVP_CipherFinal(&ctx, (unsigned char *)&output[0], &out_len);

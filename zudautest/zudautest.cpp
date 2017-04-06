@@ -23,6 +23,8 @@ int main()
 	RUN_TEST(MD4);
 	RUN_TEST(MD5);
 
+	RUN_TEST(AES128);
+
 	TestCase::PrintResult();
 	return 0;
 }
