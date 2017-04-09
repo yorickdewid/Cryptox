@@ -33,10 +33,3 @@ std::string Primitives::MD4::CalcHash(const std::string& data)
 {
 	return Primitives::MD4::Calculate(data);
 }
-
-
-void Primitives::MD4::CalcHash(unsigned char *output, char *data, size_t szdata)
-{
-	auto result = Primitives::MD4::Calculate(std::string(data, szdata));
-	result.copy(reinterpret_cast<char *>(output), MD4_DIGEST_LENGTH, 0);
-}

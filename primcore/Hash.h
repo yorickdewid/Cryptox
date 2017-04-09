@@ -43,7 +43,6 @@ public:
 	}
 
 	virtual std::string CalcHash(const std::string& data) = 0;
-	virtual void CalcHash(unsigned char *output, char *data, size_t szdata) = 0;
 
 };
 

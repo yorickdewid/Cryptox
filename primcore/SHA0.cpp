@@ -33,10 +33,3 @@ std::string Primitives::SHA0::CalcHash(const std::string& data)
 {
 	return Primitives::SHA0::Calculate(data);
 }
-
-
-void Primitives::SHA0::CalcHash(unsigned char *output, char *data, size_t szdata)
-{
-	auto result = Primitives::SHA0::Calculate(std::string(data, szdata));
-	result.copy(reinterpret_cast<char *>(output), SHA_DIGEST_LENGTH, 0);
-}

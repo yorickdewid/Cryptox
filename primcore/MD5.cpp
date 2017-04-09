@@ -33,10 +33,3 @@ std::string Primitives::MD5::CalcHash(const std::string& data)
 {
 	return Primitives::MD5::Calculate(data);
 }
-
-
-void Primitives::MD5::CalcHash(unsigned char *output, char *data, size_t szdata)
-{
-	auto result = Primitives::MD5::Calculate(std::string(data, szdata));
-	result.copy(reinterpret_cast<char *>(output), MD5_DIGEST_LENGTH, 0);
-}
