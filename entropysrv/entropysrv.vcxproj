@@ -23,7 +23,7 @@
     <ProjectGuid>{E1EC6AD2-1DBB-40A8-9B09-704D3A250037}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>EntropyServer</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.14393.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.15063.0</WindowsTargetPlatformVersion>
     <ProjectName>entropysrv</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />

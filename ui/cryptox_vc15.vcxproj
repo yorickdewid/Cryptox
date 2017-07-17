@@ -37,7 +37,7 @@
   <PropertyGroup Label="Globals">
     <ProjectName>cryptox</ProjectName>
     <ProjectGuid>{0E9842D2-3DC8-59FB-ABC5-F26CD815E2AD}</ProjectGuid>
-    <WindowsTargetPlatformVersion>10.0.14393.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.15063.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DLL Release|Win32'" Label="Configuration">

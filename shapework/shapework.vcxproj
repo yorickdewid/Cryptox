@@ -23,7 +23,7 @@
     <ProjectGuid>{BC163E1A-CBD3-49BE-A696-3843C31EA95D}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>shapework</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.14393.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.15063.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
