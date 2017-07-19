@@ -122,15 +122,16 @@ Frame::Frame(wxWindow *parent, wxWindowID id, const wxString& title, const wxPoi
 	maintb->EnableTool(ID_SampleItem + 26, false);
 	maintb->Realize();
 
-	// Setup default planes
-	m_mgr.AddPane(CreateTreeCtrl(), wxAuiPaneInfo().
-				  Name(wxT("primitivetree")).Caption(wxT("Object Library")).
-				  Left().Layer(0).Row(0).Position(0).
-				  CloseButton(false));
-
+	// Project tree
 	m_mgr.AddPane(CreateProjectTree(), wxAuiPaneInfo().
 				  Name(wxT("projecttree")).Caption(wxT("Project")).
-				  Layer(1).Right().Position(0).
+				  Left().Layer(0).Position(0).
+				  CloseButton(false));
+
+	// Object library
+	m_mgr.AddPane(CreateTreeCtrl(), wxAuiPaneInfo().
+				  Name(wxT("primitivetree")).Caption(wxT("Object Library")).
+				  Left().Layer(0).Position(0).
 				  CloseButton(false));
 
 	m_mgr.AddPane(CreatePropCtrl(), wxAuiPaneInfo().
