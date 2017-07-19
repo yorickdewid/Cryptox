@@ -135,10 +135,18 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="targetver.h" />
+    <ClCompile Include="DiagramStore.cpp" />
+    <ClCompile Include="FileWriter.cpp" />
+    <ClCompile Include="MaterialStore.cpp" />
+    <ClCompile Include="Project.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="pfbase.cpp" />
+    <ClInclude Include="DiagramStore.h" />
+    <ClInclude Include="FileWriter.h" />
+    <ClInclude Include="MaterialStore.h" />
+    <ClInclude Include="Project.h" />
+    <ClInclude Include="Store.h" />
+    <ClInclude Include="StoreConfig.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
