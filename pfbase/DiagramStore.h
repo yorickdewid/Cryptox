@@ -1,8 +1,8 @@
 #pragma once
 
-#include "Store.h"
+#include "ObjectStore.h"
 
-class DiagramStore
+class DiagramStore : public ObjectStore
 {
 public:
 	DiagramStore();

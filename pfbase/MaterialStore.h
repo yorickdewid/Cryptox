@@ -1,8 +1,8 @@
 #pragma once
 
-#include "Store.h"
+#include "ObjectStore.h"
 
-class MaterialStore
+class MaterialStore : public ObjectStore
 {
 public:
 	MaterialStore();

@@ -19,6 +19,7 @@
 # define PFBASEAPI
 #endif
 
+#include "Meta.h"
 #include "Project.h"
 
 #endif // PFBASE_H_
