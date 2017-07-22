@@ -2,7 +2,7 @@
 
 #include "Store.h"
 
-class DiagramStore : public Store
+class DiagramStore
 {
 public:
 	DiagramStore();

@@ -3,18 +3,30 @@
 
 #include "Project.h"
 
+#include <boost/filesystem.hpp>
+
+#include <fstream>
+
 namespace ProjectBase
 {
 
-struct ProjectMeta
+bool Project::StoreFileExist()
 {
-	unsigned int ts_create;
-	unsigned int ts_update;
+	return boost::filesystem::exists(m_name);
+}
 
-	ProjectMeta() {
-		ts_create = 0;
-		ts_update = 0;
-	}
-};
+void Project::CommitToDisk()
+{
+	Store store;
+	std::ofstream out{ m_name.c_str(), std::ios::out | std::ios::binary };
+	out.write(reinterpret_cast<char *>(&store), sizeof(store));
+}
+
+void Project::ReadFromDisk()
+{
+	Store store;
+	std::ifstream in{ m_name.c_str(), std::ios::in | std::ios::binary };
+	in.read(reinterpret_cast<char *>(&store), sizeof(store));
+}
 
 }

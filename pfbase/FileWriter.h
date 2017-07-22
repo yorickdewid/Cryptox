@@ -1,4 +1,5 @@
 #pragma once
+
 class FileWriter
 {
 public:

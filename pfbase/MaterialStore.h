@@ -2,7 +2,7 @@
 
 #include "Store.h"
 
-class MaterialStore : public Store
+class MaterialStore
 {
 public:
 	MaterialStore();

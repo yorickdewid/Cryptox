@@ -72,6 +72,8 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
+    <IncludePath>C:\boost_1_64_0;$(IncludePath)</IncludePath>
+    <LibraryPath>C:\boost_1_64_0\stage\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
@@ -136,14 +138,18 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="DiagramStore.cpp" />
+    <ClCompile Include="File.cpp" />
     <ClCompile Include="FileWriter.cpp" />
     <ClCompile Include="MaterialStore.cpp" />
     <ClCompile Include="Project.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Config.h" />
     <ClInclude Include="DiagramStore.h" />
+    <ClInclude Include="File.h" />
     <ClInclude Include="FileWriter.h" />
     <ClInclude Include="MaterialStore.h" />
+    <ClInclude Include="pfbase.h" />
     <ClInclude Include="Project.h" />
     <ClInclude Include="Store.h" />
     <ClInclude Include="StoreConfig.h" />
