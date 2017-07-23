@@ -18,6 +18,7 @@ protected:
 	enum FactoryObjectType {
 		ObjectTypeMaterialStore = 1,
 		ObjectTypeDiagramStore = 2,
+		ObjectTypeOtherStore = 3,
 	} m_objectType;
 
 public:

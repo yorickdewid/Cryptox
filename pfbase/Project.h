@@ -36,11 +36,6 @@ public:
 		StartProject();
 	}
 
-	~Project()
-	{
-		Close();
-	}
-
 	void Save()
 	{
 		CommitToDisk();
@@ -51,11 +46,11 @@ public:
 		CommitToDisk();
 	}
 
-	bool isEncrypted() const {
+	bool IsEncrypted() const {
 		return false;
 	}
 
-	bool isBackCompat() const {
+	bool IsBackCompat() const {
 		return false;
 	}
 
@@ -107,6 +102,11 @@ private:
 		else {
 			CommitToDisk();
 		}
+	}
+
+	~Project()
+	{
+		Close();
 	}
 
 private:
