@@ -49,7 +49,7 @@ struct Store
 	TimeStamp updatedAt;
 
 	// Number of object stores.
-	unsigned int ObjectStores = 0;
+	unsigned int objectStores = 0;
 
 	// Size of the file store header. Even if the structure is unknown, the parser knows the size
 	// of the header and can skip to the actual contents

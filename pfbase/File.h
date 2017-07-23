@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <vector>
 
 namespace ProjectBase
 {
@@ -8,6 +9,8 @@ namespace ProjectBase
 class File
 {
 public:
+	File() = default;
+
 	File(const std::string& name)
 		: origName{ name }
 	{
@@ -24,6 +27,7 @@ public:
 
 private:
 	std::string origName;
+	std::vector<unsigned char> content;
 };
 
 }

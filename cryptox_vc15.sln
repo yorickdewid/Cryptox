@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.26430.15
+VisualStudioVersion = 15.0.26430.16
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "cryptox", "ui\cryptox_vc15.vcxproj", "{0E9842D2-3DC8-59FB-ABC5-F26CD815E2AD}"
 EndProject
@@ -11,8 +11,6 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "shapework", "shapework\shap
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "primcore", "primcore\primcore.vcxproj", "{CC59368D-C7A8-45F2-9B8D-AC7555E1651B}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "zudautest", "zudautest\zudautest.vcxproj", "{3650C7A4-F1FA-4DD5-87AB-F782F95B369B}"
-EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "shellasset", "shellasset\shellasset.vcxproj", "{A9ABA71E-F5F7-4D46-9420-D844C9B5A697}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "pfbase", "pfbase\pfbase.vcxproj", "{F7F45948-AFFB-475E-B815-50E674D5ADE1}"
@@ -20,6 +18,8 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "crycl", "crycl\crycl.vcxproj", "{984AFCD4-4DCA-4E7E-862D-C004841A442E}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "crycli", "crycli\crycli.vcxproj", "{58AAC6CB-86FD-434E-9261-ACD506EEED28}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ProjectTest", "ProjectTest\ProjectTest.vcxproj", "{FA301A31-4F82-49DD-B6F6-2804CCB53162}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -71,16 +71,6 @@ Global
 		{CC59368D-C7A8-45F2-9B8D-AC7555E1651B}.Release|x64.Build.0 = Release|x64
 		{CC59368D-C7A8-45F2-9B8D-AC7555E1651B}.Release|x86.ActiveCfg = Release|Win32
 		{CC59368D-C7A8-45F2-9B8D-AC7555E1651B}.Release|x86.Build.0 = Release|Win32
-		{3650C7A4-F1FA-4DD5-87AB-F782F95B369B}.Debug|ARM.ActiveCfg = Debug|Win32
-		{3650C7A4-F1FA-4DD5-87AB-F782F95B369B}.Debug|x64.ActiveCfg = Debug|x64
-		{3650C7A4-F1FA-4DD5-87AB-F782F95B369B}.Debug|x64.Build.0 = Debug|x64
-		{3650C7A4-F1FA-4DD5-87AB-F782F95B369B}.Debug|x86.ActiveCfg = Debug|Win32
-		{3650C7A4-F1FA-4DD5-87AB-F782F95B369B}.Debug|x86.Build.0 = Debug|Win32
-		{3650C7A4-F1FA-4DD5-87AB-F782F95B369B}.Release|ARM.ActiveCfg = Release|Win32
-		{3650C7A4-F1FA-4DD5-87AB-F782F95B369B}.Release|x64.ActiveCfg = Release|x64
-		{3650C7A4-F1FA-4DD5-87AB-F782F95B369B}.Release|x64.Build.0 = Release|x64
-		{3650C7A4-F1FA-4DD5-87AB-F782F95B369B}.Release|x86.ActiveCfg = Release|Win32
-		{3650C7A4-F1FA-4DD5-87AB-F782F95B369B}.Release|x86.Build.0 = Release|Win32
 		{A9ABA71E-F5F7-4D46-9420-D844C9B5A697}.Debug|ARM.ActiveCfg = Debug|Win32
 		{A9ABA71E-F5F7-4D46-9420-D844C9B5A697}.Debug|x64.ActiveCfg = Debug|x64
 		{A9ABA71E-F5F7-4D46-9420-D844C9B5A697}.Debug|x64.Build.0 = Debug|x64
@@ -121,6 +111,16 @@ Global
 		{58AAC6CB-86FD-434E-9261-ACD506EEED28}.Release|x64.Build.0 = Release|x64
 		{58AAC6CB-86FD-434E-9261-ACD506EEED28}.Release|x86.ActiveCfg = Release|Win32
 		{58AAC6CB-86FD-434E-9261-ACD506EEED28}.Release|x86.Build.0 = Release|Win32
+		{FA301A31-4F82-49DD-B6F6-2804CCB53162}.Debug|ARM.ActiveCfg = Debug|Win32
+		{FA301A31-4F82-49DD-B6F6-2804CCB53162}.Debug|x64.ActiveCfg = Debug|x64
+		{FA301A31-4F82-49DD-B6F6-2804CCB53162}.Debug|x64.Build.0 = Debug|x64
+		{FA301A31-4F82-49DD-B6F6-2804CCB53162}.Debug|x86.ActiveCfg = Debug|Win32
+		{FA301A31-4F82-49DD-B6F6-2804CCB53162}.Debug|x86.Build.0 = Debug|Win32
+		{FA301A31-4F82-49DD-B6F6-2804CCB53162}.Release|ARM.ActiveCfg = Release|Win32
+		{FA301A31-4F82-49DD-B6F6-2804CCB53162}.Release|x64.ActiveCfg = Release|x64
+		{FA301A31-4F82-49DD-B6F6-2804CCB53162}.Release|x64.Build.0 = Release|x64
+		{FA301A31-4F82-49DD-B6F6-2804CCB53162}.Release|x86.ActiveCfg = Release|Win32
+		{FA301A31-4F82-49DD-B6F6-2804CCB53162}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

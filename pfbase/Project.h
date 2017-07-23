@@ -9,6 +9,7 @@
 
 #include "Store.h"
 #include "File.h"
+#include "ObjectStore.h"
 
 #include <string>
 #include <memory>
@@ -40,8 +41,15 @@ public:
 		Close();
 	}
 
-	PFBASEAPI void Save();
-	PFBASEAPI void Close();
+	void Save()
+	{
+		CommitToDisk();
+	}
+
+	void Close()
+	{
+		CommitToDisk();
+	}
 
 	bool isEncrypted() const {
 		return false;
@@ -65,11 +73,12 @@ public:
 		return "";//TODO
 	}
 
+	template <typename T>
 	void AddStore(const std::string name) {
-		m_objectStores.insert(std::make_pair<const std::string&, int>(name, 12));
+		m_objectStores.insert(std::make_pair(name, std::make_shared<T>()));
 	}
 
-	int GetStore(const std::string& name) {
+	std::shared_ptr<ObjectStore> GetStore(const std::string& name) {
 		return m_objectStores[name];
 	}
 
@@ -107,7 +116,7 @@ private:
 
 private:
 	std::string m_name;
-	std::map<std::string, int> m_objectStores;
+	std::map<std::string, std::shared_ptr<ObjectStore>> m_objectStores;
 	std::unique_ptr<MetaData> m_metaPtr = nullptr;
 
 };

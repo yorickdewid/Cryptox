@@ -141,6 +141,7 @@
     <ClCompile Include="File.cpp" />
     <ClCompile Include="FileWriter.cpp" />
     <ClCompile Include="MaterialStore.cpp" />
+    <ClCompile Include="ObjectStore.cpp" />
     <ClCompile Include="Project.cpp" />
   </ItemGroup>
   <ItemGroup>

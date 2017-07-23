@@ -2,10 +2,26 @@
 
 #include "ObjectStore.h"
 
-class DiagramStore : public ObjectStore
+namespace ProjectBase
+{
+
+class DiagramStore : public ObjectStore<File>
 {
 public:
-	DiagramStore();
-	~DiagramStore();
+	DiagramStore()
+		: ObjectStore{ FactoryObjectType::ObjectTypeDiagramStore }
+	{
+	}
+
+	void AddFile(const char file[])
+	{
+		AddNode(file);
+	}
+
+	void AddFile(File& file)
+	{
+		AddNode(file);
+	}
 };
 
+}

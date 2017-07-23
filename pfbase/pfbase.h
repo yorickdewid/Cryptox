@@ -21,5 +21,7 @@
 
 #include "Meta.h"
 #include "Project.h"
+#include "MaterialStore.h"
+#include "DiagramStore.h"
 
 #endif // PFBASE_H_

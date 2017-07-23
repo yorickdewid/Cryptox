@@ -2,10 +2,17 @@
 
 #include "ObjectStore.h"
 
+namespace ProjectBase
+{
+
 class MaterialStore : public ObjectStore
 {
 public:
-	MaterialStore();
-	~MaterialStore();
+	MaterialStore()
+		: ObjectStore{ FactoryObjectType::ObjectTypeMaterialStore }
+	{
+	}
+
 };
 
+}
