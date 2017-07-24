@@ -17,7 +17,12 @@ struct StoreList
 	char name[64];
 	unsigned int type;
 
-	//StoreList()
+	StoreList() = default;
+	StoreList(size_t _size, unsigned int _type)
+		: size{ _size }
+		, type{ _type }
+	{
+	}
 };
 
 bool Project::StoreFileExist()
@@ -46,9 +51,7 @@ void Project::CommitToDisk()
 	}
 
 	for (auto& objstore : m_objectStores) {
-		StoreList sl;
-		sl.size = objstore.first.size();
-		sl.type = objstore.second->Type();
+		StoreList sl{ objstore.first.size(), static_cast<unsigned int>(objstore.second->Type()) };
 		::strcpy_s(sl.name, 64, objstore.first.c_str());
 		out.write(reinterpret_cast<char *>(&sl), sizeof(StoreList));
 	}
