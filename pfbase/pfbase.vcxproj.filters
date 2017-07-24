@@ -71,5 +71,11 @@
     <ClInclude Include="Meta.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="OtherStore.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Blob.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

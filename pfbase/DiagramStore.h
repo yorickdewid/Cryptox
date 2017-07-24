@@ -1,6 +1,7 @@
 #pragma once
 
 #include "ObjectStore.h"
+#include "File.h"
 
 namespace ProjectBase
 {
@@ -9,7 +10,7 @@ class DiagramStore : public ObjectStore<File>
 {
 public:
 	DiagramStore()
-		: ObjectStore{ FactoryObjectType::ObjectTypeDiagramStore }
+		: ObjectStore{ Store::ObjectTypeDiagramStore }
 	{
 	}
 

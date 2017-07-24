@@ -1,15 +1,24 @@
 #include "Project.h"
 
 #include <boost/filesystem.hpp>
-#include <boost/archive/text_oarchive.hpp>
-#include <boost/archive/text_iarchive.hpp>
+#include <boost/lexical_cast.hpp>
 
 #include <fstream>
 #include <iostream>
 #include <sstream>
+#include <iomanip>
 
 namespace ProjectBase
 {
+
+struct StoreList
+{
+	size_t size;
+	char name[64];
+	unsigned int type;
+
+	//StoreList()
+};
 
 bool Project::StoreFileExist()
 {
@@ -18,7 +27,7 @@ bool Project::StoreFileExist()
 
 void Project::CommitToDisk()
 {
-	Store store;
+	StoreFormat store;
 	store.objectStores = m_objectStores.size();
 
 	if (m_metaPtr) {
@@ -32,21 +41,22 @@ void Project::CommitToDisk()
 		out.write(reinterpret_cast<char *>(m_metaPtr.get()), sizeof(MetaData));
 	}
 
-	std::stringstream ss;
-	boost::archive::text_oarchive oa{ ss };
-
-	for (auto& objstore : m_objectStores) {
-		std::cout << objstore.first << std::endl;
-
-		oa << objstore.second.get();
+	if (!m_objectStores.size()) {
+		return;
 	}
 
-	out << ss.rdbuf();
+	for (auto& objstore : m_objectStores) {
+		StoreList sl;
+		sl.size = objstore.first.size();
+		sl.type = objstore.second->Type();
+		::strcpy_s(sl.name, 64, objstore.first.c_str());
+		out.write(reinterpret_cast<char *>(&sl), sizeof(StoreList));
+	}
 }
 
 void Project::ReadFromDisk()
 {
-	Store store;
+	StoreFormat store;
 	store.Reset();
 	m_metaPtr.reset();
 
@@ -64,20 +74,13 @@ void Project::ReadFromDisk()
 		return;
 	}
 
-	std::stringstream ss;
-
-	ss << in.rdbuf();
-
-	boost::archive::text_iarchive ia{ ss };
-
 	for (size_t i = 0; i < store.objectStores; ++i) {
-		std::shared_ptr<ObjectStore> x = std::make_shared<ObjectStore>();
+		StoreList sl;
+		in.read(reinterpret_cast<char *>(&sl), sizeof(StoreList));
 
-		ia >> *x;
-
-		/*ObjectStore::MakeStore(x, [=](const std::string& name, std::shared_ptr<ObjectStore> ptr) {
-			m_objectStores.insert(std::make_pair(name, ptr));
-		});*/
+		Store::MakeStore(static_cast<Store::FactoryObjectType>(sl.type), [=](std::shared_ptr<Store> ptr) {
+			m_objectStores.insert(std::make_pair(std::string{ sl.name, sl.size }, ptr));
+		});
 	}
 }
 

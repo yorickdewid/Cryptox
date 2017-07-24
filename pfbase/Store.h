@@ -20,7 +20,7 @@ typedef time_t TimeStamp;
 
 // Defines project options which are required upfront in order to 
 // read the store contents.
-enum StoreOptions
+enum StoreFormatOptions
 {
 	StoreOptPlain = 0x1,
 	StoreOptFullEncrypt = 0x2,
@@ -28,7 +28,7 @@ enum StoreOptions
 	StoreOptUnpacked = 0x8,
 };
 
-struct Store
+struct StoreFormat
 {
 	// Magic value contains a readable string so that accidential ascii
 	// conversions return a tracable dump
@@ -38,7 +38,7 @@ struct Store
 	unsigned short version;
 
 	// Project store options
-	enum StoreOptions projopt;
+	enum StoreFormatOptions projopt;
 
 	// The sequence number is increased every time the store is altered
 	// this makes it possible to compare to project files of the same type
@@ -59,7 +59,7 @@ struct Store
 	// this flag must be triggered
 	bool hasMeta = false;
 
-	Store()
+	StoreFormat()
 		: projopt{ StoreOptPlain }
 		, version{ Config::version }
 		, seqNum{ 0 }
@@ -72,7 +72,7 @@ struct Store
 
 	void Reset()
 	{
-		projopt = static_cast<enum StoreOptions>(0);
+		projopt = static_cast<enum StoreFormatOptions>(0);
 		version = 0;
 		seqNum = 0;
 		memset(magic, '\0', 16);

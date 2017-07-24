@@ -1,22 +1,26 @@
 #include "ObjectStore.h"
 #include "MaterialStore.h"
 #include "DiagramStore.h"
+#include "OtherStore.h"
 
+namespace ProjectBase
+{
 
-//void ObjectStore::MakeStore(std::shared_ptr<ObjectStore> store, std::function<void(const std::string&, std::shared_ptr<ObjectStore>)> func)
-//{
-//	switch (store->m_objectType)
-//	{
-//	case ObjectTypeMaterialStore:
-//	{
-//		auto e = std::dynamic_pointer_cast<MaterialStore>(store);
-//		func("kaas", e);
-//		break;
-//	}
-//	case ObjectTypeDiagramStore:
-//	{
-//		break;
-//	}
-//	}
-//
-//}
+void Store::MakeStore(FactoryObjectType type, std::function<void(std::shared_ptr<Store>)> func)
+{
+	switch (type)
+	{
+	case ObjectTypeMaterialStore:
+		func(std::make_shared<MaterialStore>());
+		break;
+	case ObjectTypeDiagramStore:
+		func(std::make_shared<DiagramStore>());
+		break;
+	case ObjectTypeOtherStore:
+		func(std::make_shared<OtherStore>());
+		break;
+	}
+
+}
+
+} // namespace ProjectBase

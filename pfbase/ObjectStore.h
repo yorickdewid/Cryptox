@@ -1,7 +1,5 @@
 #pragma once
 
-#include "File.h"
-
 #include <functional>
 #include <memory>
 #include <list>
@@ -9,34 +7,50 @@
 namespace ProjectBase
 {
 
-template<class T>
-class ObjectStore
+struct Store
 {
-	std::list<T> nodeList;
-
-protected:
 	enum FactoryObjectType {
 		ObjectTypeMaterialStore = 1,
 		ObjectTypeDiagramStore = 2,
 		ObjectTypeOtherStore = 3,
 	} m_objectType;
 
+	Store(FactoryObjectType type)
+		: m_objectType{ type }
+	{
+	}
+
+	FactoryObjectType Type() const
+	{
+		return m_objectType;
+	}
+
+	static void MakeStore(FactoryObjectType type, std::function<void(std::shared_ptr<Store>)> func);
+
+	virtual ~Store() {}
+};
+
+template<class T>
+class ObjectStore : public Store
+{
+	std::list<T> nodeList;
+
 public:
 	ObjectStore() = default;
 
 	ObjectStore(FactoryObjectType type)
-		: m_objectType{ type }
+		: Store{ type }
 	{
 	}
 
 	void AddNode(const char file[])
 	{
-		fileList.push_back(T(file));
+		nodeList.push_back(T(file));
 	}
 
 	void AddNode(T& file)
 	{
-		fileList.push_back(file);
+		nodeList.push_back(file);
 	}
 
 	virtual ~ObjectStore() {}

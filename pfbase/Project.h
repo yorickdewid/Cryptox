@@ -36,6 +36,11 @@ public:
 		StartProject();
 	}
 
+	~Project()
+	{
+		Close();
+	}
+
 	void Save()
 	{
 		CommitToDisk();
@@ -73,8 +78,9 @@ public:
 		m_objectStores.insert(std::make_pair(name, std::make_shared<T>()));
 	}
 
-	std::shared_ptr<ObjectStore> GetStore(const std::string& name) {
-		return m_objectStores[name];
+	template <typename T>
+	std::shared_ptr<T> GetStore(const std::string& name) {
+		return std::dynamic_pointer_cast<T>(m_objectStores[name]);
 	}
 
 	//void Append(File& file) {
@@ -104,11 +110,6 @@ private:
 		}
 	}
 
-	~Project()
-	{
-		Close();
-	}
-
 private:
 	PFBASEAPI bool StoreFileExist();
 	PFBASEAPI void CommitToDisk();
@@ -116,7 +117,7 @@ private:
 
 private:
 	std::string m_name;
-	std::map<std::string, std::shared_ptr<ObjectStore>> m_objectStores;
+	std::map<std::string, std::shared_ptr<Store>> m_objectStores;
 	std::unique_ptr<MetaData> m_metaPtr = nullptr;
 
 };
