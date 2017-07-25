@@ -14,6 +14,11 @@ public:
 	{
 	}
 
+	void Print(std::ostream& out) const override
+	{
+		out << "ham";
+	}
+
 };
 
 }

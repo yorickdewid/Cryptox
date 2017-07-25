@@ -27,6 +27,16 @@ struct Store
 
 	static void MakeStore(FactoryObjectType type, std::function<void(std::shared_ptr<Store>)> func);
 
+	// Force the subclass to implement a print out function. This should only be used
+	// to return class inner data which needs to be stored.
+	virtual void Print(std::ostream& out) const = 0;
+
+	friend std::ostream& operator<<(std::ostream& out, const Store& c)
+	{
+		c.Print(out);
+		return out;
+	}
+
 	virtual ~Store() {}
 };
 

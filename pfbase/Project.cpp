@@ -6,20 +6,20 @@
 #include <fstream>
 #include <iostream>
 #include <sstream>
-#include <iomanip>
 
 namespace ProjectBase
 {
 
 struct StoreList
 {
-	size_t size;
+	size_t nameSize;
 	char name[64];
 	unsigned int type;
+	size_t contentSize;
 
 	StoreList() = default;
 	StoreList(size_t _size, unsigned int _type)
-		: size{ _size }
+		: nameSize{ _size }
 		, type{ _type }
 	{
 	}
@@ -51,8 +51,13 @@ void Project::CommitToDisk()
 	}
 
 	for (auto& objstore : m_objectStores) {
+		std::stringstream ss;
 		StoreList sl{ objstore.first.size(), static_cast<unsigned int>(objstore.second->Type()) };
 		::strcpy_s(sl.name, 64, objstore.first.c_str());
+
+		ss << *objstore.second;
+		sl.contentSize = ss.str().size();
+
 		out.write(reinterpret_cast<char *>(&sl), sizeof(StoreList));
 	}
 }
@@ -82,7 +87,7 @@ void Project::ReadFromDisk()
 		in.read(reinterpret_cast<char *>(&sl), sizeof(StoreList));
 
 		Store::MakeStore(static_cast<Store::FactoryObjectType>(sl.type), [=](std::shared_ptr<Store> ptr) {
-			m_objectStores.insert(std::make_pair(std::string{ sl.name, sl.size }, ptr));
+			m_objectStores.insert(std::make_pair(std::string{ sl.name, sl.nameSize }, ptr));
 		});
 	}
 }

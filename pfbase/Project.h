@@ -41,6 +41,7 @@ public:
 		Close();
 	}
 
+	// Write all changes to disk
 	void Save()
 	{
 		CommitToDisk();

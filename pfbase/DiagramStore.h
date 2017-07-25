@@ -23,6 +23,12 @@ public:
 	{
 		AddNode(file);
 	}
+
+	void Print(std::ostream& out) const override
+	{
+		out << "kaas";
+	}
+
 };
 
 }
