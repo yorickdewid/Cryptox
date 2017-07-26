@@ -23,6 +23,12 @@ struct StoreList
 		, type{ _type }
 	{
 	}
+	StoreList(const std::string& _name, unsigned int _type)
+		: nameSize{ _name.size() }
+		, type{ _type }
+	{
+		::strcpy_s(name, 64, _name.c_str());
+	}
 };
 
 bool Project::StoreFileExist()
@@ -46,6 +52,7 @@ void Project::CommitToDisk()
 		out.write(reinterpret_cast<char *>(m_metaPtr.get()), sizeof(MetaData));
 	}
 
+	// Skip file stores and contents when there are none
 	if (!m_objectStores.size()) {
 		return;
 	}
@@ -59,6 +66,7 @@ void Project::CommitToDisk()
 		sl.contentSize = ss.str().size();
 
 		out.write(reinterpret_cast<char *>(&sl), sizeof(StoreList));
+		out.write(ss.str().c_str(), sl.contentSize);
 	}
 }
 
@@ -78,6 +86,7 @@ void Project::ReadFromDisk()
 		in.read(reinterpret_cast<char *>(m_metaPtr.get()), sizeof(MetaData));
 	}
 
+	// Skip file stores and contents when there are none
 	if (!store.objectStores) {
 		return;
 	}
@@ -85,6 +94,10 @@ void Project::ReadFromDisk()
 	for (size_t i = 0; i < store.objectStores; ++i) {
 		StoreList sl;
 		in.read(reinterpret_cast<char *>(&sl), sizeof(StoreList));
+
+		std::string content;
+		content.resize(sl.contentSize);
+		in.read(const_cast<char*>(content.data()), sl.contentSize);
 
 		Store::MakeStore(static_cast<Store::FactoryObjectType>(sl.type), [=](std::shared_ptr<Store> ptr) {
 			m_objectStores.insert(std::make_pair(std::string{ sl.name, sl.nameSize }, ptr));

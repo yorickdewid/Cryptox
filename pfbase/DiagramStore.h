@@ -24,9 +24,10 @@ public:
 		AddNode(file);
 	}
 
+	// Write internal store contents and files to output stream
 	void Print(std::ostream& out) const override
 	{
-		out << "kaas";
+		out << "kaas" << "ham";
 	}
 
 };
