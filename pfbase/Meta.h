@@ -8,6 +8,7 @@
 
 #include <memory.h>
 #include <string.h>
+#include <string>
 
 namespace ProjectBase {
 
@@ -28,6 +29,16 @@ public:
 		if (author) {
 			memcpy_s(m_author, 64, author, strlen(author));
 		}
+	}
+
+	inline std::string Author() const
+	{
+		return std::string{ m_author };
+	}
+
+	inline std::string ProjectName() const
+	{
+		return std::string{ m_projectName };
 	}
 };
 

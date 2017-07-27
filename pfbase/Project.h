@@ -52,35 +52,53 @@ public:
 		CommitToDisk();
 	}
 
-	bool IsEncrypted() const {
+	bool IsEncrypted() const { //?
 		return false;
 	}
 
-	bool IsBackCompat() const {
+	bool IsBackCompat() const { //?
 		return false;
 	}
 
 	// Return the number of files in the project. This number is not
 	// calculated on the fly.
-	int FileCount() const {
+	int FileCount() const
+	{
 		return 1;//TODO
 	}
 
-	inline std::string Name() const {
+	inline std::string Name() const
+	{
 		return m_name;
 	}
 
-	inline std::string ProjectName() const {
-		return "";//TODO
+	inline std::string ProjectName() const
+	{
+		if (!m_metaPtr) {
+			throw std::runtime_error{ "Metadata not provided" };
+		}
+
+		return m_metaPtr->ProjectName();
+	}
+
+	inline std::string Author() const
+	{
+		if (!m_metaPtr) {
+			throw std::runtime_error{ "Metadata not provided" };
+		}
+
+		return m_metaPtr->Author();
 	}
 
 	template <typename T>
-	void AddStore(const std::string name) {
+	void AddStore(const std::string name)
+	{
 		m_objectStores.insert(std::make_pair(name, std::make_shared<T>()));
 	}
 
 	template <typename T>
-	std::shared_ptr<T> GetStore(const std::string& name) {
+	std::shared_ptr<T> GetStore(const std::string& name)
+	{
 		return std::dynamic_pointer_cast<T>(m_objectStores[name]);
 	}
 
@@ -93,7 +111,8 @@ public:
 	//	return f;//TODO
 	//}
 
-	static std::unique_ptr<Project> LoadFile(const std::string& fileName) {
+	static std::unique_ptr<Project> LoadFile(const std::string& fileName)
+	{
 		return std::move(std::make_unique<Project>(fileName));
 	}
 
