@@ -26,7 +26,15 @@ public:
 
 	void Print(std::ostream& out) const override
 	{
-		out << "worst";
+		out << nodeList.size();
+		for (auto& file : nodeList) {
+			out << file;
+		}
+	}
+
+	void Parse(const std::string content)
+	{
+		//
 	}
 
 };

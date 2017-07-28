@@ -19,6 +19,11 @@ public:
 		out << "ham";
 	}
 
+	void Parse(const std::string content)
+	{
+		//
+	}
+
 };
 
 }

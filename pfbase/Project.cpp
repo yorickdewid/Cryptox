@@ -1,7 +1,6 @@
 #include "Project.h"
 
 #include <boost/filesystem.hpp>
-#include <boost/lexical_cast.hpp>
 
 #include <fstream>
 #include <iostream>
@@ -99,7 +98,7 @@ void Project::ReadFromDisk()
 		content.resize(sl.contentSize);
 		in.read(const_cast<char*>(content.data()), sl.contentSize);
 
-		Store::MakeStore(static_cast<Store::FactoryObjectType>(sl.type), [=](std::shared_ptr<Store> ptr) {
+		Store::MakeStore(static_cast<Store::FactoryObjectType>(sl.type), content, [=](std::shared_ptr<Store> ptr) {
 			m_objectStores.insert(std::make_pair(std::string{ sl.name, sl.nameSize }, ptr));
 		});
 	}

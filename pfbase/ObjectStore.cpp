@@ -6,20 +6,25 @@
 namespace ProjectBase
 {
 
-void Store::MakeStore(FactoryObjectType type, std::function<void(std::shared_ptr<Store>)> func)
+void Store::MakeStore(FactoryObjectType type, const std::string& content, std::function<void(std::shared_ptr<Store>)> func)
 {
+	std::shared_ptr<Store> storeptr;
+
 	switch (type)
 	{
 	case ObjectTypeMaterialStore:
-		func(std::make_shared<MaterialStore>());
+		storeptr = std::make_shared<MaterialStore>();
 		break;
 	case ObjectTypeDiagramStore:
-		func(std::make_shared<DiagramStore>());
+		storeptr = std::make_shared<DiagramStore>();
 		break;
 	case ObjectTypeOtherStore:
-		func(std::make_shared<OtherStore>());
+		storeptr = std::make_shared<OtherStore>();
 		break;
 	}
+
+	storeptr->Parse(content);
+	func(storeptr);
 
 }
 

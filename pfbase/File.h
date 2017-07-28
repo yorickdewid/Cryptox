@@ -19,6 +19,13 @@ public:
 	{
 	}
 
+	File(const std::string& name, const contentVector& content)
+		: origName{ name }
+		, m_size{ content.size() }
+		, m_content{ content }
+	{
+	}
+
 	File(const char name[], size_t size = 0U)
 		: origName{ name }
 		, m_size{ size }
@@ -35,6 +42,18 @@ public:
 		return m_size;
 	}
 
+	friend std::ostream& operator<<(std::ostream& out, const File& file)
+	{
+		return out << file.m_size << file.origName << file.m_content;
+	}
+
+	friend std::istream& operator>>(std::istream& in, File& file)
+	{
+		return in >> file.m_size >> file.origName >> file.m_content;
+	}
+
+	// Stream in the data. The stream wil be appended to the internal content structure
+	// and the object returns itself to allow chaining.
 	File& operator<<(const std::string& content)
 	{
 		m_content += content;
