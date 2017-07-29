@@ -102,15 +102,6 @@ public:
 		return std::dynamic_pointer_cast<T>(m_objectStores[name]);
 	}
 
-	//void Append(File& file) {
-	//	TODO
-	//}
-
-	//File Retrieve(const std::string& name) {
-	//	File f{ name };
-	//	return f;//TODO
-	//}
-
 	static std::unique_ptr<Project> LoadFile(const std::string& fileName)
 	{
 		return std::move(std::make_unique<Project>(fileName));

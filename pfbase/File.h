@@ -2,6 +2,9 @@
 
 #include <string>
 #include <vector>
+#include <iostream>
+
+#include <boost/lexical_cast.hpp>
 
 namespace ProjectBase
 {
@@ -42,14 +45,27 @@ public:
 		return m_size;
 	}
 
+	contentVector Data() const
+	{
+		return m_content;
+	}
+
 	friend std::ostream& operator<<(std::ostream& out, const File& file)
 	{
-		return out << file.m_size << file.origName << file.m_content;
+		return out << file.m_size << ':' << file.origName << ':' << file.m_content;
 	}
 
 	friend std::istream& operator>>(std::istream& in, File& file)
 	{
-		return in >> file.m_size >> file.origName >> file.m_content;
+		std::string token;
+		std::getline(in, token, ':');
+		file.m_size = boost::lexical_cast<size_t>(token);
+		std::getline(in, token, ':');
+		file.origName = token;
+		std::getline(in, token, ':');
+		file.m_content = token;
+
+		return in;
 	}
 
 	// Stream in the data. The stream wil be appended to the internal content structure

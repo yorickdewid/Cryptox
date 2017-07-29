@@ -4,8 +4,11 @@
 #include "File.h"
 
 #include <boost/lexical_cast.hpp>
+#include <boost/algorithm/string.hpp>
 
 #include <sstream>
+
+constexpr unsigned char marker[4] = { '\x1','\x7','\x2','\x4' };
 
 namespace ProjectBase
 {
@@ -33,7 +36,7 @@ public:
 	{
 		out << nodeList.size();
 		for (auto& file : nodeList) {
-			out << file;
+			out << file << marker;
 		}
 	}
 
@@ -41,12 +44,21 @@ public:
 	{
 		size_t nodeCount = boost::lexical_cast<size_t>(content.substr(0, 1));
 
-		std::istringstream in(content.substr(1));
+		std::vector<std::string> results;
+		boost::split(results, content.substr(1), boost::is_any_of(marker));
 
-		File x;
-		in >> x;
+		for (auto& fcontent : results) {
+			if (fcontent.empty()) {
+				continue;
+			}
 
-		AddFile(x);
+			std::istringstream in(fcontent);
+
+			File file;
+			in >> file;
+
+			AddFile(file);
+		}
 	}
 
 };
