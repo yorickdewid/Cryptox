@@ -79,6 +79,19 @@ protected:
 		return *it;
 	}
 
+	void DeleteNode(const char node[])
+	{
+		auto it = std::find_if(nodeList.begin(), nodeList.end(), [&node](T& s) {
+			return s.Name() == std::string{ node };
+		});
+
+		if (it == nodeList.end()) {
+			std::runtime_error{ "no file found" };
+		}
+
+		nodeList.erase(it);
+	}
+
 public:
 	size_t Size() const
 	{

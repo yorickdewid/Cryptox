@@ -47,16 +47,10 @@ public:
 		CommitToDisk();
 	}
 
+	// Close project and save all changes
 	void Close()
 	{
 		CommitToDisk();
-	}
-
-	// Return the number of files in the project. This number is not
-	// calculated on the fly.
-	int FileCount() const
-	{
-		return 1;//TODO
 	}
 
 	inline std::string Name() const
@@ -82,7 +76,16 @@ public:
 		return m_metaPtr->Author();
 	}
 
-	size_t StoreSize() const
+	/*inline std::string Author() const
+	{
+		if (!m_metaPtr) {
+			throw std::runtime_error{ "Metadata not provided" };
+		}
+
+		return m_metaPtr->Author();
+	}*/
+
+	size_t StoreCount() const
 	{
 		return m_objectStores.size();
 	}
@@ -99,6 +102,8 @@ public:
 		return std::dynamic_pointer_cast<T>(m_objectStores[name]);
 	}
 
+	// Load project directly from file. This wil return a pointer to the
+	// project object.
 	static std::unique_ptr<Project> LoadFile(const std::string& fileName)
 	{
 		return std::move(std::make_unique<Project>(fileName));

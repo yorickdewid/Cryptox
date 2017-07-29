@@ -36,6 +36,11 @@ public:
 		return GetNode(file);
 	}
 
+	void DeleteFile(const char file[])
+	{
+		DeleteNode(file);
+	}
+
 	// Write internal store contents and files to output stream
 	void Print(std::ostream& out) const override
 	{
