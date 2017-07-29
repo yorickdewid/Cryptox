@@ -44,10 +44,13 @@ void Project::CommitToDisk()
 		store.hasMeta = true;
 	}
 
-	store.createdAt = created;
-	store.updatedAt = updated;
-
-	store.Touch();
+	if (created) {
+		store.createdAt = created;
+	}
+	else {
+		created = store.createdAt;
+		updated = store.updatedAt;
+	}
 
 	std::ofstream out{ m_name.c_str(), std::ios::out | std::ios::binary };
 	out.write(reinterpret_cast<char *>(&store), sizeof(store));

@@ -143,8 +143,8 @@ private:
 	PFBASEAPI void ReadFromDisk();
 
 private:
-	time_t created;
-	time_t updated;
+	time_t created = 0;
+	time_t updated = 0;
 	std::string m_name;
 	std::map<std::string, std::shared_ptr<Store>> m_objectStores;
 	std::unique_ptr<MetaData> m_metaPtr = nullptr;

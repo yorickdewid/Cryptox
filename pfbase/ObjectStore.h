@@ -98,6 +98,11 @@ public:
 		return nodeList.size();
 	}
 
+	std::list<T>& Inventory()
+	{
+		return nodeList;
+	}
+
 	virtual ~ObjectStore() {}
 };
 
