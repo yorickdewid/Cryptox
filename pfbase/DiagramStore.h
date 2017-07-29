@@ -8,7 +8,7 @@
 
 #include <sstream>
 
-constexpr unsigned char marker[4] = { '\x1','\x7','\x2','\x4' };
+constexpr unsigned char marker[4] = { '\001','\007','\002','\004' };
 
 namespace ProjectBase
 {
@@ -41,7 +41,7 @@ public:
 	{
 		out << nodeList.size();
 		for (auto& file : nodeList) {
-			out << file << marker;
+			out << file << '\001' << '\007' << '\002' << '\004';
 		}
 	}
 

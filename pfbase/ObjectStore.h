@@ -68,8 +68,8 @@ protected:
 
 	T& GetNode(const char node[])
 	{
-		std::list<T>::iterator it = std::find_if(nodeList.begin(), nodeList.end(), [](T& s) {
-			return s.Name() == "book.dia";
+		auto it = std::find_if(nodeList.begin(), nodeList.end(), [&node](T& s) {
+			return s.Name() == std::string{ node };
 		});
 
 		if (it == nodeList.end()) {
