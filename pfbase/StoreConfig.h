@@ -13,7 +13,7 @@ namespace Config {
 constexpr int version = 0x7;
 
 // Project store file banner
-constexpr unsigned char BANNER[] = { 'C','R','Y','T','O','X','P','R','O','J','E','C','T','\n','\0','\0' };
+constexpr unsigned char BANNER[] = { 'C','R','Y','T','O','X','P','R','O','J','E','C','T', '\1', '\n','\0' };
 
 } // namespace Config
 
