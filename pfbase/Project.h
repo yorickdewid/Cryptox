@@ -76,14 +76,15 @@ public:
 		return m_metaPtr->Author();
 	}
 
-	/*inline std::string Author() const
+	inline time_t CreateTimestamp() const
 	{
-		if (!m_metaPtr) {
-			throw std::runtime_error{ "Metadata not provided" };
-		}
+		return created;
+	}
 
-		return m_metaPtr->Author();
-	}*/
+	inline time_t UpdateTimestamp() const
+	{
+		return updated;
+	}
 
 	size_t StoreCount() const
 	{
@@ -129,6 +130,8 @@ private:
 	PFBASEAPI void ReadFromDisk();
 
 private:
+	time_t created;
+	time_t updated;
 	std::string m_name;
 	std::map<std::string, std::shared_ptr<Store>> m_objectStores;
 	std::unique_ptr<MetaData> m_metaPtr = nullptr;

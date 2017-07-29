@@ -78,6 +78,11 @@ struct StoreFormat
 		memset(magic, '\0', 16);
 	}
 
+	inline void Touch()
+	{
+		updatedAt = time(nullptr);
+	}
+
 	void Validate()
 	{
 		if (strncmp(reinterpret_cast<const char *>(magic), reinterpret_cast<const char *>(Config::BANNER), sizeof(Config::BANNER))) {

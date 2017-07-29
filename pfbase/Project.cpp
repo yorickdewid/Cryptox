@@ -44,6 +44,11 @@ void Project::CommitToDisk()
 		store.hasMeta = true;
 	}
 
+	store.createdAt = created;
+	store.updatedAt = updated;
+
+	store.Touch();
+
 	std::ofstream out{ m_name.c_str(), std::ios::out | std::ios::binary };
 	out.write(reinterpret_cast<char *>(&store), sizeof(store));
 
@@ -79,6 +84,9 @@ void Project::ReadFromDisk()
 	in.read(reinterpret_cast<char *>(&store), sizeof(store));
 
 	store.Validate();
+
+	created = store.createdAt;
+	updated = store.updatedAt;
 
 	if (store.hasMeta) {
 		m_metaPtr = std::make_unique<MetaData>();
