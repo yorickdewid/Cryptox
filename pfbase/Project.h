@@ -53,11 +53,13 @@ public:
 		CommitToDisk();
 	}
 
+	// Project file name
 	inline std::string Name() const
 	{
 		return m_name;
 	}
 
+	// Project name
 	inline std::string ProjectName() const
 	{
 		if (!m_metaPtr) {
@@ -67,6 +69,7 @@ public:
 		return m_metaPtr->ProjectName();
 	}
 
+	// Project author
 	inline std::string Author() const
 	{
 		if (!m_metaPtr) {
@@ -89,6 +92,16 @@ public:
 	size_t StoreCount() const
 	{
 		return m_objectStores.size();
+	}
+
+	std::list<std::string> Stores()
+	{
+		std::list<std::string> nameList;
+		std::for_each(m_objectStores.begin(), m_objectStores.end(), [&nameList] (auto& map) {
+			nameList.push_back(map.first);
+		});
+
+		return nameList;
 	}
 
 	template <typename T>
