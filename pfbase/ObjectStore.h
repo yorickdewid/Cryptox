@@ -55,14 +55,34 @@ public:
 	{
 	}
 
-	void AddNode(const char file[])
+protected:
+	void AddNode(const char node[])
 	{
-		nodeList.push_back(T(file));
+		nodeList.push_back(T(node));
 	}
 
-	void AddNode(T& file)
+	void AddNode(T& node)
 	{
-		nodeList.push_back(file);
+		nodeList.push_back(node);
+	}
+
+	T& GetNode(const char node[])
+	{
+		std::list<T>::iterator it = std::find_if(nodeList.begin(), nodeList.end(), [](T& s) {
+			return s.Name() == "book.dia";
+		});
+
+		if (it == nodeList.end()) {
+			std::runtime_error{ "no file found" };
+		}
+
+		return *it;
+	}
+
+public:
+	size_t Size() const
+	{
+		return nodeList.size();
 	}
 
 	virtual ~ObjectStore() {}

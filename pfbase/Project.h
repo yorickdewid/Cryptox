@@ -52,14 +52,6 @@ public:
 		CommitToDisk();
 	}
 
-	bool IsEncrypted() const { //?
-		return false;
-	}
-
-	bool IsBackCompat() const { //?
-		return false;
-	}
-
 	// Return the number of files in the project. This number is not
 	// calculated on the fly.
 	int FileCount() const
@@ -88,6 +80,11 @@ public:
 		}
 
 		return m_metaPtr->Author();
+	}
+
+	size_t StoreSize() const
+	{
+		return m_objectStores.size();
 	}
 
 	template <typename T>

@@ -31,6 +31,11 @@ public:
 		AddNode(file);
 	}
 
+	File& GetFile(const char file[])
+	{
+		return GetNode(file);
+	}
+
 	// Write internal store contents and files to output stream
 	void Print(std::ostream& out) const override
 	{
