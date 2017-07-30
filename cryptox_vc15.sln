@@ -21,6 +21,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "crycli", "crycli\crycli.vcx
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ProjectTest", "ProjectTest\ProjectTest.vcxproj", "{FA301A31-4F82-49DD-B6F6-2804CCB53162}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "butest", "butest\butest.vcxproj", "{B88C8014-4BAF-4927-BBB9-A3E6E38F62F8}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|ARM = Debug|ARM
@@ -121,6 +123,16 @@ Global
 		{FA301A31-4F82-49DD-B6F6-2804CCB53162}.Release|x64.Build.0 = Release|x64
 		{FA301A31-4F82-49DD-B6F6-2804CCB53162}.Release|x86.ActiveCfg = Release|Win32
 		{FA301A31-4F82-49DD-B6F6-2804CCB53162}.Release|x86.Build.0 = Release|Win32
+		{B88C8014-4BAF-4927-BBB9-A3E6E38F62F8}.Debug|ARM.ActiveCfg = Debug|Win32
+		{B88C8014-4BAF-4927-BBB9-A3E6E38F62F8}.Debug|x64.ActiveCfg = Debug|x64
+		{B88C8014-4BAF-4927-BBB9-A3E6E38F62F8}.Debug|x64.Build.0 = Debug|x64
+		{B88C8014-4BAF-4927-BBB9-A3E6E38F62F8}.Debug|x86.ActiveCfg = Debug|Win32
+		{B88C8014-4BAF-4927-BBB9-A3E6E38F62F8}.Debug|x86.Build.0 = Debug|Win32
+		{B88C8014-4BAF-4927-BBB9-A3E6E38F62F8}.Release|ARM.ActiveCfg = Release|Win32
+		{B88C8014-4BAF-4927-BBB9-A3E6E38F62F8}.Release|x64.ActiveCfg = Release|x64
+		{B88C8014-4BAF-4927-BBB9-A3E6E38F62F8}.Release|x64.Build.0 = Release|x64
+		{B88C8014-4BAF-4927-BBB9-A3E6E38F62F8}.Release|x86.ActiveCfg = Release|Win32
+		{B88C8014-4BAF-4927-BBB9-A3E6E38F62F8}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
