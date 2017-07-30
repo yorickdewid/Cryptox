@@ -14,12 +14,9 @@ public:
 	{
 	}
 
-
-
-
-	void AddKeypair(const char name[], const unsigned char priv[], const unsigned char pub[])
+	void AddKeypair(const char name[], const char algo[], const char priv[], const char pub[])
 	{
-		AddKeypair(Keypair(name, priv, pub));
+		AddKeypair(Keypair(name, algo, priv, pub));
 	}
 
 	void AddKeypair(Keypair& pair)
@@ -37,10 +34,11 @@ public:
 		DeleteNode(name);
 	}
 
-
 	void Print(std::ostream& out) const override
 	{
-		out << "KP";
+		for (auto& pair : nodeList) {
+			out << pair << '\003' << '\001' << '\007' << '\004';
+		}
 	}
 
 	void Parse(const std::string content)

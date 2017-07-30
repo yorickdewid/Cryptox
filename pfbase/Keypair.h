@@ -8,32 +8,49 @@
 namespace ProjectBase
 {
 
-typedef std::basic_string<unsigned char> contentVector;
+enum class KeyType
+{
+	KeyTypePair,
+	KeyTypeSecret,
+	keyTypeParameter,
+	KeyTypeGenerator,
+};
 
 class Keypair : public Blob
 {
 public:
 	Keypair() = default;
 
-	Keypair(const char name[], const unsigned char priv[], const unsigned char pub[])
+	Keypair(const char name[], const char algo[], const char priv[], const char pub[])
 		: Blob{ name }
 		, privKey{ priv }
 		, pubKey{ pub }
+		, type{ KeyType::KeyTypePair }
 	{
 	}
 
-	Keypair(const char name[], std::pair<const unsigned char*, const unsigned char*>& pair)
+	explicit Keypair(const char name[], std::pair<const char*, const char*>& pair)
 		: Blob{ name }
 		, privKey{ pair.first }
 		, pubKey{ pair.second }
+		, type{ KeyType::KeyTypePair }
 	{
 	}
 
-	Keypair(const char name[], const char algo[], std::pair<const unsigned char*, const unsigned char*>& pair)
+	explicit Keypair(const char name[], const char algo[], std::pair<const char*, const char*>& pair)
 		: Blob{ name }
 		, algName{ algo }
 		, privKey{ pair.first }
 		, pubKey{ pair.second }
+		, type{ KeyType::KeyTypePair }
+	{
+	}
+
+	explicit Keypair(const char name[], const char algo[], const char *sec)
+		: Blob{ name }
+		, algName{ algo }
+		, secret{ sec }
+		, type{ KeyType::KeyTypeSecret }
 	{
 	}
 
@@ -42,17 +59,36 @@ public:
 		return algName;
 	}
 
-	/*Blob& operator<<(const std::string& content)
+	friend std::ostream& operator<<(std::ostream& out, const Keypair& pair)
 	{
-		m_content += content;
-		m_size = m_content.size();
-		return *this;
-	}*/
+		return out << static_cast<int>(pair.type) << '!'
+			<< pair.origName << '!'
+			<< pair.algName << '!'
+			<< pair.privKey << '!'
+			<< pair.pubKey << '!'
+			<< pair.secret << '!'
+			<< "KP";
+	}
+
+	friend std::istream& operator>>(std::istream& in, Keypair& file)
+	{
+		/*std::string token;
+		std::getline(in, token, ':');
+		file.m_size = boost::lexical_cast<size_t>(token);
+		std::getline(in, token, ':');
+		file.origName = token;
+		std::getline(in, token, ':');
+		file.m_content = token;*/
+
+		return in;
+	}
 
 private:
+	KeyType type;
 	std::string algName;
-	contentVector privKey;
-	contentVector pubKey;
+	std::string privKey;
+	std::string pubKey;
+	std::string secret;
 };
 
 }
