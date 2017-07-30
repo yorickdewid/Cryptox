@@ -3,15 +3,14 @@
 #include "ObjectStore.h"
 #include "File.h"
 
-#include <boost/lexical_cast.hpp>
 #include <boost/algorithm/string.hpp>
 
 #include <sstream>
 
-constexpr unsigned char marker[4] = { '\001','\007','\002','\004' };
-
 namespace ProjectBase
 {
+
+constexpr unsigned char markerDiagram[4] = { '\001','\007','\002','\004' };
 
 class DiagramStore : public ObjectStore<File>
 {
@@ -52,7 +51,7 @@ public:
 	void Parse(const std::string content)
 	{
 		std::vector<std::string> results;
-		boost::split(results, content, boost::is_any_of(marker));
+		boost::split(results, content, boost::is_any_of(markerDiagram));
 
 		for (auto& fcontent : results) {
 			if (fcontent.empty()) {

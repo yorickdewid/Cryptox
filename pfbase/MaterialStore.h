@@ -3,6 +3,10 @@
 #include "ObjectStore.h"
 #include "Keypair.h"
 
+#include <boost/algorithm/string.hpp>
+
+#include <iostream>
+
 namespace ProjectBase
 {
 
@@ -37,13 +41,29 @@ public:
 	void Print(std::ostream& out) const override
 	{
 		for (auto& pair : nodeList) {
-			out << pair << '\003' << '\001' << '\007' << '\004';
+			out << '@' << pair;
 		}
 	}
 
 	void Parse(const std::string content)
 	{
-		//
+		std::stringstream ss;
+		ss.str(content);
+
+		std::string token;
+		while (std::getline(ss, token, '@')) {
+			if (token.empty()) {
+				continue;
+			}
+
+			std::istringstream oss;
+			oss.str(token);
+
+			Keypair pair;
+			oss >> pair;
+
+			AddKeypair(pair);
+		}
 	}
 
 };

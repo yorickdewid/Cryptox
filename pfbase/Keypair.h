@@ -5,6 +5,8 @@
 #include <string>
 #include <vector>
 
+#include <boost/lexical_cast.hpp>
+
 namespace ProjectBase
 {
 
@@ -70,15 +72,21 @@ public:
 			<< "KP";
 	}
 
-	friend std::istream& operator>>(std::istream& in, Keypair& file)
+	friend std::istream& operator>>(std::istream& in, Keypair& pair)
 	{
-		/*std::string token;
-		std::getline(in, token, ':');
-		file.m_size = boost::lexical_cast<size_t>(token);
-		std::getline(in, token, ':');
-		file.origName = token;
-		std::getline(in, token, ':');
-		file.m_content = token;*/
+		std::string token;
+		std::getline(in, token, '!');
+		pair.type = static_cast<KeyType>(boost::lexical_cast<int>(token));
+		std::getline(in, token, '!');
+		pair.origName = token;
+		std::getline(in, token, '!');
+		pair.algName = token;
+		std::getline(in, token, '!');
+		pair.privKey = token;
+		std::getline(in, token, '!');
+		pair.pubKey = token;
+		std::getline(in, token, '!');
+		pair.secret = token;
 
 		return in;
 	}
