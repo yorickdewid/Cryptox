@@ -14,8 +14,6 @@
 namespace ProjectBase
 {
 
-typedef std::basic_string<char> contentVector;
-
 class File
 {
 public:
@@ -27,7 +25,7 @@ public:
 	{
 	}
 
-	File(const std::string& name, const contentVector& content)
+	File(const std::string& name, const std::basic_string<char>& content)
 		: origName{ name }
 		, m_size{ content.size() }
 		, m_content{ content }
@@ -50,7 +48,7 @@ public:
 		return m_size;
 	}
 
-	contentVector Data() const
+	std::basic_string<char> Data() const
 	{
 		return m_content;
 	}
@@ -82,10 +80,10 @@ public:
 		return *this;
 	}
 
-private:
+protected:
 	size_t m_size;
 	std::string origName;
-	contentVector m_content;
+	std::basic_string<char> m_content;
 };
 
 }

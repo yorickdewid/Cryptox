@@ -44,7 +44,6 @@ public:
 	// Write internal store contents and files to output stream
 	void Print(std::ostream& out) const override
 	{
-		out << nodeList.size();
 		for (auto& file : nodeList) {
 			out << file << '\001' << '\007' << '\002' << '\004';
 		}
@@ -52,10 +51,8 @@ public:
 
 	void Parse(const std::string content)
 	{
-		size_t nodeCount = boost::lexical_cast<size_t>(content.substr(0, 1));
-
 		std::vector<std::string> results;
-		boost::split(results, content.substr(1), boost::is_any_of(marker));
+		boost::split(results, content, boost::is_any_of(marker));
 
 		for (auto& fcontent : results) {
 			if (fcontent.empty()) {

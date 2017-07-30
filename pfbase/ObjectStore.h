@@ -3,6 +3,7 @@
 #include <functional>
 #include <memory>
 #include <list>
+#include <algorithm>
 
 namespace ProjectBase
 {

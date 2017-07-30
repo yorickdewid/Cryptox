@@ -149,6 +149,7 @@
     <ClInclude Include="DiagramStore.h" />
     <ClInclude Include="File.h" />
     <ClInclude Include="FileWriter.h" />
+    <ClInclude Include="Keypair.h" />
     <ClInclude Include="MaterialStore.h" />
     <ClInclude Include="Meta.h" />
     <ClInclude Include="ObjectStore.h" />

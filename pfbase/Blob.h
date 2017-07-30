@@ -6,8 +6,6 @@
 namespace ProjectBase
 {
 
-typedef std::basic_string<char> contentVector;
-
 class Blob
 {
 public:
@@ -35,17 +33,9 @@ public:
 		return m_size;
 	}
 
-	Blob& operator<<(const std::string& content)
-	{
-		m_content += content;
-		m_size = m_content.size();
-		return *this;
-	}
-
-private:
+protected:
 	size_t m_size;
 	std::string origName;
-	contentVector m_content;
 };
 
 }
