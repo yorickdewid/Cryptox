@@ -61,6 +61,11 @@ public:
 		return algName;
 	}
 
+	size_t Size() const
+	{
+		return privKey.size() + pubKey.size() + secret.size();
+	}
+
 	friend std::ostream& operator<<(std::ostream& out, const Keypair& pair)
 	{
 		return out << static_cast<int>(pair.type) << '!'
