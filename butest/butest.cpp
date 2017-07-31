@@ -5,6 +5,8 @@
 #include <boost/test/unit_test.hpp>
 #include <boost/filesystem.hpp>
 
+// Custom deleter in order to remove file after
+// project has gone out of scope
 auto del = [](ProjectBase::Project *project) {
 	auto filename = project->Name();
 
@@ -58,6 +60,7 @@ BOOST_AUTO_TEST_CASE(CreateProject)
 		BOOST_REQUIRE_GT(p->UpdateTimestamp(), 0);
 	}
 
+	// Remove test file from the last testcase.
 	boost::filesystem::remove("_testfile.cryx");
 }
 
@@ -90,5 +93,23 @@ BOOST_AUTO_TEST_CASE(AddFilesToStore)
 
 	BOOST_REQUIRE(p->StoreCount() == 2);
 	BOOST_REQUIRE(p->GetStore<ProjectBase::DiagramStore>("diag")->Size() == 4);
+}
+
+BOOST_AUTO_TEST_CASE(AddKeysToStore)
+{
+	// Create new project with custom alloc
+	std::unique_ptr<ProjectBase::Project, decltype(del)> p{ new ProjectBase::Project{ "_testfile.cryx" }, del };
+
+	p->AddStore<ProjectBase::MaterialStore>("mat");
+	p->AddStore<ProjectBase::MaterialStore>("mat2");
+	p->AddStore<ProjectBase::MaterialStore>("mat3");
+	p->AddStore<ProjectBase::DiagramStore>("diag");
+
+	p->GetStore<ProjectBase::MaterialStore>("mat2")->AddKeypair("trol", "Curve22519", "\x1\x4\x5\x12\x4", "\x7\x78\x12\x1\x4\x71");
+	p->GetStore<ProjectBase::MaterialStore>("mat3")->AddKeypair(ProjectBase::Keypair{ "trol", "RSA", std::make_pair("\x1\x4\x5\x12\x5","\x56\x92\x12\x9\x81\x8") });
+
+	BOOST_REQUIRE(p->StoreCount() == 4);
+	BOOST_REQUIRE(p->GetStore<ProjectBase::MaterialStore>("mat2")->Size() == 1);
+	BOOST_REQUIRE(p->GetStore<ProjectBase::MaterialStore>("mat3")->Size() == 1);
 }
 
