@@ -93,6 +93,9 @@ BOOST_AUTO_TEST_CASE(AddFilesToStore)
 
 	BOOST_REQUIRE(p->StoreCount() == 2);
 	BOOST_REQUIRE(p->GetStore<ProjectBase::DiagramStore>("diag")->Size() == 4);
+	BOOST_REQUIRE_EQUAL(p->GetStore<ProjectBase::DiagramStore>("diag")->GetFile("file1").Name(), "file1");
+	BOOST_REQUIRE_EQUAL(p->GetStore<ProjectBase::DiagramStore>("diag")->GetFile("file2").Data(), "extra content");
+	BOOST_REQUIRE_EQUAL(p->GetStore<ProjectBase::DiagramStore>("diag")->GetFile("file.dia").Data(), "<?xml version=\"1.0\" ?>");
 }
 
 BOOST_AUTO_TEST_CASE(AddKeysToStore)
@@ -105,11 +108,13 @@ BOOST_AUTO_TEST_CASE(AddKeysToStore)
 	p->AddStore<ProjectBase::MaterialStore>("mat3");
 	p->AddStore<ProjectBase::DiagramStore>("diag");
 
-	p->GetStore<ProjectBase::MaterialStore>("mat2")->AddKeypair("trol", "Curve22519", "\x1\x4\x5\x12\x4", "\x7\x78\x12\x1\x4\x71");
-	p->GetStore<ProjectBase::MaterialStore>("mat3")->AddKeypair(ProjectBase::Keypair{ "trol", "RSA", std::make_pair("\x1\x4\x5\x12\x5","\x56\x92\x12\x9\x81\x8") });
+	p->GetStore<ProjectBase::MaterialStore>("mat2")->AddKeypair("key1", "Curve22519", "\x1\x4\x5\x12\x4", "\x7\x78\x12\x1\x4\x71");
+	p->GetStore<ProjectBase::MaterialStore>("mat3")->AddKeypair(ProjectBase::Keypair{ "key2", "RSA", std::make_pair("\x1\x4\x5\x12\x5","\x56\x92\x12\x9\x81\x8") });
 
 	BOOST_REQUIRE(p->StoreCount() == 4);
 	BOOST_REQUIRE(p->GetStore<ProjectBase::MaterialStore>("mat2")->Size() == 1);
 	BOOST_REQUIRE(p->GetStore<ProjectBase::MaterialStore>("mat3")->Size() == 1);
+	BOOST_REQUIRE_EQUAL(p->GetStore<ProjectBase::MaterialStore>("mat2")->GetKeypair("key1").Algorithm(), "Curve22519");
+	BOOST_REQUIRE_EQUAL(p->GetStore<ProjectBase::MaterialStore>("mat3")->GetKeypair("key2").Algorithm(), "RSA");
 }
 

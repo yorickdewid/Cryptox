@@ -25,6 +25,7 @@ public:
 
 	Keypair(const char name[], const char algo[], const char priv[], const char pub[])
 		: Blob{ name }
+		, algName{ algo }
 		, privKey{ priv }
 		, pubKey{ pub }
 		, type{ KeyType::KeyTypePair }
