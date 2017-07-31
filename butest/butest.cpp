@@ -88,7 +88,6 @@ BOOST_AUTO_TEST_CASE(AddFilesToStore)
 	p->GetStore<ProjectBase::DiagramStore>("diag")->AddFile(ProjectBase::File("file1") << "some content");
 	p->GetStore<ProjectBase::DiagramStore>("diag")->AddFile(ProjectBase::File("file2") << "extra content");
 	p->GetStore<ProjectBase::DiagramStore>("diag")->AddFile(ProjectBase::File("file3") << "fill content");
-
 	p->GetStore<ProjectBase::DiagramStore>("diag")->AddFile(ProjectBase::File{ "file.dia", "<?xml version=\"1.0\" ?>" });
 
 	BOOST_REQUIRE(p->StoreCount() == 2);
@@ -96,6 +95,10 @@ BOOST_AUTO_TEST_CASE(AddFilesToStore)
 	BOOST_REQUIRE_EQUAL(p->GetStore<ProjectBase::DiagramStore>("diag")->GetFile("file1").Name(), "file1");
 	BOOST_REQUIRE_EQUAL(p->GetStore<ProjectBase::DiagramStore>("diag")->GetFile("file2").Data(), "extra content");
 	BOOST_REQUIRE_EQUAL(p->GetStore<ProjectBase::DiagramStore>("diag")->GetFile("file.dia").Data(), "<?xml version=\"1.0\" ?>");
+
+	p->GetStore<ProjectBase::DiagramStore>("diag")->DeleteFile("file3");
+
+	BOOST_REQUIRE(p->GetStore<ProjectBase::DiagramStore>("diag")->Size() == 3);
 }
 
 BOOST_AUTO_TEST_CASE(AddKeysToStore)
@@ -116,5 +119,9 @@ BOOST_AUTO_TEST_CASE(AddKeysToStore)
 	BOOST_REQUIRE(p->GetStore<ProjectBase::MaterialStore>("mat3")->Size() == 1);
 	BOOST_REQUIRE_EQUAL(p->GetStore<ProjectBase::MaterialStore>("mat2")->GetKeypair("key1").Algorithm(), "Curve22519");
 	BOOST_REQUIRE_EQUAL(p->GetStore<ProjectBase::MaterialStore>("mat3")->GetKeypair("key2").Algorithm(), "RSA");
+
+	p->GetStore<ProjectBase::MaterialStore>("mat2")->DeleteKeypair("key1");
+
+	BOOST_REQUIRE(p->GetStore<ProjectBase::MaterialStore>("mat2")->Size() == 0);
 }
 
