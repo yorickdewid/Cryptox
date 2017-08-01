@@ -23,15 +23,17 @@ class Project
 public:
 	Project() = default;
 
-	Project(const std::string& name)
+	Project(const std::string& name, bool canCreate = true)
 		: m_name{ name }
+		, m_canCreate{ canCreate }
 	{
 		StartProject();
 	}
 
-	Project(const std::string& name, const MetaData& meta)
+	Project(const std::string& name, const MetaData& meta, bool canCreate = true)
 		: m_name{ name }
 		, m_metaPtr{ std::make_unique<MetaData>(meta) }
+		, m_canCreate{ canCreate }
 	{
 		StartProject();
 	}
@@ -97,7 +99,7 @@ public:
 	std::list<std::string> Stores()
 	{
 		std::list<std::string> nameList;
-		std::for_each(m_objectStores.begin(), m_objectStores.end(), [&nameList] (auto& map) {
+		std::for_each(m_objectStores.begin(), m_objectStores.end(), [&nameList](auto& map) {
 			nameList.push_back(map.first);
 		});
 
@@ -117,10 +119,10 @@ public:
 	}
 
 	// Load project directly from file. This wil return a pointer to the
-	// project object.
+	// project object. If the project file does not exist, do not create one
 	static std::unique_ptr<Project> LoadFile(const std::string& fileName)
 	{
-		return std::move(std::make_unique<Project>(fileName));
+		return std::move(std::make_unique<Project>(fileName, false));
 	}
 
 private:
@@ -132,8 +134,11 @@ private:
 		if (StoreFileExist()) {
 			ReadFromDisk();
 		}
-		else {
+		else if (m_canCreate) {
 			CommitToDisk();
+		}
+		else {
+			throw std::runtime_error{ "Cannot load project" };
 		}
 	}
 
@@ -143,6 +148,7 @@ private:
 	PFBASEAPI void ReadFromDisk();
 
 private:
+	bool m_canCreate = true;
 	time_t created = 0;
 	time_t updated = 0;
 	std::string m_name;
