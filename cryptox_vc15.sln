@@ -19,7 +19,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "crycl", "crycl\crycl.vcxpro
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "crycli", "crycli\crycli.vcxproj", "{58AAC6CB-86FD-434E-9261-ACD506EEED28}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ProjectTest", "ProjectTest\ProjectTest.vcxproj", "{FA301A31-4F82-49DD-B6F6-2804CCB53162}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "pfupgr", "pfupgr\pfupgr.vcxproj", "{FA301A31-4F82-49DD-B6F6-2804CCB53162}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "butest", "butest\butest.vcxproj", "{B88C8014-4BAF-4927-BBB9-A3E6E38F62F8}"
 EndProject
