@@ -15,7 +15,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "shellasset", "shellasset\sh
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "pfbase", "pfbase\pfbase.vcxproj", "{F7F45948-AFFB-475E-B815-50E674D5ADE1}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "crycl", "crycl\crycl.vcxproj", "{984AFCD4-4DCA-4E7E-862D-C004841A442E}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "coilcl", "coilcl\coilcl.vcxproj", "{984AFCD4-4DCA-4E7E-862D-C004841A442E}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "crycli", "crycli\crycli.vcxproj", "{58AAC6CB-86FD-434E-9261-ACD506EEED28}"
 EndProject
