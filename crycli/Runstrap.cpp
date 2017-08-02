@@ -31,7 +31,9 @@ private:
 	{
 		std::ifstream src{ fname };
 
-		std::string line;
+		std::cout << src.rdbuf() << std::endl;
+
+		/*std::string line;
 		while (std::getline(src, line))
 		{
 			if (line.empty() || line[0] == '#')
@@ -40,7 +42,7 @@ private:
 			}
 
 			ss << line << '\n';
-		}
+		}*/
 	}
 
 private:

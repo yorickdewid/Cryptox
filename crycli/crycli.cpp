@@ -29,11 +29,14 @@ int main(int argc, const char *argv[])
 			std::cout << "Usage: crycli [options] [FILE]\n";
 			std::cout << desc;
 		}
-
-		if (vm.count("file"))
+		else if (vm.count("file"))
 		{
-			//std::cout << "Input files are: " << vm["file"].as<std::string>() << "\n";
 			RunSource(vm["file"].as<std::string>());
+		}
+		else
+		{
+			std::cout << "Usage: crycli [options] [FILE]\n";
+			std::cout << desc;
 		}
 	}
 	catch (std::exception& e)
