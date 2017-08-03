@@ -1,18 +1,36 @@
+#include "Lexer.h"
+
 #include <boost/tokenizer.hpp>
 
 #include <string>
 #include <iostream>
 
-class Lexer
+void Lexer::Tokenizer(const std::string& token)
 {
-	Lexer()
-	{
-		typedef boost::tokenizer<boost::char_separator<char>> tokenizer;
-		std::string s{ "Boost C++ Libraries" };
-		tokenizer tok{ s };
-
-		for (tokenizer::iterator it = tok.begin(); it != tok.end(); ++it) {
-			std::cout << *it << '\n';
-		}
+	if (!token.compare("int")) {
+		std::cout << "INT" << std::endl;
 	}
-};
+	else if (!token.compare("(")) {
+		std::cout << "BRACKET_OPEN" << std::endl;
+	}
+	else if (!token.compare(")")) {
+		std::cout << "BRACKET_CLOSE" << std::endl;
+	}
+	else if (!token.compare("return")) {
+		std::cout << "RETURN" << std::endl;
+	}
+	else if (!token.compare(";")) {
+		std::cout << "COMMIT" << std::endl;
+	}
+}
+
+Lexer::Lexer(std::string stringarray)
+{
+	typedef boost::tokenizer<boost::char_separator<char>> tokenizer;
+	tokenizer tok{ stringarray };
+
+	for (const auto& token : tok)
+	{
+		Tokenizer(token);
+	}
+}

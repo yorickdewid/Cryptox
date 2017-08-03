@@ -146,6 +146,7 @@
     <ClCompile Include="VM.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Lexer.h" />
     <ClInclude Include="VM.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
