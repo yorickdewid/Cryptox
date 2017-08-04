@@ -7,6 +7,8 @@
 #include <fstream>
 #include <sstream>
 
+__declspec(dllimport) void Compile(std::string content);
+
 class Runstrap
 {
 public:
@@ -20,7 +22,7 @@ public:
 	// be using the lexer to parse the program.
 	void Start()
 	{
-		// crycl::compiler<crycl::lexer> cl{ ss.str() };
+		// coilcl::compiler<coilcl::lexer> cl{ ss.str() };
 		// cl.Compile();
 	}
 
@@ -31,7 +33,16 @@ private:
 	{
 		std::ifstream src{ fname };
 
-		std::cout << src.rdbuf() << std::endl;
+		std::string str;
+		src.seekg(0, std::ios::end);
+		str.reserve(src.tellg());
+		src.seekg(0, std::ios::beg);
+
+		str.assign((std::istreambuf_iterator<char>(src)),
+				   std::istreambuf_iterator<char>());
+
+		//std::cout << src.rdbuf() << std::endl;
+		Compile(str);
 
 		/*std::string line;
 		while (std::getline(src, line))
