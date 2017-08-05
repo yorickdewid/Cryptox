@@ -17,22 +17,24 @@ void Lexer::Error(const std::string& errormsg)
 
 void Lexer::RegisterKeywords()
 {
-	m_keywords.insert(std::make_pair("typedef", Keyword(Keyword::TK_TYPEDEF)));
-	m_keywords.insert(std::make_pair("continue", Keyword(Keyword::TK_CONTINUE)));
-	m_keywords.insert(std::make_pair("if", Keyword(Keyword::TK_IF)));
-	m_keywords.insert(std::make_pair("else", Keyword(Keyword::TK_ELSE)));
-	m_keywords.insert(std::make_pair("return", Keyword(Keyword::TK_RETURN)));
-	m_keywords.insert(std::make_pair("for", Keyword(Keyword::TK_FOR)));
-	m_keywords.insert(std::make_pair("while", Keyword(Keyword::TK_WHILE)));
-	m_keywords.insert(std::make_pair("break", Keyword(Keyword::TK_BREAK)));
-	m_keywords.insert(std::make_pair("case", Keyword(Keyword::TK_CASE)));
-	m_keywords.insert(std::make_pair("NULL", Keyword(Keyword::TK_NULL)));
-	m_keywords.insert(std::make_pair("static", Keyword(Keyword::TK_STATIC)));
-	m_keywords.insert(std::make_pair("const", Keyword(Keyword::TK_CONST)));
-	m_keywords.insert(std::make_pair("enum", Keyword(Keyword::TK_ENUM)));
-	m_keywords.insert(std::make_pair("int", Keyword(Keyword::TK_INT)));
-	m_keywords.insert(std::make_pair("__LINE__", Keyword(Keyword::TK___LINE__)));
-	m_keywords.insert(std::make_pair("__FILE__", Keyword(Keyword::TK___FILE__)));
+	m_keywords.insert(std::make_pair("continue", Keyword(Token::TK_CONTINUE)));
+	m_keywords.insert(std::make_pair("if", Keyword(Token::TK_IF)));
+	m_keywords.insert(std::make_pair("else", Keyword(Token::TK_ELSE)));
+	m_keywords.insert(std::make_pair("return", Keyword(Token::TK_RETURN)));
+	m_keywords.insert(std::make_pair("for", Keyword(Token::TK_FOR)));
+	m_keywords.insert(std::make_pair("while", Keyword(Token::TK_WHILE)));
+	m_keywords.insert(std::make_pair("do", Keyword(Token::TK_DO)));
+	m_keywords.insert(std::make_pair("break", Keyword(Token::TK_BREAK)));
+	m_keywords.insert(std::make_pair("case", Keyword(Token::TK_CASE)));
+	m_keywords.insert(std::make_pair("typedef", Keyword(Token::TK_TM_TYPEDEF)));
+	m_keywords.insert(std::make_pair("static", Keyword(Token::TK_TM_STATIC)));
+	m_keywords.insert(std::make_pair("const", Keyword(Token::TK_TM_CONST)));
+	m_keywords.insert(std::make_pair("enum", Keyword(Token::TK_TM_ENUM)));
+	m_keywords.insert(std::make_pair("int", Keyword(Token::TK_TM_INT)));
+	m_keywords.insert(std::make_pair("char", Keyword(Token::TK_TM_CHAR)));
+	m_keywords.insert(std::make_pair("float", Keyword(Token::TK_TM_FLOAT)));
+	m_keywords.insert(std::make_pair("__LINE__", Keyword(Token::TK___LINE__)));
+	m_keywords.insert(std::make_pair("__FILE__", Keyword(Token::TK___FILE__)));
 }
 
 // Retrieve Next character from content and store it 
@@ -57,15 +59,15 @@ int Lexer::Lex()
 	while (m_currentChar != EndOfUnit) {
 		switch (m_currentChar) {
 
-			// Ignore all whitespaces and continue with the Next character
 		case '\t':
 		case '\r':
 		case ' ':
+			// Ignore all whitespaces and continue with the Next character
 			Next();
 			continue;
 
-			// Move onto the next line and keep track of where we are in the source
 		case '\n':
+			// Move onto the next line and keep track of where we are in the source
 			m_currentLine++;
 			m_prevToken = m_currentToken;
 			m_currentToken = '\n';
@@ -97,21 +99,21 @@ int Lexer::Lex()
 		case '=':
 			Next();
 			if (m_currentChar != '=') {
-				return ReturnToken(Keyword::TK_ASSIGN);
+				return ReturnToken(Token::TK_ASSIGN);
 			} else {
 				Next();
-				return ReturnToken(Keyword::TK_EQ);
+				return ReturnToken(Token::TK_EQ);
 			}
 
 		case '<':
 			Next();
 			switch (m_currentChar) {
 			case '=':
-				return ReturnToken(Keyword::TK_LE);
+				return ReturnToken(Token::TK_LE);
 				break;
 			case '<':
 				Next();
-				return ReturnToken(Keyword::TK_SHIFTL);
+				return ReturnToken(Token::TK_SHIFTL);
 				break;
 			}
 			return ReturnToken('<');
@@ -120,10 +122,10 @@ int Lexer::Lex()
 			Next();
 			if (m_currentChar == '=') {
 				Next();
-				return ReturnToken(Keyword::TK_GE);
+				return ReturnToken(Token::TK_GE);
 			} else if (m_currentChar == '>') {
 				Next();
-				return ReturnToken(Keyword::TK_SHIFTR);
+				return ReturnToken(Token::TK_SHIFTR);
 			} else {
 				return ReturnToken('>');
 			}
@@ -131,17 +133,17 @@ int Lexer::Lex()
 		case '!':
 			Next();
 			if (m_currentChar != '=') {
-				return ReturnToken(Keyword::TK_NOT);
+				return ReturnToken(Token::TK_NOT);
 			} else {
 				Next();
-				return ReturnToken(Keyword::TK_NE);
+				return ReturnToken(Token::TK_NE);
 			}
 
 		case '"':
 		case '\'':
 		{
 			int stype;
-			if ((stype = ReadString(m_currentChar, false)) != -1) {
+			if ((stype = ReadString(m_currentChar)) != -1) {
 				return ReturnToken(stype);
 			}
 			Error("error parsing string");
@@ -173,7 +175,7 @@ int Lexer::Lex()
 				Error("invalid token '..'");
 			}
 			Next();
-			return ReturnToken(Keyword::TK_VARPARAMS);
+			return ReturnToken(Token::TK_TM_VARPARAMS);
 
 		case '&':
 			Next();
@@ -181,7 +183,7 @@ int Lexer::Lex()
 				return ReturnToken('&');
 			} else {
 				Next();
-				return ReturnToken(Keyword::TK_AND);
+				return ReturnToken(Token::TK_AND);
 			}
 
 		case '|':
@@ -190,7 +192,7 @@ int Lexer::Lex()
 				return ReturnToken('|');
 			} else {
 				Next();
-				return ReturnToken(Keyword::TK_OR);
+				return ReturnToken(Token::TK_OR);
 			}
 
 			/*case ':':
@@ -217,10 +219,10 @@ int Lexer::Lex()
 			Next();
 			if (m_currentChar == '=') {
 				Next();
-				return ReturnToken(Keyword::TK_MINUSEQ);
+				return ReturnToken(Token::TK_MINUSEQ);
 			} else if (m_currentChar == '-') {
 				Next();
-				return ReturnToken(Keyword::TK_MINUSMINUS);
+				return ReturnToken(Token::TK_MINUSMINUS);
 			} else
 				return ReturnToken('-');
 
@@ -228,10 +230,10 @@ int Lexer::Lex()
 			Next();
 			if (m_currentChar == '=') {
 				Next();
-				return ReturnToken(Keyword::TK_PLUSEQ);
+				return ReturnToken(Token::TK_PLUSEQ);
 			} else if (m_currentChar == '+') {
 				Next();
-				return ReturnToken(Keyword::TK_PLUSPLUS);
+				return ReturnToken(Token::TK_PLUSPLUS);
 			} else {
 				return ReturnToken('+');
 			}
@@ -266,7 +268,7 @@ int Lexer::Lex()
 	return 0;
 }
 
-int Lexer::ReadString(int ndelim, bool verbatim)
+int Lexer::ReadString(int ndelim)
 {
 	std::string _longstr;
 
@@ -275,20 +277,12 @@ int Lexer::ReadString(int ndelim, bool verbatim)
 		return -1;
 	}*/
 
-	//for (;;) {
 	while (m_currentChar != ndelim) {
 		_longstr.push_back(m_currentChar);
 		Next();
 	}
 
 	Next();
-	//if (verbatim && m_currentChar == '"') { //double quotation
-	//	_longstr.push_back(m_currentChar);
-	//	Next();
-	//} else {
-	//	break;
-	//}
-//}
 
 	int len = _longstr.size() - 1;
 	if (ndelim == '\'') {
@@ -300,11 +294,11 @@ int Lexer::ReadString(int ndelim, bool verbatim)
 		}
 
 		char _cvalue = _longstr[0];
-		return Keyword::TK_CHAR;
+		return Token::TK_CHARACTER;
 	}
 
 	const char *_svalue = _longstr.c_str();
-	return Keyword::TK_STRING_LITERAL;
+	return Token::TK_STRING_LITERAL;
 }
 
 int Lexer::ReadID()
@@ -326,13 +320,13 @@ int Lexer::ReadID()
 			return int(_integer(t));
 		}
 
-		return Keyword::TK_IDENTIFIER;
+		return Token::TK_IDENTIFIER;
 	}*/
 
 	/*int res = GetIDType(&_longstr[0], _longstr.size() - 1);
-	if (res == Keyword::TK_IDENTIFIER) {*/
+	if (res == Token::TK_IDENTIFIER) {*/
 	const char *_svalue = _longstr.c_str();
-	return Keyword::TK_IDENTIFIER;
+	return Token::TK_IDENTIFIER;
 	//}
 
 	//return res;
@@ -416,19 +410,19 @@ int Lexer::LexScalar()
 		//_fvalue = (float)scstrtod(&_longstr[0], &sTemp);
 	{
 		float _fvalue = boost::lexical_cast<float>(_longstr);
-		return Keyword::TK_FLOAT;
+		return Token::TK_FLOAT;
 	}
 	case Int:
 		//LexInteger(&_longstr[0], (unsigned int *)&_nvalue);
 	{
 		int _nvalue = boost::lexical_cast<int>(_longstr);
-		return Keyword::TK_INTEGER;
+		return Token::TK_INTEGER;
 	}
 	case Hex:
 		//LexHexadecimal(&_longstr[0], (unsigned int *)&_nvalue);
 	{
 		int _nvalue = boost::lexical_cast<int>(_longstr);
-		return Keyword::TK_INTEGER;
+		return Token::TK_INTEGER;
 	}
 	case Octal:
 		/*LexOctal(&_longstr[0], (unsigned int *)&_nvalue);

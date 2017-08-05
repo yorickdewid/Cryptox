@@ -4,64 +4,72 @@
 #include <functional>
 #include <unordered_map>
 
-class Lexer;
+enum Token
+{
+	// Single character tokens with ASCII code
+	TK_BRACE_OPEN = 123,
+	TK_BRACE_CLOSE = 125,
+	TK_PARENTHES_OPEN = 40,
+	TK_PARENTHES_CLOSE = 41,
+	TK_BRACKET_OPEN = 91,
+	TK_BRACKET_CLOSE = 93,
+	TK_COMMIT = 59,
+	TK_COMMA = 44,
+	TK_CARET = 94,
+	TK_TILDE = 126,
+
+	// Primitive values
+	TK_IDENTIFIER = 257,
+	TK_STRING_LITERAL = 258,
+	TK_CHARACTER = 259,
+	TK_INTEGER = 260,
+	TK_FLOAT = 261,
+	TK_DOUBLE = 262,
+
+	// Keywords
+	TK_ASSIGN = 312,
+	TK_NOT = 313,
+	TK_EQ = 314,
+	TK_NE = 315,
+	TK_LE = 316,
+	TK_GE = 317,
+	TK_SWITCH = 318,
+	TK_AND = 319,
+	TK_OR = 320,
+	TK_IF = 321,
+	TK_ELSE = 322,
+	TK_WHILE = 323,
+	TK_BREAK = 324,
+	TK_DO = 325,
+	TK_FOR = 326,
+	TK_RETURN = 327,
+	TK_UMINUS = 328,
+	TK_PLUSEQ = 329,
+	TK_MINUSEQ = 330,
+	TK_CONTINUE = 331,
+	TK_SHIFTL = 332,
+	TK_SHIFTR = 333,
+	TK_CASE = 334,
+	TK_PLUSPLUS = 335,
+	TK_MINUSMINUS = 336,
+
+	// Type modifiers
+	TK_TM_TYPEDEF = 364,
+	TK_TM_STATIC = 365,
+	TK_TM_ENUM = 366,
+	TK_TM_CONST = 367,
+	TK_TM_INT = 368,
+	TK_TM_CHAR = 369,
+	TK_TM_FLOAT = 370,
+	TK_TM_VARPARAMS = 371,
+
+	// Compiler translation
+	TK___LINE__ = 390,
+	TK___FILE__ = 391,
+};
 
 struct Keyword
 {
-	enum Token
-	{
-		TK_BRACE_OPEN = 123,
-		TK_BRACE_CLOSE = 125,
-		TK_PARENTHES_OPEN = 40,
-		TK_PARENTHES_CLOSE = 41,
-		TK_BRACKET_OPEN = 91,
-		TK_BRACKET_CLOSE = 93,
-		TK_COMMIT = 59,
-		TK_COMMA = 44,
-		TK_CARET = 94,
-		TK_TILDE = 126,
-
-		TK_IDENTIFIER = 257,
-		TK_STRING_LITERAL = 258,
-		TK_CHAR = 259,
-		TK_INTEGER = 260,
-		TK_FLOAT = 261,
-
-		TK_ASSIGN = 262,
-		TK_NOT = 263,
-		TK_EQ = 264,
-		TK_NE = 265,
-		TK_LE = 266,
-		TK_GE = 267,
-		TK_SWITCH = 268,
-		TK_AND = 270,
-		TK_OR = 271,
-		TK_IF = 272,
-		TK_ELSE = 273,
-		TK_WHILE = 274,
-		TK_BREAK = 275,
-		TK_FOR = 276,
-		TK_NULL = 278,
-		TK_RETURN = 286,
-		TK_TYPEDEF = 287,
-		TK_UMINUS = 288,
-		TK_PLUSEQ = 289,
-		TK_MINUSEQ = 290,
-		TK_CONTINUE = 291,
-		TK_SHIFTL = 296,
-		TK_SHIFTR = 297,
-		TK_CASE = 300,
-		TK_PLUSPLUS = 303,
-		TK_MINUSMINUS = 304,
-		TK_STATIC = 322,
-		TK_ENUM = 323,
-		TK_CONST = 324,
-		TK_INT = 325,
-		TK_VARPARAMS = 312,
-		TK___LINE__ = 313,
-		TK___FILE__ = 314,
-	};
-
 	Keyword(Token token)
 		: m_token{ token }
 	{
@@ -85,7 +93,7 @@ private:
 	void RegisterKeywords();
 	int LexScalar();
 	int ReadID();
-	int ReadString(int ndelim, bool verbatim);
+	int ReadString(int ndelim);
 
 	template<typename Type>
 	int ReturnToken(Type token)
