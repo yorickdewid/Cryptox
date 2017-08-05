@@ -24,6 +24,8 @@ int main(int argc, const char *argv[])
 		po::variables_map vm;
 		po::store(po::command_line_parser(argc, argv).options(desc).positional(p).run(), vm);
 
+		RunSource("../main.c.ccil");
+
 		if (vm.count("help"))
 		{
 			std::cout << "Usage: crycli [options] [FILE]\n";
