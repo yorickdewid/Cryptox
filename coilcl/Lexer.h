@@ -1,6 +1,9 @@
 #pragma once
 
+#include "ValueObject.h"
+
 #include <string>
+#include <memory>
 #include <functional>
 #include <unordered_map>
 
@@ -18,7 +21,7 @@ enum Token
 	TK_CARET = 94,
 	TK_TILDE = 126,
 
-	// Primitive values
+	// Primitive values containing data
 	TK_IDENTIFIER = 257,
 	TK_STRING_LITERAL = 258,
 	TK_CHARACTER = 259,
@@ -75,6 +78,7 @@ struct Keyword
 	{
 	}
 
+	// Only the lexer is allowed to access the token keyword
 	friend class Lexer;
 
 private:
@@ -87,8 +91,19 @@ public:
 	Lexer(std::string stringarray, const std::function<void(const std::string&)> errHandler = {});
 	int Lex(); // friend
 
+	bool HasData() const
+	{
+		return m_data != nullptr;
+	}
+
+	std::shared_ptr<Value> Data()
+	{
+		return m_data;
+	}
+
 private:
 	void Next();
+	void VNext();
 	void Error(const std::string& errormsg);
 	void RegisterKeywords();
 	int LexScalar();
@@ -110,6 +125,7 @@ protected:
 private:
 	std::unordered_map<std::string, Keyword> m_keywords;
 	std::function<void(const std::string&)> m_errHandler;
+	std::shared_ptr<Value> m_data = nullptr;
 	char m_currentChar;
 	bool m_isEof = false;
 	int m_currentColumn = 0;

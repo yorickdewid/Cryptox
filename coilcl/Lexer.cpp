@@ -53,8 +53,18 @@ void Lexer::Next()
 	m_currentChar = EndOfUnit;
 }
 
+void Lexer::VNext()
+{
+	m_currentLine++;
+	m_prevToken = m_currentToken;
+	m_currentToken = '\n';
+	Next();
+	m_currentColumn = 1;
+}
+
 int Lexer::Lex()
 {
+	m_data.reset();
 	m_lastTokenLine = m_currentLine;
 	while (m_currentChar != EndOfUnit) {
 		switch (m_currentChar) {
@@ -68,11 +78,7 @@ int Lexer::Lex()
 
 		case '\n':
 			// Move onto the next line and keep track of where we are in the source
-			m_currentLine++;
-			m_prevToken = m_currentToken;
-			m_currentToken = '\n';
-			Next();
-			m_currentColumn = 1;
+			VNext();
 			continue;
 
 			/*case '#'):
@@ -258,9 +264,11 @@ int Lexer::Lex()
 					Error("unexpected character(control)");
 				}
 				Next();
-				return ReturnToken(c);
+				//m_hasData = true;
+				//m_data = std::make_shared<ValueObject<decltype(_cvalue)>>(Value::T_CHAR, _cvalue);
+				return ReturnToken(c); // ?
 			}
-			return ReturnToken(0);
+			return ReturnToken(0);//TODO: NOPE
 
 		} // switch
 	} // while
@@ -284,7 +292,7 @@ int Lexer::ReadString(int ndelim)
 
 	Next();
 
-	int len = _longstr.size() - 1;
+	int len = _longstr.size();
 	if (ndelim == '\'') {
 		if (len == 0) {
 			Error("empty constant");
@@ -294,10 +302,12 @@ int Lexer::ReadString(int ndelim)
 		}
 
 		char _cvalue = _longstr[0];
+		m_data = std::make_shared<ValueObject<decltype(_cvalue)>>(Value::T_CHAR, _cvalue);
 		return Token::TK_CHARACTER;
 	}
 
-	const char *_svalue = _longstr.c_str();
+	auto _svalue = _longstr;
+	m_data = std::make_shared<ValueObject<decltype(_svalue)>>(Value::T_STRING, _svalue);
 	return Token::TK_STRING_LITERAL;
 }
 
@@ -314,22 +324,10 @@ int Lexer::ReadID()
 	if (result != m_keywords.end()) {
 		return static_cast<int>(result->second.m_token);
 	}
-	/*{
-		LVObjectPtr t;
-		if (m_keywords->GetStr(s, len, t)) {
-			return int(_integer(t));
-		}
 
-		return Token::TK_IDENTIFIER;
-	}*/
-
-	/*int res = GetIDType(&_longstr[0], _longstr.size() - 1);
-	if (res == Token::TK_IDENTIFIER) {*/
-	const char *_svalue = _longstr.c_str();
+	auto _svalue = _longstr;
+	m_data = std::make_shared<ValueObject<decltype(_svalue)>>(Value::T_STRING, _svalue);
 	return Token::TK_IDENTIFIER;
-	//}
-
-	//return res;
 }
 
 #define MAX_HEX_DIGITS (sizeof(int)*2)
@@ -407,21 +405,23 @@ int Lexer::LexScalar()
 	switch (ScalarType) {
 	case Scientific:
 	case Float:
-		//_fvalue = (float)scstrtod(&_longstr[0], &sTemp);
 	{
-		float _fvalue = boost::lexical_cast<float>(_longstr);
+		auto _fvalue = boost::lexical_cast<float>(_longstr);
+		m_data = std::make_shared<ValueObject<decltype(_fvalue)>>(Value::T_FLOAT, _fvalue);
 		return Token::TK_FLOAT;
 	}
 	case Int:
 		//LexInteger(&_longstr[0], (unsigned int *)&_nvalue);
 	{
-		int _nvalue = boost::lexical_cast<int>(_longstr);
+		auto _nvalue = boost::lexical_cast<int>(_longstr);
+		m_data = std::make_shared<ValueObject<decltype(_nvalue)>>(Value::T_INT, _nvalue);
 		return Token::TK_INTEGER;
 	}
 	case Hex:
 		//LexHexadecimal(&_longstr[0], (unsigned int *)&_nvalue);
 	{
-		int _nvalue = boost::lexical_cast<int>(_longstr);
+		auto _nvalue = boost::lexical_cast<int>(_longstr);
+		m_data = std::make_shared<ValueObject<decltype(_nvalue)>>(Value::T_INT, _nvalue);
 		return Token::TK_INTEGER;
 	}
 	case Octal:
