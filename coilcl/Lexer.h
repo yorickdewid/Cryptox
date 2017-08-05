@@ -10,10 +10,23 @@ struct Keyword
 {
 	enum Token
 	{
-		TK_IDENTIFIER = 258,
-		TK_STRING_LITERAL = 259,
+		TK_BRACE_OPEN = 123,
+		TK_BRACE_CLOSE = 125,
+		TK_PARENTHES_OPEN = 40,
+		TK_PARENTHES_CLOSE = 41,
+		TK_BRACKET_OPEN = 91,
+		TK_BRACKET_CLOSE = 93,
+		TK_COMMIT = 59,
+		TK_COMMA = 44,
+		TK_CARET = 94,
+		TK_TILDE = 126,
+
+		TK_IDENTIFIER = 257,
+		TK_STRING_LITERAL = 258,
+		TK_CHAR = 259,
 		TK_INTEGER = 260,
 		TK_FLOAT = 261,
+
 		TK_ASSIGN = 262,
 		TK_NOT = 263,
 		TK_EQ = 264,
@@ -67,12 +80,12 @@ public:
 	int Lex(); // friend
 
 private:
-	bool Next();
+	void Next();
 	void Error(const std::string& errormsg);
 	void RegisterKeywords();
 	int LexScalar();
 	int ReadID();
-	//int GetIDType(const char *s, int len);
+	int ReadString(int ndelim, bool verbatim);
 
 	template<typename Type>
 	int ReturnToken(Type token)

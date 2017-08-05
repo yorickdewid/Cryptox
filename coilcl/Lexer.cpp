@@ -37,22 +37,23 @@ void Lexer::RegisterKeywords()
 
 // Retrieve Next character from content and store it 
 // as the current token. If there is no Next token this
-// function will return false.
-bool Lexer::Next()
+// function will set the end of file toggle and push the
+// EndofUnit as current character.
+void Lexer::Next()
 {
 	if (m_offset < m_content.size()) {
 		m_currentChar = m_content[m_offset++];
 		m_currentColumn++;
-		return true;
+		return;
 	}
 
-	return false;
+	m_isEof = true;
+	m_currentChar = EndOfUnit;
 }
 
 int Lexer::Lex()
 {
 	m_lastTokenLine = m_currentLine;
-	Next();
 	while (m_currentChar != EndOfUnit) {
 		switch (m_currentChar) {
 
@@ -136,28 +137,15 @@ int Lexer::Lex()
 				return ReturnToken(Keyword::TK_NE);
 			}
 
-			/*case '@':
-			{
-				int stype;
-				Next();
-				if (m_currentChar != '"') {
-					ReturnToken('@');
-				}
-				if ((stype = ReadString('"', true)) != -1) {
-					ReturnToken(stype);
-				}
-				Error("error parsing the string"));
-			}*/
-
-			/*case '"':
-			case '\'':
-			{
-				int stype;
-				if ((stype = ReadString(m_currentChar, false)) != -1) {
-					ReturnToken(stype);
-				}
-				Error("error parsing string"));
-			}*/
+		case '"':
+		case '\'':
+		{
+			int stype;
+			if ((stype = ReadString(m_currentChar, false)) != -1) {
+				return ReturnToken(stype);
+			}
+			Error("error parsing string");
+		}
 
 		case '{':
 		case '}':
@@ -167,7 +155,6 @@ int Lexer::Lex()
 		case ']':
 		case ';':
 		case ',':
-		case '?':
 		case '^':
 		case '~':
 		{
@@ -250,13 +237,13 @@ int Lexer::Lex()
 			}
 
 		case EndOfUnit:
+			// Reached end of input, so long ...
 			return 0;
 
-			// No token sequence matched so we either deal with scalars, ids or 
-			// control carachters.
 		default:
-			// If the first character is a digit, try to parse the entire
-			// token as number.
+			// No token sequence matched so we either deal with scalars, ids or 
+			// control carachters. If the first character is a digit, try to
+			// parse the entire token as number.
 			if (std::isdigit(m_currentChar)) {
 				int ret = LexScalar();
 				return ReturnToken(ret);
@@ -279,15 +266,46 @@ int Lexer::Lex()
 	return 0;
 }
 
-//int Lexer::GetIDType(const char *s, int len)
-//{
-//	LVObjectPtr t;
-//	if (m_keywords->GetStr(s, len, t)) {
-//		return int(_integer(t));
-//	}
-//
-//	return Keyword::TK_IDENTIFIER;
+int Lexer::ReadString(int ndelim, bool verbatim)
+{
+	std::string _longstr;
+
+	Next();
+	/*if (IS_EOB()) {
+		return -1;
+	}*/
+
+	//for (;;) {
+	while (m_currentChar != ndelim) {
+		_longstr.push_back(m_currentChar);
+		Next();
+	}
+
+	Next();
+	//if (verbatim && m_currentChar == '"') { //double quotation
+	//	_longstr.push_back(m_currentChar);
+	//	Next();
+	//} else {
+	//	break;
+	//}
 //}
+
+	int len = _longstr.size() - 1;
+	if (ndelim == '\'') {
+		if (len == 0) {
+			Error("empty constant");
+		}
+		if (len > 1) {
+			Error("constant too long");
+		}
+
+		char _cvalue = _longstr[0];
+		return Keyword::TK_CHAR;
+	}
+
+	const char *_svalue = _longstr.c_str();
+	return Keyword::TK_STRING_LITERAL;
+}
 
 int Lexer::ReadID()
 {
@@ -332,15 +350,15 @@ int Lexer::LexScalar()
 		Octal = 5,
 	} ScalarType;
 
-	int firstchar = m_currentChar;
-	//char *sTemp;
+	const int firstchar = m_currentChar;
 
-	auto isodigit = [] (int c) -> bool { return c >= '0' && c <= '7'; };
-	auto isexponent = [] (int c) -> bool { return c == 'e' || c == 'E'; };
+	const auto isodigit = [] (int c) -> bool { return c >= '0' && c <= '7'; };
+	const auto isexponent = [] (int c) -> bool { return c == 'e' || c == 'E'; };
 
 	std::string _longstr;
 
 	Next();
+	// Check if we dealing with an octal or hex. If not then we know it is some integer
 	if (firstchar == '0' && (std::toupper(m_currentChar) == 'X' || isdigit(m_currentChar))) {
 		if (isodigit(m_currentChar)) {
 			ScalarType = Octal;
@@ -363,6 +381,8 @@ int Lexer::LexScalar()
 			}
 		}
 	} else {
+		// At this point we know the temporary buffer contains an integer.
+		ScalarType = Int;
 		_longstr.push_back((int)firstchar);
 		while (m_currentChar == '.' || std::isdigit(m_currentChar) || isexponent(m_currentChar)) {
 			if (m_currentChar == '.' || isexponent(m_currentChar)) {
@@ -427,4 +447,7 @@ Lexer::Lexer(std::string stringarray, const std::function<void(const std::string
 {
 	// Register all tokenized keywords
 	RegisterKeywords();
+
+	// Push the first character into the current character variable
+	Next();
 }
