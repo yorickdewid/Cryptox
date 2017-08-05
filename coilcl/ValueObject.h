@@ -25,12 +25,6 @@ struct Value
 		VOLATILE = 1 << 5,
 	};
 
-public:
-	Value(ObjectType type)
-		: m_objectType{ type }
-	{
-	}
-
 protected:
 	union StoreValue
 	{
@@ -38,12 +32,45 @@ protected:
 		float f;
 		double d;
 		char c;
-		union
+		struct
 		{
-			const char *ptr;
+			char *ptr;
 			size_t len;
 		} str;
 	};
+
+	virtual StoreValue ReturnValue() const = 0;
+
+public:
+	Value(ObjectType type)
+		: m_objectType{ type }
+	{
+	}
+
+	virtual ~Value() = default;
+
+	ObjectType DataType() const
+	{
+		return m_objectType;
+	}
+
+	template<typename Type>
+	Type As() const
+	{
+		return static_cast<Type>(ReturnValue().i);
+	}
+
+	template<>
+	float As() const
+	{
+		return ReturnValue().f;
+	}
+
+	template<>
+	std::string As() const
+	{
+		return std::string{ ReturnValue().str.ptr, ReturnValue().str.len };
+	}
 
 private:
 	Flags m_flags = Flags::NONE;
@@ -53,6 +80,11 @@ template<typename Type>
 class ValueObject : public Value
 {
 	StoreValue m_value;
+
+	StoreValue ReturnValue() const override
+	{
+		return m_value;
+	}
 
 public:
 	ValueObject(ObjectType type, Type v)
@@ -67,6 +99,11 @@ class ValueObject<float> : public Value
 {
 	StoreValue m_value;
 
+	StoreValue ReturnValue() const override
+	{
+		return m_value;
+	}
+
 public:
 	ValueObject(ObjectType type, float v)
 		: Value{ type }
@@ -80,11 +117,23 @@ class ValueObject<std::string> : public Value
 {
 	StoreValue m_value;
 
+	StoreValue ReturnValue() const override
+	{
+		return m_value;
+	}
+
 public:
 	ValueObject(ObjectType type, std::string str)
 		: Value{ type }
 	{
-		m_value.str.ptr = str.c_str();
+		m_value.str.ptr = new char[str.size()];
 		m_value.str.len = str.size();
+
+		::memcpy_s(m_value.str.ptr, m_value.str.len, str.c_str(), str.size());
+	}
+
+	~ValueObject()
+	{
+		delete[] m_value.str.ptr;
 	}
 };

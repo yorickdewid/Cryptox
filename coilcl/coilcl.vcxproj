@@ -143,10 +143,12 @@
     <ClCompile Include="coilcl.cpp" />
     <ClCompile Include="Lexer.cpp" />
     <ClCompile Include="OpCodes.h" />
+    <ClCompile Include="ValueObject.cpp" />
     <ClCompile Include="VM.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Lexer.h" />
+    <ClInclude Include="ValueObject.h" />
     <ClInclude Include="VM.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
