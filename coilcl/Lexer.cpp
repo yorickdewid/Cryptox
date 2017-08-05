@@ -1,5 +1,7 @@
 #include "Lexer.h"
 
+#include <boost/lexical_cast.hpp>
+
 #include <cctype>
 #include <string>
 #include <iostream>
@@ -11,13 +13,6 @@ void Lexer::Error(const std::string& errormsg)
 	if (m_errHandler) {
 		m_errHandler(errormsg);
 	}
-}
-
-char Lexer::ReturnToken(char token)
-{
-	m_prevToken = m_currentToken;
-	m_currentToken = token;
-	return token;
 }
 
 void Lexer::RegisterKeywords()
@@ -35,6 +30,7 @@ void Lexer::RegisterKeywords()
 	m_keywords.insert(std::make_pair("static", Keyword(Keyword::TK_STATIC)));
 	m_keywords.insert(std::make_pair("const", Keyword(Keyword::TK_CONST)));
 	m_keywords.insert(std::make_pair("enum", Keyword(Keyword::TK_ENUM)));
+	m_keywords.insert(std::make_pair("int", Keyword(Keyword::TK_INT)));
 	m_keywords.insert(std::make_pair("__LINE__", Keyword(Keyword::TK___LINE__)));
 	m_keywords.insert(std::make_pair("__FILE__", Keyword(Keyword::TK___FILE__)));
 }
@@ -46,15 +42,17 @@ bool Lexer::Next()
 {
 	if (m_offset < m_content.size()) {
 		m_currentChar = m_content[m_offset++];
+		m_currentColumn++;
 		return true;
 	}
 
 	return false;
 }
 
-char Lexer::Lex()
+int Lexer::Lex()
 {
 	m_lastTokenLine = m_currentLine;
+	Next();
 	while (m_currentChar != EndOfUnit) {
 		switch (m_currentChar) {
 
@@ -65,6 +63,7 @@ char Lexer::Lex()
 			Next();
 			continue;
 
+			// Move onto the next line and keep track of where we are in the source
 		case '\n':
 			m_currentLine++;
 			m_prevToken = m_currentToken;
@@ -97,44 +96,44 @@ char Lexer::Lex()
 		case '=':
 			Next();
 			if (m_currentChar != '=') {
-				ReturnToken(Keyword::TK_ASSIGN);
+				return ReturnToken(Keyword::TK_ASSIGN);
 			} else {
 				Next();
-				ReturnToken(Keyword::TK_EQ);
+				return ReturnToken(Keyword::TK_EQ);
 			}
 
 		case '<':
 			Next();
 			switch (m_currentChar) {
 			case '=':
-				ReturnToken(Keyword::TK_LE);
+				return ReturnToken(Keyword::TK_LE);
 				break;
 			case '<':
 				Next();
-				ReturnToken(Keyword::TK_SHIFTL);
+				return ReturnToken(Keyword::TK_SHIFTL);
 				break;
 			}
-			ReturnToken('<');
+			return ReturnToken('<');
 
 		case '>':
 			Next();
 			if (m_currentChar == '=') {
 				Next();
-				ReturnToken(Keyword::TK_GE);
+				return ReturnToken(Keyword::TK_GE);
 			} else if (m_currentChar == '>') {
 				Next();
-				ReturnToken(Keyword::TK_SHIFTR);
+				return ReturnToken(Keyword::TK_SHIFTR);
 			} else {
-				ReturnToken('>');
+				return ReturnToken('>');
 			}
 
 		case '!':
 			Next();
 			if (m_currentChar != '=') {
-				ReturnToken(Keyword::TK_NOT);
+				return ReturnToken(Keyword::TK_NOT);
 			} else {
 				Next();
-				ReturnToken(Keyword::TK_NE);
+				return ReturnToken(Keyword::TK_NE);
 			}
 
 			/*case '@':
@@ -174,37 +173,37 @@ char Lexer::Lex()
 		{
 			int ret = m_currentChar;
 			Next();
-			ReturnToken(ret);
+			return ReturnToken(ret);
 		}
 
 		case '.':
 			Next();
 			if (m_currentChar != '.') {
-				ReturnToken('.');
+				return ReturnToken('.');
 			}
 			Next();
 			if (m_currentChar != '.') {
 				Error("invalid token '..'");
 			}
 			Next();
-			ReturnToken(Keyword::TK_VARPARAMS);
+			return ReturnToken(Keyword::TK_VARPARAMS);
 
 		case '&':
 			Next();
 			if (m_currentChar != '&') {
-				ReturnToken('&');
+				return ReturnToken('&');
 			} else {
 				Next();
-				ReturnToken(Keyword::TK_AND);
+				return ReturnToken(Keyword::TK_AND);
 			}
 
 		case '|':
 			Next();
 			if (m_currentChar != '|') {
-				ReturnToken('|');
+				return ReturnToken('|');
 			} else {
 				Next();
-				ReturnToken(Keyword::TK_OR);
+				return ReturnToken(Keyword::TK_OR);
 			}
 
 			/*case ':':
@@ -231,46 +230,48 @@ char Lexer::Lex()
 			Next();
 			if (m_currentChar == '=') {
 				Next();
-				ReturnToken(Keyword::TK_MINUSEQ);
+				return ReturnToken(Keyword::TK_MINUSEQ);
 			} else if (m_currentChar == '-') {
 				Next();
-				ReturnToken(Keyword::TK_MINUSMINUS);
+				return ReturnToken(Keyword::TK_MINUSMINUS);
 			} else
-				ReturnToken('-');
+				return ReturnToken('-');
 
 		case '+':
 			Next();
 			if (m_currentChar == '=') {
 				Next();
-				ReturnToken(Keyword::TK_PLUSEQ);
+				return ReturnToken(Keyword::TK_PLUSEQ);
 			} else if (m_currentChar == '+') {
 				Next();
-				ReturnToken(Keyword::TK_PLUSPLUS);
+				return ReturnToken(Keyword::TK_PLUSPLUS);
 			} else {
-				ReturnToken('+');
+				return ReturnToken('+');
 			}
 
-		case 0:
+		case EndOfUnit:
 			return 0;
 
 			// No token sequence matched so we either deal with scalars, ids or 
 			// control carachters.
 		default:
+			// If the first character is a digit, try to parse the entire
+			// token as number.
 			if (std::isdigit(m_currentChar)) {
-				int ret = ReadNumber();
-				ReturnToken(ret);
+				int ret = LexScalar();
+				return ReturnToken(ret);
 			} else if (std::isalpha(m_currentChar) || m_currentChar == '_') {
 				int t = ReadID();
-				ReturnToken(t);
+				return ReturnToken(t);
 			} else {
 				int c = m_currentChar;
 				if (std::iscntrl((int)c)) {
-					Error("unexpected character(control)"));
+					Error("unexpected character(control)");
 				}
 				Next();
-				ReturnToken(c);
+				return ReturnToken(c);
 			}
-			ReturnToken(0);
+			return ReturnToken(0);
 
 		} // switch
 	} // while
@@ -278,90 +279,141 @@ char Lexer::Lex()
 	return 0;
 }
 
-int Lexer::GetIDType(const char *s, int len)
-{
-	LVObjectPtr t;
-	if (m_keywords->GetStr(s, len, t)) {
-		return LVInteger(_integer(t));
-	}
+//int Lexer::GetIDType(const char *s, int len)
+//{
+//	LVObjectPtr t;
+//	if (m_keywords->GetStr(s, len, t)) {
+//		return int(_integer(t));
+//	}
+//
+//	return Keyword::TK_IDENTIFIER;
+//}
 
+int Lexer::ReadID()
+{
+	std::string _longstr;
+
+	do {
+		_longstr.push_back(m_currentChar);
+		Next();
+	} while (std::isalnum(m_currentChar) || m_currentChar == '_');
+
+	auto result = m_keywords.find(_longstr);
+	if (result != m_keywords.end()) {
+		return static_cast<int>(result->second.m_token);
+	}
+	/*{
+		LVObjectPtr t;
+		if (m_keywords->GetStr(s, len, t)) {
+			return int(_integer(t));
+		}
+
+		return Keyword::TK_IDENTIFIER;
+	}*/
+
+	/*int res = GetIDType(&_longstr[0], _longstr.size() - 1);
+	if (res == Keyword::TK_IDENTIFIER) {*/
+	const char *_svalue = _longstr.c_str();
 	return Keyword::TK_IDENTIFIER;
+	//}
+
+	//return res;
 }
 
-#define MAX_HEX_DIGITS (sizeof(LVInteger)*2)
-int Lexer::ReadNumber()
+#define MAX_HEX_DIGITS (sizeof(int)*2)
+int Lexer::LexScalar()
 {
-#define TINT 1
-#define TFLOAT 2
-#define THEX 3
-#define TSCIENTIFIC 4
-#define TOCTAL 5
-	int type = TINT, firstchar = m_currentChar;
-	LVChar *sTemp;
-	INIT_TEMP_STRING();
-	NEXT();
-	if (firstchar == _LC('0') && (toupper(CUR_CHAR) == _LC('X') || scisodigit(CUR_CHAR))) {
-		if (scisodigit(CUR_CHAR)) {
-			type = TOCTAL;
-			while (scisodigit(CUR_CHAR)) {
-				APPEND_CHAR(CUR_CHAR);
-				NEXT();
+	enum
+	{
+		Int = 1,
+		Float = 2,
+		Hex = 3,
+		Scientific = 4,
+		Octal = 5,
+	} ScalarType;
+
+	int firstchar = m_currentChar;
+	//char *sTemp;
+
+	auto isodigit = [] (int c) -> bool { return c >= '0' && c <= '7'; };
+	auto isexponent = [] (int c) -> bool { return c == 'e' || c == 'E'; };
+
+	std::string _longstr;
+
+	Next();
+	if (firstchar == '0' && (std::toupper(m_currentChar) == 'X' || isdigit(m_currentChar))) {
+		if (isodigit(m_currentChar)) {
+			ScalarType = Octal;
+			while (isodigit(m_currentChar)) {
+				_longstr.push_back(m_currentChar);
+				Next();
 			}
-			if (scisdigit(CUR_CHAR)) {
-				Error(_LC("invalid octal number"));
+			if (std::isdigit(m_currentChar)) {
+				Error("invalid octal number");
 			}
 		} else {
-			NEXT();
-			type = THEX;
-			while (isxdigit(CUR_CHAR)) {
-				APPEND_CHAR(CUR_CHAR);
-				NEXT();
+			Next();
+			ScalarType = Hex;
+			while (isxdigit(m_currentChar)) {
+				_longstr.push_back(m_currentChar);
+				Next();
 			}
 			if (_longstr.size() > MAX_HEX_DIGITS) {
-				Error(_LC("too many digits for an Hex number"));
+				Error("too many digits for an Hex number");
 			}
 		}
 	} else {
-		APPEND_CHAR((int)firstchar);
-		while (CUR_CHAR == _LC('.') || scisdigit(CUR_CHAR) || isexponent(CUR_CHAR)) {
-			if (CUR_CHAR == _LC('.') || isexponent(CUR_CHAR)) type = TFLOAT;
-			if (isexponent(CUR_CHAR)) {
-				if (type != TFLOAT) {
-					Error(_LC("invalid numeric format"));
+		_longstr.push_back((int)firstchar);
+		while (m_currentChar == '.' || std::isdigit(m_currentChar) || isexponent(m_currentChar)) {
+			if (m_currentChar == '.' || isexponent(m_currentChar)) {
+				ScalarType = Float;
+			}
+			if (isexponent(m_currentChar)) {
+				if (ScalarType != Float) {
+					Error("invalid numeric format");
 				}
 
-				type = TSCIENTIFIC;
-				APPEND_CHAR(CUR_CHAR);
-				NEXT();
-				if (CUR_CHAR == '+' || CUR_CHAR == '-') {
-					APPEND_CHAR(CUR_CHAR);
-					NEXT();
+				ScalarType = Scientific;
+				_longstr.push_back(m_currentChar);
+				Next();
+				if (m_currentChar == '+' || m_currentChar == '-') {
+					_longstr.push_back(m_currentChar);
+					Next();
 				}
-				if (!scisdigit(CUR_CHAR)) {
-					Error(_LC("exponent expected"));
+				if (!std::isdigit(m_currentChar)) {
+					Error("exponent expected");
 				}
 			}
 
-			APPEND_CHAR(CUR_CHAR);
-			NEXT();
+			_longstr.push_back(m_currentChar);
+			Next();
 		}
 	}
-	TERMINATE_BUFFER();
 
-	switch (type) {
-	case TSCIENTIFIC:
-	case TFLOAT:
-		_fvalue = (float)scstrtod(&_longstr[0], &sTemp);
-		return TK_FLOAT;
-	case TINT:
-		LexInteger(&_longstr[0], (LVUnsignedInteger *)&_nvalue);
-		return TK_INTEGER;
-	case THEX:
-		LexHexadecimal(&_longstr[0], (LVUnsignedInteger *)&_nvalue);
-		return TK_INTEGER;
-	case TOCTAL:
-		LexOctal(&_longstr[0], (LVUnsignedInteger *)&_nvalue);
-		return TK_INTEGER;
+	switch (ScalarType) {
+	case Scientific:
+	case Float:
+		//_fvalue = (float)scstrtod(&_longstr[0], &sTemp);
+	{
+		float _fvalue = boost::lexical_cast<float>(_longstr);
+		return Keyword::TK_FLOAT;
+	}
+	case Int:
+		//LexInteger(&_longstr[0], (unsigned int *)&_nvalue);
+	{
+		int _nvalue = boost::lexical_cast<int>(_longstr);
+		return Keyword::TK_INTEGER;
+	}
+	case Hex:
+		//LexHexadecimal(&_longstr[0], (unsigned int *)&_nvalue);
+	{
+		int _nvalue = boost::lexical_cast<int>(_longstr);
+		return Keyword::TK_INTEGER;
+	}
+	case Octal:
+		/*LexOctal(&_longstr[0], (unsigned int *)&_nvalue);
+		return TK_INTEGER;*/
+		break;
 	}
 
 	return 0;

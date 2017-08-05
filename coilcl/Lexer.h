@@ -4,6 +4,8 @@
 #include <functional>
 #include <unordered_map>
 
+class Lexer;
+
 struct Keyword
 {
 	enum Token
@@ -41,6 +43,7 @@ struct Keyword
 		TK_STATIC = 322,
 		TK_ENUM = 323,
 		TK_CONST = 324,
+		TK_INT = 325,
 		TK_VARPARAMS = 312,
 		TK___LINE__ = 313,
 		TK___FILE__ = 314,
@@ -51,6 +54,8 @@ struct Keyword
 	{
 	}
 
+	friend class Lexer;
+
 private:
 	Token m_token;
 };
@@ -59,14 +64,23 @@ class Lexer
 {
 public:
 	Lexer(std::string stringarray, const std::function<void(const std::string&)> errHandler = {});
-	char Lex(); // friend
+	int Lex(); // friend
 
 private:
 	bool Next();
 	void Error(const std::string& errormsg);
-	char ReturnToken(char t);
 	void RegisterKeywords();
-	int ReadNumber();
+	int LexScalar();
+	int ReadID();
+	//int GetIDType(const char *s, int len);
+
+	template<typename Type>
+	int ReturnToken(Type token)
+	{
+		m_prevToken = m_currentToken;
+		m_currentToken = static_cast<int>(token);
+		return m_currentToken;
+	}
 
 protected:
 	std::string m_content;
