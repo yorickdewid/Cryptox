@@ -30,6 +30,7 @@ void Lexer::RegisterKeywords()
 	m_keywords.insert(std::make_pair("do", Keyword(Token::TK_DO)));
 	m_keywords.insert(std::make_pair("break", Keyword(Token::TK_BREAK)));
 	m_keywords.insert(std::make_pair("case", Keyword(Token::TK_CASE)));
+	m_keywords.insert(std::make_pair("struct", Keyword(Token::TK_STRUCT)));
 	m_keywords.insert(std::make_pair("typedef", Keyword(Token::TK_TM_TYPEDEF)));
 	m_keywords.insert(std::make_pair("static", Keyword(Token::TK_TM_STATIC)));
 	m_keywords.insert(std::make_pair("const", Keyword(Token::TK_TM_CONST)));
@@ -431,7 +432,7 @@ int Lexer::LexScalar()
 
 // Initialize the lexer with a content file and optional error handler. The error handler is
 // called whenever an syntax error occurs. If no error handler is provided, error reporting is ignored.
-Lexer::Lexer(std::string stringarray, const std::function<void(const std::string& msg, char token, int line, int column)> errHandler)
+Lexer::Lexer(const std::string& stringarray, const std::function<void(const std::string& msg, char token, int line, int column)> errHandler)
 	: m_content{ stringarray }
 	, m_errHandler{ errHandler }
 {

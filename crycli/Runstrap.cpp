@@ -7,7 +7,7 @@
 #include <fstream>
 #include <sstream>
 
-__declspec(dllimport) void Compile(std::string content);
+__declspec(dllimport) void Compile(const std::string& content);
 
 class Runstrap
 {
@@ -35,7 +35,7 @@ private:
 
 		std::string str;
 		src.seekg(0, std::ios::end);
-		str.reserve(src.tellg());
+		str.reserve(static_cast<size_t>(src.tellg()));
 		src.seekg(0, std::ios::beg);
 
 		str.assign((std::istreambuf_iterator<char>(src)),

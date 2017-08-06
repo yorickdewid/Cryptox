@@ -55,6 +55,7 @@ enum Token
 	TK_CASE = 334,
 	TK_PLUSPLUS = 335,
 	TK_MINUSMINUS = 336,
+	TK_STRUCT = 337,
 
 	// Type modifiers
 	TK_TM_TYPEDEF = 364,
@@ -88,7 +89,7 @@ private:
 class Lexer
 {
 public:
-	Lexer(std::string stringarray, const std::function<void(const std::string& msg, char token, int line, int column)> errHandler = {});
+	Lexer(const std::string& stringarray, const std::function<void(const std::string& msg, char token, int line, int column)> errHandler = {});
 	int Lex(); // friend
 
 	bool HasData() const
