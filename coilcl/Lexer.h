@@ -88,7 +88,7 @@ private:
 class Lexer
 {
 public:
-	Lexer(std::string stringarray, const std::function<void(const std::string&)> errHandler = {});
+	Lexer(std::string stringarray, const std::function<void(const std::string& msg, char token, int line, int column)> errHandler = {});
 	int Lex(); // friend
 
 	bool HasData() const
@@ -124,7 +124,7 @@ protected:
 
 private:
 	std::unordered_map<std::string, Keyword> m_keywords;
-	std::function<void(const std::string&)> m_errHandler;
+	std::function<void(const std::string& msg, char token, int line, int column)> m_errHandler;
 	std::shared_ptr<Value> m_data = nullptr;
 	char m_currentChar;
 	bool m_isEof = false;

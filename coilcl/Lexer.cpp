@@ -11,8 +11,12 @@ constexpr char EndOfUnit = '\0';
 void Lexer::Error(const std::string& errormsg)
 {
 	if (m_errHandler) {
-		m_errHandler(errormsg);
+		m_errHandler(errormsg, m_currentChar, m_lastTokenLine, m_currentColumn);
 	}
+
+	m_isEof = true;
+	m_prevToken = m_currentToken;
+	m_currentChar = EndOfUnit;
 }
 
 void Lexer::RegisterKeywords()
@@ -259,16 +263,8 @@ int Lexer::Lex()
 				int t = ReadID();
 				return ReturnToken(t);
 			} else {
-				int c = m_currentChar;
-				if (std::iscntrl((int)c)) {
-					Error("unexpected character(control)");
-				}
-				Next();
-				//m_hasData = true;
-				//m_data = std::make_shared<ValueObject<decltype(_cvalue)>>(Value::T_CHAR, _cvalue);
-				return ReturnToken(c); // ?
+				Error("unexpected character");
 			}
-			return ReturnToken(0);//TODO: NOPE
 
 		} // switch
 	} // while
@@ -435,7 +431,7 @@ int Lexer::LexScalar()
 
 // Initialize the lexer with a content file and optional error handler. The error handler is
 // called whenever an syntax error occurs. If no error handler is provided, error reporting is ignored.
-Lexer::Lexer(std::string stringarray, const std::function<void(const std::string&)> errHandler)
+Lexer::Lexer(std::string stringarray, const std::function<void(const std::string& msg, char token, int line, int column)> errHandler)
 	: m_content{ stringarray }
 	, m_errHandler{ errHandler }
 {

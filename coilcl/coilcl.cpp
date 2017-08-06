@@ -6,15 +6,15 @@
 __declspec(dllexport) void Compile(std::string content)
 {
 	auto testPrg = R"STRL(
-				void func(char c, int i) {
-					c = '3';
-					return i + c;
-				}
+void func(char c, int i) {
+	c = '3';
+	@
+	return i + c;
+}
 				)STRL";
 
-
-	Lexer lex{ content, [] (const std::string& err) {
-		std::cerr << err << std::endl;
+	Lexer lex{ testPrg, [] (const std::string& err, char token, int line, int column) {
+		std::cerr << "Syntax error: " << err << " '" << token << "'" << " at " << line << ":" << column << std::endl;
 	} };
 
 	int token;
@@ -24,7 +24,7 @@ __declspec(dllexport) void Compile(std::string content)
 		if (lex.HasData()) {
 			auto val = lex.Data();
 			switch (val->DataType()) {
-			
+
 			case Value::T_STRING:
 				std::cout << " = " << val->As<std::string>();
 				break;
