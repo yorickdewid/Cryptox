@@ -110,6 +110,8 @@ private:
 	int LexScalar();
 	int ReadID();
 	int ReadString(int ndelim);
+	void LexBlockComment();
+	void LexLineComment();
 
 	template<typename Type>
 	int ReturnToken(Type token)

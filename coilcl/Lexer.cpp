@@ -89,23 +89,23 @@ int Lexer::Lex()
 			/*case '#'):
 				LexLineComment();
 				continue;*/
-				/*case '/':
+		case '/':
+			Next();
+			switch (m_currentChar) {
+			case '*':
+				Next();
+				LexBlockComment();
+				continue;
+			case '/':
+				LexLineComment();
+				continue;
+				/*case '=':
 					Next();
-					switch (m_currentChar) {
-					case '*':
-						Next();
-						LexBlockComment();
-						continue;
-					case '/':
-						LexLineComment();
-						continue;
-					case '=':
-						Next();
-						ReturnToken(TK_DIVEQ);
-						continue;
-					default:
-						ReturnToken('/');
-					}*/
+					ReturnToken(TK_DIVEQ);
+					continue;*/
+			default:
+				ReturnToken('/');
+			}
 
 		case '=':
 			Next();
@@ -271,6 +271,37 @@ int Lexer::Lex()
 	} // while
 
 	return 0;
+}
+
+void Lexer::LexBlockComment()
+{
+	bool done = false;
+	while (!done) {
+		switch (m_currentChar) {
+		case '*':
+		{
+			Next();
+			if (m_currentChar == '/') {
+				done = true;
+				Next();
+			}
+		};
+		continue;
+		case '\n':
+			m_currentLine++;
+			Next();
+			continue;
+		default:
+			Next();
+		}
+	}
+}
+
+void Lexer::LexLineComment()
+{
+	do {
+		Next();
+	} while (m_currentChar != '\n');
 }
 
 int Lexer::ReadString(int ndelim)
