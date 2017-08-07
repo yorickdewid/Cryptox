@@ -92,6 +92,11 @@ public:
 	Lexer(const std::string& stringarray, const std::function<void(const std::string& msg, char token, int line, int column)> errHandler = {});
 	int Lex(); // friend
 
+	inline void ErrorHandler(const std::function<void(const std::string& msg, char token, int line, int column)> errHandler)
+	{
+		m_errHandler = errHandler;
+	}
+
 	bool HasData() const
 	{
 		return m_data != nullptr;

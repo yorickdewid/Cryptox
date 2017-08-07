@@ -140,14 +140,18 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="AST.cpp" />
     <ClCompile Include="coilcl.cpp" />
     <ClCompile Include="Lexer.cpp" />
     <ClCompile Include="OpCodes.h" />
+    <ClCompile Include="Parser.cpp" />
     <ClCompile Include="ValueObject.cpp" />
     <ClCompile Include="VM.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="AST.h" />
     <ClInclude Include="Lexer.h" />
+    <ClInclude Include="Parser.h" />
     <ClInclude Include="ValueObject.h" />
     <ClInclude Include="VM.h" />
   </ItemGroup>
