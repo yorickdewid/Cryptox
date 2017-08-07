@@ -6,14 +6,14 @@ Parser::Parser(const std::string& input)
 	: lex{ input }
 {
 	lex.ErrorHandler([] (const std::string& err, char token, int line, int column) {
-		std::cerr << "Syntax error: " << err << " '" << token << "'" << " at " << line << ":" << column << std::endl;
+		std::cerr << "Syntax error: " << err << " at " << line << ":" << column << std::endl;
 	});
 }
 
 void Parser::Execute()
 {
-	int token;
-	while ((token = lex.Lex()) != 0) {
+	while (!lex.IsDone()) {
+		auto token = lex.Lex();
 		std::cout << "Token: " << token;
 
 		if (lex.HasData()) {

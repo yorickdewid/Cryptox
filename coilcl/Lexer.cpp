@@ -38,6 +38,11 @@ void Lexer::RegisterKeywords()
 	m_keywords.insert(std::make_pair("int", Keyword(Token::TK_TM_INT)));
 	m_keywords.insert(std::make_pair("char", Keyword(Token::TK_TM_CHAR)));
 	m_keywords.insert(std::make_pair("float", Keyword(Token::TK_TM_FLOAT)));
+	m_keywords.insert(std::make_pair("double", Keyword(Token::TK_TM_DOUBLE)));
+	m_keywords.insert(std::make_pair("unsigned", Keyword(Token::TK_TM_UNSIGNED)));
+	m_keywords.insert(std::make_pair("signed", Keyword(Token::TK_TM_SIGNED)));
+	m_keywords.insert(std::make_pair("register", Keyword(Token::TK_TM_REGISTER)));
+	m_keywords.insert(std::make_pair("volatile", Keyword(Token::TK_TM_VOLATILE)));
 	m_keywords.insert(std::make_pair("__LINE__", Keyword(Token::TK___LINE__)));
 	m_keywords.insert(std::make_pair("__FILE__", Keyword(Token::TK___FILE__)));
 }
@@ -264,7 +269,7 @@ int Lexer::Lex()
 				int t = ReadID();
 				return ReturnToken(t);
 			} else {
-				Error("unexpected character");
+				Error("stray '" + std::string{ m_currentChar } +"' in program");
 			}
 
 		} // switch

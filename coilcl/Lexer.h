@@ -9,6 +9,9 @@
 
 enum Token
 {
+	// Program halt
+	TK_HALT = 0,
+
 	// Single character tokens with ASCII code
 	TK_BRACE_OPEN = 123,
 	TK_BRACE_CLOSE = 125,
@@ -65,6 +68,12 @@ enum Token
 	TK_TM_INT = 368,
 	TK_TM_CHAR = 369,
 	TK_TM_FLOAT = 370,
+	TK_TM_DOUBLE = 371,
+	TK_TM_UNSIGNED = 372,
+	TK_TM_SIGNED = 373,
+	TK_TM_REGISTER = 374,
+	TK_TM_VOLATILE = 375,
+
 	TK_TM_VARPARAMS = 371,
 
 	// Compiler translation
@@ -100,6 +109,11 @@ public:
 	bool HasData() const
 	{
 		return m_data != nullptr;
+	}
+
+	inline bool IsDone() const
+	{
+		return m_isEof;
 	}
 
 	std::shared_ptr<Value> Data()
