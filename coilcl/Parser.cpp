@@ -14,7 +14,7 @@ void Parser::Execute()
 {
 	while (!lex.IsDone()) {
 		auto token = lex.Lex();
-		std::cout << "Token: " << token;
+		std::cout << "Token: " << Keyword{ token }.Print();
 
 		if (lex.HasData()) {
 			auto val = lex.Data();

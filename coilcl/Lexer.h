@@ -73,8 +73,8 @@ enum Token
 	TK_TM_SIGNED = 373,
 	TK_TM_REGISTER = 374,
 	TK_TM_VOLATILE = 375,
+	TK_TM_VARPARAMS = 376,
 
-	TK_TM_VARPARAMS = 371,
 
 	// Compiler translation
 	TK___LINE__ = 390,
@@ -88,8 +88,17 @@ struct Keyword
 	{
 	}
 
+	Keyword(int token)
+		: m_token{ static_cast<Token>(token) }
+	{
+	}
+
 	// Only the lexer is allowed to access the token keyword
 	friend class Lexer;
+
+#ifdef _DEBUG
+	std::string Print();
+#endif
 
 private:
 	Token m_token;

@@ -142,6 +142,7 @@
   <ItemGroup>
     <ClCompile Include="AST.cpp" />
     <ClCompile Include="coilcl.cpp" />
+    <ClCompile Include="Keyword.cpp" />
     <ClCompile Include="Lexer.cpp" />
     <ClCompile Include="OpCodes.h" />
     <ClCompile Include="Parser.cpp" />
