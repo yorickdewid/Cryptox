@@ -10,9 +10,66 @@ Parser::Parser(const std::string& input)
 	});
 }
 
+void Parser::Error(const std::string& err)
+{
+	int line = 0;
+	int column = 1;
+
+	std::cerr << "Semantic error: " << err << " before '" << m_currentToken << "' token at " << line << ":" << column << std::endl;
+}
+
+void Parser::NextToken()
+{
+	m_currentToken = static_cast<Token>(lex.Lex());
+}
+
+void Parser::ExpectToken(Token token)
+{
+	if (m_currentToken != token) {
+		Error("expected expression");
+	}
+}
+
+int Parser::StorageClassSpecifier()
+{
+	switch (m_currentToken) {
+	case TK_TM_REGISTER:
+		return TK_TM_REGISTER;
+	case TK_TM_STATIC:
+		return TK_TM_STATIC;
+	case TK_TM_TYPEDEF:
+		return TK_TM_TYPEDEF;
+	default:
+		break;
+	}
+
+	return -1;
+}
+
+void DeclarationSpecifier()
+{
+
+}
+
+void FuncDef()
+{
+
+}
+
+void Parser::TranslationUnit()
+{
+	//
+}
+
 void Parser::Execute()
 {
-	while (!lex.IsDone()) {
+	do {
+		NextToken();
+
+		TranslationUnit();
+	} while (!lex.IsDone());
+
+	/*while (!lex.IsDone()) {
 		auto token = lex.Lex();
 		std::cout << "Token: " << Keyword{ token }.Print();
 
@@ -20,16 +77,16 @@ void Parser::Execute()
 			auto val = lex.Data();
 			switch (val->DataType()) {
 
-			case Value::T_STRING:
-				std::cout << " = " << val->As<std::string>();
-				break;
-
-			case Value::T_FLOAT:
+			case Value::TypeSpecifier::T_FLOAT:
 				std::cout << " = " << val->As<float>();
 				break;
 
-			case Value::T_CHAR:
-				std::cout << " = " << val->As<char>();
+			case Value::TypeSpecifier::T_CHAR:
+				if (val->IsArray()) {
+					std::cout << " = " << val->As<std::string>();
+				} else {
+					std::cout << " = " << val->As<char>();
+				}
 				break;
 
 			default:
@@ -39,5 +96,5 @@ void Parser::Execute()
 		}
 
 		std::cout << std::endl;
-	}
+	}*/
 }
