@@ -121,7 +121,7 @@ std::string Keyword::Print()
 	case TK___FILE__:
 		return std::string{ "TK___FILE__" };
 	default:
-		return std::string{};
+		return std::string{ "<UNKNOWN>" };
 	}
 }
 #endif

@@ -1,57 +1,79 @@
 #pragma once
 
-#include <string>
+#include <boost/scoped_array.hpp>
 
-class Flags;
+#include <string>
 
 struct Value
 {
-	enum ObjectType
+	// Storage type, only for external usage
+	enum class TypeSpecifier
 	{
+		T_VOID,
+		T_CHAR,
+		T_SHORT,
 		T_INT,
+		T_LONG,
 		T_FLOAT,
 		T_DOUBLE,
-		T_CHAR,
-		T_STRING,
-	} m_objectType = T_INT;
+	};
 
-	enum class Flags
+	// Storage class specifier
+	enum class StorageClassSpecifier
 	{
-		NONE = 1 << 0,
-		CONST = 1 << 1,
-		STATIC = 1 << 2,
-		UNSIGNED = 1 << 3,
-		REGISTER = 1 << 4,
-		VOLATILE = 1 << 5,
+		NONE,
+		AUTO,
+		STATIC,
+		EXTERN,
+		TYPEDEF,
+		REGISTER,
+	};
+
+	// Type qualifier
+	enum class TypeQualifier
+	{
+		NONE,
+		CONST,
+		VOLATILE,
 	};
 
 protected:
+	// The internal datastructure stores the value
+	// as close to the actual data type specifier.
 	union StoreValue
 	{
 		int i;
 		float f;
 		double d;
 		char c;
-		struct
-		{
-			char *ptr;
-			size_t len;
-		} str;
 	};
 
+	// If this counter is greater than 0, the external type is an array
+	boost::scoped_array<StoreValue> m_arrayPtr;
+	size_t m_arraySize = 0;
+
+	// Value objects must implement a function
+	// to return the stored value
 	virtual StoreValue ReturnValue() const = 0;
 
 public:
-	Value(ObjectType type)
+	Value(TypeSpecifier type)
 		: m_objectType{ type }
 	{
 	}
 
 	virtual ~Value() = default;
 
-	ObjectType DataType() const
+	// Return the type specifier
+	TypeSpecifier DataType() const
 	{
 		return m_objectType;
+	}
+
+	// Check if current storage type is array
+	inline bool IsArray() const
+	{
+		return m_arraySize != 0;
 	}
 
 	template<typename Type>
@@ -69,11 +91,20 @@ public:
 	template<>
 	std::string As() const
 	{
-		return std::string{ ReturnValue().str.ptr, ReturnValue().str.len };
+		std::string str;
+
+		for (size_t i = 0; i < m_arraySize; ++i) {
+			str.push_back(m_arrayPtr[i].c);
+		}
+
+		return str;
 	}
 
 private:
-	Flags m_flags = Flags::NONE;
+	bool m_isUnsigned = false;
+	TypeSpecifier m_objectType = TypeSpecifier::T_INT;
+	StorageClassSpecifier m_scSpecifier = StorageClassSpecifier::NONE;
+	TypeQualifier m_typeQualifier = TypeQualifier::NONE;
 };
 
 template<typename Type>
@@ -87,7 +118,7 @@ class ValueObject : public Value
 	}
 
 public:
-	ValueObject(ObjectType type, Type v)
+	ValueObject(TypeSpecifier type, Type v)
 		: Value{ type }
 		, m_value{ v }
 	{
@@ -105,7 +136,7 @@ class ValueObject<float> : public Value
 	}
 
 public:
-	ValueObject(ObjectType type, float v)
+	ValueObject(TypeSpecifier type, float v)
 		: Value{ type }
 	{
 		m_value.f = v;
@@ -123,17 +154,15 @@ class ValueObject<std::string> : public Value
 	}
 
 public:
-	ValueObject(ObjectType type, std::string str)
+	ValueObject(TypeSpecifier type, std::string str)
 		: Value{ type }
 	{
-		m_value.str.ptr = new char[str.size()];
-		m_value.str.len = str.size();
+		m_arrayPtr.reset(new StoreValue[str.size()]);
 
-		::memcpy_s(m_value.str.ptr, m_value.str.len, str.c_str(), str.size());
-	}
-
-	~ValueObject()
-	{
-		delete[] m_value.str.ptr;
+		for (size_t i = 0; i < str.size(); ++i) {
+			m_arrayPtr[i].c = str[i];
+		}
+		
+		m_arraySize = str.size();
 	}
 };

@@ -335,12 +335,12 @@ int Lexer::ReadString(int ndelim)
 		}
 
 		char _cvalue = _longstr[0];
-		m_data = std::make_shared<ValueObject<decltype(_cvalue)>>(Value::T_CHAR, _cvalue);
+		m_data = std::make_shared<ValueObject<decltype(_cvalue)>>(Value::TypeSpecifier::T_CHAR, _cvalue);
 		return Token::TK_CHARACTER;
 	}
 
 	auto _svalue = _longstr;
-	m_data = std::make_shared<ValueObject<decltype(_svalue)>>(Value::T_STRING, _svalue);
+	m_data = std::make_shared<ValueObject<decltype(_svalue)>>(Value::TypeSpecifier::T_CHAR, _svalue);
 	return Token::TK_STRING_LITERAL;
 }
 
@@ -359,7 +359,7 @@ int Lexer::ReadID()
 	}
 
 	auto _svalue = _longstr;
-	m_data = std::make_shared<ValueObject<decltype(_svalue)>>(Value::T_STRING, _svalue);
+	m_data = std::make_shared<ValueObject<decltype(_svalue)>>(Value::TypeSpecifier::T_CHAR, _svalue);
 	return Token::TK_IDENTIFIER;
 }
 
@@ -440,21 +440,21 @@ int Lexer::LexScalar()
 	case Float:
 	{
 		auto _fvalue = boost::lexical_cast<float>(_longstr);
-		m_data = std::make_shared<ValueObject<decltype(_fvalue)>>(Value::T_FLOAT, _fvalue);
+		m_data = std::make_shared<ValueObject<decltype(_fvalue)>>(Value::TypeSpecifier::T_FLOAT, _fvalue);
 		return Token::TK_FLOAT;
 	}
 	case Int:
 		//LexInteger(&_longstr[0], (unsigned int *)&_nvalue);
 	{
 		auto _nvalue = boost::lexical_cast<int>(_longstr);
-		m_data = std::make_shared<ValueObject<decltype(_nvalue)>>(Value::T_INT, _nvalue);
+		m_data = std::make_shared<ValueObject<decltype(_nvalue)>>(Value::TypeSpecifier::T_INT, _nvalue);
 		return Token::TK_INTEGER;
 	}
 	case Hex:
 		//LexHexadecimal(&_longstr[0], (unsigned int *)&_nvalue);
 	{
 		auto _nvalue = boost::lexical_cast<int>(_longstr);
-		m_data = std::make_shared<ValueObject<decltype(_nvalue)>>(Value::T_INT, _nvalue);
+		m_data = std::make_shared<ValueObject<decltype(_nvalue)>>(Value::TypeSpecifier::T_INT, _nvalue);
 		return Token::TK_INTEGER;
 	}
 	case Octal:
