@@ -48,12 +48,12 @@ int Parser::StorageClassSpecifier()
 
 void DeclarationSpecifier()
 {
-
+	//
 }
 
 void FuncDef()
 {
-
+	//
 }
 
 void Parser::TranslationUnit()

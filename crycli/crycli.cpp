@@ -8,12 +8,15 @@
 
 #include <iostream>
 
+#define PROGRAM_DESC "Cryptox CIL Compiler\n"
+#define PROGRAM_COPY "Copyright (C) 2017 Quenza Inc. All rights reserved.\n"
+
 namespace po = boost::program_options;
 
 int main(int argc, const char *argv[])
 {
 	try {
-		po::options_description desc{ "Option" };
+		po::options_description desc{ PROGRAM_DESC PROGRAM_COPY "\nProjectTest: [OPTIONS] [FILE]\n\nOptions" };
 		desc.add_options()
 			("help", "Show help")
 			("file", po::value<std::string>(), "Source file");

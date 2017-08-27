@@ -24,6 +24,7 @@ public:
 	{
 		// coilcl::compiler<coilcl::lexer> cl{ ss.str() };
 		// cl.Compile();
+		Compile(content);
 	}
 
 private:
@@ -41,22 +42,11 @@ private:
 		str.assign((std::istreambuf_iterator<char>(src)),
 				   std::istreambuf_iterator<char>());
 
-		//std::cout << src.rdbuf() << std::endl;
-		Compile(str);
-
-		/*std::string line;
-		while (std::getline(src, line))
-		{
-			if (line.empty() || line[0] == '#')
-			{
-				continue;
-			}
-
-			ss << line << '\n';
-		}*/
+		content = str;
 	}
 
 private:
+	std::string content;
 	const char *fname;
 	std::stringstream ss;
 
