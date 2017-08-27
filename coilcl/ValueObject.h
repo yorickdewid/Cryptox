@@ -123,6 +123,11 @@ public:
 		, m_value{ v }
 	{
 	}
+
+	ValueObject(TypeSpecifier type)
+		: Value{ type }
+	{
+	}
 };
 
 template<>
@@ -140,6 +145,11 @@ public:
 		: Value{ type }
 	{
 		m_value.f = v;
+	}
+
+	ValueObject(TypeSpecifier type)
+		: Value{ type }
+	{
 	}
 };
 
@@ -164,5 +174,10 @@ public:
 		}
 		
 		m_arraySize = str.size();
+	}
+
+	ValueObject(TypeSpecifier type)
+		: Value{ type }
+	{
 	}
 };

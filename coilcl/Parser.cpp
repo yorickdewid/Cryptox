@@ -5,7 +5,7 @@
 Parser::Parser(const std::string& input)
 	: lex{ input }
 {
-	lex.ErrorHandler([] (const std::string& err, char token, int line, int column) {
+	lex.ErrorHandler([](const std::string& err, char token, int line, int column) {
 		std::cerr << "Syntax error: " << err << " at " << line << ":" << column << std::endl;
 	});
 }
@@ -46,19 +46,85 @@ int Parser::StorageClassSpecifier()
 	return -1;
 }
 
-void DeclarationSpecifier()
+std::unique_ptr<Value> Parser::TypeSpecifier()
 {
-	//
+	switch (m_currentToken) {
+	case TK_TM_CHAR:
+		return std::move(std::make_unique<ValueObject<std::string>>(Value::TypeSpecifier::T_CHAR));
+	case TK_TM_INT:
+		return std::move(std::make_unique<ValueObject<int>>(Value::TypeSpecifier::T_INT));
+	case TK_TM_FLOAT:
+		return std::move(std::make_unique<ValueObject<float>>(Value::TypeSpecifier::T_FLOAT));
+	case TK_TM_DOUBLE:
+		return std::move(std::make_unique<ValueObject<double>>(Value::TypeSpecifier::T_DOUBLE));
+	case TK_TM_SIGNED:
+		return std::move(std::make_unique<ValueObject<signed>>(Value::TypeSpecifier::T_INT));
+	case TK_TM_UNSIGNED:
+		return std::move(std::make_unique<ValueObject<unsigned>>(Value::TypeSpecifier::T_INT));
+	default:
+		break;
+	}
+
+	return nullptr;
 }
 
-void FuncDef()
+int Parser::TypeQualifier()
 {
-	//
+	switch (m_currentToken) {
+	case TK_TM_CONST:
+		return TK_TM_CONST;
+	case TK_TM_VOLATILE:
+		return TK_TM_VOLATILE;
+	default:
+		break;
+	}
+
+	return -1;
+}
+
+void Parser::DeclarationSpecifier()
+{
+	std::unique_ptr<Value> _type;
+
+	bool cont = true;
+	while (cont) {
+		cont = false;
+
+		int sc = StorageClassSpecifier();
+		if (sc > 0) {
+			NextToken();
+			cont = true;
+		}
+
+		auto type = TypeSpecifier();
+		if (type != nullptr) {
+			NextToken();
+			cont = true;
+			_type = std::move(type);
+		}
+
+		int tq = TypeQualifier();
+		if (tq > 0) {
+			NextToken();
+			cont = true;
+		}
+	}
+}
+
+void Parser::FuncDef()
+{
+	DeclarationSpecifier();
+	// <declarator>
+	// {
+	// <declaration>
+	// }
+	// <compound-statement>
 }
 
 void Parser::TranslationUnit()
 {
-	//
+	FuncDef();
+	// <declaration>
 }
 
 void Parser::Execute()

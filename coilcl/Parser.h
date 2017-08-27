@@ -16,6 +16,10 @@ protected:
 
 private:
 	int StorageClassSpecifier();
+	std::unique_ptr<Value> TypeSpecifier();
+	int TypeQualifier();
+	void FuncDef();
+	void DeclarationSpecifier();
 	void TranslationUnit();
 
 private:
