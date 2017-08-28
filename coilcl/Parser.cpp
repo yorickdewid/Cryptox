@@ -30,20 +30,20 @@ void Parser::ExpectToken(Token token)
 	}
 }
 
-int Parser::StorageClassSpecifier()
+auto Parser::StorageClassSpecifier()
 {
 	switch (m_currentToken) {
 	case TK_TM_REGISTER:
-		return TK_TM_REGISTER;
+		return Value::StorageClassSpecifier::REGISTER;
 	case TK_TM_STATIC:
-		return TK_TM_STATIC;
+		return Value::StorageClassSpecifier::STATIC;
 	case TK_TM_TYPEDEF:
-		return TK_TM_TYPEDEF;
+		return Value::StorageClassSpecifier::TYPEDEF;
 	default:
 		break;
 	}
 
-	return -1;
+	return Value::StorageClassSpecifier::NONE;
 }
 
 std::unique_ptr<Value> Parser::TypeSpecifier()
@@ -68,30 +68,33 @@ std::unique_ptr<Value> Parser::TypeSpecifier()
 	return nullptr;
 }
 
-int Parser::TypeQualifier()
+auto Parser::TypeQualifier()
 {
 	switch (m_currentToken) {
 	case TK_TM_CONST:
-		return TK_TM_CONST;
+		return Value::TypeQualifier::CONST;
 	case TK_TM_VOLATILE:
-		return TK_TM_VOLATILE;
+		return Value::TypeQualifier::VOLATILE;
 	default:
 		break;
 	}
 
-	return -1;
+	return Value::TypeQualifier::NONE;
 }
 
 void Parser::DeclarationSpecifier()
 {
-	std::unique_ptr<Value> _type;
+	std::unique_ptr<Value> _type = nullptr;
+	Value::StorageClassSpecifier tmpSCP = Value::StorageClassSpecifier::NONE;
+	Value::TypeQualifier tmpTQ = Value::TypeQualifier::NONE;
 
 	bool cont = true;
 	while (cont) {
 		cont = false;
 
-		int sc = StorageClassSpecifier();
-		if (sc > 0) {
+		auto sc = StorageClassSpecifier();
+		if (static_cast<int>(sc)) {
+			tmpSCP = sc;
 			NextToken();
 			cont = true;
 		}
@@ -103,11 +106,23 @@ void Parser::DeclarationSpecifier()
 			_type = std::move(type);
 		}
 
-		int tq = TypeQualifier();
-		if (tq > 0) {
+		auto tq = TypeQualifier();
+		if (static_cast<int>(tq)) {
+			tmpTQ = tq;
 			NextToken();
 			cont = true;
 		}
+	}
+
+	//if (_type == nullptr) {
+	//	throw something
+	//}
+
+	if (tmpSCP != Value::StorageClassSpecifier::NONE) {
+		_type->StorageClass(tmpSCP);
+	}
+	if (tmpTQ != Value::TypeQualifier::NONE) {
+		_type->Qualifier(tmpTQ);
 	}
 }
 

@@ -62,6 +62,16 @@ public:
 	{
 	}
 
+	inline void StorageClass(StorageClassSpecifier scp)
+	{
+		m_scSpecifier = scp;
+	}
+
+	inline void Qualifier(TypeQualifier tq)
+	{
+		m_typeQualifier = tq;
+	}
+
 	virtual ~Value() = default;
 
 	// Return the type specifier

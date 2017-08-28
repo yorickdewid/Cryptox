@@ -15,9 +15,9 @@ protected:
 	void ExpectToken(Token token);
 
 private:
-	int StorageClassSpecifier();
+	auto StorageClassSpecifier();
+	auto TypeQualifier();
 	std::unique_ptr<Value> TypeSpecifier();
-	int TypeQualifier();
 	void FuncDef();
 	void DeclarationSpecifier();
 	void TranslationUnit();
