@@ -31,7 +31,6 @@ int main(int argc, const char *argv[])
 
 		if (vm.count("help"))
 		{
-			std::cout << "Usage: crycli [options] [FILE]\n";
 			std::cout << desc;
 		}
 		else if (vm.count("file"))
@@ -40,7 +39,6 @@ int main(int argc, const char *argv[])
 		}
 		else
 		{
-			std::cout << "Usage: crycli [options] [FILE]\n";
 			std::cout << desc;
 		}
 	}

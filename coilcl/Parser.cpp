@@ -113,7 +113,9 @@ void Parser::DeclarationSpecifier()
 
 void Parser::FuncDef()
 {
+	// Return type for function declaration
 	DeclarationSpecifier();
+
 	// <declarator>
 	// {
 	// <declaration>
@@ -124,6 +126,7 @@ void Parser::FuncDef()
 void Parser::TranslationUnit()
 {
 	FuncDef();
+
 	// <declaration>
 }
 
