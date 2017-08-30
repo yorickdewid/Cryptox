@@ -141,6 +141,23 @@ public:
 };
 
 template<>
+class ValueObject<void> : public Value
+{
+	StoreValue m_value;
+
+	StoreValue ReturnValue() const override
+	{
+		return m_value;
+	}
+
+public:
+	ValueObject(TypeSpecifier type)
+		: Value{ type }
+	{
+	}
+};
+
+template<>
 class ValueObject<float> : public Value
 {
 	StoreValue m_value;
