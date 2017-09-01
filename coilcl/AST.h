@@ -21,6 +21,9 @@ public:
 		if (root == nullptr) {
 			root = std::move(node);
 		}
+		else {
+			//? ?
+		}
 	}
 };
 
@@ -30,9 +33,7 @@ class ASTNode
 	std::list<std::unique_ptr<ASTNode>> children;
 
 public:
-	ASTNode()
-	{
-	}
+	ASTNode() = default;
 
 	inline size_t Children()
 	{
@@ -52,7 +53,7 @@ public:
 	}
 };
 
-class FunctionNode : ASTNode
+class FunctionNode : public ASTNode
 {
 	std::string funcName;
 	std::unique_ptr<Value> returnType;
@@ -63,6 +64,24 @@ public:
 		: funcName{ name }
 		, returnType{ new ValueObject<void>(Value::TypeSpecifier::T_VOID) }
 	{
+	}
+
+	FunctionNode(std::shared_ptr<Value> value)
+		: returnType{ new ValueObject<void>(Value::TypeSpecifier::T_VOID) }
+	{
+		assert(value->DataType() == Value::TypeSpecifier::T_CHAR);
+
+		if (value->IsArray()) {
+			funcName = value->As<std::string>();
+		}
+		else {
+			funcName[0] = value->As<char>();
+		}
+	}
+
+	void ReturnType(std::unique_ptr<Value> rtnVal)
+	{
+		returnType = std::move(rtnVal);
 	}
 };
 
