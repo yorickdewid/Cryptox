@@ -18,16 +18,24 @@ void Parser::Error(const std::string& err)
 	std::cerr << "Semantic error: " << err << " before '" << m_currentToken << "' token at " << line << ":" << column << std::endl;
 }
 
-void Parser::NextToken()
-{
-	m_currentToken = static_cast<Token>(lex.Lex());
-}
-
 void Parser::ExpectToken(Token token)
 {
 	if (m_currentToken != token) {
 		Error("expected expression");
 	}
+
+	NextToken();
+}
+
+void Parser::ExpectIdentifier()
+{
+	if (m_currentToken != TK_IDENTIFIER) {
+		Error("expected identifier");
+	}
+
+	assert(TokenHasData());
+
+	NextToken();
 }
 
 auto Parser::StorageClassSpecifier()
@@ -82,7 +90,7 @@ auto Parser::TypeQualifier()
 	return Value::TypeQualifier::NONE;
 }
 
-void Parser::DeclarationSpecifier()
+std::unique_ptr<Value> Parser::DeclarationSpecifier()
 {
 	std::unique_ptr<Value> _type = nullptr;
 	Value::StorageClassSpecifier tmpSCP = Value::StorageClassSpecifier::NONE;
@@ -124,17 +132,31 @@ void Parser::DeclarationSpecifier()
 	if (tmpTQ != Value::TypeQualifier::NONE) {
 		_type->Qualifier(tmpTQ);
 	}
+
+	return std::move(_type);
 }
 
 void Parser::FuncDef()
 {
 	// Return type for function declaration
-	DeclarationSpecifier();
+	auto returnType = DeclarationSpecifier();
+
+	// Function name as identifier
+	ExpectIdentifier();
+
+	auto localFunc = new FunctionNode(m_currentData);
+
+	localFunc->ReturnType(std::move(returnType));
+
+	stree.PushNode(std::move(std::unique_ptr<ASTNode>{ localFunc }));
+
+	ExpectToken(TK_PARENTHES_OPEN);
+	ExpectToken(TK_PARENTHES_CLOSE);
 
 	// <declarator>
-	// {
+	// ExpectToken(TK_BRACE_OPEN);
 	// <declaration>
-	// }
+	// ExpectToken(TK_BRACE_CLOSE);//TODO check
 	// <compound-statement>
 }
 

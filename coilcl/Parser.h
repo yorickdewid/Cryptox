@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Lexer.h"
+#include "AST.h"
 
 class Parser
 {
@@ -11,19 +12,39 @@ public:
 
 protected:
 	void Error(const std::string& err);
-	void NextToken();
 	void ExpectToken(Token token);
+	void ExpectIdentifier();
+
+	inline void Parser::NextToken()
+	{
+		m_lastToken = m_currentToken;
+		m_currentToken = static_cast<Token>(lex.Lex());
+
+		if (lex.HasData()) {
+			m_lastData = m_currentData;
+			m_currentData = lex.Data();
+		}
+	}
+
+	inline bool Parser::TokenHasData() const
+	{
+		return lex.HasData();
+	}
 
 private:
 	auto StorageClassSpecifier();
 	auto TypeQualifier();
 	std::unique_ptr<Value> TypeSpecifier();
 	void FuncDef();
-	void DeclarationSpecifier();
+	std::unique_ptr<Value> DeclarationSpecifier();
 	void TranslationUnit();
 
 private:
 	Lexer lex;
+	AST stree;
 	Token m_currentToken;
+	Token m_lastToken;
+	std::shared_ptr<Value> m_currentData = nullptr;
+	std::shared_ptr<Value> m_lastData = nullptr;
 };
 

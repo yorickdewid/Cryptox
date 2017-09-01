@@ -13,16 +13,21 @@ enum Token
 	TK_HALT = 0,
 
 	// Single character tokens with ASCII code
-	TK_BRACE_OPEN = 123,
-	TK_BRACE_CLOSE = 125,
-	TK_PARENTHES_OPEN = 40,
-	TK_PARENTHES_CLOSE = 41,
-	TK_BRACKET_OPEN = 91,
-	TK_BRACKET_CLOSE = 93,
-	TK_COMMIT = 59,
-	TK_COMMA = 44,
-	TK_CARET = 94,
-	TK_TILDE = 126,
+	TK_BRACE_OPEN = 123,      // {
+	TK_BRACE_CLOSE = 125,     // }
+	TK_PARENTHES_OPEN = 40,   // (
+	TK_PARENTHES_CLOSE = 41,  // )
+	TK_BRACKET_OPEN = 91,     // [
+	TK_BRACKET_CLOSE = 93,    // ]
+	TK_COMMIT = 59,           // ;
+	TK_COMMA = 44,            // ,
+	TK_CARET = 94,            // ^
+	TK_TILDE = 126,           // ~
+	
+	//TODO:
+	// - TK_POINTER = 42    // *
+	// - TK_PREPROCESS = 35 // #
+	// - TK_REFERENCE = 38  // &
 
 	// Primitive values containing data
 	TK_IDENTIFIER = 257,
@@ -60,6 +65,9 @@ enum Token
 	TK_MINUSMINUS = 336,
 	TK_STRUCT = 337,
 
+	// TODO:
+	// - TK_GOTO = ?
+
 	// Type modifiers
 	TK_TM_TYPEDEF = 364,
 	TK_TM_STATIC = 365,
@@ -75,6 +83,11 @@ enum Token
 	TK_TM_VOLATILE = 375,
 	TK_TM_VARPARAMS = 376,
 
+	// TODO:
+	// - TK_TM_VOID = ?
+	// - TK_TM_EXTERN = ?
+	// - TK_TM_SHORT = ?
+	// - TK_TM_LONG = ?
 
 	// Compiler translation
 	TK___LINE__ = 390,
