@@ -22,8 +22,6 @@ public:
 	// be using the lexer to parse the program.
 	void Start()
 	{
-		// coilcl::compiler<coilcl::lexer> cl{ ss.str() };
-		// cl.Compile();
 		Compile(content);
 	}
 

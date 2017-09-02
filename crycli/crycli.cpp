@@ -27,7 +27,7 @@ int main(int argc, const char *argv[])
 		po::variables_map vm;
 		po::store(po::command_line_parser(argc, argv).options(desc).positional(p).run(), vm);
 
-		RunSource("../main.c.ccil");
+		RunSource("../main.c.ccil");//TODO: remove
 
 		if (vm.count("help"))
 		{

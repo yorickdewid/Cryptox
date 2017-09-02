@@ -1,4 +1,4 @@
-int myprint() {
+const int myprint() {
 	printf("hai\n");
 	return 1;
 }
