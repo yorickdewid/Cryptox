@@ -125,13 +125,13 @@ Frame::Frame(wxWindow *parent, wxWindowID id, const wxString& title, const wxPoi
 	// Project tree
 	m_mgr.AddPane(CreateProjectTree(), wxAuiPaneInfo().
 				  Name(wxT("projecttree")).Caption(wxT("Project")).
-				  Left().Layer(0).Position(0).
+				  Right().Layer(1).Position(0).
 				  CloseButton(false));
 
 	// Object library
 	m_mgr.AddPane(CreateTreeCtrl(), wxAuiPaneInfo().
 				  Name(wxT("primitivetree")).Caption(wxT("Object Library")).
-				  Left().Layer(0).Position(0).
+				  Left().Layer(1).Position(0).
 				  CloseButton(false));
 
 	m_mgr.AddPane(CreatePropCtrl(), wxAuiPaneInfo().
@@ -844,19 +844,22 @@ wxTreeCtrl *Frame::CreateProjectTree()
 	imglist->Add(wxIcon("folder.png", wxBITMAP_TYPE_PNG));
 	tree->AssignImageList(imglist);
 
-	auto root = tree->AddRoot("Project", 2);
+	auto root = tree->AddRoot("Project 'demo2'", 2);
 	tree->SetItemBold(root);
 
 	auto id = tree->AppendItem(root, wxT("Diagram"), 0);
-	tree->AppendItem(id, wxT("SHA-CUSTOM"), 0);
-	tree->AppendItem(id, wxT("ChaCha40"), 0);
+	tree->AppendItem(id, wxT("SHA_custom.crdi"), 0);
+	tree->AppendItem(id, wxT("ChaCha40.crdi"), 0);
 
-	id = tree->AppendItem(root, wxT("Material"), 0);
+	id = tree->AppendItem(root, wxT("Key Material"), 0);
 	tree->AppendItem(id, wxT("keypair"), 0);
-	tree->AppendItem(id, wxT("keypair2"), 0);
+	tree->AppendItem(id, wxT("EC25519_pair"), 0);
 
-	id = tree->AppendItem(root, wxT("Other"), 0);
-	tree->AppendItem(id, wxT("source.c"), 1);
+	id = tree->AppendItem(root, wxT("Assamblies"), 0);
+	tree->AppendItem(id, wxT("aes_ai2.cil"), 1);
+
+	id = tree->AppendItem(root, wxT("Sources"), 0);
+	tree->AppendItem(id, wxT("neoscrypt.c"), 1);
 
 	tree->ExpandAll();
 	return tree;
@@ -928,7 +931,7 @@ wxAuiNotebook *Frame::CreateNotebook()
 	//wxBitmap page_bmp = wxArtProvider::GetBitmap(wxART_NORMAL_FILE, wxART_OTHER, wxSize(16, 16));
 	auto page_bmp = wxNullBitmap;
 
-	ctrl->AddPage(CreateHTMLCtrl(ctrl), wxT("Start page"), false, page_bmp);
+	ctrl->AddPage(CreateHTMLCtrl(ctrl), wxT("Welcome page"), false, page_bmp);
 	ctrl->SetPageToolTip(0, "Welcome to Cryptox");
 
 	// Designer
@@ -941,7 +944,7 @@ wxAuiNotebook *Frame::CreateNotebook()
 	panel2->SetExtraStyle(wxWS_EX_BLOCK_EVENTS);
 	panel2->SetSizer(canvasSizer);
 	canvasSizer->Fit(panel2);
-	ctrl->AddPage(panel2, wxT("Designer"), false, page_bmp);
+	ctrl->AddPage(panel2, wxT("SHA_custom.crdi"), false, page_bmp);
 
 	// Panel
 	auto panel = new wxPanel(ctrl, wxID_ANY);

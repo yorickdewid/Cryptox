@@ -13,7 +13,7 @@
 #include <wx/wxprec.h>
 #include <wx/app.h>
 
-#define APPNAME "Cryptox IDE 0.2.4"
+#define APPNAME "demo2 - Cryptox IDE 0.2.4 Advanced Crypto Suite"
 
 class CyApp : public wxApp
 {

@@ -25,6 +25,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "butest", "butest\butest.vcx
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "plgex", "plgex\plgex.vcxproj", "{61A2D6E8-11E6-4364-861A-6B80B98119BF}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "cmncore", "cmncore\cmncore.vcxproj", "{872B7105-CA30-4827-A7B4-299AEB8B1C8E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|ARM = Debug|ARM
@@ -145,6 +147,16 @@ Global
 		{61A2D6E8-11E6-4364-861A-6B80B98119BF}.Release|x64.Build.0 = Release|x64
 		{61A2D6E8-11E6-4364-861A-6B80B98119BF}.Release|x86.ActiveCfg = Release|Win32
 		{61A2D6E8-11E6-4364-861A-6B80B98119BF}.Release|x86.Build.0 = Release|Win32
+		{872B7105-CA30-4827-A7B4-299AEB8B1C8E}.Debug|ARM.ActiveCfg = Debug|Win32
+		{872B7105-CA30-4827-A7B4-299AEB8B1C8E}.Debug|x64.ActiveCfg = Debug|x64
+		{872B7105-CA30-4827-A7B4-299AEB8B1C8E}.Debug|x64.Build.0 = Debug|x64
+		{872B7105-CA30-4827-A7B4-299AEB8B1C8E}.Debug|x86.ActiveCfg = Debug|Win32
+		{872B7105-CA30-4827-A7B4-299AEB8B1C8E}.Debug|x86.Build.0 = Debug|Win32
+		{872B7105-CA30-4827-A7B4-299AEB8B1C8E}.Release|ARM.ActiveCfg = Release|Win32
+		{872B7105-CA30-4827-A7B4-299AEB8B1C8E}.Release|x64.ActiveCfg = Release|x64
+		{872B7105-CA30-4827-A7B4-299AEB8B1C8E}.Release|x64.Build.0 = Release|x64
+		{872B7105-CA30-4827-A7B4-299AEB8B1C8E}.Release|x86.ActiveCfg = Release|Win32
+		{872B7105-CA30-4827-A7B4-299AEB8B1C8E}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
