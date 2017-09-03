@@ -37,6 +37,7 @@ private:
 	auto StorageClassSpecifier();
 	auto TypeQualifier();
 	std::unique_ptr<Value> TypeSpecifier();
+	void Expression();
 	void FuncDef();
 	bool DeclarationSpecifier();
 	void Declaration();

@@ -137,6 +137,23 @@ bool Parser::DeclarationSpecifier()
 	return true;
 }
 
+//XXX
+void AssignmentExpression()
+{
+	// conditional_expression
+	//
+	// unary_expression assignment_operator assignment_expression
+}
+
+void Parser::Expression()
+{
+	//AssignmentExpression();
+	//
+	//Expression();
+	//ExpectToken(TK_COMMA);
+	//AssignmentExpression();
+}
+
 void Parser::FuncDef()
 {
 	auto localFunc = new FunctionNode(m_currentData);
@@ -167,7 +184,15 @@ void Parser::Declaration()
 	}
 
 	if (m_currentToken == TK_RETURN) {
-
+		NextToken();
+		if (m_currentToken == TK_COMMIT) {
+			m_elementStack.push(std::move(std::make_unique<ValueNode>([]() -> Value* {
+				return new ValueObject<void>(Value::TypeSpecifier::T_VOID);
+			})));
+		}
+		else {
+			Expression();
+		}
 	}
 	//ExpectToken(TK_RETURN);
 }
