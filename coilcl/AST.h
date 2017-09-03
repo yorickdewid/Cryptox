@@ -4,6 +4,7 @@
 
 #include <list>
 #include <memory>
+#include <functional>
 
 class ASTNode;
 
@@ -52,10 +53,10 @@ public:
 
 class ValueNode : public ASTNode
 {
-	std::unique_ptr<Value> value;
+	std::unique_ptr<Value> value = nullptr;
 
 public:
-	ValueNode(std::unique_ptr<Value> _value)
+	ValueNode(std::unique_ptr<Value>& _value)
 	{
 		value = std::move(_value);
 	}
@@ -63,6 +64,12 @@ public:
 	ValueNode()
 		: value{ new ValueObject<void>(Value::TypeSpecifier::T_VOID) }
 	{
+	}
+
+	ValueNode(std::function<Value *(void)> valueDelegate)
+	{
+		//auto x = valueDelegate();
+		//value = std::unique_ptr<Value>(valueDelegate());
 	}
 };
 
@@ -90,7 +97,7 @@ public:
 		}
 	}
 
-	void ReturnType(std::unique_ptr<ASTNode> &rtnVal)
+	void ReturnType(std::unique_ptr<ASTNode> rtnVal)
 	{
 		returnType = std::move(rtnVal);
 	}
