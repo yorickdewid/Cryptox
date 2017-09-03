@@ -3,6 +3,8 @@
 #include "Lexer.h"
 #include "AST.h"
 
+#include <stack>
+
 class Parser
 {
 
@@ -36,7 +38,8 @@ private:
 	auto TypeQualifier();
 	std::unique_ptr<Value> TypeSpecifier();
 	void FuncDef();
-	std::unique_ptr<Value> DeclarationSpecifier();
+	bool DeclarationSpecifier();
+	void Declaration();
 	void TranslationUnit();
 
 private:
@@ -44,6 +47,7 @@ private:
 	AST stree;
 	Token m_currentToken;
 	Token m_lastToken;
+	std::stack<std::unique_ptr<ASTNode>> m_elementStack;
 	std::shared_ptr<Value> m_currentData = nullptr;
 	std::shared_ptr<Value> m_lastData = nullptr;
 };

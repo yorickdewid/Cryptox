@@ -90,7 +90,7 @@ auto Parser::TypeQualifier()
 	return Value::TypeQualifier::NONE;
 }
 
-std::unique_ptr<Value> Parser::DeclarationSpecifier()
+bool Parser::DeclarationSpecifier()
 {
 	std::unique_ptr<Value> _type = nullptr;
 	Value::StorageClassSpecifier tmpSCP = Value::StorageClassSpecifier::NONE;
@@ -133,45 +133,66 @@ std::unique_ptr<Value> Parser::DeclarationSpecifier()
 		_type->Qualifier(tmpTQ);
 	}
 
-	return std::move(_type);
+	m_elementStack.push(std::move(std::make_unique<ValueNode>(_type)));
+	return true;
 }
 
 void Parser::FuncDef()
 {
-	// Return type for function declaration
-	auto returnType = DeclarationSpecifier();
-
-	// Function name as identifier
-	ExpectIdentifier();
-
 	auto localFunc = new FunctionNode(m_currentData);
 
-	localFunc->ReturnType(std::move(returnType));
-
-	stree.PushNode(std::move(std::unique_ptr<ASTNode>{ localFunc }));
+	localFunc->ReturnType(std::move(m_elementStack.top()));
+	m_elementStack.pop();
 
 	ExpectToken(TK_PARENTHES_OPEN);
+
+	//TODO: params
+
 	ExpectToken(TK_PARENTHES_CLOSE);
 
-	// <declarator>
-	// ExpectToken(TK_BRACE_OPEN);
-	// <declaration>
-	// ExpectToken(TK_BRACE_CLOSE);//TODO check
-	// <compound-statement>
+	// Function inner declaration
+	ExpectToken(TK_BRACE_OPEN);
+	Declaration();
+	ExpectToken(TK_BRACE_CLOSE);//TODO check
+
+								// <compound-statement> ?
+
+   //stree.PushNode(std::move(std::unique_ptr<ASTNode>{ localFunc }));
+}
+
+void Parser::Declaration()
+{
+	while (m_currentToken != TK_RETURN) {
+		NextToken();
+	}
+
+	if (m_currentToken == TK_RETURN) {
+
+	}
+	//ExpectToken(TK_RETURN);
 }
 
 void Parser::TranslationUnit()
 {
-	FuncDef();
+	// Return type for function declaration
+	DeclarationSpecifier();
+
+	// Function name as identifier
+	ExpectIdentifier();
+
+	if (m_currentToken == TK_PARENTHES_OPEN) {
+		FuncDef();
+	}
+
 
 	// <declaration>
 }
 
 void Parser::Execute()
 {
-	do {
-		NextToken();
+	NextToken();
 
+	do {
 		TranslationUnit();
 	} while (!lex.IsDone());
 
