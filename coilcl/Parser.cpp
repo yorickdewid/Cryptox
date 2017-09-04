@@ -137,12 +137,156 @@ bool Parser::DeclarationSpecifier()
 	return true;
 }
 
+void PrimaryExpression()
+{
+	//IDENTIFIER
+
+	//CONSTANT
+
+	//STRING_LITERAL
+
+	//'(' expression ')'
+}
+
+void PostfixExpression()
+{
+	//PrimaryExpression()
+	//
+	//PostfixExpression() '[' expression ']'
+	//
+	//PostfixExpression() '(' ')'
+	//
+	//PostfixExpression() '(' argument_expression_list ')'
+	//
+	//PostfixExpression() '.' IDENTIFIER
+	//
+	//PostfixExpression() PTR_OP IDENTIFIER
+	//
+	//PostfixExpression() INC_OP
+	//
+	//PostfixExpression() DEC_OP
+	//
+	//'(' type_name ')' '{' initializer_list '}'
+	//
+	//'(' type_name ')' '{' initializer_list ',' '}'
+}
+
+void UnaryExpression()
+{
+	//PostfixExpression()
+	//
+	//INC_OP UnaryExpression()
+	//
+	//DEC_OP UnaryExpression()
+	//
+	//unary_operator CastExpression()
+	//
+	//SIZEOF UnaryExpression()
+	//
+	//SIZEOF '(' type_name ')'
+}
+
+void CastExpression()
+{
+	// UnaryExpression()
+	//
+	// '(' type_name ')' CastExpression()
+}
+
+void MultiplicativeExpression()
+{
+	//CastExpression()
+	//
+	//MultiplicativeExpression() '*' CastExpression()
+	//
+	//MultiplicativeExpression() '/' CastExpression()
+	//
+	//MultiplicativeExpression() '%' CastExpression()
+}
+
+void AdditiveExpression()
+{
+	//MultiplicativeExpression()
+	//
+	//AdditiveExpression() '+' MultiplicativeExpression()
+	//
+	//AdditiveExpression() '-' MultiplicativeExpression()
+}
+
+void ShiftExpression()
+{
+	//AdditiveExpression()
+	//
+	//ShiftExpression() LEFT_OP AdditiveExpression()
+	//
+	//ShiftExpression() RIGHT_OP AdditiveExpression()
+}
+
+void RelationalExpression()
+{
+	//ShiftExpression()
+	//
+	//RelationalExpression() '<' ShiftExpression()
+	//
+	//RelationalExpression() '>' ShiftExpression()
+	//
+	//RelationalExpression() LE_OP ShiftExpression()
+	//
+	//RelationalExpression() GE_OP ShiftExpression()
+}
+
+void EqualityExpression()
+{
+	//RelationalExpression()
+	//
+	//EqualityExpression() EQ_OP RelationalExpression()
+	//
+	//EqualityExpression() NE_OP RelationalExpression()
+}
+
+void AndExpression()
+{
+	// EqualityExpression()
+	//
+	// AndExpression() '&' EqualityExpression()
+}
+
+void ExclusiveOrExpression()
+{
+	// AndExpression()
+	//
+	// ExclusiveOrExpression() '^' AndExpression()
+}
+
+void LogicalAndExpression()
+{
+	//ExclusiveOrExpression()
+	//
+	//LogicalAndExpression() AND_OP ExclusiveOrExpression()
+}
+
+//XXX
+void LogicalOrExpression()
+{
+	//LogicalAndExpression()
+	//
+	//LogicalOrExpression() OR_OP LogicalAndExpression()
+}
+
+//XXX
+void ConditionalExpression()
+{
+	//LogicalOrExpression();
+	//
+	//LogicalOrExpression() '?' expression ':' conditional_expression
+}
+
 //XXX
 void AssignmentExpression()
 {
-	// conditional_expression
+	// ConditionalExpression();
 	//
-	// unary_expression assignment_operator assignment_expression
+	// unary_expression assignment_operator AssignmentExpression()
 }
 
 void Parser::Expression()
