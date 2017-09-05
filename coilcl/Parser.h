@@ -39,6 +39,7 @@ private:
 	std::unique_ptr<Value> TypeSpecifier();
 	void Expression();
 	void FuncDef();
+	void JumpStatement();
 	bool DeclarationSpecifier();
 	void Declaration();
 	void TranslationUnit();

@@ -145,7 +145,9 @@ void PrimaryExpression()
 
 	//STRING_LITERAL
 
-	//'(' expression ')'
+	//ExpectToken(TK_PARENTHES_OPEN);
+	//Expression();
+	//ExpectToken(TK_PARENTHES_CLOSE);
 }
 
 void PostfixExpression()
@@ -154,7 +156,9 @@ void PostfixExpression()
 	//
 	//PostfixExpression() '[' expression ']'
 	//
-	//PostfixExpression() '(' ')'
+	//PostfixExpression();
+	//ExpectToken(TK_PARENTHES_OPEN);
+	//ExpectToken(TK_PARENTHES_CLOSE);
 	//
 	//PostfixExpression() '(' argument_expression_list ')'
 	//
@@ -319,6 +323,19 @@ void Parser::FuncDef()
 								// <compound-statement> ?
 
    //stree.PushNode(std::move(std::unique_ptr<ASTNode>{ localFunc }));
+}
+
+void Parser::JumpStatement()
+{
+	//GOTO IDENTIFIER ';'
+	//
+	//CONTINUE ';'
+	//
+	//BREAK ';'
+	//
+	//RETURN ';'
+	//
+	//RETURN expression ';'
 }
 
 void Parser::Declaration()
