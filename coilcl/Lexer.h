@@ -61,12 +61,13 @@ enum Token
 	TK_SHIFTL = 332,
 	TK_SHIFTR = 333,
 	TK_CASE = 334,
-	TK_PLUSPLUS = 335,
-	TK_MINUSMINUS = 336,
+	TK_INCR = 335,
+	TK_DECR = 336,
 	TK_STRUCT = 337,
 
 	// TODO:
-	// - TK_GOTO = ?
+	TK_GOTO = 338,
+	TK_SIZEOF = 339,
 
 	// Type modifiers
 	TK_TM_TYPEDEF = 364,
@@ -121,7 +122,6 @@ class Lexer
 {
 public:
 	Lexer(const std::string& stringarray, const std::function<void(const std::string& msg, char token, int line, int column)> errHandler = {});
-	int Lex(); // friend
 
 	inline void ErrorHandler(const std::function<void(const std::string& msg, char token, int line, int column)> errHandler)
 	{
@@ -138,7 +138,10 @@ public:
 		return m_isEof;
 	}
 
-	std::shared_ptr<Value> Data()
+	// friends
+	int Lex();
+
+	std::unique_ptr<Value>& Data()
 	{
 		return m_data;
 	}
@@ -169,7 +172,7 @@ protected:
 private:
 	std::unordered_map<std::string, Keyword> m_keywords;
 	std::function<void(const std::string& msg, char token, int line, int column)> m_errHandler;
-	std::shared_ptr<Value> m_data = nullptr;
+	std::unique_ptr<Value> m_data = nullptr;
 	char m_currentChar;
 	bool m_isEof = false;
 	int m_currentColumn = 0;
