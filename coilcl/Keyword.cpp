@@ -84,10 +84,10 @@ std::string Keyword::Print()
 		return std::string{ "TK_SHIFTR" };
 	case TK_CASE:
 		return std::string{ "TK_CASE" };
-	case TK_PLUSPLUS:
-		return std::string{ "TK_PLUSPLUS" };
-	case TK_MINUSMINUS:
-		return std::string{ "TK_MINUSMINUS" };
+	case TK_INCR:
+		return std::string{ "TK_INCR" };
+	case TK_DECR:
+		return std::string{ "TK_DECR" };
 	case TK_STRUCT:
 		return std::string{ "TK_STRUCT" };
 	case TK_TM_TYPEDEF:

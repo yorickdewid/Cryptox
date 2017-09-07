@@ -56,21 +56,21 @@ class ValueNode : public ASTNode
 	std::unique_ptr<Value> value = nullptr;
 
 public:
-	ValueNode(std::unique_ptr<Value>& _value)
-	{
-		value = std::move(_value);
-	}
-
 	ValueNode()
 		: value{ new ValueObject<void>(Value::TypeSpecifier::T_VOID) }
 	{
 	}
 
-	ValueNode(std::function<Value *(void)> valueDelegate)
+	ValueNode(std::unique_ptr<Value>& _value)
 	{
-		//auto x = valueDelegate();
-		//value = std::unique_ptr<Value>(valueDelegate());
+		value = std::move(_value);
 	}
+
+	/*ValueNode(std::function<Value *(void)> valueDelegate)
+	{
+		auto x = valueDelegate();
+		value = std::unique_ptr<Value>(valueDelegate());
+	}*/
 };
 
 class FunctionNode : public ASTNode
@@ -85,7 +85,7 @@ public:
 	{
 	}
 
-	FunctionNode(std::shared_ptr<Value> value)
+	FunctionNode(std::unique_ptr<Value>& value)
 	{
 		assert(value->DataType() == Value::TypeSpecifier::T_CHAR);
 

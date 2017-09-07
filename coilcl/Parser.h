@@ -23,25 +23,36 @@ protected:
 		m_currentToken = static_cast<Token>(lex.Lex());
 
 		if (lex.HasData()) {
-			m_lastData = m_currentData;
-			m_currentData = lex.Data();
+			m_lastData = std::move(m_currentData);
+			m_currentData = std::move(lex.Data());
 		}
-	}
-
-	inline bool Parser::TokenHasData() const
-	{
-		return lex.HasData();
 	}
 
 private:
 	auto StorageClassSpecifier();
 	auto TypeQualifier();
 	std::unique_ptr<Value> TypeSpecifier();
+	bool UnaryOperator();
+	void PrimaryExpression();
+	void PostfixExpression();
+	void UnaryExpression();
+	void CastExpression();
+	void MultiplicativeExpression();
+	void AdditiveExpression();
+	void ShiftExpression();
+	void RelationalExpression();
+	void EqualityExpression();
+	void AndExpression();
+	void ExclusiveOrExpression();
+	void LogicalAndExpression();
+	void LogicalOrExpression();
+	void ConditionalExpression();
+	void AssignmentExpression();
 	void Expression();
 	void FuncDef();
 	void JumpStatement();
 	bool DeclarationSpecifier();
-	void Declaration();
+	void Statement();
 	void TranslationUnit();
 
 private:
@@ -50,7 +61,7 @@ private:
 	Token m_currentToken;
 	Token m_lastToken;
 	std::stack<std::unique_ptr<ASTNode>> m_elementStack;
-	std::shared_ptr<Value> m_currentData = nullptr;
-	std::shared_ptr<Value> m_lastData = nullptr;
+	std::unique_ptr<Value> m_currentData = nullptr;
+	std::unique_ptr<Value> m_lastData = nullptr;
 };
 

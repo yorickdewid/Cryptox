@@ -33,7 +33,7 @@ void Parser::ExpectIdentifier()
 		Error("expected identifier");
 	}
 
-	assert(TokenHasData());
+	assert(m_currentData.get() != nullptr);
 
 	NextToken();
 }
@@ -137,23 +137,74 @@ bool Parser::DeclarationSpecifier()
 	return true;
 }
 
-void PrimaryExpression()
+bool Parser::UnaryOperator()
 {
-	//IDENTIFIER
+	switch (m_currentToken)
+	{
+	case TK_AND:
+		NextToken();
+		return true;
+		//case '&':
+		//	return true;
+		//case '+':
+		//	return true;
+		//case '-':
+		//	return true;
+	case TK_TILDE:
+		NextToken();
+		return true;
+		//case '!':
+		//	break;
+	default:
+		break;
+	}
 
-	//CONSTANT
-
-	//STRING_LITERAL
-
-	//ExpectToken(TK_PARENTHES_OPEN);
-	//Expression();
-	//ExpectToken(TK_PARENTHES_CLOSE);
+	return false;
 }
 
-void PostfixExpression()
+void Parser::PrimaryExpression()
 {
-	//PrimaryExpression()
-	//
+	switch (m_currentToken)
+	{
+	case TK_IDENTIFIER:
+		//TODO
+		break;
+
+	case TK_INTEGER:
+		assert(m_currentData->DataType() == Value::TypeSpecifier::T_INT);
+		m_elementStack.push(std::move(std::make_unique<ValueNode>(m_currentData)));
+		NextToken();
+		break;
+	case TK_STRING_LITERAL:
+		assert(m_currentData->DataType() == Value::TypeSpecifier::T_CHAR);
+		m_elementStack.push(std::move(std::make_unique<ValueNode>(m_currentData)));
+		NextToken();
+		break;
+	case TK_CHARACTER:
+		assert(m_currentData->DataType() == Value::TypeSpecifier::T_CHAR);
+		m_elementStack.push(std::move(std::make_unique<ValueNode>(m_currentData)));
+		NextToken();
+		break;
+	case TK_FLOAT:
+		assert(m_currentData->DataType() == Value::TypeSpecifier::T_FLOAT);
+		m_elementStack.push(std::move(std::make_unique<ValueNode>(m_currentData)));
+		NextToken();
+		break;
+	case TK_DOUBLE:
+		assert(m_currentData->DataType() == Value::TypeSpecifier::T_DOUBLE);
+		m_elementStack.push(std::move(std::make_unique<ValueNode>(m_currentData)));
+		NextToken();
+		break;
+	case TK_PARENTHES_OPEN:
+		Expression();
+		ExpectToken(TK_PARENTHES_CLOSE);
+	}
+}
+
+void Parser::PostfixExpression()
+{
+	PrimaryExpression();
+
 	//PostfixExpression() '[' expression ']'
 	//
 	//PostfixExpression();
@@ -175,31 +226,53 @@ void PostfixExpression()
 	//'(' type_name ')' '{' initializer_list ',' '}'
 }
 
-void UnaryExpression()
+void Parser::UnaryExpression()
 {
-	//PostfixExpression()
-	//
-	//INC_OP UnaryExpression()
-	//
-	//DEC_OP UnaryExpression()
-	//
-	//unary_operator CastExpression()
-	//
-	//SIZEOF UnaryExpression()
-	//
-	//SIZEOF '(' type_name ')'
+	switch (m_currentToken)
+	{
+	case TK_INCR:
+		//TODO: save
+		UnaryExpression();
+		break;
+	case TK_DECR:
+		//TODO: save
+		UnaryExpression();
+		break;
+	case TK_SIZEOF:
+		NextToken();
+		if (m_currentToken == TK_PARENTHES_OPEN) {
+			// <type_name>
+			ExpectToken(TK_PARENTHES_CLOSE);
+		}
+		else {
+			UnaryExpression();
+		}
+		break;
+	default:
+		if (UnaryOperator()) {
+			CastExpression();
+		}
+		else {
+			PostfixExpression();
+		}
+	}
 }
 
-void CastExpression()
+void Parser::CastExpression()
 {
-	// UnaryExpression()
-	//
-	// '(' type_name ')' CastExpression()
+	if (m_currentToken == TK_PARENTHES_OPEN) {
+		// <type_name>
+		ExpectToken(TK_PARENTHES_CLOSE);
+		CastExpression();
+	}
+	else {
+		UnaryExpression();
+	}
 }
 
-void MultiplicativeExpression()
+void Parser::MultiplicativeExpression()
 {
-	//CastExpression()
+	CastExpression();
 	//
 	//MultiplicativeExpression() '*' CastExpression()
 	//
@@ -208,27 +281,27 @@ void MultiplicativeExpression()
 	//MultiplicativeExpression() '%' CastExpression()
 }
 
-void AdditiveExpression()
+void Parser::AdditiveExpression()
 {
-	//MultiplicativeExpression()
+	MultiplicativeExpression();
 	//
 	//AdditiveExpression() '+' MultiplicativeExpression()
 	//
 	//AdditiveExpression() '-' MultiplicativeExpression()
 }
 
-void ShiftExpression()
+void Parser::ShiftExpression()
 {
-	//AdditiveExpression()
+	AdditiveExpression();
 	//
 	//ShiftExpression() LEFT_OP AdditiveExpression()
 	//
 	//ShiftExpression() RIGHT_OP AdditiveExpression()
 }
 
-void RelationalExpression()
+void Parser::RelationalExpression()
 {
-	//ShiftExpression()
+	ShiftExpression();
 	//
 	//RelationalExpression() '<' ShiftExpression()
 	//
@@ -239,67 +312,68 @@ void RelationalExpression()
 	//RelationalExpression() GE_OP ShiftExpression()
 }
 
-void EqualityExpression()
+void Parser::EqualityExpression()
 {
-	//RelationalExpression()
+	RelationalExpression();
 	//
 	//EqualityExpression() EQ_OP RelationalExpression()
 	//
 	//EqualityExpression() NE_OP RelationalExpression()
 }
 
-void AndExpression()
+void Parser::AndExpression()
 {
-	// EqualityExpression()
+	EqualityExpression();
 	//
 	// AndExpression() '&' EqualityExpression()
 }
 
-void ExclusiveOrExpression()
+void Parser::ExclusiveOrExpression()
 {
-	// AndExpression()
+	AndExpression();
 	//
 	// ExclusiveOrExpression() '^' AndExpression()
 }
 
-void LogicalAndExpression()
+void Parser::LogicalAndExpression()
 {
-	//ExclusiveOrExpression()
+	ExclusiveOrExpression();
 	//
 	//LogicalAndExpression() AND_OP ExclusiveOrExpression()
 }
 
 //XXX
-void LogicalOrExpression()
+void Parser::LogicalOrExpression()
 {
-	//LogicalAndExpression()
+	LogicalAndExpression();
 	//
 	//LogicalOrExpression() OR_OP LogicalAndExpression()
 }
 
 //XXX
-void ConditionalExpression()
+void Parser::ConditionalExpression()
 {
-	//LogicalOrExpression();
+	LogicalOrExpression();
 	//
 	//LogicalOrExpression() '?' expression ':' conditional_expression
 }
 
-//XXX
-void AssignmentExpression()
+//XXX; 
+void Parser::AssignmentExpression()
 {
-	// ConditionalExpression();
+	ConditionalExpression();
 	//
-	// unary_expression assignment_operator AssignmentExpression()
+	// UnaryExpression() assignment_operator AssignmentExpression()
 }
 
 void Parser::Expression()
 {
-	//AssignmentExpression();
-	//
-	//Expression();
-	//ExpectToken(TK_COMMA);
-	//AssignmentExpression();
+	AssignmentExpression();
+
+	// i = 0, r = 2;
+	Expression();
+	ExpectToken(TK_COMMA);
+	AssignmentExpression();
 }
 
 void Parser::FuncDef()
@@ -317,45 +391,49 @@ void Parser::FuncDef()
 
 	// Function inner declaration
 	ExpectToken(TK_BRACE_OPEN);
-	Declaration();
+	Statement();
 	ExpectToken(TK_BRACE_CLOSE);//TODO check
 
-								// <compound-statement> ?
+	// <compound-statement> ?
 
-   //stree.PushNode(std::move(std::unique_ptr<ASTNode>{ localFunc }));
+	//stree.PushNode(std::move(std::unique_ptr<ASTNode>{ localFunc }));
 }
 
 void Parser::JumpStatement()
 {
-	//GOTO IDENTIFIER ';'
-	//
-	//CONTINUE ';'
-	//
-	//BREAK ';'
-	//
-	//RETURN ';'
-	//
-	//RETURN expression ';'
+	switch (m_currentToken)
+	{
+		//case TK_GOTO:
+		//	ExpectToken(TK_IDENTIFIER);
+	case TK_CONTINUE:
+		ExpectToken(TK_COMMIT);
+		break;
+	case TK_BREAK:
+		ExpectToken(TK_COMMIT);
+		break;
+	case TK_RETURN:
+		NextToken();
+		if (m_currentToken == TK_COMMIT) {
+			m_elementStack.push(std::move(std::make_unique<ValueNode>()));
+		}
+		else {
+			Expression();
+		}
+
+		ExpectToken(TK_COMMIT);
+		break;
+	}
 }
 
-void Parser::Declaration()
+void Parser::Statement()
 {
 	while (m_currentToken != TK_RETURN) {
 		NextToken();
 	}
 
 	if (m_currentToken == TK_RETURN) {
-		NextToken();
-		if (m_currentToken == TK_COMMIT) {
-			m_elementStack.push(std::move(std::make_unique<ValueNode>([]() -> Value* {
-				return new ValueObject<void>(Value::TypeSpecifier::T_VOID);
-			})));
-		}
-		else {
-			Expression();
-		}
+		JumpStatement();
 	}
-	//ExpectToken(TK_RETURN);
 }
 
 void Parser::TranslationUnit()
