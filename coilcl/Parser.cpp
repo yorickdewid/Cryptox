@@ -425,13 +425,31 @@ void Parser::JumpStatement()
 	}
 }
 
+void CompoundStatement()
+{
+	/*if (m_currentToken == TK_BRACE_OPEN) {
+
+	}*/
+}
+
+void LabeledStatement()
+{
+
+}
+
 void Parser::Statement()
 {
-	while (m_currentToken != TK_RETURN) {
-		NextToken();
-	}
-
-	if (m_currentToken == TK_RETURN) {
+	while (m_currentToken != TK_BRACE_CLOSE) {
+		LabeledStatement();
+		//
+		CompoundStatement();
+		//
+		// expression_statement
+		//
+		// selection_statement
+		//
+		// iteration_statement
+		//
 		JumpStatement();
 	}
 }
