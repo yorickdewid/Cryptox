@@ -133,8 +133,11 @@ bool Parser::DeclarationSpecifiers()
 		_type->Qualifier(tmpTQ);
 	}
 
-	m_elementStack.push(std::move(std::make_unique<ValueNode>(_type)));
-	return true;
+	if (_type != nullptr) {
+		m_elementStack.push(std::move(std::make_unique<ValueNode>(_type)));
+		return true;
+	}
+	return false;
 }
 
 bool Parser::UnaryOperator()
@@ -382,11 +385,12 @@ void Parser::JumpStatement()
 	{
 		//case TK_GOTO:
 		//	ExpectToken(TK_IDENTIFIER);
+		// EMIT
 	case TK_CONTINUE:
-		ExpectToken(TK_COMMIT);
+		// EMIT
 		break;
 	case TK_BREAK:
-		ExpectToken(TK_COMMIT);
+		// EMIT
 		break;
 	case TK_RETURN:
 		NextToken();
@@ -396,10 +400,10 @@ void Parser::JumpStatement()
 		else {
 			Expression();
 		}
-
-		ExpectToken(TK_COMMIT);
 		break;
 	}
+
+	ExpectToken(TK_COMMIT);
 }
 
 // For, do and while loop
@@ -480,7 +484,7 @@ void Parser::CompoundStatement()
 			NextToken();
 		}
 		else {
-			//BlockItemList();
+			BlockItemList();
 			ExpectToken(TK_BRACE_CLOSE);
 		}
 	}
@@ -516,14 +520,62 @@ void Parser::Statement()
 		//
 		CompoundStatement();
 		//
-		ExpressionStatement();
-		//
 		SelectionStatement();
 		//
 		IterationStatement();
 		//
 		JumpStatement();
+		//
+		ExpressionStatement();
 	}
+}
+
+void Parser::BlockItemList()
+{
+	for (;;) {
+		Declaration();
+
+		Statement();
+	}
+	/*BlockItem();
+
+	BlockItemList() BlockItem();*/
+}
+
+//void Parser::BlockItem()
+//{
+//	Declaration();
+//
+//	Statement();
+//}
+
+void Parser::Declaration()
+{
+	DeclarationSpecifiers();
+
+	if (m_currentToken == TK_COMMIT) {
+		NextToken();
+	}
+	else {
+		InitDeclaratorList();
+		ExpectToken(TK_COMMIT);
+	}
+}
+
+void Parser::InitDeclaratorList()
+{
+	do {
+		InitDeclarator();
+	} while (m_currentToken == TK_COMMA);
+}
+
+void Parser::InitDeclarator()
+{
+	// int i
+	Declarator();
+	//
+	//Declarator();
+	//ExpectToken(TK_ASSIGN); //initializer
 }
 
 void Pointer()
@@ -583,6 +635,14 @@ bool Parser::DirectDeclarator()
 			if (m_currentToken == TK_PARENTHES_CLOSE) {
 				// Empty declarator
 				NextToken();
+				return true;
+			}
+			else {
+				//ParameterTypeList();
+				//
+				//IdentifierList();
+				NextToken();//TODO: temp
+				ExpectToken(TK_PARENTHES_CLOSE);
 				return true;
 			}
 			break;

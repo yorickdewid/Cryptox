@@ -34,6 +34,8 @@ private:
 	std::unique_ptr<Value> TypeSpecifier();
 	bool DeclarationSpecifiers();
 	bool UnaryOperator();
+
+private: // Expressions
 	void PrimaryExpression();
 	void PostfixExpression();
 	void UnaryExpression();
@@ -51,6 +53,8 @@ private:
 	void AssignmentExpression();
 	void Expression();
 	void FunctionDefinition();
+
+private: // Statements
 	void JumpStatement();
 	void LabeledStatement();
 	void CompoundStatement();
@@ -58,6 +62,13 @@ private:
 	void SelectionStatement();
 	void IterationStatement();
 	void Statement();
+
+private: // Declarations
+	void BlockItemList();
+	//void BlockItem();
+	void Declaration();
+	void InitDeclaratorList();
+	void InitDeclarator();
 	bool Declarator();
 	bool DirectDeclarator();
 	void DeclarationList();
