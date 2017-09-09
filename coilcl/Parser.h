@@ -32,6 +32,7 @@ private:
 	auto StorageClassSpecifier();
 	auto TypeQualifier();
 	std::unique_ptr<Value> TypeSpecifier();
+	bool DeclarationSpecifiers();
 	bool UnaryOperator();
 	void PrimaryExpression();
 	void PostfixExpression();
@@ -49,15 +50,18 @@ private:
 	void ConditionalExpression();
 	void AssignmentExpression();
 	void Expression();
-	void FuncDef();
+	void FunctionDefinition();
 	void JumpStatement();
 	void LabeledStatement();
 	void CompoundStatement();
 	void ExpressionStatement();
 	void SelectionStatement();
 	void IterationStatement();
-	bool DeclarationSpecifier();
 	void Statement();
+	bool Declarator();
+	bool DirectDeclarator();
+	void DeclarationList();
+	void ExternalDeclaration();
 	void TranslationUnit();
 
 private:

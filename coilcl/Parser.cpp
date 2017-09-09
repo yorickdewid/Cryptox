@@ -90,7 +90,7 @@ auto Parser::TypeQualifier()
 	return Value::TypeQualifier::NONE;
 }
 
-bool Parser::DeclarationSpecifier()
+bool Parser::DeclarationSpecifiers()
 {
 	std::unique_ptr<Value> _type = nullptr;
 	Value::StorageClassSpecifier tmpSCP = Value::StorageClassSpecifier::NONE;
@@ -475,8 +475,9 @@ void Parser::ExpressionStatement()
 void Parser::CompoundStatement()
 {
 	if (m_currentToken == TK_BRACE_OPEN) {
+		NextToken();
 		if (m_currentToken == TK_BRACE_CLOSE) {
-			// Useless statement
+			NextToken();
 		}
 		else {
 			//BlockItemList();
@@ -525,54 +526,130 @@ void Parser::Statement()
 	}
 }
 
-void Parser::FuncDef()
+void Pointer()
 {
-	auto localFunc = new FunctionNode(m_currentData);
+	//ExpectToken(TK_POINTER);
 
-	localFunc->ReturnType(std::move(m_elementStack.top()));
-	m_elementStack.pop();
+	//type_qualifier_list
+	//
+	//Pointer();
+	//
+	//type_qualifier_list Pointer();
+}
 
-	ExpectToken(TK_PARENTHES_OPEN);
+bool Parser::Declarator()
+{
+	/*if (<pointer>) {
+		Pointer();
+	}*/
 
-	//TODO: params
+	return DirectDeclarator();
+}
 
-	ExpectToken(TK_PARENTHES_CLOSE);
+bool Parser::DirectDeclarator()
+{
+	if (m_currentToken == TK_IDENTIFIER) {
+		NextToken();
+		// Save identifier
+	}
+	else if (m_currentToken == TK_PARENTHES_OPEN) {
+		NextToken();
+		Declarator();
+		ExpectToken(TK_PARENTHES_CLOSE);
+	}
+	else {
+		return false;
+	}
 
-	// Function inner declaration
-	ExpectToken(TK_BRACE_OPEN);
-	Statement();
-	ExpectToken(TK_BRACE_CLOSE);//TODO check
+	// Declarations following an identifier
+	for (;;) {
+		switch (m_currentToken)
+		{
+		case TK_BRACKET_OPEN:
+			NextToken();
+			if (m_currentToken == TK_BRACE_CLOSE) {
+				// Empty declarator
+				NextToken();
+				return true;
+			}
+			/*else if (m_currentToken == TK_POINTER) {
+				ExpectToken(TK_BRACE_CLOSE);
+				return;
+			}*/
 
-								// <compound-statement> ?
+			break;
+		case TK_PARENTHES_OPEN:
+			NextToken();
+			if (m_currentToken == TK_PARENTHES_CLOSE) {
+				// Empty declarator
+				NextToken();
+				return true;
+			}
+			break;
+		default:
+			return false;
+		}
 
-								//stree.PushNode(std::move(std::unique_ptr<ASTNode>{ localFunc }));
+		//'[' type_qualifier_list AssignmentExpression(); ']'
+		//'[' type_qualifier_list ']'
+		//'[' assignment_expression ']'
+		//'[' STATIC type_qualifier_list AssignmentExpression(); ']'
+		//'[' type_qualifier_list STATIC AssignmentExpression(); ']'
+		//'[' type_qualifier_list '*' ']'
+		//
+		//'(' parameter_type_list ')'
+		//'(' identifier_list ')'
+
+	}
+}
+
+void Parser::DeclarationList()
+{
+	for (;;) {
+		if (!Declarator()) {
+			break;
+		}
+	}
+}
+
+void Parser::FunctionDefinition()
+{
+	// Return type for function declaration
+	DeclarationSpecifiers();
+
+	Declarator();
+
+	DeclarationList();//optional
+	//
+	CompoundStatement();
+
+	//auto localFunc = new FunctionNode(m_currentData);
+
+	/*localFunc->ReturnType(std::move(m_elementStack.top()));
+	m_elementStack.pop();*/
+
+	//stree.PushNode(std::move(std::unique_ptr<ASTNode>{ localFunc }));
+}
+
+void Parser::ExternalDeclaration()
+{
+	FunctionDefinition();
+	//
+	//Declaration();
 }
 
 void Parser::TranslationUnit()
 {
-	// Return type for function declaration
-	DeclarationSpecifier();
-
-	// Function name as identifier
-	ExpectIdentifier();
-
-	if (m_currentToken == TK_PARENTHES_OPEN) {
-		FuncDef();
-	}
-
-
-	// <declaration>
+	// For each translation unit run the parser
+	//for (size_t i = 0; i < length; i++)
+	//{
+	ExternalDeclaration();
+	//}
 }
 
 void Parser::Execute()
 {
 	NextToken();
-
-	// For each translation unit run the parser
-	/*for (size_t i = 0; i < length; i++)
-	{
-
-	}*/
 
 	do {
 		TranslationUnit();
