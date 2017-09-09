@@ -64,8 +64,7 @@ private: // Statements
 	void Statement();
 
 private: // Declarations
-	void BlockItemList();
-	//void BlockItem();
+	void BlockItems();
 	void Declaration();
 	void InitDeclaratorList();
 	void InitDeclarator();

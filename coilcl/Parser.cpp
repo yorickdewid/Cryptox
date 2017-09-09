@@ -170,7 +170,7 @@ void Parser::PrimaryExpression()
 	switch (m_currentToken)
 	{
 	case TK_IDENTIFIER:
-		//TODO
+		// EMIT
 		break;
 
 	case TK_INTEGER:
@@ -371,12 +371,9 @@ void Parser::AssignmentExpression()
 
 void Parser::Expression()
 {
-	AssignmentExpression();
-
-	// i = 0, r = 2;
-	Expression();
-	ExpectToken(TK_COMMA);
-	AssignmentExpression();
+	do {
+		AssignmentExpression();
+	} while (m_currentToken == TK_COMMA);
 }
 
 void Parser::JumpStatement()
@@ -468,7 +465,7 @@ void Parser::SelectionStatement()
 void Parser::ExpressionStatement()
 {
 	if (m_currentToken == TK_COMMIT) {
-		// Useless statement
+		// EMIT
 	}
 	else {
 		Expression();
@@ -484,7 +481,7 @@ void Parser::CompoundStatement()
 			NextToken();
 		}
 		else {
-			BlockItemList();
+			BlockItems();
 			ExpectToken(TK_BRACE_CLOSE);
 		}
 	}
@@ -504,10 +501,10 @@ void Parser::LabeledStatement()
 		//ExpectToken(':');
 		Statement();
 		break;
-		//case TK_DEFAULT:
-		//	ExpectToken(':');
-		//	Statement();
-		//	break;
+		/*case TK_DEFAULT:
+			ExpectToken(':');
+			Statement();
+			break;*/
 	default:
 		break;
 	}
@@ -515,39 +512,29 @@ void Parser::LabeledStatement()
 
 void Parser::Statement()
 {
-	while (m_currentToken != TK_BRACE_CLOSE) {
-		LabeledStatement();
-		//
-		CompoundStatement();
-		//
-		SelectionStatement();
-		//
-		IterationStatement();
-		//
-		JumpStatement();
-		//
-		ExpressionStatement();
-	}
+	LabeledStatement();
+	//
+	CompoundStatement();
+	//
+	SelectionStatement();
+	//
+	IterationStatement();
+	//
+	JumpStatement();
+	//
+	ExpressionStatement();
 }
 
-void Parser::BlockItemList()
+void Parser::BlockItems()
 {
-	for (;;) {
+	do {
 		Declaration();
-
+		if (m_currentToken == TK_BRACE_CLOSE) {
+			break;
+		}
 		Statement();
-	}
-	/*BlockItem();
-
-	BlockItemList() BlockItem();*/
+	} while (m_currentToken != TK_BRACE_CLOSE);
 }
-
-//void Parser::BlockItem()
-//{
-//	Declaration();
-//
-//	Statement();
-//}
 
 void Parser::Declaration()
 {
@@ -602,7 +589,7 @@ bool Parser::DirectDeclarator()
 {
 	if (m_currentToken == TK_IDENTIFIER) {
 		NextToken();
-		// Save identifier
+		// EMIT
 	}
 	else if (m_currentToken == TK_PARENTHES_OPEN) {
 		NextToken();
@@ -620,11 +607,12 @@ bool Parser::DirectDeclarator()
 		case TK_BRACKET_OPEN:
 			NextToken();
 			if (m_currentToken == TK_BRACE_CLOSE) {
-				// Empty declarator
+				// EMIT
 				NextToken();
 				return true;
 			}
 			/*else if (m_currentToken == TK_POINTER) {
+				// EMIT
 				ExpectToken(TK_BRACE_CLOSE);
 				return;
 			}*/
@@ -633,7 +621,7 @@ bool Parser::DirectDeclarator()
 		case TK_PARENTHES_OPEN:
 			NextToken();
 			if (m_currentToken == TK_PARENTHES_CLOSE) {
-				// Empty declarator
+				// EMIT
 				NextToken();
 				return true;
 			}
