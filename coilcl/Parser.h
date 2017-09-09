@@ -51,6 +51,11 @@ private:
 	void Expression();
 	void FuncDef();
 	void JumpStatement();
+	void LabeledStatement();
+	void CompoundStatement();
+	void ExpressionStatement();
+	void SelectionStatement();
+	void IterationStatement();
 	bool DeclarationSpecifier();
 	void Statement();
 	void TranslationUnit();

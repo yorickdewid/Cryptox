@@ -376,29 +376,6 @@ void Parser::Expression()
 	AssignmentExpression();
 }
 
-void Parser::FuncDef()
-{
-	auto localFunc = new FunctionNode(m_currentData);
-
-	localFunc->ReturnType(std::move(m_elementStack.top()));
-	m_elementStack.pop();
-
-	ExpectToken(TK_PARENTHES_OPEN);
-
-	//TODO: params
-
-	ExpectToken(TK_PARENTHES_CLOSE);
-
-	// Function inner declaration
-	ExpectToken(TK_BRACE_OPEN);
-	Statement();
-	ExpectToken(TK_BRACE_CLOSE);//TODO check
-
-	// <compound-statement> ?
-
-	//stree.PushNode(std::move(std::unique_ptr<ASTNode>{ localFunc }));
-}
-
 void Parser::JumpStatement()
 {
 	switch (m_currentToken)
@@ -425,16 +402,110 @@ void Parser::JumpStatement()
 	}
 }
 
-void CompoundStatement()
+// For, do and while loop
+void Parser::IterationStatement()
 {
-	/*if (m_currentToken == TK_BRACE_OPEN) {
-
-	}*/
+	switch (m_currentToken)
+	{
+	case TK_WHILE:
+		ExpectToken(TK_BRACE_OPEN);
+		Expression();
+		ExpectToken(TK_BRACE_CLOSE);
+		Statement();
+		break;
+	case TK_DO:
+		Statement();
+		ExpectToken(TK_WHILE);
+		ExpectToken(TK_BRACE_OPEN);
+		Expression();
+		ExpectToken(TK_BRACE_CLOSE);
+		ExpectToken(TK_COMMIT);
+		break;
+	case TK_FOR:
+		ExpectToken(TK_BRACE_OPEN);
+		// expression_statement expression_statement
+		//
+		// expression_statement expression_statement expression
+		//
+		// declaration expression_statement
+		//
+		// declaration expression_statement expression
+		ExpectToken(TK_BRACE_CLOSE);
+		Statement();
+		break;
+	}
 }
 
-void LabeledStatement()
+// If and switch statements
+void Parser::SelectionStatement()
 {
+	switch (m_currentToken)
+	{
+	case TK_IF:
+		ExpectToken(TK_BRACE_OPEN);
+		Expression();
+		ExpectToken(TK_BRACE_CLOSE);
+		Statement();
+		if (m_currentToken == TK_ELSE) {
+			Statement();
+		}
+		break;
+	case TK_SWITCH:
+		ExpectToken(TK_BRACE_OPEN);
+		Expression();
+		ExpectToken(TK_BRACE_CLOSE);
+		Statement();
+		break;
+	default:
+		break;
+	}
+}
 
+void Parser::ExpressionStatement()
+{
+	if (m_currentToken == TK_COMMIT) {
+		// Useless statement
+	}
+	else {
+		Expression();
+	}
+}
+
+// Compound statements contain code block
+void Parser::CompoundStatement()
+{
+	if (m_currentToken == TK_BRACE_OPEN) {
+		if (m_currentToken == TK_BRACE_CLOSE) {
+			// Useless statement
+		}
+		else {
+			//BlockItemList();
+			ExpectToken(TK_BRACE_CLOSE);
+		}
+	}
+}
+
+// Labeled statements
+void Parser::LabeledStatement()
+{
+	switch (m_currentToken)
+	{
+	case TK_IDENTIFIER:
+		//ExpectToken(':');
+		Statement();
+		break;
+	case TK_CASE:
+		//ConstantExpression();
+		//ExpectToken(':');
+		Statement();
+		break;
+		//case TK_DEFAULT:
+		//	ExpectToken(':');
+		//	Statement();
+		//	break;
+	default:
+		break;
+	}
 }
 
 void Parser::Statement()
@@ -444,14 +515,37 @@ void Parser::Statement()
 		//
 		CompoundStatement();
 		//
-		// expression_statement
+		ExpressionStatement();
 		//
-		// selection_statement
+		SelectionStatement();
 		//
-		// iteration_statement
+		IterationStatement();
 		//
 		JumpStatement();
 	}
+}
+
+void Parser::FuncDef()
+{
+	auto localFunc = new FunctionNode(m_currentData);
+
+	localFunc->ReturnType(std::move(m_elementStack.top()));
+	m_elementStack.pop();
+
+	ExpectToken(TK_PARENTHES_OPEN);
+
+	//TODO: params
+
+	ExpectToken(TK_PARENTHES_CLOSE);
+
+	// Function inner declaration
+	ExpectToken(TK_BRACE_OPEN);
+	Statement();
+	ExpectToken(TK_BRACE_CLOSE);//TODO check
+
+								// <compound-statement> ?
+
+								//stree.PushNode(std::move(std::unique_ptr<ASTNode>{ localFunc }));
 }
 
 void Parser::TranslationUnit()
@@ -474,36 +568,42 @@ void Parser::Execute()
 {
 	NextToken();
 
+	// For each translation unit run the parser
+	/*for (size_t i = 0; i < length; i++)
+	{
+
+	}*/
+
 	do {
 		TranslationUnit();
 	} while (!lex.IsDone());
-
-	/*while (!lex.IsDone()) {
-		auto token = lex.Lex();
-		std::cout << "Token: " << Keyword{ token }.Print();
-
-		if (lex.HasData()) {
-			auto val = lex.Data();
-			switch (val->DataType()) {
-
-			case Value::TypeSpecifier::T_FLOAT:
-				std::cout << " = " << val->As<float>();
-				break;
-
-			case Value::TypeSpecifier::T_CHAR:
-				if (val->IsArray()) {
-					std::cout << " = " << val->As<std::string>();
-				} else {
-					std::cout << " = " << val->As<char>();
-				}
-				break;
-
-			default:
-				std::cout << " = " << val->As<int>();
-				break;
-			}
-		}
-
-		std::cout << std::endl;
-	}*/
 }
+
+/*while (!lex.IsDone()) {
+	auto token = lex.Lex();
+	std::cout << "Token: " << Keyword{ token }.Print();
+
+	if (lex.HasData()) {
+		auto val = lex.Data();
+		switch (val->DataType()) {
+
+		case Value::TypeSpecifier::T_FLOAT:
+			std::cout << " = " << val->As<float>();
+			break;
+
+		case Value::TypeSpecifier::T_CHAR:
+			if (val->IsArray()) {
+				std::cout << " = " << val->As<std::string>();
+			} else {
+				std::cout << " = " << val->As<char>();
+			}
+			break;
+
+		default:
+			std::cout << " = " << val->As<int>();
+			break;
+		}
+	}
+
+	std::cout << std::endl;
+}*/
