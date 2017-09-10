@@ -25,9 +25,10 @@ enum Token
 	TK_TILDE = 126,           // ~
 	
 	//TODO:
-	// - TK_POINTER = 42    // *
-	// - TK_PREPROCESS = 35 // #
-	// - TK_REFERENCE = 38  // &
+	// - TK_POINTER = 42,    // *
+	// - TK_PREPROCESS = 35, // #
+	// - TK_REFERENCE = 38,  // &
+	// - TK_DOT = 46,        // .
 
 	// Primitive values containing data
 	TK_IDENTIFIER = 257,
@@ -36,7 +37,7 @@ enum Token
 	TK_INTEGER = 260,
 	TK_FLOAT = 261,
 	TK_DOUBLE = 262,
-
+	
 	// Keywords
 	TK_ASSIGN = 312,
 	TK_NOT = 313,
@@ -64,10 +65,16 @@ enum Token
 	TK_INCR = 335,
 	TK_DECR = 336,
 	TK_STRUCT = 337,
-
+	
 	// TODO:
 	TK_GOTO = 338,
 	TK_SIZEOF = 339,
+	TK_DEFAULT = 340,
+	TK_INLINE = 341,
+	TK_AUTO = 342,
+	TK_BOOL = 343,
+	TK_COMPLEX = 344,
+	TK_IMAGINARY = 345,
 
 	// Type modifiers
 	TK_TM_TYPEDEF = 364,
@@ -89,6 +96,8 @@ enum Token
 	// - TK_TM_EXTERN = ?
 	// - TK_TM_SHORT = ?
 	// - TK_TM_LONG = ?
+	// - TK_TM_UNION = ?
+	// - TK_TM_RESTRICT = ?
 
 	// Compiler translation
 	TK___LINE__ = 390,
