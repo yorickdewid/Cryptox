@@ -1,0 +1,90 @@
+/**
+ * Copyright (C) 2017 Cryptox, Blub Corp.
+ * All Rights Reserved
+ *
+ * This file is part of the Cryptox project.
+ *
+ * Content can not be copied and/or distributed without the express
+ * permission of the author.
+ */
+
+#include <stdio.h>
+
+#define PI_CONSTANT     3.14159265358979323846
+
+void func() {
+    register int seven = 17;
+    
+    puts("puts");
+
+    do {
+        seven--;
+        printf("seven %d\n", seven);
+    } while (seven > 0);
+
+    return;
+}
+
+int func2(char c, int i, double d) {
+    double e = i + d;
+    signed int o = i + d;
+
+    for (int i = 2; i<10; ++i) {
+        printf("I is now %d\n", i);
+    }
+}
+
+static const float func3() {
+    int v = 2;
+
+    switch (v) {
+        case 1: // static int case
+            break;
+        case 2: // call func
+            func();
+            break;
+        case 3:
+        case 4:
+            puts("Combined label");
+            break;
+        default: // default action
+            printf("Default action");
+            break;
+    }
+
+    // Useless while loop
+    unsigned int r = 2;
+    while (r > 0) {
+        r = 0;
+    }
+
+    return 13.8123;
+}
+
+#ifdef NOOPT
+void funcx() {
+    // empty
+}
+#endif
+
+/**
+ * Application entrypoint
+ */
+int main(int argc, char *argv[]) {
+    int n = 1;
+    int y[] = {12, 34, 45};
+
+    printf("Sometext");
+    
+    // Simple expression
+    if (n == 1) {
+        func();
+    }
+
+    /** Simple selection */
+    if (n > 2) {
+        func();
+    } else {
+        func2('t', y[1], 23.12);
+    }
+}
