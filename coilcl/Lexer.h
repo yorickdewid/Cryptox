@@ -25,10 +25,14 @@ enum Token
 	TK_TILDE = 126,           // ~
 	
 	//TODO:
-	// - TK_POINTER = 42,    // *
-	// - TK_PREPROCESS = 35, // #
-	// - TK_REFERENCE = 38,  // &
-	// - TK_DOT = 46,        // .
+	// - TK_ASTERISK = 42,      // *
+	// - TK_PREPROCESS = 35,    // #
+	// - TK_REFERENCE = 38,     // &
+	// - TK_DOT = 46,           // .
+	// - TK_COLON = 58,         // :
+	// - TK_NEGATIVE = 33,      // !
+	// - TK_MODULO = 37,        // %
+	// - TK_QUESTION_MARK = 63  // ?
 
 	// Primitive values containing data
 	TK_IDENTIFIER = 257,
