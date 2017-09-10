@@ -52,7 +52,7 @@ private: // Expressions
 	void ConditionalExpression();
 	void AssignmentExpression();
 	void Expression();
-	void FunctionDefinition();
+	void ConstantExpression();
 
 private: // Statements
 	void JumpStatement();
@@ -68,9 +68,16 @@ private: // Declarations
 	void Declaration();
 	void InitDeclaratorList();
 	void InitDeclarator();
+	void Initializer();
+	void InitializerList();
+	void Designation();
+	void Designators();
 	bool Declarator();
 	bool DirectDeclarator();
 	void DeclarationList();
+
+private:
+	void FunctionDefinition();
 	void ExternalDeclaration();
 	void TranslationUnit();
 

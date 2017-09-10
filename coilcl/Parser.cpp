@@ -357,8 +357,12 @@ void Parser::LogicalOrExpression()
 void Parser::ConditionalExpression()
 {
 	LogicalOrExpression();
-	//
-	//LogicalOrExpression() '?' expression ':' conditional_expression
+
+	/*if (m_currentToken == TK_QUESTION_MARK) {
+		Expression();
+		ExpectToken(TK_COLON);
+		ConditionalExpression();
+	}*/
 }
 
 //XXX; 
@@ -374,6 +378,11 @@ void Parser::Expression()
 	do {
 		AssignmentExpression();
 	} while (m_currentToken == TK_COMMA);
+}
+
+void Parser::ConstantExpression()
+{
+	ConditionalExpression();
 }
 
 void Parser::JumpStatement()
@@ -443,6 +452,7 @@ void Parser::SelectionStatement()
 	switch (m_currentToken)
 	{
 	case TK_IF:
+		NextToken();
 		ExpectToken(TK_BRACE_OPEN);
 		Expression();
 		ExpectToken(TK_BRACE_CLOSE);
@@ -452,6 +462,7 @@ void Parser::SelectionStatement()
 		}
 		break;
 	case TK_SWITCH:
+		NextToken();
 		ExpectToken(TK_BRACE_OPEN);
 		Expression();
 		ExpectToken(TK_BRACE_CLOSE);
@@ -493,16 +504,16 @@ void Parser::LabeledStatement()
 	switch (m_currentToken)
 	{
 	case TK_IDENTIFIER:
-		//ExpectToken(':');
+		//ExpectToken(TK_COLON);
 		Statement();
 		break;
 	case TK_CASE:
-		//ConstantExpression();
-		//ExpectToken(':');
+		ConstantExpression();
+		//ExpectToken(TK_COLON);
 		Statement();
 		break;
 		/*case TK_DEFAULT:
-			ExpectToken(':');
+			ExpectToken(TK_COLON);
 			Statement();
 			break;*/
 	default:
@@ -558,11 +569,63 @@ void Parser::InitDeclaratorList()
 
 void Parser::InitDeclarator()
 {
-	// int i
 	Declarator();
-	//
-	//Declarator();
-	//ExpectToken(TK_ASSIGN); //initializer
+
+	if (m_currentToken == TK_ASSIGN) {
+		NextToken();
+		Initializer();
+	}
+}
+
+void Parser::Initializer()
+{
+	if (m_currentToken == TK_BRACE_OPEN) {
+		do {
+			InitializerList();
+		} while (m_currentToken == TK_COMMA);
+		ExpectToken(TK_BRACE_CLOSE);
+	}
+	else {
+		AssignmentExpression();
+	}
+}
+
+void Parser::InitializerList()
+{
+	do {
+		Designation();
+		Initializer();
+	} while (m_currentToken == TK_COMMA);
+}
+
+void Parser::Designation()
+{
+	Designators();
+	ExpectToken(TK_ASSIGN);//TODO
+}
+
+void Parser::Designators()
+{
+	bool cont = false;
+	do {
+		switch (m_currentToken)
+		{
+		case TK_BRACKET_OPEN:
+			NextToken();
+			ConstantExpression();
+			ExpectToken(TK_BRACKET_CLOSE);
+			cont = true;
+			break;
+			//case TK_DOT:
+			//	NextToken();
+			//	ExpectToken(TK_IDENTIFIER);
+			//	// EMIT
+			//  cont = true;
+			//	break;
+		default:
+			break;
+		}
+	} while (cont);
 }
 
 void Pointer()
@@ -667,7 +730,7 @@ void Parser::FunctionDefinition()
 
 	Declarator();
 
-	DeclarationList();//optional
+	DeclarationList();
 	//
 	CompoundStatement();
 
