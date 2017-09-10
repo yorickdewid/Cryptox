@@ -144,7 +144,7 @@ bool Parser::UnaryOperator()
 {
 	switch (m_currentToken)
 	{
-	case TK_AND:
+	case TK_AND_OP:
 		NextToken();
 		return true;
 		//case '&':
@@ -233,11 +233,11 @@ void Parser::UnaryExpression()
 {
 	switch (m_currentToken)
 	{
-	case TK_INCR:
+	case TK_INC_OP:
 		//TODO: save
 		UnaryExpression();
 		break;
-	case TK_DECR:
+	case TK_DEC_OP:
 		//TODO: save
 		UnaryExpression();
 		break;
@@ -327,15 +327,20 @@ void Parser::EqualityExpression()
 void Parser::AndExpression()
 {
 	EqualityExpression();
-	//
-	// AndExpression() '&' EqualityExpression()
+
+	/*if (m_currentToken == TK_REFERENCE) { // -> AndExpression() '&' EqualityExpression()
+		EqualityExpression();
+	}*/
 }
 
 void Parser::ExclusiveOrExpression()
 {
 	AndExpression();
-	//
-	// ExclusiveOrExpression() '^' AndExpression()
+
+	if (m_currentToken == TK_CARET) {
+		NextToken();
+		AndExpression();
+	}
 }
 
 void Parser::LogicalAndExpression()
@@ -345,7 +350,6 @@ void Parser::LogicalAndExpression()
 	//LogicalAndExpression() AND_OP ExclusiveOrExpression()
 }
 
-//XXX
 void Parser::LogicalOrExpression()
 {
 	LogicalAndExpression();
@@ -353,7 +357,6 @@ void Parser::LogicalOrExpression()
 	//LogicalOrExpression() OR_OP LogicalAndExpression()
 }
 
-//XXX
 void Parser::ConditionalExpression()
 {
 	LogicalOrExpression();
@@ -365,7 +368,6 @@ void Parser::ConditionalExpression()
 	}*/
 }
 
-//XXX; 
 void Parser::AssignmentExpression()
 {
 	ConditionalExpression();

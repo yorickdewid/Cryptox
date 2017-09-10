@@ -21,22 +21,33 @@ void Lexer::Error(const std::string& errormsg)
 
 void Lexer::RegisterKeywords()
 {
-	m_keywords.insert(std::make_pair("continue", Keyword(Token::TK_CONTINUE)));
-	m_keywords.insert(std::make_pair("if", Keyword(Token::TK_IF)));
-	m_keywords.insert(std::make_pair("else", Keyword(Token::TK_ELSE)));
-	m_keywords.insert(std::make_pair("return", Keyword(Token::TK_RETURN)));
-	m_keywords.insert(std::make_pair("for", Keyword(Token::TK_FOR)));
-	m_keywords.insert(std::make_pair("while", Keyword(Token::TK_WHILE)));
-	m_keywords.insert(std::make_pair("do", Keyword(Token::TK_DO)));
-	m_keywords.insert(std::make_pair("break", Keyword(Token::TK_BREAK)));
-	m_keywords.insert(std::make_pair("case", Keyword(Token::TK_CASE)));
-	m_keywords.insert(std::make_pair("struct", Keyword(Token::TK_STRUCT)));
+	m_keywords.insert(std::make_pair("auto", Keyword(TK_AUTO)));
+	m_keywords.insert(std::make_pair("_Bool", Keyword(TK_BOOL)));
+	m_keywords.insert(std::make_pair("break", Keyword(TK_BREAK)));
+	m_keywords.insert(std::make_pair("case", Keyword(TK_CASE)));
+	m_keywords.insert(std::make_pair("_Complex", Keyword(TK_COMPLEX)));
+	m_keywords.insert(std::make_pair("continue", Keyword(TK_CONTINUE)));
+	m_keywords.insert(std::make_pair("default", Keyword(TK_DEFAULT)));
+	m_keywords.insert(std::make_pair("do", Keyword(TK_DO)));
+	m_keywords.insert(std::make_pair("else", Keyword(TK_ELSE)));
+	m_keywords.insert(std::make_pair("for", Keyword(TK_FOR)));
+	m_keywords.insert(std::make_pair("goto", Keyword(TK_GOTO)));
+	m_keywords.insert(std::make_pair("if", Keyword(TK_IF)));
+	m_keywords.insert(std::make_pair("_Imaginary", Keyword(TK_IMAGINARY)));
+	m_keywords.insert(std::make_pair("inline", Keyword(TK_INLINE)));
+	m_keywords.insert(std::make_pair("return", Keyword(TK_RETURN)));
+	m_keywords.insert(std::make_pair("sizeof", Keyword(TK_SIZEOF)));
+	m_keywords.insert(std::make_pair("struct", Keyword(TK_STRUCT)));
+	m_keywords.insert(std::make_pair("switch", Keyword(TK_SWITCH)));
+	m_keywords.insert(std::make_pair("union", Keyword(TK_UNION)));
+	m_keywords.insert(std::make_pair("while", Keyword(TK_WHILE)));
+
+	m_keywords.insert(std::make_pair("char", Keyword(TK_TM_CHAR)));
 	m_keywords.insert(std::make_pair("typedef", Keyword(Token::TK_TM_TYPEDEF)));
 	m_keywords.insert(std::make_pair("static", Keyword(Token::TK_TM_STATIC)));
 	m_keywords.insert(std::make_pair("const", Keyword(Token::TK_TM_CONST)));
 	m_keywords.insert(std::make_pair("enum", Keyword(Token::TK_TM_ENUM)));
 	m_keywords.insert(std::make_pair("int", Keyword(Token::TK_TM_INT)));
-	m_keywords.insert(std::make_pair("char", Keyword(Token::TK_TM_CHAR)));
 	m_keywords.insert(std::make_pair("float", Keyword(Token::TK_TM_FLOAT)));
 	m_keywords.insert(std::make_pair("double", Keyword(Token::TK_TM_DOUBLE)));
 	m_keywords.insert(std::make_pair("unsigned", Keyword(Token::TK_TM_UNSIGNED)));
@@ -94,6 +105,7 @@ int Lexer::Lex()
 			/*case '#'):
 				LexLineComment();
 				continue;*/
+
 		case '/':
 			Next();
 			switch (m_currentChar) {
@@ -104,55 +116,58 @@ int Lexer::Lex()
 			case '/':
 				LexLineComment();
 				continue;
-				/*case '=':
-					Next();
-					ReturnToken(TK_DIVEQ);
-					continue;*/
+			case '=':
+				Next();
+				return ReturnToken(TK_DIV_ASSIGN);
 			default:
-				ReturnToken('/');
+				return ReturnToken(TK_SLASH);
 			}
 
 		case '=':
 			Next();
 			if (m_currentChar != '=') {
-				return ReturnToken(Token::TK_ASSIGN);
-			} else {
+				return ReturnToken(TK_ASSIGN);
+			}
+			else {
 				Next();
-				return ReturnToken(Token::TK_EQ);
+				return ReturnToken(TK_EQ_OP);
 			}
 
 		case '<':
 			Next();
 			switch (m_currentChar) {
 			case '=':
-				return ReturnToken(Token::TK_LE);
+				return ReturnToken(TK_LE_OP);
 				break;
 			case '<':
 				Next();
-				return ReturnToken(Token::TK_SHIFTL);
+				return ReturnToken(TK_LEFT_OP);
 				break;
 			}
-			return ReturnToken('<');
+			return ReturnToken(TK_LESS_THAN);
 
 		case '>':
 			Next();
 			if (m_currentChar == '=') {
 				Next();
-				return ReturnToken(Token::TK_GE);
-			} else if (m_currentChar == '>') {
+				return ReturnToken(TK_GE_OP);
+			}
+			else if (m_currentChar == '>') {
 				Next();
-				return ReturnToken(Token::TK_SHIFTR);
-			} else {
-				return ReturnToken('>');
+				return ReturnToken(TK_RIGHT_OP);
+			}
+			else {
+				return ReturnToken(TK_GREATER_THAN);
 			}
 
 		case '!':
 			Next();
 			if (m_currentChar != '=') {
-				return ReturnToken(Token::TK_NOT);
-			} else {
+				return ReturnToken(TK_NOT);
+			}
+			else {
 				Next();
-				return ReturnToken(Token::TK_NE);
+				return ReturnToken(TK_NE_OP);
 			}
 
 		case '"':
@@ -166,114 +181,160 @@ int Lexer::Lex()
 		}
 
 		case '{':
-		case '}':
-		case '(':
-		case ')':
-		case '[':
-		case ']':
-		case ';':
-		case ',':
-		case '^':
-		case '~':
-		{
-			int ret = m_currentChar;
 			Next();
-			return ReturnToken(ret);
-		}
+			return ReturnToken(TK_BRACE_OPEN);
+		case '}':
+			Next();
+			return ReturnToken(TK_BRACE_CLOSE);
+		case '(':
+			Next();
+			return ReturnToken(TK_PARENTHES_OPEN);
+		case ')':
+			Next();
+			return ReturnToken(TK_PARENTHES_CLOSE);
+		case '[':
+			Next();
+			return ReturnToken(TK_BRACKET_OPEN);
+		case ']':
+			Next();
+			return ReturnToken(TK_BRACKET_CLOSE);
+		case ';':
+			Next();
+			return ReturnToken(TK_COMMIT);
+		case ',':
+			Next();
+			return ReturnToken(TK_COMMA);
+		case '?':
+			Next();
+			return ReturnToken(TK_QUESTION_MARK);
+		case '~':
+			Next();
+			return ReturnToken(TK_TILDE);
+		case ':':
+			Next();
+			return ReturnToken(TK_COLON);
+
+		case '^':
+			Next();
+			if (m_currentChar == '=') {
+				Next();
+				return ReturnToken(TK_XOR_ASSIGN);
+			}
+			else {
+				return ReturnToken(TK_CARET);
+			}
 
 		case '.':
 			Next();
 			if (m_currentChar != '.') {
-				return ReturnToken('.');
+				return ReturnToken(TK_DOT);
 			}
 			Next();
 			if (m_currentChar != '.') {
 				Error("invalid token '..'");
 			}
 			Next();
-			return ReturnToken(Token::TK_TM_VARPARAMS);
+			return ReturnToken(TK_ELLIPSIS);
 
 		case '&':
 			Next();
 			if (m_currentChar != '&') {
-				return ReturnToken('&');
-			} else {
+				return ReturnToken(TK_REFERENCE);
+			}
+			else if (m_currentChar == '=') {
 				Next();
-				return ReturnToken(Token::TK_AND);
+				return ReturnToken(TK_AND_ASSIGN);
+			}
+			else {
+				return ReturnToken(TK_AND_OP);
 			}
 
 		case '|':
 			Next();
 			if (m_currentChar != '|') {
-				return ReturnToken('|');
-			} else {
+				return ReturnToken(TK_VERTIAL_BAR);
+			}
+			else if (m_currentChar == '=') {
 				Next();
-				return ReturnToken(Token::TK_OR);
+				return ReturnToken(TK_OR_ASSIGN);
+			}
+			else {
+				Next();
+				return ReturnToken(TK_OR_OP);
 			}
 
-			/*case ':':
+		case '*':
+			Next();
+			if (m_currentChar == '=') {
 				Next();
-				if (m_currentChar != ':') {
-					ReturnToken(':');
-				}*/
+				return ReturnToken(TK_MUL_ASSIGN);
+			}
+			else {
+				return ReturnToken(TK_ASTERISK);
+			}
 
-				/*case '*':
-					Next();
-					if (m_currentChar == '=') {
-						Next();
-						ReturnToken(TK_MULEQ);
-					} else ReturnToken('*');*/
-
-					/*case '%':
-						Next();
-						if (m_currentChar == '=') {
-							Next();
-							ReturnToken(TK_MODEQ);
-						} else ReturnToken('%');*/
+		case '%':
+			Next();
+			if (m_currentChar == '=') {
+				Next();
+				return ReturnToken(TK_MOD_ASSIGN);
+			}
+			else {
+				return ReturnToken(TK_PERCENT);
+			}
 
 		case '-':
 			Next();
 			if (m_currentChar == '=') {
 				Next();
-				return ReturnToken(Token::TK_MINUSEQ);
-			} else if (m_currentChar == '-') {
+				return ReturnToken(TK_SUB_ASSIGN);
+			}
+			else if (m_currentChar == '-') {
 				Next();
-				return ReturnToken(Token::TK_DECR);
-			} else
-				return ReturnToken('-');
+				return ReturnToken(TK_DEC_OP);
+			}
+			else if (m_currentChar == '>') {
+				Next();
+				return ReturnToken(TK_PTR_OP);
+			}
+			else {
+				return ReturnToken(TK_MINUS);
+			}
 
 		case '+':
 			Next();
 			if (m_currentChar == '=') {
 				Next();
-				return ReturnToken(Token::TK_PLUSEQ);
-			} else if (m_currentChar == '+') {
+				return ReturnToken(TK_ADD_ASSIGN);
+			}
+			else if (m_currentChar == '+') {
 				Next();
-				return ReturnToken(Token::TK_INCR);
-			} else {
-				return ReturnToken('+');
+				return ReturnToken(TK_INC_OP);
+			}
+			else {
+				return ReturnToken(TK_PLUS);
 			}
 
 		case EndOfUnit:
 			// Reached end of input, so long ...
-			return 0;
+			return TK_HALT;
 
 		default:
 			// No token sequence matched so we either deal with scalars, ids or 
 			// control carachters. If the first character is a digit, try to
 			// parse the entire token as number.
 			if (std::isdigit(m_currentChar)) {
-				int ret = LexScalar();
-				return ReturnToken(ret);
-			} else if (std::isalpha(m_currentChar) || m_currentChar == '_') {
-				int t = ReadID();
-				return ReturnToken(t);
-			} else {
+				return ReturnToken(LexScalar());
+			}
+			else if (std::isalpha(m_currentChar) || m_currentChar == '_') {
+				return ReturnToken(ReadID());
+			}
+			else {
 				Error("stray '" + std::string{ m_currentChar } +"' in program");
 			}
 
-		} // switch
-	} // while
+		}
+	}
 
 	return 0;
 }
@@ -377,8 +438,8 @@ int Lexer::LexScalar()
 
 	const int firstchar = m_currentChar;
 
-	const auto isodigit = [] (int c) -> bool { return c >= '0' && c <= '7'; };
-	const auto isexponent = [] (int c) -> bool { return c == 'e' || c == 'E'; };
+	const auto isodigit = [](int c) -> bool { return c >= '0' && c <= '7'; };
+	const auto isexponent = [](int c) -> bool { return c == 'e' || c == 'E'; };
 
 	std::string _longstr;
 
@@ -394,7 +455,8 @@ int Lexer::LexScalar()
 			if (std::isdigit(m_currentChar)) {
 				Error("invalid octal number");
 			}
-		} else {
+		}
+		else {
 			Next();
 			ScalarType = Hex;
 			while (isxdigit(m_currentChar)) {
@@ -405,7 +467,8 @@ int Lexer::LexScalar()
 				Error("too many digits for an Hex number");
 			}
 		}
-	} else {
+	}
+	else {
 		// At this point we know the temporary buffer contains an integer.
 		ScalarType = Int;
 		_longstr.push_back((int)firstchar);

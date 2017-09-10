@@ -42,20 +42,20 @@ std::string Keyword::Print()
 		return std::string{ "TK_ASSIGN" };
 	case TK_NOT:
 		return std::string{ "TK_NOT" };
-	case TK_EQ:
-		return std::string{ "TK_EQ" };
-	case TK_NE:
-		return std::string{ "TK_NE" };
+	case TK_EQ_OP:
+		return std::string{ "TK_EQ_OP" };
+	case TK_NE_OP:
+		return std::string{ "TK_NE_OP" };
 	case TK_LE:
 		return std::string{ "TK_LE" };
 	case TK_GE:
 		return std::string{ "TK_GE" };
 	case TK_SWITCH:
 		return std::string{ "TK_SWITCH" };
-	case TK_AND:
-		return std::string{ "TK_AND" };
-	case TK_OR:
-		return std::string{ "TK_OR" };
+	case TK_AND_OP:
+		return std::string{ "TK_AND_OP" };
+	case TK_OR_OP:
+		return std::string{ "TK_OR_OP" };
 	case TK_IF:
 		return std::string{ "TK_IF" };
 	case TK_ELSE:
@@ -78,16 +78,16 @@ std::string Keyword::Print()
 		return std::string{ "TK_MINUSEQ" };
 	case TK_CONTINUE:
 		return std::string{ "TK_CONTINUE" };
-	case TK_SHIFTL:
-		return std::string{ "TK_SHIFTL" };
-	case TK_SHIFTR:
-		return std::string{ "TK_SHIFTR" };
+	case TK_LEFT_OP:
+		return std::string{ "TK_LEFT_OP" };
+	case TK_RIGHT_OP:
+		return std::string{ "TK_RIGHT_OP" };
 	case TK_CASE:
 		return std::string{ "TK_CASE" };
-	case TK_INCR:
-		return std::string{ "TK_INCR" };
-	case TK_DECR:
-		return std::string{ "TK_DECR" };
+	case TK_INC_OP:
+		return std::string{ "TK_INC_OP" };
+	case TK_DEC_OP:
+		return std::string{ "TK_DEC_OP" };
 	case TK_STRUCT:
 		return std::string{ "TK_STRUCT" };
 	case TK_TM_TYPEDEF:
@@ -114,8 +114,6 @@ std::string Keyword::Print()
 		return std::string{ "TK_TM_REGISTER" };
 	case TK_TM_VOLATILE:
 		return std::string{ "TK_TM_VOLATILE" };
-	case TK_TM_VARPARAMS:
-		return std::string{ "TK_TM_VARPARAMS" };
 	case TK___LINE__:
 		return std::string{ "TK___LINE__" };
 	case TK___FILE__:

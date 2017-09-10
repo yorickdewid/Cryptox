@@ -12,27 +12,8 @@ enum Token
 	// Program halt
 	TK_HALT = 0,
 
-	// Single character tokens with ASCII code
-	TK_BRACE_OPEN = 123,      // {
-	TK_BRACE_CLOSE = 125,     // }
-	TK_PARENTHES_OPEN = 40,   // (
-	TK_PARENTHES_CLOSE = 41,  // )
-	TK_BRACKET_OPEN = 91,     // [
-	TK_BRACKET_CLOSE = 93,    // ]
-	TK_COMMIT = 59,           // ;
-	TK_COMMA = 44,            // ,
-	TK_CARET = 94,            // ^
-	TK_TILDE = 126,           // ~
-	
 	//TODO:
-	// - TK_ASTERISK = 42,      // *
 	// - TK_PREPROCESS = 35,    // #
-	// - TK_REFERENCE = 38,     // &
-	// - TK_DOT = 46,           // .
-	// - TK_COLON = 58,         // :
-	// - TK_NEGATIVE = 33,      // !
-	// - TK_MODULO = 37,        // %
-	// - TK_QUESTION_MARK = 63  // ?
 
 	// Primitive values containing data
 	TK_IDENTIFIER = 257,
@@ -43,46 +24,78 @@ enum Token
 	TK_DOUBLE = 262,
 	
 	// Keywords
-	TK_ASSIGN = 312,
-	TK_NOT = 313,
-	TK_EQ = 314,
-	TK_NE = 315,
-	TK_LE = 316,
-	TK_GE = 317,
-	TK_SWITCH = 318,
-	TK_AND = 319,
-	TK_OR = 320,
-	TK_IF = 321,
-	TK_ELSE = 322,
-	TK_WHILE = 323,
-	TK_BREAK = 324,
-	TK_DO = 325,
-	TK_FOR = 326,
-	TK_RETURN = 327,
-	TK_UMINUS = 328,
-	TK_PLUSEQ = 329,
-	TK_MINUSEQ = 330,
-	TK_CONTINUE = 331,
-	TK_SHIFTL = 332,
-	TK_SHIFTR = 333,
-	TK_CASE = 334,
-	TK_INCR = 335,
-	TK_DECR = 336,
-	TK_STRUCT = 337,
-	
-	// TODO:
-	TK_GOTO = 338,
-	TK_SIZEOF = 339,
-	TK_DEFAULT = 340,
-	TK_INLINE = 341,
-	TK_AUTO = 342,
-	TK_BOOL = 343,
-	TK_COMPLEX = 344,
-	TK_IMAGINARY = 345,
+	TK_AUTO = 342,      // auto
+	TK_BOOL = 343,      // _Bool
+	TK_BREAK = 324,     // break
+	TK_CASE = 334,      // case
+	TK_COMPLEX = 344,   // _Complex
+	TK_CONTINUE = 331,  // continue
+	TK_DEFAULT = 340,   // default
+	TK_DO = 325,        // do
+	TK_ELSE = 322,      // else
+	TK_FOR = 326,       // for
+	TK_GOTO = 338,      // goto
+	TK_IF = 321,        // if
+	TK_IMAGINARY = 345, // _Imaginary
+	TK_INLINE = 341,    // inline
+	TK_RETURN = 327,    // return
+	TK_SIZEOF = 339,    // sizeof
+	TK_STRUCT = 337,    // struct
+	TK_SWITCH = 318,    // switch
+	TK_UNION = 318,     // union
+	TK_WHILE = 323,     // while
+
+	// Operators
+	TK_ELLIPSIS = 200,        // ...
+	TK_RIGHT_ASSIGN = 330,    // >>= //TOOD
+	TK_LEFT_ASSIGN = 330,     // <<= //TOOD
+	TK_ADD_ASSIGN = 330,      // +=
+	TK_SUB_ASSIGN = 330,      // -=
+	TK_MUL_ASSIGN = 330,      // *=
+	TK_DIV_ASSIGN = 330,      // /=
+	TK_MOD_ASSIGN = 331,      // %=
+	TK_AND_ASSIGN = 338,      // &=
+	TK_XOR_ASSIGN = 319,      // ^=
+	TK_OR_ASSIGN = 320,       // |=
+	TK_RIGHT_OP = 333,        // >>
+	TK_LEFT_OP = 332,         // <<
+	TK_INC_OP = 335,          // ++
+	TK_DEC_OP = 336,          // --
+	TK_PTR_OP = 318,          // ->
+	TK_AND_OP = 319,          // &&
+	TK_OR_OP = 320,           // ||
+	TK_LE_OP = 316,           // <=
+	TK_GE_OP = 317,           // >=
+	TK_EQ_OP = 314,           // ==
+	TK_NE_OP = 315,           // !=
+	TK_COMMIT = 59,           // ;
+	TK_BRACE_OPEN = 123,      // {
+	TK_BRACE_CLOSE = 125,     // }
+	TK_COMMA = 44,            // ,
+	TK_COLON = 58,            // :
+	TK_ASSIGN = 312,          // =
+	TK_PARENTHES_OPEN = 40,   // (
+	TK_PARENTHES_CLOSE = 41,  // )
+	TK_BRACKET_OPEN = 91,     // [
+	TK_BRACKET_CLOSE = 93,    // ]
+	TK_DOT = 46,              // .
+	TK_REFERENCE = 38,        // &
+	TK_NOT = 33,              // !
+	TK_TILDE = 126,           // ~
+	TK_MINUS = 45,            // -
+	TK_PLUS = 43,             // +
+	TK_ASTERISK = 42,         // *
+	TK_SLASH = 47,            // /
+	TK_PERCENT = 37,          // %
+	TK_LESS_THAN = 60,        // <
+	TK_GREATER_THAN = 62,     // <
+	TK_CARET = 94,            // ^
+	TK_VERTIAL_BAR = 124,     // |
+	TK_QUESTION_MARK = 63,    // ?
 
 	// Type modifiers
-	TK_TM_TYPEDEF = 364,
-	TK_TM_STATIC = 365,
+	TK_TM_TYPEDEF = 364,      // typedef
+	TK_TM_STATIC = 365,       // static
 	TK_TM_ENUM = 366,
 	TK_TM_CONST = 367,
 	TK_TM_INT = 368,
@@ -93,7 +106,6 @@ enum Token
 	TK_TM_SIGNED = 373,
 	TK_TM_REGISTER = 374,
 	TK_TM_VOLATILE = 375,
-	TK_TM_VARPARAMS = 376,
 
 	// TODO:
 	// - TK_TM_VOID = ?
