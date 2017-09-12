@@ -59,18 +59,18 @@ std::unique_ptr<Value> Parser::TypeSpecifier()
 	switch (m_currentToken) {
 	case TK_CONSTANT:
 		break;
-	//case TK_TM_CHAR:
-	//	return std::move(std::make_unique<ValueObject<std::string>>(Value::TypeSpecifier::T_CHAR));
-	//case TK_TM_INT:
-	//	return std::move(std::make_unique<ValueObject<int>>(Value::TypeSpecifier::T_INT));
-	//case TK_TM_FLOAT:
-	//	return std::move(std::make_unique<ValueObject<float>>(Value::TypeSpecifier::T_FLOAT));
-	//case TK_TM_DOUBLE:
-	//	return std::move(std::make_unique<ValueObject<double>>(Value::TypeSpecifier::T_DOUBLE));
-	//case TK_SIGNED:
-	//	return std::move(std::make_unique<ValueObject<signed>>(Value::TypeSpecifier::T_INT));
-	//case TK_UNSIGNED:
-	//	return std::move(std::make_unique<ValueObject<unsigned>>(Value::TypeSpecifier::T_INT));
+		//case TK_TM_CHAR:
+		//	return std::move(std::make_unique<ValueObject<std::string>>(Value::TypeSpecifier::T_CHAR));
+		//case TK_TM_INT:
+		//	return std::move(std::make_unique<ValueObject<int>>(Value::TypeSpecifier::T_INT));
+		//case TK_TM_FLOAT:
+		//	return std::move(std::make_unique<ValueObject<float>>(Value::TypeSpecifier::T_FLOAT));
+		//case TK_TM_DOUBLE:
+		//	return std::move(std::make_unique<ValueObject<double>>(Value::TypeSpecifier::T_DOUBLE));
+		//case TK_SIGNED:
+		//	return std::move(std::make_unique<ValueObject<signed>>(Value::TypeSpecifier::T_INT));
+		//case TK_UNSIGNED:
+		//	return std::move(std::make_unique<ValueObject<unsigned>>(Value::TypeSpecifier::T_INT));
 	default:
 		break;
 	}
@@ -149,17 +149,21 @@ bool Parser::UnaryOperator()
 	case TK_AND_OP:
 		NextToken();
 		return true;
-		//case '&':
-		//	return true;
-		//case '+':
-		//	return true;
-		//case '-':
-		//	return true;
+	case TK_AMPERSAND:
+		NextToken();
+		return true;
+	case TK_PLUS:
+		NextToken();
+		return true;
+	case TK_MINUS:
+		NextToken();
+		return true;
 	case TK_TILDE:
 		NextToken();
 		return true;
-		//case '!':
-		//	break;
+	case TK_NOT:
+		NextToken();
+		return true;
 	default:
 		break;
 	}
@@ -242,11 +246,11 @@ void Parser::UnaryExpression()
 	switch (m_currentToken)
 	{
 	case TK_INC_OP:
-		//TODO: save
+		// EMIT
 		UnaryExpression();
 		break;
 	case TK_DEC_OP:
-		//TODO: save
+		// EMIT
 		UnaryExpression();
 		break;
 	case TK_SIZEOF:
@@ -399,13 +403,17 @@ void Parser::JumpStatement()
 {
 	switch (m_currentToken)
 	{
-		//case TK_GOTO:
-		//	ExpectToken(TK_IDENTIFIER);
+	case TK_GOTO:
+		NextToken();
+		ExpectToken(TK_IDENTIFIER);
 		// EMIT
+		break;
 	case TK_CONTINUE:
+		// next?
 		// EMIT
 		break;
 	case TK_BREAK:
+		// next?
 		// EMIT
 		break;
 	case TK_RETURN:
@@ -514,18 +522,21 @@ void Parser::LabeledStatement()
 	switch (m_currentToken)
 	{
 	case TK_IDENTIFIER:
-		//ExpectToken(TK_COLON);
+		NextToken();
+		ExpectToken(TK_COLON);
 		Statement();
 		break;
 	case TK_CASE:
+		NextToken();
 		ConstantExpression();
-		//ExpectToken(TK_COLON);
+		ExpectToken(TK_COLON);
 		Statement();
 		break;
-		/*case TK_DEFAULT:
-			ExpectToken(TK_COLON);
-			Statement();
-			break;*/
+	case TK_DEFAULT:
+		NextToken();
+		ExpectToken(TK_COLON);
+		Statement();
+		break;
 	default:
 		break;
 	}
@@ -626,12 +637,12 @@ void Parser::Designators()
 			ExpectToken(TK_BRACKET_CLOSE);
 			cont = true;
 			break;
-			//case TK_DOT:
-			//	NextToken();
-			//	ExpectToken(TK_IDENTIFIER);
-			//	// EMIT
-			//  cont = true;
-			//	break;
+		case TK_DOT://TODO check
+			NextToken();
+			ExpectToken(TK_IDENTIFIER);
+			// EMIT
+			cont = true;
+			break;
 		default:
 			break;
 		}
@@ -640,7 +651,7 @@ void Parser::Designators()
 
 void Pointer()
 {
-	//ExpectToken(TK_POINTER);
+	//ExpectToken(TK_ASTERISK);
 
 	//type_qualifier_list
 	//
@@ -680,8 +691,8 @@ bool Parser::DirectDeclarator()
 		case TK_BRACKET_OPEN:
 			NextToken();
 			if (m_currentToken == TK_BRACE_CLOSE) {
-				// EMIT
 				NextToken();
+				// EMIT
 				return true;
 			}
 			/*else if (m_currentToken == TK_POINTER) {
@@ -694,8 +705,8 @@ bool Parser::DirectDeclarator()
 		case TK_PARENTHES_OPEN:
 			NextToken();
 			if (m_currentToken == TK_PARENTHES_CLOSE) {
-				// EMIT
 				NextToken();
+				// EMIT
 				return true;
 			}
 			else {
