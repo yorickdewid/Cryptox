@@ -26,36 +26,42 @@ void Lexer::RegisterKeywords()
 	m_keywords.insert(std::make_pair("break", Keyword(TK_BREAK)));
 	m_keywords.insert(std::make_pair("case", Keyword(TK_CASE)));
 	m_keywords.insert(std::make_pair("_Complex", Keyword(TK_COMPLEX)));
+	m_keywords.insert(std::make_pair("const", Keyword(TK_CONST)));
 	m_keywords.insert(std::make_pair("continue", Keyword(TK_CONTINUE)));
 	m_keywords.insert(std::make_pair("default", Keyword(TK_DEFAULT)));
 	m_keywords.insert(std::make_pair("do", Keyword(TK_DO)));
 	m_keywords.insert(std::make_pair("else", Keyword(TK_ELSE)));
+	m_keywords.insert(std::make_pair("enum", Keyword(TK_ENUM)));
+	m_keywords.insert(std::make_pair("extern", Keyword(TK_EXTERN)));
 	m_keywords.insert(std::make_pair("for", Keyword(TK_FOR)));
 	m_keywords.insert(std::make_pair("goto", Keyword(TK_GOTO)));
 	m_keywords.insert(std::make_pair("if", Keyword(TK_IF)));
 	m_keywords.insert(std::make_pair("_Imaginary", Keyword(TK_IMAGINARY)));
 	m_keywords.insert(std::make_pair("inline", Keyword(TK_INLINE)));
+	m_keywords.insert(std::make_pair("long", Keyword(TK_LONG)));
+	m_keywords.insert(std::make_pair("register", Keyword(TK_REGISTER)));
+	m_keywords.insert(std::make_pair("restrict", Keyword(TK_RESTRICT)));
 	m_keywords.insert(std::make_pair("return", Keyword(TK_RETURN)));
+	m_keywords.insert(std::make_pair("short", Keyword(TK_SHORT)));
+	m_keywords.insert(std::make_pair("signed", Keyword(TK_SIGNED)));
 	m_keywords.insert(std::make_pair("sizeof", Keyword(TK_SIZEOF)));
+	m_keywords.insert(std::make_pair("static", Keyword(TK_STATIC)));
 	m_keywords.insert(std::make_pair("struct", Keyword(TK_STRUCT)));
 	m_keywords.insert(std::make_pair("switch", Keyword(TK_SWITCH)));
+	m_keywords.insert(std::make_pair("typedef", Keyword(TK_TYPEDEF)));
 	m_keywords.insert(std::make_pair("union", Keyword(TK_UNION)));
+	m_keywords.insert(std::make_pair("unsigned", Keyword(TK_UNSIGNED)));
+	m_keywords.insert(std::make_pair("void", Keyword(TK_VOID)));
+	m_keywords.insert(std::make_pair("volatile", Keyword(TK_VOLATILE)));
 	m_keywords.insert(std::make_pair("while", Keyword(TK_WHILE)));
 
 	m_keywords.insert(std::make_pair("char", Keyword(TK_TM_CHAR)));
-	m_keywords.insert(std::make_pair("typedef", Keyword(Token::TK_TM_TYPEDEF)));
-	m_keywords.insert(std::make_pair("static", Keyword(Token::TK_TM_STATIC)));
-	m_keywords.insert(std::make_pair("const", Keyword(Token::TK_TM_CONST)));
-	m_keywords.insert(std::make_pair("enum", Keyword(Token::TK_TM_ENUM)));
 	m_keywords.insert(std::make_pair("int", Keyword(Token::TK_TM_INT)));
 	m_keywords.insert(std::make_pair("float", Keyword(Token::TK_TM_FLOAT)));
 	m_keywords.insert(std::make_pair("double", Keyword(Token::TK_TM_DOUBLE)));
-	m_keywords.insert(std::make_pair("unsigned", Keyword(Token::TK_TM_UNSIGNED)));
-	m_keywords.insert(std::make_pair("signed", Keyword(Token::TK_TM_SIGNED)));
-	m_keywords.insert(std::make_pair("register", Keyword(Token::TK_TM_REGISTER)));
-	m_keywords.insert(std::make_pair("volatile", Keyword(Token::TK_TM_VOLATILE)));
-	m_keywords.insert(std::make_pair("__LINE__", Keyword(Token::TK___LINE__)));
-	m_keywords.insert(std::make_pair("__FILE__", Keyword(Token::TK___FILE__)));
+	
+	m_keywords.insert(std::make_pair("__LINE__", Keyword(TK___LINE__)));
+	m_keywords.insert(std::make_pair("__FILE__", Keyword(TK___FILE__)));
 }
 
 // Retrieve Next character from content and store it 
@@ -89,6 +95,9 @@ int Lexer::Lex()
 	m_lastTokenLine = m_currentLine;
 	while (m_currentChar != EndOfUnit) {
 		switch (m_currentChar) {
+
+			//TODO: \f
+			//TODO: \v
 
 		case '\t':
 		case '\r':
@@ -141,8 +150,13 @@ int Lexer::Lex()
 				break;
 			case '<':
 				Next();
-				return ReturnToken(TK_LEFT_OP);
-				break;
+				if (m_currentChar == '=') {
+					Next();
+					return ReturnToken(TK_LEFT_ASSIGN);
+				}
+				else {
+					return ReturnToken(TK_LEFT_OP);
+				}
 			}
 			return ReturnToken(TK_LESS_THAN);
 
@@ -154,7 +168,13 @@ int Lexer::Lex()
 			}
 			else if (m_currentChar == '>') {
 				Next();
-				return ReturnToken(TK_RIGHT_OP);
+				if (m_currentChar == '=') {
+					Next();
+					return ReturnToken(TK_RIGHT_ASSIGN);
+				}
+				else {
+					return ReturnToken(TK_RIGHT_OP);
+				}
 			}
 			else {
 				return ReturnToken(TK_GREATER_THAN);
@@ -239,7 +259,7 @@ int Lexer::Lex()
 		case '&':
 			Next();
 			if (m_currentChar != '&') {
-				return ReturnToken(TK_REFERENCE);
+				return ReturnToken(TK_AMPERSAND);
 			}
 			else if (m_currentChar == '=') {
 				Next();

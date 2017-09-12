@@ -41,11 +41,11 @@ void Parser::ExpectIdentifier()
 auto Parser::StorageClassSpecifier()
 {
 	switch (m_currentToken) {
-	case TK_TM_REGISTER:
+	case TK_REGISTER:
 		return Value::StorageClassSpecifier::REGISTER;
-	case TK_TM_STATIC:
+	case TK_STATIC:
 		return Value::StorageClassSpecifier::STATIC;
-	case TK_TM_TYPEDEF:
+	case TK_TYPEDEF:
 		return Value::StorageClassSpecifier::TYPEDEF;
 	default:
 		break;
@@ -65,9 +65,9 @@ std::unique_ptr<Value> Parser::TypeSpecifier()
 		return std::move(std::make_unique<ValueObject<float>>(Value::TypeSpecifier::T_FLOAT));
 	case TK_TM_DOUBLE:
 		return std::move(std::make_unique<ValueObject<double>>(Value::TypeSpecifier::T_DOUBLE));
-	case TK_TM_SIGNED:
+	case TK_SIGNED:
 		return std::move(std::make_unique<ValueObject<signed>>(Value::TypeSpecifier::T_INT));
-	case TK_TM_UNSIGNED:
+	case TK_UNSIGNED:
 		return std::move(std::make_unique<ValueObject<unsigned>>(Value::TypeSpecifier::T_INT));
 	default:
 		break;
@@ -79,9 +79,9 @@ std::unique_ptr<Value> Parser::TypeSpecifier()
 auto Parser::TypeQualifier()
 {
 	switch (m_currentToken) {
-	case TK_TM_CONST:
+	case TK_CONST:
 		return Value::TypeQualifier::CONST;
-	case TK_TM_VOLATILE:
+	case TK_VOLATILE:
 		return Value::TypeQualifier::VOLATILE;
 	default:
 		break;
