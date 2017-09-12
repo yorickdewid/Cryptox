@@ -25,19 +25,23 @@ void Lexer::RegisterKeywords()
 	m_keywords.insert(std::make_pair("_Bool", Keyword(TK_BOOL)));
 	m_keywords.insert(std::make_pair("break", Keyword(TK_BREAK)));
 	m_keywords.insert(std::make_pair("case", Keyword(TK_CASE)));
+	m_keywords.insert(std::make_pair("char", Keyword(TK_CHAR)));
 	m_keywords.insert(std::make_pair("_Complex", Keyword(TK_COMPLEX)));
 	m_keywords.insert(std::make_pair("const", Keyword(TK_CONST)));
 	m_keywords.insert(std::make_pair("continue", Keyword(TK_CONTINUE)));
 	m_keywords.insert(std::make_pair("default", Keyword(TK_DEFAULT)));
 	m_keywords.insert(std::make_pair("do", Keyword(TK_DO)));
+	m_keywords.insert(std::make_pair("double", Keyword(TK_DOUBLE)));
 	m_keywords.insert(std::make_pair("else", Keyword(TK_ELSE)));
 	m_keywords.insert(std::make_pair("enum", Keyword(TK_ENUM)));
 	m_keywords.insert(std::make_pair("extern", Keyword(TK_EXTERN)));
+	m_keywords.insert(std::make_pair("float", Keyword(TK_FLOAT)));
 	m_keywords.insert(std::make_pair("for", Keyword(TK_FOR)));
 	m_keywords.insert(std::make_pair("goto", Keyword(TK_GOTO)));
 	m_keywords.insert(std::make_pair("if", Keyword(TK_IF)));
 	m_keywords.insert(std::make_pair("_Imaginary", Keyword(TK_IMAGINARY)));
 	m_keywords.insert(std::make_pair("inline", Keyword(TK_INLINE)));
+	m_keywords.insert(std::make_pair("int", Keyword(TK_INT)));
 	m_keywords.insert(std::make_pair("long", Keyword(TK_LONG)));
 	m_keywords.insert(std::make_pair("register", Keyword(TK_REGISTER)));
 	m_keywords.insert(std::make_pair("restrict", Keyword(TK_RESTRICT)));
@@ -55,11 +59,6 @@ void Lexer::RegisterKeywords()
 	m_keywords.insert(std::make_pair("volatile", Keyword(TK_VOLATILE)));
 	m_keywords.insert(std::make_pair("while", Keyword(TK_WHILE)));
 
-	m_keywords.insert(std::make_pair("char", Keyword(TK_TM_CHAR)));
-	m_keywords.insert(std::make_pair("int", Keyword(Token::TK_TM_INT)));
-	m_keywords.insert(std::make_pair("float", Keyword(Token::TK_TM_FLOAT)));
-	m_keywords.insert(std::make_pair("double", Keyword(Token::TK_TM_DOUBLE)));
-	
 	m_keywords.insert(std::make_pair("__LINE__", Keyword(TK___LINE__)));
 	m_keywords.insert(std::make_pair("__FILE__", Keyword(TK___FILE__)));
 }
@@ -417,12 +416,12 @@ int Lexer::ReadString(int ndelim)
 
 		char _cvalue = _longstr[0];
 		m_data = std::make_unique<ValueObject<decltype(_cvalue)>>(Value::TypeSpecifier::T_CHAR, _cvalue);
-		return Token::TK_CHARACTER;
+		return Token::TK_CONSTANT;
 	}
 
 	auto _svalue = _longstr;
 	m_data = std::make_unique<ValueObject<decltype(_svalue)>>(Value::TypeSpecifier::T_CHAR, _svalue);
-	return Token::TK_STRING_LITERAL;
+	return Token::TK_CONSTANT;
 }
 
 int Lexer::ReadID()
@@ -444,7 +443,6 @@ int Lexer::ReadID()
 	return Token::TK_IDENTIFIER;
 }
 
-#define MAX_HEX_DIGITS (sizeof(int)*2)
 int Lexer::LexScalar()
 {
 	enum
@@ -483,7 +481,7 @@ int Lexer::LexScalar()
 				_longstr.push_back(m_currentChar);
 				Next();
 			}
-			if (_longstr.size() > MAX_HEX_DIGITS) {
+			if (_longstr.size() > sizeof(int) * 2) {
 				Error("too many digits for an Hex number");
 			}
 		}
@@ -524,25 +522,18 @@ int Lexer::LexScalar()
 	{
 		auto _fvalue = boost::lexical_cast<float>(_longstr);
 		m_data = std::make_unique<ValueObject<decltype(_fvalue)>>(Value::TypeSpecifier::T_FLOAT, _fvalue);
-		return Token::TK_FLOAT;
+		return TK_CONSTANT;
 	}
 	case Int:
-		//LexInteger(&_longstr[0], (unsigned int *)&_nvalue);
-	{
-		auto _nvalue = boost::lexical_cast<int>(_longstr);
-		m_data = std::make_unique<ValueObject<decltype(_nvalue)>>(Value::TypeSpecifier::T_INT, _nvalue);
-		return Token::TK_INTEGER;
-	}
 	case Hex:
-		//LexHexadecimal(&_longstr[0], (unsigned int *)&_nvalue);
 	{
 		auto _nvalue = boost::lexical_cast<int>(_longstr);
 		m_data = std::make_unique<ValueObject<decltype(_nvalue)>>(Value::TypeSpecifier::T_INT, _nvalue);
-		return Token::TK_INTEGER;
+		return TK_CONSTANT;
 	}
 	case Octal:
 		/*LexOctal(&_longstr[0], (unsigned int *)&_nvalue);
-		return TK_INTEGER;*/
+		return TK_CONSTANT;*/
 		break;
 	}
 

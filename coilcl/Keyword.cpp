@@ -7,29 +7,29 @@ std::string Keyword::Print()
 	case TK_HALT:			return std::string{ "TK_HALT" };
 
 	case TK_IDENTIFIER:		return std::string{ "TK_IDENTIFIER" };
-	case TK_STRING_LITERAL:	return std::string{ "TK_STRING_LITERAL" };
-	case TK_CHARACTER:		return std::string{ "TK_CHARACTER" };
-	case TK_INTEGER:		return std::string{ "TK_INTEGER" };
-	case TK_FLOAT:			return std::string{ "TK_FLOAT" };
-	case TK_DOUBLE:			return std::string{ "TK_DOUBLE" };
+	case TK_CONSTANT:		return std::string{ "TK_CONSTANT" };
 
 	case TK_AUTO:			return std::string{ "TK_AUTO" };
 	case TK_BOOL:			return std::string{ "TK_BOOL" };
 	case TK_BREAK:			return std::string{ "TK_BREAK" };
 	case TK_CASE:			return std::string{ "TK_CASE" };
+	case TK_CHAR:			return std::string{ "TK_CHAR" };
 	case TK_COMPLEX:		return std::string{ "TK_COMPLEX" };
 	case TK_CONST:			return std::string{ "TK_CONST" };
 	case TK_CONTINUE:		return std::string{ "TK_CONTINUE" };
 	case TK_DEFAULT:		return std::string{ "TK_DEFAULT" };
 	case TK_DO:				return std::string{ "TK_DO" };
+	case TK_DOUBLE:			return std::string{ "TK_DOUBLE" };
 	case TK_ELSE:			return std::string{ "TK_ELSE" };
 	case TK_ENUM:			return std::string{ "TK_ENUM" };
 	case TK_EXTERN:			return std::string{ "TK_EXTERN" };
+	case TK_FLOAT:			return std::string{ "TK_FLOAT" };
 	case TK_FOR:			return std::string{ "TK_FOR" };
 	case TK_GOTO:			return std::string{ "TK_GOTO" };
 	case TK_IF:				return std::string{ "TK_IF" };
 	case TK_IMAGINARY:		return std::string{ "TK_IMAGINARY" };
 	case TK_INLINE:			return std::string{ "TK_INLINE" };
+	case TK_INT:			return std::string{ "TK_INT" };
 	case TK_LONG:			return std::string{ "TK_LONG" };
 	case TK_REGISTER:		return std::string{ "TK_REGISTER" };
 	case TK_RESTRICT:		return std::string{ "TK_RESTRICT" };
@@ -43,6 +43,7 @@ std::string Keyword::Print()
 	case TK_TYPEDEF:		return std::string{ "TK_TYPEDEF" };
 	case TK_UNION:			return std::string{ "TK_UNION" };
 	case TK_UNSIGNED:		return std::string{ "TK_UNSIGNED" };
+	case TK_VOID:			return std::string{ "TK_VOID" };
 	case TK_VOLATILE:		return std::string{ "TK_VOLATILE" };
 	case TK_WHILE:			return std::string{ "TK_WHILE" };
 
@@ -92,11 +93,6 @@ std::string Keyword::Print()
 	case TK_CARET:			return std::string{ "TK_CARET" };
 	case TK_VERTIAL_BAR:	return std::string{ "TK_VERTIAL_BAR" };
 	case TK_QUESTION_MARK:	return std::string{ "TK_QUESTION_MARK" };
-
-	case TK_TM_INT:			return std::string{ "TK_TM_INT" };
-	case TK_TM_CHAR:		return std::string{ "TK_TM_CHAR" };
-	case TK_TM_FLOAT:		return std::string{ "TK_TM_FLOAT" };
-	case TK_TM_DOUBLE:		return std::string{ "TK_TM_DOUBLE" };
 	
 	case TK___LINE__:		return std::string{ "TK___LINE__" };
 	case TK___FILE__:		return std::string{ "TK___FILE__" };

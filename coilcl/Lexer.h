@@ -15,48 +15,50 @@ enum Token
 	//TODO:
 	// - TK_PREPROCESS = 35,    // #
 
-	// Constants
-	TK_IDENTIFIER = 250,
-	TK_STRING_LITERAL = 251,
-	TK_CHARACTER = 252,
-	TK_INTEGER = 253,
-	TK_FLOAT = 254,
-	TK_DOUBLE = 255,
+	// Constant value
+	TK_CONSTANT = 20,
+
+	// Identifier
+	TK_IDENTIFIER = 30,
 
 	// Keywords
 	TK_AUTO = 50,      // auto
 	TK_BOOL = 51,      // _Bool
 	TK_BREAK = 52,     // break
 	TK_CASE = 53,      // case
-	TK_COMPLEX = 54,   // _Complex
-	TK_CONST = 55,     // const
-	TK_CONTINUE = 566, // continue ///
-	TK_DEFAULT = 56,   // default
-	TK_DO = 57,        // do
-	TK_ELSE = 58,      // else
-	TK_ENUM = 366,     // enum ///
-	TK_EXTERN = 59,    // extern
-	TK_FOR = 60,       // for
-	TK_GOTO = 61,      // goto
-	TK_IF = 62,        // if
-	TK_IMAGINARY = 63, // _Imaginary
-	TK_INLINE = 64,    // inline
-	TK_LONG = 379,     // long ///
-	TK_REGISTER = 374, // register ///
-	TK_RESTRICT = 65,  // restrict
-	TK_RETURN = 66,    // return
-	TK_SHORT = 6666,   // short  ///
-	TK_SIGNED = 373,   // signed ///
- 	TK_SIZEOF = 67,    // sizeof
-	TK_STATIC = 365,   // static ///
-	TK_STRUCT = 68,    // struct
-	TK_SWITCH = 69,    // switch
-	TK_TYPEDEF = 70,   // typedef
-	TK_UNION = 71,     // union
-	TK_UNSIGNED = 372, // unsigned ///
-	TK_VOID = 391,     // void ///
-	TK_VOLATILE = 375, // volatile ///
-	TK_WHILE = 72,     // while
+	TK_CHAR = 54,      // char
+	TK_COMPLEX = 55,   // _Complex
+	TK_CONST = 56,     // const
+	TK_CONTINUE = 57,  // continue
+	TK_DEFAULT = 58,   // default
+	TK_DO = 59,        // do
+	TK_DOUBLE = 60,    // double
+	TK_ELSE = 61,      // else
+	TK_ENUM = 62,      // enum
+	TK_EXTERN = 63,    // extern
+	TK_FLOAT = 64,     // float
+	TK_FOR = 65,       // for
+	TK_GOTO = 66,      // goto
+	TK_IF = 67,        // if
+	TK_IMAGINARY = 68, // _Imaginary
+	TK_INLINE = 69,    // inline
+	TK_INT = 70,       // int
+	TK_LONG = 71,      // long
+	TK_REGISTER = 72,  // register
+	TK_RESTRICT = 73,  // restrict
+	TK_RETURN = 74,    // return
+	TK_SHORT = 75,     // short
+	TK_SIGNED = 76,    // signed
+	TK_SIZEOF = 77,    // sizeof
+	TK_STATIC = 78,    // static
+	TK_STRUCT = 79,    // struct
+	TK_SWITCH = 80,    // switch
+	TK_TYPEDEF = 81,   // typedef
+	TK_UNION = 82,     // union
+	TK_UNSIGNED = 83,  // unsigned
+	TK_VOID = 84,      // void
+	TK_VOLATILE = 85,  // volatile
+	TK_WHILE = 86,     // while
 
 	// Operators
 	TK_ELLIPSIS = 200,        // ...
@@ -105,15 +107,6 @@ enum Token
 	TK_CARET = 243,           // ^
 	TK_VERTIAL_BAR = 244,     // |
 	TK_QUESTION_MARK = 245,   // ?
-
-	// Type modifiers
-	TK_TM_INT = 368,
-	TK_TM_CHAR = 369,
-	TK_TM_FLOAT = 370,
-	TK_TM_DOUBLE = 371,
-	
-	// TODO:
-	// - TK_TM_LONG = ?
 
 	// Compiler translation
 	TK___LINE__ = 390,

@@ -57,18 +57,20 @@ auto Parser::StorageClassSpecifier()
 std::unique_ptr<Value> Parser::TypeSpecifier()
 {
 	switch (m_currentToken) {
-	case TK_TM_CHAR:
-		return std::move(std::make_unique<ValueObject<std::string>>(Value::TypeSpecifier::T_CHAR));
-	case TK_TM_INT:
-		return std::move(std::make_unique<ValueObject<int>>(Value::TypeSpecifier::T_INT));
-	case TK_TM_FLOAT:
-		return std::move(std::make_unique<ValueObject<float>>(Value::TypeSpecifier::T_FLOAT));
-	case TK_TM_DOUBLE:
-		return std::move(std::make_unique<ValueObject<double>>(Value::TypeSpecifier::T_DOUBLE));
-	case TK_SIGNED:
-		return std::move(std::make_unique<ValueObject<signed>>(Value::TypeSpecifier::T_INT));
-	case TK_UNSIGNED:
-		return std::move(std::make_unique<ValueObject<unsigned>>(Value::TypeSpecifier::T_INT));
+	case TK_CONSTANT:
+		break;
+	//case TK_TM_CHAR:
+	//	return std::move(std::make_unique<ValueObject<std::string>>(Value::TypeSpecifier::T_CHAR));
+	//case TK_TM_INT:
+	//	return std::move(std::make_unique<ValueObject<int>>(Value::TypeSpecifier::T_INT));
+	//case TK_TM_FLOAT:
+	//	return std::move(std::make_unique<ValueObject<float>>(Value::TypeSpecifier::T_FLOAT));
+	//case TK_TM_DOUBLE:
+	//	return std::move(std::make_unique<ValueObject<double>>(Value::TypeSpecifier::T_DOUBLE));
+	//case TK_SIGNED:
+	//	return std::move(std::make_unique<ValueObject<signed>>(Value::TypeSpecifier::T_INT));
+	//case TK_UNSIGNED:
+	//	return std::move(std::make_unique<ValueObject<unsigned>>(Value::TypeSpecifier::T_INT));
 	default:
 		break;
 	}
@@ -173,7 +175,12 @@ void Parser::PrimaryExpression()
 		// EMIT
 		break;
 
-	case TK_INTEGER:
+	case TK_CONSTANT:
+		// EMIT
+		break;
+
+		//TODO
+	/*case TK_INTEGER:
 		assert(m_currentData->DataType() == Value::TypeSpecifier::T_INT);
 		m_elementStack.push(std::move(std::make_unique<ValueNode>(m_currentData)));
 		NextToken();
@@ -197,7 +204,8 @@ void Parser::PrimaryExpression()
 		assert(m_currentData->DataType() == Value::TypeSpecifier::T_DOUBLE);
 		m_elementStack.push(std::move(std::make_unique<ValueNode>(m_currentData)));
 		NextToken();
-		break;
+		break;*/
+
 	case TK_PARENTHES_OPEN:
 		Expression();
 		ExpectToken(TK_PARENTHES_CLOSE);
