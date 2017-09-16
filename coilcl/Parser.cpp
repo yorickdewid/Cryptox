@@ -182,24 +182,81 @@ bool Parser::UnaryOperator()
 	{
 	case TK_AND_OP:
 		NextToken();
+		// EMIT
 		return true;
 	case TK_AMPERSAND:
 		NextToken();
+		// EMIT
 		return true;
 	case TK_PLUS:
 		NextToken();
+		// EMIT
 		return true;
 	case TK_MINUS:
 		NextToken();
+		// EMIT
 		return true;
 	case TK_TILDE:
 		NextToken();
+		// EMIT
 		return true;
 	case TK_NOT:
 		NextToken();
+		// EMIT
 		return true;
-	default:
-		break;
+	}
+
+	return false;
+}
+
+bool Parser::AssignmentOperator()
+{
+	switch (m_currentToken)
+	{
+	case TK_ASSIGN:
+		NextToken();
+		// EMIT
+		return true;
+	case TK_MUL_ASSIGN:
+		NextToken();
+		// EMIT
+		return true;
+	case TK_DIV_ASSIGN:
+		NextToken();
+		// EMIT
+		return true;
+	case TK_MOD_ASSIGN:
+		NextToken();
+		// EMIT
+		return true;
+	case TK_ADD_ASSIGN:
+		NextToken();
+		// EMIT
+		return true; break;
+	case TK_SUB_ASSIGN:
+		NextToken();
+		// EMIT
+		return true;
+	case TK_LEFT_ASSIGN:
+		NextToken();
+		// EMIT
+		return true;
+	case TK_RIGHT_ASSIGN:
+		NextToken();
+		// EMIT
+		return true;
+	case TK_AND_ASSIGN:
+		NextToken();
+		// EMIT
+		return true;
+	case TK_XOR_ASSIGN:
+		NextToken();
+		// EMIT
+		return true;
+	case TK_OR_ASSIGN:
+		NextToken();
+		// EMIT
+		return true;
 	}
 
 	return false;
@@ -481,8 +538,11 @@ void Parser::ConditionalExpression()
 void Parser::AssignmentExpression()
 {
 	ConditionalExpression();
-	//
-	// UnaryExpression() assignment_operator AssignmentExpression()
+
+	UnaryExpression();
+	if (AssignmentOperator()) {
+		AssignmentExpression();
+	}
 }
 
 void Parser::Expression()
@@ -508,11 +568,11 @@ void Parser::JumpStatement()
 		// EMIT
 		break;
 	case TK_CONTINUE:
-		// next?
+		NextToken();
 		// EMIT
 		break;
 	case TK_BREAK:
-		// next?
+		NextToken();
 		// EMIT
 		break;
 	case TK_RETURN:
@@ -524,7 +584,7 @@ void Parser::JumpStatement()
 			Expression();
 		}
 		break;
-	default:
+	default: // Return if no match
 		return;
 	}
 
@@ -740,9 +800,9 @@ void Parser::Designators()
 			ExpectToken(TK_BRACKET_CLOSE);
 			cont = true;
 			break;
-		case TK_DOT://TODO check
+		case TK_DOT:
 			NextToken();
-			ExpectToken(TK_IDENTIFIER);
+			ExpectIdentifier();
 			// EMIT
 			cont = true;
 			break;
@@ -752,22 +812,18 @@ void Parser::Designators()
 	} while (cont);
 }
 
-void Pointer()
+void Parser::Pointer()
 {
-	//ExpectToken(TK_ASTERISK);
-
-	//type_qualifier_list
-	//
-	//Pointer();
-	//
-	//type_qualifier_list Pointer();
+	if (m_currentToken == TK_ASTERISK) {
+		NextToken();
+		// type_qualifier_list
+		Pointer();
+	}
 }
 
 bool Parser::Declarator()
 {
-	/*if (<pointer>) {
-		Pointer();
-	}*/
+	Pointer();
 
 	return DirectDeclarator();
 }
@@ -838,23 +894,12 @@ bool Parser::DirectDeclarator()
 	}
 }
 
-void Parser::DeclarationList()
-{
-	for (;;) {
-		if (!Declarator()) {
-			break;
-		}
-	}
-}
-
 bool Parser::FunctionDefinition()
 {
 	// Return type for function declaration
 	DeclarationSpecifiers();
 
-	Declarator();
-
-	DeclarationList();
+	while (Declarator());
 
 	return CompoundStatement();
 

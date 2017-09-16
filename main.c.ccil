@@ -1,3 +1,15 @@
+/**
+ * Copyright (C) 2017 Cryptox, Blub Corp.
+ * All Rights Reserved
+ *
+ * This file is part of the Cryptox project.
+ *
+ * Content can not be copied and/or distributed without the express
+ * permission of the author.
+ */
+
+static const char program_title[] = "$< MYPROG >$";
+
 const int myprint() {
 	printf("hai\n");
 	return 1;

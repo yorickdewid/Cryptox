@@ -34,6 +34,7 @@ private:
 	std::unique_ptr<Value> TypeSpecifier();
 	bool DeclarationSpecifiers();
 	bool UnaryOperator();
+	bool AssignmentOperator();
 
 private: // Expressions
 	void PrimaryExpression();
@@ -72,9 +73,9 @@ private: // Declarations
 	void InitializerList();
 	void Designation();
 	void Designators();
+	void Pointer();
 	bool Declarator();
 	bool DirectDeclarator();
-	void DeclarationList();
 
 private:
 	bool FunctionDefinition();
