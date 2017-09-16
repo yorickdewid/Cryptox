@@ -16,6 +16,7 @@ void Parser::Error(const std::string& err)
 	int column = 1;
 
 	std::cerr << "Semantic error: " << err << " before '" << m_currentToken << "' token at " << line << ":" << column << std::endl;
+	assert(0);
 	//TODO: throw something
 }
 
@@ -523,6 +524,8 @@ void Parser::JumpStatement()
 			Expression();
 		}
 		break;
+	default:
+		return;
 	}
 
 	ExpectToken(TK_COMMIT);
@@ -569,9 +572,9 @@ void Parser::SelectionStatement()
 	{
 	case TK_IF:
 		NextToken();
-		ExpectToken(TK_BRACE_OPEN);
+		ExpectToken(TK_PARENTHES_OPEN);
 		Expression();
-		ExpectToken(TK_BRACE_CLOSE);
+		ExpectToken(TK_PARENTHES_CLOSE);
 		Statement();
 		if (m_currentToken == TK_ELSE) {
 			Statement();
@@ -583,8 +586,6 @@ void Parser::SelectionStatement()
 		Expression();
 		ExpectToken(TK_BRACE_CLOSE);
 		Statement();
-		break;
-	default:
 		break;
 	}
 }
