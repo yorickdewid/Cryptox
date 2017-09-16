@@ -2,6 +2,9 @@
 
 #include <iostream>
 
+#define MATCH_TOKEN(t) (m_currentToken == t)
+#define NOT_TOKEN(t) (m_currentToken != t)
+
 Parser::Parser(const std::string& input)
 	: lex{ input }
 {
@@ -16,13 +19,14 @@ void Parser::Error(const std::string& err)
 	int column = 1;
 
 	std::cerr << "Semantic error: " << err << " before '" << m_currentToken << "' token at " << line << ":" << column << std::endl;
+
 	assert(0);
 	//TODO: throw something
 }
 
 void Parser::ExpectToken(Token token)
 {
-	if (m_currentToken != token) {
+	if (NOT_TOKEN(token)) {
 		Error("expected expression");
 	}
 
@@ -31,7 +35,7 @@ void Parser::ExpectToken(Token token)
 
 void Parser::ExpectIdentifier()
 {
-	if (m_currentToken != TK_IDENTIFIER) {
+	if (NOT_TOKEN(TK_IDENTIFIER)) {
 		Error("expected identifier");
 	}
 
@@ -49,8 +53,6 @@ auto Parser::StorageClassSpecifier()
 		return Value::StorageClassSpecifier::STATIC;
 	case TK_TYPEDEF:
 		return Value::StorageClassSpecifier::TYPEDEF;
-	default:
-		break;
 	}
 
 	return Value::StorageClassSpecifier::NONE;
@@ -58,29 +60,6 @@ auto Parser::StorageClassSpecifier()
 
 std::unique_ptr<Value> Parser::TypeSpecifier()
 {
-	/*if (m_currentToken != TK_CONSTANT) {
-		return nullptr;
-	}
-
-	switch (m_currentData->DataType()) {
-	case Value::TypeSpecifier::T_FLOAT:
-		std::cout << " = " << m_currentData->As<float>();
-		break;
-
-	case Value::TypeSpecifier::T_CHAR:
-		if (m_currentData->IsArray()) {
-			std::cout << " = " << m_currentData->As<std::string>();
-		}
-		else {
-			std::cout << " = " << m_currentData->As<char>();
-		}
-		break;
-
-	default:
-		std::cout << " = " << m_currentData->As<int>();
-		break;
-	}*/
-
 	// TODO:
 	// - Complex
 	// - Imaginary
@@ -108,8 +87,6 @@ std::unique_ptr<Value> Parser::TypeSpecifier()
 		return std::move(std::make_unique<ValueObject<unsigned>>(Value::TypeSpecifier::T_INT));
 	case TK_BOOL:
 		return std::move(std::make_unique<ValueObject<bool>>(Value::TypeSpecifier::T_BOOL));
-	default:
-		break;
 	}
 
 	return nullptr;
@@ -122,8 +99,6 @@ auto Parser::TypeQualifier()
 		return Value::TypeQualifier::CONST;
 	case TK_VOLATILE:
 		return Value::TypeQualifier::VOLATILE;
-	default:
-		break;
 	}
 
 	return Value::TypeQualifier::NONE;
@@ -272,8 +247,43 @@ void Parser::PrimaryExpression()
 		break;
 
 	case TK_CONSTANT:
+		switch (m_currentData->DataType()) {
+		case Value::TypeSpecifier::T_VOID:
+			// EMIT
+			break;
+		case Value::TypeSpecifier::T_INT:
+			// EMIT
+			break;
+		case Value::TypeSpecifier::T_SHORT:
+			// EMIT
+			break;
+		case Value::TypeSpecifier::T_LONG:
+			// EMIT
+			break;
+		case Value::TypeSpecifier::T_BOOL:
+			// EMIT
+			break;
+
+		case Value::TypeSpecifier::T_FLOAT:
+			//std::cout << " = " << m_currentData->As<float>();
+			// EMIT
+			break;
+
+		case Value::TypeSpecifier::T_DOUBLE:
+			break;
+
+		case Value::TypeSpecifier::T_CHAR:
+			if (m_currentData->IsArray()) {
+				//std::cout << " = " << m_currentData->As<std::string>();
+				// EMIT
+			}
+			else {
+				//std::cout << " = " << m_currentData->As<char>();
+				// EMIT
+			}
+			break;
+		}
 		NextToken();
-		// EMIT
 		break;
 
 	case TK_PARENTHES_OPEN:
@@ -295,7 +305,7 @@ void Parser::PostfixExpression()
 		break;
 	case TK_PARENTHES_OPEN:
 		NextToken();
-		if (m_currentToken == TK_PARENTHES_CLOSE) {
+		if (MATCH_TOKEN(TK_PARENTHES_CLOSE)) {
 			NextToken();
 			// EMIT
 		}
@@ -343,7 +353,7 @@ void Parser::UnaryExpression()
 		break;
 	case TK_SIZEOF:
 		NextToken();
-		if (m_currentToken == TK_PARENTHES_OPEN) {
+		if (MATCH_TOKEN(TK_PARENTHES_OPEN)) {
 			// <type_name>
 			ExpectToken(TK_PARENTHES_CLOSE);
 		}
@@ -363,7 +373,7 @@ void Parser::UnaryExpression()
 
 void Parser::CastExpression()
 {
-	if (m_currentToken == TK_PARENTHES_OPEN) {
+	if (MATCH_TOKEN(TK_PARENTHES_OPEN)) {
 		// <type_name>
 		ExpectToken(TK_PARENTHES_CLOSE);
 		CastExpression();
@@ -485,7 +495,7 @@ void Parser::AndExpression()
 {
 	EqualityExpression();
 
-	if (m_currentToken == TK_AMPERSAND) {
+	if (MATCH_TOKEN(TK_AMPERSAND)) {
 		NextToken();
 		EqualityExpression();
 	}
@@ -495,7 +505,7 @@ void Parser::ExclusiveOrExpression()
 {
 	AndExpression();
 
-	if (m_currentToken == TK_CARET) {
+	if (MATCH_TOKEN(TK_CARET)) {
 		NextToken();
 		AndExpression();
 	}
@@ -505,7 +515,7 @@ void Parser::LogicalAndExpression()
 {
 	ExclusiveOrExpression();
 
-	if (m_currentToken == TK_AND_OP) {
+	if (MATCH_TOKEN(TK_AND_OP)) {
 		NextToken();
 		// EMIT
 		ExclusiveOrExpression();
@@ -516,7 +526,7 @@ void Parser::LogicalOrExpression()
 {
 	LogicalAndExpression();
 
-	if (m_currentToken == TK_OR_OP) {
+	if (MATCH_TOKEN(TK_OR_OP)) {
 		NextToken();
 		// EMIT
 		LogicalAndExpression();
@@ -527,7 +537,7 @@ void Parser::ConditionalExpression()
 {
 	LogicalOrExpression();
 
-	if (m_currentToken == TK_QUESTION_MARK) {
+	if (MATCH_TOKEN(TK_QUESTION_MARK)) {
 		NextToken();
 		Expression();
 		ExpectToken(TK_COLON);
@@ -549,7 +559,7 @@ void Parser::Expression()
 {
 	do {
 		AssignmentExpression();
-	} while (m_currentToken == TK_COMMA);
+	} while (MATCH_TOKEN(TK_COMMA));
 }
 
 void Parser::ConstantExpression()
@@ -564,7 +574,7 @@ void Parser::JumpStatement()
 	{
 	case TK_GOTO:
 		NextToken();
-		ExpectToken(TK_IDENTIFIER);
+		ExpectIdentifier();
 		// EMIT
 		break;
 	case TK_CONTINUE:
@@ -577,7 +587,7 @@ void Parser::JumpStatement()
 		break;
 	case TK_RETURN:
 		NextToken();
-		if (m_currentToken == TK_COMMIT) {
+		if (MATCH_TOKEN(TK_COMMIT)) {
 			m_elementStack.push(std::move(std::make_unique<ValueNode>()));
 		}
 		else {
@@ -636,7 +646,7 @@ void Parser::SelectionStatement()
 		Expression();
 		ExpectToken(TK_PARENTHES_CLOSE);
 		Statement();
-		if (m_currentToken == TK_ELSE) {
+		if (MATCH_TOKEN(TK_ELSE)) {
 			Statement();
 		}
 		break;
@@ -652,7 +662,8 @@ void Parser::SelectionStatement()
 
 void Parser::ExpressionStatement()
 {
-	if (m_currentToken == TK_COMMIT) {
+	if (MATCH_TOKEN(TK_COMMIT)) {
+		NextToken();
 		// EMIT
 	}
 	else {
@@ -663,9 +674,9 @@ void Parser::ExpressionStatement()
 // Compound statements contain code block
 bool Parser::CompoundStatement()
 {
-	if (m_currentToken == TK_BRACE_OPEN) {
+	if (MATCH_TOKEN(TK_BRACE_OPEN)) {
 		NextToken();
-		if (m_currentToken == TK_BRACE_CLOSE) {
+		if (MATCH_TOKEN(TK_BRACE_CLOSE)) {
 			NextToken();
 		}
 		else {
@@ -700,23 +711,16 @@ void Parser::LabeledStatement()
 		ExpectToken(TK_COLON);
 		Statement();
 		break;
-	default:
-		break;
 	}
 }
 
 void Parser::Statement()
 {
 	LabeledStatement();
-	//
 	CompoundStatement();
-	//
 	SelectionStatement();
-	//
 	IterationStatement();
-	//
 	JumpStatement();
-	//
 	ExpressionStatement();
 }
 
@@ -724,18 +728,18 @@ void Parser::BlockItems()
 {
 	do {
 		Declaration();
-		if (m_currentToken == TK_BRACE_CLOSE) {
+		if (MATCH_TOKEN(TK_BRACE_CLOSE)) {
 			break;
 		}
 		Statement();
-	} while (m_currentToken != TK_BRACE_CLOSE);
+	} while (NOT_TOKEN(TK_BRACE_CLOSE));
 }
 
 void Parser::Declaration()
 {
 	DeclarationSpecifiers();
 
-	if (m_currentToken == TK_COMMIT) {
+	if (MATCH_TOKEN(TK_COMMIT)) {
 		NextToken();
 	}
 	else {
@@ -748,14 +752,14 @@ void Parser::InitDeclaratorList()
 {
 	do {
 		InitDeclarator();
-	} while (m_currentToken == TK_COMMA);
+	} while (MATCH_TOKEN(TK_COMMA));
 }
 
 void Parser::InitDeclarator()
 {
 	Declarator();
 
-	if (m_currentToken == TK_ASSIGN) {
+	if (MATCH_TOKEN(TK_ASSIGN)) {
 		NextToken();
 		Initializer();
 	}
@@ -763,10 +767,10 @@ void Parser::InitDeclarator()
 
 void Parser::Initializer()
 {
-	if (m_currentToken == TK_BRACE_OPEN) {
+	if (MATCH_TOKEN(TK_BRACE_OPEN)) {
 		do {
 			InitializerList();
-		} while (m_currentToken == TK_COMMA);
+		} while (MATCH_TOKEN(TK_COMMA));
 		ExpectToken(TK_BRACE_CLOSE);
 	}
 	else {
@@ -779,7 +783,7 @@ void Parser::InitializerList()
 	do {
 		Designation();
 		Initializer();
-	} while (m_currentToken == TK_COMMA);
+	} while (MATCH_TOKEN(TK_COMMA));
 }
 
 void Parser::Designation()
@@ -806,15 +810,13 @@ void Parser::Designators()
 			// EMIT
 			cont = true;
 			break;
-		default:
-			break;
 		}
 	} while (cont);
 }
 
 void Parser::Pointer()
 {
-	if (m_currentToken == TK_ASTERISK) {
+	if (MATCH_TOKEN(TK_ASTERISK)) {
 		NextToken();
 		// type_qualifier_list
 		Pointer();
@@ -830,11 +832,11 @@ bool Parser::Declarator()
 
 bool Parser::DirectDeclarator()
 {
-	if (m_currentToken == TK_IDENTIFIER) {
+	if (MATCH_TOKEN(TK_IDENTIFIER)) {
 		NextToken();
 		// EMIT
 	}
-	else if (m_currentToken == TK_PARENTHES_OPEN) {
+	else if (MATCH_TOKEN(TK_PARENTHES_OPEN)) {
 		NextToken();
 		Declarator();
 		ExpectToken(TK_PARENTHES_CLOSE);
@@ -849,21 +851,22 @@ bool Parser::DirectDeclarator()
 		{
 		case TK_BRACKET_OPEN:
 			NextToken();
-			if (m_currentToken == TK_BRACKET_CLOSE) {
+			if (MATCH_TOKEN(TK_BRACKET_CLOSE)) {
 				NextToken();
 				// EMIT
 				return true;
 			}
-			/*else if (m_currentToken == TK_POINTER) {
+			else if (MATCH_TOKEN(TK_ASTERISK)) {
+				NextToken();
 				// EMIT
 				ExpectToken(TK_BRACE_CLOSE);
-				return;
-			}*/
+				return true;
+			}
 
 			break;
 		case TK_PARENTHES_OPEN:
 			NextToken();
-			if (m_currentToken == TK_PARENTHES_CLOSE) {
+			if (MATCH_TOKEN(TK_PARENTHES_CLOSE)) {
 				NextToken();
 				// EMIT
 				return true;
@@ -936,32 +939,3 @@ void Parser::Execute()
 		TranslationUnit();
 	} while (!lex.IsDone());
 }
-
-/*while (!lex.IsDone()) {
-	auto token = lex.Lex();
-	std::cout << "Token: " << Keyword{ token }.Print();
-
-	if (lex.HasData()) {
-		auto val = lex.Data();
-		switch (val->DataType()) {
-
-		case Value::TypeSpecifier::T_FLOAT:
-			std::cout << " = " << val->As<float>();
-			break;
-
-		case Value::TypeSpecifier::T_CHAR:
-			if (val->IsArray()) {
-				std::cout << " = " << val->As<std::string>();
-			} else {
-				std::cout << " = " << val->As<char>();
-			}
-			break;
-
-		default:
-			std::cout << " = " << val->As<int>();
-			break;
-		}
-	}
-
-	std::cout << std::endl;
-}*/
