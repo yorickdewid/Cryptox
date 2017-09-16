@@ -16,6 +16,7 @@ struct Value
 		T_LONG,
 		T_FLOAT,
 		T_DOUBLE,
+		T_BOOL,
 	};
 
 	// Storage class specifier

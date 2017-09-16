@@ -56,21 +56,56 @@ auto Parser::StorageClassSpecifier()
 
 std::unique_ptr<Value> Parser::TypeSpecifier()
 {
-	switch (m_currentToken) {
-	case TK_CONSTANT:
+	/*if (m_currentToken != TK_CONSTANT) {
+		return nullptr;
+	}
+
+	switch (m_currentData->DataType()) {
+	case Value::TypeSpecifier::T_FLOAT:
+		std::cout << " = " << m_currentData->As<float>();
 		break;
-		//case TK_TM_CHAR:
-		//	return std::move(std::make_unique<ValueObject<std::string>>(Value::TypeSpecifier::T_CHAR));
-		//case TK_TM_INT:
-		//	return std::move(std::make_unique<ValueObject<int>>(Value::TypeSpecifier::T_INT));
-		//case TK_TM_FLOAT:
-		//	return std::move(std::make_unique<ValueObject<float>>(Value::TypeSpecifier::T_FLOAT));
-		//case TK_TM_DOUBLE:
-		//	return std::move(std::make_unique<ValueObject<double>>(Value::TypeSpecifier::T_DOUBLE));
-		//case TK_SIGNED:
-		//	return std::move(std::make_unique<ValueObject<signed>>(Value::TypeSpecifier::T_INT));
-		//case TK_UNSIGNED:
-		//	return std::move(std::make_unique<ValueObject<unsigned>>(Value::TypeSpecifier::T_INT));
+
+	case Value::TypeSpecifier::T_CHAR:
+		if (m_currentData->IsArray()) {
+			std::cout << " = " << m_currentData->As<std::string>();
+		}
+		else {
+			std::cout << " = " << m_currentData->As<char>();
+		}
+		break;
+
+	default:
+		std::cout << " = " << m_currentData->As<int>();
+		break;
+	}*/
+
+	// TODO:
+	// - Complex
+	// - Imaginary
+	// - struct_or_union_specifier
+	// - enum_specifier
+	// - TYPE_NAME
+	switch (m_currentToken) {
+	case TK_VOID:
+		return std::move(std::make_unique<ValueObject<void>>(Value::TypeSpecifier::T_VOID));
+	case TK_CHAR:
+		return std::move(std::make_unique<ValueObject<std::string>>(Value::TypeSpecifier::T_CHAR));
+	case TK_SHORT:
+		return std::move(std::make_unique<ValueObject<short>>(Value::TypeSpecifier::T_SHORT));
+	case TK_INT:
+		return std::move(std::make_unique<ValueObject<int>>(Value::TypeSpecifier::T_INT));
+	case TK_LONG:
+		return std::move(std::make_unique<ValueObject<long>>(Value::TypeSpecifier::T_LONG));
+	case TK_FLOAT:
+		return std::move(std::make_unique<ValueObject<float>>(Value::TypeSpecifier::T_FLOAT));
+	case TK_DOUBLE:
+		return std::move(std::make_unique<ValueObject<double>>(Value::TypeSpecifier::T_DOUBLE));
+	case TK_SIGNED:
+		return std::move(std::make_unique<ValueObject<signed>>(Value::TypeSpecifier::T_INT));
+	case TK_UNSIGNED:
+		return std::move(std::make_unique<ValueObject<unsigned>>(Value::TypeSpecifier::T_INT));
+	case TK_BOOL:
+		return std::move(std::make_unique<ValueObject<bool>>(Value::TypeSpecifier::T_BOOL));
 	default:
 		break;
 	}
@@ -124,9 +159,9 @@ bool Parser::DeclarationSpecifiers()
 		}
 	}
 
-	//if (_type == nullptr) {
-	//	throw something
-	//}
+	if (_type == nullptr) {
+		return false;
+	}
 
 	if (tmpSCP != Value::StorageClassSpecifier::NONE) {
 		_type->StorageClass(tmpSCP);
@@ -135,11 +170,8 @@ bool Parser::DeclarationSpecifiers()
 		_type->Qualifier(tmpTQ);
 	}
 
-	if (_type != nullptr) {
-		m_elementStack.push(std::move(std::make_unique<ValueNode>(_type)));
-		return true;
-	}
-	return false;
+	m_elementStack.push(std::move(std::make_unique<ValueNode>(_type)));
+	return true;
 }
 
 bool Parser::UnaryOperator()
@@ -399,6 +431,7 @@ void Parser::ConstantExpression()
 	ConditionalExpression();
 }
 
+// Labels and gotos
 void Parser::JumpStatement()
 {
 	switch (m_currentToken)
@@ -504,6 +537,7 @@ void Parser::ExpressionStatement()
 // Compound statements contain code block
 void Parser::CompoundStatement()
 {
+	//TODO: expect token TK_BRACE_OPEN ?
 	if (m_currentToken == TK_BRACE_OPEN) {
 		NextToken();
 		if (m_currentToken == TK_BRACE_CLOSE) {
