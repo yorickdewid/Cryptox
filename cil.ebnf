@@ -227,8 +227,8 @@ struct_declarator
 
 enum_specifier
 	::= ENUM '{' enumerator_list '}'
-	| ENUM IDENTIFIER '{' enumerator_list '}'
 	| ENUM '{' enumerator_list ',' '}'
+	| ENUM IDENTIFIER '{' enumerator_list '}'
 	| ENUM IDENTIFIER '{' enumerator_list ',' '}'
 	| ENUM IDENTIFIER
 	
@@ -337,7 +337,7 @@ direct_abstract_declarator
 initializer
 	::= assignment_expression
 	| '{' initializer_list '}'
-	| '{' initializer_list ',' '}'
+	| '{' initializer_list ',' '}'	
 	
 
 initializer_list

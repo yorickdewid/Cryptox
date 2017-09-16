@@ -64,7 +64,6 @@ std::unique_ptr<Value> Parser::TypeSpecifier()
 	// - Complex
 	// - Imaginary
 	// - struct_or_union_specifier
-	// - enum_specifier
 	// - TYPE_NAME
 	switch (m_currentToken) {
 	case TK_VOID:
@@ -87,6 +86,8 @@ std::unique_ptr<Value> Parser::TypeSpecifier()
 		return std::move(std::make_unique<ValueObject<unsigned>>(Value::TypeSpecifier::T_INT));
 	case TK_BOOL:
 		return std::move(std::make_unique<ValueObject<bool>>(Value::TypeSpecifier::T_BOOL));
+	case TK_ENUM:
+		EnumSpecifier();
 	}
 
 	return nullptr;
@@ -149,6 +150,44 @@ bool Parser::DeclarationSpecifiers()
 
 	m_elementStack.push(std::move(std::make_unique<ValueNode>(_type)));
 	return true;
+}
+
+void Parser::StructOrUnionSpecifier()
+{
+	/*:: = struct_or_union IDENTIFIER '{' struct_declaration_list '}'
+		| struct_or_union '{' struct_declaration_list '}'
+		| struct_or_union IDENTIFIER*/
+}
+
+void Parser::EnumSpecifier()
+{
+	if (MATCH_TOKEN(TK_ENUM)) {
+		NextToken();
+		if (MATCH_TOKEN(TK_IDENTIFIER)) {
+			NextToken();
+			// EMIT
+		}
+		if (MATCH_TOKEN(TK_BRACE_OPEN)) {
+			EnumeratorList();
+			ExpectToken(TK_BRACE_CLOSE);
+		}
+	}
+}
+
+void Parser::EnumeratorList()
+{
+	do {
+		NextToken();
+		if (MATCH_TOKEN(TK_IDENTIFIER)) {
+			NextToken();
+			// EMIT
+
+			if (MATCH_TOKEN(TK_ASSIGN)) {
+				NextToken();
+				ConstantExpression();
+			}
+		}
+	} while (MATCH_TOKEN(TK_COMMA));
 }
 
 bool Parser::UnaryOperator()

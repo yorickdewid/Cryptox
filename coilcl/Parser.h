@@ -33,6 +33,9 @@ private:
 	auto TypeQualifier();
 	std::unique_ptr<Value> TypeSpecifier();
 	bool DeclarationSpecifiers();
+	void StructOrUnionSpecifier();
+	void EnumSpecifier();
+	void EnumeratorList();
 	bool UnaryOperator();
 	bool AssignmentOperator();
 
