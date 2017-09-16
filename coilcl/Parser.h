@@ -57,7 +57,7 @@ private: // Expressions
 private: // Statements
 	void JumpStatement();
 	void LabeledStatement();
-	void CompoundStatement();
+	bool CompoundStatement();
 	void ExpressionStatement();
 	void SelectionStatement();
 	void IterationStatement();
@@ -77,7 +77,7 @@ private: // Declarations
 	void DeclarationList();
 
 private:
-	void FunctionDefinition();
+	bool FunctionDefinition();
 	void ExternalDeclaration();
 	void TranslationUnit();
 

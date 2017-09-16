@@ -601,9 +601,8 @@ void Parser::ExpressionStatement()
 }
 
 // Compound statements contain code block
-void Parser::CompoundStatement()
+bool Parser::CompoundStatement()
 {
-	//TODO: expect token TK_BRACE_OPEN ?
 	if (m_currentToken == TK_BRACE_OPEN) {
 		NextToken();
 		if (m_currentToken == TK_BRACE_CLOSE) {
@@ -613,7 +612,11 @@ void Parser::CompoundStatement()
 			BlockItems();
 			ExpectToken(TK_BRACE_CLOSE);
 		}
+
+		return true;
 	}
+
+	return false;
 }
 
 // Labeled statements
@@ -790,7 +793,7 @@ bool Parser::DirectDeclarator()
 		{
 		case TK_BRACKET_OPEN:
 			NextToken();
-			if (m_currentToken == TK_BRACE_CLOSE) {
+			if (m_currentToken == TK_BRACKET_CLOSE) {
 				NextToken();
 				// EMIT
 				return true;
@@ -844,7 +847,7 @@ void Parser::DeclarationList()
 	}
 }
 
-void Parser::FunctionDefinition()
+bool Parser::FunctionDefinition()
 {
 	// Return type for function declaration
 	DeclarationSpecifiers();
@@ -852,8 +855,8 @@ void Parser::FunctionDefinition()
 	Declarator();
 
 	DeclarationList();
-	//
-	CompoundStatement();
+
+	return CompoundStatement();
 
 	//auto localFunc = new FunctionNode(m_currentData);
 
@@ -863,11 +866,12 @@ void Parser::FunctionDefinition()
 	//stree.PushNode(std::move(std::unique_ptr<ASTNode>{ localFunc }));
 }
 
+// Try as function; if that fails assume declaration
 void Parser::ExternalDeclaration()
 {
-	FunctionDefinition();
-	//
-	//Declaration();
+	if (!FunctionDefinition()) {
+		Declaration();
+	}
 }
 
 void Parser::TranslationUnit()
