@@ -103,7 +103,7 @@ enum Token
 	TK_SLASH = 239,           // /
 	TK_PERCENT = 240,         // %
 	TK_LESS_THAN = 241,       // <
-	TK_GREATER_THAN = 242,    // <
+	TK_GREATER_THAN = 242,    // >
 	TK_CARET = 243,           // ^
 	TK_VERTIAL_BAR = 244,     // |
 	TK_QUESTION_MARK = 245,   // ?

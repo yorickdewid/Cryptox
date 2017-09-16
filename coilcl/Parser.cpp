@@ -16,6 +16,7 @@ void Parser::Error(const std::string& err)
 	int column = 1;
 
 	std::cerr << "Semantic error: " << err << " before '" << m_currentToken << "' token at " << line << ":" << column << std::endl;
+	//TODO: throw something
 }
 
 void Parser::ExpectToken(Token token)
@@ -208,39 +209,14 @@ void Parser::PrimaryExpression()
 	switch (m_currentToken)
 	{
 	case TK_IDENTIFIER:
+		NextToken();
 		// EMIT
 		break;
 
 	case TK_CONSTANT:
+		NextToken();
 		// EMIT
 		break;
-
-		//TODO
-	/*case TK_INTEGER:
-		assert(m_currentData->DataType() == Value::TypeSpecifier::T_INT);
-		m_elementStack.push(std::move(std::make_unique<ValueNode>(m_currentData)));
-		NextToken();
-		break;
-	case TK_STRING_LITERAL:
-		assert(m_currentData->DataType() == Value::TypeSpecifier::T_CHAR);
-		m_elementStack.push(std::move(std::make_unique<ValueNode>(m_currentData)));
-		NextToken();
-		break;
-	case TK_CHARACTER:
-		assert(m_currentData->DataType() == Value::TypeSpecifier::T_CHAR);
-		m_elementStack.push(std::move(std::make_unique<ValueNode>(m_currentData)));
-		NextToken();
-		break;
-	case TK_FLOAT:
-		assert(m_currentData->DataType() == Value::TypeSpecifier::T_FLOAT);
-		m_elementStack.push(std::move(std::make_unique<ValueNode>(m_currentData)));
-		NextToken();
-		break;
-	case TK_DOUBLE:
-		assert(m_currentData->DataType() == Value::TypeSpecifier::T_DOUBLE);
-		m_elementStack.push(std::move(std::make_unique<ValueNode>(m_currentData)));
-		NextToken();
-		break;*/
 
 	case TK_PARENTHES_OPEN:
 		Expression();
@@ -252,22 +228,42 @@ void Parser::PostfixExpression()
 {
 	PrimaryExpression();
 
-	//PostfixExpression() '[' expression ']'
-	//
-	//PostfixExpression();
-	//ExpectToken(TK_PARENTHES_OPEN);
-	//ExpectToken(TK_PARENTHES_CLOSE);
-	//
-	//PostfixExpression() '(' argument_expression_list ')'
-	//
-	//PostfixExpression() '.' IDENTIFIER
-	//
-	//PostfixExpression() PTR_OP IDENTIFIER
-	//
-	//PostfixExpression() INC_OP
-	//
-	//PostfixExpression() DEC_OP
-	//
+	switch (m_currentToken)
+	{
+	case TK_BRACKET_OPEN:
+		NextToken();
+		Expression();
+		ExpectToken(TK_BRACKET_CLOSE);
+		break;
+	case TK_PARENTHES_OPEN:
+		NextToken();
+		if (m_currentToken == TK_PARENTHES_CLOSE) {
+			NextToken();
+			// EMIT
+		}
+		else {
+			// argument_expression_list
+			ExpectToken(TK_PARENTHES_CLOSE);
+		}
+		break;
+	case TK_DOT:
+		NextToken();
+		ExpectIdentifier();
+		break;
+	case TK_PTR_OP:
+		NextToken();
+		ExpectIdentifier();
+		break;
+	case TK_INC_OP:
+		NextToken();
+		// EMIT
+		break;
+	case TK_DEC_OP:
+		NextToken();
+		// EMIT
+		break;
+	}
+
 	//'(' type_name ')' '{' initializer_list '}'
 	//
 	//'(' type_name ')' '{' initializer_list ',' '}'
@@ -278,10 +274,12 @@ void Parser::UnaryExpression()
 	switch (m_currentToken)
 	{
 	case TK_INC_OP:
+		NextToken();
 		// EMIT
 		UnaryExpression();
 		break;
 	case TK_DEC_OP:
+		NextToken();
 		// EMIT
 		UnaryExpression();
 		break;
@@ -320,61 +318,119 @@ void Parser::CastExpression()
 void Parser::MultiplicativeExpression()
 {
 	CastExpression();
-	//
-	//MultiplicativeExpression() '*' CastExpression()
-	//
-	//MultiplicativeExpression() '/' CastExpression()
-	//
-	//MultiplicativeExpression() '%' CastExpression()
+
+	switch (m_currentToken)
+	{
+	case TK_ASTERISK:
+		NextToken();
+		// EMIT
+		CastExpression();
+		break;
+	case TK_SLASH:
+		NextToken();
+		// EMIT
+		CastExpression();
+		break;
+	case TK_PERCENT:
+		NextToken();
+		// EMIT
+		CastExpression();
+		break;
+	}
 }
 
 void Parser::AdditiveExpression()
 {
 	MultiplicativeExpression();
-	//
-	//AdditiveExpression() '+' MultiplicativeExpression()
-	//
-	//AdditiveExpression() '-' MultiplicativeExpression()
+
+	switch (m_currentToken) {
+	case TK_PLUS:
+		NextToken();
+		// EMIT
+		MultiplicativeExpression();
+		break;
+	case TK_MINUS:
+		NextToken();
+		// EMIT
+		MultiplicativeExpression();
+		break;
+	}
 }
 
 void Parser::ShiftExpression()
 {
 	AdditiveExpression();
-	//
-	//ShiftExpression() LEFT_OP AdditiveExpression()
-	//
-	//ShiftExpression() RIGHT_OP AdditiveExpression()
+
+	switch (m_currentToken) {
+	case TK_LEFT_OP:
+		NextToken();
+		// EMIT
+		AdditiveExpression();
+		break;
+	case TK_RIGHT_OP:
+		NextToken();
+		// EMIT
+		AdditiveExpression();
+		break;
+	}
 }
 
 void Parser::RelationalExpression()
 {
 	ShiftExpression();
-	//
-	//RelationalExpression() '<' ShiftExpression()
-	//
-	//RelationalExpression() '>' ShiftExpression()
-	//
-	//RelationalExpression() LE_OP ShiftExpression()
-	//
-	//RelationalExpression() GE_OP ShiftExpression()
+
+	switch (m_currentToken)
+	{
+	case TK_LESS_THAN:
+		NextToken();
+		// EMIT
+		ShiftExpression();
+		break;
+	case TK_GREATER_THAN:
+		NextToken();
+		// EMIT
+		ShiftExpression();
+		break;
+	case TK_LE_OP:
+		NextToken();
+		// EMIT
+		ShiftExpression();
+		break;
+	case TK_GE_OP:
+		NextToken();
+		// EMIT
+		ShiftExpression();
+		break;
+	}
 }
 
 void Parser::EqualityExpression()
 {
 	RelationalExpression();
-	//
-	//EqualityExpression() EQ_OP RelationalExpression()
-	//
-	//EqualityExpression() NE_OP RelationalExpression()
+
+	switch (m_currentToken)
+	{
+	case TK_EQ_OP:
+		NextToken();
+		// EMIT
+		RelationalExpression();
+		break;
+	case TK_NE_OP:
+		NextToken();
+		// EMIT
+		RelationalExpression();
+		break;
+	}
 }
 
 void Parser::AndExpression()
 {
 	EqualityExpression();
 
-	/*if (m_currentToken == TK_REFERENCE) { // -> AndExpression() '&' EqualityExpression()
+	if (m_currentToken == TK_AMPERSAND) {
+		NextToken();
 		EqualityExpression();
-	}*/
+	}
 }
 
 void Parser::ExclusiveOrExpression()
@@ -390,26 +446,35 @@ void Parser::ExclusiveOrExpression()
 void Parser::LogicalAndExpression()
 {
 	ExclusiveOrExpression();
-	//
-	//LogicalAndExpression() AND_OP ExclusiveOrExpression()
+
+	if (m_currentToken == TK_AND_OP) {
+		NextToken();
+		// EMIT
+		ExclusiveOrExpression();
+	}
 }
 
 void Parser::LogicalOrExpression()
 {
 	LogicalAndExpression();
-	//
-	//LogicalOrExpression() OR_OP LogicalAndExpression()
+
+	if (m_currentToken == TK_OR_OP) {
+		NextToken();
+		// EMIT
+		LogicalAndExpression();
+	}
 }
 
 void Parser::ConditionalExpression()
 {
 	LogicalOrExpression();
 
-	/*if (m_currentToken == TK_QUESTION_MARK) {
+	if (m_currentToken == TK_QUESTION_MARK) {
+		NextToken();
 		Expression();
 		ExpectToken(TK_COLON);
 		ConditionalExpression();
-	}*/
+	}
 }
 
 void Parser::AssignmentExpression()
