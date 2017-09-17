@@ -398,7 +398,7 @@ void Parser::PostfixExpression()
 
 	if (MATCH_TOKEN(TK_PARENTHES_OPEN)) {
 		NextToken();
-		// type_name
+		TypeName();
 		ExpectToken(TK_PARENTHES_CLOSE);
 		ExpectToken(TK_BRACE_OPEN);
 		do {
@@ -463,7 +463,7 @@ void Parser::UnaryExpression()
 	case TK_SIZEOF:
 		NextToken();
 		if (MATCH_TOKEN(TK_PARENTHES_OPEN)) {
-			// <type_name>
+			TypeName();
 			ExpectToken(TK_PARENTHES_CLOSE);
 		}
 		else {
@@ -483,7 +483,8 @@ void Parser::UnaryExpression()
 void Parser::CastExpression()
 {
 	if (MATCH_TOKEN(TK_PARENTHES_OPEN)) {
-		// <type_name>
+		NextToken();
+		TypeName();
 		ExpectToken(TK_PARENTHES_CLOSE);
 		CastExpression();
 	}
@@ -860,18 +861,75 @@ void Parser::Declaration()
 void Parser::InitDeclaratorList()
 {
 	do {
-		InitDeclarator();
+		Declarator();
+
+		if (MATCH_TOKEN(TK_ASSIGN)) {
+			NextToken();
+			Initializer();
+		}
 	} while (MATCH_TOKEN(TK_COMMA));
 }
 
-void Parser::InitDeclarator()
+// Typenames are primitive types
+// and used defined structures
+void Parser::TypeName()
 {
-	Declarator();
+	SpecifierQualifierList();
 
-	if (MATCH_TOKEN(TK_ASSIGN)) {
-		NextToken();
-		Initializer();
-	}
+	AbstractDeclarator();
+}
+
+void Parser::AbstractDeclarator()
+{
+	Pointer();
+
+	DirectAbstractDeclarator();
+}
+
+void Parser::DirectAbstractDeclarator()
+{
+	bool cont = false;
+	do {
+		switch (m_currentToken)
+		{
+		case TK_PARENTHES_OPEN:
+			NextToken();
+			if (MATCH_TOKEN(TK_PARENTHES_CLOSE)) {
+				NextToken();
+				// EMIT
+				cont = true;
+			}
+			else {
+				AbstractDeclarator();
+				// if (parameter_type_list) {
+				// cont = true;
+				// }
+				ExpectToken(TK_PARENTHES_CLOSE);
+			}
+			break;
+		case TK_BRACKET_OPEN:
+			NextToken();
+			if (MATCH_TOKEN(TK_BRACKET_CLOSE)) {
+				NextToken();
+				// EMIT
+				cont = true;
+			}
+			else if (MATCH_TOKEN(TK_ASTERISK)) {
+				NextToken();
+				ExpectToken(TK_BRACKET_CLOSE);
+				// EMIT
+				cont = true;
+			}
+			else {
+				AssignmentExpression();
+				ExpectToken(TK_BRACKET_CLOSE);
+				cont = true;
+			}
+			break;
+		default:
+			break;
+		}
+	} while (cont);
 }
 
 void Parser::Initializer()

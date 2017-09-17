@@ -74,7 +74,9 @@ private: // Declarations
 	void BlockItems();
 	void Declaration();
 	void InitDeclaratorList();
-	void InitDeclarator();
+	void TypeName();
+	void AbstractDeclarator();
+	void DirectAbstractDeclarator();
 	void Initializer();
 	void InitializerList();
 	void Designation();

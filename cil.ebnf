@@ -322,16 +322,16 @@ abstract_declarator
 
 direct_abstract_declarator
 	::= '(' abstract_declarator ')'
-	| '[' ']'
-	| '[' assignment_expression ']'
-	| direct_abstract_declarator '[' ']'
-	| direct_abstract_declarator '[' assignment_expression ']'
-	| '[' '*' ']'
-	| direct_abstract_declarator '[' '*' ']'
 	| '(' ')'
 	| '(' parameter_type_list ')'
 	| direct_abstract_declarator '(' ')'
 	| direct_abstract_declarator '(' parameter_type_list ')'
+	| '[' ']'
+	| '[' '*' ']'
+	| '[' assignment_expression ']'
+	| direct_abstract_declarator '[' ']'
+	| direct_abstract_declarator '[' '*' ']'
+	| direct_abstract_declarator '[' assignment_expression ']'
 	
 
 initializer
