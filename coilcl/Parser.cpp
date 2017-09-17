@@ -86,9 +86,10 @@ std::unique_ptr<Value> Parser::TypeSpecifier()
 		return std::move(std::make_unique<ValueObject<unsigned>>(Value::TypeSpecifier::T_INT));
 	case TK_BOOL:
 		return std::move(std::make_unique<ValueObject<bool>>(Value::TypeSpecifier::T_BOOL));
-	case TK_ENUM:
-		EnumSpecifier();
 	}
+
+	EnumSpecifier();
+	StructOrUnionSpecifier();
 
 	return nullptr;
 }
@@ -154,9 +155,69 @@ bool Parser::DeclarationSpecifiers()
 
 void Parser::StructOrUnionSpecifier()
 {
-	/*:: = struct_or_union IDENTIFIER '{' struct_declaration_list '}'
-		| struct_or_union '{' struct_declaration_list '}'
-		| struct_or_union IDENTIFIER*/
+	switch (m_currentToken)
+	{
+	case TK_STRUCT:
+		NextToken();
+		// EMIT
+		break;
+	case TK_UNION:
+		NextToken();
+		// EMIT
+		break;
+	default: // return if no union or struct was found
+		return;
+	}
+
+	if (MATCH_TOKEN(TK_IDENTIFIER)) {
+		NextToken();
+		// EMIT
+	}
+
+	if (MATCH_TOKEN(TK_BRACE_OPEN)) {
+		NextToken();
+		StructDeclarationList();
+		ExpectToken(TK_BRACE_CLOSE);
+	}
+}
+
+void Parser::StructDeclarationList()
+{
+	do {
+		SpecifierQualifierList();
+		StructDeclaratorList();
+		ExpectToken(TK_COMMIT);
+	} while (NOT_TOKEN(TK_BRACE_CLOSE));
+}
+
+void Parser::SpecifierQualifierList()
+{
+	bool cont = false;
+	do {
+		cont = false;
+		auto type = TypeSpecifier();
+		if (type != nullptr) {
+			NextToken();
+			cont = true;
+		}
+
+		auto tq = TypeQualifier();
+		if (tq != Value::TypeQualifier::NONE) {
+			cont = true;
+		}
+	} while (cont);
+}
+
+void Parser::StructDeclaratorList()
+{
+	do {
+		Declarator();
+
+		if (MATCH_TOKEN(TK_COLON)) {
+			NextToken();
+			ConstantExpression();
+		}
+	} while (MATCH_TOKEN(TK_COMMA));
 }
 
 void Parser::EnumSpecifier()
@@ -335,6 +396,17 @@ void Parser::PostfixExpression()
 {
 	PrimaryExpression();
 
+	if (MATCH_TOKEN(TK_PARENTHES_OPEN)) {
+		NextToken();
+		// type_name
+		ExpectToken(TK_PARENTHES_CLOSE);
+		ExpectToken(TK_BRACE_OPEN);
+		do {
+			InitializerList();
+		} while (MATCH_TOKEN(TK_COMMA));
+		ExpectToken(TK_BRACE_CLOSE);
+	}
+
 	switch (m_currentToken)
 	{
 	case TK_BRACKET_OPEN:
@@ -355,10 +427,12 @@ void Parser::PostfixExpression()
 		break;
 	case TK_DOT:
 		NextToken();
+		// EMIT
 		ExpectIdentifier();
 		break;
 	case TK_PTR_OP:
 		NextToken();
+		// EMIT
 		ExpectIdentifier();
 		break;
 	case TK_INC_OP:
@@ -370,10 +444,6 @@ void Parser::PostfixExpression()
 		// EMIT
 		break;
 	}
-
-	//'(' type_name ')' '{' initializer_list '}'
-	//
-	//'(' type_name ')' '{' initializer_list ',' '}'
 }
 
 void Parser::UnaryExpression()
@@ -946,10 +1016,8 @@ bool Parser::FunctionDefinition()
 	return CompoundStatement();
 
 	//auto localFunc = new FunctionNode(m_currentData);
-
-	/*localFunc->ReturnType(std::move(m_elementStack.top()));
-	m_elementStack.pop();*/
-
+	//localFunc->ReturnType(std::move(m_elementStack.top()));
+	//m_elementStack.pop();
 	//stree.PushNode(std::move(std::unique_ptr<ASTNode>{ localFunc }));
 }
 

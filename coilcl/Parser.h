@@ -34,6 +34,9 @@ private:
 	std::unique_ptr<Value> TypeSpecifier();
 	bool DeclarationSpecifiers();
 	void StructOrUnionSpecifier();
+	void StructDeclarationList();
+	void SpecifierQualifierList();
+	void StructDeclaratorList();
 	void EnumSpecifier();
 	void EnumeratorList();
 	bool UnaryOperator();
