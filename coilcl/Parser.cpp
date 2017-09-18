@@ -974,7 +974,6 @@ void Parser::Designators()
 		case TK_DOT:
 			NextToken();
 			ExpectIdentifier();
-			// EMIT
 			cont = true;
 			break;
 		}
@@ -1062,6 +1061,23 @@ bool Parser::DirectDeclarator()
 		//'(' identifier_list ')'
 
 	}
+}
+
+void Parser::TypeQualifierList()
+{
+	while (TypeQualifier() != nullptr);
+}
+
+void Parser::ParameterTypeList()
+{
+	parameter_list
+	parameter_list ',' ELLIPSIS
+}
+
+void Parser::ParameterList()
+{
+	parameter_declaration
+	parameter_list ',' parameter_declaration
 }
 
 bool Parser::FunctionDefinition()

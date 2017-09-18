@@ -12,10 +12,33 @@
 
 #define PI_CONSTANT     3.14159265358979323846
 
+enum value;
+
+enum {
+    ITEM1 = 1,
+    ITEM,
+};
+
+typedef struct {
+    int i;
+    int j;
+    union v {
+        int q;
+        short o;
+    };
+} some_t;
+
+volatile _Bool hasIOPT = 1;
+
 void func() {
     register int seven = 17;
     
     puts("puts");
+
+    enum value2 {
+        ITEM_X,
+        ITEM_Y,
+    };
 
     do {
         seven--;
@@ -35,7 +58,7 @@ int func2(char c, int i, double d) {
 }
 
 static const float func3() {
-    int v = 2;
+    int v = (int)2;
 
     switch (v) {
         case 1: // static int case
@@ -58,7 +81,15 @@ static const float func3() {
         r = 0;
     }
 
-    return 13.8123;
+    return (13.8123 + PI_CONSTANT);
+}
+
+unsigned func4(unsigned short _i) {
+    if (_i == 0) return 0;
+
+    printf("Recursive %u\n", _i);
+
+    return func4(--_i);
 }
 
 #ifdef NOOPT
@@ -87,4 +118,9 @@ int main(int argc, char *argv[]) {
     } else {
         func2('t', y[1], 23.12);
     }
+
+    /**
+     * Decending recursive function
+     */
+    func4(10);
 }
