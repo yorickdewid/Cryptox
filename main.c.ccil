@@ -8,15 +8,14 @@
  * permission of the author.
  */
 
-static const char program_title[] = "$< MYPROG >$";
-
 const int myprint() {
 	printf("hai\n");
-	return 1;
+	return 1 + 2;
 }
 
 int main() {
-	int i = 1;
+	int i = (((1)));
+	unsigned int j = (unsigned int)i;
 
 	if (i == 1) {
 		myprint();

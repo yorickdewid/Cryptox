@@ -84,6 +84,9 @@ private: // Declarations
 	void Pointer();
 	bool Declarator();
 	bool DirectDeclarator();
+	void TypeQualifierList();
+	void ParameterTypeList();
+	void ParameterDeclaration();
 
 private:
 	bool FunctionDefinition();

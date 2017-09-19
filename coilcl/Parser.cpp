@@ -901,9 +901,9 @@ void Parser::DirectAbstractDeclarator()
 			}
 			else {
 				AbstractDeclarator();
-				// if (parameter_type_list) {
-				// cont = true;
-				// }
+				 /*if (ParameterTypeList()) {
+				 cont = true;
+				 }*/
 				ExpectToken(TK_PARENTHES_CLOSE);
 			}
 			break;
@@ -1065,19 +1065,26 @@ bool Parser::DirectDeclarator()
 
 void Parser::TypeQualifierList()
 {
-	while (TypeQualifier() != nullptr);
+	while (TypeQualifier() != Value::TypeQualifier::NONE);
 }
 
 void Parser::ParameterTypeList()
 {
-	parameter_list
-	parameter_list ',' ELLIPSIS
+	ParameterDeclaration();
+
+	if (MATCH_TOKEN(TK_COMMA)) {
+		ParameterDeclaration();
+	}
+	if (MATCH_TOKEN(TK_COMMA)) {
+		ExpectToken(TK_ELLIPSIS);
+	}
 }
 
-void Parser::ParameterList()
+void Parser::ParameterDeclaration()
 {
-	parameter_declaration
-	parameter_list ',' parameter_declaration
+	DeclarationSpecifiers();
+	Declarator();
+	AbstractDeclarator();
 }
 
 bool Parser::FunctionDefinition()
