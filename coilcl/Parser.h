@@ -85,8 +85,8 @@ private: // Declarations
 	bool Declarator();
 	bool DirectDeclarator();
 	void TypeQualifierList();
-	void ParameterTypeList();
-	void ParameterDeclaration();
+	bool ParameterTypeList();
+	bool ParameterDeclaration();
 
 private:
 	bool FunctionDefinition();

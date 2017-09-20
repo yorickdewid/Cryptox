@@ -89,8 +89,8 @@ enum Token
 	TK_COMMA = 225,           // ,
 	TK_COLON = 226,           // :
 	TK_ASSIGN = 227,          // =
-	TK_PARENTHES_OPEN = 228,  // (
-	TK_PARENTHES_CLOSE = 229, // )
+	TK_PARENTHESE_OPEN = 228, // (
+	TK_PARENTHESE_CLOSE = 229,// )
 	TK_BRACKET_OPEN = 230,    // [
 	TK_BRACKET_CLOSE = 231,   // ]
 	TK_DOT = 232,             // .

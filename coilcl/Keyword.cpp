@@ -75,8 +75,8 @@ std::string Keyword::Print()
 	case TK_COMMA:			return std::string{ "TK_COMMA" };
 	case TK_COLON:			return std::string{ "TK_COLON" };
 	case TK_ASSIGN:			return std::string{ "TK_ASSIGN" };
-	case TK_PARENTHES_OPEN:	return std::string{ "TK_PARENTHES_OPEN" };
-	case TK_PARENTHES_CLOSE:return std::string{ "TK_PARENTHES_CLOSE" };
+	case TK_PARENTHESE_OPEN:	return std::string{ "TK_PARENTHESE_OPEN" };
+	case TK_PARENTHESE_CLOSE:return std::string{ "TK_PARENTHESE_CLOSE" };
 	case TK_BRACKET_OPEN:	return std::string{ "TK_BRACKET_OPEN" };
 	case TK_BRACKET_CLOSE:	return std::string{ "TK_BRACKET_CLOSE" };
 	case TK_DOT:			return std::string{ "TK_DOT" };

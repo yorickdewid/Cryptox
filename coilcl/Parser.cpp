@@ -386,26 +386,33 @@ void Parser::PrimaryExpression()
 		NextToken();
 		break;
 
-	case TK_PARENTHES_OPEN:
+	case TK_PARENTHESE_OPEN:
 		Expression();
-		ExpectToken(TK_PARENTHES_CLOSE);
+		ExpectToken(TK_PARENTHESE_CLOSE);
 	}
+}
+
+void ArgumentExpressionList()
+{
+	/*do {
+	AssignmentExpression();
+	} while (MATCH_TOKEN(TK_COMMA));*/
 }
 
 void Parser::PostfixExpression()
 {
-	PrimaryExpression();
-
-	if (MATCH_TOKEN(TK_PARENTHES_OPEN)) {
+	if (MATCH_TOKEN(TK_PARENTHESE_OPEN)) {
 		NextToken();
 		TypeName();
-		ExpectToken(TK_PARENTHES_CLOSE);
+		ExpectToken(TK_PARENTHESE_CLOSE);
 		ExpectToken(TK_BRACE_OPEN);
 		do {
 			InitializerList();
 		} while (MATCH_TOKEN(TK_COMMA));
 		ExpectToken(TK_BRACE_CLOSE);
 	}
+
+	PrimaryExpression();
 
 	switch (m_currentToken)
 	{
@@ -414,15 +421,15 @@ void Parser::PostfixExpression()
 		Expression();
 		ExpectToken(TK_BRACKET_CLOSE);
 		break;
-	case TK_PARENTHES_OPEN:
+	case TK_PARENTHESE_OPEN:
 		NextToken();
-		if (MATCH_TOKEN(TK_PARENTHES_CLOSE)) {
+		if (MATCH_TOKEN(TK_PARENTHESE_CLOSE)) {
 			NextToken();
 			// EMIT
 		}
 		else {
-			// argument_expression_list
-			ExpectToken(TK_PARENTHES_CLOSE);
+			ArgumentExpressionList();
+			ExpectToken(TK_PARENTHESE_CLOSE);
 		}
 		break;
 	case TK_DOT:
@@ -462,9 +469,9 @@ void Parser::UnaryExpression()
 		break;
 	case TK_SIZEOF:
 		NextToken();
-		if (MATCH_TOKEN(TK_PARENTHES_OPEN)) {
+		if (MATCH_TOKEN(TK_PARENTHESE_OPEN)) {
 			TypeName();
-			ExpectToken(TK_PARENTHES_CLOSE);
+			ExpectToken(TK_PARENTHESE_CLOSE);
 		}
 		else {
 			UnaryExpression();
@@ -482,10 +489,10 @@ void Parser::UnaryExpression()
 
 void Parser::CastExpression()
 {
-	if (MATCH_TOKEN(TK_PARENTHES_OPEN)) {
+	if (MATCH_TOKEN(TK_PARENTHESE_OPEN)) {
 		NextToken();
 		TypeName();
-		ExpectToken(TK_PARENTHES_CLOSE);
+		ExpectToken(TK_PARENTHESE_CLOSE);
 		CastExpression();
 	}
 	else {
@@ -752,9 +759,9 @@ void Parser::SelectionStatement()
 	{
 	case TK_IF:
 		NextToken();
-		ExpectToken(TK_PARENTHES_OPEN);
+		ExpectToken(TK_PARENTHESE_OPEN);
 		Expression();
-		ExpectToken(TK_PARENTHES_CLOSE);
+		ExpectToken(TK_PARENTHESE_CLOSE);
 		Statement();
 		if (MATCH_TOKEN(TK_ELSE)) {
 			Statement();
@@ -807,7 +814,11 @@ void Parser::LabeledStatement()
 	{
 	case TK_IDENTIFIER:
 		NextToken();
-		ExpectToken(TK_COLON);
+		/*if (MATCH_TOKEN(TK_COLON)) {
+			NextToken();
+			Statement();
+		}*/
+		ExpectToken(TK_COLON);//TODO: remove
 		Statement();
 		break;
 	case TK_CASE:
@@ -837,11 +848,11 @@ void Parser::Statement()
 void Parser::BlockItems()
 {
 	do {
-		Declaration();
+		Statement();//TMP
 		if (MATCH_TOKEN(TK_BRACE_CLOSE)) {
 			break;
 		}
-		Statement();
+		Declaration();//TMP
 	} while (NOT_TOKEN(TK_BRACE_CLOSE));
 }
 
@@ -892,19 +903,19 @@ void Parser::DirectAbstractDeclarator()
 	do {
 		switch (m_currentToken)
 		{
-		case TK_PARENTHES_OPEN:
+		case TK_PARENTHESE_OPEN:
 			NextToken();
-			if (MATCH_TOKEN(TK_PARENTHES_CLOSE)) {
+			if (MATCH_TOKEN(TK_PARENTHESE_CLOSE)) {
 				NextToken();
 				// EMIT
 				cont = true;
 			}
 			else {
 				AbstractDeclarator();
-				 /*if (ParameterTypeList()) {
-				 cont = true;
-				 }*/
-				ExpectToken(TK_PARENTHES_CLOSE);
+				if (ParameterTypeList()) {
+					cont = true;
+				}
+				ExpectToken(TK_PARENTHESE_CLOSE);
 			}
 			break;
 		case TK_BRACKET_OPEN:
@@ -1002,10 +1013,10 @@ bool Parser::DirectDeclarator()
 		NextToken();
 		// EMIT
 	}
-	else if (MATCH_TOKEN(TK_PARENTHES_OPEN)) {
+	else if (MATCH_TOKEN(TK_PARENTHESE_OPEN)) {
 		NextToken();
 		Declarator();
-		ExpectToken(TK_PARENTHES_CLOSE);
+		ExpectToken(TK_PARENTHESE_CLOSE);
 	}
 	else {
 		return false;
@@ -1030,19 +1041,26 @@ bool Parser::DirectDeclarator()
 			}
 
 			break;
-		case TK_PARENTHES_OPEN:
+		case TK_PARENTHESE_OPEN:
 			NextToken();
-			if (MATCH_TOKEN(TK_PARENTHES_CLOSE)) {
+			if (MATCH_TOKEN(TK_PARENTHESE_CLOSE)) {
 				NextToken();
 				// EMIT
 				return true;
 			}
 			else {
-				//ParameterTypeList();
-				//
-				//IdentifierList();
-				NextToken();//TODO: temp
-				ExpectToken(TK_PARENTHES_CLOSE);
+				if (!ParameterTypeList()) {
+					do {
+						if (MATCH_TOKEN(TK_IDENTIFIER)) {
+							NextToken();
+							// EMIT
+						}
+						else {
+							return false;//TMP
+						}
+					} while (MATCH_TOKEN(TK_COMMA));
+				}
+				ExpectToken(TK_PARENTHESE_CLOSE);
 				return true;
 			}
 			break;
@@ -1056,10 +1074,6 @@ bool Parser::DirectDeclarator()
 		//'[' STATIC type_qualifier_list AssignmentExpression(); ']'
 		//'[' type_qualifier_list STATIC AssignmentExpression(); ']'
 		//'[' type_qualifier_list '*' ']'
-		//
-		//'(' parameter_type_list ')'
-		//'(' identifier_list ')'
-
 	}
 }
 
@@ -1068,23 +1082,31 @@ void Parser::TypeQualifierList()
 	while (TypeQualifier() != Value::TypeQualifier::NONE);
 }
 
-void Parser::ParameterTypeList()
+bool Parser::ParameterTypeList()
 {
-	ParameterDeclaration();
+	bool rs = false;
+	do {
+		rs = ParameterDeclaration();
+	} while (MATCH_TOKEN(TK_COMMA));
 
-	if (MATCH_TOKEN(TK_COMMA)) {
-		ParameterDeclaration();
-	}
 	if (MATCH_TOKEN(TK_COMMA)) {
 		ExpectToken(TK_ELLIPSIS);
 	}
+
+	return rs;
 }
 
-void Parser::ParameterDeclaration()
+bool Parser::ParameterDeclaration()
 {
 	DeclarationSpecifiers();
+	//if (!DeclarationSpecifiers()) {
+		//return false;
+	//}
+
 	Declarator();
 	AbstractDeclarator();
+
+	return true;
 }
 
 bool Parser::FunctionDefinition()

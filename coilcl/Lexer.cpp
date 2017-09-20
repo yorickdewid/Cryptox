@@ -207,10 +207,10 @@ int Lexer::Lex()
 			return ReturnToken(TK_BRACE_CLOSE);
 		case '(':
 			Next();
-			return ReturnToken(TK_PARENTHES_OPEN);
+			return ReturnToken(TK_PARENTHESE_OPEN);
 		case ')':
 			Next();
-			return ReturnToken(TK_PARENTHES_CLOSE);
+			return ReturnToken(TK_PARENTHESE_CLOSE);
 		case '[':
 			Next();
 			return ReturnToken(TK_BRACKET_OPEN);
