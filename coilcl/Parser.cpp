@@ -387,21 +387,23 @@ void Parser::PrimaryExpression()
 		break;
 
 	case TK_PARENTHESE_OPEN:
+		NextToken();
 		Expression();
 		ExpectToken(TK_PARENTHESE_CLOSE);
 	}
 }
 
-void ArgumentExpressionList()
+void Parser::ArgumentExpressionList()
 {
-	/*do {
-	AssignmentExpression();
-	} while (MATCH_TOKEN(TK_COMMA));*/
+	do {
+		AssignmentExpression();
+	} while (MATCH_TOKEN(TK_COMMA));
 }
 
 void Parser::PostfixExpression()
 {
-	if (MATCH_TOKEN(TK_PARENTHESE_OPEN)) {
+	// Unknown flow
+	/*if (MATCH_TOKEN(TK_PARENTHESE_OPEN)) {
 		NextToken();
 		TypeName();
 		ExpectToken(TK_PARENTHESE_CLOSE);
@@ -410,7 +412,7 @@ void Parser::PostfixExpression()
 			InitializerList();
 		} while (MATCH_TOKEN(TK_COMMA));
 		ExpectToken(TK_BRACE_CLOSE);
-	}
+	}*/
 
 	PrimaryExpression();
 
@@ -814,12 +816,12 @@ void Parser::LabeledStatement()
 	{
 	case TK_IDENTIFIER:
 		NextToken();
-		/*if (MATCH_TOKEN(TK_COLON)) {
+		if (MATCH_TOKEN(TK_COLON)) {
 			NextToken();
 			Statement();
-		}*/
-		ExpectToken(TK_COLON);//TODO: remove
-		Statement();
+		}
+		//ExpectToken(TK_COLON);//TODO: remove
+		//Statement();
 		break;
 	case TK_CASE:
 		NextToken();
@@ -837,12 +839,12 @@ void Parser::LabeledStatement()
 
 void Parser::Statement()
 {
-	LabeledStatement();
 	CompoundStatement();
 	SelectionStatement();
 	IterationStatement();
 	JumpStatement();
 	ExpressionStatement();
+	LabeledStatement();
 }
 
 void Parser::BlockItems()

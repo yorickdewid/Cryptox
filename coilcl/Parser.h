@@ -17,7 +17,7 @@ protected:
 	void ExpectToken(Token token);
 	void ExpectIdentifier();
 
-	inline void Parser::NextToken()
+	inline void NextToken()
 	{
 		m_lastToken = m_currentToken;
 		m_currentToken = static_cast<Token>(lex.Lex());
@@ -44,6 +44,7 @@ private:
 
 private: // Expressions
 	void PrimaryExpression();
+	void ArgumentExpressionList();
 	void PostfixExpression();
 	void UnaryExpression();
 	void CastExpression();
