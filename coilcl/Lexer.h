@@ -148,7 +148,7 @@ public:
 
 	bool HasData() const
 	{
-		return m_data != nullptr;
+		return !!m_data;
 	}
 
 	inline bool IsDone() const

@@ -2,6 +2,7 @@
 
 #include <iostream>
 
+#define CURRENT_DATA() m_comm.Current().FetchData()
 #define PREVIOUS_TOKEN() m_comm.Previous().FetchToken()
 #define CURRENT_TOKEN() m_comm.Current().FetchToken()
 #define MATCH_TOKEN(t) (CURRENT_TOKEN() == t)
@@ -41,7 +42,8 @@ void Parser::ExpectIdentifier()
 		Error("expected identifier");
 	}
 
-	assert(m_currentData.get() != nullptr);
+	//assert(m_currentData.get() != nullptr);
+	assert(m_comm.Current().HasData());
 
 	NextToken();
 }
@@ -349,7 +351,7 @@ void Parser::PrimaryExpression()
 		break;
 
 	case TK_CONSTANT:
-		switch (m_currentData->DataType()) {
+		switch (CURRENT_DATA()->DataType()) {
 		case Value::TypeSpecifier::T_VOID:
 			// EMIT
 			break;
@@ -375,7 +377,7 @@ void Parser::PrimaryExpression()
 			break;
 
 		case Value::TypeSpecifier::T_CHAR:
-			if (m_currentData->IsArray()) {
+			if (CURRENT_DATA()->IsArray()) {
 				//std::cout << " = " << m_currentData->As<std::string>();
 				// EMIT
 			}
@@ -1142,6 +1144,7 @@ void Parser::TranslationUnit()
 	//for (size_t i = 0; i < length; i++)
 	//{
 	ExternalDeclaration();
+	m_comm.Clear();
 	//}
 }
 

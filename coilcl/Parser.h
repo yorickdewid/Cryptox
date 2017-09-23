@@ -29,24 +29,37 @@ public:
 	{
 	}
 
-	Token FetchToken()
+	inline bool HasData() const
+	{
+		return !!m_currentData;
+	}
+
+	inline std::shared_ptr<Value>& FetchData()
+	{
+		return m_currentData;
+	}
+
+	inline auto FetchToken() const
 	{
 		return m_currentToken;
 	}
 };
 
 template<typename T>
-class Command
+class StateContainer
 {
 	std::stack<size_t> m_snapshopList;
 	std::vector<T> m_tokenList;
 	size_t index = 0;
 
 public:
-	Command()
+	StateContainer(size_t reserved_elements = 10)
 	{
-		m_tokenList.reserve(10);
+		m_tokenList.reserve(reserved_elements);
 	}
+
+	StateContainer(const StateContainer&) = delete;
+	StateContainer& operator=(const StateContainer&) = delete;
 
 	inline void Push(const T& state)
 	{
@@ -57,7 +70,7 @@ public:
 	inline auto Previous()
 	{
 		//TODO: out of bounds exception
-		return m_tokenList.at(index - 1);
+		return m_tokenList[index - 1];
 	}
 
 	inline auto Current()
@@ -70,6 +83,22 @@ public:
 		return m_tokenList[idx];
 	}
 
+	void Reset()
+	{
+		index = m_tokenList.size();
+		while (!m_snapshopList.empty()) {
+			m_snapshopList.pop();
+		}
+	}
+
+	void Undo()
+	{
+		if (index > 0) {
+			--index;
+		}
+	}
+
+	// Clear the token and snapshot list, this action will free all allocated memory
 	void Clear()
 	{
 		m_tokenList.clear();
@@ -91,20 +120,11 @@ protected:
 	void ExpectToken(Token token);
 	void ExpectIdentifier();
 
-	/*inline auto LastToken() { return m_comm.Previous().FetchToken(); }
-	inline auto CurrentToken() { return m_comm.Current().FetchToken(); }*/
-
-	inline void NextToken()
+	void NextToken()
 	{
-		m_comm.Push(TokenState(lex.Lex(), lex.HasData() ? std::shared_ptr<Value>(std::move(lex.Data())) : nullptr));
-
-		/*m_lastToken = m_currentToken;
-		m_currentToken = static_cast<Token>(lex.Lex());
-
-		if (lex.HasData()) {
-			m_lastData = std::move(m_currentData);
-			m_currentData = std::move(lex.Data());
-		}*/
+		auto itok = lex.Lex();
+		auto val = lex.HasData() ? std::shared_ptr<Value>(std::move(lex.Data())) : nullptr;
+		m_comm.Push(TokenState(itok, val));
 	}
 
 private:
@@ -178,9 +198,9 @@ private:
 	AST stree;
 	//Token m_currentToken;
 	//Token m_lastToken;
-	Command<TokenState> m_comm;
+	StateContainer<TokenState> m_comm;
 	std::stack<std::unique_ptr<ASTNode>> m_elementStack;
-	std::unique_ptr<Value> m_currentData = nullptr;
+	//std::unique_ptr<Value> m_currentData = nullptr;
 	//std::unique_ptr<Value> m_lastData = nullptr;
 };
 
