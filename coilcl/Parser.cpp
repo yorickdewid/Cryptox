@@ -2,8 +2,10 @@
 
 #include <iostream>
 
-#define MATCH_TOKEN(t) (m_currentToken == t)
-#define NOT_TOKEN(t) (m_currentToken != t)
+#define PREVIOUS_TOKEN() m_comm.Previous().FetchToken()
+#define CURRENT_TOKEN() m_comm.Current().FetchToken()
+#define MATCH_TOKEN(t) (CURRENT_TOKEN() == t)
+#define NOT_TOKEN(t) (CURRENT_TOKEN() != t)
 
 Parser::Parser(const std::string& input)
 	: lex{ input }
@@ -18,7 +20,7 @@ void Parser::Error(const std::string& err)
 	int line = 0;
 	int column = 1;
 
-	std::cerr << "Semantic error: " << err << " before '" << m_currentToken << "' token at " << line << ":" << column << std::endl;
+	std::cerr << "Semantic error: " << err << " before '" << CURRENT_TOKEN() << "' token at " << line << ":" << column << std::endl;
 
 	assert(0);
 	//TODO: throw something
@@ -46,7 +48,7 @@ void Parser::ExpectIdentifier()
 
 auto Parser::StorageClassSpecifier()
 {
-	switch (m_currentToken) {
+	switch (CURRENT_TOKEN()) {
 	case TK_REGISTER:
 		return Value::StorageClassSpecifier::REGISTER;
 	case TK_STATIC:
@@ -65,7 +67,7 @@ std::unique_ptr<Value> Parser::TypeSpecifier()
 	// - Imaginary
 	// - struct_or_union_specifier
 	// - TYPE_NAME
-	switch (m_currentToken) {
+	switch (CURRENT_TOKEN()) {
 	case TK_VOID:
 		return std::move(std::make_unique<ValueObject<void>>(Value::TypeSpecifier::T_VOID));
 	case TK_CHAR:
@@ -96,7 +98,7 @@ std::unique_ptr<Value> Parser::TypeSpecifier()
 
 auto Parser::TypeQualifier()
 {
-	switch (m_currentToken) {
+	switch (CURRENT_TOKEN()) {
 	case TK_CONST:
 		return Value::TypeQualifier::CONST;
 	case TK_VOLATILE:
@@ -155,7 +157,7 @@ bool Parser::DeclarationSpecifiers()
 
 void Parser::StructOrUnionSpecifier()
 {
-	switch (m_currentToken)
+	switch (CURRENT_TOKEN())
 	{
 	case TK_STRUCT:
 		NextToken();
@@ -253,7 +255,7 @@ void Parser::EnumeratorList()
 
 bool Parser::UnaryOperator()
 {
-	switch (m_currentToken)
+	switch (CURRENT_TOKEN())
 	{
 	case TK_AND_OP:
 		NextToken();
@@ -286,7 +288,7 @@ bool Parser::UnaryOperator()
 
 bool Parser::AssignmentOperator()
 {
-	switch (m_currentToken)
+	switch (CURRENT_TOKEN())
 	{
 	case TK_ASSIGN:
 		NextToken();
@@ -339,7 +341,7 @@ bool Parser::AssignmentOperator()
 
 void Parser::PrimaryExpression()
 {
-	switch (m_currentToken)
+	switch (CURRENT_TOKEN())
 	{
 	case TK_IDENTIFIER:
 		NextToken();
@@ -416,7 +418,7 @@ void Parser::PostfixExpression()
 
 	PrimaryExpression();
 
-	switch (m_currentToken)
+	switch (CURRENT_TOKEN())
 	{
 	case TK_BRACKET_OPEN:
 		NextToken();
@@ -457,7 +459,7 @@ void Parser::PostfixExpression()
 
 void Parser::UnaryExpression()
 {
-	switch (m_currentToken)
+	switch (CURRENT_TOKEN())
 	{
 	case TK_INC_OP:
 		NextToken();
@@ -506,7 +508,7 @@ void Parser::MultiplicativeExpression()
 {
 	CastExpression();
 
-	switch (m_currentToken)
+	switch (CURRENT_TOKEN())
 	{
 	case TK_ASTERISK:
 		NextToken();
@@ -530,7 +532,7 @@ void Parser::AdditiveExpression()
 {
 	MultiplicativeExpression();
 
-	switch (m_currentToken) {
+	switch (CURRENT_TOKEN()) {
 	case TK_PLUS:
 		NextToken();
 		// EMIT
@@ -548,7 +550,7 @@ void Parser::ShiftExpression()
 {
 	AdditiveExpression();
 
-	switch (m_currentToken) {
+	switch (CURRENT_TOKEN()) {
 	case TK_LEFT_OP:
 		NextToken();
 		// EMIT
@@ -566,7 +568,7 @@ void Parser::RelationalExpression()
 {
 	ShiftExpression();
 
-	switch (m_currentToken)
+	switch (CURRENT_TOKEN())
 	{
 	case TK_LESS_THAN:
 		NextToken();
@@ -595,7 +597,7 @@ void Parser::EqualityExpression()
 {
 	RelationalExpression();
 
-	switch (m_currentToken)
+	switch (CURRENT_TOKEN())
 	{
 	case TK_EQ_OP:
 		NextToken();
@@ -689,7 +691,7 @@ void Parser::ConstantExpression()
 // Labels and gotos
 void Parser::JumpStatement()
 {
-	switch (m_currentToken)
+	switch (CURRENT_TOKEN())
 	{
 	case TK_GOTO:
 		NextToken();
@@ -723,7 +725,7 @@ void Parser::JumpStatement()
 // For, do and while loop
 void Parser::IterationStatement()
 {
-	switch (m_currentToken)
+	switch (CURRENT_TOKEN())
 	{
 	case TK_WHILE:
 		ExpectToken(TK_BRACE_OPEN);
@@ -757,7 +759,7 @@ void Parser::IterationStatement()
 // If and switch statements
 void Parser::SelectionStatement()
 {
-	switch (m_currentToken)
+	switch (CURRENT_TOKEN())
 	{
 	case TK_IF:
 		NextToken();
@@ -812,7 +814,7 @@ bool Parser::CompoundStatement()
 // Labeled statements
 void Parser::LabeledStatement()
 {
-	switch (m_currentToken)
+	switch (CURRENT_TOKEN())
 	{
 	case TK_IDENTIFIER:
 		NextToken();
@@ -903,7 +905,7 @@ void Parser::DirectAbstractDeclarator()
 {
 	bool cont = false;
 	do {
-		switch (m_currentToken)
+		switch (CURRENT_TOKEN())
 		{
 		case TK_PARENTHESE_OPEN:
 			NextToken();
@@ -976,7 +978,7 @@ void Parser::Designators()
 {
 	bool cont = false;
 	do {
-		switch (m_currentToken)
+		switch (CURRENT_TOKEN())
 		{
 		case TK_BRACKET_OPEN:
 			NextToken();
@@ -1026,7 +1028,7 @@ bool Parser::DirectDeclarator()
 
 	// Declarations following an identifier
 	for (;;) {
-		switch (m_currentToken)
+		switch (CURRENT_TOKEN())
 		{
 		case TK_BRACKET_OPEN:
 			NextToken();
