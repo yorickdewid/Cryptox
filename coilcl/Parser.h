@@ -78,6 +78,27 @@ public:
 		return m_tokenList[index - 1];
 	}
 
+	inline void Snapshot()
+	{
+		m_snapshopList.push(index);
+	}
+
+	inline void Revert()
+	{
+		index = m_snapshopList.top();
+		m_snapshopList.pop();
+	}
+
+	inline bool IsIndexHead() const
+	{
+		return index == m_tokenList.size();
+	}
+
+	inline void ShiftForward()
+	{
+		++index;
+	}
+
 	inline auto operator[](size_t idx)
 	{
 		return m_tokenList[idx];
@@ -101,6 +122,7 @@ public:
 	// Clear the token and snapshot list, this action will free all allocated memory
 	void Clear()
 	{
+		index = 0;
 		m_tokenList.clear();
 		while (!m_snapshopList.empty()) {
 			m_snapshopList.pop();
@@ -122,9 +144,14 @@ protected:
 
 	void NextToken()
 	{
-		auto itok = lex.Lex();
-		auto val = lex.HasData() ? std::shared_ptr<Value>(std::move(lex.Data())) : nullptr;
-		m_comm.Push(TokenState(itok, val));
+		if (m_comm.IsIndexHead()) {
+			auto itok = lex.Lex();
+			auto val = lex.HasData() ? std::shared_ptr<Value>(std::move(lex.Data())) : nullptr;
+			m_comm.Push(TokenState(itok, val));
+		}
+		else {
+			m_comm.ShiftForward();
+		}
 	}
 
 private:
@@ -196,11 +223,7 @@ private:
 private:
 	Lexer lex;
 	AST stree;
-	//Token m_currentToken;
-	//Token m_lastToken;
 	StateContainer<TokenState> m_comm;
 	std::stack<std::unique_ptr<ASTNode>> m_elementStack;
-	//std::unique_ptr<Value> m_currentData = nullptr;
-	//std::unique_ptr<Value> m_lastData = nullptr;
 };
 

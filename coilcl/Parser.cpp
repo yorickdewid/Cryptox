@@ -495,13 +495,22 @@ void Parser::UnaryExpression()
 
 void Parser::CastExpression()
 {
+	bool cont = true;
 	if (MATCH_TOKEN(TK_PARENTHESE_OPEN)) {
+		m_comm.Snapshot();
 		NextToken();
 		TypeName();
-		ExpectToken(TK_PARENTHESE_CLOSE);
-		CastExpression();
+		//ExpectToken(TK_PARENTHESE_CLOSE);
+		if (MATCH_TOKEN(TK_PARENTHESE_CLOSE)) { //TMP
+			CastExpression();
+			cont = false;
+		}
+		else {
+			m_comm.Revert();
+		}
 	}
-	else {
+
+	if (cont) {
 		UnaryExpression();
 	}
 }
@@ -1144,7 +1153,6 @@ void Parser::TranslationUnit()
 	//for (size_t i = 0; i < length; i++)
 	//{
 	ExternalDeclaration();
-	m_comm.Clear();
 	//}
 }
 
