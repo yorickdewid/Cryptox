@@ -42,8 +42,9 @@ int main(int argc, const char *argv[])
 			std::cout << desc;
 		}
 	}
-	catch (std::exception& e)
+	catch (const std::exception& e)
 	{
+		//TODO: cleanup all parsers and lexers
 		std::cerr << e.what() << "\n";
 		return 1;
 	}

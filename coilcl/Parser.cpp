@@ -143,7 +143,6 @@ void Parser::ExpectIdentifier()
 		Error("expected identifier");
 	}
 
-	//assert(m_currentData.get() != nullptr);
 	assert(m_comm.Current().HasData());
 
 	NextToken();
@@ -605,15 +604,10 @@ void Parser::CastExpression()
 			ExpectToken(TK_PARENTHESE_CLOSE);
 			CastExpression();
 		}
-		catch (UnexpectedTokenException e)
+		catch (const UnexpectedTokenException& e)
 		{
 			m_comm.Revert();
 		}
-		//if (MATCH_TOKEN(TK_PARENTHESE_CLOSE)) { //TMP
-		//	cont = false;
-		//}
-		//else {
-		//}
 	}
 
 	if (cont) {
@@ -1022,6 +1016,7 @@ void Parser::DirectAbstractDeclarator()
 {
 	bool cont = false;
 	do {
+		cont = false;
 		switch (CURRENT_TOKEN())
 		{
 		case TK_PARENTHESE_OPEN:
