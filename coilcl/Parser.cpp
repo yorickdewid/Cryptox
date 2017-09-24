@@ -44,13 +44,13 @@ public:
 		return m_column;
 	}
 
+	// TODO: nullpointer exception
 	virtual const char *what() const throw ()
 	{
 		std::stringstream ss;
 		ss << "Semantic error: " << m_err;
-		ss << " before " << "' TOKEN '" << " token at ";
+		ss << " before " << "' TOKEN '" << " token at "; //TODO: token
 		ss << m_line << ':' << m_column;
-		//auto message = "Semantic error: " + m_err + " before '" + std::to_string(CURRENT_TOKEN()) + "' token at " + std::to_string(m_line) + ":" + std::to_string(m_column);
 		return ss.str().c_str();
 	}
 
@@ -60,11 +60,63 @@ private:
 	int m_column;
 };
 
+class SyntaxException : public std::exception
+{
+public:
+	SyntaxException() throw()
+	{
+	}
+
+	explicit SyntaxException(char const* const message) throw()
+		: m_err{ message }
+	{
+	}
+
+	explicit SyntaxException(char const* const message, char token, int line, int column) throw()
+		: m_err{ message }
+		, m_token{ token }
+		, m_line{ line }
+		, m_column{ column }
+	{
+	}
+
+	SyntaxException(SyntaxException const& rhs) throw()
+	{
+		// TODO: copy over the private data of this class
+	}
+
+	virtual int Line() const throw ()
+	{
+		return m_line;
+	}
+
+	virtual int Column() const throw ()
+	{
+		return m_column;
+	}
+
+	// TODO: nullpointer exception
+	virtual const char *what() const throw ()
+	{
+		std::stringstream ss;
+		ss << "Syntax error: " << m_err << " at ";
+		ss << m_line << ':' << m_column;
+		return ss.str().c_str();
+	}
+
+private:
+	const char *m_err = nullptr;
+	char m_token;
+	int m_line;
+	int m_column;
+};
+
 Parser::Parser(const std::string& input)
 	: lex{ input }
 {
 	lex.ErrorHandler([](const std::string& err, char token, int line, int column) {
 		std::cerr << "Syntax error: " << err << " at " << line << ":" << column << std::endl;
+		//TODO: throw SyntaxException()
 	});
 }
 
