@@ -138,7 +138,7 @@ public:
 	void Execute();
 
 protected:
-	void Error(const std::string& err);
+	void Error(const char *err);
 	void ExpectToken(Token token);
 	void ExpectIdentifier();
 

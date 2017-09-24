@@ -1,12 +1,64 @@
 #include "Parser.h"
 
 #include <iostream>
+#include <exception>
+#include <sstream>
 
 #define CURRENT_DATA() m_comm.Current().FetchData()
 #define PREVIOUS_TOKEN() m_comm.Previous().FetchToken()
 #define CURRENT_TOKEN() m_comm.Current().FetchToken()
 #define MATCH_TOKEN(t) (CURRENT_TOKEN() == t)
 #define NOT_TOKEN(t) (CURRENT_TOKEN() != t)
+
+class UnexpectedTokenException : public std::exception
+{
+public:
+	UnexpectedTokenException() throw()
+	{
+	}
+
+	explicit UnexpectedTokenException(char const* const message) throw()
+		: m_err{ message }
+	{
+	}
+
+	explicit UnexpectedTokenException(char const* const message, int line, int column) throw()
+		: m_err{ message }
+		, m_line{ line }
+		, m_column{ column }
+	{
+	}
+
+	UnexpectedTokenException(UnexpectedTokenException const& rhs) throw()
+	{
+		// TODO: copy over the private data of this class
+	}
+
+	virtual int Line() const throw ()
+	{
+		return m_line;
+	}
+
+	virtual int Column() const throw ()
+	{
+		return m_column;
+	}
+
+	virtual const char *what() const throw ()
+	{
+		std::stringstream ss;
+		ss << "Semantic error: " << m_err;
+		ss << " before " << "' TOKEN '" << " token at ";
+		ss << m_line << ':' << m_column;
+		//auto message = "Semantic error: " + m_err + " before '" + std::to_string(CURRENT_TOKEN()) + "' token at " + std::to_string(m_line) + ":" + std::to_string(m_column);
+		return ss.str().c_str();
+	}
+
+private:
+	const char *m_err = nullptr;
+	int m_line;
+	int m_column;
+};
 
 Parser::Parser(const std::string& input)
 	: lex{ input }
@@ -16,15 +68,12 @@ Parser::Parser(const std::string& input)
 	});
 }
 
-void Parser::Error(const std::string& err)
+void Parser::Error(const char* err)
 {
-	int line = 0;
-	int column = 1;
+	int line = 0;//TODO
+	int column = 1;//TODO
 
-	std::cerr << "Semantic error: " << err << " before '" << CURRENT_TOKEN() << "' token at " << line << ":" << column << std::endl;
-
-	assert(0);
-	//TODO: throw something
+	throw UnexpectedTokenException(err, line, column);
 }
 
 void Parser::ExpectToken(Token token)
@@ -498,16 +547,21 @@ void Parser::CastExpression()
 	bool cont = true;
 	if (MATCH_TOKEN(TK_PARENTHESE_OPEN)) {
 		m_comm.Snapshot();
-		NextToken();
-		TypeName();
-		//ExpectToken(TK_PARENTHESE_CLOSE);
-		if (MATCH_TOKEN(TK_PARENTHESE_CLOSE)) { //TMP
+		try {
+			NextToken();
+			TypeName();
+			ExpectToken(TK_PARENTHESE_CLOSE);
 			CastExpression();
-			cont = false;
 		}
-		else {
+		catch (UnexpectedTokenException e)
+		{
 			m_comm.Revert();
 		}
+		//if (MATCH_TOKEN(TK_PARENTHESE_CLOSE)) { //TMP
+		//	cont = false;
+		//}
+		//else {
+		//}
 	}
 
 	if (cont) {
@@ -1113,10 +1167,10 @@ bool Parser::ParameterTypeList()
 
 bool Parser::ParameterDeclaration()
 {
-	DeclarationSpecifiers();
-	//if (!DeclarationSpecifiers()) {
-		//return false;
-	//}
+	//DeclarationSpecifiers();
+	if (!DeclarationSpecifiers()) { //TMP
+		return false;
+	}
 
 	Declarator();
 	AbstractDeclarator();
