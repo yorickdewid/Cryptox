@@ -17,6 +17,7 @@ struct Value
 		T_FLOAT,
 		T_DOUBLE,
 		T_BOOL,
+		T_PTR,
 	};
 
 	// Storage class specifier
@@ -47,6 +48,7 @@ protected:
 		float f;
 		double d;
 		char c;
+		intptr_t *p;
 	};
 
 	// If this counter is greater than 0, the external type is an array
@@ -63,6 +65,16 @@ public:
 	{
 	}
 
+	Value(const Value& other)
+		: m_isUnsigned{ other.m_isUnsigned }
+		, m_objectType{ other.m_objectType }
+		, m_scSpecifier{ other.m_scSpecifier }
+		, m_typeQualifier{ other.m_typeQualifier }
+	{
+	}
+
+	virtual ~Value() = default;
+
 	inline void StorageClass(StorageClassSpecifier scp)
 	{
 		m_scSpecifier = scp;
@@ -72,8 +84,6 @@ public:
 	{
 		m_typeQualifier = tq;
 	}
-
-	virtual ~Value() = default;
 
 	// Return the type specifier
 	TypeSpecifier DataType() const
@@ -139,6 +149,12 @@ public:
 		: Value{ type }
 	{
 	}
+
+	ValueObject(const ValueObject& other)
+		: Value(other)
+		, m_value{ other.m_value }
+	{
+	}
 };
 
 template<>
@@ -154,6 +170,12 @@ class ValueObject<void> : public Value
 public:
 	ValueObject(TypeSpecifier type)
 		: Value{ type }
+	{
+	}
+
+	ValueObject(const ValueObject& other)
+		: Value(other)
+		, m_value{ other.m_value }
 	{
 	}
 };
@@ -179,6 +201,12 @@ public:
 		: Value{ type }
 	{
 	}
+
+	ValueObject(const ValueObject& other)
+		: Value(other)
+		, m_value{ other.m_value }
+	{
+	}
 };
 
 template<>
@@ -200,12 +228,18 @@ public:
 		for (size_t i = 0; i < str.size(); ++i) {
 			m_arrayPtr[i].c = str[i];
 		}
-		
+
 		m_arraySize = str.size();
 	}
 
 	ValueObject(TypeSpecifier type)
 		: Value{ type }
+	{
+	}
+
+	ValueObject(const ValueObject& other)
+		: Value(other)
+		, m_value{ other.m_value }
 	{
 	}
 };
