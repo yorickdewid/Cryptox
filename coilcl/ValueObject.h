@@ -65,11 +65,13 @@ public:
 	{
 	}
 
+	//TODO: Copy arrayPtr somehow
 	Value(const Value& other)
 		: m_isUnsigned{ other.m_isUnsigned }
 		, m_objectType{ other.m_objectType }
 		, m_scSpecifier{ other.m_scSpecifier }
 		, m_typeQualifier{ other.m_typeQualifier }
+		, m_arraySize{ other.m_arraySize }
 	{
 	}
 

@@ -27,7 +27,7 @@ int main(int argc, const char *argv[])
 		po::variables_map vm;
 		po::store(po::command_line_parser(argc, argv).options(desc).positional(p).run(), vm);
 
-		RunSource("../main.c.ccil");//TODO: remove
+		RunSource("../main.c.ccil");//TMP
 
 		if (vm.count("help"))
 		{
@@ -44,7 +44,6 @@ int main(int argc, const char *argv[])
 	}
 	catch (const std::exception& e)
 	{
-		//TODO: cleanup all parsers and lexers
 		std::cerr << e.what() << "\n";
 		return 1;
 	}

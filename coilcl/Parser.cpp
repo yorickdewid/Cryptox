@@ -604,7 +604,7 @@ void Parser::CastExpression()
 			ExpectToken(TK_PARENTHESE_CLOSE);
 			CastExpression();
 		}
-		catch (const UnexpectedTokenException& e)
+		catch (const UnexpectedTokenException&)
 		{
 			m_comm.Revert();
 		}

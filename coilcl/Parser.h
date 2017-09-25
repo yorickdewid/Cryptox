@@ -59,6 +59,7 @@ public:
 	}
 
 	StateContainer(const StateContainer&) = delete;
+	StateContainer(StateContainer&&) = delete;
 	StateContainer& operator=(const StateContainer&) = delete;
 
 	inline void Push(const T& state)
