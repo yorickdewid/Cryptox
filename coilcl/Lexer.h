@@ -7,6 +7,8 @@
 #include <functional>
 #include <unordered_map>
 
+class Parser;
+
 enum Token
 {
 	// Program halt
@@ -156,13 +158,22 @@ public:
 		return m_isEof;
 	}
 
-	// friends
-	int Lex();
-
 	std::unique_ptr<Value>& Data()
 	{
 		return m_data;
 	}
+
+	inline int TokenLine() const
+	{
+		return m_currentLine;
+	}
+
+	inline int TokenColumn() const
+	{
+		return m_currentColumn;
+	}
+
+	int Lex();
 
 private:
 	void Next();

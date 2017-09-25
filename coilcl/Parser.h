@@ -9,23 +9,31 @@ class TokenState
 {
 	Token m_currentToken;
 	std::shared_ptr<Value> m_currentData = nullptr;
+	int m_line;
+	int m_column;
 
 public:
-	TokenState(const TokenState& rhs)
-		: m_currentToken{ rhs.m_currentToken }
-		, m_currentData{ rhs.m_currentData }
-	{
-	}
-
-	TokenState(Token currentToken, std::shared_ptr<Value> currentData)
+	TokenState(Token currentToken, std::shared_ptr<Value>& currentData, int line = 0, int column = 0)
 		: m_currentToken{ currentToken }
 		, m_currentData{ currentData }
+		, m_line{ line }
+		, m_column{ column }
 	{
 	}
 
-	TokenState(int currentToken, std::shared_ptr<Value> currentData)
+	TokenState(int currentToken, std::shared_ptr<Value>& currentData, int line = 0, int column = 0)
 		: m_currentToken{ static_cast<Token>(currentToken) }
 		, m_currentData{ currentData }
+		, m_line{ line }
+		, m_column{ column }
+	{
+	}
+
+	TokenState(const TokenState& other)
+		: m_currentToken{ other.m_currentToken }
+		, m_currentData{ other.m_currentData }
+		, m_line{ other.m_line }
+		, m_column{ other.m_column }
 	{
 	}
 
@@ -147,8 +155,10 @@ protected:
 	{
 		if (m_comm.IsIndexHead()) {
 			auto itok = lex.Lex();
+			auto y = lex.TokenLine();
+			auto x = lex.TokenColumn();
 			auto val = lex.HasData() ? std::shared_ptr<Value>(std::move(lex.Data())) : nullptr;
-			m_comm.Push(TokenState(itok, val));
+			m_comm.Push(TokenState(itok, val, y, x));
 		}
 		else {
 			m_comm.ShiftForward();

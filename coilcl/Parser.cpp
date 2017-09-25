@@ -595,7 +595,6 @@ void Parser::UnaryExpression()
 
 void Parser::CastExpression()
 {
-	bool cont = true;
 	if (MATCH_TOKEN(TK_PARENTHESE_OPEN)) {
 		m_comm.Snapshot();
 		try {
@@ -603,6 +602,7 @@ void Parser::CastExpression()
 			TypeName();
 			ExpectToken(TK_PARENTHESE_CLOSE);
 			CastExpression();
+			return;
 		}
 		catch (const UnexpectedTokenException&)
 		{
@@ -610,9 +610,7 @@ void Parser::CastExpression()
 		}
 	}
 
-	if (cont) {
-		UnaryExpression();
-	}
+	UnaryExpression();
 }
 
 void Parser::MultiplicativeExpression()
@@ -879,6 +877,7 @@ void Parser::SelectionStatement()
 		ExpectToken(TK_PARENTHESE_CLOSE);
 		Statement();
 		if (MATCH_TOKEN(TK_ELSE)) {
+			NextToken();
 			Statement();
 		}
 		break;
