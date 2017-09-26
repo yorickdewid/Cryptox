@@ -598,6 +598,7 @@ void Parser::CastExpression()
 			NextToken();
 			TypeName();
 			ExpectToken(TK_PARENTHESE_CLOSE);
+			m_comm.Dispose();
 			CastExpression();
 			return;
 		}

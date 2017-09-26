@@ -40,30 +40,13 @@ public:
 	TokenState(const TokenState& other) = default;
 	TokenState(TokenState&& other) = default;
 
-	inline bool HasData() const
-	{
-		return !!m_currentData;
-	}
+	inline bool HasData() const { return !!m_currentData; }
 
-	inline std::shared_ptr<Value>& FetchData()
-	{
-		return m_currentData;
-	}
+	inline const std::shared_ptr<Value>& FetchData() { return m_currentData; }
 
-	inline auto FetchToken() const
-	{
-		return m_currentToken;
-	}
-
-	inline auto FetchLine() const
-	{
-		return m_line;
-	}
-
-	inline auto FetchColumn() const
-	{
-		return m_column;
-	}
+	inline auto FetchToken() const { return m_currentToken; }
+	inline auto FetchLine() const { return m_line; }
+	inline auto FetchColumn() const { return m_column; }
 };
 
 template<typename T>
@@ -79,6 +62,7 @@ public:
 		m_tokenList.reserve(reserved_elements);
 	}
 
+	// Prevent all forms of data transfer from this object
 	StateContainer(const StateContainer&) = delete;
 	StateContainer(StateContainer&&) = delete;
 	StateContainer& operator=(const StateContainer&) = delete;
@@ -112,7 +96,12 @@ public:
 		m_snapshopList.pop();
 	}
 
-	inline bool IsIndexHead() const
+	inline void Dispose()
+	{
+		m_snapshopList.pop();
+	}
+
+	inline auto IsIndexHead() const
 	{
 		return index == m_tokenList.size();
 	}
