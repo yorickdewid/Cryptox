@@ -29,13 +29,16 @@ public:
 	{
 	}
 
-	TokenState(const TokenState& other)
-		: m_currentToken{ other.m_currentToken }
-		, m_currentData{ other.m_currentData }
-		, m_line{ other.m_line }
-		, m_column{ other.m_column }
+	TokenState(int currentToken, std::shared_ptr<Value>& currentData, std::pair<int,int>&& location)
+		: m_currentToken{ static_cast<Token>(currentToken) }
+		, m_currentData{ currentData }
+		, m_line{ location.first }
+		, m_column{ location.second }
 	{
 	}
+
+	TokenState(const TokenState& other) = default;
+	TokenState(TokenState&& other) = default;
 
 	inline bool HasData() const
 	{
@@ -69,10 +72,11 @@ public:
 	StateContainer(const StateContainer&) = delete;
 	StateContainer(StateContainer&&) = delete;
 	StateContainer& operator=(const StateContainer&) = delete;
+	StateContainer& operator=(StateContainer&&) = delete;
 
-	inline void Push(const T& state)
+	void Push(T&& state)
 	{
-		m_tokenList.push_back(state);
+		m_tokenList.push_back(std::move(state));
 		index++;
 	}
 
@@ -155,10 +159,9 @@ protected:
 	{
 		if (m_comm.IsIndexHead()) {
 			auto itok = lex.Lex();
-			auto y = lex.TokenLine();
-			auto x = lex.TokenColumn();
+			auto location = std::make_pair(lex.TokenLine(), lex.TokenColumn());
 			auto val = lex.HasData() ? std::shared_ptr<Value>(std::move(lex.Data())) : nullptr;
-			m_comm.Push(TokenState(itok, val, y, x));
+			m_comm.Push(TokenState(itok, val, std::move(location)));
 		}
 		else {
 			m_comm.ShiftForward();
@@ -200,12 +203,12 @@ private: // Expressions
 	void ConstantExpression();
 
 private: // Statements
-	void JumpStatement();
-	void LabeledStatement();
+	bool JumpStatement();
+	bool LabeledStatement();
 	bool CompoundStatement();
 	void ExpressionStatement();
-	void SelectionStatement();
-	void IterationStatement();
+	bool SelectionStatement();
+	bool IterationStatement();
 	void Statement();
 
 private: // Declarations

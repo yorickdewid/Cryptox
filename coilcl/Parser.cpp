@@ -798,7 +798,7 @@ void Parser::ConstantExpression()
 }
 
 // Labels and gotos
-void Parser::JumpStatement()
+bool Parser::JumpStatement()
 {
 	switch (CURRENT_TOKEN())
 	{
@@ -825,14 +825,15 @@ void Parser::JumpStatement()
 		}
 		break;
 	default: // Return if no match
-		return;
+		return false;
 	}
 
 	ExpectToken(TK_COMMIT);
+	return true;
 }
 
 // For, do and while loop
-void Parser::IterationStatement()
+bool Parser::IterationStatement()
 {
 	switch (CURRENT_TOKEN())
 	{
@@ -841,7 +842,7 @@ void Parser::IterationStatement()
 		Expression();
 		ExpectToken(TK_BRACE_CLOSE);
 		Statement();
-		break;
+		return true;
 	case TK_DO:
 		Statement();
 		ExpectToken(TK_WHILE);
@@ -849,7 +850,7 @@ void Parser::IterationStatement()
 		Expression();
 		ExpectToken(TK_BRACE_CLOSE);
 		ExpectToken(TK_COMMIT);
-		break;
+		return true;
 	case TK_FOR:
 		ExpectToken(TK_BRACE_OPEN);
 		// expression_statement expression_statement
@@ -861,12 +862,14 @@ void Parser::IterationStatement()
 		// declaration expression_statement expression
 		ExpectToken(TK_BRACE_CLOSE);
 		Statement();
-		break;
+		return true;
 	}
+
+	return false;
 }
 
 // If and switch statements
-void Parser::SelectionStatement()
+bool Parser::SelectionStatement()
 {
 	switch (CURRENT_TOKEN())
 	{
@@ -880,15 +883,17 @@ void Parser::SelectionStatement()
 			NextToken();
 			Statement();
 		}
-		break;
+		return true;
 	case TK_SWITCH:
 		NextToken();
 		ExpectToken(TK_BRACE_OPEN);
 		Expression();
 		ExpectToken(TK_BRACE_CLOSE);
 		Statement();
-		break;
+		return true;
 	}
+
+	return false;
 }
 
 void Parser::ExpressionStatement()
@@ -922,7 +927,7 @@ bool Parser::CompoundStatement()
 }
 
 // Labeled statements
-void Parser::LabeledStatement()
+bool Parser::LabeledStatement()
 {
 	switch (CURRENT_TOKEN())
 	{
@@ -934,39 +939,41 @@ void Parser::LabeledStatement()
 		}
 		//ExpectToken(TK_COLON);//TODO: remove
 		//Statement();
-		break;
+		return true;
 	case TK_CASE:
 		NextToken();
 		ConstantExpression();
 		ExpectToken(TK_COLON);
 		Statement();
-		break;
+		return true;
 	case TK_DEFAULT:
 		NextToken();
 		ExpectToken(TK_COLON);
 		Statement();
-		break;
+		return true;
 	}
+
+	return false;
 }
 
 void Parser::Statement()
 {
-	CompoundStatement();
-	SelectionStatement();
-	IterationStatement();
-	JumpStatement();
+	if (CompoundStatement()) { return; }
+	if (SelectionStatement()) { return; }
+	if (IterationStatement()) { return; }
+	if (JumpStatement()) { return; }
 	ExpressionStatement();
-	LabeledStatement();
+	if (LabeledStatement()) { return; }
 }
 
 void Parser::BlockItems()
 {
 	do {
-		Statement();//TMP
+		Statement();
 		if (MATCH_TOKEN(TK_BRACE_CLOSE)) {
 			break;
 		}
-		Declaration();//TMP
+		Declaration();
 	} while (NOT_TOKEN(TK_BRACE_CLOSE));
 }
 
@@ -979,7 +986,10 @@ void Parser::Declaration()
 	}
 	else {
 		InitDeclaratorList();
-		ExpectToken(TK_COMMIT);
+		if (MATCH_TOKEN(TK_COMMIT)) {
+			NextToken();
+		}
+		//ExpectToken(TK_COMMIT);
 	}
 }
 
