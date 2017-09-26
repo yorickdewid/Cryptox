@@ -10,6 +10,8 @@
 #define MATCH_TOKEN(t) (CURRENT_TOKEN() == t)
 #define NOT_TOKEN(t) (CURRENT_TOKEN() != t)
 
+#define EMIT(m) std::cout << "EMIT::" << m << std::endl;
+
 class UnexpectedTokenException : public std::exception
 {
 public:
@@ -164,7 +166,6 @@ std::unique_ptr<Value> Parser::TypeSpecifier()
 	// TODO:
 	// - Complex
 	// - Imaginary
-	// - struct_or_union_specifier
 	// - TYPE_NAME
 	switch (CURRENT_TOKEN()) {
 	case TK_VOID:
@@ -260,11 +261,11 @@ void Parser::StructOrUnionSpecifier()
 	{
 	case TK_STRUCT:
 		NextToken();
-		// EMIT
+		EMIT("STRUCT");
 		break;
 	case TK_UNION:
 		NextToken();
-		// EMIT
+		EMIT("UNION");
 		break;
 	default: // return if no union or struct was found
 		return;
@@ -272,7 +273,7 @@ void Parser::StructOrUnionSpecifier()
 
 	if (MATCH_TOKEN(TK_IDENTIFIER)) {
 		NextToken();
-		// EMIT
+		EMIT("IDENTIFIER");
 	}
 
 	if (MATCH_TOKEN(TK_BRACE_OPEN)) {
@@ -327,7 +328,7 @@ void Parser::EnumSpecifier()
 		NextToken();
 		if (MATCH_TOKEN(TK_IDENTIFIER)) {
 			NextToken();
-			// EMIT
+			EMIT("ENUM IDENTIFIER");
 		}
 		if (MATCH_TOKEN(TK_BRACE_OPEN)) {
 			EnumeratorList();
@@ -342,7 +343,7 @@ void Parser::EnumeratorList()
 		NextToken();
 		if (MATCH_TOKEN(TK_IDENTIFIER)) {
 			NextToken();
-			// EMIT
+			EMIT("IDENTIFIER");
 
 			if (MATCH_TOKEN(TK_ASSIGN)) {
 				NextToken();
@@ -358,27 +359,27 @@ bool Parser::UnaryOperator()
 	{
 	case TK_AND_OP:
 		NextToken();
-		// EMIT
+		EMIT("AND");
 		return true;
 	case TK_AMPERSAND:
 		NextToken();
-		// EMIT
+		EMIT("AMPERSAND");
 		return true;
 	case TK_PLUS:
 		NextToken();
-		// EMIT
+		EMIT("PLUS");
 		return true;
 	case TK_MINUS:
 		NextToken();
-		// EMIT
+		EMIT("MINUS");
 		return true;
 	case TK_TILDE:
 		NextToken();
-		// EMIT
+		EMIT("TILDE");
 		return true;
 	case TK_NOT:
 		NextToken();
-		// EMIT
+		EMIT("NOT");
 		return true;
 	}
 
@@ -391,47 +392,47 @@ bool Parser::AssignmentOperator()
 	{
 	case TK_ASSIGN:
 		NextToken();
-		// EMIT
+		EMIT("ASSIGN");
 		return true;
 	case TK_MUL_ASSIGN:
 		NextToken();
-		// EMIT
+		EMIT("MUL_ASSIGN");
 		return true;
 	case TK_DIV_ASSIGN:
 		NextToken();
-		// EMIT
+		EMIT("DIV_ASSIGN");
 		return true;
 	case TK_MOD_ASSIGN:
 		NextToken();
-		// EMIT
+		EMIT("MOD_ASSIGN");
 		return true;
 	case TK_ADD_ASSIGN:
 		NextToken();
-		// EMIT
-		return true; break;
+		EMIT("ADD_ASSIGN");
+		return true;
 	case TK_SUB_ASSIGN:
 		NextToken();
-		// EMIT
+		EMIT("SUB_ASSIGN");
 		return true;
 	case TK_LEFT_ASSIGN:
 		NextToken();
-		// EMIT
+		EMIT("LEFT_ASSIGN");
 		return true;
 	case TK_RIGHT_ASSIGN:
 		NextToken();
-		// EMIT
+		EMIT("RIGHT_ASSIGN");
 		return true;
 	case TK_AND_ASSIGN:
 		NextToken();
-		// EMIT
+		EMIT("AND_ASSIGN");
 		return true;
 	case TK_XOR_ASSIGN:
 		NextToken();
-		// EMIT
+		EMIT("XOR_ASSIGN");
 		return true;
 	case TK_OR_ASSIGN:
 		NextToken();
-		// EMIT
+		EMIT("OR_ASSIGN");
 		return true;
 	}
 
@@ -444,43 +445,44 @@ void Parser::PrimaryExpression()
 	{
 	case TK_IDENTIFIER:
 		NextToken();
-		// EMIT
+		EMIT("IDENTIFIER");
 		break;
 
 	case TK_CONSTANT:
 		switch (CURRENT_DATA()->DataType()) {
 		case Value::TypeSpecifier::T_VOID:
-			// EMIT
+			EMIT("C VOID");
 			break;
 		case Value::TypeSpecifier::T_INT:
-			// EMIT
+			EMIT("C INT");
 			break;
 		case Value::TypeSpecifier::T_SHORT:
-			// EMIT
+			EMIT("C SHORT");
 			break;
 		case Value::TypeSpecifier::T_LONG:
-			// EMIT
+			EMIT("C LONG");
 			break;
 		case Value::TypeSpecifier::T_BOOL:
-			// EMIT
+			EMIT("C BOOL");
 			break;
 
 		case Value::TypeSpecifier::T_FLOAT:
 			//std::cout << " = " << m_currentData->As<float>();
-			// EMIT
+			EMIT("C FLOAT");
 			break;
 
 		case Value::TypeSpecifier::T_DOUBLE:
+			EMIT("C DOUBLE");
 			break;
 
 		case Value::TypeSpecifier::T_CHAR:
 			if (CURRENT_DATA()->IsArray()) {
 				//std::cout << " = " << m_currentData->As<std::string>();
-				// EMIT
+				EMIT("C STRING");
 			}
 			else {
 				//std::cout << " = " << m_currentData->As<char>();
-				// EMIT
+				EMIT("C CHAR");
 			}
 			break;
 		}
@@ -528,30 +530,31 @@ void Parser::PostfixExpression()
 		NextToken();
 		if (MATCH_TOKEN(TK_PARENTHESE_CLOSE)) {
 			NextToken();
-			// EMIT
+			EMIT("CALL FUNCTION EMPTY");
 		}
 		else {
 			ArgumentExpressionList();
+			EMIT("CALL FUNCTION");
 			ExpectToken(TK_PARENTHESE_CLOSE);
 		}
 		break;
 	case TK_DOT:
 		NextToken();
-		// EMIT
+		EMIT("DOT");
 		ExpectIdentifier();
 		break;
 	case TK_PTR_OP:
 		NextToken();
-		// EMIT
+		EMIT("POINTER");
 		ExpectIdentifier();
 		break;
 	case TK_INC_OP:
 		NextToken();
-		// EMIT
+		EMIT("++");
 		break;
 	case TK_DEC_OP:
 		NextToken();
-		// EMIT
+		EMIT("--");
 		break;
 	}
 }
@@ -562,17 +565,18 @@ void Parser::UnaryExpression()
 	{
 	case TK_INC_OP:
 		NextToken();
-		// EMIT
+		EMIT("++");
 		UnaryExpression();
 		break;
 	case TK_DEC_OP:
 		NextToken();
-		// EMIT
+		EMIT("--");
 		UnaryExpression();
 		break;
 	case TK_SIZEOF:
 		NextToken();
 		if (MATCH_TOKEN(TK_PARENTHESE_OPEN)) {
+			EMIT("SIZEOF");
 			TypeName();
 			ExpectToken(TK_PARENTHESE_CLOSE);
 		}
@@ -619,17 +623,17 @@ void Parser::MultiplicativeExpression()
 	{
 	case TK_ASTERISK:
 		NextToken();
-		// EMIT
+		EMIT("CALC MUL");
 		CastExpression();
 		break;
 	case TK_SLASH:
 		NextToken();
-		// EMIT
+		EMIT("CALC DIV");
 		CastExpression();
 		break;
 	case TK_PERCENT:
 		NextToken();
-		// EMIT
+		EMIT("CALC MOD");
 		CastExpression();
 		break;
 	}
@@ -642,12 +646,12 @@ void Parser::AdditiveExpression()
 	switch (CURRENT_TOKEN()) {
 	case TK_PLUS:
 		NextToken();
-		// EMIT
+		EMIT("CALC ADD");
 		MultiplicativeExpression();
 		break;
 	case TK_MINUS:
 		NextToken();
-		// EMIT
+		EMIT("CALC MINUS");
 		MultiplicativeExpression();
 		break;
 	}
@@ -660,12 +664,12 @@ void Parser::ShiftExpression()
 	switch (CURRENT_TOKEN()) {
 	case TK_LEFT_OP:
 		NextToken();
-		// EMIT
+		EMIT("SHIFT LEFT");
 		AdditiveExpression();
 		break;
 	case TK_RIGHT_OP:
 		NextToken();
-		// EMIT
+		EMIT("SHIFT RIGHT");
 		AdditiveExpression();
 		break;
 	}
@@ -679,22 +683,22 @@ void Parser::RelationalExpression()
 	{
 	case TK_LESS_THAN:
 		NextToken();
-		// EMIT
+		EMIT("CMP <");
 		ShiftExpression();
 		break;
 	case TK_GREATER_THAN:
 		NextToken();
-		// EMIT
+		EMIT("CMP >");
 		ShiftExpression();
 		break;
 	case TK_LE_OP:
 		NextToken();
-		// EMIT
+		EMIT("CMP <=");
 		ShiftExpression();
 		break;
 	case TK_GE_OP:
 		NextToken();
-		// EMIT
+		EMIT("CMP >=");
 		ShiftExpression();
 		break;
 	}
@@ -708,12 +712,12 @@ void Parser::EqualityExpression()
 	{
 	case TK_EQ_OP:
 		NextToken();
-		// EMIT
+		EMIT("CMP ==");
 		RelationalExpression();
 		break;
 	case TK_NE_OP:
 		NextToken();
-		// EMIT
+		EMIT("CMP !=");
 		RelationalExpression();
 		break;
 	}
@@ -745,7 +749,7 @@ void Parser::LogicalAndExpression()
 
 	if (MATCH_TOKEN(TK_AND_OP)) {
 		NextToken();
-		// EMIT
+		EMIT("&&");
 		ExclusiveOrExpression();
 	}
 }
@@ -756,7 +760,7 @@ void Parser::LogicalOrExpression()
 
 	if (MATCH_TOKEN(TK_OR_OP)) {
 		NextToken();
-		// EMIT
+		EMIT("||");
 		LogicalAndExpression();
 	}
 }
@@ -803,23 +807,25 @@ bool Parser::JumpStatement()
 	case TK_GOTO:
 		NextToken();
 		ExpectIdentifier();
-		// EMIT
+		EMIT("JMP GOTO");
 		break;
 	case TK_CONTINUE:
 		NextToken();
-		// EMIT
+		EMIT("ITR CONTINUE");
 		break;
 	case TK_BREAK:
 		NextToken();
-		// EMIT
+		EMIT("ITR/SWTCH BREAK");
 		break;
 	case TK_RETURN:
 		NextToken();
 		if (MATCH_TOKEN(TK_COMMIT)) {
+			EMIT("RETURN EMPTY");
 			m_elementStack.push(std::move(std::make_unique<ValueNode>()));
 		}
 		else {
 			Expression();
+			EMIT("RETURN VALUE");
 		}
 		break;
 	default: // Return if no match
@@ -934,10 +940,9 @@ bool Parser::LabeledStatement()
 		if (MATCH_TOKEN(TK_COLON)) {
 			NextToken();
 			Statement();
+			return true;
 		}
-		//ExpectToken(TK_COLON);//TODO: remove
-		//Statement();
-		return true;
+		return false;
 	case TK_CASE:
 		NextToken();
 		ConstantExpression();
@@ -987,7 +992,6 @@ void Parser::Declaration()
 		if (MATCH_TOKEN(TK_COMMIT)) {
 			NextToken();
 		}
-		//ExpectToken(TK_COMMIT);
 	}
 }
 
@@ -1030,7 +1034,7 @@ void Parser::DirectAbstractDeclarator()
 			NextToken();
 			if (MATCH_TOKEN(TK_PARENTHESE_CLOSE)) {
 				NextToken();
-				// EMIT
+				EMIT("FUNC DELC EMPTY");
 				cont = true;
 			}
 			else {
@@ -1045,13 +1049,13 @@ void Parser::DirectAbstractDeclarator()
 			NextToken();
 			if (MATCH_TOKEN(TK_BRACKET_CLOSE)) {
 				NextToken();
-				// EMIT
+				EMIT("UNINIT ARRAY?");
 				cont = true;
 			}
 			else if (MATCH_TOKEN(TK_ASTERISK)) {
 				NextToken();
 				ExpectToken(TK_BRACKET_CLOSE);
-				// EMIT
+				EMIT("UNINIT ARRAY VARIABLE SZ?");
 				cont = true;
 			}
 			else {
@@ -1134,7 +1138,7 @@ bool Parser::DirectDeclarator()
 {
 	if (MATCH_TOKEN(TK_IDENTIFIER)) {
 		NextToken();
-		// EMIT
+		EMIT("IDENTIFIER");
 	}
 	else if (MATCH_TOKEN(TK_PARENTHESE_OPEN)) {
 		NextToken();
@@ -1149,26 +1153,11 @@ bool Parser::DirectDeclarator()
 	for (;;) {
 		switch (CURRENT_TOKEN())
 		{
-		case TK_BRACKET_OPEN:
-			NextToken();
-			if (MATCH_TOKEN(TK_BRACKET_CLOSE)) {
-				NextToken();
-				// EMIT
-				return true;
-			}
-			else if (MATCH_TOKEN(TK_ASTERISK)) {
-				NextToken();
-				// EMIT
-				ExpectToken(TK_BRACE_CLOSE);
-				return true;
-			}
-
-			break;
 		case TK_PARENTHESE_OPEN:
 			NextToken();
 			if (MATCH_TOKEN(TK_PARENTHESE_CLOSE)) {
 				NextToken();
-				// EMIT
+				EMIT("FUNC DELC EMPTY");
 				return true;
 			}
 			else {
@@ -1176,7 +1165,7 @@ bool Parser::DirectDeclarator()
 					do {
 						if (MATCH_TOKEN(TK_IDENTIFIER)) {
 							NextToken();
-							// EMIT
+							EMIT("FUNC DELC IDENTIFIER??");
 						}
 						else {
 							return false;//TMP
@@ -1186,6 +1175,21 @@ bool Parser::DirectDeclarator()
 				ExpectToken(TK_PARENTHESE_CLOSE);
 				return true;
 			}
+			break;
+		case TK_BRACKET_OPEN:
+			NextToken();
+			if (MATCH_TOKEN(TK_BRACKET_CLOSE)) {
+				NextToken();
+				EMIT("UNINIT ARRAY");
+				return true;
+			}
+			else if (MATCH_TOKEN(TK_ASTERISK)) {
+				NextToken();
+				EMIT("UNINIT ARRAY VARIABLE SZ");
+				ExpectToken(TK_BRACE_CLOSE);
+				return true;
+			}
+
 			break;
 		default:
 			return false;
