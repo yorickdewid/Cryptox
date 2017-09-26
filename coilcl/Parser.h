@@ -29,7 +29,7 @@ public:
 	{
 	}
 
-	TokenState(int currentToken, std::shared_ptr<Value>& currentData, std::pair<int,int>&& location)
+	TokenState(int currentToken, std::shared_ptr<Value>& currentData, std::pair<int, int>&& location)
 		: m_currentToken{ static_cast<Token>(currentToken) }
 		, m_currentData{ currentData }
 		, m_line{ location.first }
@@ -53,6 +53,16 @@ public:
 	inline auto FetchToken() const
 	{
 		return m_currentToken;
+	}
+
+	inline auto FetchLine() const
+	{
+		return m_line;
+	}
+
+	inline auto FetchColumn() const
+	{
+		return m_column;
 	}
 };
 

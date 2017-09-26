@@ -13,39 +13,39 @@
 class UnexpectedTokenException : public std::exception
 {
 public:
-	UnexpectedTokenException() throw()
+	UnexpectedTokenException() noexcept
 	{
 	}
 
-	explicit UnexpectedTokenException(char const* const message) throw()
+	explicit UnexpectedTokenException(char const* const message) noexcept
 		: m_err{ message }
 	{
 	}
 
-	explicit UnexpectedTokenException(char const* const message, int line, int column) throw()
+	explicit UnexpectedTokenException(char const* const message, int line, int column) noexcept
 		: m_err{ message }
 		, m_line{ line }
 		, m_column{ column }
 	{
 	}
 
-	UnexpectedTokenException(UnexpectedTokenException const& rhs) throw()
+	UnexpectedTokenException(const UnexpectedTokenException& other) noexcept
 	{
 		// TODO: copy over the private data of this class
 	}
 
-	virtual int Line() const throw ()
+	virtual int Line() const noexcept
 	{
 		return m_line;
 	}
 
-	virtual int Column() const throw ()
+	virtual int Column() const noexcept
 	{
 		return m_column;
 	}
 
 	// TODO: nullpointer exception
-	virtual const char *what() const throw ()
+	virtual const char *what() const noexcept
 	{
 		std::stringstream ss;
 		ss << "Semantic error: " << m_err;
@@ -63,16 +63,16 @@ private:
 class SyntaxException : public std::exception
 {
 public:
-	SyntaxException() throw()
+	SyntaxException() noexcept
 	{
 	}
 
-	explicit SyntaxException(char const* const message) throw()
+	explicit SyntaxException(char const* const message) noexcept
 		: m_err{ message }
 	{
 	}
 
-	explicit SyntaxException(char const* const message, char token, int line, int column) throw()
+	explicit SyntaxException(char const* const message, char token, int line, int column) noexcept
 		: m_err{ message }
 		, m_token{ token }
 		, m_line{ line }
@@ -80,23 +80,23 @@ public:
 	{
 	}
 
-	SyntaxException(SyntaxException const& rhs) throw()
+	SyntaxException(SyntaxException const& rhs) noexcept
 	{
 		// TODO: copy over the private data of this class
 	}
 
-	virtual int Line() const throw ()
+	virtual int Line() const noexcept
 	{
 		return m_line;
 	}
 
-	virtual int Column() const throw ()
+	virtual int Column() const noexcept
 	{
 		return m_column;
 	}
 
 	// TODO: nullpointer exception
-	virtual const char *what() const throw ()
+	virtual const char *what() const noexcept
 	{
 		std::stringstream ss;
 		ss << "Syntax error: " << m_err << " at ";
@@ -122,10 +122,7 @@ Parser::Parser(const std::string& input)
 
 void Parser::Error(const char* err)
 {
-	int line = 0;//TODO
-	int column = 1;//TODO
-
-	throw UnexpectedTokenException(err, line, column);
+	throw UnexpectedTokenException(err, m_comm.Current().FetchLine(), m_comm.Current().FetchColumn());
 }
 
 void Parser::ExpectToken(Token token)
