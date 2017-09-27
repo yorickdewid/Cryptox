@@ -19,21 +19,15 @@ public:
 	{
 	}
 
-	explicit UnexpectedTokenException(char const* const message) noexcept
-		: m_err{ message }
-	{
-	}
-
 	explicit UnexpectedTokenException(char const* const message, int line, int column) noexcept
-		: m_err{ message }
-		, m_line{ line }
+		: m_line{ line }
 		, m_column{ column }
 	{
-	}
-
-	UnexpectedTokenException(const UnexpectedTokenException& other) noexcept
-	{
-		// TODO: copy over the private data of this class
+		std::stringstream ss;
+		ss << "Semantic error: " << message;
+		ss << " before " << "' TOKEN '" << " token at "; //TODO: token
+		ss << line << ':' << column;
+		_msg = ss.str();
 	}
 
 	virtual int Line() const noexcept
@@ -46,18 +40,15 @@ public:
 		return m_column;
 	}
 
-	// TODO: nullpointer exception
 	virtual const char *what() const noexcept
 	{
-		std::stringstream ss;
-		ss << "Semantic error: " << m_err;
-		ss << " before " << "' TOKEN '" << " token at "; //TODO: token
-		ss << m_line << ':' << m_column;
-		return ss.str().c_str();
+		return _msg.c_str();
 	}
 
+protected:
+	std::string _msg;
+
 private:
-	const char *m_err = nullptr;
 	int m_line;
 	int m_column;
 };
@@ -69,17 +60,15 @@ public:
 	{
 	}
 
-	explicit SyntaxException(char const* const message) noexcept
-		: m_err{ message }
-	{
-	}
-
 	explicit SyntaxException(char const* const message, char token, int line, int column) noexcept
-		: m_err{ message }
-		, m_token{ token }
+		: m_token{ token }
 		, m_line{ line }
 		, m_column{ column }
 	{
+		std::stringstream ss;
+		ss << "Syntax error: " << message << " at ";
+		ss << line << ':' << column;
+		_msg = ss.str();
 	}
 
 	SyntaxException(SyntaxException const& rhs) noexcept
@@ -100,14 +89,13 @@ public:
 	// TODO: nullpointer exception
 	virtual const char *what() const noexcept
 	{
-		std::stringstream ss;
-		ss << "Syntax error: " << m_err << " at ";
-		ss << m_line << ':' << m_column;
-		return ss.str().c_str();
+		return _msg.c_str();
 	}
 
+protected:
+	std::string _msg;
+
 private:
-	const char *m_err = nullptr;
 	char m_token;
 	int m_line;
 	int m_column;
@@ -117,8 +105,7 @@ Parser::Parser(const std::string& input)
 	: lex{ input }
 {
 	lex.ErrorHandler([](const std::string& err, char token, int line, int column) {
-		std::cerr << "Syntax error: " << err << " at " << line << ":" << column << std::endl;
-		//TODO: throw SyntaxException()
+		throw SyntaxException(err.c_str(), token, line, column);
 	});
 }
 
