@@ -15,7 +15,7 @@ const int myprint() {
 
 int main() {
 	int i = ((1));
-	unsigned int j = (unsigned int)i;
+	unsigned int j = (unsigned int) i;
 
 	if (i == 1) {
 		myprint();
