@@ -1,5 +1,8 @@
 #pragma once
 
 #include <string>
+#include <vector>
 
-void RunSource(const std::string& sourceFile);
+void RunSourceFile(const std::string&);
+void RunSourceFile(const std::vector<std::string>&);
+void RunMemoryString(const std::string&);

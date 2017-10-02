@@ -73,11 +73,9 @@ datachunk_t *FetchChunk(void *user_data)
 	if (i-- == 1) {
 		StreamReaderAdapter &adapter = side_cast<StreamReaderAdapter>(user_data);
 		auto str = adapter.FetchNextChunk();
-
 		auto *strArray = new char[str.size()];
 		std::copy(str.begin(), str.end(), strArray);
-
-		return new datachunk_t{ str.size(), strArray };
+		return new datachunk_t{ str.size(), strArray, static_cast<char>(true) };
 	}
 
 	return nullptr;
