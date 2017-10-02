@@ -2,20 +2,20 @@
 
 #include "ValueObject.h"
 
+#include <map>
 #include <list>
 #include <memory>
 #include <functional>
 
 class ASTNode;
+class FunctionNode;
 
 class AST
 {
+	std::map<std::string, FunctionNode> functionTable;
 	std::unique_ptr<ASTNode> root = nullptr;
 
 public:
-	AST();
-	~AST();
-
 	void PushNode(std::unique_ptr<ASTNode> node)
 	{
 		// Add new root if root is empty
@@ -45,10 +45,8 @@ public:
 		children.push_back(std::move(child));
 	}*/
 
-	inline bool IsRoot() const
-	{
-		return parent == nullptr;
-	}
+	inline auto IsRoot() const { return parent == nullptr; }
+	inline auto IsCallable() const { return false; }
 };
 
 class ValueNode : public ASTNode
@@ -75,13 +73,13 @@ public:
 
 class FunctionNode : public ASTNode
 {
-	std::string funcName;
+	std::string name;
 	std::unique_ptr<ASTNode> returnType;
 	std::list<std::unique_ptr<ValueNode>> parameters;
 
 public:
 	FunctionNode(const std::string& name)
-		: funcName{ name }
+		: name{ name }
 	{
 	}
 
@@ -90,10 +88,10 @@ public:
 		assert(value->DataType() == Value::TypeSpecifier::T_CHAR);
 
 		if (value->IsArray()) {
-			funcName = value->As<std::string>();
+			name = value->As<std::string>();
 		}
 		else {
-			funcName[0] = value->As<char>();
+			name.push_back(value->As<char>());
 		}
 	}
 
@@ -103,3 +101,34 @@ public:
 	}
 };
 
+class BinaryOp : public ASTNode
+{
+
+};
+
+class ExpressionCall : public ASTNode
+{
+public:
+	ExpressionCall()
+	{
+
+	}
+};
+
+class ExpressionCast : public ASTNode
+{
+public:
+	ExpressionCast()
+	{
+
+	}
+};
+
+class IfStatementNode : public ASTNode
+{
+public:
+	IfStatementNode()
+	{
+
+	}
+};
