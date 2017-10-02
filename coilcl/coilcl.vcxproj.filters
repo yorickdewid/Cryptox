@@ -9,6 +9,9 @@
       <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
       <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
     </Filter>
+    <Filter Include="External Header Files">
+      <UniqueIdentifier>{c51d5a8c-a2d2-44ab-b0be-0cb478f9e4b2}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="coilcl.cpp">
@@ -51,6 +54,9 @@
     </ClInclude>
     <ClInclude Include="AST.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="coilcl.h">
+      <Filter>External Header Files</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

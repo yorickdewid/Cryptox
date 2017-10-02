@@ -60,7 +60,7 @@ extern "C" {
 		struct codegen code_opt;
 		struct interpreter run_opt;
 
-		datachunk_t*(*streamReaderVPtr)();
+		datachunk_t*(*streamReaderVPtr)(void*);
 		void*(*streamMetaVPtr)();
 		void(*loadStreamRequestVPtr)();
 

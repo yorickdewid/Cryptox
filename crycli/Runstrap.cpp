@@ -1,4 +1,8 @@
+#include "FileReader.h"
+#include "StringReader.h"
 #include "Runstrap.h"
+
+#include "coilcl.h"
 
 #include <boost/system/error_code.hpp>
 #include <boost/filesystem.hpp>
@@ -7,67 +11,92 @@
 #include <fstream>
 #include <sstream>
 
-__declspec(dllimport) void Compile(const std::string& content);
+datachunk_t *FetchChunk(void *);
 
-class Runstrap
+// Class is single instance only and should therefore be non-copyable
+struct NonCopyable
 {
+	NonCopyable() = default;
+	NonCopyable(const NonCopyable&) = delete;
+	NonCopyable(NonCopyable&&) = delete;
+	NonCopyable& operator=(const NonCopyable&) = delete;
+	NonCopyable& operator=(NonCopyable&&) = delete;
+};
+
+class StreamReaderAdapter : private NonCopyable
+{
+	static const size_t defaultChunkSize = 100;
+
 public:
-	explicit Runstrap(const std::string& source)
-		: fname{ source.c_str() }
-	{
-		FileToProg();
-	}
-
-	Runstrap(std::string&& content)
-		: m_content{ std::move(content) }
+	explicit StreamReaderAdapter(std::shared_ptr<Reader>& reader)
+		: contentReader{ std::move(reader) }
 	{
 	}
-
-	// Class is single instance only and should therefore be non-copyable
-	Runstrap(const Runstrap&) = delete;
-	Runstrap(Runstrap&&) = delete;
 
 	// Create a new compiler and run the source code. The compiler is configured to
 	// be using the lexer to parse the program.
 	void Start()
 	{
-		Compile(m_content);
+		compiler_info_t info;
+		info.streamReaderVPtr = &FetchChunk;
+		info.user_data = static_cast<void*>(this);
+		Compile(&info);
 	}
 
-private:
-	// Convert file to runnable program instructions. This mainly means stripping
-	// code markup, comments and empty lines.
-	void FileToProg()
+	StreamReaderAdapter& SetStreamChuckSize(size_t size)
 	{
-		std::ifstream src{ fname };
+		m_chunkSize = size;
+		return *this;
+	}
 
-		std::string str;
-		src.seekg(0, std::ios::end);
-		str.reserve(static_cast<size_t>(src.tellg()));
-		src.seekg(0, std::ios::beg);
-
-		str.assign((std::istreambuf_iterator<char>(src)),
-			std::istreambuf_iterator<char>());
-
-		m_content = str;
+	const std::string FetchNextChunk() const
+	{
+		//TODO: contentReader->...()
+		return "kaas is lekker en gezond";
 	}
 
 private:
-	std::string m_content;
-	const char *fname;
-	std::stringstream ss;
-
+	std::shared_ptr<Reader> contentReader;
+	size_t m_chunkSize = defaultChunkSize;
 };
 
-// Check whether the provided file exists, then bootstrap the program
-// and execute the instructions.
-void RunSource(const std::string& sourceFile)
+int i = 1;
+
+template<class _Ty1, typename _Ty2>
+constexpr _Ty1& side_cast(_Ty2 *_opaquePtr) noexcept
 {
-	if (!boost::filesystem::exists(sourceFile))
-	{
-		throw std::system_error{ std::make_error_code(std::errc::no_such_file_or_directory) };
+	return static_cast<_Ty1&>(*static_cast<_Ty1 *>(const_cast<std::remove_const<_Ty2>::type*>(_opaquePtr)));
+}
+
+datachunk_t *FetchChunk(void *user_data)
+{
+	if (i-- == 1) {
+		StreamReaderAdapter &adapter = side_cast<StreamReaderAdapter>(user_data);
+		auto str = adapter.FetchNextChunk();
+
+		auto *strArray = new char[str.size()];
+		std::copy(str.begin(), str.end(), strArray);
+
+		return new datachunk_t{ str.size(), strArray };
 	}
 
-	Runstrap rs{ sourceFile };
-	rs.Start();
+	return nullptr;
+}
+
+void RunSourceFile(const std::string& sourceFile)
+{
+	auto reader = std::make_shared<FileReader>(sourceFile);
+	StreamReaderAdapter{ std::dynamic_pointer_cast<Reader>(reader) }.SetStreamChuckSize(256).Start();
+}
+
+void RunSourceFile(const std::vector<std::string>& sourceFiles)
+{
+	/*auto reader = std::make_shared<FileReader>(sourceFile);
+	StreamReaderAdapter<FileReader>{ sourceFiles }.Start();*/
+}
+
+void RunMemoryString(const std::string& content)
+{
+	auto reader = std::make_shared<StringReader>();
+	StreamReaderAdapter{ std::dynamic_pointer_cast<Reader>(reader) }.Start();
 }
