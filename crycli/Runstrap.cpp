@@ -11,7 +11,8 @@
 #include <fstream>
 #include <sstream>
 
-datachunk_t *FetchChunk(void *);
+datachunk_t *CCBFetchChunk(void *);
+int CCBLoadExternalSource(const char *);
 
 // Class is single instance only and should therefore be non-copyable
 struct NonCopyable
@@ -38,7 +39,10 @@ public:
 	void Start()
 	{
 		compiler_info_t info;
-		info.streamReaderVPtr = &FetchChunk;
+		info.code_opt.standard = cil_standard::c99;
+		info.code_opt.optimization = optimization::NONE;
+		info.streamReaderVPtr = &CCBFetchChunk;
+		info.loadStreamRequestVPtr = &CCBLoadExternalSource;
 		info.user_data = static_cast<void*>(this);
 		Compile(&info);
 	}
@@ -51,8 +55,7 @@ public:
 
 	const std::string FetchNextChunk() const
 	{
-		//TODO: contentReader->...()
-		return "kaas is lekker en gezond";
+		return contentReader->FetchNextChunk(m_chunkSize);
 	}
 
 private:
@@ -60,25 +63,30 @@ private:
 	size_t m_chunkSize = defaultChunkSize;
 };
 
-int i = 1;
-
 template<class _Ty1, typename _Ty2>
 constexpr _Ty1& side_cast(_Ty2 *_opaquePtr) noexcept
 {
 	return static_cast<_Ty1&>(*static_cast<_Ty1 *>(const_cast<std::remove_const<_Ty2>::type*>(_opaquePtr)));
 }
 
-datachunk_t *FetchChunk(void *user_data)
+datachunk_t *CCBFetchChunk(void *user_data)
 {
-	if (i-- == 1) {
-		StreamReaderAdapter &adapter = side_cast<StreamReaderAdapter>(user_data);
-		auto str = adapter.FetchNextChunk();
-		auto *strArray = new char[str.size()];
-		std::copy(str.begin(), str.end(), strArray);
-		return new datachunk_t{ str.size(), strArray, static_cast<char>(true) };
+	StreamReaderAdapter &adapter = side_cast<StreamReaderAdapter>(user_data);
+	auto str = adapter.FetchNextChunk();
+	if (!str.size()) {
+		return nullptr;
 	}
 
-	return nullptr;
+	auto *strArray = new char[str.size()];
+	std::copy(str.begin(), str.end(), strArray);
+
+	return new datachunk_t{ str.size(), strArray, static_cast<char>(true) };
+}
+
+int CCBLoadExternalSource(const char *source)
+{
+	std::cout << "Requested to load " << source << std::endl;
+	return static_cast<int>(true);
 }
 
 void RunSourceFile(const std::string& sourceFile)

@@ -2,8 +2,6 @@
 
 #include "Reader.h"
 
-#include <string>
-
 class FileReader : public Reader
 {
 public:
@@ -13,6 +11,11 @@ public:
 		{
 		throw std::system_error{ std::make_error_code(std::errc::no_such_file_or_directory) };
 		}*/
+	}
+
+	virtual std::string FetchNextChunk(size_t sizeHint)
+	{
+		return "xx";
 	}
 
 private:

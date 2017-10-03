@@ -61,9 +61,10 @@ extern "C" {
 		struct codegen code_opt;
 		struct interpreter run_opt;
 
+		// Callback functions serving data exchange between callee and calleer
 		datachunk_t*(*streamReaderVPtr)(void*);
 		void*(*streamMetaVPtr)();
-		void(*loadStreamRequestVPtr)();
+		int(*loadStreamRequestVPtr)(const char *);
 
 		// User provided context
 		void *user_data;
