@@ -19,6 +19,10 @@ int main(int argc, char *argv[]) {
 class StringReader : public Reader
 {
 public:
+	StringReader(const std::string& content)
+	{
+	}
+
 	virtual std::string FetchNextChunk(size_t sizeHint)
 	{
 		auto part = cText.substr(offset, sizeHint);
@@ -27,9 +31,9 @@ public:
 		return part;
 	}
 
-	virtual const void *FetchMetaInfo()
+	virtual std::string FetchMetaInfo()
 	{
-		return nullptr;
+		return "cText";
 	}
 
 private:

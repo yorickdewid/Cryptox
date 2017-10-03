@@ -18,9 +18,9 @@ public:
 		return "xx";
 	}
 
-	virtual const void *FetchMetaInfo()
+	virtual std::string FetchMetaInfo()
 	{
-		return nullptr;
+		return "yy";
 	}
 
 private:

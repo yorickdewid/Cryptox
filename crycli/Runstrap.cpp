@@ -13,7 +13,7 @@
 
 datachunk_t *CCBFetchChunk(void *);
 int CCBLoadExternalSource(void *, const char *);
-const void *CCBMetaInfo(void *);
+metdainfo_t *CCBMetaInfo(void *);
 
 // Class is single instance only and should therefore be non-copyable
 struct NonCopyable
@@ -46,6 +46,7 @@ public:
 		info.loadStreamRequestVPtr = &CCBLoadExternalSource;
 		info.streamMetaVPtr = &CCBMetaInfo;
 		info.user_data = static_cast<void*>(this);
+
 		Compile(&info);
 	}
 
@@ -55,12 +56,14 @@ public:
 		return *this;
 	}
 
+	// Forward call to adapter interface FetchNextChunk
 	const std::string FetchNextChunk() const
 	{
 		return contentReader->FetchNextChunk(m_chunkSize);
 	}
 
-	const void *FetchMetaInfo() const
+	// Forward call to adapter interface FetchMetaInfo
+	const std::string FetchMetaInfo() const
 	{
 		return contentReader->FetchMetaInfo();
 	}
@@ -85,7 +88,7 @@ datachunk_t *CCBFetchChunk(void *user_data)
 	}
 
 	auto *strArray = new char[str.size()];
-	std::copy(str.begin(), str.end(), strArray);
+	std::copy(str.begin(), str.end(), strArray);//FIXME: copy data into managed resource
 
 	return new datachunk_t{ str.size(), strArray, static_cast<char>(true) };
 }
@@ -97,10 +100,17 @@ int CCBLoadExternalSource(void *user_data, const char *source)
 	return static_cast<int>(true);
 }
 
-const void *CCBMetaInfo(void *user_data)
+metdainfo_t *CCBMetaInfo(void *user_data)
 {
 	StreamReaderAdapter &adapter = side_cast<StreamReaderAdapter>(user_data);
-	return adapter.FetchMetaInfo();
+	auto str = adapter.FetchMetaInfo();
+
+	auto metablock = new metdainfo_t;
+	std::copy(str.begin(), str.end(), metablock->name);
+	metablock->name[str.size()] = '\0';
+	metablock->name[sizeof(metdainfo_t::name) - 1] = '\0';
+
+	return metablock;
 }
 
 void RunSourceFile(const std::string& sourceFile)
@@ -117,6 +127,6 @@ void RunSourceFile(const std::vector<std::string>& sourceFiles)
 
 void RunMemoryString(const std::string& content)
 {
-	auto reader = std::make_shared<StringReader>();
+	auto reader = std::make_shared<StringReader>(content);
 	StreamReaderAdapter{ std::dynamic_pointer_cast<Reader>(reader) }.Start();
 }

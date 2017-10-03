@@ -27,7 +27,8 @@ int main(int argc, const char *argv[])
 		po::variables_map vm;
 		po::store(po::command_line_parser(argc, argv).options(desc).positional(p).run(), vm);
 
-		RunSourceFile("../main.cil.c");//TMP
+		RunMemoryString("X");
+		//RunSourceFile("../main.cil.c");//TMP
 		//RunSource("../xor.cil.c");//TMP
 
 		if (vm.count("help"))
