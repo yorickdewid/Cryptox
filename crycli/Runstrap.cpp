@@ -113,19 +113,19 @@ metdainfo_t *CCBMetaInfo(void *user_data)
 	return metablock;
 }
 
-void RunSourceFile(const std::string& sourceFile)
+void RunSourceFile(Env& env, const std::string& sourceFile)
 {
 	auto reader = std::make_shared<FileReader>(sourceFile);
 	StreamReaderAdapter{ std::dynamic_pointer_cast<Reader>(reader) }.SetStreamChuckSize(256).Start();
 }
 
-void RunSourceFile(const std::vector<std::string>& sourceFiles)
+void RunSourceFile(Env& env, const std::vector<std::string>& sourceFiles)
 {
 	/*auto reader = std::make_shared<FileReader>(sourceFile);
 	StreamReaderAdapter<FileReader>{ sourceFiles }.Start();*/
 }
 
-void RunMemoryString(const std::string& content)
+void RunMemoryString(Env& env, const std::string& content)
 {
 	auto reader = std::make_shared<StringReader>(content);
 	StreamReaderAdapter{ std::dynamic_pointer_cast<Reader>(reader) }.Start();

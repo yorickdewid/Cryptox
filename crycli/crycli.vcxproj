@@ -145,9 +145,11 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="crycli.cpp" />
+    <ClCompile Include="Env.cpp" />
     <ClCompile Include="Runstrap.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Env.h" />
     <ClInclude Include="FileReader.h" />
     <ClInclude Include="Reader.h" />
     <ClInclude Include="Runstrap.h" />
