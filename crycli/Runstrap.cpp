@@ -12,7 +12,8 @@
 #include <sstream>
 
 datachunk_t *CCBFetchChunk(void *);
-int CCBLoadExternalSource(const char *);
+int CCBLoadExternalSource(void *, const char *);
+const void *CCBMetaInfo(void *);
 
 // Class is single instance only and should therefore be non-copyable
 struct NonCopyable
@@ -43,6 +44,7 @@ public:
 		info.code_opt.optimization = optimization::NONE;
 		info.streamReaderVPtr = &CCBFetchChunk;
 		info.loadStreamRequestVPtr = &CCBLoadExternalSource;
+		info.streamMetaVPtr = &CCBMetaInfo;
 		info.user_data = static_cast<void*>(this);
 		Compile(&info);
 	}
@@ -56,6 +58,11 @@ public:
 	const std::string FetchNextChunk() const
 	{
 		return contentReader->FetchNextChunk(m_chunkSize);
+	}
+
+	const void *FetchMetaInfo() const
+	{
+		return contentReader->FetchMetaInfo();
 	}
 
 private:
@@ -83,10 +90,17 @@ datachunk_t *CCBFetchChunk(void *user_data)
 	return new datachunk_t{ str.size(), strArray, static_cast<char>(true) };
 }
 
-int CCBLoadExternalSource(const char *source)
+int CCBLoadExternalSource(void *user_data, const char *source)
 {
+	StreamReaderAdapter &adapter = side_cast<StreamReaderAdapter>(user_data);
 	std::cout << "Requested to load " << source << std::endl;
 	return static_cast<int>(true);
+}
+
+const void *CCBMetaInfo(void *user_data)
+{
+	StreamReaderAdapter &adapter = side_cast<StreamReaderAdapter>(user_data);
+	return adapter.FetchMetaInfo();
 }
 
 void RunSourceFile(const std::string& sourceFile)

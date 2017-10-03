@@ -27,6 +27,11 @@ public:
 		return part;
 	}
 
+	virtual const void *FetchMetaInfo()
+	{
+		return nullptr;
+	}
+
 private:
 	size_t offset = 0;
 };

@@ -18,6 +18,11 @@ public:
 		return "xx";
 	}
 
+	virtual const void *FetchMetaInfo()
+	{
+		return nullptr;
+	}
+
 private:
 	/*void FileToProg()
 	{

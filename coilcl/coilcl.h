@@ -62,9 +62,9 @@ extern "C" {
 		struct interpreter run_opt;
 
 		// Callback functions serving data exchange between callee and calleer
-		datachunk_t*(*streamReaderVPtr)(void*);
-		void*(*streamMetaVPtr)();
-		int(*loadStreamRequestVPtr)(const char *);
+		datachunk_t*(*streamReaderVPtr)(void *);
+		const void*(*streamMetaVPtr)(void *);
+		int(*loadStreamRequestVPtr)(void *, const char *);
 
 		// User provided context
 		void *user_data;
