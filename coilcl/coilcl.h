@@ -53,6 +53,7 @@ extern "C" {
 	{
 		size_t size;
 		const char *ptr;
+		char unmanaged_res;
 	} datachunk_t;
 
 	typedef struct

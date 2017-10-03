@@ -1,7 +1,9 @@
 #pragma once
 
-class Reader
+#include <string>
+
+struct Reader
 {
-	//virtual void FetchNextChunk() = 0;
+	virtual std::string FetchNextChunk(size_t) = 0;
 
 };

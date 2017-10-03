@@ -71,11 +71,6 @@ public:
 		_msg = ss.str();
 	}
 
-	SyntaxException(SyntaxException const& rhs) noexcept
-	{
-		// TODO: copy over the private data of this class
-	}
-
 	virtual int Line() const noexcept
 	{
 		return m_line;
@@ -86,7 +81,6 @@ public:
 		return m_column;
 	}
 
-	// TODO: nullpointer exception
 	virtual const char *what() const noexcept
 	{
 		return _msg.c_str();
