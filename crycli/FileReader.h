@@ -2,42 +2,65 @@
 
 #include "Reader.h"
 
+#include <boost/filesystem.hpp>
+
 class FileReader : public Reader
 {
 public:
 	FileReader(const std::string& filename)
+		: origFilename{ filename }
 	{
-		/*if (!boost::filesystem::exists(fname))
-		{
-		throw std::system_error{ std::make_error_code(std::errc::no_such_file_or_directory) };
-		}*/
+		//XXX: Switch to C++17
+		if (!boost::filesystem::exists(filename)) {
+			throw std::system_error{ std::make_error_code(std::errc::no_such_file_or_directory) };
+		}
+
+		sourceFile.open(origFilename);
+	}
+
+	~FileReader()
+	{
+		// Release file resource on deconstruction
+		if (sourceFile.is_open()) {
+			sourceFile.close();
+		}
 	}
 
 	virtual std::string FetchNextChunk(size_t sizeHint)
 	{
-		return "xx";
+		std::string contentChunk;
+		contentChunk.reserve(sizeHint);
+
+		sourceFile.read(const_cast<char*>(contentChunk.data() + fpOffset), sizeHint);
+		fpOffset += contentChunk.size();
+
+		return contentChunk;
 	}
 
 	virtual std::string FetchMetaInfo()
 	{
-		return "yy";
+		return origFilename;
 	}
 
 private:
-	/*void FileToProg()
+	void FileToProg()
 	{
-		std::ifstream src{ fname };
+		//std::ifstream src{ origFilename };
 
-		std::string str;
-		src.seekg(0, std::ios::end);
+		//std::string str;
+		/*src.seekg(0, std::ios::end);
 		str.reserve(static_cast<size_t>(src.tellg()));
 		src.seekg(0, std::ios::beg);
 
 		str.assign((std::istreambuf_iterator<char>(src)),
 			std::istreambuf_iterator<char>());
 
-		m_content = str;
-	}*/
+		m_content = str;*/
+	}
 
+private:
+	size_t fpOffset = 0;
+	std::fstream sourceFile;
+	std::string origFilename;
 };
 

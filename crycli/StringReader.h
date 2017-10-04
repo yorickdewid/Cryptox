@@ -2,6 +2,8 @@
 
 #include "Reader.h"
 
+#define SOURCE_NAME "__MEMORY__"
+
 static const std::string cText = R"C(
 #include <stdio.h>
 #include <stdlib.h>
@@ -33,7 +35,7 @@ public:
 
 	virtual std::string FetchMetaInfo()
 	{
-		return "cText";
+		return SOURCE_NAME;
 	}
 
 private:

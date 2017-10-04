@@ -20,8 +20,8 @@ int main(int argc, const char *argv[])
 		po::options_description desc{ PROGRAM_DESC PROGRAM_COPY "\nProjectTest: [OPTIONS] [FILE ...]\n\nOptions" };
 		desc.add_options()
 			("help", "Show help")
-			("g", "Debuggable objects")
-			("file", po::value<std::string>(), "Source file"); //TODO: hide from --help
+			("g", "Debugger semantics")
+			("file", po::value<std::string>(), "Source files"); //TODO: hide from --help
 
 		po::positional_options_description p;
 		p.add("file", -1);
@@ -36,6 +36,8 @@ int main(int argc, const char *argv[])
 			env.SetDebug(true);
 		}
 
+		// Termination options, either of these 
+		// routines will return after execution
 		if (vm.count("help")) {
 			std::cout << desc;
 			return 1;
@@ -43,12 +45,12 @@ int main(int argc, const char *argv[])
 		else if (vm.count("file")) {
 			RunSourceFile(env, vm["file"].as<std::string>());
 		}
-		/*else
+		else
 		{
 			std::cout << desc;
-		}*/
+		}
 
-		RunMemoryString(env, "X");
+		//RunMemoryString(env, "X");
 		//RunSourceFile(env, "../main.cil.c");//TMP
 		//RunSource(env, "../xor.cil.c");//TMP
 	}

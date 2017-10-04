@@ -4,9 +4,6 @@
 
 #include "coilcl.h"
 
-#include <boost/system/error_code.hpp>
-#include <boost/filesystem.hpp>
-
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -25,6 +22,9 @@ struct NonCopyable
 	NonCopyable& operator=(NonCopyable&&) = delete;
 };
 
+// Adapter between different reader implementations. The adapter will prepare
+// all settings for compiler calls and return the appropriate datastructures
+// according to the reader interface.
 class StreamReaderAdapter : private NonCopyable
 {
 	static const size_t defaultChunkSize = 100;
@@ -47,9 +47,12 @@ public:
 		info.streamMetaVPtr = &CCBMetaInfo;
 		info.user_data = static_cast<void*>(this);
 
+		// Invoke compiler with environment and compiler settings
 		Compile(&info);
 	}
 
+	// Set the chunk size as a hint to the reader implementation. This value
+	// can be ignored and should bot be relied upon.
 	StreamReaderAdapter& SetStreamChuckSize(size_t size)
 	{
 		m_chunkSize = size;
@@ -87,8 +90,9 @@ datachunk_t *CCBFetchChunk(void *user_data)
 		return nullptr;
 	}
 
+	//FIXME: copy data into managed resource
 	auto *strArray = new char[str.size()];
-	std::copy(str.begin(), str.end(), strArray);//FIXME: copy data into managed resource
+	std::copy(str.begin(), str.end(), strArray);
 
 	return new datachunk_t{ str.size(), strArray, static_cast<char>(true) };
 }
@@ -113,18 +117,22 @@ metdainfo_t *CCBMetaInfo(void *user_data)
 	return metablock;
 }
 
+// Direct API call to run a single file
 void RunSourceFile(Env& env, const std::string& sourceFile)
 {
 	auto reader = std::make_shared<FileReader>(sourceFile);
 	StreamReaderAdapter{ std::dynamic_pointer_cast<Reader>(reader) }.SetStreamChuckSize(256).Start();
 }
 
+//TODO
+// Direct API call to run a multiple files
 void RunSourceFile(Env& env, const std::vector<std::string>& sourceFiles)
 {
 	/*auto reader = std::make_shared<FileReader>(sourceFile);
 	StreamReaderAdapter<FileReader>{ sourceFiles }.Start();*/
 }
 
+// Direct API call to run source from memory
 void RunMemoryString(Env& env, const std::string& content)
 {
 	auto reader = std::make_shared<StringReader>(content);
