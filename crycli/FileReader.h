@@ -15,7 +15,7 @@ public:
 			throw std::system_error{ std::make_error_code(std::errc::no_such_file_or_directory) };
 		}
 
-		sourceFile.open(origFilename);
+		sourceFile.open(origFilename, std::ios::in | std::ios::binary);
 	}
 
 	~FileReader()
@@ -29,9 +29,11 @@ public:
 	virtual std::string FetchNextChunk(size_t sizeHint)
 	{
 		std::string contentChunk;
-		contentChunk.reserve(sizeHint);
+		contentChunk.resize(sizeHint);
 
-		sourceFile.read(const_cast<char*>(contentChunk.data() + fpOffset), sizeHint);
+		sourceFile.clear();
+		sourceFile.seekg(fpOffset, std::ios::beg);
+		sourceFile.read(const_cast<char*>(contentChunk.data()), sizeHint);
 		fpOffset += contentChunk.size();
 
 		return contentChunk;
