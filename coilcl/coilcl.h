@@ -58,12 +58,17 @@ extern "C" {
 
 	typedef struct
 	{
+		char name[64];
+	} metdainfo_t;
+
+	typedef struct
+	{
 		struct codegen code_opt;
 		struct interpreter run_opt;
 
 		// Callback functions serving data exchange between callee and calleer
 		datachunk_t*(*streamReaderVPtr)(void *);
-		const void*(*streamMetaVPtr)(void *);
+		metdainfo_t*(*streamMetaVPtr)(void *);
 		int(*loadStreamRequestVPtr)(void *, const char *);
 
 		// User provided context
@@ -71,7 +76,6 @@ extern "C" {
 	} compiler_info_t;
 
 	// Compiler library entry point
-	//COILCLAPI void Compile(const char* const content);
 	COILCLAPI void Compile(compiler_info_t *cl_info);
 
 #ifdef __cplusplus
