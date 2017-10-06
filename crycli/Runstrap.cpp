@@ -91,8 +91,9 @@ datachunk_t *CCBFetchChunk(void *user_data)
 	}
 
 	//FIXME: copy data into managed resource
-	auto *strArray = new char[str.size()];
+	auto *strArray = new char[str.size() + 1];
 	std::copy(str.begin(), str.end(), strArray);
+	strArray[str.size()] = '\0';
 
 	return new datachunk_t{ str.size(), strArray, static_cast<char>(true) };
 }

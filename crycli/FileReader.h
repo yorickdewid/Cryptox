@@ -16,6 +16,7 @@ public:
 		}
 
 		sourceFile.open(origFilename, std::ios::in | std::ios::binary);
+		pfSizeLeft = FileSize();
 	}
 
 	~FileReader()
@@ -29,12 +30,22 @@ public:
 	virtual std::string FetchNextChunk(size_t sizeHint)
 	{
 		std::string contentChunk;
+
+		if (pfSizeLeft == 0) {
+			return "";
+		}
+
+		if (pfSizeLeft <= sizeHint) {
+			sizeHint = pfSizeLeft;
+		}
+
 		contentChunk.resize(sizeHint);
 
 		sourceFile.clear();
 		sourceFile.seekg(fpOffset, std::ios::beg);
 		sourceFile.read(const_cast<char*>(contentChunk.data()), sizeHint);
 		fpOffset += contentChunk.size();
+		pfSizeLeft -= contentChunk.size();
 
 		return contentChunk;
 	}
@@ -45,6 +56,14 @@ public:
 	}
 
 private:
+	size_t FileSize()
+	{
+		sourceFile.seekg(0, std::ios::end);
+		size_t fileSize = sourceFile.tellg();
+		sourceFile.seekg(0, std::ios::beg);
+		return fileSize;
+	}
+
 	void FileToProg()
 	{
 		//std::ifstream src{ origFilename };
@@ -61,6 +80,7 @@ private:
 	}
 
 private:
+	size_t pfSizeLeft = 0;
 	size_t fpOffset = 0;
 	std::fstream sourceFile;
 	std::string origFilename;
