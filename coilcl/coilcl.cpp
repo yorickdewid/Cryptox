@@ -46,7 +46,6 @@ class Compiler
 
 protected:
 	StageOptions<codegen> stageOne;
-	StageOptions<interpreter> interpreter;
 
 public:
 	Compiler() = default;
@@ -128,11 +127,16 @@ std::shared_ptr<_Ty> WrapMeta(_Ty *metaPtr)
 
 } // namespace InterOpHelper
 
+#define CHECK_API_VERSION(u) \
+	if (u->apiVer != COILCLAPIVER) { std::cerr << "API version mismatch" << std::endl; abort(); }
+
 #define USER_DATA(u) u->user_data
 
-COILCLAPI void Compile(compiler_info_t *cl_info)
+COILCLAPI void Compile(compiler_info_t *cl_info) NOTHROW
 {
 	using Compiler::Compiler;
+
+	CHECK_API_VERSION(cl_info);
 
 	assert(cl_info->streamReaderVPtr != nullptr);
 	assert(cl_info->loadStreamRequestVPtr != nullptr);

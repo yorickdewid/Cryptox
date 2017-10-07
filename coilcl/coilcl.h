@@ -19,10 +19,18 @@
 # define PFBASEAPI
 #endif
 
+#define COILCLAPIVER	100
+
+#ifdef __cplusplus
+# define NOTHROW noexcept
+#else
+# define NOTHROW
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
+	
 	enum cil_standard
 	{
 		c89 = 0x001,
@@ -44,11 +52,6 @@ extern "C" {
 		enum optimization optimization;
 	};
 
-	struct interpreter
-	{
-		//
-	};
-
 	// C compatible string structure
 	typedef struct
 	{
@@ -65,8 +68,9 @@ extern "C" {
 
 	typedef struct
 	{
+		unsigned short apiVer;
+
 		struct codegen code_opt;
-		struct interpreter run_opt;
 
 		// Callback functions serving data exchange between callee and calleer
 		datachunk_t*(*streamReaderVPtr)(void *);
@@ -79,7 +83,7 @@ extern "C" {
 	} compiler_info_t;
 
 	// Compiler library entry point
-	COILCLAPI void Compile(compiler_info_t *cl_info);
+	COILCLAPI void Compile(compiler_info_t *cl_info) NOTHROW;
 
 #ifdef __cplusplus
 }

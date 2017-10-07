@@ -63,6 +63,7 @@ public:
 	void Start()
 	{
 		compiler_info_t info;
+		info.apiVer = COILCLAPIVER;
 		info.code_opt.standard = cil_standard::c99;
 		info.code_opt.optimization = optimization::NONE;
 		info.streamReaderVPtr = &CCBFetchChunk;
