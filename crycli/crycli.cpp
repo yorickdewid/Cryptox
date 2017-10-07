@@ -45,17 +45,11 @@ int main(int argc, const char *argv[])
 		else if (vm.count("file")) {
 			RunSourceFile(env, vm["file"].as<std::string>());
 		}
-		else
-		{
+		else {
 			std::cout << desc;
 		}
-
-		//RunMemoryString(env, "X");
-		//RunSourceFile(env, "../main.cil.c");//TMP
-		//RunSource(env, "../xor.cil.c");//TMP
 	}
-	catch (const std::exception& e)
-	{
+	catch (const std::exception& e) {
 		std::cerr << e.what() << std::endl;
 		return 1;
 	}
