@@ -95,10 +95,11 @@ private:
 	int m_column;
 };
 
-Parser::Parser(const std::string& input)
-	: lex{ input }
+Parser::Parser(std::shared_ptr<Compiler::Profile>& profile)
+	: lex{ "kaas" }
 {
-	lex.ErrorHandler([](const std::string& err, char token, int line, int column) {
+	lex.ErrorHandler([](const std::string& err, char token, int line, int column)
+	{
 		throw SyntaxException(err.c_str(), token, line, column);
 	});
 }
@@ -238,8 +239,7 @@ bool Parser::DeclarationSpecifiers()
 
 void Parser::StructOrUnionSpecifier()
 {
-	switch (CURRENT_TOKEN())
-	{
+	switch (CURRENT_TOKEN()) {
 	case TK_STRUCT:
 		NextToken();
 		EMIT("STRUCT");
@@ -336,8 +336,7 @@ void Parser::EnumeratorList()
 
 bool Parser::UnaryOperator()
 {
-	switch (CURRENT_TOKEN())
-	{
+	switch (CURRENT_TOKEN()) {
 	case TK_AND_OP:
 		NextToken();
 		EMIT("AND");
@@ -369,8 +368,7 @@ bool Parser::UnaryOperator()
 
 bool Parser::AssignmentOperator()
 {
-	switch (CURRENT_TOKEN())
-	{
+	switch (CURRENT_TOKEN()) {
 	case TK_ASSIGN:
 		NextToken();
 		EMIT("ASSIGN");
@@ -422,8 +420,7 @@ bool Parser::AssignmentOperator()
 
 void Parser::PrimaryExpression()
 {
-	switch (CURRENT_TOKEN())
-	{
+	switch (CURRENT_TOKEN()) {
 	case TK_IDENTIFIER:
 		NextToken();
 		EMIT("IDENTIFIER");
@@ -500,8 +497,7 @@ void Parser::PostfixExpression()
 
 	PrimaryExpression();
 
-	switch (CURRENT_TOKEN())
-	{
+	switch (CURRENT_TOKEN()) {
 	case TK_BRACKET_OPEN:
 		NextToken();
 		Expression();
@@ -542,8 +538,7 @@ void Parser::PostfixExpression()
 
 void Parser::UnaryExpression()
 {
-	switch (CURRENT_TOKEN())
-	{
+	switch (CURRENT_TOKEN()) {
 	case TK_INC_OP:
 		NextToken();
 		EMIT("++");
@@ -587,8 +582,7 @@ void Parser::CastExpression()
 			CastExpression();
 			return;
 		}
-		catch (const UnexpectedTokenException&)
-		{
+		catch (const UnexpectedTokenException&) {
 			m_comm.Revert();
 		}
 	}
@@ -600,8 +594,7 @@ void Parser::MultiplicativeExpression()
 {
 	CastExpression();
 
-	switch (CURRENT_TOKEN())
-	{
+	switch (CURRENT_TOKEN()) {
 	case TK_ASTERISK:
 		NextToken();
 		EMIT("CALC MUL");
@@ -660,8 +653,7 @@ void Parser::RelationalExpression()
 {
 	ShiftExpression();
 
-	switch (CURRENT_TOKEN())
-	{
+	switch (CURRENT_TOKEN()) {
 	case TK_LESS_THAN:
 		NextToken();
 		EMIT("CMP <");
@@ -689,8 +681,7 @@ void Parser::EqualityExpression()
 {
 	RelationalExpression();
 
-	switch (CURRENT_TOKEN())
-	{
+	switch (CURRENT_TOKEN()) {
 	case TK_EQ_OP:
 		NextToken();
 		EMIT("CMP ==");
@@ -783,8 +774,7 @@ void Parser::ConstantExpression()
 // Labels and gotos
 bool Parser::JumpStatement()
 {
-	switch (CURRENT_TOKEN())
-	{
+	switch (CURRENT_TOKEN()) {
 	case TK_GOTO:
 		NextToken();
 		ExpectIdentifier();
@@ -820,8 +810,7 @@ bool Parser::JumpStatement()
 // For, do and while loop
 bool Parser::IterationStatement()
 {
-	switch (CURRENT_TOKEN())
-	{
+	switch (CURRENT_TOKEN()) {
 	case TK_WHILE:
 		ExpectToken(TK_BRACE_OPEN);
 		Expression();
@@ -856,8 +845,7 @@ bool Parser::IterationStatement()
 // If and switch statements
 bool Parser::SelectionStatement()
 {
-	switch (CURRENT_TOKEN())
-	{
+	switch (CURRENT_TOKEN()) {
 	case TK_IF:
 		NextToken();
 		ExpectToken(TK_PARENTHESE_OPEN);
@@ -914,8 +902,7 @@ bool Parser::CompoundStatement()
 // Labeled statements
 bool Parser::LabeledStatement()
 {
-	switch (CURRENT_TOKEN())
-	{
+	switch (CURRENT_TOKEN()) {
 	case TK_IDENTIFIER:
 		NextToken();
 		if (MATCH_TOKEN(TK_COLON)) {
@@ -1009,8 +996,7 @@ void Parser::DirectAbstractDeclarator()
 	bool cont = false;
 	do {
 		cont = false;
-		switch (CURRENT_TOKEN())
-		{
+		switch (CURRENT_TOKEN()) {
 		case TK_PARENTHESE_OPEN:
 			NextToken();
 			if (MATCH_TOKEN(TK_PARENTHESE_CLOSE)) {
@@ -1082,8 +1068,7 @@ void Parser::Designators()
 {
 	bool cont = false;
 	do {
-		switch (CURRENT_TOKEN())
-		{
+		switch (CURRENT_TOKEN()) {
 		case TK_BRACKET_OPEN:
 			NextToken();
 			ConstantExpression();
@@ -1132,8 +1117,7 @@ bool Parser::DirectDeclarator()
 
 	// Declarations following an identifier
 	for (;;) {
-		switch (CURRENT_TOKEN())
-		{
+		switch (CURRENT_TOKEN()) {
 		case TK_PARENTHESE_OPEN:
 			NextToken();
 			if (MATCH_TOKEN(TK_PARENTHESE_CLOSE)) {

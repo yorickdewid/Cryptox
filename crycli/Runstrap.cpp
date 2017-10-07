@@ -9,7 +9,7 @@
 #include <sstream>
 
 datachunk_t *CCBFetchChunk(void *);
-metdainfo_t *CCBMetaInfo(void *);
+metainfo_t *CCBMetaInfo(void *);
 int CCBLoadExternalSource(void *, const char *);
 void CCBErrorHandler(void *, const char *, char);
 
@@ -144,15 +144,15 @@ int CCBLoadExternalSource(void *user_data, const char *source)
 	return static_cast<int>(true);
 }
 
-metdainfo_t *CCBMetaInfo(void *user_data)
+metainfo_t *CCBMetaInfo(void *user_data)
 {
 	StreamReaderAdapter &adapter = side_cast<StreamReaderAdapter>(user_data);
 	auto str = adapter.FetchMetaInfo();
 
-	auto metablock = new metdainfo_t;
+	auto metablock = new metainfo_t;
 	std::copy(str.begin(), str.end(), metablock->name);
 	metablock->name[str.size()] = '\0';
-	metablock->name[sizeof(metdainfo_t::name) - 1] = '\0';
+	metablock->name[sizeof(metainfo_t::name) - 1] = '\0';
 
 	return metablock;
 }
@@ -161,7 +161,7 @@ void CCBErrorHandler(void *user_data, const char *message, char fatal)
 {
 	// If the error is non fatal, log and continue
 	if (!static_cast<bool>(fatal)) {
-		//TODO: logging
+		//TODO: write to log
 		return;
 	}
 

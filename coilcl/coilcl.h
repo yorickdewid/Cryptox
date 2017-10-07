@@ -61,7 +61,7 @@ extern "C" {
 	typedef struct
 	{
 		char name[64];
-	} metdainfo_t;
+	} metainfo_t;
 
 	typedef struct
 	{
@@ -70,7 +70,7 @@ extern "C" {
 
 		// Callback functions serving data exchange between callee and calleer
 		datachunk_t*(*streamReaderVPtr)(void *);
-		metdainfo_t*(*streamMetaVPtr)(void *);
+		metainfo_t*(*streamMetaVPtr)(void *);
 		int(*loadStreamRequestVPtr)(void *, const char *);
 		void(*errorHandler)(void *, const char *, char);
 

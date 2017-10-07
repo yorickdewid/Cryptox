@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Profile.h"
 #include "Lexer.h"
 #include "AST.h"
 
@@ -144,9 +145,8 @@ public:
 
 class Parser
 {
-
 public:
-	Parser(const std::string& input);
+	Parser(std::shared_ptr<Compiler::Profile>& profile);
 	void Execute();
 
 protected:
