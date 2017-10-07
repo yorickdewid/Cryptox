@@ -65,6 +65,12 @@ public:
 		return contentReader->FetchNextChunk(m_chunkSize);
 	}
 
+	// Forward call to adapter interface SwitchSource
+	const void SwitchSource(const std::string& source) const
+	{
+		contentReader->SwitchSource(source);
+	}
+
 	// Forward call to adapter interface FetchMetaInfo
 	const std::string FetchMetaInfo() const
 	{
@@ -86,7 +92,7 @@ datachunk_t *CCBFetchChunk(void *user_data)
 {
 	StreamReaderAdapter &adapter = side_cast<StreamReaderAdapter>(user_data);
 	auto str = adapter.FetchNextChunk();
-	if (!str.size()) {
+	if (str.empty()) {
 		return nullptr;
 	}
 
@@ -101,7 +107,7 @@ datachunk_t *CCBFetchChunk(void *user_data)
 int CCBLoadExternalSource(void *user_data, const char *source)
 {
 	StreamReaderAdapter &adapter = side_cast<StreamReaderAdapter>(user_data);
-	std::cout << "Requested to load " << source << std::endl;
+	adapter.SwitchSource(source);
 	return static_cast<int>(true);
 }
 
@@ -119,9 +125,9 @@ metdainfo_t *CCBMetaInfo(void *user_data)
 }
 
 // Direct API call to run a single file
-void RunSourceFile(Env& env, const std::string& sourceFile)
+void RunSourceFile(Env& env, const std::string& m_sourceFile)
 {
-	auto reader = std::make_shared<FileReader>(sourceFile);
+	auto reader = std::make_shared<FileReader>(m_sourceFile);
 	StreamReaderAdapter{ std::dynamic_pointer_cast<Reader>(reader) }.SetStreamChuckSize(256).Start();
 }
 
@@ -129,7 +135,7 @@ void RunSourceFile(Env& env, const std::string& sourceFile)
 // Direct API call to run a multiple files
 void RunSourceFile(Env& env, const std::vector<std::string>& sourceFiles)
 {
-	/*auto reader = std::make_shared<FileReader>(sourceFile);
+	/*auto reader = std::make_shared<FileReader>(m_sourceFile);
 	StreamReaderAdapter<FileReader>{ sourceFiles }.Start();*/
 }
 
