@@ -96,7 +96,7 @@ private:
 };
 
 Parser::Parser(std::shared_ptr<Compiler::Profile>& profile)
-	: lex{ "kaas" }
+	: lex{ profile }
 {
 	lex.ErrorHandler([](const std::string& err, char token, int line, int column)
 	{

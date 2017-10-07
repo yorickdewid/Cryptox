@@ -19,7 +19,7 @@ void Lexer::Error(const std::string& errormsg)
 	m_currentChar = EndOfUnit;
 }
 
-void Lexer::RegisterKeywords()
+void Lexer::InitKeywords()
 {
 	m_keywords.insert(std::make_pair("auto", Keyword(TK_AUTO)));
 	m_keywords.insert(std::make_pair("_Bool", Keyword(TK_BOOL)));
@@ -72,6 +72,11 @@ void Lexer::Next()
 	if (m_offset < m_content.size()) {
 		m_currentChar = m_content[m_offset++];
 		m_currentColumn++;
+		return;
+	}
+
+	if (m_offset > 0) {
+		ConsumeNextChunk();
 		return;
 	}
 
@@ -540,14 +545,20 @@ int Lexer::LexScalar()
 	return 0;
 }
 
-// Initialize the lexer with a content file and optional error handler. The error handler is
-// called whenever an syntax error occurs. If no error handler is provided, error reporting is ignored.
-Lexer::Lexer(const std::string& stringarray, const std::function<void(const std::string& msg, char token, int line, int column)> errHandler)
-	: m_content{ stringarray }
-	, m_errHandler{ errHandler }
+void Lexer::ConsumeNextChunk()
+{
+	m_content = m_profile->ReadInput();
+	m_offset = 0;
+}
+
+Lexer::Lexer(std::shared_ptr<Compiler::Profile>& profile)
+	: m_profile{ profile }
 {
 	// Register all tokenized keywords
-	RegisterKeywords();
+	InitKeywords();
+
+	// Fetch first datachunk
+	ConsumeNextChunk();
 
 	// Push the first character into the current character variable
 	Next();

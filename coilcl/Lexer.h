@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Profile.h"
 #include "ValueObject.h"
 
 #include <string>
@@ -141,7 +142,7 @@ private:
 class Lexer
 {
 public:
-	Lexer(const std::string& stringarray, const std::function<void(const std::string& msg, char token, int line, int column)> errHandler = {});
+	Lexer(std::shared_ptr<Compiler::Profile>&);
 
 	inline void ErrorHandler(const std::function<void(const std::string& msg, char token, int line, int column)> errHandler)
 	{
@@ -179,12 +180,13 @@ private:
 	void Next();
 	void VNext();
 	void Error(const std::string& errormsg);
-	void RegisterKeywords();
+	void InitKeywords();
 	int LexScalar();
 	int ReadID();
 	int ReadString(int ndelim);
 	void LexBlockComment();
 	void LexLineComment();
+	void Lexer::ConsumeNextChunk();
 
 	template<typename Type>
 	int ReturnToken(Type token)
@@ -195,6 +197,7 @@ private:
 	}
 
 protected:
+	std::shared_ptr<Compiler::Profile>& m_profile;
 	std::string m_content;
 	size_t m_offset = 0;
 

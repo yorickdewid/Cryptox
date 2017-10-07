@@ -25,7 +25,7 @@ enum class Stage
 
 class Compiler
 	: public Profile
-	, private std::enable_shared_from_this<Compiler>
+	, public std::enable_shared_from_this<Compiler>
 {
 	std::function<std::string()> readHandler;
 	std::function<bool(const std::string&)> includeHandler;
