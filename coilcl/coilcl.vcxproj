@@ -154,6 +154,7 @@
     <ClInclude Include="coilcl.h" />
     <ClInclude Include="Lexer.h" />
     <ClInclude Include="Parser.h" />
+    <ClInclude Include="Profile.h" />
     <ClInclude Include="ValueObject.h" />
     <ClInclude Include="VM.h" />
   </ItemGroup>

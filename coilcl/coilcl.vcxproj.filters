@@ -58,5 +58,8 @@
     <ClInclude Include="coilcl.h">
       <Filter>External Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Profile.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
