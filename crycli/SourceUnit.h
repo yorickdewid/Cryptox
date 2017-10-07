@@ -7,10 +7,12 @@ class SourceUnit
 {
 	std::string m_name;
 	size_t m_fileSize;
+	bool m_isInternalFile;
 
 public:
-	SourceUnit(const std::string& sourceName)
+	SourceUnit(const std::string& sourceName, bool isInternalFile = false)
 		: m_name{ sourceName }
+		, m_isInternalFile{ isInternalFile }
 	{
 		OpenFile(m_name);
 	}
