@@ -49,6 +49,7 @@ extern "C" {
 		//
 	};
 
+	// C compatible string structure
 	typedef struct
 	{
 		size_t size;
@@ -56,6 +57,7 @@ extern "C" {
 		char unmanaged_res;
 	} datachunk_t;
 
+	// Source unit metadata
 	typedef struct
 	{
 		char name[64];
@@ -70,6 +72,7 @@ extern "C" {
 		datachunk_t*(*streamReaderVPtr)(void *);
 		metdainfo_t*(*streamMetaVPtr)(void *);
 		int(*loadStreamRequestVPtr)(void *, const char *);
+		void(*errorHandler)(void *, const char *, char);
 
 		// User provided context
 		void *user_data;

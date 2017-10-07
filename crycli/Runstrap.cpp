@@ -9,8 +9,9 @@
 #include <sstream>
 
 datachunk_t *CCBFetchChunk(void *);
-int CCBLoadExternalSource(void *, const char *);
 metdainfo_t *CCBMetaInfo(void *);
+int CCBLoadExternalSource(void *, const char *);
+void CCBErrorHandler(void *, const char *, char);
 
 // Class is single instance only and should therefore be non-copyable
 struct NonCopyable
@@ -20,6 +21,28 @@ struct NonCopyable
 	NonCopyable(NonCopyable&&) = delete;
 	NonCopyable& operator=(const NonCopyable&) = delete;
 	NonCopyable& operator=(NonCopyable&&) = delete;
+};
+
+class CompilerException : public std::exception
+{
+public:
+	explicit CompilerException(const std::string& msg) noexcept
+		: m_msg{ msg }
+	{
+	}
+
+	CompilerException(std::string&& msg)
+		: m_msg{ msg }
+	{
+	}
+
+	virtual const char *what() const noexcept
+	{
+		return m_msg.c_str();
+	}
+
+protected:
+	std::string m_msg;
 };
 
 // Adapter between different reader implementations. The adapter will prepare
@@ -45,6 +68,7 @@ public:
 		info.streamReaderVPtr = &CCBFetchChunk;
 		info.loadStreamRequestVPtr = &CCBLoadExternalSource;
 		info.streamMetaVPtr = &CCBMetaInfo;
+		info.errorHandler = &CCBErrorHandler;
 		info.user_data = static_cast<void*>(this);
 
 		// Invoke compiler with environment and compiler settings
@@ -131,6 +155,17 @@ metdainfo_t *CCBMetaInfo(void *user_data)
 	metablock->name[sizeof(metdainfo_t::name) - 1] = '\0';
 
 	return metablock;
+}
+
+void CCBErrorHandler(void *user_data, const char *message, char fatal)
+{
+	// If the error is non fatal, log and continue
+	if (!static_cast<bool>(fatal)) {
+		//TODO: logging
+		return;
+	}
+
+	throw CompilerException(message);
 }
 
 // Direct API call to run a single file
