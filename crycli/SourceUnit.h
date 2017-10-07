@@ -10,11 +10,22 @@ class SourceUnit
 	bool m_isInternalFile;
 
 public:
-	SourceUnit(const std::string& sourceName, bool isInternalFile = false)
+	// The default constructor taks a filename as input and tries
+	// to locate the file on disk
+	SourceUnit(const std::string& sourceName, bool isInternalFile)
 		: m_name{ sourceName }
 		, m_isInternalFile{ isInternalFile }
 	{
 		OpenFile(m_name);
+	}
+
+	// Mock the source unit and do not try to open filename on disk,
+	// this allows any overrides from implementing another source unit
+	// object without filesystem requirements
+	SourceUnit(const std::string& sourceName)
+		: m_name{ sourceName }
+		, m_isInternalFile{ false }
+	{
 	}
 
 	// Allow source to by copied
@@ -31,14 +42,17 @@ public:
 		, m_sizeLeft{ other.m_sizeLeft }
 		, m_offset{ other.m_offset }
 	{
-		if (other.m_sourceFile.is_open()) {
-			other.m_sourceFile.close();
-		}
+		other.Close();
 
 		OpenFile(m_name);
 	}
 
 	~SourceUnit()
+	{
+		Close();
+	}
+
+	virtual inline void Close()
 	{
 		// Release file resource on deconstruction
 		if (m_sourceFile.is_open()) {
@@ -47,13 +61,13 @@ public:
 	}
 
 	// Return file size in bytes
-	size_t Size() const
+	virtual size_t Size() const
 	{
 		return m_fileSize;
 	}
 
 	// Read contents from file
-	const std::string Read(size_t size)
+	virtual const std::string Read(size_t size)
 	{
 		std::string contentChunk;
 
@@ -78,7 +92,7 @@ public:
 		return contentChunk;
 	}
 
-	const std::string Name() const
+	virtual const std::string Name() const
 	{
 		return m_name;
 	}

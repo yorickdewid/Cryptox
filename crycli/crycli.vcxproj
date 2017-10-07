@@ -153,6 +153,7 @@
     <ClInclude Include="FileReader.h" />
     <ClInclude Include="Reader.h" />
     <ClInclude Include="Runstrap.h" />
+    <ClInclude Include="SourceUnit.h" />
     <ClInclude Include="StringReader.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

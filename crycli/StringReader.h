@@ -4,40 +4,60 @@
 
 #define SOURCE_NAME "__MEMORY__"
 
-static const std::string cText = R"C(
-#include <stdio.h>
-#include <stdlib.h>
-
-int factor(int x) {
-  return x == 0 ? 1 : x * factor(x-1);
-}
-
-int main(int argc, char *argv[]) {
-  printf("teststring %d\n", factor(5));
-  return 0;
-}
-)C";
-
-class StringReader : public Reader
+class VirtualSourceUnit : public SourceUnit
 {
 public:
-	StringReader(const std::string& content)
+	VirtualSourceUnit(const std::string& name, const std::string& content)
+		: SourceUnit{ name }
+		, m_content{ content }
 	{
 	}
 
-	virtual std::string FetchNextChunk(size_t sizeHint)
+	VirtualSourceUnit(const std::string& name, std::string&& content)
+		: SourceUnit{ name }
+		, m_content{ std::move(content) }
 	{
-		auto part = cText.substr(offset, sizeHint);
+	}
+
+	// All local members can be moved implicitly
+	VirtualSourceUnit(const VirtualSourceUnit&) = default;
+	VirtualSourceUnit(VirtualSourceUnit&&) = default;
+
+	// There is nothing to close, but prevent base to close file descriptor
+	virtual inline void Close() override
+	{
+	}
+
+	// Return the size of the memory allocated code stub
+	virtual inline size_t Size() const override
+	{
+		return m_content.size();
+	}
+
+	virtual const std::string Read(size_t size) override
+	{
+		auto part = m_content.substr(offset, size);
 		offset += part.size();
 
 		return part;
 	}
 
-	virtual std::string FetchMetaInfo()
-	{
-		return SOURCE_NAME;
-	}
+protected:
+	std::string m_content;
 
 private:
 	size_t offset = 0;
+};
+
+struct StringReader : public FileReader
+{
+	StringReader(const std::string& content)
+	{
+		AppendFileToList(VirtualSourceUnit(SOURCE_NAME, content));
+	}
+
+	StringReader(std::string&& content)
+	{
+		AppendFileToList(VirtualSourceUnit(SOURCE_NAME, std::move(content)));
+	}
 };

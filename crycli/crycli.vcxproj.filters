@@ -37,5 +37,8 @@
     <ClInclude Include="Env.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="SourceUnit.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

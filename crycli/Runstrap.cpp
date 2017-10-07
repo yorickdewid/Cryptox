@@ -107,7 +107,16 @@ datachunk_t *CCBFetchChunk(void *user_data)
 int CCBLoadExternalSource(void *user_data, const char *source)
 {
 	StreamReaderAdapter &adapter = side_cast<StreamReaderAdapter>(user_data);
-	adapter.SwitchSource(source);
+
+	// If an system error occurs, we assume the source file was not
+	// found and return false to the caller
+	try {
+		adapter.SwitchSource(source);
+	}
+	catch (std::system_error se) {
+		return static_cast<int>(false);
+	}
+
 	return static_cast<int>(true);
 }
 
