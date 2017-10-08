@@ -75,6 +75,8 @@ void Lexer::Next()
 		return;
 	}
 
+	// If the next offset is zero, there are no more source chunks left.
+	// Otherwise ask the caller for more input data.
 	if (m_offset > 0) {
 		ConsumeNextChunk();
 		return;
@@ -543,12 +545,6 @@ int Lexer::LexScalar()
 	}
 
 	return 0;
-}
-
-void Lexer::ConsumeNextChunk()
-{
-	m_content = m_profile->ReadInput();
-	m_offset = 0;
 }
 
 Lexer::Lexer(std::shared_ptr<Compiler::Profile>& profile)

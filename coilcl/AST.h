@@ -2,10 +2,8 @@
 
 #include "ValueObject.h"
 
-#include <map>
 #include <list>
 #include <memory>
-#include <functional>
 
 #define PRINT_NODE(n) \
 	const std::string NodeName() const { \
@@ -49,6 +47,9 @@ class Operator : public ASTNode
 {
 protected:
 	// return type
+
+public:
+	PRINT_NODE(Operator);
 };
 
 class BinaryOperator : public Operator
@@ -59,37 +60,56 @@ public:
 		PLUS,
 		EQ,
 	};
+
+	PRINT_NODE(BinaryOperator);
 };
 
 //
 // Literal nodes
 //
 
+template<typename T>
 class Literal : public ASTNode
 {
 protected:
-	// type
-	// Value
+	std::unique_ptr<ValueObject<T>> m_valueObj;
+
+public:
+	Literal()
+		: m_valueObj{ new ValueObject<void>{Value::TypeSpecifier::T_VOID} }
+	{
+	}
+
+	Literal(Value::TypeSpecifier tspec, T value)
+		: m_valueObj{ new ValueObject<T>{tspec, value} }
+	{
+	}
+
+	PRINT_NODE(Literal);
 };
 
-class StringLiteral : public Literal
+class StringLiteral : public Literal<std::string>
 {
 public:
-	StringLiteral()
-		: Literal{}
+	StringLiteral(const std::string& value)
+		: Literal{ Value::TypeSpecifier::T_CHAR, value }
 	{
 
 	}
+
+	PRINT_NODE(StringLiteral);
 };
 
-class IntegerLiteral : public Literal
+class IntegerLiteral : public Literal<int>
 {
 public:
-	IntegerLiteral()
-		: Literal{}
+	IntegerLiteral(int value)
+		: Literal{ Value::TypeSpecifier::T_INT, value }
 	{
 
 	}
+
+	PRINT_NODE(IntegerLiteral);
 };
 
 //
@@ -100,6 +120,9 @@ class Expr : public ASTNode
 {
 protected:
 	// return type
+
+public:
+	PRINT_NODE(Expr);
 };
 
 class CallExpr : public Expr
@@ -155,6 +178,8 @@ public:
 		: m_identifier{ name }
 	{
 	}
+
+	PRINT_NODE(Decl);
 };
 
 class VarDecl : public Decl
@@ -178,6 +203,8 @@ public:
 		: Decl{ name }
 	{
 	}
+
+	PRINT_NODE(FunctionDecl);
 
 	/*FunctionDecl(std::unique_ptr<Value>& value)
 	{
@@ -214,6 +241,8 @@ public:
 
 class Stmt : public ASTNode
 {
+public:
+	PRINT_NODE(Stmt);
 };
 
 class ReturnStmt : public Stmt
@@ -237,22 +266,20 @@ class IfStmt : public Stmt
 	std::shared_ptr<CompoundStmt> altStmt;
 
 public:
-	void SetEvalNode(std::shared_ptr<ASTNode>& node)
+	IfStmt(std::shared_ptr<ASTNode>& eval, std::shared_ptr<CompoundStmt> truth = nullptr, std::shared_ptr<CompoundStmt> alt = nullptr)
 	{
-		ASTNode::AppendChild(node);
-		evalNode = node;
-	}
+		ASTNode::AppendChild(eval);
+		evalNode = eval;
 
-	void SetTruthNode(std::shared_ptr<CompoundStmt>& node)
-	{
-		ASTNode::AppendChild(std::dynamic_pointer_cast<ASTNode>(node));
-		truthStmt = node;
-	}
+		if (truth) {
+			ASTNode::AppendChild(std::dynamic_pointer_cast<ASTNode>(truth));
+			truthStmt = truth;
+		}
 
-	void SetAltNode(std::shared_ptr<CompoundStmt>& node)
-	{
-		ASTNode::AppendChild(std::dynamic_pointer_cast<ASTNode>(node));
-		altStmt = node;
+		if (alt) {
+			ASTNode::AppendChild(std::dynamic_pointer_cast<ASTNode>(alt));
+			altStmt = alt;
+		}
 	}
 
 	PRINT_NODE(IfStmt);
@@ -268,6 +295,8 @@ public:
 	{
 		ASTNode::AppendChild(std::dynamic_pointer_cast<ASTNode>(value));
 	}
+
+	PRINT_NODE(DeclStmt);
 };
 
 class CompoundStmt : public Stmt

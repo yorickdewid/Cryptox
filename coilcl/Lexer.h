@@ -186,7 +186,12 @@ private:
 	int ReadString(int ndelim);
 	void LexBlockComment();
 	void LexLineComment();
-	void Lexer::ConsumeNextChunk();
+
+	void ConsumeNextChunk()
+	{
+		m_content = m_profile->ReadInput();
+		m_offset = 0;
+	}
 
 	template<typename Type>
 	int ReturnToken(Type token)
