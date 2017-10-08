@@ -17,11 +17,6 @@ public:
 		AppendFileToList(filename);
 	}
 
-	~FileReader()
-	{
-		///
-	}
-
 	virtual std::string FetchNextChunk(size_t sizeHint)
 	{
 		auto content = m_unitList.top()->Read(sizeHint);

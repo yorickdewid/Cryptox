@@ -17,12 +17,6 @@ public:
 		DefaultSettings();
 	}
 
-	Env(Env && other)
-		: toolchainLocation{ other.toolchainLocation }
-		, debugMode{ other.debugMode }
-	{
-	}
-
 	static Env InitBasicEnvironment();
 
 	inline void SetDebug(bool toggle)
