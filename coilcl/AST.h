@@ -22,12 +22,14 @@ protected:
 public:
 	ASTNode() = default;
 
-	inline size_t Children() const
+	inline size_t ChildrenCount() const
 	{
 		return children.size();
 	}
 
 	virtual const std::string NodeName() const = 0;
+
+	void Print(int level = 0);
 
 protected:
 	virtual void AppendChild(std::shared_ptr<ASTNode>& node)
@@ -157,6 +159,7 @@ class DeclRefExpr : public Expr
 public:
 	DeclRefExpr(std::shared_ptr<VarDecl>& ref)
 	{
+		ASTNode::AppendChild(std::dynamic_pointer_cast<ASTNode>(ref));
 		m_ref = ref;
 	}
 
@@ -204,9 +207,13 @@ public:
 		: Decl{ name }
 		, m_body{ std::dynamic_pointer_cast<CompoundStmt>(node) }
 	{
+		ASTNode::AppendChild(node);
 	}
 
-	PRINT_NODE(FunctionDecl);
+	const std::string NodeName() const
+	{
+		return std::string{ typeid(FunctionDecl).name() } +" <line:" + std::to_string(line) + ",col:" + std::to_string(col) + "> " + m_identifier + " 'return type'";
+	}
 
 	/*FunctionDecl(std::unique_ptr<Value>& value)
 	{
@@ -238,8 +245,8 @@ public:
 
 	void AppendChild(std::shared_ptr<ASTNode>& node) final
 	{
-		m_children.push_back(node);
 		ASTNode::AppendChild(node);
+		m_children.push_back(node);
 	}
 
 	PRINT_NODE(TranslationUnitDecl);
@@ -277,9 +284,9 @@ class IfStmt : public Stmt
 
 public:
 	IfStmt(std::shared_ptr<ASTNode>& eval, std::shared_ptr<CompoundStmt> truth = nullptr, std::shared_ptr<CompoundStmt> alt = nullptr)
+		: evalNode{ eval }
 	{
 		ASTNode::AppendChild(eval);
-		evalNode = eval;
 
 		if (truth) {
 			ASTNode::AppendChild(std::dynamic_pointer_cast<ASTNode>(truth));
