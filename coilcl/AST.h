@@ -21,10 +21,27 @@ protected:
 
 public:
 	ASTNode() = default;
+	ASTNode(int _line, int _col)
+		: line{ _line }
+		, col{ _col }
+	{
+	}
 
 	inline size_t ChildrenCount() const
 	{
 		return children.size();
+	}
+
+	void SetLocation(int _line, int _col)
+	{
+		line = _line;
+		col = _col;
+	}
+
+	void SetLocation(std::pair<int,int>& loc)
+	{
+		line = loc.first;
+		col = loc.second;
 	}
 
 	virtual const std::string NodeName() const = 0;

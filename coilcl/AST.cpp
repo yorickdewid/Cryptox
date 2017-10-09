@@ -8,7 +8,7 @@ void ASTNode::Print(int level)
 		std::cout << NodeName() << std::endl;
 	}
 	else {
-		for (size_t i = 0; i < level - 1; ++i) {
+		for (size_t i = 0; i < static_cast<size_t>(level) - 1; ++i) {
 			std::cout << "| ";
 		}
 
