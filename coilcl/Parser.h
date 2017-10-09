@@ -147,7 +147,12 @@ class Parser
 {
 public:
 	Parser(std::shared_ptr<Compiler::Profile>& profile);
-	void Execute();
+	Parser& Execute();
+
+	std::shared_ptr<TranslationUnitDecl> DumpAST() const
+	{
+		return m_ast;
+	}
 
 protected:
 	void Error(const char *err);
@@ -239,5 +244,7 @@ private:
 	StateContainer<TokenState> m_comm;
 	std::stack<std::shared_ptr<ASTNode>> m_elementStack;
 	std::shared_ptr<Compiler::Profile> m_profile;
+
+	std::stack<std::string> m_identifierStack;
 };
 

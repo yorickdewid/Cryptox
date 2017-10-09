@@ -11,6 +11,7 @@
 #define NOT_TOKEN(t) (CURRENT_TOKEN() != t)
 
 #define EMIT(m) std::cout << "EMIT::" << m << std::endl;
+#define EMIT_IDENTIFIER() std::cout << "EMIT::IDENTIFIER" << "("<< CURRENT_DATA()->As<std::string>() << ")" << std::endl;
 
 class UnexpectedTokenException : public std::exception
 {
@@ -254,8 +255,8 @@ void Parser::StructOrUnionSpecifier()
 	}
 
 	if (MATCH_TOKEN(TK_IDENTIFIER)) {
+		EMIT_IDENTIFIER();
 		NextToken();
-		EMIT("IDENTIFIER");
 	}
 
 	if (MATCH_TOKEN(TK_BRACE_OPEN)) {
@@ -309,8 +310,8 @@ void Parser::EnumSpecifier()
 	if (MATCH_TOKEN(TK_ENUM)) {
 		NextToken();
 		if (MATCH_TOKEN(TK_IDENTIFIER)) {
+			EMIT_IDENTIFIER();
 			NextToken();
-			EMIT("ENUM IDENTIFIER");
 		}
 		if (MATCH_TOKEN(TK_BRACE_OPEN)) {
 			EnumeratorList();
@@ -324,9 +325,8 @@ void Parser::EnumeratorList()
 	do {
 		NextToken();
 		if (MATCH_TOKEN(TK_IDENTIFIER)) {
+			EMIT_IDENTIFIER();
 			NextToken();
-			EMIT("IDENTIFIER");
-
 			if (MATCH_TOKEN(TK_ASSIGN)) {
 				NextToken();
 				ConstantExpression();
@@ -423,8 +423,8 @@ void Parser::PrimaryExpression()
 {
 	switch (CURRENT_TOKEN()) {
 	case TK_IDENTIFIER:
+		EMIT_IDENTIFIER();
 		NextToken();
-		EMIT("IDENTIFIER");
 		break;
 
 	case TK_CONSTANT:
@@ -907,6 +907,7 @@ bool Parser::LabeledStatement()
 {
 	switch (CURRENT_TOKEN()) {
 	case TK_IDENTIFIER:
+		EMIT_IDENTIFIER();
 		NextToken();
 		if (MATCH_TOKEN(TK_COLON)) {
 			NextToken();
@@ -1106,8 +1107,10 @@ bool Parser::Declarator()
 bool Parser::DirectDeclarator()
 {
 	if (MATCH_TOKEN(TK_IDENTIFIER)) {
+		auto name = CURRENT_DATA()->As<std::string>();
+		m_identifierStack.push(name);
+		EMIT_IDENTIFIER();
 		NextToken();
-		EMIT("IDENTIFIER");
 	}
 	else if (MATCH_TOKEN(TK_PARENTHESE_OPEN)) {
 		NextToken();
@@ -1132,8 +1135,8 @@ bool Parser::DirectDeclarator()
 				if (!ParameterTypeList()) {
 					do {
 						if (MATCH_TOKEN(TK_IDENTIFIER)) {
+							EMIT_IDENTIFIER();
 							NextToken();
-							EMIT("FUNC DELC IDENTIFIER??");
 						}
 						else {
 							return false;//TMP
@@ -1213,7 +1216,8 @@ bool Parser::FunctionDefinition()
 
 	auto res = CompoundStatement();
 	if (res) {
-		auto funcDecl = std::make_shared<FunctionDecl>("myfunc", m_elementStack.top());
+		auto funcDecl = std::make_shared<FunctionDecl>(m_identifierStack.top(), m_elementStack.top());
+		m_identifierStack.pop();
 		m_elementStack.pop();
 		m_elementStack.push(funcDecl);
 	}
@@ -1246,9 +1250,11 @@ void Parser::TranslationUnit()
 	} while (!lex.IsDone());
 }
 
-void Parser::Execute()
+Parser& Parser::Execute()
 {
 	NextToken();
 
 	TranslationUnit();
+
+	return *this;
 }

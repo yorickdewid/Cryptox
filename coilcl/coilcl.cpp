@@ -93,7 +93,8 @@ public:
 		auto profile = std::dynamic_pointer_cast<Profile>(compiler);
 
 		try {
-			Parser{ profile }.Execute();
+			auto ast = Parser{ profile }.Execute().DumpAST();
+			ast->Print();
 		}
 		// Catch any leaked erros not caught in the stages
 		catch (std::exception& e) {
