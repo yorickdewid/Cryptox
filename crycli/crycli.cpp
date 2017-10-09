@@ -6,6 +6,7 @@
 #include "Runstrap.h"
 
 #include <boost/program_options.hpp>
+#include <boost/algorithm/string.hpp>
 
 #include <iostream>
 
@@ -20,18 +21,34 @@ int main(int argc, const char *argv[])
 		po::options_description desc{ PROGRAM_DESC PROGRAM_COPY "\nProjectTest: [OPTIONS] [FILE ...]\n\nOptions" };
 		desc.add_options()
 			("help", "Show help")
-			("g", "Debugger semantics")
-			("file", po::value<std::string>(), "Source files"); //TODO: hide from --help
+			("g", "Compile with debug support")
+			("Xast", "Dump AST tree")
+			("Wall", "Report all warnings")
+			("Werror", "Threat warnings as errors");
+			//("file", po::value<std::string>()->required(), "Source files"); //TODO: hide from --help
+
+		po::options_description hidden;
+		hidden.add_options()
+			("file", po::value<std::string>()->required(), "Source files");
+
+		po::options_description all_ops;
+		all_ops.add(desc);
+		all_ops.add(hidden);
 
 		po::positional_options_description p;
 		p.add("file", -1);
 
 		po::variables_map vm;
-		po::store(po::command_line_parser(argc, argv).options(desc).positional(p).run(), vm);
+		po::store(po::command_line_parser(argc, argv)
+				  .options(all_ops)
+				  .positional(p)
+				  .style(po::command_line_style::default_style | po::command_line_style::allow_long_disguise)
+				  .run(), vm);
 
 		// Initialize compiler environment
 		Env env = Env::InitBasicEnvironment();
 
+		// Set debug mode
 		if (vm.count("g")) {
 			env.SetDebug(true);
 		}
@@ -39,7 +56,11 @@ int main(int argc, const char *argv[])
 		// Termination options, either of these 
 		// routines will return after execution
 		if (vm.count("help")) {
-			std::cout << desc;
+			std::stringstream ss;
+			ss << desc;
+			std::string helpMsg = ss.str();
+			boost::algorithm::replace_all(helpMsg, "--", "-");
+			std::cout << helpMsg << std::endl;
 			return 1;
 		}
 		else if (vm.count("file")) {
