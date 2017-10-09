@@ -96,7 +96,8 @@ private:
 };
 
 Parser::Parser(std::shared_ptr<Compiler::Profile>& profile)
-	: lex{ profile }
+	: m_profile{ profile }
+	, lex{ profile }
 {
 	lex.ErrorHandler([](const std::string& err, char token, int line, int column)
 	{
@@ -233,7 +234,7 @@ bool Parser::DeclarationSpecifiers()
 		_type->Qualifier(tmpTQ);
 	}
 
-	m_elementStack.push(std::move(std::make_unique<ValueNode>(_type)));
+	//m_elementStack.push(std::move(std::make_unique<ValueNode>(_type)));
 	return true;
 }
 
@@ -792,7 +793,7 @@ bool Parser::JumpStatement()
 		NextToken();
 		if (MATCH_TOKEN(TK_COMMIT)) {
 			EMIT("RETURN EMPTY");
-			m_elementStack.push(std::move(std::make_unique<ValueNode>()));
+			//m_elementStack.push(std::move(std::make_unique<ValueNode>()));
 		}
 		else {
 			Expression();
@@ -892,6 +893,8 @@ bool Parser::CompoundStatement()
 			BlockItems();
 			ExpectToken(TK_BRACE_CLOSE);
 		}
+
+		m_elementStack.push(std::make_shared<CompoundStmt>());
 
 		return true;
 	}
@@ -1208,12 +1211,14 @@ bool Parser::FunctionDefinition()
 
 	while (Declarator());
 
-	return CompoundStatement();
+	auto res = CompoundStatement();
+	if (res) {
+		auto funcDecl = std::make_shared<FunctionDecl>("myfunc", m_elementStack.top());
+		m_elementStack.pop();
+		m_elementStack.push(funcDecl);
+	}
 
-	//auto localFunc = new FunctionNode(m_currentData);
-	//localFunc->ReturnType(std::move(m_elementStack.top()));
-	//m_elementStack.pop();
-	//stree.PushNode(std::move(std::unique_ptr<ASTNode>{ localFunc }));
+	return res;
 }
 
 // Try as function; if that fails assume declaration
@@ -1226,18 +1231,24 @@ void Parser::ExternalDeclaration()
 
 void Parser::TranslationUnit()
 {
-	// For each translation unit run the parser
-	//for (size_t i = 0; i < length; i++)
-	//{
-	ExternalDeclaration();
-	//}
+	//TODO: For each translation unit run the parser loop
+
+	//TODO: name returns file name of current lexer, not translation unit
+	m_ast = std::make_shared<TranslationUnitDecl>(m_profile->MetaInfo()->name);
+
+	do {
+		ExternalDeclaration();
+
+		if (!m_elementStack.empty()) {
+			m_ast->AppendChild(m_elementStack.top());
+			m_elementStack.pop();
+		}
+	} while (!lex.IsDone());
 }
 
 void Parser::Execute()
 {
 	NextToken();
 
-	do {
-		TranslationUnit();
-	} while (!lex.IsDone());
+	TranslationUnit();
 }

@@ -196,11 +196,13 @@ public:
 class FunctionDecl : public Decl
 {
 	std::shared_ptr<ASTNode> m_params;
+	std::shared_ptr<CompoundStmt> m_body; //TODO: CompoundStmt not always the case
 
 public:
 	//TODO: type
-	FunctionDecl(const std::string& name)
+	FunctionDecl(const std::string& name, std::shared_ptr<ASTNode>& node)
 		: Decl{ name }
+		, m_body{ std::dynamic_pointer_cast<CompoundStmt>(node) }
 	{
 	}
 
@@ -226,10 +228,18 @@ public:
 
 class TranslationUnitDecl : public Decl
 {
+	std::list<std::shared_ptr<ASTNode>> m_children;
+
 public:
 	TranslationUnitDecl(const std::string& sourceName)
 		: Decl{ sourceName }
 	{
+	}
+
+	void AppendChild(std::shared_ptr<ASTNode>& node) final
+	{
+		m_children.push_back(node);
+		ASTNode::AppendChild(node);
 	}
 
 	PRINT_NODE(TranslationUnitDecl);

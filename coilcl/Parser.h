@@ -235,8 +235,9 @@ private:
 
 private:
 	Lexer lex;
-	AST stree;
+	std::shared_ptr<TranslationUnitDecl> m_ast;
 	StateContainer<TokenState> m_comm;
-	std::stack<std::unique_ptr<ASTNode>> m_elementStack;
+	std::stack<std::shared_ptr<ASTNode>> m_elementStack;
+	std::shared_ptr<Compiler::Profile> m_profile;
 };
 
