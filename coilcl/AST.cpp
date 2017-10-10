@@ -17,7 +17,7 @@ void ASTNode::Print(int level)
 
 	for (auto weakChild : children) {
 		if (auto delegateChildren = weakChild.lock()) {
-			delegateChildren->Print(++level);
+			delegateChildren->Print(level + 1);
 		}
 	}
 }

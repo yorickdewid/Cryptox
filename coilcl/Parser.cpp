@@ -513,7 +513,7 @@ void Parser::PostfixExpression()
 		else {
 			ArgumentExpressionList();
 			EMIT("CALL EXPRESSION");
-			m_elementStack.push(std::make_shared<CallExpr>());
+			m_elementStack.push_back(std::make_shared<CallExpr>());
 			ExpectToken(TK_PARENTHESE_CLOSE);
 		}
 		break;
@@ -794,11 +794,12 @@ bool Parser::JumpStatement()
 		NextToken();
 		if (MATCH_TOKEN(TK_COMMIT)) {
 			EMIT("RETURN EMPTY");
-			//m_elementStack.push(std::move(std::make_unique<ValueNode>()));
+			m_elementStack.push_back(std::make_shared<ReturnStmt>());
 		}
 		else {
 			Expression();
 			EMIT("RETURN VALUE");
+			m_elementStack.push_back(std::make_shared<ReturnStmt>());
 		}
 		break;
 	default: // Return if no match
@@ -895,13 +896,15 @@ bool Parser::CompoundStatement()
 			ExpectToken(TK_BRACE_CLOSE);
 		}
 
+		// Squash all stack elements in compound statment
+		// body and push compound on the stack
 		auto compound = std::make_shared<CompoundStmt>();
 		while (!m_elementStack.empty()) {
-			compound->AppendChild(m_elementStack.top());
-			m_elementStack.pop();
+			compound->AppendChild(m_elementStack.front());
+			m_elementStack.pop_front();
 		}
 
-		m_elementStack.push(compound);
+		m_elementStack.push_back(compound);
 
 		return true;
 	}
@@ -1223,10 +1226,10 @@ bool Parser::FunctionDefinition()
 
 	auto res = CompoundStatement();
 	if (res) {
-		auto funcDecl = std::make_shared<FunctionDecl>(m_identifierStack.top(), m_elementStack.top());
+		auto funcDecl = std::make_shared<FunctionDecl>(m_identifierStack.top(), m_elementStack.front());
 		m_identifierStack.pop();
-		m_elementStack.pop();
-		m_elementStack.push(funcDecl);
+		m_elementStack.pop_front();
+		m_elementStack.push_back(funcDecl);
 	}
 
 	return res;
@@ -1251,8 +1254,8 @@ void Parser::TranslationUnit()
 		ExternalDeclaration();
 
 		if (!m_elementStack.empty()) {
-			m_ast->AppendChild(m_elementStack.top());
-			m_elementStack.pop();
+			m_ast->AppendChild(m_elementStack.front());
+			m_elementStack.pop_front();
 		}
 	} while (!lex.IsDone());
 }
