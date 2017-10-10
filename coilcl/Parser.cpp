@@ -194,7 +194,7 @@ auto Parser::TypeQualifier()
 
 bool Parser::DeclarationSpecifiers()
 {
-	std::unique_ptr<Value> _type = nullptr;
+	std::shared_ptr<Value> type = nullptr;
 	Value::StorageClassSpecifier tmpSCP = Value::StorageClassSpecifier::NONE;
 	Value::TypeQualifier tmpTQ = Value::TypeQualifier::NONE;
 
@@ -213,7 +213,7 @@ bool Parser::DeclarationSpecifiers()
 		if (type != nullptr) {
 			NextToken();
 			cont = true;
-			_type = std::move(type);
+			type = std::move(type);
 		}
 
 		auto tq = TypeQualifier();
@@ -224,18 +224,18 @@ bool Parser::DeclarationSpecifiers()
 		}
 	}
 
-	if (_type == nullptr) {
+	if (type == nullptr) {
 		return false;
 	}
 
 	if (tmpSCP != Value::StorageClassSpecifier::NONE) {
-		_type->StorageClass(tmpSCP);
+		type->StorageClass(tmpSCP);
 	}
 	if (tmpTQ != Value::TypeQualifier::NONE) {
-		_type->Qualifier(tmpTQ);
+		type->Qualifier(tmpTQ);
 	}
 
-	//m_elementStack.push(std::move(std::make_unique<ValueNode>(_type)));
+	//m_elementStack.push(std::make_unique<ValueNode>(type));
 	return true;
 }
 
@@ -512,7 +512,8 @@ void Parser::PostfixExpression()
 		}
 		else {
 			ArgumentExpressionList();
-			EMIT("CALL FUNCTION");
+			EMIT("CALL EXPRESSION");
+			m_elementStack.push(std::make_shared<CallExpr>());
 			ExpectToken(TK_PARENTHESE_CLOSE);
 		}
 		break;
@@ -894,7 +895,13 @@ bool Parser::CompoundStatement()
 			ExpectToken(TK_BRACE_CLOSE);
 		}
 
-		m_elementStack.push(std::make_shared<CompoundStmt>());
+		auto compound = std::make_shared<CompoundStmt>();
+		while (!m_elementStack.empty()) {
+			compound->AppendChild(m_elementStack.top());
+			m_elementStack.pop();
+		}
+
+		m_elementStack.push(compound);
 
 		return true;
 	}

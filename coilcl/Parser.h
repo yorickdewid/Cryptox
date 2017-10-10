@@ -3,6 +3,7 @@
 #include "Profile.h"
 #include "Lexer.h"
 #include "AST.h"
+#include "SuperStack.h"
 
 #include <stack>
 
@@ -246,5 +247,6 @@ private:
 	std::shared_ptr<Compiler::Profile> m_profile;
 
 	std::stack<std::string> m_identifierStack;
+	//std::extension::super_stack<std::string> m_identifierInline;
 };
 

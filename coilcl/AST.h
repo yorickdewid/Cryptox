@@ -6,7 +6,7 @@
 #include <memory>
 
 #define PRINT_NODE(n) \
-	const std::string NodeName() const { \
+	virtual const std::string NodeName() const { \
 		return std::string{ typeid(n).name() } + " <line:" + std::to_string(line) + ",col:" + std::to_string(col) + ">"; \
 	}
 
@@ -56,6 +56,7 @@ protected:
 
 protected:
 	std::list<std::weak_ptr<ASTNode>> children;
+	std::weak_ptr<ASTNode> parent;
 };
 
 //
@@ -335,7 +336,15 @@ public:
 
 class CompoundStmt : public Stmt
 {
+	std::list<std::shared_ptr<ASTNode>> m_children;
+
 public:
+	void AppendChild(std::shared_ptr<ASTNode>& node) final
+	{
+		ASTNode::AppendChild(node);
+		m_children.push_back(node);
+	}
+
 	PRINT_NODE(CompoundStmt);
 };
 
