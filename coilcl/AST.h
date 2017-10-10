@@ -10,6 +10,9 @@
 		return std::string{ typeid(n).name() } + " <line:" + std::to_string(line) + ",col:" + std::to_string(col) + ">"; \
 	}
 
+#define NODE_UPCAST(c) \
+	std::dynamic_pointer_cast<ASTNode>(c)
+
 class VarDecl;
 class CompoundStmt;
 
@@ -38,7 +41,7 @@ public:
 		col = _col;
 	}
 
-	void SetLocation(std::pair<int,int>& loc)
+	void SetLocation(std::pair<int, int>& loc)
 	{
 		line = loc.first;
 		col = loc.second;
@@ -47,6 +50,11 @@ public:
 	virtual const std::string NodeName() const = 0;
 
 	void Print(int level = 0);
+
+	void SetParent(std::shared_ptr<ASTNode>& node)
+	{
+		parent = node;
+	}
 
 protected:
 	virtual void AppendChild(std::shared_ptr<ASTNode>& node)
@@ -177,7 +185,7 @@ class DeclRefExpr : public Expr
 public:
 	DeclRefExpr(std::shared_ptr<VarDecl>& ref)
 	{
-		ASTNode::AppendChild(std::dynamic_pointer_cast<ASTNode>(ref));
+		ASTNode::AppendChild(NODE_UPCAST(ref));
 		m_ref = ref;
 	}
 
@@ -251,9 +259,16 @@ public:
 	}*/
 };
 
-class TranslationUnitDecl : public Decl
+class TranslationUnitDecl
+	: public Decl
+	, public std::enable_shared_from_this<TranslationUnitDecl>
 {
 	std::list<std::shared_ptr<ASTNode>> m_children;
+
+	std::shared_ptr<TranslationUnitDecl> GetSharedSelf()
+	{
+		return shared_from_this();
+	}
 
 public:
 	TranslationUnitDecl(const std::string& sourceName)
@@ -263,6 +278,8 @@ public:
 
 	void AppendChild(std::shared_ptr<ASTNode>& node) final
 	{
+		node->SetParent(NODE_UPCAST(GetSharedSelf()));
+		
 		ASTNode::AppendChild(node);
 		m_children.push_back(node);
 	}
@@ -307,12 +324,12 @@ public:
 		ASTNode::AppendChild(eval);
 
 		if (truth) {
-			ASTNode::AppendChild(std::dynamic_pointer_cast<ASTNode>(truth));
+			ASTNode::AppendChild(NODE_UPCAST(truth));
 			truthStmt = truth;
 		}
 
 		if (alt) {
-			ASTNode::AppendChild(std::dynamic_pointer_cast<ASTNode>(alt));
+			ASTNode::AppendChild(NODE_UPCAST(alt));
 			altStmt = alt;
 		}
 	}
@@ -328,7 +345,7 @@ public:
 	DeclStmt(std::shared_ptr<VarDecl>& value)
 		: m_value{ value }
 	{
-		ASTNode::AppendChild(std::dynamic_pointer_cast<ASTNode>(value));
+		ASTNode::AppendChild(NODE_UPCAST(value));
 	}
 
 	PRINT_NODE(DeclStmt);
