@@ -13,7 +13,7 @@
 #define NODE_UPCAST(c) \
 	std::dynamic_pointer_cast<ASTNode>(c)
 
-class VarDecl;
+class Decl;
 class CompoundStmt;
 
 class ASTNode
@@ -82,12 +82,34 @@ public:
 
 class BinaryOperator : public Operator
 {
+	std::shared_ptr<ASTNode> m_lhs;
+	std::shared_ptr<ASTNode> m_rhs;
+
 public:
-	enum Op // move ?
+	enum BinOperand
 	{
 		PLUS,
 		EQ,
-	};
+		MINUS,
+	} m_operand;
+
+public:
+	BinaryOperator(BinOperand operand, std::shared_ptr<ASTNode>& leftSide)
+		: m_operand{ operand }
+		, m_lhs{ leftSide }
+	{
+		//node->SetParent(NODE_UPCAST(GetSharedSelf()));
+
+		ASTNode::AppendChild(leftSide);
+	}
+
+	void SetRightSide(std::shared_ptr<ASTNode>& node)
+	{
+		//node->SetParent(NODE_UPCAST(GetSharedSelf()));
+
+		ASTNode::AppendChild(node);
+		m_rhs = node;
+	}
 
 	PRINT_NODE(BinaryOperator);
 };
@@ -134,10 +156,20 @@ public:
 	IntegerLiteral(int value)
 		: Literal{ Value::TypeSpecifier::T_INT, value }
 	{
-
 	}
 
 	PRINT_NODE(IntegerLiteral);
+};
+
+class FloatingLiteral : public Literal<double>
+{
+public:
+	FloatingLiteral(double value)
+		: Literal{ Value::TypeSpecifier::T_DOUBLE, value }
+	{
+	}
+
+	PRINT_NODE(FloatingLiteral);
 };
 
 //
@@ -161,7 +193,10 @@ public:
 	{
 	}
 
-	PRINT_NODE(CallExpr);
+	const std::string NodeName() const
+	{
+		return std::string{ typeid(CallExpr).name() } +" <line:" + std::to_string(line) + ",col:" + std::to_string(col) + "> 'return type'";
+	}
 };
 
 class CastExpr : public Expr
@@ -180,10 +215,10 @@ public:
 
 class DeclRefExpr : public Expr
 {
-	std::weak_ptr<VarDecl> m_ref; //TODO: VarDecl too strict?
+	std::weak_ptr<Decl> m_ref; //TODO: VarDecl too strict?
 
 public:
-	DeclRefExpr(std::shared_ptr<VarDecl>& ref)
+	DeclRefExpr(std::shared_ptr<Decl>& ref)
 	{
 		ASTNode::AppendChild(NODE_UPCAST(ref));
 		m_ref = ref;
@@ -279,7 +314,7 @@ public:
 	void AppendChild(std::shared_ptr<ASTNode>& node) final
 	{
 		node->SetParent(NODE_UPCAST(GetSharedSelf()));
-		
+
 		ASTNode::AppendChild(node);
 		m_children.push_back(node);
 	}
