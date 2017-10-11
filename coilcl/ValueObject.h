@@ -31,7 +31,7 @@ struct Value
 		REGISTER,
 	};
 
-	// Type qualifier
+	// _Ty qualifier
 	enum class TypeQualifier
 	{
 		NONE,
@@ -99,10 +99,10 @@ public:
 		return m_arraySize != 0;
 	}
 
-	template<typename Type>
-	Type As() const
+	template<typename _Ty>
+	_Ty As() const
 	{
-		return static_cast<Type>(ReturnValue().i);
+		return static_cast<_Ty>(ReturnValue().i);
 	}
 
 	template<>
@@ -130,7 +130,7 @@ private:
 	TypeQualifier m_typeQualifier = TypeQualifier::NONE;
 };
 
-template<typename Type>
+template<typename _Ty>
 class ValueObject : public Value
 {
 	StoreValue m_value;
@@ -140,8 +140,10 @@ class ValueObject : public Value
 		return m_value;
 	}
 
+	typedef ValueObject<_Ty> _Myty;
+
 public:
-	ValueObject(TypeSpecifier type, Type v)
+	ValueObject(TypeSpecifier type, _Ty v)
 		: Value{ type }
 		, m_value{ v }
 	{
@@ -152,8 +154,8 @@ public:
 	{
 	}
 
-	ValueObject(const ValueObject& other)
-		: Value(other)
+	ValueObject(const _Myty& other)
+		: Value{ other }
 		, m_value{ other.m_value }
 	{
 	}
@@ -197,6 +199,35 @@ public:
 		: Value{ type }
 	{
 		m_value.f = v;
+	}
+
+	ValueObject(TypeSpecifier type)
+		: Value{ type }
+	{
+	}
+
+	ValueObject(const ValueObject& other)
+		: Value(other)
+		, m_value{ other.m_value }
+	{
+	}
+};
+
+template<>
+class ValueObject<double> : public Value
+{
+	StoreValue m_value;
+
+	StoreValue ReturnValue() const override
+	{
+		return m_value;
+	}
+
+public:
+	ValueObject(TypeSpecifier type, double v)
+		: Value{ type }
+	{
+		m_value.d = v;
 	}
 
 	ValueObject(TypeSpecifier type)
