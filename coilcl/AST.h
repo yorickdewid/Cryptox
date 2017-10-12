@@ -93,6 +93,18 @@ public:
 		MINUS,
 	} m_operand;
 
+	const char *BinOperandStr(BinOperand operand) const
+	{
+		switch (operand) {
+		case BinaryOperator::PLUS:
+			return "+";
+		case BinaryOperator::EQ:
+			return "==";
+		case BinaryOperator::MINUS:
+			return "-";
+		}
+	}
+
 public:
 	BinaryOperator(BinOperand operand, std::shared_ptr<ASTNode>& leftSide)
 		: m_operand{ operand }
@@ -111,7 +123,10 @@ public:
 		m_rhs = node;
 	}
 
-	PRINT_NODE(BinaryOperator);
+	const std::string NodeName() const
+	{
+		return std::string{ typeid(BinaryOperator).name() } +" <line:" + std::to_string(line) + ",col:" + std::to_string(col) + "> 'return type' '" + BinOperandStr(m_operand) + "'";
+	}
 };
 
 //
