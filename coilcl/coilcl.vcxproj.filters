@@ -61,10 +61,10 @@
     <ClInclude Include="Profile.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="SuperStack.h">
+    <ClInclude Include="SourceLocation.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="SourceLocation.h">
+    <ClInclude Include="LockPipe.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

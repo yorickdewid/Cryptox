@@ -156,7 +156,7 @@
     <ClInclude Include="Parser.h" />
     <ClInclude Include="Profile.h" />
     <ClInclude Include="SourceLocation.h" />
-    <ClInclude Include="SuperStack.h" />
+    <ClInclude Include="LockPipe.h" />
     <ClInclude Include="ValueObject.h" />
     <ClInclude Include="VM.h" />
   </ItemGroup>

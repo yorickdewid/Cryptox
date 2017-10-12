@@ -433,7 +433,8 @@ void Parser::PrimaryExpression()
 			EMIT("C VOID");
 			break;
 		case Value::TypeSpecifier::T_INT:
-			EMIT("C INT");
+			m_elementStack.push_back(std::make_shared<IntegerLiteral>(CURRENT_DATA()->As<int>()));
+			EMIT("LITERAL INT");
 			break;
 		case Value::TypeSpecifier::T_SHORT:
 			EMIT("C SHORT");
@@ -444,16 +445,14 @@ void Parser::PrimaryExpression()
 		case Value::TypeSpecifier::T_BOOL:
 			EMIT("C BOOL");
 			break;
-
 		case Value::TypeSpecifier::T_FLOAT:
 			//std::cout << " = " << m_currentData->As<float>();
 			EMIT("C FLOAT");
 			break;
-
 		case Value::TypeSpecifier::T_DOUBLE:
+			m_elementStack.push_back(std::make_shared<IntegerLiteral>(CURRENT_DATA()->As<double>()));
 			EMIT("C DOUBLE");
 			break;
-
 		case Value::TypeSpecifier::T_CHAR:
 			if (CURRENT_DATA()->IsArray()) {
 				//std::cout << " = " << m_currentData->As<std::string>();
@@ -509,10 +508,12 @@ void Parser::PostfixExpression()
 		if (MATCH_TOKEN(TK_PARENTHESE_CLOSE)) {
 			NextToken();
 			EMIT("CALL FUNCTION EMPTY");
+			m_elementStack.push_back(std::make_shared<CallExpr>());
 		}
 		else {
 			ArgumentExpressionList();
 			EMIT("CALL EXPRESSION");
+			//std::make_shared<DeclRefExpr>(m_identifierStack.top());
 			m_elementStack.push_back(std::make_shared<CallExpr>());
 			ExpectToken(TK_PARENTHESE_CLOSE);
 		}
@@ -621,15 +622,26 @@ void Parser::AdditiveExpression()
 
 	switch (CURRENT_TOKEN()) {
 	case TK_PLUS:
+	{
+		auto binOp = std::make_shared<BinaryOperator>(BinaryOperator::BinOperand::PLUS, m_elementStack.front());
+		m_elementStack.pop_front();
+		EMIT("BINARY OPERATOR PLUS");
+
 		NextToken();
-		EMIT("CALC ADD");
 		MultiplicativeExpression();
+
+		binOp->SetRightSide(m_elementStack.front());
+		m_elementStack.pop_front();
+		m_elementStack.push_back(binOp);
 		break;
+	}
 	case TK_MINUS:
+	{
 		NextToken();
-		EMIT("CALC MINUS");
+		EMIT("BINARY OPERATOR MINUS");
 		MultiplicativeExpression();
 		break;
+	}
 	}
 }
 
@@ -793,13 +805,20 @@ bool Parser::JumpStatement()
 	case TK_RETURN:
 		NextToken();
 		if (MATCH_TOKEN(TK_COMMIT)) {
-			EMIT("RETURN EMPTY");
+			EMIT("RETURN");
 			m_elementStack.push_back(std::make_shared<ReturnStmt>());
 		}
 		else {
 			Expression();
 			EMIT("RETURN VALUE");
-			m_elementStack.push_back(std::make_shared<ReturnStmt>());
+
+			auto returnStmt = std::make_shared<ReturnStmt>();
+			while (!m_elementStack.empty()) {
+				returnStmt->SetReturnNode(m_elementStack.front());
+				m_elementStack.pop_front();
+			}
+
+			m_elementStack.push_back(returnStmt);
 		}
 		break;
 	default: // Return if no match

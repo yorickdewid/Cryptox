@@ -3,7 +3,7 @@
 #include "Profile.h"
 #include "Lexer.h"
 #include "AST.h"
-#include "SuperStack.h"
+#include "LockPipe.h"
 
 #include <deque>
 #include <stack>
@@ -248,6 +248,5 @@ private:
 	std::shared_ptr<Compiler::Profile> m_profile;
 
 	std::stack<std::string> m_identifierStack;
-	//std::extension::super_stack<std::string> m_identifierInline;
+	LockPipe<std::shared_ptr<ASTNode>> m_elementDescentPipe;
 };
-
