@@ -3,14 +3,14 @@
 #include <utility>
 
 template<typename _Ty = int>
-struct SourceLocation : public std::pair<_Ty, _Ty>
+struct _SourceLocationImpl : public std::pair<_Ty, _Ty>
 {
-	using type = _Ty;
+	using value_type = _Ty;
 	using _Myty = SourceLocation<_Ty>;
-	typedef std::pair<_Ty, _Ty> _Mybase;
+	using _Mybase = std::pair<_Ty, _Ty>;
 
 public:
-	SourceLocation(const type _Line, const type _Col)
+	SourceLocation(const value_type _Line, const value_type _Col)
 		: _Mybase{ _Line, _Col }
 	{
 	}
@@ -44,13 +44,15 @@ public:
 		return (*this);
 	}
 
-	type line() const
+	value_type Line() const
 	{
 		return first;
 	}
 
-	type column() const
+	value_type Column() const
 	{
 		return second;
 	}
 };
+
+typedef _SourceLocationImpl<> SourceLocation

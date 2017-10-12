@@ -193,8 +193,8 @@ private:
 		m_offset = 0;
 	}
 
-	template<typename Type>
-	int ReturnToken(Type token)
+	template<typename _Ty>
+	int ReturnToken(_Ty token)
 	{
 		m_prevToken = m_currentToken;
 		m_currentToken = static_cast<int>(token);
