@@ -244,7 +244,7 @@ private:
 	Lexer lex;
 	std::shared_ptr<TranslationUnitDecl> m_ast;
 	StateContainer<TokenState> m_comm;
-	std::deque<std::shared_ptr<ASTNode>> m_elementStack;
+	//std::deque<std::shared_ptr<ASTNode>> m_elementStack;
 	std::shared_ptr<Compiler::Profile> m_profile;
 
 	std::stack<std::string> m_identifierStack;

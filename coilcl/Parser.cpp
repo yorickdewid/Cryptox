@@ -424,6 +424,7 @@ void Parser::PrimaryExpression()
 	switch (CURRENT_TOKEN()) {
 	case TK_IDENTIFIER:
 		EMIT_IDENTIFIER();
+		m_identifierStack.push(CURRENT_DATA()->As<std::string>());
 		NextToken();
 		break;
 
@@ -433,7 +434,7 @@ void Parser::PrimaryExpression()
 			EMIT("C VOID");
 			break;
 		case Value::TypeSpecifier::T_INT:
-			m_elementStack.push_back(std::make_shared<IntegerLiteral>(CURRENT_DATA()->As<int>()));
+			m_elementDescentPipe.push(std::make_shared<IntegerLiteral>(CURRENT_DATA()->As<int>()));
 			EMIT("LITERAL INT");
 			break;
 		case Value::TypeSpecifier::T_SHORT:
@@ -450,7 +451,7 @@ void Parser::PrimaryExpression()
 			EMIT("C FLOAT");
 			break;
 		case Value::TypeSpecifier::T_DOUBLE:
-			m_elementStack.push_back(std::make_shared<IntegerLiteral>(CURRENT_DATA()->As<double>()));
+			m_elementDescentPipe.push(std::make_shared<IntegerLiteral>(CURRENT_DATA()->As<double>()));
 			EMIT("C DOUBLE");
 			break;
 		case Value::TypeSpecifier::T_CHAR:
@@ -508,13 +509,13 @@ void Parser::PostfixExpression()
 		if (MATCH_TOKEN(TK_PARENTHESE_CLOSE)) {
 			NextToken();
 			EMIT("CALL FUNCTION EMPTY");
-			m_elementStack.push_back(std::make_shared<CallExpr>());
+			m_elementDescentPipe.push(std::make_shared<CallExpr>());
 		}
 		else {
 			ArgumentExpressionList();
 			EMIT("CALL EXPRESSION");
 			//std::make_shared<DeclRefExpr>(m_identifierStack.top());
-			m_elementStack.push_back(std::make_shared<CallExpr>());
+			m_elementDescentPipe.push(std::make_shared<CallExpr>());
 			ExpectToken(TK_PARENTHESE_CLOSE);
 		}
 		break;
@@ -623,16 +624,16 @@ void Parser::AdditiveExpression()
 	switch (CURRENT_TOKEN()) {
 	case TK_PLUS:
 	{
-		auto binOp = std::make_shared<BinaryOperator>(BinaryOperator::BinOperand::PLUS, m_elementStack.front());
-		m_elementStack.pop_front();
+		auto binOp = std::make_shared<BinaryOperator>(BinaryOperator::BinOperand::PLUS, m_elementDescentPipe.next());
+		m_elementDescentPipe.pop();
 		EMIT("BINARY OPERATOR PLUS");
 
 		NextToken();
 		MultiplicativeExpression();
 
-		binOp->SetRightSide(m_elementStack.front());
-		m_elementStack.pop_front();
-		m_elementStack.push_back(binOp);
+		binOp->SetRightSide(m_elementDescentPipe.next());
+		m_elementDescentPipe.pop();
+		m_elementDescentPipe.push(binOp);
 		break;
 	}
 	case TK_MINUS:
@@ -806,19 +807,19 @@ bool Parser::JumpStatement()
 		NextToken();
 		if (MATCH_TOKEN(TK_COMMIT)) {
 			EMIT("RETURN");
-			m_elementStack.push_back(std::make_shared<ReturnStmt>());
+			m_elementDescentPipe.push(std::make_shared<ReturnStmt>());
 		}
 		else {
 			Expression();
 			EMIT("RETURN VALUE");
 
 			auto returnStmt = std::make_shared<ReturnStmt>();
-			while (!m_elementStack.empty()) {
-				returnStmt->SetReturnNode(m_elementStack.front());
-				m_elementStack.pop_front();
+			while (!m_elementDescentPipe.empty()) {
+				returnStmt->SetReturnNode(m_elementDescentPipe.next());
+				m_elementDescentPipe.pop();
 			}
 
-			m_elementStack.push_back(returnStmt);
+			m_elementDescentPipe.push(returnStmt);
 		}
 		break;
 	default: // Return if no match
@@ -911,20 +912,21 @@ bool Parser::CompoundStatement()
 			NextToken();
 		}
 		else {
+			auto startState = m_elementDescentPipe.state();
 			BlockItems();
+			m_elementDescentPipe.release_until(startState);
 			ExpectToken(TK_BRACE_CLOSE);
 		}
 
 		// Squash all stack elements in compound statment
 		// body and push compound on the stack
 		auto compound = std::make_shared<CompoundStmt>();
-		while (!m_elementStack.empty()) {
-			compound->AppendChild(m_elementStack.front());
-			m_elementStack.pop_front();
+		while (!m_elementDescentPipe.empty()) {
+			compound->AppendChild(m_elementDescentPipe.next());
+			m_elementDescentPipe.pop();
 		}
 
-		m_elementStack.push_back(compound);
-
+		m_elementDescentPipe.push(compound);
 		return true;
 	}
 
@@ -973,11 +975,19 @@ void Parser::Statement()
 void Parser::BlockItems()
 {
 	do {
+		auto itemState = m_elementDescentPipe.state();
 		Statement();
 		if (MATCH_TOKEN(TK_BRACE_CLOSE)) {
 			break;
 		}
+		if (m_elementDescentPipe.is_changed(itemState)) {
+			m_elementDescentPipe.lock();
+		}
+		itemState = m_elementDescentPipe.state();
 		Declaration();
+		if (m_elementDescentPipe.is_changed(itemState)) {
+			m_elementDescentPipe.lock();
+		}
 	} while (NOT_TOKEN(TK_BRACE_CLOSE));
 }
 
@@ -1245,10 +1255,10 @@ bool Parser::FunctionDefinition()
 
 	auto res = CompoundStatement();
 	if (res) {
-		auto funcDecl = std::make_shared<FunctionDecl>(m_identifierStack.top(), m_elementStack.front());
+		auto funcDecl = std::make_shared<FunctionDecl>(m_identifierStack.top(), m_elementDescentPipe.next());
 		m_identifierStack.pop();
-		m_elementStack.pop_front();
-		m_elementStack.push_back(funcDecl);
+		m_elementDescentPipe.pop();
+		m_elementDescentPipe.push(funcDecl);
 	}
 
 	return res;
@@ -1272,9 +1282,9 @@ void Parser::TranslationUnit()
 	do {
 		ExternalDeclaration();
 
-		if (!m_elementStack.empty()) {
-			m_ast->AppendChild(m_elementStack.front());
-			m_elementStack.pop_front();
+		if (!m_elementDescentPipe.empty()) {
+			m_ast->AppendChild(m_elementDescentPipe.next());
+			m_elementDescentPipe.pop();
 		}
 	} while (!lex.IsDone());
 }
