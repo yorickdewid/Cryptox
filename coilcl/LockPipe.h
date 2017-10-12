@@ -1,6 +1,9 @@
 #pragma once
 
 #include <deque>
+#include <stack>
+
+typedef size_t pipe_state;
 
 template<typename _Ty, typename _Container = std::deque<_Ty>>
 class LockPipe
@@ -70,8 +73,12 @@ public:
 	{
 	}
 
-	bool empty() const
+	auto empty() const
 	{
+		if (!l.empty()) {
+			return (c.begin() + l.top()) == c.end();
+		}
+
 		return c.empty();
 	}
 
@@ -83,11 +90,13 @@ public:
 	void push(const value_type& _Val)
 	{
 		c.push_back(_Val);
+		index++;
 	}
 
 	void push(value_type&& _Val)
 	{
 		c.push_back(std::move(_Val));
+		index++;
 	}
 
 	template<class... _ValTy>
@@ -102,30 +111,52 @@ public:
 		return c.emplace_back(std::forward<_ValTy>(_Vals)...);
 	}
 
-	/*void pop()
+	void pop()
 	{
-		c.pop_back();
-	}*/
-	/*const_reference pop() const
-	{ }*/
+		if (!l.empty()) {
+			c.erase(c.begin() + l.top());
+		}
+		else {
+			c.pop_front();
+		}
 
-	/*reference pop()
-	{*/
-		//c.begin
-		//std::move(c.end(),);
-
-		//return c.back();
-		//c.pop_back();
-	//}
-
-	reference top()
-	{
-		return c.back();
+		index--;
 	}
 
-	const_reference top() const
+	reference next()
 	{
-		return c.back();
+		if (!l.empty()) {
+			return c.at(l.top());
+		}
+
+		return c.front();
+	}
+
+	const_reference next() const
+	{
+		return c.front();
+	}
+
+	pipe_state state() const
+	{
+		return index;
+	}
+
+	auto is_changed(pipe_state _PrevState) const
+	{
+		return index > _PrevState;
+	}
+
+	void lock()
+	{
+		l.push(index);
+	}
+
+	void release_until(pipe_state _OldState)
+	{
+		while (!l.empty() && l.top() > _OldState) {
+			l.pop();
+		}
 	}
 
 	void swap(_Myty& other)
@@ -136,5 +167,6 @@ public:
 
 protected:
 	_Container c;
-	size_t index;
+	std::stack<pipe_state> l;
+	pipe_state index = 0;
 };
