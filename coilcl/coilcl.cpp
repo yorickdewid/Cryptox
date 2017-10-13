@@ -6,6 +6,8 @@
 #include <iostream>
 #include <functional>
 
+#include <boost/scoped_ptr.hpp>
+
 #define SET_HANDLER(n,c) \
 	Compiler& Set##n##Handler(decltype(c) callback) \
 	{ \
@@ -31,6 +33,7 @@ class Compiler
 	std::function<bool(const std::string&)> includeHandler;
 	std::function<std::shared_ptr<metainfo_t>()> metaHandler;
 	std::function<void(const std::string&, bool)> errorHandler;
+	void *backreferencePointer = nullptr;
 
 	template<typename _Ty>
 	class StageOptions
@@ -59,6 +62,12 @@ public:
 	std::shared_ptr<Compiler> GetObject()
 	{
 		return shared_from_this();
+	}
+
+	template<typename _Ty>
+	void CaptureBackRefPtr(_Ty ptr)
+	{
+		backreferencePointer = static_cast<void*>(ptr);
 	}
 
 	virtual std::string ReadInput()
@@ -161,6 +170,9 @@ COILCLAPI void Compile(compiler_info_t *cl_info) NOTHROW
 	{
 		cl_info->errorHandler(USER_DATA(cl_info), message.c_str(), isFatal);
 	}).GetObject();
+
+	// Store pointer to original object
+	coilcl->CaptureBackRefPtr(cl_info);
 
 	// Start compiler
 	Compiler::Dispatch(coilcl);

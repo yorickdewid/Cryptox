@@ -23,7 +23,7 @@ struct NonCopyable
 	NonCopyable& operator=(NonCopyable&&) = delete;
 };
 
-class CompilerException : public std::exception
+class CompilerException final : public std::exception
 {
 public:
 	explicit CompilerException(const std::string& msg) noexcept
