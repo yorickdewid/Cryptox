@@ -152,6 +152,7 @@
   <ItemGroup>
     <ClInclude Include="AST.h" />
     <ClInclude Include="coilcl.h" />
+    <ClInclude Include="Stage.h" />
     <ClInclude Include="IncompatibleException.h" />
     <ClInclude Include="Lexer.h" />
     <ClInclude Include="Parser.h" />

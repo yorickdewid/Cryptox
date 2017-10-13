@@ -18,13 +18,6 @@
 namespace Compiler
 {
 
-enum class Stage
-{
-	SyntacticAnalysis,
-	SemanticAnalysis,
-	Emitter,
-};
-
 class Compiler
 	: public Profile
 	, public std::enable_shared_from_this<Compiler>
