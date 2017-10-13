@@ -103,6 +103,8 @@ public:
 		case BinaryOperator::MINUS:
 			return "-";
 		}
+
+		return "<unknown>";
 	}
 
 public:

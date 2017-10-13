@@ -99,10 +99,15 @@ public:
 
 	static void Dispatch(std::shared_ptr<Compiler>& compiler)
 	{
+		// Convert compiler object to profile in order to limit scope for components
 		auto profile = std::dynamic_pointer_cast<Profile>(compiler);
 
 		try {
-			auto ast = Parser{ profile }.Execute().DumpAST();
+			auto ast = Parser{ profile }
+				.CheckCompatibility()
+				.Execute()
+				.DumpAST();
+
 			ast->Print();
 		}
 		// Catch any leaked erros not caught in the stages

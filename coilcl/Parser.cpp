@@ -106,6 +106,12 @@ Parser::Parser(std::shared_ptr<Compiler::Profile>& profile)
 	});
 }
 
+Parser& Parser::CheckCompatibility()
+{
+	//TODO: check profile options here
+	return *this;
+}
+
 void Parser::Error(const char* err)
 {
 	throw UnexpectedTokenException(err, m_comm.Current().FetchLine(), m_comm.Current().FetchColumn());
