@@ -15,7 +15,7 @@ enum Token
 	// Program halt
 	TK_HALT = 0,
 
-	//TODO:
+	//TODO: add preprocessor token
 	// - TK_PREPROCESS = 35,    // #
 
 	// Constant value

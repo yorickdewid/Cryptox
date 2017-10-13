@@ -8,6 +8,8 @@
 namespace Compiler
 {
 
+//TODO: add stage option structs
+
 struct Profile
 {
 	virtual std::string ReadInput() = 0;

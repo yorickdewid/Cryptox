@@ -42,32 +42,31 @@ public:
 	{
 	}
 
-	template<class _Alloc>
-	//TODO: enable_if
+	template<class _Alloc, class = std::enable_if_t<std::uses_allocator<_Container, _Alloc>::value>>
 	explicit LockPipe(const _Alloc& alloc)
 		: c{ alloc }
 	{
 	}
 
-	template<class _Alloc>
+	template<class _Alloc, class = std::enable_if_t<std::uses_allocator<_Container, _Alloc>::value>>
 	LockPipe(const _Container& _Contain, const _Alloc& alloc)
-		: c{_Contain, alloc}
+		: c{ _Contain, alloc }
 	{
 	}
 
-	template<class _Alloc>
+	template<class _Alloc, class = std::enable_if_t<std::uses_allocator<_Container, _Alloc>::value>>
 	LockPipe(_Container&& _Contain, const _Alloc& alloc)
 		: c{ std::move(_Contain), alloc }
 	{
 	}
 
-	template<class _Alloc>
+	template<class _Alloc, class = std::enable_if_t<std::uses_allocator<_Container, _Alloc>::value>>
 	LockPipe(const _Myty& other, const _Alloc& alloc)
 		: c{ other.c, alloc }
 	{
 	}
 
-	template<class _Alloc>
+	template<class _Alloc, class = std::enable_if_t<std::uses_allocator<_Container, _Alloc>::value>>
 	LockPipe(_Myty&& other, const _Alloc& alloc)
 		: c{ std::move(other.c), alloc }
 	{

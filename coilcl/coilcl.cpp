@@ -6,7 +6,10 @@
 #include <iostream>
 #include <functional>
 
-#include <boost/scoped_ptr.hpp>
+//TODO: Debug output
+//TODO: Logging
+//TODO: Checking optimizer and compiler compat options
+//TODO: Single namespace
 
 #define SET_HANDLER(n,c) \
 	Compiler& Set##n##Handler(decltype(c) callback) \
