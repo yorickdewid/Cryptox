@@ -454,12 +454,12 @@ void Parser::PrimaryExpression()
 			EMIT("C BOOL");
 			break;
 		case Value::TypeSpecifier::T_FLOAT:
-			//m_elementDescentPipe.push(std::make_shared<IntegerLiteral>(CURRENT_DATA()->As<float>()));
-			EMIT("C FLOAT");
+			m_elementDescentPipe.push(std::make_shared<IntegerLiteral>(CURRENT_DATA()->As<float>()));
+			EMIT("LITERAL FLOATING");
 			break;
 		case Value::TypeSpecifier::T_DOUBLE:
-			m_elementDescentPipe.push(std::make_shared<IntegerLiteral>(CURRENT_DATA()->As<double>()));
-			EMIT("C DOUBLE");
+			m_elementDescentPipe.push(std::make_shared<FloatingLiteral>(CURRENT_DATA()->As<double>()));
+			EMIT("LITERAL FLOATING");
 			break;
 		case Value::TypeSpecifier::T_CHAR:
 			if (CURRENT_DATA()->IsArray()) {
@@ -613,20 +613,47 @@ void Parser::MultiplicativeExpression()
 
 	switch (CURRENT_TOKEN()) {
 	case TK_ASTERISK:
+	{
+		auto binOp = std::make_shared<BinaryOperator>(BinaryOperator::BinOperand::MUL, m_elementDescentPipe.next());
+		m_elementDescentPipe.pop();
+		EMIT("BINARY OPERATOR MUL");
+
 		NextToken();
-		EMIT("CALC MUL");
 		CastExpression();
+
+		binOp->SetRightSide(m_elementDescentPipe.next());
+		m_elementDescentPipe.pop();
+		m_elementDescentPipe.push(binOp);
 		break;
+	}
 	case TK_SLASH:
+	{
+		auto binOp = std::make_shared<BinaryOperator>(BinaryOperator::BinOperand::DIV, m_elementDescentPipe.next());
+		m_elementDescentPipe.pop();
+		EMIT("BINARY OPERATOR DIV");
+
 		NextToken();
-		EMIT("CALC DIV");
 		CastExpression();
+
+		binOp->SetRightSide(m_elementDescentPipe.next());
+		m_elementDescentPipe.pop();
+		m_elementDescentPipe.push(binOp);
 		break;
+	}
 	case TK_PERCENT:
+	{
+		auto binOp = std::make_shared<BinaryOperator>(BinaryOperator::BinOperand::MOD, m_elementDescentPipe.next());
+		m_elementDescentPipe.pop();
+		EMIT("BINARY OPERATOR MOD");
+
 		NextToken();
-		EMIT("CALC MOD");
 		CastExpression();
+
+		binOp->SetRightSide(m_elementDescentPipe.next());
+		m_elementDescentPipe.pop();
+		m_elementDescentPipe.push(binOp);
 		break;
+	}
 	}
 }
 
@@ -654,10 +681,10 @@ void Parser::AdditiveExpression()
 		auto binOp = std::make_shared<BinaryOperator>(BinaryOperator::BinOperand::MINUS, m_elementDescentPipe.next());
 		m_elementDescentPipe.pop();
 		EMIT("BINARY OPERATOR MINUS");
-		
+
 		NextToken();
 		MultiplicativeExpression();
-		
+
 		binOp->SetRightSide(m_elementDescentPipe.next());
 		m_elementDescentPipe.pop();
 		m_elementDescentPipe.push(binOp);
@@ -1320,7 +1347,6 @@ void Parser::TranslationUnit()
 Parser& Parser::Execute()
 {
 	NextToken();
-
 	TranslationUnit();
 
 	return *this;

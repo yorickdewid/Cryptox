@@ -88,9 +88,12 @@ class BinaryOperator : public Operator
 public:
 	enum BinOperand
 	{
-		PLUS,
-		EQ,
-		MINUS,
+		PLUS,		// +
+		EQ,			// ==
+		MINUS,		// -
+		MUL,		// *
+		DIV,		// /
+		MOD,		// %
 	} m_operand;
 
 	const char *BinOperandStr(BinOperand operand) const
@@ -102,6 +105,12 @@ public:
 			return "==";
 		case BinaryOperator::MINUS:
 			return "-";
+		case BinaryOperator::MUL:
+			return "*";
+		case BinaryOperator::DIV:
+			return "/";
+		case BinaryOperator::MOD:
+			return "%";
 		}
 
 		return "<unknown>";
