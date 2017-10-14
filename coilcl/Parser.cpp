@@ -200,7 +200,7 @@ auto Parser::TypeQualifier()
 
 bool Parser::DeclarationSpecifiers()
 {
-	std::shared_ptr<Value> type = nullptr;
+	std::shared_ptr<Value> tmpType = nullptr;
 	Value::StorageClassSpecifier tmpSCP = Value::StorageClassSpecifier::NONE;
 	Value::TypeQualifier tmpTQ = Value::TypeQualifier::NONE;
 
@@ -219,7 +219,7 @@ bool Parser::DeclarationSpecifiers()
 		if (type != nullptr) {
 			NextToken();
 			cont = true;
-			type = std::move(type);
+			tmpType = std::move(type);
 		}
 
 		auto tq = TypeQualifier();
@@ -230,15 +230,15 @@ bool Parser::DeclarationSpecifiers()
 		}
 	}
 
-	if (type == nullptr) {
+	if (tmpType == nullptr) {
 		return false;
 	}
 
 	if (tmpSCP != Value::StorageClassSpecifier::NONE) {
-		type->StorageClass(tmpSCP);
+		tmpType->StorageClass(tmpSCP);
 	}
 	if (tmpTQ != Value::TypeQualifier::NONE) {
-		type->Qualifier(tmpTQ);
+		tmpType->Qualifier(tmpTQ);
 	}
 
 	//m_elementStack.push(std::make_unique<ValueNode>(type));
@@ -476,6 +476,7 @@ void Parser::PrimaryExpression()
 
 	case TK_PARENTHESE_OPEN:
 		NextToken();
+		EMIT("PARENTHESE EXPRESSION");
 		Expression();
 		ExpectToken(TK_PARENTHESE_CLOSE);
 	}
@@ -988,8 +989,8 @@ void Parser::BlockItems()
 		}
 		if (m_elementDescentPipe.is_changed(itemState)) {
 			m_elementDescentPipe.lock();
+			itemState = m_elementDescentPipe.state();
 		}
-		itemState = m_elementDescentPipe.state();
 		Declaration();
 		if (m_elementDescentPipe.is_changed(itemState)) {
 			m_elementDescentPipe.lock();
