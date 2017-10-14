@@ -249,9 +249,11 @@ class CastExpr : public Expr
 	bool implicit = true;
 
 public:
-	CastExpr()
+	CastExpr(std::shared_ptr<ASTNode>& node)
 		: Expr{}
 	{
+		ASTNode::AppendChild(node);
+		rtype = node;
 	}
 
 	PRINT_NODE(CastExpr);

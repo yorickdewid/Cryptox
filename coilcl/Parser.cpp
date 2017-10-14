@@ -478,6 +478,7 @@ void Parser::PrimaryExpression()
 	case TK_PARENTHESE_OPEN:
 		NextToken();
 		Expression();
+
 		auto parenthesis = std::make_shared<ParenExpr>(m_elementDescentPipe.next());
 		m_elementDescentPipe.pop();
 		m_elementDescentPipe.push(parenthesis);
@@ -594,11 +595,17 @@ void Parser::CastExpression()
 			NextToken();
 			TypeName();
 			ExpectToken(TK_PARENTHESE_CLOSE);
+
+			// Remove snapshot since we can continue this path
 			m_comm.DisposeSnapshot();
 			CastExpression();
+			
+			auto cast = std::make_shared<CastExpr>(m_elementDescentPipe.next());
+			m_elementDescentPipe.pop();
+			m_elementDescentPipe.push(cast);
 			return;
 		}
-		// Rollback the command state
+		// Cannot cast, rollback the command state
 		catch (const UnexpectedTokenException&) {
 			m_comm.Revert();
 		}
@@ -1095,10 +1102,11 @@ void Parser::InitDeclaratorList()
 		if (MATCH_TOKEN(TK_ASSIGN)) {
 			NextToken();
 			Initializer();
+			
 			auto var = std::make_shared<VarDecl>(m_identifierStack.top(), m_elementDescentPipe.next());
 			m_identifierStack.pop();
 			m_elementDescentPipe.pop();
-			m_elementDescentPipe.push(var);
+			m_elementDescentPipe.push(std::make_shared<DeclStmt>(var));
 		}
 	} while (MATCH_TOKEN(TK_COMMA));
 }
