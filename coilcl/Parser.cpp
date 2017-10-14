@@ -699,15 +699,33 @@ void Parser::ShiftExpression()
 
 	switch (CURRENT_TOKEN()) {
 	case TK_LEFT_OP:
+	{
+		auto binOp = std::make_shared<BinaryOperator>(BinaryOperator::BinOperand::SLEFT, m_elementDescentPipe.next());
+		m_elementDescentPipe.pop();
+		EMIT("BINARY OPERATOR SHIFT LEFT");
+
 		NextToken();
-		EMIT("SHIFT LEFT");
 		AdditiveExpression();
+
+		binOp->SetRightSide(m_elementDescentPipe.next());
+		m_elementDescentPipe.pop();
+		m_elementDescentPipe.push(binOp);
 		break;
+	}
 	case TK_RIGHT_OP:
+	{
+		auto binOp = std::make_shared<BinaryOperator>(BinaryOperator::BinOperand::SRIGHT, m_elementDescentPipe.next());
+		m_elementDescentPipe.pop();
+		EMIT("BINARY OPERATOR SHIFT RIGHT");
+		
 		NextToken();
-		EMIT("SHIFT RIGHT");
 		AdditiveExpression();
+
+		binOp->SetRightSide(m_elementDescentPipe.next());
+		m_elementDescentPipe.pop();
+		m_elementDescentPipe.push(binOp);
 		break;
+	}
 	}
 }
 
@@ -762,8 +780,16 @@ void Parser::AndExpression()
 	EqualityExpression();
 
 	if (MATCH_TOKEN(TK_AMPERSAND)) {
+		auto binOp = std::make_shared<BinaryOperator>(BinaryOperator::BinOperand::AND, m_elementDescentPipe.next());
+		m_elementDescentPipe.pop();
+		EMIT("BINARY OPERATOR AND");
+
 		NextToken();
 		EqualityExpression();
+
+		binOp->SetRightSide(m_elementDescentPipe.next());
+		m_elementDescentPipe.pop();
+		m_elementDescentPipe.push(binOp);
 	}
 }
 
@@ -772,8 +798,16 @@ void Parser::ExclusiveOrExpression()
 	AndExpression();
 
 	if (MATCH_TOKEN(TK_CARET)) {
+		auto binOp = std::make_shared<BinaryOperator>(BinaryOperator::BinOperand::XOR, m_elementDescentPipe.next());
+		m_elementDescentPipe.pop();
+		EMIT("BINARY OPERATOR XOR");
+
 		NextToken();
 		AndExpression();
+
+		binOp->SetRightSide(m_elementDescentPipe.next());
+		m_elementDescentPipe.pop();
+		m_elementDescentPipe.push(binOp);
 	}
 }
 
@@ -853,12 +887,11 @@ bool Parser::JumpStatement()
 	case TK_RETURN:
 		NextToken();
 		if (MATCH_TOKEN(TK_COMMIT)) {
-			EMIT("RETURN");
 			m_elementDescentPipe.push(std::make_shared<ReturnStmt>());
+			EMIT("RETURN");
 		}
 		else {
 			Expression();
-			EMIT("RETURN VALUE");
 
 			auto returnStmt = std::make_shared<ReturnStmt>();
 			while (!m_elementDescentPipe.empty()) {
@@ -866,6 +899,7 @@ bool Parser::JumpStatement()
 				m_elementDescentPipe.pop();
 			}
 
+			EMIT("RETURN VALUE");
 			m_elementDescentPipe.push(returnStmt);
 		}
 		break;

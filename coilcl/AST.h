@@ -89,11 +89,19 @@ public:
 	enum BinOperand
 	{
 		PLUS,		// +
-		EQ,			// ==
 		MINUS,		// -
 		MUL,		// *
 		DIV,		// /
 		MOD,		// %
+		
+		XOR,		// ^
+		AND,		// &
+
+		SLEFT,		// <<
+		SRIGHT,		// >>
+		
+		EQ,			// ==
+		NOT			// !=
 	} m_operand;
 
 	const char *BinOperandStr(BinOperand operand) const
@@ -101,8 +109,6 @@ public:
 		switch (operand) {
 		case BinaryOperator::PLUS:
 			return "+";
-		case BinaryOperator::EQ:
-			return "==";
 		case BinaryOperator::MINUS:
 			return "-";
 		case BinaryOperator::MUL:
@@ -111,6 +117,18 @@ public:
 			return "/";
 		case BinaryOperator::MOD:
 			return "%";
+		case BinaryOperator::XOR:
+			return "^";
+		case BinaryOperator::AND:
+			return "&";
+		case BinaryOperator::SLEFT:
+			return "<<";
+		case BinaryOperator::SRIGHT:
+			return ">>";
+		case BinaryOperator::EQ:
+			return "==";
+		case BinaryOperator::NOT:
+			return "!=";
 		}
 
 		return "<unknown>";
