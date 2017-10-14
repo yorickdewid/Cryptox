@@ -10,6 +10,8 @@
 #define MATCH_TOKEN(t) (CURRENT_TOKEN() == t)
 #define NOT_TOKEN(t) (CURRENT_TOKEN() != t)
 
+#define AST_ROOT() m_ast
+
 #define EMIT(m) std::cout << "EMIT::" << m << std::endl;
 #define EMIT_IDENTIFIER() std::cout << "EMIT::IDENTIFIER" << "("<< CURRENT_DATA()->As<std::string>() << ")" << std::endl;
 
@@ -1381,13 +1383,13 @@ void Parser::TranslationUnit()
 	//TODO: For each translation unit run the parser loop
 
 	//TODO: name returns file name of current lexer, not translation unit
-	m_ast = std::make_shared<TranslationUnitDecl>(m_profile->MetaInfo()->name);
+	AST_ROOT() = std::make_shared<TranslationUnitDecl>(m_profile->MetaInfo()->name);
 
 	do {
 		ExternalDeclaration();
 
 		if (!m_elementDescentPipe.empty()) {
-			m_ast->AppendChild(m_elementDescentPipe.next());
+			AST_ROOT()->AppendChild(m_elementDescentPipe.next());
 			m_elementDescentPipe.pop();
 		}
 

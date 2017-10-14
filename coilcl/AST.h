@@ -246,17 +246,28 @@ public:
 class CastExpr : public Expr
 {
 	std::shared_ptr<ASTNode> rtype;
-	bool implicit = true;
+	bool m_implicit = true;
 
 public:
-	CastExpr(std::shared_ptr<ASTNode>& node)
+	CastExpr(std::shared_ptr<ASTNode>& node, bool implicit = false)
 		: Expr{}
+		, m_implicit{ implicit }
 	{
 		ASTNode::AppendChild(node);
 		rtype = node;
 	}
 
-	PRINT_NODE(CastExpr);
+	virtual const std::string NodeName() const
+	{
+		std::string _node{ typeid(CastExpr).name() };
+		_node += " <line:" + std::to_string(line) + ",col:" + std::to_string(col) + "> ";
+
+		if (m_implicit) {
+			_node += "implicit ";
+		}
+
+		return _node;
+	}
 };
 
 class DeclRefExpr : public Expr
@@ -318,7 +329,10 @@ public:
 		ASTNode::AppendChild(node);
 	}
 
-	PRINT_NODE(VarDecl);
+	virtual const std::string NodeName() const
+	{
+		return std::string{ typeid(VarDecl).name() } +" <line:" + std::to_string(line) + ",col:" + std::to_string(col) + "> " + m_identifier;
+	}
 };
 
 class FunctionDecl : public Decl
