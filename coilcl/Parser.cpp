@@ -241,7 +241,7 @@ bool Parser::DeclarationSpecifiers()
 		tmpType->Qualifier(tmpTQ);
 	}
 
-	//m_elementStack.push(std::make_unique<ValueNode>(type));
+	//m_specifiekStack.push(std::make_unique<ValueNode>(type));
 	return true;
 }
 
@@ -450,10 +450,11 @@ void Parser::PrimaryExpression()
 			EMIT("C LONG");
 			break;
 		case Value::TypeSpecifier::T_BOOL:
+			//m_elementDescentPipe.push(std::make_shared<IntegerLiteral>(CURRENT_DATA()->As<bool>()));
 			EMIT("C BOOL");
 			break;
 		case Value::TypeSpecifier::T_FLOAT:
-			//std::cout << " = " << m_currentData->As<float>();
+			//m_elementDescentPipe.push(std::make_shared<IntegerLiteral>(CURRENT_DATA()->As<float>()));
 			EMIT("C FLOAT");
 			break;
 		case Value::TypeSpecifier::T_DOUBLE:
@@ -494,7 +495,7 @@ void Parser::ArgumentExpressionList()
 
 void Parser::PostfixExpression()
 {
-	// Unknown flow
+	//TODO: Unknown flow
 	/*if (MATCH_TOKEN(TK_PARENTHESE_OPEN)) {
 		NextToken();
 		TypeName();
@@ -587,15 +588,17 @@ void Parser::UnaryExpression()
 void Parser::CastExpression()
 {
 	if (MATCH_TOKEN(TK_PARENTHESE_OPEN)) {
+		// Snapshot current state in case of rollback
 		m_comm.Snapshot();
 		try {
 			NextToken();
 			TypeName();
 			ExpectToken(TK_PARENTHESE_CLOSE);
-			m_comm.Dispose();
+			m_comm.DisposeSnapshot();
 			CastExpression();
 			return;
 		}
+		// Rollback the command state
 		catch (const UnexpectedTokenException&) {
 			m_comm.Revert();
 		}
@@ -648,9 +651,16 @@ void Parser::AdditiveExpression()
 	}
 	case TK_MINUS:
 	{
-		NextToken();
+		auto binOp = std::make_shared<BinaryOperator>(BinaryOperator::BinOperand::MINUS, m_elementDescentPipe.next());
+		m_elementDescentPipe.pop();
 		EMIT("BINARY OPERATOR MINUS");
+		
+		NextToken();
 		MultiplicativeExpression();
+		
+		binOp->SetRightSide(m_elementDescentPipe.next());
+		m_elementDescentPipe.pop();
+		m_elementDescentPipe.push(binOp);
 		break;
 	}
 	}
@@ -1300,6 +1310,10 @@ void Parser::TranslationUnit()
 			m_ast->AppendChild(m_elementDescentPipe.next());
 			m_elementDescentPipe.pop();
 		}
+
+		// Clear all lists where possible before adding new items
+		m_elementDescentPipe.clear();
+		m_comm.TryClear();
 	} while (!lex.IsDone());
 }
 

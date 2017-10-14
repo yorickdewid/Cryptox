@@ -2,7 +2,7 @@
 
 #include <iostream>
 
-void ASTNode::Print(int level)
+void ASTNode::Print(int level, bool last)
 {
 	if (level == 0) {
 		std::cout << NodeName() << std::endl;
@@ -12,12 +12,17 @@ void ASTNode::Print(int level)
 			std::cout << "| ";
 		}
 
-		std::cout << "|-" << NodeName() << std::endl;
+		if (last) {
+			std::cout << "`-" << NodeName() << std::endl;
+		}
+		else {
+			std::cout << "|-" << NodeName() << std::endl;
+		}
 	}
 
-	for (auto weakChild : children) {
+	for (auto& weakChild : children) {
 		if (auto delegateChildren = weakChild.lock()) {
-			delegateChildren->Print(level + 1);
+			delegateChildren->Print(level + 1, &weakChild == &children.back());
 		}
 	}
 }

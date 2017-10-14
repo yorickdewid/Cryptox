@@ -47,8 +47,13 @@ public:
 
 	inline const std::shared_ptr<Value>& FetchData() { return m_currentData; }
 
+	// Fetch token from current token state
 	inline auto FetchToken() const { return m_currentToken; }
+
+	// Fetch source line from current token state
 	inline auto FetchLine() const { return m_line; }
+
+	// Fetch source column from current token state
 	inline auto FetchColumn() const { return m_column; }
 };
 
@@ -77,13 +82,13 @@ public:
 		index++;
 	}
 
-	inline auto Previous()
+	inline auto& Previous()
 	{
 		//TODO: out of bounds exception
 		return m_tokenList[index - 1];
 	}
 
-	inline auto Current()
+	inline auto& Current()
 	{
 		return m_tokenList[index - 1];
 	}
@@ -98,12 +103,14 @@ public:
 		index = m_snapshopList.top();
 		m_snapshopList.pop();
 	}
-
-	inline void Dispose()
+	
+	// Dispose last snapshot
+	inline void DisposeSnapshot()
 	{
 		m_snapshopList.pop();
 	}
 
+	// Check if the next item is the last item
 	inline auto IsIndexHead() const
 	{
 		return index == m_tokenList.size();
@@ -114,7 +121,7 @@ public:
 		++index;
 	}
 
-	inline auto operator[](size_t idx)
+	inline auto& operator[](size_t idx)
 	{
 		return m_tokenList[idx];
 	}
@@ -127,6 +134,7 @@ public:
 		}
 	}
 
+	// Take one step back, but preserve the list
 	void Undo()
 	{
 		if (index > 0) {
@@ -141,6 +149,17 @@ public:
 		m_tokenList.clear();
 		while (!m_snapshopList.empty()) {
 			m_snapshopList.pop();
+		}
+	}
+
+	// If the next item is the last item, clear the list
+	// and copy the last element back in the container
+	void TryClear()
+	{
+		if (IsIndexHead()) {
+			auto currentItem = Current();
+			Clear();
+			Push(std::move(currentItem));
 		}
 	}
 };

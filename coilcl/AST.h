@@ -49,7 +49,7 @@ public:
 
 	virtual const std::string NodeName() const = 0;
 
-	void Print(int level = 0);
+	void Print(int level = 0, bool last = false);
 
 	void SetParent(std::shared_ptr<ASTNode>& node)
 	{

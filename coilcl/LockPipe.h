@@ -72,6 +72,11 @@ public:
 	{
 	}
 
+	void clear()
+	{
+		c.clear();
+	}
+
 	auto empty() const
 	{
 		if (!l.empty()) {
