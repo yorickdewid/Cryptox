@@ -1344,6 +1344,10 @@ bool Parser::FunctionDefinition()
 	// Return type for function declaration
 	DeclarationSpecifiers();
 
+	// Must match at least one declarator to qualify as function declaration
+	if (!Declarator()) {
+		return false;
+	}
 	while (Declarator());
 
 	auto res = CompoundStatement();
@@ -1351,10 +1355,17 @@ bool Parser::FunctionDefinition()
 		auto funcDecl = std::make_shared<FunctionDecl>(m_identifierStack.top(), m_elementDescentPipe.next());
 		m_identifierStack.pop();
 		m_elementDescentPipe.pop();
+		
+		//funcDecl->BindPrototype();
+		m_elementDescentPipe.push(funcDecl);
+	}
+	else {
+		auto funcDecl = std::make_shared<FunctionDecl>(m_identifierStack.top());
+		m_identifierStack.pop();
 		m_elementDescentPipe.push(funcDecl);
 	}
 
-	return res;
+	return true;
 }
 
 // Try as function; if that fails assume declaration

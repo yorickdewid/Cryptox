@@ -93,13 +93,13 @@ public:
 		MUL,		// *
 		DIV,		// /
 		MOD,		// %
-		
+
 		XOR,		// ^
 		AND,		// &
 
 		SLEFT,		// <<
 		SRIGHT,		// >>
-		
+
 		EQ,			// ==
 		NOT			// !=
 	} m_operand;
@@ -323,8 +323,11 @@ public:
 
 class FunctionDecl : public Decl
 {
-	std::shared_ptr<ASTNode> m_params;
+	std::shared_ptr<ASTNode> m_params;//TODO
 	std::shared_ptr<CompoundStmt> m_body; //TODO: CompoundStmt not always the case
+	std::weak_ptr<FunctionDecl> m_protoRef;
+	bool m_isPrototype = false;
+	bool m_isReferenced = false;
 
 public:
 	//TODO: type
@@ -335,9 +338,37 @@ public:
 		ASTNode::AppendChild(node);
 	}
 
+	// Contructor only used for prototype function definitions
+	FunctionDecl(const std::string& name)
+		: Decl{ name }
+		, m_isPrototype{ true }
+	{
+	}
+
+	auto IsPrototypeDefinition() const
+	{
+		return m_isPrototype;
+	}
+
 	const std::string NodeName() const
 	{
-		return std::string{ typeid(FunctionDecl).name() } +" <line:" + std::to_string(line) + ",col:" + std::to_string(col) + "> " + m_identifier + " 'return type'";
+		std::string _node{ typeid(FunctionDecl).name() };
+		_node += " <line:" + std::to_string(line) + ",col:" + std::to_string(col) + "> ";
+
+		if (IsPrototypeDefinition()) {
+			_node += "proto ";
+		}
+		else if (!m_protoRef.expired()) {
+			_node += "used ";
+		}
+		if (m_isReferenced) {
+			_node += "used ";
+		}
+
+		_node += m_identifier;
+		_node += " 'return type'";
+
+		return _node;
 	}
 
 	/*FunctionDecl(std::unique_ptr<Value>& value)
@@ -356,6 +387,14 @@ public:
 	{
 		returnType = std::move(rtnVal);
 	}*/
+protected:
+	void BindPrototype(std::shared_ptr<FunctionDecl>& node)
+	{
+		assert(node->IsPrototypeDefinition());
+
+		node->m_isReferenced = true;
+		m_protoRef = node;
+	}
 };
 
 class TranslationUnitDecl
