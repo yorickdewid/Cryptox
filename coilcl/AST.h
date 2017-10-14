@@ -244,6 +244,20 @@ public:
 	PRINT_NODE(DeclRefExpr);
 };
 
+class ParenExpr : public Expr
+{
+	std::shared_ptr<ASTNode> m_body;
+
+public:
+	ParenExpr(std::shared_ptr<ASTNode>& node)
+	{
+		ASTNode::AppendChild(node);
+		m_body = node;
+	}
+
+	PRINT_NODE(ParenExpr);
+};
+
 //
 // Declaration nodes
 //
@@ -265,10 +279,14 @@ public:
 
 class VarDecl : public Decl
 {
+	std::shared_ptr<ASTNode> m_body;
+
 public:
-	VarDecl(const std::string& name)
+	VarDecl(const std::string& name, std::shared_ptr<ASTNode>& node)
 		: Decl{ name }
+		, m_body{ node }
 	{
+		ASTNode::AppendChild(node);
 	}
 
 	PRINT_NODE(VarDecl);

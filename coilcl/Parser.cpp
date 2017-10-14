@@ -476,8 +476,11 @@ void Parser::PrimaryExpression()
 
 	case TK_PARENTHESE_OPEN:
 		NextToken();
-		EMIT("PARENTHESE EXPRESSION");
 		Expression();
+		auto parenthesis = std::make_shared<ParenExpr>(m_elementDescentPipe.next());
+		m_elementDescentPipe.pop();
+		m_elementDescentPipe.push(parenthesis);
+		EMIT("PARENTHESE EXPRESSION");
 		ExpectToken(TK_PARENTHESE_CLOSE);
 	}
 }
@@ -1021,6 +1024,10 @@ void Parser::InitDeclaratorList()
 		if (MATCH_TOKEN(TK_ASSIGN)) {
 			NextToken();
 			Initializer();
+			auto var = std::make_shared<VarDecl>(m_identifierStack.top(), m_elementDescentPipe.next());
+			m_identifierStack.pop();
+			m_elementDescentPipe.pop();
+			m_elementDescentPipe.push(var);
 		}
 	} while (MATCH_TOKEN(TK_COMMA));
 }
