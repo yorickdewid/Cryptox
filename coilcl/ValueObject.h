@@ -94,9 +94,14 @@ public:
 	}
 
 	// Check if current storage type is array
-	inline bool IsArray() const
+	inline auto IsArray() const
 	{
 		return m_arraySize != 0;
+	}
+
+	inline auto Size() const
+	{
+		return m_arraySize;
 	}
 
 	template<typename _Ty>
@@ -115,8 +120,12 @@ public:
 	std::string As() const
 	{
 		std::string str;
+		str.reserve(m_arraySize);
 
 		for (size_t i = 0; i < m_arraySize; ++i) {
+			if (i == (m_arraySize - 1) && m_arrayPtr[i].c == '\0') {
+				break;
+			}
 			str.push_back(m_arrayPtr[i].c);
 		}
 
@@ -205,7 +214,6 @@ public:
 
 	ValueObject(const ValueObject& other)
 		: Value(other)
-		, m_value{ other.m_value }
 	{
 	}
 };
@@ -282,13 +290,14 @@ public:
 	ValueObject(TypeSpecifier type, std::string str)
 		: Value{ type }
 	{
-		m_arrayPtr.reset(new StoreValue[str.size()]);
+		m_arrayPtr.reset(new StoreValue[str.size() + 1]);
 
 		for (size_t i = 0; i < str.size(); ++i) {
 			m_arrayPtr[i].c = str[i];
 		}
 
-		m_arraySize = str.size();
+		m_arrayPtr[str.size()].c = '\0';
+		m_arraySize = str.size() + 1;
 	}
 
 	ValueObject(TypeSpecifier type)
