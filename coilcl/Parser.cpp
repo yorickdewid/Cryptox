@@ -1125,7 +1125,18 @@ void Parser::Declaration()
 		NextToken();
 	}
 	else {
+		auto initState = m_elementDescentPipe.state();
 		InitDeclaratorList();
+		if (m_elementDescentPipe.is_changed(initState)) {
+			m_elementDescentPipe.release_until(initState);
+			auto decl = std::make_shared<DeclStmt>();
+			while (!m_elementDescentPipe.empty()) {
+				decl->AddDeclaration(std::dynamic_pointer_cast<VarDecl>(m_elementDescentPipe.next()));
+				m_elementDescentPipe.pop();
+			}
+			m_elementDescentPipe.push(decl);
+		}
+
 		if (MATCH_TOKEN(TK_COMMIT)) {
 			NextToken();
 		}
@@ -1134,8 +1145,12 @@ void Parser::Declaration()
 
 void Parser::InitDeclaratorList()
 {
+	auto cont = false;
 	do {
-		Declarator();
+		cont = false;
+		if (!Declarator()) {
+			return;
+		}
 
 		if (MATCH_TOKEN(TK_ASSIGN)) {
 			NextToken();
@@ -1144,9 +1159,21 @@ void Parser::InitDeclaratorList()
 			auto var = std::make_shared<VarDecl>(m_identifierStack.top(), m_elementDescentPipe.next());
 			m_identifierStack.pop();
 			m_elementDescentPipe.pop();
-			m_elementDescentPipe.push(std::make_shared<DeclStmt>(var));
+			m_elementDescentPipe.push(var);
+			m_elementDescentPipe.lock();
 		}
-	} while (MATCH_TOKEN(TK_COMMA));
+		else {
+			auto var = std::make_shared<VarDecl>(m_identifierStack.top());
+			m_identifierStack.pop();
+			m_elementDescentPipe.push(var);
+			m_elementDescentPipe.lock();
+
+			if (MATCH_TOKEN(TK_COMMA)) {
+				cont = true;
+				NextToken();
+			}
+		}
+	} while (cont);
 }
 
 // Typenames are primitive types
@@ -1276,10 +1303,13 @@ bool Parser::Declarator()
 
 bool Parser::DirectDeclarator()
 {
+	auto foundDecl = false;
+
 	if (MATCH_TOKEN(TK_IDENTIFIER)) {
 		auto name = CURRENT_DATA()->As<std::string>();
 		m_identifierStack.push(name);
 		EMIT_IDENTIFIER();
+		foundDecl = true;
 		NextToken();
 	}
 	else if (MATCH_TOKEN(TK_PARENTHESE_OPEN)) {
@@ -1333,7 +1363,7 @@ bool Parser::DirectDeclarator()
 
 			break;
 		default:
-			return false;
+			goto break_loop;
 		}
 
 		//'[' type_qualifier_list AssignmentExpression(); ']'
@@ -1343,6 +1373,9 @@ bool Parser::DirectDeclarator()
 		//'[' type_qualifier_list STATIC AssignmentExpression(); ']'
 		//'[' type_qualifier_list '*' ']'
 	}
+
+break_loop:
+	return foundDecl;
 }
 
 void Parser::TypeQualifierList()

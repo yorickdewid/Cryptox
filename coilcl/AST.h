@@ -353,7 +353,7 @@ class VarDecl : public Decl
 	std::shared_ptr<ASTNode> m_body;
 
 public:
-	VarDecl(const std::string& name, std::shared_ptr<ASTNode>& node)
+	VarDecl(const std::string& name, std::shared_ptr<ASTNode> node = nullptr)
 		: Decl{ name }
 		, m_body{ node }
 	{
@@ -557,13 +557,19 @@ public:
 
 class DeclStmt : public Stmt
 {
-	std::shared_ptr<VarDecl> m_value;
+	std::list<std::shared_ptr<VarDecl>> m_var;
 
 public:
-	DeclStmt(std::shared_ptr<VarDecl>& value)
+	/*DeclStmt(std::shared_ptr<VarDecl>& value)
 		: m_value{ value }
 	{
 		ASTNode::AppendChild(NODE_UPCAST(value));
+	}*/
+
+	void AddDeclaration(std::shared_ptr<VarDecl>& node)
+	{
+		ASTNode::AppendChild(NODE_UPCAST(node));
+		m_var.push_back(node);
 	}
 
 	PRINT_NODE(DeclStmt);
