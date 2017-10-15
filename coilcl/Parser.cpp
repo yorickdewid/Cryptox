@@ -438,32 +438,13 @@ void Parser::PrimaryExpression()
 
 	case TK_CONSTANT:
 		switch (CURRENT_DATA()->DataType()) {
-		case Value::TypeSpecifier::T_VOID:
-			EMIT("C VOID");
-			break;
 		case Value::TypeSpecifier::T_INT:
 			m_elementDescentPipe.push(std::make_shared<IntegerLiteral>(CURRENT_DATA()->As<int>()));
 			EMIT("LITERAL INT");
 			break;
-		case Value::TypeSpecifier::T_SHORT:
-			//m_elementDescentPipe.push(std::make_shared<IntegerLiteral>(CURRENT_DATA()->As<bool>()));
-			EMIT("C SHORT");
-			break;
-		case Value::TypeSpecifier::T_LONG:
-			//m_elementDescentPipe.push(std::make_shared<IntegerLiteral>(CURRENT_DATA()->As<bool>()));
-			EMIT("C LONG");
-			break;
-		case Value::TypeSpecifier::T_BOOL:
-			//m_elementDescentPipe.push(std::make_shared<IntegerLiteral>(CURRENT_DATA()->As<bool>()));
-			EMIT("C BOOL");
-			break;
-		case Value::TypeSpecifier::T_FLOAT:
-			m_elementDescentPipe.push(std::make_shared<IntegerLiteral>(CURRENT_DATA()->As<float>()));
-			EMIT("LITERAL FLOATING");
-			break;
 		case Value::TypeSpecifier::T_DOUBLE:
 			m_elementDescentPipe.push(std::make_shared<FloatingLiteral>(CURRENT_DATA()->As<double>()));
-			EMIT("LITERAL FLOATING");
+			EMIT("LITERAL DOUBLE");
 			break;
 		case Value::TypeSpecifier::T_CHAR:
 			if (CURRENT_DATA()->IsArray()) {

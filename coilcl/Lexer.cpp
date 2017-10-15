@@ -454,11 +454,11 @@ int Lexer::LexScalar()
 {
 	enum
 	{
-		Int = 1,
-		Float = 2,
-		Hex = 3,
-		Scientific = 4,
-		Octal = 5,
+		INT = 1,
+		DOUBLE = 2,
+		HEX = 3,
+		SCIENTIFIC = 4,
+		OCTAL = 5,
 	} ScalarType;
 
 	const int firstchar = m_currentChar;
@@ -472,7 +472,7 @@ int Lexer::LexScalar()
 	// Check if we dealing with an octal or hex. If not then we know it is some integer
 	if (firstchar == '0' && (std::toupper(m_currentChar) == 'X' || isdigit(m_currentChar))) {
 		if (isodigit(m_currentChar)) {
-			ScalarType = Octal;
+			ScalarType = OCTAL;
 			while (isodigit(m_currentChar)) {
 				_longstr.push_back(m_currentChar);
 				Next();
@@ -483,7 +483,7 @@ int Lexer::LexScalar()
 		}
 		else {
 			Next();
-			ScalarType = Hex;
+			ScalarType = HEX;
 			while (isxdigit(m_currentChar)) {
 				_longstr.push_back(m_currentChar);
 				Next();
@@ -495,18 +495,18 @@ int Lexer::LexScalar()
 	}
 	else {
 		// At this point we know the temporary buffer contains an integer.
-		ScalarType = Int;
+		ScalarType = INT;
 		_longstr.push_back((int)firstchar);
 		while (m_currentChar == '.' || std::isdigit(m_currentChar) || isexponent(m_currentChar)) {
 			if (m_currentChar == '.' || isexponent(m_currentChar)) {
-				ScalarType = Float;
+				ScalarType = DOUBLE;
 			}
 			if (isexponent(m_currentChar)) {
-				if (ScalarType != Float) {
+				if (ScalarType != DOUBLE) {
 					Error("invalid numeric format");
 				}
 
-				ScalarType = Scientific;
+				ScalarType = SCIENTIFIC;
 				_longstr.push_back(m_currentChar);
 				Next();
 				if (m_currentChar == '+' || m_currentChar == '-') {
@@ -524,21 +524,21 @@ int Lexer::LexScalar()
 	}
 
 	switch (ScalarType) {
-	case Scientific:
-	case Float:
+	case SCIENTIFIC:
+	case DOUBLE:
 	{
 		auto _fvalue = boost::lexical_cast<float>(_longstr);
-		m_data = std::make_unique<ValueObject<decltype(_fvalue)>>(Value::TypeSpecifier::T_FLOAT, _fvalue);
+		m_data = std::make_unique<ValueObject<decltype(_fvalue)>>(Value::TypeSpecifier::T_DOUBLE, _fvalue);
 		return TK_CONSTANT;
 	}
-	case Int:
-	case Hex:
+	case INT:
+	case HEX:
 	{
 		auto _nvalue = boost::lexical_cast<int>(_longstr);
 		m_data = std::make_unique<ValueObject<decltype(_nvalue)>>(Value::TypeSpecifier::T_INT, _nvalue);
 		return TK_CONSTANT;
 	}
-	case Octal:
+	case OCTAL:
 		/*LexOctal(&_longstr[0], (unsigned int *)&_nvalue);
 		return TK_CONSTANT;*/
 		break;
