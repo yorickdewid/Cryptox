@@ -206,7 +206,7 @@ public:
 
 	const std::string NodeName() const
 	{
-		return std::string{ RemoveClassFromName(typeid(CharacterLiteral).name()) } +" <line:" + std::to_string(line) + ",col:" + std::to_string(col) + "> " + m_valueObj->Print();
+		return std::string{ RemoveClassFromName(typeid(CharacterLiteral).name()) } +" <line:" + std::to_string(line) + ",col:" + std::to_string(col) + "> " + m_valueObj->ToString();
 	}
 };
 
@@ -216,10 +216,16 @@ public:
 	StringLiteral(const std::string& value)
 		: Literal{ Value::TypeSpecifier::T_CHAR, value }
 	{
-
 	}
 
-	PRINT_NODE(StringLiteral);
+	const std::string NodeName() const
+	{
+		std::string _node{ RemoveClassFromName(typeid(StringLiteral).name()) };
+		_node += " <line:" + std::to_string(line) + ",col:" + std::to_string(col) + "> ";
+		_node += "'const char [" + std::to_string(m_valueObj->Size()) + "]' ";
+		_node += "\"" + m_valueObj->ToString() + "\"";
+		return _node;
+	}
 };
 
 class IntegerLiteral : public Literal<int>
@@ -232,7 +238,7 @@ public:
 
 	const std::string NodeName() const
 	{
-		return std::string{ RemoveClassFromName(typeid(IntegerLiteral).name()) } +" <line:" + std::to_string(line) + ",col:" + std::to_string(col) + "> " + m_valueObj->Print();
+		return std::string{ RemoveClassFromName(typeid(IntegerLiteral).name()) } +" <line:" + std::to_string(line) + ",col:" + std::to_string(col) + "> " + m_valueObj->ToString();
 	}
 };
 

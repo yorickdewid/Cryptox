@@ -448,7 +448,7 @@ void Parser::PrimaryExpression()
 			break;
 		case Value::TypeSpecifier::T_CHAR:
 			if (CURRENT_DATA()->IsArray()) {
-				//std::cout << " = " << m_currentData->As<std::string>();
+				m_elementDescentPipe.push(std::make_shared<StringLiteral>(CURRENT_DATA()->As<std::string>()));
 				EMIT("LITERAL STRING");
 			}
 			else {

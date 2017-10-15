@@ -132,12 +132,12 @@ public:
 		return str;
 	}
 
-	std::string Print() const
+	std::string ToString() const
 	{
 		auto _type = ReturnValue();
 		switch (m_objectType) {
 		case Value::TypeSpecifier::T_CHAR:
-			return { _type.c };
+			return IsArray() ? As<std::string>() : std::string{ _type.c };
 		case Value::TypeSpecifier::T_SHORT:
 		case Value::TypeSpecifier::T_INT:
 		case Value::TypeSpecifier::T_LONG:
@@ -155,7 +155,7 @@ public:
 
 	friend std::ostream& operator<<(std::ostream& os, const Value& value)
 	{
-		os << value.Print();
+		os << value.ToString();
 	}
 
 private:

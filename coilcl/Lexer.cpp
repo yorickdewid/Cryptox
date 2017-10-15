@@ -539,6 +539,7 @@ int Lexer::LexScalar()
 		return TK_CONSTANT;
 	}
 	case OCTAL:
+		//TODO
 		/*LexOctal(&_longstr[0], (unsigned int *)&_nvalue);
 		return TK_CONSTANT;*/
 		break;
