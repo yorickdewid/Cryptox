@@ -6,10 +6,14 @@
 #include <iostream>
 #include <functional>
 
-//TODO: Debug output
-//TODO: Logging
+//TODO: Reference linking
+//TODO: function parameters
+//TODO: Full C99 parser ruleset
+//TODO: Preprocessing
 //TODO: Checking optimizer and compiler compat options
 //TODO: Single namespace
+//TODO: Debug output
+//TODO: Logging
 
 #define SET_HANDLER(n,c) \
 	Compiler& Set##n##Handler(decltype(c) callback) \
@@ -99,11 +103,19 @@ public:
 		auto profile = std::dynamic_pointer_cast<Profile>(compiler);
 
 		try {
+			/*auto transunit = Preprocessor{ profile }
+				.InlineIncludes()
+				.StemMacros()
+				.DumpTranslationUnit();*/
+
+			//Thing::SourceToReader(transunit, profile);
+
 			auto ast = Parser{ profile }
 				.CheckCompatibility()
 				.Execute()
 				.DumpAST();
 
+			// For now dump contents to screen
 			ast->Print();
 		}
 		// Catch any leaked erros not caught in the stages

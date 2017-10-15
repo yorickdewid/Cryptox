@@ -181,17 +181,33 @@ protected:
 	std::unique_ptr<ValueObject<T>> m_valueObj;
 
 public:
-	Literal()
-		: m_valueObj{ new ValueObject<void>{Value::TypeSpecifier::T_VOID} }
-	{
-	}
-
 	Literal(Value::TypeSpecifier tspec, T value)
 		: m_valueObj{ new ValueObject<T>{tspec, value} }
 	{
 	}
 
+	// Default to void type with no data
+	Literal()
+		: m_valueObj{ new ValueObject<void>{Value::TypeSpecifier::T_VOID} }
+	{
+	}
+
 	PRINT_NODE(Literal);
+};
+
+class CharacterLiteral : public Literal<char>
+{
+public:
+	CharacterLiteral(const char value)
+		: Literal{ Value::TypeSpecifier::T_CHAR, value }
+	{
+
+	}
+
+	const std::string NodeName() const
+	{
+		return std::string{ RemoveClassFromName(typeid(CharacterLiteral).name()) } +" <line:" + std::to_string(line) + ",col:" + std::to_string(col) + "> " + m_valueObj->Print();
+	}
 };
 
 class StringLiteral : public Literal<std::string>
@@ -352,7 +368,7 @@ public:
 
 class FunctionDecl : public Decl
 {
-	std::shared_ptr<ASTNode> m_params;//TODO
+	std::shared_ptr<ASTNode> m_params;//TODO: Add parameters
 	std::shared_ptr<CompoundStmt> m_body; //TODO: CompoundStmt not always the case
 	std::weak_ptr<FunctionDecl> m_protoRef;
 	bool m_isPrototype = false;

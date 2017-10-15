@@ -446,9 +446,11 @@ void Parser::PrimaryExpression()
 			EMIT("LITERAL INT");
 			break;
 		case Value::TypeSpecifier::T_SHORT:
+			//m_elementDescentPipe.push(std::make_shared<IntegerLiteral>(CURRENT_DATA()->As<bool>()));
 			EMIT("C SHORT");
 			break;
 		case Value::TypeSpecifier::T_LONG:
+			//m_elementDescentPipe.push(std::make_shared<IntegerLiteral>(CURRENT_DATA()->As<bool>()));
 			EMIT("C LONG");
 			break;
 		case Value::TypeSpecifier::T_BOOL:
@@ -466,11 +468,11 @@ void Parser::PrimaryExpression()
 		case Value::TypeSpecifier::T_CHAR:
 			if (CURRENT_DATA()->IsArray()) {
 				//std::cout << " = " << m_currentData->As<std::string>();
-				EMIT("C STRING");
+				EMIT("LITERAL STRING");
 			}
 			else {
-				//std::cout << " = " << m_currentData->As<char>();
-				EMIT("C CHAR");
+				m_elementDescentPipe.push(std::make_shared<CharacterLiteral>(CURRENT_DATA()->As<char>()));
+				EMIT("LITERAL CHAR");
 			}
 			break;
 		}
@@ -990,8 +992,8 @@ bool Parser::SelectionStatement()
 		Statement();
 
 		if (m_elementDescentPipe.size() > 0) {
-			//ifStmt->SetTruthCompound(m_elementDescentPipe.next());
-			//m_elementDescentPipe.pop();
+			ifStmt->SetTruthCompound(m_elementDescentPipe.next());
+			m_elementDescentPipe.pop();
 
 			if (MATCH_TOKEN(TK_ELSE)) {
 				NextToken();
