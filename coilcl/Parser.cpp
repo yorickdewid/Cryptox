@@ -439,23 +439,33 @@ void Parser::PrimaryExpression()
 	case TK_CONSTANT:
 		switch (CURRENT_DATA()->DataType()) {
 		case Value::TypeSpecifier::T_INT:
-			m_elementDescentPipe.push(std::make_shared<IntegerLiteral>(CURRENT_DATA()->As<int>()));
+		{
+			auto object = std::dynamic_pointer_cast<ValueObject<int>>(CURRENT_DATA());
+			m_elementDescentPipe.push(std::make_shared<IntegerLiteral>(std::move(object)));
 			EMIT("LITERAL INT");
 			break;
+		}
 		case Value::TypeSpecifier::T_DOUBLE:
-			m_elementDescentPipe.push(std::make_shared<FloatingLiteral>(CURRENT_DATA()->As<double>()));
+		{
+			auto object = std::dynamic_pointer_cast<ValueObject<double>>(CURRENT_DATA());
+			m_elementDescentPipe.push(std::make_shared<FloatingLiteral>(std::move(object)));
 			EMIT("LITERAL DOUBLE");
 			break;
+		}
 		case Value::TypeSpecifier::T_CHAR:
+		{
 			if (CURRENT_DATA()->IsArray()) {
-				m_elementDescentPipe.push(std::make_shared<StringLiteral>(CURRENT_DATA()->As<std::string>()));
+				auto object = std::dynamic_pointer_cast<ValueObject<std::string>>(CURRENT_DATA());
+				m_elementDescentPipe.push(std::make_shared<StringLiteral>(std::move(object)));
 				EMIT("LITERAL STRING");
 			}
 			else {
-				m_elementDescentPipe.push(std::make_shared<CharacterLiteral>(CURRENT_DATA()->As<char>()));
+				auto object = std::dynamic_pointer_cast<ValueObject<char>>(CURRENT_DATA());
+				m_elementDescentPipe.push(std::make_shared<CharacterLiteral>(std::move(object)));
 				EMIT("LITERAL CHAR");
 			}
 			break;
+		}
 		}
 		NextToken();
 		break;

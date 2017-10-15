@@ -178,17 +178,18 @@ template<typename T>
 class Literal : public ASTNode
 {
 protected:
-	std::unique_ptr<ValueObject<T>> m_valueObj;
+	std::shared_ptr<ValueObject<T>> m_valueObj;
 
 public:
-	Literal(Value::TypeSpecifier tspec, T value)
-		: m_valueObj{ new ValueObject<T>{tspec, value} }
-	{
-	}
-
 	// Default to void type with no data
 	Literal()
 		: m_valueObj{ new ValueObject<void>{Value::TypeSpecifier::T_VOID} }
+	{
+	}
+
+	// Move data object from lexer into literal
+	Literal(std::shared_ptr<ValueObject<T>>&& object)
+		: m_valueObj{ std::move(object) }
 	{
 	}
 
@@ -198,10 +199,10 @@ public:
 class CharacterLiteral : public Literal<char>
 {
 public:
-	CharacterLiteral(const char value)
-		: Literal{ Value::TypeSpecifier::T_CHAR, value }
+	template<typename _Ty>
+	CharacterLiteral(_Ty&& value)
+		: Literal{ std::forward<_Ty>(value) }
 	{
-
 	}
 
 	const std::string NodeName() const
@@ -213,8 +214,9 @@ public:
 class StringLiteral : public Literal<std::string>
 {
 public:
-	StringLiteral(const std::string& value)
-		: Literal{ Value::TypeSpecifier::T_CHAR, value }
+	template<typename _Ty>
+	StringLiteral(_Ty&& value)
+		: Literal{ std::forward<_Ty>(value) }
 	{
 	}
 
@@ -231,8 +233,9 @@ public:
 class IntegerLiteral : public Literal<int>
 {
 public:
-	IntegerLiteral(int value)
-		: Literal{ Value::TypeSpecifier::T_INT, value }
+	template<typename _Ty>
+	IntegerLiteral(_Ty&& value)
+		: Literal{ std::forward<_Ty>(value) }
 	{
 	}
 
@@ -245,8 +248,9 @@ public:
 class FloatingLiteral : public Literal<double>
 {
 public:
-	FloatingLiteral(double value)
-		: Literal{ Value::TypeSpecifier::T_DOUBLE, value }
+	template<typename _Ty>
+	FloatingLiteral(_Ty&& value)
+		: Literal{ std::forward<_Ty>(value) }
 	{
 	}
 
