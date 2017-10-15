@@ -123,6 +123,32 @@ public:
 		return str;
 	}
 
+	std::string Print() const
+	{
+		auto _type = ReturnValue();
+		switch (m_objectType) {
+		case Value::TypeSpecifier::T_CHAR:
+			return { _type.c };
+		case Value::TypeSpecifier::T_SHORT:
+		case Value::TypeSpecifier::T_INT:
+		case Value::TypeSpecifier::T_LONG:
+		case Value::TypeSpecifier::T_FLOAT:
+		case Value::TypeSpecifier::T_DOUBLE:
+			return std::to_string(_type.i);
+		case Value::TypeSpecifier::T_BOOL:
+			return static_cast<bool>(_type.i) ? "true" : "false";
+		case Value::TypeSpecifier::T_PTR:
+			return "<ptr>";
+		default:
+			return "<unknown>";
+		}
+	}
+
+	friend std::ostream& operator<<(std::ostream& os, const Value& value)
+	{
+		os << value.Print();
+	}
+
 private:
 	bool m_isUnsigned = false;
 	TypeSpecifier m_objectType = TypeSpecifier::T_INT;

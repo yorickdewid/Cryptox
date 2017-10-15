@@ -3,6 +3,7 @@
 #include "ValueObject.h"
 
 #include <list>
+#include <vector>
 #include <memory>
 
 #define PRINT_NODE(n) \
@@ -213,7 +214,10 @@ public:
 	{
 	}
 
-	PRINT_NODE(IntegerLiteral);
+	const std::string NodeName() const
+	{
+		return std::string{ RemoveClassFromName(typeid(IntegerLiteral).name()) } +" <line:" + std::to_string(line) + ",col:" + std::to_string(col) + "> " + m_valueObj->Print();
+	}
 };
 
 class FloatingLiteral : public Literal<double>
@@ -354,6 +358,8 @@ class FunctionDecl : public Decl
 	bool m_isPrototype = false;
 	bool m_isReferenced = false;
 
+	static std::vector<std::weak_ptr<FunctionDecl>> m_crossResolveList;
+
 public:
 	//TODO: type
 	FunctionDecl(const std::string& name, std::shared_ptr<ASTNode>& node)
@@ -363,11 +369,12 @@ public:
 		ASTNode::AppendChild(node);
 	}
 
-	// Contructor only used for prototype function definitions
+	// Constructor only used for prototype function definitions
 	FunctionDecl(const std::string& name)
 		: Decl{ name }
 		, m_isPrototype{ true }
 	{
+		//m_crossResolveList.push_back()
 	}
 
 	auto IsPrototypeDefinition() const
