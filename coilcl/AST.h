@@ -7,11 +7,22 @@
 
 #define PRINT_NODE(n) \
 	virtual const std::string NodeName() const { \
-		return std::string{ typeid(n).name() } + " <line:" + std::to_string(line) + ",col:" + std::to_string(col) + ">"; \
+		return std::string{ RemoveClassFromName(typeid(n).name()) } + " <line:" + std::to_string(line) + ",col:" + std::to_string(col) + ">"; \
 	}
 
 #define NODE_UPCAST(c) \
 	std::dynamic_pointer_cast<ASTNode>(c)
+
+template<typename _Ty>
+std::string RemoveClassFromName(_Ty *_name)
+{
+	constexpr const char stripStr[] = "class";
+	std::string f{ _name };
+	if (size_t pos = f.find_first_of(stripStr) != std::string::npos) {
+		return f.substr(pos + sizeof(stripStr) - 1);
+	}
+	return f;
+}
 
 class Decl;
 class CompoundStmt;
@@ -154,7 +165,7 @@ public:
 
 	const std::string NodeName() const
 	{
-		return std::string{ typeid(BinaryOperator).name() } +" <line:" + std::to_string(line) + ",col:" + std::to_string(col) + "> 'return type' '" + BinOperandStr(m_operand) + "'";
+		return std::string{ RemoveClassFromName(typeid(BinaryOperator).name()) } +" <line:" + std::to_string(line) + ",col:" + std::to_string(col) + "> 'return type' '" + BinOperandStr(m_operand) + "'";
 	}
 };
 
@@ -239,7 +250,7 @@ public:
 
 	const std::string NodeName() const
 	{
-		return std::string{ typeid(CallExpr).name() } +" <line:" + std::to_string(line) + ",col:" + std::to_string(col) + "> 'return type'";
+		return std::string{ RemoveClassFromName(typeid(CallExpr).name()) } +" <line:" + std::to_string(line) + ",col:" + std::to_string(col) + "> 'return type'";
 	}
 };
 
@@ -259,7 +270,7 @@ public:
 
 	virtual const std::string NodeName() const
 	{
-		std::string _node{ typeid(CastExpr).name() };
+		std::string _node{ RemoveClassFromName(typeid(CastExpr).name()) };
 		_node += " <line:" + std::to_string(line) + ",col:" + std::to_string(col) + "> ";
 
 		if (m_implicit) {
@@ -331,7 +342,7 @@ public:
 
 	virtual const std::string NodeName() const
 	{
-		return std::string{ typeid(VarDecl).name() } +" <line:" + std::to_string(line) + ",col:" + std::to_string(col) + "> " + m_identifier;
+		return std::string{ RemoveClassFromName(typeid(VarDecl).name()) } +" <line:" + std::to_string(line) + ",col:" + std::to_string(col) + "> " + m_identifier;
 	}
 };
 
@@ -366,7 +377,7 @@ public:
 
 	const std::string NodeName() const
 	{
-		std::string _node{ typeid(FunctionDecl).name() };
+		std::string _node{ RemoveClassFromName(typeid(FunctionDecl).name()) };
 		_node += " <line:" + std::to_string(line) + ",col:" + std::to_string(col) + "> ";
 
 		if (IsPrototypeDefinition()) {
