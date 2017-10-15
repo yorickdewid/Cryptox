@@ -113,7 +113,7 @@ public:
 		SRIGHT,		// >>
 
 		EQ,			// ==
-		NOT			// !=
+		NEQ			// !=
 	} m_operand;
 
 	const char *BinOperandStr(BinOperand operand) const
@@ -139,7 +139,7 @@ public:
 			return ">>";
 		case BinaryOperator::EQ:
 			return "==";
-		case BinaryOperator::NOT:
+		case BinaryOperator::NEQ:
 			return "!=";
 		}
 
@@ -467,6 +467,12 @@ public:
 	PRINT_NODE(Stmt);
 };
 
+class NullStmt : public Stmt
+{
+public:
+	PRINT_NODE(Stmt);
+};
+
 class ReturnStmt : public Stmt
 {
 	std::shared_ptr<ASTNode> m_returnNode;
@@ -484,27 +490,53 @@ public:
 class IfStmt : public Stmt
 {
 	std::shared_ptr<ASTNode> evalNode;
-	std::shared_ptr<CompoundStmt> truthStmt;
-	std::shared_ptr<CompoundStmt> altStmt;
+	std::shared_ptr<ASTNode> truthStmt;
+	std::shared_ptr<ASTNode> altStmt;
 
 public:
-	IfStmt(std::shared_ptr<ASTNode>& eval, std::shared_ptr<CompoundStmt> truth = nullptr, std::shared_ptr<CompoundStmt> alt = nullptr)
+	IfStmt(std::shared_ptr<ASTNode>& eval, std::shared_ptr<ASTNode> truth = nullptr, std::shared_ptr<ASTNode> alt = nullptr)
 		: evalNode{ eval }
 	{
 		ASTNode::AppendChild(eval);
 
 		if (truth) {
-			ASTNode::AppendChild(NODE_UPCAST(truth));
+			ASTNode::AppendChild(truth);
 			truthStmt = truth;
 		}
 
 		if (alt) {
-			ASTNode::AppendChild(NODE_UPCAST(alt));
+			ASTNode::AppendChild(alt);
 			altStmt = alt;
 		}
 	}
 
-	PRINT_NODE(IfStmt);
+	void SetTruthCompound(std::shared_ptr<ASTNode>& node)
+	{
+		ASTNode::AppendChild(node);
+		truthStmt = node;
+	}
+
+	void SetAltCompound(std::shared_ptr<ASTNode>& node)
+	{
+		ASTNode::AppendChild(node);
+		altStmt = node;
+	}
+
+	virtual const std::string NodeName() const
+	{
+		std::string _node{ RemoveClassFromName(typeid(IfStmt).name()) };
+		_node += " <line:" + std::to_string(line) + ",col:" + std::to_string(col) + "> ";
+
+		if (truthStmt == nullptr) {
+			_node += "notruth ";
+		}
+
+		if (altStmt == nullptr) {
+			_node += "noalt ";
+		}
+
+		return _node;
+	}
 };
 
 class DeclStmt : public Stmt

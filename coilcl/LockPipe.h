@@ -88,6 +88,10 @@ public:
 
 	size_type size() const
 	{
+		if (!l.empty()) {
+			return (c.size() - l.top());
+		}
+
 		return c.size();
 	}
 

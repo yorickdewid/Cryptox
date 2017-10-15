@@ -601,7 +601,7 @@ void Parser::CastExpression()
 			// Remove snapshot since we can continue this path
 			m_comm.DisposeSnapshot();
 			CastExpression();
-			
+
 			auto cast = std::make_shared<CastExpr>(m_elementDescentPipe.next());
 			m_elementDescentPipe.pop();
 			m_elementDescentPipe.push(cast);
@@ -726,7 +726,7 @@ void Parser::ShiftExpression()
 		auto binOp = std::make_shared<BinaryOperator>(BinaryOperator::BinOperand::SRIGHT, m_elementDescentPipe.next());
 		m_elementDescentPipe.pop();
 		EMIT("BINARY OPERATOR SHIFT RIGHT");
-		
+
 		NextToken();
 		AdditiveExpression();
 
@@ -772,15 +772,33 @@ void Parser::EqualityExpression()
 
 	switch (CURRENT_TOKEN()) {
 	case TK_EQ_OP:
+	{
+		auto binOp = std::make_shared<BinaryOperator>(BinaryOperator::BinOperand::EQ, m_elementDescentPipe.next());
+		m_elementDescentPipe.pop();
+		EMIT("BINARY OPERATOR EQUAL");
+
 		NextToken();
-		EMIT("CMP ==");
 		RelationalExpression();
+
+		binOp->SetRightSide(m_elementDescentPipe.next());
+		m_elementDescentPipe.pop();
+		m_elementDescentPipe.push(binOp);
 		break;
+	}
 	case TK_NE_OP:
+	{
+		auto binOp = std::make_shared<BinaryOperator>(BinaryOperator::BinOperand::NEQ, m_elementDescentPipe.next());
+		m_elementDescentPipe.pop();
+
 		NextToken();
-		EMIT("CMP !=");
+		EMIT("BINARY OPERATOR NOT EQUAL");
 		RelationalExpression();
+
+		binOp->SetRightSide(m_elementDescentPipe.next());
+		m_elementDescentPipe.pop();
+		m_elementDescentPipe.push(binOp);
 		break;
+	}
 	}
 }
 
@@ -960,23 +978,39 @@ bool Parser::SelectionStatement()
 {
 	switch (CURRENT_TOKEN()) {
 	case TK_IF:
+	{
 		NextToken();
 		ExpectToken(TK_PARENTHESE_OPEN);
 		Expression();
 		ExpectToken(TK_PARENTHESE_CLOSE);
+
+		auto ifStmt = std::make_shared<IfStmt>(m_elementDescentPipe.next());
+		m_elementDescentPipe.pop();
+
 		Statement();
-		if (MATCH_TOKEN(TK_ELSE)) {
-			NextToken();
-			Statement();
+
+		if (m_elementDescentPipe.size() > 0) {
+			//ifStmt->SetTruthCompound(m_elementDescentPipe.next());
+			//m_elementDescentPipe.pop();
+
+			if (MATCH_TOKEN(TK_ELSE)) {
+				NextToken();
+				Statement();
+			}
 		}
+
+		m_elementDescentPipe.push(ifStmt);
 		return true;
+	}
 	case TK_SWITCH:
+	{
 		NextToken();
 		ExpectToken(TK_BRACE_OPEN);
 		Expression();
 		ExpectToken(TK_BRACE_CLOSE);
 		Statement();
 		return true;
+	}
 	}
 
 	return false;
@@ -1104,7 +1138,7 @@ void Parser::InitDeclaratorList()
 		if (MATCH_TOKEN(TK_ASSIGN)) {
 			NextToken();
 			Initializer();
-			
+
 			auto var = std::make_shared<VarDecl>(m_identifierStack.top(), m_elementDescentPipe.next());
 			m_identifierStack.pop();
 			m_elementDescentPipe.pop();
@@ -1357,7 +1391,7 @@ bool Parser::FunctionDefinition()
 		auto funcDecl = std::make_shared<FunctionDecl>(m_identifierStack.top(), m_elementDescentPipe.next());
 		m_identifierStack.pop();
 		m_elementDescentPipe.pop();
-		
+
 		//funcDecl->BindPrototype();
 		m_elementDescentPipe.push(funcDecl);
 	}
