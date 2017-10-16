@@ -12,6 +12,7 @@
 
 #define AST_ROOT() m_ast
 
+//TODO: remove EMIT helpers
 #define EMIT(m) std::cout << "EMIT::" << m << std::endl;
 #define EMIT_IDENTIFIER() std::cout << "EMIT::IDENTIFIER" << "("<< CURRENT_DATA()->As<std::string>() << ")" << std::endl;
 
@@ -481,12 +482,23 @@ void Parser::PrimaryExpression()
 		ExpectToken(TK_PARENTHESE_CLOSE);
 	}
 }
-
+//TODO: merge with Expression()
 void Parser::ArgumentExpressionList()
 {
+	auto cont = false;
 	do {
+		cont = false;
+		auto itemState = m_elementDescentPipe.state();
 		AssignmentExpression();
-	} while (MATCH_TOKEN(TK_COMMA));
+		if (m_elementDescentPipe.is_changed(itemState)) {
+			m_elementDescentPipe.lock();
+		}
+
+		if (MATCH_TOKEN(TK_COMMA)) {
+			NextToken();
+			cont = true;
+		}
+	} while (cont);
 }
 
 void Parser::PostfixExpression()
@@ -519,10 +531,19 @@ void Parser::PostfixExpression()
 			m_elementDescentPipe.push(std::make_shared<CallExpr>());
 		}
 		else {
+			auto startState = m_elementDescentPipe.state();
 			ArgumentExpressionList();
-			EMIT("CALL EXPRESSION");
+			m_elementDescentPipe.release_until(startState);
+
+			auto arg = std::make_shared<ArgumentStmt>();
+			while (!m_elementDescentPipe.empty()) {
+				arg->AppendArgument(m_elementDescentPipe.next());
+				m_elementDescentPipe.pop();
+			}
+
 			//std::make_shared<DeclRefExpr>(m_identifierStack.top());
-			m_elementDescentPipe.push(std::make_shared<CallExpr>());
+			m_elementDescentPipe.push(std::make_shared<CallExpr>(arg));
+			EMIT("CALL EXPRESSION");
 			ExpectToken(TK_PARENTHESE_CLOSE);
 		}
 		break;

@@ -27,6 +27,7 @@ std::string RemoveClassFromName(_Ty *_name)
 
 class Decl;
 class CompoundStmt;
+class ArgumentStmt;
 
 class ASTNode
 {
@@ -272,10 +273,14 @@ public:
 
 class CallExpr : public Expr
 {
+	std::shared_ptr<ArgumentStmt> m_stmt;
+
 public:
-	CallExpr()
+	CallExpr(std::shared_ptr<ArgumentStmt> node = nullptr)
 		: Expr{}
 	{
+		ASTNode::AppendChild(NODE_UPCAST(node));
+		m_stmt = node;
 	}
 
 	const std::string NodeName() const
@@ -583,6 +588,20 @@ public:
 	}
 
 	PRINT_NODE(DeclStmt);
+};
+
+class ArgumentStmt : public Stmt
+{
+	std::list<std::shared_ptr<ASTNode>> m_arg;
+
+public:
+	void AppendArgument(std::shared_ptr<ASTNode>& node)
+	{
+		ASTNode::AppendChild(node);
+		m_arg.push_back(node);
+	}
+
+	PRINT_NODE(ArgumentStmt);
 };
 
 class CompoundStmt : public Stmt
