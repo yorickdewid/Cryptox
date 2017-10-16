@@ -381,6 +381,28 @@ public:
 	}
 };
 
+class FieldDecl : public Decl
+{
+public:
+	FieldDecl(const std::string& name)
+		: Decl{ name }
+	{
+	}
+
+	PRINT_NODE(FieldDecl);
+};
+
+class RecordDecl : public Decl
+{
+public:
+	RecordDecl(const std::string& name)
+		: Decl{ name }
+	{
+	}
+
+	PRINT_NODE(RecordDecl);
+};
+
 class FunctionDecl : public Decl
 {
 	std::shared_ptr<ASTNode> m_params;//TODO: Add parameters
