@@ -25,7 +25,6 @@ std::string RemoveClassFromName(_Ty *_name)
 	return f;
 }
 
-class Decl;
 class CompoundStmt;
 class ArgumentStmt;
 
@@ -77,7 +76,7 @@ protected:
 
 protected:
 	std::list<std::weak_ptr<ASTNode>> children;
-	std::weak_ptr<ASTNode> parent;
+	std::weak_ptr<ASTNode> parent;//TODO
 };
 
 //
@@ -259,92 +258,6 @@ public:
 };
 
 //
-// Expression nodes
-//
-
-class Expr : public ASTNode
-{
-protected:
-	// return type
-
-public:
-	PRINT_NODE(Expr);
-};
-
-class CallExpr : public Expr
-{
-	std::shared_ptr<ArgumentStmt> m_stmt;
-
-public:
-	CallExpr(std::shared_ptr<ArgumentStmt> node = nullptr)
-		: Expr{}
-	{
-		ASTNode::AppendChild(NODE_UPCAST(node));
-		m_stmt = node;
-	}
-
-	const std::string NodeName() const
-	{
-		return std::string{ RemoveClassFromName(typeid(CallExpr).name()) } +" <line:" + std::to_string(line) + ",col:" + std::to_string(col) + "> 'return type'";
-	}
-};
-
-class CastExpr : public Expr
-{
-	std::shared_ptr<ASTNode> rtype;
-	bool m_implicit = true;
-
-public:
-	CastExpr(std::shared_ptr<ASTNode>& node, bool implicit = false)
-		: Expr{}
-		, m_implicit{ implicit }
-	{
-		ASTNode::AppendChild(node);
-		rtype = node;
-	}
-
-	virtual const std::string NodeName() const
-	{
-		std::string _node{ RemoveClassFromName(typeid(CastExpr).name()) };
-		_node += " <line:" + std::to_string(line) + ",col:" + std::to_string(col) + "> ";
-
-		if (m_implicit) {
-			_node += "implicit ";
-		}
-
-		return _node;
-	}
-};
-
-class DeclRefExpr : public Expr
-{
-	std::weak_ptr<Decl> m_ref; //TODO: VarDecl too strict?
-
-public:
-	DeclRefExpr(std::shared_ptr<Decl>& ref)
-	{
-		ASTNode::AppendChild(NODE_UPCAST(ref));
-		m_ref = ref;
-	}
-
-	PRINT_NODE(DeclRefExpr);
-};
-
-class ParenExpr : public Expr
-{
-	std::shared_ptr<ASTNode> m_body;
-
-public:
-	ParenExpr(std::shared_ptr<ASTNode>& node)
-	{
-		ASTNode::AppendChild(node);
-		m_body = node;
-	}
-
-	PRINT_NODE(ParenExpr);
-};
-
-//
 // Declaration nodes
 //
 
@@ -358,6 +271,11 @@ public:
 	Decl(const std::string& name)
 		: m_identifier{ name }
 	{
+	}
+
+	auto Identifier() const
+	{
+		return m_identifier;
 	}
 
 	PRINT_NODE(Decl);
@@ -511,6 +429,96 @@ public:
 };
 
 //
+// Expression nodes
+//
+
+class Expr : public ASTNode
+{
+protected:
+	// return type
+
+public:
+	PRINT_NODE(Expr);
+};
+
+class CallExpr : public Expr
+{
+	std::shared_ptr<ArgumentStmt> m_stmt;
+
+public:
+	CallExpr(std::shared_ptr<ArgumentStmt> node = nullptr)
+		: Expr{}
+	{
+		ASTNode::AppendChild(NODE_UPCAST(node));
+		m_stmt = node;
+	}
+
+	const std::string NodeName() const
+	{
+		return std::string{ RemoveClassFromName(typeid(CallExpr).name()) } +" <line:" + std::to_string(line) + ",col:" + std::to_string(col) + "> 'return type'";
+	}
+};
+
+class CastExpr : public Expr
+{
+	std::shared_ptr<ASTNode> rtype;
+	bool m_implicit = true;
+
+public:
+	CastExpr(std::shared_ptr<ASTNode>& node, bool implicit = false)
+		: Expr{}
+		, m_implicit{ implicit }
+	{
+		ASTNode::AppendChild(node);
+		rtype = node;
+	}
+
+	const std::string NodeName() const
+	{
+		std::string _node{ RemoveClassFromName(typeid(CastExpr).name()) };
+		_node += " <line:" + std::to_string(line) + ",col:" + std::to_string(col) + "> ";
+
+		if (m_implicit) {
+			_node += "implicit ";
+		}
+
+		return _node;
+	}
+};
+
+class DeclRefExpr : public Expr
+{
+	std::weak_ptr<Decl> m_ref;
+
+public:
+	// We're not saving the reference as child in the root to prevent
+	// circulair references in the upper node.
+	DeclRefExpr(std::shared_ptr<Decl>& ref)
+	{
+		m_ref = ref;
+	}
+
+	const std::string NodeName() const
+	{
+		return std::string{ RemoveClassFromName(typeid(DeclRefExpr).name()) } +" <line:" + std::to_string(line) + ",col:" + std::to_string(col) + "> linked '" + m_ref.lock()->Identifier() + "'";
+	}
+};
+
+class ParenExpr : public Expr
+{
+	std::shared_ptr<ASTNode> m_body;
+
+public:
+	ParenExpr(std::shared_ptr<ASTNode>& node)
+	{
+		ASTNode::AppendChild(node);
+		m_body = node;
+	}
+
+	PRINT_NODE(ParenExpr);
+};
+
+//
 // Statement nodes
 //
 
@@ -597,12 +605,6 @@ class DeclStmt : public Stmt
 	std::list<std::shared_ptr<VarDecl>> m_var;
 
 public:
-	/*DeclStmt(std::shared_ptr<VarDecl>& value)
-		: m_value{ value }
-	{
-		ASTNode::AppendChild(NODE_UPCAST(value));
-	}*/
-
 	void AddDeclaration(std::shared_ptr<VarDecl>& node)
 	{
 		ASTNode::AppendChild(NODE_UPCAST(node));
