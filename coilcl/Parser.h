@@ -57,11 +57,43 @@ public:
 	inline auto FetchColumn() const { return m_column; }
 };
 
-template<typename T>
+template<typename _Ty>
+class Stash
+{
+public:
+	template<typename _STy>
+	void Enlist(_STy& type)
+	{
+		using shared_type = typename _STy::element_type;
+		m_stash.push_back(static_cast<std::weak_ptr<_Ty>>(std::weak_ptr<shared_type>(type)));
+	}
+
+	template<typename _DeclTy, typename _BaseTy>
+	auto Resolve(std::function<bool(std::shared_ptr<_DeclTy>)> checkCb) -> std::shared_ptr<_BaseTy>
+	{
+		for (auto& ptr : m_stash) {
+			if (auto node = ptr.lock()) {
+				auto declRs = std::dynamic_pointer_cast<_DeclTy>(node);
+				if (declRs != nullptr) {
+					if (checkCb(declRs)) {
+						return std::dynamic_pointer_cast<_BaseTy>(declRs);
+					}
+				}
+			}
+		}
+
+		return nullptr;
+	}
+
+private:
+	std::vector<std::weak_ptr<_Ty>> m_stash;
+};
+
+template<typename _Ty>
 class StateContainer
 {
 	std::stack<size_t> m_snapshopList;
-	std::vector<T> m_tokenList;
+	std::vector<_Ty> m_tokenList;
 	size_t index = 0;
 
 public:
@@ -76,7 +108,7 @@ public:
 	StateContainer& operator=(const StateContainer&) = delete;
 	StateContainer& operator=(StateContainer&&) = delete;
 
-	void Push(T&& state)
+	void Push(_Ty&& state)
 	{
 		m_tokenList.push_back(std::move(state));
 		index++;
@@ -103,7 +135,7 @@ public:
 		index = m_snapshopList.top();
 		m_snapshopList.pop();
 	}
-	
+
 	// Dispose last snapshot
 	inline void DisposeSnapshot()
 	{
@@ -265,6 +297,8 @@ private:
 	std::shared_ptr<TranslationUnitDecl> m_ast;
 	StateContainer<TokenState> m_comm;
 	std::shared_ptr<Compiler::Profile> m_profile;
+
+	std::unique_ptr<Stash<ASTNode>> stash = std::make_unique<Stash<ASTNode>>();
 
 	std::stack<std::string> m_identifierStack;
 	LockPipe<std::shared_ptr<ASTNode>> m_elementDescentPipe;

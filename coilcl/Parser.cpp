@@ -1168,9 +1168,35 @@ void Parser::InitDeclaratorList()
 			NextToken();
 			Initializer();
 
-			auto var = std::make_shared<VarDecl>(m_identifierStack.top(), m_elementDescentPipe.next());
-			m_identifierStack.pop();
-			m_elementDescentPipe.pop();
+			std::shared_ptr<VarDecl> var;
+			if (!m_elementDescentPipe.empty()) {
+				var = std::make_shared<VarDecl>(m_identifierStack.top(), m_elementDescentPipe.next());
+				m_identifierStack.pop();
+				m_elementDescentPipe.pop();
+			}
+			else {
+				auto refIdentifier = m_identifierStack.top();
+				auto decl = stash->Resolve<VarDecl, Decl>([&refIdentifier](std::shared_ptr<VarDecl> varPtr) -> bool
+				{
+					return varPtr->Identifier() == refIdentifier;
+				});
+
+				/*if (decl == nullptr) {
+					throw something;
+				}*/
+
+				m_identifierStack.pop();
+				auto ref = std::make_shared<DeclRefExpr>(decl);
+
+				var = std::make_shared<VarDecl>(m_identifierStack.top(), ref);
+				m_identifierStack.pop();
+				//m_elementDescentPipe.pop();
+			}
+
+			assert(var != nullptr);
+
+			stash->Enlist(var);
+
 			m_elementDescentPipe.push(var);
 			m_elementDescentPipe.lock();
 		}
