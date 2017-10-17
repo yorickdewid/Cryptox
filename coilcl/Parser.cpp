@@ -99,6 +99,46 @@ private:
 	int m_column;
 };
 
+class CompilerException : public std::exception
+{
+public:
+	CompilerException() noexcept
+	{
+	}
+
+	explicit CompilerException(char const* const message, int line, int column) noexcept
+		: m_line{ line }
+		, m_column{ column }
+	{
+		std::stringstream ss;
+		ss << "Compiler error: " << message;
+		ss << " " << line << ':' << column;
+		_msg = ss.str();
+	}
+
+	virtual int Line() const noexcept
+	{
+		return m_line;
+	}
+
+	virtual int Column() const noexcept
+	{
+		return m_column;
+	}
+
+	virtual const char *what() const noexcept
+	{
+		return _msg.c_str();
+	}
+
+protected:
+	std::string _msg;
+
+private:
+	int m_line;
+	int m_column;
+};
+
 Parser::Parser(std::shared_ptr<Compiler::Profile>& profile)
 	: m_profile{ profile }
 	, lex{ profile }
@@ -117,7 +157,7 @@ Parser& Parser::CheckCompatibility()
 
 void Parser::Error(const char* err)
 {
-	throw UnexpectedTokenException(err, m_comm.Current().FetchLine(), m_comm.Current().FetchColumn());
+	throw UnexpectedTokenException{ err, m_comm.Current().FetchLine(), m_comm.Current().FetchColumn() };
 }
 
 void Parser::ExpectToken(Token token)
@@ -1181,16 +1221,15 @@ void Parser::InitDeclaratorList()
 					return varPtr->Identifier() == refIdentifier;
 				});
 
-				/*if (decl == nullptr) {
-					throw something;
-				}*/
+				if (decl == nullptr) {
+					throw CompilerException{ std::string{ "use of undeclared identifier '" + refIdentifier + "'" }.c_str(), 0, 0 };
+				}
 
 				m_identifierStack.pop();
 				auto ref = std::make_shared<DeclRefExpr>(decl);
 
 				var = std::make_shared<VarDecl>(m_identifierStack.top(), ref);
 				m_identifierStack.pop();
-				//m_elementDescentPipe.pop();
 			}
 
 			assert(var != nullptr);
