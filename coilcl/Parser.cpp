@@ -623,13 +623,29 @@ void Parser::PostfixExpression()
 		m_elementDescentPipe.push(unaryOp);
 		
 		NextToken();
-		EMIT("++");
 		break;
 	}
 	case TK_DEC_OP:
+	{
+		const auto& refIdentifier = m_identifierStack.top();
+		auto decl = stash->Resolve<VarDecl, Decl>([&refIdentifier](std::shared_ptr<VarDecl>& varPtr) -> bool
+		{
+			return varPtr->Identifier() == refIdentifier;
+		});
+
+		if (decl == nullptr) {
+			throw ParseException{ std::string{ "use of undeclared identifier '" + refIdentifier + "'" }.c_str(), 0, 0 };
+		}
+
+		m_identifierStack.pop();
+		auto ref = make_ref(decl);
+
+		auto unaryOp = std::make_shared<CoilCl::AST::UnaryOperator>(CoilCl::AST::UnaryOperator::UnaryOperator::DEC, CoilCl::AST::UnaryOperator::OperandSide::POSTFIX, ref);
+		m_elementDescentPipe.push(unaryOp);
+
 		NextToken();
-		EMIT("--");
 		break;
+	}
 	}
 }
 

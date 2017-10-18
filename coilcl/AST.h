@@ -17,10 +17,14 @@
 template<typename _Ty>
 std::string RemoveClassFromName(_Ty *_name)
 {
-	constexpr const char stripStr[] = "class";
+	constexpr const char stripBlockStr[] = "::";
 	std::string f{ _name };
-	if (size_t pos = f.find_first_of(stripStr) != std::string::npos) {
-		return f.substr(pos + sizeof(stripStr) - 1);
+	if (size_t pos = f.rfind(stripBlockStr) != std::string::npos) {
+		return f.substr(pos + sizeof(stripBlockStr) - 1);
+	}
+	constexpr const char stripClassStr[] = "class";
+	if (size_t pos = f.find_last_of(stripClassStr) != std::string::npos) {
+		return f.substr(pos + sizeof(stripClassStr) - 1);
 	}
 	return f;
 }
