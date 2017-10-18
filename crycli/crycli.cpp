@@ -25,7 +25,6 @@ int main(int argc, const char *argv[])
 			("Xast", "Dump AST tree")
 			("Wall", "Report all warnings")
 			("Werror", "Threat warnings as errors");
-			//("file", po::value<std::string>()->required(), "Source files"); //TODO: hide from --help
 
 		po::options_description hidden;
 		hidden.add_options()

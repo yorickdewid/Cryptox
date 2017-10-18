@@ -569,10 +569,13 @@ void Parser::PostfixExpression()
 				return funcPtr->Identifier() == refIdentifier;
 			});
 
-			auto ref = std::make_shared<DeclRefExpr>(funcDelc);
+			if (funcDelc == nullptr) {
+				throw ParseException{ std::string{ "implicit declaration of function '" + refIdentifier + "' is invalid" }.c_str(), 0, 0 };
+			}
+
+			auto ref = make_ref(funcDelc);
 
 			m_elementDescentPipe.push(std::make_shared<CallExpr>(ref));
-			EMIT("CALL FUNCTION EMPTY");
 		}
 		else {
 			auto startState = m_elementDescentPipe.state();
@@ -1217,7 +1220,7 @@ void Parser::InitDeclaratorList()
 				}
 
 				m_identifierStack.pop();
-				auto ref = std::make_shared<DeclRefExpr>(decl);
+				auto ref = make_ref(decl);
 
 				var = std::make_shared<VarDecl>(m_identifierStack.top(), ref);
 				m_identifierStack.pop();

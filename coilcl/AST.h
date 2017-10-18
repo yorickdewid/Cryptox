@@ -671,3 +671,9 @@ public:
 	}*/
 };
 #endif
+
+template<typename _Ty, typename _Decl = DeclRefExpr> inline
+std::shared_ptr<_Decl> make_ref(_Ty&& _Args)
+{
+	return std::make_shared<_Decl>(_Decl{ _Args });
+}

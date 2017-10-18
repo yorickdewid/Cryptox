@@ -160,6 +160,9 @@ metainfo_t *CCBMetaInfo(void *user_data)
 
 void CCBErrorHandler(void *user_data, const char *message, char fatal)
 {
+	//TMP
+	std::cout << message << std::endl;
+
 	// If the error is non fatal, log and continue
 	if (!static_cast<bool>(fatal)) {
 		//TODO: write to log
