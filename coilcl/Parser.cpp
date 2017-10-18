@@ -99,19 +99,19 @@ private:
 	int m_column;
 };
 
-class CompilerException : public std::exception
+class ParseException : public std::exception
 {
 public:
-	CompilerException() noexcept
+	ParseException() noexcept
 	{
 	}
 
-	explicit CompilerException(char const* const message, int line, int column) noexcept
+	explicit ParseException(char const* const message, int line, int column) noexcept
 		: m_line{ line }
 		, m_column{ column }
 	{
 		std::stringstream ss;
-		ss << "Compiler error: " << message;
+		ss << "Parser error: " << message;
 		ss << " " << line << ':' << column;
 		_msg = ss.str();
 	}
@@ -483,14 +483,12 @@ void Parser::PrimaryExpression()
 		{
 			auto object = std::dynamic_pointer_cast<ValueObject<int>>(CURRENT_DATA());
 			m_elementDescentPipe.push(std::make_shared<IntegerLiteral>(std::move(object)));
-			EMIT("LITERAL INT");
 			break;
 		}
 		case Value::TypeSpecifier::T_DOUBLE:
 		{
 			auto object = std::dynamic_pointer_cast<ValueObject<double>>(CURRENT_DATA());
 			m_elementDescentPipe.push(std::make_shared<FloatingLiteral>(std::move(object)));
-			EMIT("LITERAL DOUBLE");
 			break;
 		}
 		case Value::TypeSpecifier::T_CHAR:
@@ -498,12 +496,10 @@ void Parser::PrimaryExpression()
 			if (CURRENT_DATA()->IsArray()) {
 				auto object = std::dynamic_pointer_cast<ValueObject<std::string>>(CURRENT_DATA());
 				m_elementDescentPipe.push(std::make_shared<StringLiteral>(std::move(object)));
-				EMIT("LITERAL STRING");
 			}
 			else {
 				auto object = std::dynamic_pointer_cast<ValueObject<char>>(CURRENT_DATA());
 				m_elementDescentPipe.push(std::make_shared<CharacterLiteral>(std::move(object)));
-				EMIT("LITERAL CHAR");
 			}
 			break;
 		}
@@ -518,7 +514,6 @@ void Parser::PrimaryExpression()
 		auto parenthesis = std::make_shared<ParenExpr>(m_elementDescentPipe.next());
 		m_elementDescentPipe.pop();
 		m_elementDescentPipe.push(parenthesis);
-		EMIT("PARENTHESE EXPRESSION");
 		ExpectToken(TK_PARENTHESE_CLOSE);
 	}
 }
@@ -567,8 +562,17 @@ void Parser::PostfixExpression()
 		NextToken();
 		if (MATCH_TOKEN(TK_PARENTHESE_CLOSE)) {
 			NextToken();
+
+			const auto& refIdentifier = m_identifierStack.top();
+			auto funcDelc = stash->Resolve<FunctionDecl, Decl>([&refIdentifier](std::shared_ptr<FunctionDecl>& funcPtr) -> bool
+			{
+				return funcPtr->Identifier() == refIdentifier;
+			});
+
+			auto ref = std::make_shared<DeclRefExpr>(funcDelc);
+
+			m_elementDescentPipe.push(std::make_shared<CallExpr>(ref));
 			EMIT("CALL FUNCTION EMPTY");
-			m_elementDescentPipe.push(std::make_shared<CallExpr>());
 		}
 		else {
 			auto startState = m_elementDescentPipe.state();
@@ -582,7 +586,7 @@ void Parser::PostfixExpression()
 			}
 
 			//std::make_shared<DeclRefExpr>(m_identifierStack.top());
-			m_elementDescentPipe.push(std::make_shared<CallExpr>(arg));
+			//m_elementDescentPipe.push(std::make_shared<CallExpr>(arg));
 			EMIT("CALL EXPRESSION");
 			ExpectToken(TK_PARENTHESE_CLOSE);
 		}
@@ -679,7 +683,6 @@ void Parser::MultiplicativeExpression()
 	{
 		auto binOp = std::make_shared<BinaryOperator>(BinaryOperator::BinOperand::MUL, m_elementDescentPipe.next());
 		m_elementDescentPipe.pop();
-		EMIT("BINARY OPERATOR MUL");
 
 		NextToken();
 		CastExpression();
@@ -693,7 +696,6 @@ void Parser::MultiplicativeExpression()
 	{
 		auto binOp = std::make_shared<BinaryOperator>(BinaryOperator::BinOperand::DIV, m_elementDescentPipe.next());
 		m_elementDescentPipe.pop();
-		EMIT("BINARY OPERATOR DIV");
 
 		NextToken();
 		CastExpression();
@@ -707,7 +709,6 @@ void Parser::MultiplicativeExpression()
 	{
 		auto binOp = std::make_shared<BinaryOperator>(BinaryOperator::BinOperand::MOD, m_elementDescentPipe.next());
 		m_elementDescentPipe.pop();
-		EMIT("BINARY OPERATOR MOD");
 
 		NextToken();
 		CastExpression();
@@ -729,7 +730,6 @@ void Parser::AdditiveExpression()
 	{
 		auto binOp = std::make_shared<BinaryOperator>(BinaryOperator::BinOperand::PLUS, m_elementDescentPipe.next());
 		m_elementDescentPipe.pop();
-		EMIT("BINARY OPERATOR PLUS");
 
 		NextToken();
 		MultiplicativeExpression();
@@ -743,7 +743,6 @@ void Parser::AdditiveExpression()
 	{
 		auto binOp = std::make_shared<BinaryOperator>(BinaryOperator::BinOperand::MINUS, m_elementDescentPipe.next());
 		m_elementDescentPipe.pop();
-		EMIT("BINARY OPERATOR MINUS");
 
 		NextToken();
 		MultiplicativeExpression();
@@ -765,7 +764,6 @@ void Parser::ShiftExpression()
 	{
 		auto binOp = std::make_shared<BinaryOperator>(BinaryOperator::BinOperand::SLEFT, m_elementDescentPipe.next());
 		m_elementDescentPipe.pop();
-		EMIT("BINARY OPERATOR SHIFT LEFT");
 
 		NextToken();
 		AdditiveExpression();
@@ -779,7 +777,6 @@ void Parser::ShiftExpression()
 	{
 		auto binOp = std::make_shared<BinaryOperator>(BinaryOperator::BinOperand::SRIGHT, m_elementDescentPipe.next());
 		m_elementDescentPipe.pop();
-		EMIT("BINARY OPERATOR SHIFT RIGHT");
 
 		NextToken();
 		AdditiveExpression();
@@ -829,7 +826,6 @@ void Parser::EqualityExpression()
 	{
 		auto binOp = std::make_shared<BinaryOperator>(BinaryOperator::BinOperand::EQ, m_elementDescentPipe.next());
 		m_elementDescentPipe.pop();
-		EMIT("BINARY OPERATOR EQUAL");
 
 		NextToken();
 		RelationalExpression();
@@ -845,7 +841,6 @@ void Parser::EqualityExpression()
 		m_elementDescentPipe.pop();
 
 		NextToken();
-		EMIT("BINARY OPERATOR NOT EQUAL");
 		RelationalExpression();
 
 		binOp->SetRightSide(m_elementDescentPipe.next());
@@ -863,7 +858,6 @@ void Parser::AndExpression()
 	if (MATCH_TOKEN(TK_AMPERSAND)) {
 		auto binOp = std::make_shared<BinaryOperator>(BinaryOperator::BinOperand::AND, m_elementDescentPipe.next());
 		m_elementDescentPipe.pop();
-		EMIT("BINARY OPERATOR AND");
 
 		NextToken();
 		EqualityExpression();
@@ -881,7 +875,6 @@ void Parser::ExclusiveOrExpression()
 	if (MATCH_TOKEN(TK_CARET)) {
 		auto binOp = std::make_shared<BinaryOperator>(BinaryOperator::BinOperand::XOR, m_elementDescentPipe.next());
 		m_elementDescentPipe.pop();
-		EMIT("BINARY OPERATOR XOR");
 
 		NextToken();
 		AndExpression();
@@ -969,7 +962,6 @@ bool Parser::JumpStatement()
 		NextToken();
 		if (MATCH_TOKEN(TK_COMMIT)) {
 			m_elementDescentPipe.push(std::make_shared<ReturnStmt>());
-			EMIT("RETURN");
 		}
 		else {
 			Expression();
@@ -980,7 +972,6 @@ bool Parser::JumpStatement()
 				m_elementDescentPipe.pop();
 			}
 
-			EMIT("RETURN VALUE");
 			m_elementDescentPipe.push(returnStmt);
 		}
 		break;
@@ -1215,14 +1206,14 @@ void Parser::InitDeclaratorList()
 				m_elementDescentPipe.pop();
 			}
 			else {
-				auto refIdentifier = m_identifierStack.top();
-				auto decl = stash->Resolve<VarDecl, Decl>([&refIdentifier](std::shared_ptr<VarDecl> varPtr) -> bool
+				const auto& refIdentifier = m_identifierStack.top();
+				auto decl = stash->Resolve<VarDecl, Decl>([&refIdentifier](std::shared_ptr<VarDecl>& varPtr) -> bool
 				{
 					return varPtr->Identifier() == refIdentifier;
 				});
 
 				if (decl == nullptr) {
-					throw CompilerException{ std::string{ "use of undeclared identifier '" + refIdentifier + "'" }.c_str(), 0, 0 };
+					throw ParseException{ std::string{ "use of undeclared identifier '" + refIdentifier + "'" }.c_str(), 0, 0 };
 				}
 
 				m_identifierStack.pop();
@@ -1499,20 +1490,24 @@ bool Parser::FunctionDefinition()
 	while (Declarator());
 
 	auto res = CompoundStatement();
+	std::shared_ptr<FunctionDecl> func;
 	if (res) {
-		auto funcDecl = std::make_shared<FunctionDecl>(m_identifierStack.top(), m_elementDescentPipe.next());
+		func = std::make_shared<FunctionDecl>(m_identifierStack.top(), m_elementDescentPipe.next());
 		m_identifierStack.pop();
 		m_elementDescentPipe.pop();
 
 		//funcDecl->BindPrototype();
-		m_elementDescentPipe.push(funcDecl);
 	}
 	else {
-		auto funcDecl = std::make_shared<FunctionDecl>(m_identifierStack.top());
+		func = std::make_shared<FunctionDecl>(m_identifierStack.top());
 		m_identifierStack.pop();
-		m_elementDescentPipe.push(funcDecl);
 	}
 
+	assert(func != nullptr);
+
+	stash->Enlist(func);
+
+	m_elementDescentPipe.push(func);
 	return true;
 }
 

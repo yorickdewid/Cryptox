@@ -441,16 +441,40 @@ public:
 	PRINT_NODE(Expr);
 };
 
-class CallExpr : public Expr
+class DeclRefExpr : public Expr
 {
-	std::shared_ptr<ArgumentStmt> m_stmt;
+	std::weak_ptr<Decl> m_ref;
 
 public:
-	CallExpr(std::shared_ptr<ArgumentStmt> node = nullptr)
+	// We're not saving the reference as child in the root to prevent
+	// circulair references in the upper node.
+	DeclRefExpr(std::shared_ptr<Decl>& ref)
+	{
+		m_ref = ref;
+	}
+
+	const std::string NodeName() const
+	{
+		return std::string{ RemoveClassFromName(typeid(DeclRefExpr).name()) } +" <line:" + std::to_string(line) + ",col:" + std::to_string(col) + "> linked '" + m_ref.lock()->Identifier() + "'";
+	}
+};
+
+class CallExpr : public Expr
+{
+	std::shared_ptr<DeclRefExpr> m_funcRef;
+	std::shared_ptr<ArgumentStmt> m_args;
+
+public:
+	CallExpr(std::shared_ptr<DeclRefExpr>& func, std::shared_ptr<ArgumentStmt> args = nullptr)
 		: Expr{}
 	{
-		ASTNode::AppendChild(NODE_UPCAST(node));
-		m_stmt = node;
+		ASTNode::AppendChild(NODE_UPCAST(func));
+		m_funcRef = func;
+
+		if (args != nullptr) {
+			ASTNode::AppendChild(NODE_UPCAST(args));
+			m_args = args;
+		}
 	}
 
 	const std::string NodeName() const
@@ -483,24 +507,6 @@ public:
 		}
 
 		return _node;
-	}
-};
-
-class DeclRefExpr : public Expr
-{
-	std::weak_ptr<Decl> m_ref;
-
-public:
-	// We're not saving the reference as child in the root to prevent
-	// circulair references in the upper node.
-	DeclRefExpr(std::shared_ptr<Decl>& ref)
-	{
-		m_ref = ref;
-	}
-
-	const std::string NodeName() const
-	{
-		return std::string{ RemoveClassFromName(typeid(DeclRefExpr).name()) } +" <line:" + std::to_string(line) + ",col:" + std::to_string(col) + "> linked '" + m_ref.lock()->Identifier() + "'";
 	}
 };
 
@@ -616,7 +622,7 @@ public:
 
 class ArgumentStmt : public Stmt
 {
-	std::list<std::shared_ptr<ASTNode>> m_arg;
+	std::vector<std::shared_ptr<ASTNode>> m_arg;
 
 public:
 	void AppendArgument(std::shared_ptr<ASTNode>& node)
