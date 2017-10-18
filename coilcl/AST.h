@@ -25,6 +25,7 @@ std::string RemoveClassFromName(_Ty *_name)
 	return f;
 }
 
+class DeclRefExpr;
 class CompoundStmt;
 class ArgumentStmt;
 
@@ -119,27 +120,27 @@ public:
 	const char *BinOperandStr(BinOperand operand) const
 	{
 		switch (operand) {
-		case BinaryOperator::PLUS:
+		case BinOperand::PLUS:
 			return "+";
-		case BinaryOperator::MINUS:
+		case BinOperand::MINUS:
 			return "-";
-		case BinaryOperator::MUL:
+		case BinOperand::MUL:
 			return "*";
-		case BinaryOperator::DIV:
+		case BinOperand::DIV:
 			return "/";
-		case BinaryOperator::MOD:
+		case BinOperand::MOD:
 			return "%";
-		case BinaryOperator::XOR:
+		case BinOperand::XOR:
 			return "^";
-		case BinaryOperator::AND:
+		case BinOperand::AND:
 			return "&";
-		case BinaryOperator::SLEFT:
+		case BinOperand::SLEFT:
 			return "<<";
-		case BinaryOperator::SRIGHT:
+		case BinOperand::SRIGHT:
 			return ">>";
-		case BinaryOperator::EQ:
+		case BinOperand::EQ:
 			return "==";
-		case BinaryOperator::NEQ:
+		case BinOperand::NEQ:
 			return "!=";
 		}
 
@@ -169,6 +170,74 @@ public:
 		return std::string{ RemoveClassFromName(typeid(BinaryOperator).name()) } +" <line:" + std::to_string(line) + ",col:" + std::to_string(col) + "> 'return type' '" + BinOperandStr(m_operand) + "'";
 	}
 };
+
+namespace CoilCl
+{
+namespace AST
+{
+
+class UnaryOperator : public Operator
+{
+	std::shared_ptr<DeclRefExpr> m_body;
+
+public:
+	enum UnaryOperand
+	{
+		INC,		// ++
+		DEC			// --
+	} m_operand;
+
+	const char *UnaryOperandStr(UnaryOperand operand) const
+	{
+		switch (operand) {
+		case UnaryOperand::INC:
+			return "++";
+		case UnaryOperand::DEC:
+			return "--";
+		}
+
+		return "<unknown>";
+	}
+
+public:
+	enum OperandSide
+	{
+		POSTFIX,
+		PREFIX,
+	} m_side;
+
+public:
+	UnaryOperator(UnaryOperand operand, OperandSide side, std::shared_ptr<DeclRefExpr>& node)
+		: m_operand{ operand }
+		, m_side{ side }
+	{
+		ASTNode::AppendChild(NODE_UPCAST(node));
+		m_body = node;
+	}
+
+	const std::string NodeName() const
+	{
+		std::string _node{ RemoveClassFromName(typeid(UnaryOperator).name()) };
+		_node += " <line:" + std::to_string(line) + ",col:" + std::to_string(col) + "> 'return type' ";
+
+		switch (m_side) {
+		case UnaryOperator::POSTFIX:
+			_node += "postfix ";
+			break;
+		case UnaryOperator::PREFIX:
+			_node += "prefix ";
+			break;
+		}
+
+		_node += "'";
+		_node += UnaryOperandStr(m_operand);
+		_node += "'";
+		return _node;
+	}
+};
+
+} // namespace AST
+} // namespace CoilCl
 
 //
 // Literal nodes
