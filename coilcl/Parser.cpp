@@ -449,21 +449,105 @@ bool Parser::AssignmentOperator()
 		return true;
 	}
 	case TK_DIV_ASSIGN:
+	{
+		const auto& refIdentifier = m_identifierStack.top();
+		auto decl = stash->Resolve<VarDecl, Decl>([&refIdentifier](std::shared_ptr<VarDecl>& funcPtr) -> bool
+		{
+			return funcPtr->Identifier() == refIdentifier;
+		});
+
+		if (decl == nullptr) {
+			throw ParseException{ std::string{ "implicit declaration of function '" + refIdentifier + "' is invalid" }.c_str(), 0, 0 };
+		}
+
+		m_identifierStack.pop();
+		auto ref = make_ref(decl);
+
+		auto comOp = std::make_shared<CompoundAssignOperator>(CompoundAssignOperator::CompoundAssignOperand::DIV, ref);
+
 		NextToken();
-		EMIT("DIV_ASSIGN");
+		AssignmentExpression();
+
+		comOp->SetRightSide(m_elementDescentPipe.next());
+		m_elementDescentPipe.pop();
+		m_elementDescentPipe.push(comOp);
 		return true;
+	}
 	case TK_MOD_ASSIGN:
+	{
+		const auto& refIdentifier = m_identifierStack.top();
+		auto decl = stash->Resolve<VarDecl, Decl>([&refIdentifier](std::shared_ptr<VarDecl>& funcPtr) -> bool
+		{
+			return funcPtr->Identifier() == refIdentifier;
+		});
+
+		if (decl == nullptr) {
+			throw ParseException{ std::string{ "implicit declaration of function '" + refIdentifier + "' is invalid" }.c_str(), 0, 0 };
+		}
+
+		m_identifierStack.pop();
+		auto ref = make_ref(decl);
+
+		auto comOp = std::make_shared<CompoundAssignOperator>(CompoundAssignOperator::CompoundAssignOperand::MOD, ref);
+
 		NextToken();
-		EMIT("MOD_ASSIGN");
+		AssignmentExpression();
+
+		comOp->SetRightSide(m_elementDescentPipe.next());
+		m_elementDescentPipe.pop();
+		m_elementDescentPipe.push(comOp);
 		return true;
+	}
 	case TK_ADD_ASSIGN:
+	{
+		const auto& refIdentifier = m_identifierStack.top();
+		auto decl = stash->Resolve<VarDecl, Decl>([&refIdentifier](std::shared_ptr<VarDecl>& funcPtr) -> bool
+		{
+			return funcPtr->Identifier() == refIdentifier;
+		});
+
+		if (decl == nullptr) {
+			throw ParseException{ std::string{ "implicit declaration of function '" + refIdentifier + "' is invalid" }.c_str(), 0, 0 };
+		}
+
+		m_identifierStack.pop();
+		auto ref = make_ref(decl);
+
+		auto comOp = std::make_shared<CompoundAssignOperator>(CompoundAssignOperator::CompoundAssignOperand::ADD, ref);
+
 		NextToken();
-		EMIT("ADD_ASSIGN");
+		AssignmentExpression();
+
+		comOp->SetRightSide(m_elementDescentPipe.next());
+		m_elementDescentPipe.pop();
+		m_elementDescentPipe.push(comOp);
 		return true;
+	}
 	case TK_SUB_ASSIGN:
+	{
+		const auto& refIdentifier = m_identifierStack.top();
+		auto decl = stash->Resolve<VarDecl, Decl>([&refIdentifier](std::shared_ptr<VarDecl>& funcPtr) -> bool
+		{
+			return funcPtr->Identifier() == refIdentifier;
+		});
+
+		if (decl == nullptr) {
+			throw ParseException{ std::string{ "implicit declaration of function '" + refIdentifier + "' is invalid" }.c_str(), 0, 0 };
+		}
+
+		m_identifierStack.pop();
+		auto ref = make_ref(decl);
+
+		auto comOp = std::make_shared<CompoundAssignOperator>(CompoundAssignOperator::CompoundAssignOperand::SUB, ref);
+
 		NextToken();
-		EMIT("SUB_ASSIGN");
+		AssignmentExpression();
+
+		comOp->SetRightSide(m_elementDescentPipe.next());
+		m_elementDescentPipe.pop();
+		m_elementDescentPipe.push(comOp);
 		return true;
+	}
 	case TK_LEFT_ASSIGN:
 		NextToken();
 		EMIT("LEFT_ASSIGN");

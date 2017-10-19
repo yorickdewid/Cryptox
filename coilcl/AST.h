@@ -252,7 +252,10 @@ public:
 	enum CompoundAssignOperand
 	{
 		MUL,		// *=
-		DIV			// /=
+		DIV,		// /=
+		MOD,		// %=
+		ADD,		// +=
+		SUB,		// -=
 	} m_operand;
 
 	const char *CompoundAssignOperandStr(CompoundAssignOperand operand) const
