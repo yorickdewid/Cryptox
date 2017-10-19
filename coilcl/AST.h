@@ -249,19 +249,43 @@ class CompoundAssignOperator : public Operator
 	std::shared_ptr<DeclRefExpr> m_identifier;
 
 public:
-	CompoundAssignOperator(std::shared_ptr<DeclRefExpr>& node)
+	enum CompoundAssignOperand
+	{
+		MUL,		// *=
+		DIV			// /=
+	} m_operand;
+
+	const char *CompoundAssignOperandStr(CompoundAssignOperand operand) const
+	{
+		switch (operand) {
+		case CompoundAssignOperand::MUL:
+			return "*=";
+		case CompoundAssignOperand::DIV:
+			return "/=";
+		}
+
+		return "<unknown>";
+	}
+
+public:
+	CompoundAssignOperator(CompoundAssignOperand operand, std::shared_ptr<DeclRefExpr>& node)
+		: m_operand{ operand }
 	{
 		ASTNode::AppendChild(NODE_UPCAST(node));
 		m_identifier = node;
 	}
 
-	void SetRightSide(std::shared_ptr<ASTNode>& node) 
+	void SetRightSide(std::shared_ptr<ASTNode>& node)
 	{
 		ASTNode::AppendChild(node);
 		m_body = node;
 	}
 
-	PRINT_NODE(CompoundAssignOperator);
+	//PRINT_NODE(CompoundAssignOperator);
+	const std::string NodeName() const
+	{
+		return std::string{ RemoveClassFromName(typeid(CompoundAssignOperator).name()) } +" <line:" + std::to_string(line) + ",col:" + std::to_string(col) + "> 'return type' '" + CompoundAssignOperandStr(m_operand) + "'";
+	}
 };
 
 //

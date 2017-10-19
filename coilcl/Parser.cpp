@@ -438,7 +438,7 @@ bool Parser::AssignmentOperator()
 		m_identifierStack.pop();
 		auto ref = make_ref(decl);
 
-		auto comOp = std::make_shared<CompoundAssignOperator>(ref);
+		auto comOp = std::make_shared<CompoundAssignOperator>(CompoundAssignOperator::CompoundAssignOperand::MUL, ref);
 
 		NextToken();
 		AssignmentExpression();
@@ -446,7 +446,6 @@ bool Parser::AssignmentOperator()
 		comOp->SetRightSide(m_elementDescentPipe.next());
 		m_elementDescentPipe.pop();
 		m_elementDescentPipe.push(comOp);
-		EMIT("MUL_ASSIGN");
 		return true;
 	}
 	case TK_DIV_ASSIGN:
