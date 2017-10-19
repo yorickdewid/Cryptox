@@ -424,9 +424,31 @@ bool Parser::AssignmentOperator()
 		EMIT("ASSIGN");
 		return true;
 	case TK_MUL_ASSIGN:
+	{
+		const auto& refIdentifier = m_identifierStack.top();
+		auto decl = stash->Resolve<VarDecl, Decl>([&refIdentifier](std::shared_ptr<VarDecl>& funcPtr) -> bool
+		{
+			return funcPtr->Identifier() == refIdentifier;
+		});
+
+		if (decl == nullptr) {
+			throw ParseException{ std::string{ "implicit declaration of function '" + refIdentifier + "' is invalid" }.c_str(), 0, 0 };
+		}
+
+		m_identifierStack.pop();
+		auto ref = make_ref(decl);
+
+		auto comOp = std::make_shared<CompoundAssignOperator>(ref);
+
 		NextToken();
+		AssignmentExpression();
+
+		comOp->SetRightSide(m_elementDescentPipe.next());
+		m_elementDescentPipe.pop();
+		m_elementDescentPipe.push(comOp);
 		EMIT("MUL_ASSIGN");
 		return true;
+	}
 	case TK_DIV_ASSIGN:
 		NextToken();
 		EMIT("DIV_ASSIGN");
@@ -621,7 +643,7 @@ void Parser::PostfixExpression()
 
 		auto unaryOp = std::make_shared<CoilCl::AST::UnaryOperator>(CoilCl::AST::UnaryOperator::UnaryOperator::INC, CoilCl::AST::UnaryOperator::OperandSide::POSTFIX, ref);
 		m_elementDescentPipe.push(unaryOp);
-		
+
 		NextToken();
 		break;
 	}

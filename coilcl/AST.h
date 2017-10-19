@@ -243,6 +243,27 @@ public:
 } // namespace AST
 } // namespace CoilCl
 
+class CompoundAssignOperator : public Operator
+{
+	std::shared_ptr<ASTNode> m_body;
+	std::shared_ptr<DeclRefExpr> m_identifier;
+
+public:
+	CompoundAssignOperator(std::shared_ptr<DeclRefExpr>& node)
+	{
+		ASTNode::AppendChild(NODE_UPCAST(node));
+		m_identifier = node;
+	}
+
+	void SetRightSide(std::shared_ptr<ASTNode>& node) 
+	{
+		ASTNode::AppendChild(node);
+		m_body = node;
+	}
+
+	PRINT_NODE(CompoundAssignOperator);
+};
+
 //
 // Literal nodes
 //
