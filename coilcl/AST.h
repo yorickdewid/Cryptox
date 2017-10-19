@@ -270,6 +270,22 @@ public:
 			return "*=";
 		case CompoundAssignOperand::DIV:
 			return "/=";
+		case CompoundAssignOperand::MOD:
+			return "%=";
+		case CompoundAssignOperand::ADD:
+			return "+=";
+		case CompoundAssignOperand::SUB:
+			return "-=";
+		case CompoundAssignOperand::LEFT:
+			return "<<=";
+		case CompoundAssignOperand::RIGHT:
+			return ">>=";
+		case CompoundAssignOperand::AND:
+			return "&=";
+		case CompoundAssignOperand::XOR:
+			return "^=";
+		case CompoundAssignOperand::OR:
+			return "|=";
 		}
 
 		return "<unknown>";
