@@ -238,7 +238,7 @@ private:
 	void EnumSpecifier();
 	void EnumeratorList();
 	bool UnaryOperator();
-	bool AssignmentOperator();
+	void AssignmentOperator();
 
 private: // Expressions
 	void PrimaryExpression();

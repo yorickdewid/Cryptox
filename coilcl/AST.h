@@ -256,6 +256,11 @@ public:
 		MOD,		// %=
 		ADD,		// +=
 		SUB,		// -=
+		LEFT,		// <<=
+		RIGHT,		// >>=
+		AND,		// &=
+		XOR,		// ^=
+		OR,			// |=
 	} m_operand;
 
 	const char *CompoundAssignOperandStr(CompoundAssignOperand operand) const

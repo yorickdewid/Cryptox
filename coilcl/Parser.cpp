@@ -416,13 +416,13 @@ bool Parser::UnaryOperator()
 	return false;
 }
 
-bool Parser::AssignmentOperator()
+void Parser::AssignmentOperator()
 {
 	switch (CURRENT_TOKEN()) {
 	case TK_ASSIGN:
 		NextToken();
 		EMIT("ASSIGN");
-		return true;
+		break;
 	case TK_MUL_ASSIGN:
 	{
 		const auto& refIdentifier = m_identifierStack.top();
@@ -446,7 +446,7 @@ bool Parser::AssignmentOperator()
 		comOp->SetRightSide(m_elementDescentPipe.next());
 		m_elementDescentPipe.pop();
 		m_elementDescentPipe.push(comOp);
-		return true;
+		break;
 	}
 	case TK_DIV_ASSIGN:
 	{
@@ -471,7 +471,7 @@ bool Parser::AssignmentOperator()
 		comOp->SetRightSide(m_elementDescentPipe.next());
 		m_elementDescentPipe.pop();
 		m_elementDescentPipe.push(comOp);
-		return true;
+		break;
 	}
 	case TK_MOD_ASSIGN:
 	{
@@ -496,7 +496,7 @@ bool Parser::AssignmentOperator()
 		comOp->SetRightSide(m_elementDescentPipe.next());
 		m_elementDescentPipe.pop();
 		m_elementDescentPipe.push(comOp);
-		return true;
+		break;
 	}
 	case TK_ADD_ASSIGN:
 	{
@@ -521,7 +521,7 @@ bool Parser::AssignmentOperator()
 		comOp->SetRightSide(m_elementDescentPipe.next());
 		m_elementDescentPipe.pop();
 		m_elementDescentPipe.push(comOp);
-		return true;
+		break;
 	}
 	case TK_SUB_ASSIGN:
 	{
@@ -546,31 +546,134 @@ bool Parser::AssignmentOperator()
 		comOp->SetRightSide(m_elementDescentPipe.next());
 		m_elementDescentPipe.pop();
 		m_elementDescentPipe.push(comOp);
-		return true;
+		break;
 	}
 	case TK_LEFT_ASSIGN:
-		NextToken();
-		EMIT("LEFT_ASSIGN");
-		return true;
-	case TK_RIGHT_ASSIGN:
-		NextToken();
-		EMIT("RIGHT_ASSIGN");
-		return true;
-	case TK_AND_ASSIGN:
-		NextToken();
-		EMIT("AND_ASSIGN");
-		return true;
-	case TK_XOR_ASSIGN:
-		NextToken();
-		EMIT("XOR_ASSIGN");
-		return true;
-	case TK_OR_ASSIGN:
-		NextToken();
-		EMIT("OR_ASSIGN");
-		return true;
-	}
+	{
+		const auto& refIdentifier = m_identifierStack.top();
+		auto decl = stash->Resolve<VarDecl, Decl>([&refIdentifier](std::shared_ptr<VarDecl>& funcPtr) -> bool
+		{
+			return funcPtr->Identifier() == refIdentifier;
+		});
 
-	return false;
+		if (decl == nullptr) {
+			throw ParseException{ std::string{ "implicit declaration of function '" + refIdentifier + "' is invalid" }.c_str(), 0, 0 };
+		}
+
+		m_identifierStack.pop();
+		auto ref = make_ref(decl);
+
+		auto comOp = std::make_shared<CompoundAssignOperator>(CompoundAssignOperator::CompoundAssignOperand::LEFT, ref);
+
+		NextToken();
+		AssignmentExpression();
+
+		comOp->SetRightSide(m_elementDescentPipe.next());
+		m_elementDescentPipe.pop();
+		m_elementDescentPipe.push(comOp);
+		break;
+	}
+	case TK_RIGHT_ASSIGN:
+	{
+		const auto& refIdentifier = m_identifierStack.top();
+		auto decl = stash->Resolve<VarDecl, Decl>([&refIdentifier](std::shared_ptr<VarDecl>& funcPtr) -> bool
+		{
+			return funcPtr->Identifier() == refIdentifier;
+		});
+
+		if (decl == nullptr) {
+			throw ParseException{ std::string{ "implicit declaration of function '" + refIdentifier + "' is invalid" }.c_str(), 0, 0 };
+		}
+
+		m_identifierStack.pop();
+		auto ref = make_ref(decl);
+
+		auto comOp = std::make_shared<CompoundAssignOperator>(CompoundAssignOperator::CompoundAssignOperand::RIGHT, ref);
+
+		NextToken();
+		AssignmentExpression();
+
+		comOp->SetRightSide(m_elementDescentPipe.next());
+		m_elementDescentPipe.pop();
+		m_elementDescentPipe.push(comOp);
+		break;
+	}
+	case TK_AND_ASSIGN:
+	{
+		const auto& refIdentifier = m_identifierStack.top();
+		auto decl = stash->Resolve<VarDecl, Decl>([&refIdentifier](std::shared_ptr<VarDecl>& funcPtr) -> bool
+		{
+			return funcPtr->Identifier() == refIdentifier;
+		});
+
+		if (decl == nullptr) {
+			throw ParseException{ std::string{ "implicit declaration of function '" + refIdentifier + "' is invalid" }.c_str(), 0, 0 };
+		}
+
+		m_identifierStack.pop();
+		auto ref = make_ref(decl);
+
+		auto comOp = std::make_shared<CompoundAssignOperator>(CompoundAssignOperator::CompoundAssignOperand::AND, ref);
+
+		NextToken();
+		AssignmentExpression();
+
+		comOp->SetRightSide(m_elementDescentPipe.next());
+		m_elementDescentPipe.pop();
+		m_elementDescentPipe.push(comOp);
+		break;
+	}
+	case TK_XOR_ASSIGN:
+	{
+		const auto& refIdentifier = m_identifierStack.top();
+		auto decl = stash->Resolve<VarDecl, Decl>([&refIdentifier](std::shared_ptr<VarDecl>& funcPtr) -> bool
+		{
+			return funcPtr->Identifier() == refIdentifier;
+		});
+
+		if (decl == nullptr) {
+			throw ParseException{ std::string{ "implicit declaration of function '" + refIdentifier + "' is invalid" }.c_str(), 0, 0 };
+		}
+
+		m_identifierStack.pop();
+		auto ref = make_ref(decl);
+
+		auto comOp = std::make_shared<CompoundAssignOperator>(CompoundAssignOperator::CompoundAssignOperand::XOR, ref);
+
+		NextToken();
+		AssignmentExpression();
+
+		comOp->SetRightSide(m_elementDescentPipe.next());
+		m_elementDescentPipe.pop();
+		m_elementDescentPipe.push(comOp);
+		break;
+	}
+	case TK_OR_ASSIGN:
+	{
+		const auto& refIdentifier = m_identifierStack.top();
+		auto decl = stash->Resolve<VarDecl, Decl>([&refIdentifier](std::shared_ptr<VarDecl>& funcPtr) -> bool
+		{
+			return funcPtr->Identifier() == refIdentifier;
+		});
+
+		if (decl == nullptr) {
+			throw ParseException{ std::string{ "implicit declaration of function '" + refIdentifier + "' is invalid" }.c_str(), 0, 0 };
+		}
+
+		m_identifierStack.pop();
+		auto ref = make_ref(decl);
+
+		auto comOp = std::make_shared<CompoundAssignOperator>(CompoundAssignOperator::CompoundAssignOperand::OR, ref);
+
+		NextToken();
+		AssignmentExpression();
+
+		comOp->SetRightSide(m_elementDescentPipe.next());
+		m_elementDescentPipe.pop();
+		m_elementDescentPipe.push(comOp);
+		break;
+	}
+	}
 }
 
 void Parser::PrimaryExpression()
@@ -1066,9 +1169,7 @@ void Parser::AssignmentExpression()
 	ConditionalExpression();
 
 	UnaryExpression();
-	if (AssignmentOperator()) {
-		AssignmentExpression();
-	}
+	AssignmentOperator();
 }
 
 void Parser::Expression()
