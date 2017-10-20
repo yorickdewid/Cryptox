@@ -6,7 +6,6 @@
 #include <iostream>
 #include <functional>
 
-//TODO: Reference linking
 //TODO: function parameters
 //TODO: Full C99 parser ruleset
 //TODO: Preprocessing

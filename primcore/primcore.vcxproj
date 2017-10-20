@@ -41,7 +41,7 @@
     <ProjectGuid>{CC59368D-C7A8-45F2-9B8D-AC7555E1651B}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>primcore</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.15063.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
