@@ -478,11 +478,11 @@ class FunctionDecl : public Decl
 
 public:
 	//TODO: type
-	FunctionDecl(const std::string& name, std::shared_ptr<ASTNode>& node)
+	explicit FunctionDecl(const std::string& name, std::shared_ptr<CompoundStmt>& node)
 		: Decl{ name }
-		, m_body{ std::dynamic_pointer_cast<CompoundStmt>(node) }
+		, m_body{ node }
 	{
-		ASTNode::AppendChild(node);
+		ASTNode::AppendChild(NODE_UPCAST(node));
 	}
 
 	// Constructor only used for prototype function definitions
@@ -490,7 +490,12 @@ public:
 		: Decl{ name }
 		, m_isPrototype{ true }
 	{
-		//m_crossResolveList.push_back()
+	}
+
+	void SetCompound(std::shared_ptr<CompoundStmt>& node)
+	{
+		ASTNode::AppendChild(NODE_UPCAST(node));
+		m_body = node;
 	}
 
 	auto IsPrototypeDefinition() const

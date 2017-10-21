@@ -1736,43 +1736,37 @@ bool Parser::FunctionDefinition()
 	// Return type for function declaration
 	DeclarationSpecifiers();
 
+	auto startState = m_elementDescentPipe.state();
+
 	// Must match at least one declarator to qualify as function declaration
 	if (!Declarator()) {
+		m_elementDescentPipe.release_until(startState);
 		return false;
 	}
 
 	if (m_elementDescentPipe.empty()) {
+		m_elementDescentPipe.release_until(startState);
 		return false;
 	}
 
 	auto func = std::dynamic_pointer_cast<FunctionDecl>(m_elementDescentPipe.next());
 	if (func == nullptr) {
+		m_elementDescentPipe.release_until(startState);
 		return false;
 	}
+
+	m_elementDescentPipe.lock();
 
 	while (Declarator());
 
 	auto res = CompoundStatement();
-	//std::shared_ptr<FunctionDecl> func;
 	if (res) {
-		/*func = std::make_shared<FunctionDecl>(m_identifierStack.top(), m_elementDescentPipe.next());
-		m_identifierStack.pop();
-		m_elementDescentPipe.pop();*/
-
-		std::cout << "Yes its a func" << std::endl;
-
-		//funcDecl->BindPrototype();
+		func->SetCompound(std::dynamic_pointer_cast<CompoundStmt>(m_elementDescentPipe.next()));
+		//TODO: bind ?
+		m_elementDescentPipe.pop();
 	}
-	/*else {
-		func = std::make_shared<FunctionDecl>(m_identifierStack.top());
-		m_identifierStack.pop();
-	}*/
 
-	//assert(func != nullptr);
-
-	//stash->Enlist(func);
-
-	//m_elementDescentPipe.push(func);
+	m_elementDescentPipe.release_until(startState);
 	return true;
 }
 
