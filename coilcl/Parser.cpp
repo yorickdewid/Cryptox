@@ -1444,6 +1444,16 @@ void Parser::InitDeclaratorList()
 
 			std::shared_ptr<VarDecl> var;
 			if (!m_elementDescentPipe.empty()) {
+
+				if (m_elementDescentPipe.size() > 1) {
+					auto list = std::make_shared<InitListExpr>();
+					while (!m_elementDescentPipe.empty()) {
+						list->AddListItem(m_elementDescentPipe.next());
+						m_elementDescentPipe.pop();
+					}
+					m_elementDescentPipe.push(list);
+				}
+
 				var = std::make_shared<VarDecl>(m_identifierStack.top(), m_elementDescentPipe.next());
 				m_identifierStack.pop();
 				m_elementDescentPipe.pop();
@@ -1554,6 +1564,7 @@ void Parser::Initializer()
 	if (MATCH_TOKEN(TK_BRACE_OPEN)) {
 		do {
 			NextToken();
+
 			// Snapshot current state in case of rollback
 			m_comm.Snapshot();
 

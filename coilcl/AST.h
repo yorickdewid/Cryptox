@@ -380,11 +380,6 @@ public:
 		: Literal{ std::forward<_Ty>(value) }
 	{
 	}
-
-	/*const std::string NodeName() const
-	{
-		return std::string{ RemoveClassFromName(typeid(FloatingLiteral).name()) } +" <line:" + std::to_string(line) + ",col:" + std::to_string(col) + "> 'return type' " + m_valueObj->ToString();
-	}*/
 };
 
 //
@@ -657,6 +652,20 @@ public:
 	}
 
 	PRINT_NODE(ParenExpr);
+};
+
+class InitListExpr : public Expr
+{
+	std::vector<std::shared_ptr<ASTNode>> m_children;
+
+public:
+	void AddListItem(std::shared_ptr<ASTNode>& node)
+	{
+		ASTNode::AppendChild(node);
+		m_children.push_back(node);
+	}
+
+	PRINT_NODE(InitListExpr);
 };
 
 //
