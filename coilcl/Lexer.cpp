@@ -527,7 +527,7 @@ int Lexer::LexScalar()
 	case SCIENTIFIC:
 	case DOUBLE:
 	{
-		auto _fvalue = boost::lexical_cast<float>(_longstr);
+		auto _fvalue = boost::lexical_cast<double>(_longstr);
 		m_data = std::make_unique<ValueObject<decltype(_fvalue)>>(Value::TypeSpecifier::T_DOUBLE, _fvalue);
 		return TK_CONSTANT;
 	}

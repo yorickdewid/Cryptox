@@ -141,9 +141,11 @@ public:
 		case Value::TypeSpecifier::T_SHORT:
 		case Value::TypeSpecifier::T_INT:
 		case Value::TypeSpecifier::T_LONG:
-		case Value::TypeSpecifier::T_FLOAT:
-		case Value::TypeSpecifier::T_DOUBLE:
 			return std::to_string(_type.i);
+		case Value::TypeSpecifier::T_FLOAT:
+			return std::to_string(_type.f);
+		case Value::TypeSpecifier::T_DOUBLE:
+			return std::to_string(_type.d);
 		case Value::TypeSpecifier::T_BOOL:
 			return static_cast<bool>(_type.i) ? "true" : "false";
 		case Value::TypeSpecifier::T_PTR:
@@ -212,10 +214,7 @@ public:
 	{
 	}
 
-	ValueObject(const ValueObject& other)
-		: Value(other)
-	{
-	}
+	ValueObject(const ValueObject& other) = default;
 };
 
 template<>

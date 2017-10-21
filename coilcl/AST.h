@@ -383,7 +383,7 @@ public:
 
 	const std::string NodeName() const
 	{
-		return std::string{ RemoveClassFromName(typeid(IntegerLiteral).name()) } +" <line:" + std::to_string(line) + ",col:" + std::to_string(col) + "> " + m_valueObj->ToString();
+		return std::string{ RemoveClassFromName(typeid(IntegerLiteral).name()) } +" <line:" + std::to_string(line) + ",col:" + std::to_string(col) + "> 'return type' " + m_valueObj->ToString();
 	}
 };
 
@@ -396,7 +396,10 @@ public:
 	{
 	}
 
-	PRINT_NODE(FloatingLiteral);
+	const std::string NodeName() const
+	{
+		return std::string{ RemoveClassFromName(typeid(FloatingLiteral).name()) } +" <line:" + std::to_string(line) + ",col:" + std::to_string(col) + "> 'return type' " + m_valueObj->ToString();
+	}
 };
 
 //

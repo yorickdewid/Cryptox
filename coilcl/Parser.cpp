@@ -1628,7 +1628,7 @@ bool Parser::DirectDeclarator()
 		ExpectToken(TK_PARENTHESE_CLOSE);
 	}
 	else {
-		return nullptr;
+		return false;
 	}
 
 	// Declarations following an identifier
