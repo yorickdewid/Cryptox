@@ -1553,7 +1553,20 @@ void Parser::Initializer()
 {
 	if (MATCH_TOKEN(TK_BRACE_OPEN)) {
 		do {
-			InitializerList();
+			NextToken();
+			// Snapshot current state in case of rollback
+			m_comm.Snapshot();
+
+			try {
+				Designation();
+				m_comm.DisposeSnapshot();
+			}
+			// Cannot cast, rollback the command state
+			catch (const UnexpectedTokenException&) {
+				m_comm.Revert();
+			}
+
+			Initializer();
 		} while (MATCH_TOKEN(TK_COMMA));
 		ExpectToken(TK_BRACE_CLOSE);
 	}
@@ -1562,13 +1575,13 @@ void Parser::Initializer()
 	}
 }
 
-void Parser::InitializerList()
-{
-	do {
-		Designation();
-		Initializer();
-	} while (MATCH_TOKEN(TK_COMMA));
-}
+//void Parser::InitializerList()
+//{
+//	do {
+//		Designation();
+//		Initializer();
+//	} while (MATCH_TOKEN(TK_COMMA));
+//}
 
 void Parser::Designation()
 {
@@ -1777,7 +1790,7 @@ void Parser::ExternalDeclaration()
 	m_comm.Snapshot();
 
 	if (!FunctionDefinition()) {
-		/// Cannot cast, rollback the command state
+		// Not a function, rollback the command state
 		m_comm.Revert();
 		Declaration();
 	}

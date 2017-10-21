@@ -316,11 +316,11 @@ public:
 // Literal nodes
 //
 
-template<typename T>
+template<typename _NativTy, class _DrivTy>
 class Literal : public ASTNode
 {
 protected:
-	std::shared_ptr<ValueObject<T>> m_valueObj;
+	std::shared_ptr<ValueObject<_NativTy>> m_valueObj;
 
 public:
 	// Default to void type with no data
@@ -330,15 +330,19 @@ public:
 	}
 
 	// Move data object from lexer into literal
-	Literal(std::shared_ptr<ValueObject<T>>&& object)
+	Literal(std::shared_ptr<ValueObject<_NativTy>>&& object)
 		: m_valueObj{ std::move(object) }
 	{
 	}
 
-	PRINT_NODE(Literal);
+	// CRTP
+	const std::string NodeName() const
+	{
+		return std::string{ RemoveClassFromName(typeid(_DrivTy).name()) } +" <line:" + std::to_string(line) + ",col:" + std::to_string(col) + "> " + m_valueObj->ToString();
+	}
 };
 
-class CharacterLiteral : public Literal<char>
+class CharacterLiteral : public Literal<char, CharacterLiteral>
 {
 public:
 	template<typename _Ty>
@@ -346,14 +350,9 @@ public:
 		: Literal{ std::forward<_Ty>(value) }
 	{
 	}
-
-	const std::string NodeName() const
-	{
-		return std::string{ RemoveClassFromName(typeid(CharacterLiteral).name()) } +" <line:" + std::to_string(line) + ",col:" + std::to_string(col) + "> " + m_valueObj->ToString();
-	}
 };
 
-class StringLiteral : public Literal<std::string>
+class StringLiteral : public Literal<std::string, StringLiteral>
 {
 public:
 	template<typename _Ty>
@@ -361,18 +360,9 @@ public:
 		: Literal{ std::forward<_Ty>(value) }
 	{
 	}
-
-	const std::string NodeName() const
-	{
-		std::string _node{ RemoveClassFromName(typeid(StringLiteral).name()) };
-		_node += " <line:" + std::to_string(line) + ",col:" + std::to_string(col) + "> ";
-		_node += "'const char [" + std::to_string(m_valueObj->Size()) + "]' ";
-		_node += "\"" + m_valueObj->ToString() + "\"";
-		return _node;
-	}
 };
 
-class IntegerLiteral : public Literal<int>
+class IntegerLiteral : public Literal<int, IntegerLiteral>
 {
 public:
 	template<typename _Ty>
@@ -380,14 +370,9 @@ public:
 		: Literal{ std::forward<_Ty>(value) }
 	{
 	}
-
-	const std::string NodeName() const
-	{
-		return std::string{ RemoveClassFromName(typeid(IntegerLiteral).name()) } +" <line:" + std::to_string(line) + ",col:" + std::to_string(col) + "> 'return type' " + m_valueObj->ToString();
-	}
 };
 
-class FloatingLiteral : public Literal<double>
+class FloatingLiteral : public Literal<double, FloatingLiteral>
 {
 public:
 	template<typename _Ty>
@@ -396,10 +381,10 @@ public:
 	{
 	}
 
-	const std::string NodeName() const
+	/*const std::string NodeName() const
 	{
 		return std::string{ RemoveClassFromName(typeid(FloatingLiteral).name()) } +" <line:" + std::to_string(line) + ",col:" + std::to_string(col) + "> 'return type' " + m_valueObj->ToString();
-	}
+	}*/
 };
 
 //
