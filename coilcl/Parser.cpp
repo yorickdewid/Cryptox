@@ -1598,10 +1598,9 @@ void Parser::Designators()
 
 void Parser::Pointer()
 {
-	if (MATCH_TOKEN(TK_ASTERISK)) {
+	while (MATCH_TOKEN(TK_ASTERISK)) {
 		NextToken();
-		// type_qualifier_list
-		Pointer();
+		TypeQualifierList();
 	}
 }
 
@@ -1629,7 +1628,7 @@ bool Parser::DirectDeclarator()
 		ExpectToken(TK_PARENTHESE_CLOSE);
 	}
 	else {
-		return false;
+		return nullptr;
 	}
 
 	// Declarations following an identifier
@@ -1639,7 +1638,12 @@ bool Parser::DirectDeclarator()
 			NextToken();
 			if (MATCH_TOKEN(TK_PARENTHESE_CLOSE)) {
 				NextToken();
-				EMIT("FUNC DELC EMPTY");
+
+				auto func = std::make_shared<FunctionDecl>(m_identifierStack.top());
+				m_identifierStack.pop();
+
+				stash->Enlist(func);
+				m_elementDescentPipe.push(func);
 				return true;
 			}
 			else {
@@ -1654,7 +1658,13 @@ bool Parser::DirectDeclarator()
 						}
 					} while (MATCH_TOKEN(TK_COMMA));
 				}
+
+				//TODO: add parameters
+				auto func = std::make_shared<FunctionDecl>(m_identifierStack.top());
 				ExpectToken(TK_PARENTHESE_CLOSE);
+
+				stash->Enlist(func);
+				m_elementDescentPipe.push(func);
 				return true;
 			}
 			break;
@@ -1663,13 +1673,13 @@ bool Parser::DirectDeclarator()
 			if (MATCH_TOKEN(TK_BRACKET_CLOSE)) {
 				NextToken();
 				EMIT("UNINIT ARRAY");
-				return true;
+				return true;//TODO: return ptr
 			}
 			else if (MATCH_TOKEN(TK_ASTERISK)) {
 				NextToken();
 				EMIT("UNINIT ARRAY VARIABLE SZ");
 				ExpectToken(TK_BRACE_CLOSE);
-				return true;
+				return true;//TODO: return ptr
 			}
 
 			break;
@@ -1677,12 +1687,12 @@ bool Parser::DirectDeclarator()
 			goto break_loop;
 		}
 
-		//'[' type_qualifier_list AssignmentExpression(); ']'
-		//'[' type_qualifier_list ']'
+		//'[' TypeQualifierList() AssignmentExpression(); ']'
+		//'[' TypeQualifierList() ']'
 		//'[' assignment_expression ']'
-		//'[' STATIC type_qualifier_list AssignmentExpression(); ']'
-		//'[' type_qualifier_list STATIC AssignmentExpression(); ']'
-		//'[' type_qualifier_list '*' ']'
+		//'[' STATIC TypeQualifierList() AssignmentExpression(); ']'
+		//'[' TypeQualifierList() STATIC AssignmentExpression(); ']'
+		//'[' TypeQualifierList() '*' ']'
 	}
 
 break_loop:
@@ -1730,35 +1740,56 @@ bool Parser::FunctionDefinition()
 	if (!Declarator()) {
 		return false;
 	}
+
+	if (m_elementDescentPipe.empty()) {
+		return false;
+	}
+
+	auto func = std::dynamic_pointer_cast<FunctionDecl>(m_elementDescentPipe.next());
+	if (func == nullptr) {
+		return false;
+	}
+
 	while (Declarator());
 
 	auto res = CompoundStatement();
-	std::shared_ptr<FunctionDecl> func;
+	//std::shared_ptr<FunctionDecl> func;
 	if (res) {
-		func = std::make_shared<FunctionDecl>(m_identifierStack.top(), m_elementDescentPipe.next());
+		/*func = std::make_shared<FunctionDecl>(m_identifierStack.top(), m_elementDescentPipe.next());
 		m_identifierStack.pop();
-		m_elementDescentPipe.pop();
+		m_elementDescentPipe.pop();*/
+
+		std::cout << "Yes its a func" << std::endl;
 
 		//funcDecl->BindPrototype();
 	}
-	else {
+	/*else {
 		func = std::make_shared<FunctionDecl>(m_identifierStack.top());
 		m_identifierStack.pop();
-	}
+	}*/
 
-	assert(func != nullptr);
+	//assert(func != nullptr);
 
-	stash->Enlist(func);
+	//stash->Enlist(func);
 
-	m_elementDescentPipe.push(func);
+	//m_elementDescentPipe.push(func);
 	return true;
 }
 
 // Try as function; if that fails assume declaration
 void Parser::ExternalDeclaration()
 {
+	// Snapshot current state in case of rollback
+	m_comm.Snapshot();
+
 	if (!FunctionDefinition()) {
+		/// Cannot cast, rollback the command state
+		m_comm.Revert();
 		Declaration();
+	}
+	else {
+		// Remove snapshot since we can continue this path
+		m_comm.DisposeSnapshot();
 	}
 }
 
@@ -1778,6 +1809,7 @@ void Parser::TranslationUnit()
 		}
 
 		// Clear all lists where possible before adding new items
+		ClearStack(m_identifierStack);
 		m_elementDescentPipe.clear();
 		m_comm.TryClear();
 	} while (!lex.IsDone());

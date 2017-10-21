@@ -8,6 +8,18 @@
 #include <deque>
 #include <stack>
 
+template<typename _Ty>
+struct is_stack : public std::false_type {};
+
+template<typename _Ty, typename _Alloc>
+struct is_stack<std::stack<_Ty, _Alloc>> : public std::true_type {};
+
+template<typename _Ty, class = typename std::enable_if<is_stack<_Ty>::value>::type>
+void ClearStack(_Ty& c)
+{
+	while (!c.empty()) { c.pop(); }
+}
+
 class TokenState
 {
 	Token m_currentToken;
