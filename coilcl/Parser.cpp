@@ -1865,6 +1865,7 @@ void Parser::TranslationUnit()
 			m_elementDescentPipe.pop();
 		}
 
+		// There should be no elements left by now
 		assert(m_elementDescentPipe.empty(true));
 
 		// Clear all lists where possible before adding new items
