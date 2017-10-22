@@ -287,7 +287,6 @@ private: // Declarations
 	void AbstractDeclarator();
 	void DirectAbstractDeclarator();
 	void Initializer();
-	//void InitializerList();
 	void Designation();
 	void Designators();
 	void Pointer();

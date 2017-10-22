@@ -746,7 +746,7 @@ void Parser::ArgumentExpressionList()
 
 void Parser::PostfixExpression()
 {
-	//TODO: Unknown flow
+	//TODO: Compound literal
 	/*if (MATCH_TOKEN(TK_PARENTHESE_OPEN)) {
 		NextToken();
 		TypeName();
@@ -762,10 +762,30 @@ void Parser::PostfixExpression()
 
 	switch (CURRENT_TOKEN()) {
 	case TK_BRACKET_OPEN:
+	{
 		NextToken();
+
+		const auto& refIdentifier = m_identifierStack.top();
+		auto decl = stash->Resolve<VarDecl, Decl>([&refIdentifier](std::shared_ptr<VarDecl>& varPtr) -> bool
+		{
+			return varPtr->Identifier() == refIdentifier;
+		});
+
+		if (decl == nullptr) {
+			throw ParseException{ std::string{ "use of undeclared identifier '" + refIdentifier + "'" }.c_str(), 0, 0 };
+		}
+
+		m_identifierStack.pop();
+		auto ref = make_ref(decl);
+
 		Expression();
 		ExpectToken(TK_BRACKET_CLOSE);
+
+		auto arrsub = std::make_shared<ArraySubscriptExpr>(ref, m_elementDescentPipe.next());
+		m_elementDescentPipe.pop();
+		m_elementDescentPipe.push(arrsub);
 		break;
+	}
 	case TK_PARENTHESE_OPEN:
 		NextToken();
 		if (MATCH_TOKEN(TK_PARENTHESE_CLOSE)) {
@@ -1445,6 +1465,7 @@ void Parser::InitDeclaratorList()
 			std::shared_ptr<VarDecl> var;
 			if (!m_elementDescentPipe.empty()) {
 
+				// Assume list if there is more than one value
 				if (m_elementDescentPipe.size() > 1) {
 					auto list = std::make_shared<InitListExpr>();
 					while (!m_elementDescentPipe.empty()) {
@@ -1586,18 +1607,10 @@ void Parser::Initializer()
 	}
 }
 
-//void Parser::InitializerList()
-//{
-//	do {
-//		Designation();
-//		Initializer();
-//	} while (MATCH_TOKEN(TK_COMMA));
-//}
-
 void Parser::Designation()
 {
 	Designators();
-	ExpectToken(TK_ASSIGN);//TODO
+	ExpectToken(TK_ASSIGN);
 }
 
 void Parser::Designators()
@@ -1705,18 +1718,31 @@ bool Parser::DirectDeclarator()
 				ExpectToken(TK_BRACE_CLOSE);
 				return true;//TODO: return ptr
 			}
+			else if (MATCH_TOKEN(TK_STATIC)) {
+				NextToken();
+				TypeQualifierList();
+				AssignmentExpression();
+				ExpectToken(TK_BRACE_CLOSE);
+			}
+			else {
+				TypeQualifierList(); // optional
+
+				if (MATCH_TOKEN(TK_ASTERISK)) {
+					NextToken();
+					return true;
+				}
+
+				if (MATCH_TOKEN(TK_STATIC)) { // optional
+					NextToken();
+				}
+
+				AssignmentExpression(); // optional
+			}
 
 			break;
 		default:
 			goto break_loop;
 		}
-
-		//'[' TypeQualifierList() AssignmentExpression(); ']'
-		//'[' TypeQualifierList() ']'
-		//'[' assignment_expression ']'
-		//'[' STATIC TypeQualifierList() AssignmentExpression(); ']'
-		//'[' TypeQualifierList() STATIC AssignmentExpression(); ']'
-		//'[' TypeQualifierList() '*' ']'
 	}
 
 break_loop:

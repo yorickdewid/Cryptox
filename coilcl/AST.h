@@ -668,6 +668,23 @@ public:
 	PRINT_NODE(InitListExpr);
 };
 
+class ArraySubscriptExpr : public Expr
+{
+	std::shared_ptr<DeclRefExpr> m_identifier;
+	std::shared_ptr<ASTNode> m_offset;
+
+public:
+	ArraySubscriptExpr(std::shared_ptr<DeclRefExpr>& ref, std::shared_ptr<ASTNode>& expr)
+		: m_identifier{ ref }
+		, m_offset{expr}
+	{
+		ASTNode::AppendChild(NODE_UPCAST(ref));
+		ASTNode::AppendChild(expr);
+	}
+
+	PRINT_NODE(ArraySubscriptExpr);
+};
+
 //
 // Statement nodes
 //
