@@ -451,7 +451,7 @@ class FunctionDecl : public Decl
 	std::shared_ptr<ASTNode> m_params;//TODO: Add parameters
 	std::shared_ptr<CompoundStmt> m_body; //TODO: CompoundStmt not always the case
 	std::weak_ptr<FunctionDecl> m_protoRef;
-	bool m_isPrototype = false;
+	bool m_isPrototype = true;
 	bool m_isReferenced = false;
 
 	static std::vector<std::weak_ptr<FunctionDecl>> m_crossResolveList;
@@ -461,26 +461,35 @@ public:
 	explicit FunctionDecl(const std::string& name, std::shared_ptr<CompoundStmt>& node)
 		: Decl{ name }
 		, m_body{ node }
+		, m_isPrototype{ false }
 	{
 		ASTNode::AppendChild(NODE_UPCAST(node));
 	}
 
-	// Constructor only used for prototype function definitions
 	FunctionDecl(const std::string& name)
 		: Decl{ name }
-		, m_isPrototype{ true }
 	{
 	}
 
+	// If function declaration has a body, its not a prototype
 	void SetCompound(std::shared_ptr<CompoundStmt>& node)
 	{
 		ASTNode::AppendChild(NODE_UPCAST(node));
 		m_body = node;
+		m_isPrototype = false;
 	}
 
 	auto IsPrototypeDefinition() const
 	{
 		return m_isPrototype;
+	}
+
+	// Bind function body to prototype definition
+	void BindPrototype(std::shared_ptr<FunctionDecl>& node)
+	{
+		assert(!m_isPrototype);
+
+		m_protoRef = node;
 	}
 
 	const std::string NodeName() const
@@ -492,7 +501,7 @@ public:
 			_node += "proto ";
 		}
 		else if (!m_protoRef.expired()) {
-			_node += "used ";
+			_node += "linked ";
 		}
 		if (m_isReferenced) {
 			_node += "used ";
@@ -520,14 +529,6 @@ public:
 	{
 		returnType = std::move(rtnVal);
 	}*/
-protected:
-	void BindPrototype(std::shared_ptr<FunctionDecl>& node)
-	{
-		assert(node->IsPrototypeDefinition());
-
-		node->m_isReferenced = true;
-		m_protoRef = node;
-	}
 };
 
 class TranslationUnitDecl
@@ -676,7 +677,7 @@ class ArraySubscriptExpr : public Expr
 public:
 	ArraySubscriptExpr(std::shared_ptr<DeclRefExpr>& ref, std::shared_ptr<ASTNode>& expr)
 		: m_identifier{ ref }
-		, m_offset{expr}
+		, m_offset{ expr }
 	{
 		ASTNode::AppendChild(NODE_UPCAST(ref));
 		ASTNode::AppendChild(expr);

@@ -787,28 +787,31 @@ void Parser::PostfixExpression()
 		break;
 	}
 	case TK_PARENTHESE_OPEN:
+	{
 		NextToken();
+
+		const auto& refIdentifier = m_identifierStack.top();
+		auto funcDelc = stash->Resolve<FunctionDecl, Decl>([&refIdentifier](std::shared_ptr<FunctionDecl>& funcPtr) -> bool
+		{
+			return funcPtr->Identifier() == refIdentifier;
+		});
+
+		if (funcDelc == nullptr) {
+			throw ParseException{ std::string{ "implicit declaration of function '" + refIdentifier + "' is invalid" }.c_str(), 0, 0 };
+		}
+
+		auto ref = make_ref(funcDelc);
+
 		if (MATCH_TOKEN(TK_PARENTHESE_CLOSE)) {
 			NextToken();
-
-			const auto& refIdentifier = m_identifierStack.top();
-			auto funcDelc = stash->Resolve<FunctionDecl, Decl>([&refIdentifier](std::shared_ptr<FunctionDecl>& funcPtr) -> bool
-			{
-				return funcPtr->Identifier() == refIdentifier;
-			});
-
-			if (funcDelc == nullptr) {
-				throw ParseException{ std::string{ "implicit declaration of function '" + refIdentifier + "' is invalid" }.c_str(), 0, 0 };
-			}
-
-			auto ref = make_ref(funcDelc);
-
+			//funcDelc->
 			m_elementDescentPipe.push(std::make_shared<CallExpr>(ref));
 		}
 		else {
 			auto startState = m_elementDescentPipe.state();
 			ArgumentExpressionList();
 			m_elementDescentPipe.release_until(startState);
+			ExpectToken(TK_PARENTHESE_CLOSE);
 
 			auto arg = std::make_shared<ArgumentStmt>();
 			while (!m_elementDescentPipe.empty()) {
@@ -816,12 +819,10 @@ void Parser::PostfixExpression()
 				m_elementDescentPipe.pop();
 			}
 
-			//std::make_shared<DeclRefExpr>(m_identifierStack.top());
-			//m_elementDescentPipe.push(std::make_shared<CallExpr>(arg));
-			EMIT("CALL EXPRESSION");
-			ExpectToken(TK_PARENTHESE_CLOSE);
+			m_elementDescentPipe.push(std::make_shared<CallExpr>(ref, arg));
 		}
 		break;
+	}
 	case TK_DOT:
 		NextToken();
 		EMIT("DOT");
@@ -1812,8 +1813,17 @@ bool Parser::FunctionDefinition()
 	auto res = CompoundStatement();
 	if (res) {
 		func->SetCompound(std::dynamic_pointer_cast<CompoundStmt>(m_elementDescentPipe.next()));
-		//TODO: bind ?
 		m_elementDescentPipe.pop();
+
+		auto funcProto = stash->Resolve<FunctionDecl, Decl>([&func](std::shared_ptr<FunctionDecl>& funcPtr) -> bool
+		{
+			return funcPtr->Identifier() == func->Identifier()
+				&& funcPtr->IsPrototypeDefinition();
+		});
+
+		if (funcProto) {
+			func->BindPrototype(std::dynamic_pointer_cast<FunctionDecl>(funcProto));
+		}
 	}
 
 	m_elementDescentPipe.release_until(startState);
