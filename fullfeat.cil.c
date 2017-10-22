@@ -8,6 +8,16 @@
  * permission of the author.
  */
 
+/**
+ * @name        fullfeat.cil.c
+ * @purpose     Full C99 language feature set
+ * @author      Blub Corp.
+ * @modified    Yorick de Wid
+ * @created     2017-08-12
+ * @copyright   (C) Copyright 2017, Blub Corp, All Rights Reserved.
+ * @license     GPL, Version 3
+ */
+
 #include <stdio.h>
 
 #define PI_CONSTANT     3.14159265358979323846
@@ -22,13 +32,15 @@ enum {
 typedef struct {
     int i;
     int j;
-    union v {
+    union {
         int q;
         short o;
-    };
+    } v;
 } some_t;
 
 volatile _Bool hasIOPT = 1;
+
+static const float func3(const unsigned char);
 
 void func() {
     register int seven = 17;
@@ -55,9 +67,11 @@ int func2(char c, int i, double d) {
     for (int i = 2; i<10; ++i) {
         printf("I is now %d\n", i);
     }
+
+    return -1;
 }
 
-static const float func3() {
+static const float func3(const unsigned char q) {
     int v = (int)2;
 
     switch (v) {
@@ -84,7 +98,7 @@ static const float func3() {
     return (13.8123 + PI_CONSTANT);
 }
 
-unsigned func4(unsigned short _i) {
+unsigned func4(unsigned short _i, ...) {
     if (_i == 0) return 0;
 
     printf("Recursive %u\n", _i);

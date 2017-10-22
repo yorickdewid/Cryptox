@@ -98,24 +98,41 @@ public:
 
 	static void Dispatch(std::shared_ptr<Compiler>& compiler)
 	{
-		// Convert compiler object to profile in order to limit scope for components
+		// Convert compiler object to profile in order to limit access for components
 		auto profile = std::dynamic_pointer_cast<Profile>(compiler);
 
 		try {
-			/*auto transunit = Preprocessor{ profile }
+			/*auto transunit = CoilCl::Preprocessor{ profile }
 				.InlineIncludes()
 				.StemMacros()
-				.DumpTranslationUnit();*/
+				.DumpTranslationUnit<CoilCl::Reader::MemoryReader>();*/
 
-			//Thing::SourceToReader(transunit, profile);
-
-			auto ast = Parser{ profile }
+			// Syntax analysis
+			auto iast = Parser{ profile }
 				.CheckCompatibility()
 				.Execute()
 				.DumpAST();
 
 			// For now dump contents to screen
-			ast->Print();
+			iast->Print();
+
+			// Semantic analysis
+			/*auto oast = CoilCl::Semer{ profile }
+				.Syntax<decltype(iast)>(iast)
+				.PreliminaryAssert()
+				.StandardCompliance()
+				.PedanticCompliance()
+				.Optimize<Optimizer>(CoilCl::Semer::OptimizeLevel::L0)
+				.TreeOperator<CoilCl::AST::Util::Copy>();*/
+
+			// CoilCl::AST::Writer::ToFile(oast);
+			// auto oast = CoilCl::AST::Writer::FromFile();
+
+			// Build result
+			/*CoilCl::Emitter{ profile }
+				.Syntax<decltype(oast)>(oast)
+				.Sequence(CoilCl::Emiter::CASM)
+				.StreamSink<CoilCl::Stream::Console>();*/
 		}
 		// Catch any leaked erros not caught in the stages
 		catch (std::exception& e) {
