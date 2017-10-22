@@ -725,6 +725,7 @@ void Parser::PrimaryExpression()
 		ExpectToken(TK_PARENTHESE_CLOSE);
 	}
 }
+
 //TODO: merge with Expression()
 void Parser::ArgumentExpressionList()
 {
@@ -800,11 +801,12 @@ void Parser::PostfixExpression()
 			throw ParseException{ std::string{ "implicit declaration of function '" + refIdentifier + "' is invalid" }.c_str(), 0, 0 };
 		}
 
+		m_identifierStack.pop();
 		auto ref = make_ref(funcDelc);
 
 		if (MATCH_TOKEN(TK_PARENTHESE_CLOSE)) {
 			NextToken();
-			//funcDelc->
+			std::dynamic_pointer_cast<FunctionDecl>(funcDelc)->RegisterCaller();
 			m_elementDescentPipe.push(std::make_shared<CallExpr>(ref));
 		}
 		else {
@@ -1815,14 +1817,15 @@ bool Parser::FunctionDefinition()
 		func->SetCompound(std::dynamic_pointer_cast<CompoundStmt>(m_elementDescentPipe.next()));
 		m_elementDescentPipe.pop();
 
-		auto funcProto = stash->Resolve<FunctionDecl, Decl>([&func](std::shared_ptr<FunctionDecl>& funcPtr) -> bool
+		auto funcProto = stash->Resolve<FunctionDecl>([&func](std::shared_ptr<FunctionDecl>& funcPtr) -> bool
 		{
 			return funcPtr->Identifier() == func->Identifier()
 				&& funcPtr->IsPrototypeDefinition();
 		});
 
+		// Bind function to prototype
 		if (funcProto) {
-			func->BindPrototype(std::dynamic_pointer_cast<FunctionDecl>(funcProto));
+			func->BindPrototype(funcProto);
 		}
 	}
 

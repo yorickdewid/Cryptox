@@ -80,7 +80,7 @@ public:
 		m_stash.push_back(static_cast<std::weak_ptr<_Ty>>(std::weak_ptr<shared_type>(type)));
 	}
 
-	template<typename _DeclTy, typename _BaseTy, class = typename std::enable_if<std::is_base_of<_BaseTy, _DeclTy>::value>::type>
+	template<typename _DeclTy, typename _BaseTy = _DeclTy, class = typename std::enable_if<std::is_base_of<_BaseTy, _DeclTy>::value>::type>
 	auto Resolve(std::function<bool(std::shared_ptr<_DeclTy>)> checkCb) -> std::shared_ptr<_BaseTy>
 	{
 		for (auto& ptr : m_stash) {

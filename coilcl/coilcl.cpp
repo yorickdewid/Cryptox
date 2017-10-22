@@ -7,6 +7,7 @@
 #include <functional>
 
 //TODO: function parameters
+//TODO: pointers,reference,struct,union,loops
 //TODO: Full C99 parser ruleset
 //TODO: Preprocessing
 //TODO: Checking optimizer and compiler compat options

@@ -449,12 +449,15 @@ public:
 class FunctionDecl : public Decl
 {
 	std::shared_ptr<ASTNode> m_params;//TODO: Add parameters
-	std::shared_ptr<CompoundStmt> m_body; //TODO: CompoundStmt not always the case
+	std::shared_ptr<CompoundStmt> m_body;
 	std::weak_ptr<FunctionDecl> m_protoRef;
 	bool m_isPrototype = true;
-	bool m_isReferenced = false;
+	size_t m_useCount = 0;
 
 	static std::vector<std::weak_ptr<FunctionDecl>> m_crossResolveList;
+
+private:
+	auto IsUsed() const { return m_useCount > 0; }
 
 public:
 	//TODO: type
@@ -474,22 +477,28 @@ public:
 	// If function declaration has a body, its not a prototype
 	void SetCompound(std::shared_ptr<CompoundStmt>& node)
 	{
+		assert(!m_body);
+
 		ASTNode::AppendChild(NODE_UPCAST(node));
 		m_body = node;
 		m_isPrototype = false;
 	}
 
-	auto IsPrototypeDefinition() const
-	{
-		return m_isPrototype;
-	}
+	auto IsPrototypeDefinition() const { return m_isPrototype; }
+	auto HasPrototypeDefinition() const { return !m_protoRef.expired(); }
 
 	// Bind function body to prototype definition
 	void BindPrototype(std::shared_ptr<FunctionDecl>& node)
 	{
 		assert(!m_isPrototype);
+		assert(m_protoRef.expired());
 
 		m_protoRef = node;
+	}
+
+	void RegisterCaller()
+	{
+		m_useCount++;
 	}
 
 	const std::string NodeName() const
@@ -500,10 +509,15 @@ public:
 		if (IsPrototypeDefinition()) {
 			_node += "proto ";
 		}
-		else if (!m_protoRef.expired()) {
+		else if (HasPrototypeDefinition()) {
 			_node += "linked ";
+
+			if (m_protoRef.lock()->IsUsed()) {
+				_node += "used ";
+			}
 		}
-		if (m_isReferenced) {
+
+		if (IsUsed()) {
 			_node += "used ";
 		}
 
@@ -834,8 +848,8 @@ public:
 };
 #endif
 
-template<typename _Ty, typename _Decl = DeclRefExpr> inline
-std::shared_ptr<_Decl> make_ref(_Ty&& _Args)
+template<typename _Ty, typename _Decl = DeclRefExpr>
+inline std::shared_ptr<_Decl> make_ref(_Ty&& _Args)
 {
 	return std::make_shared<_Decl>(_Decl{ _Args });
 }
