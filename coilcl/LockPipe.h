@@ -77,18 +77,18 @@ public:
 		c.clear();
 	}
 
-	auto empty() const
+	auto empty(bool skipLock = false) const
 	{
-		if (!l.empty()) {
+		if (!l.empty() && !skipLock) {
 			return (c.begin() + l.top()) == c.end();
 		}
 
 		return c.empty();
 	}
 
-	size_type size() const
+	size_type size(bool skipLock = false) const
 	{
-		if (!l.empty()) {
+		if (!l.empty() && !skipLock) {
 			return (c.size() - l.top());
 		}
 

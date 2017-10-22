@@ -1862,9 +1862,10 @@ void Parser::TranslationUnit()
 			m_elementDescentPipe.pop();
 		}
 
+		assert(m_elementDescentPipe.empty(true));
+
 		// Clear all lists where possible before adding new items
 		ClearStack(m_identifierStack);
-		m_elementDescentPipe.clear();
 		m_comm.TryClear();
 	} while (!lex.IsDone());
 }
