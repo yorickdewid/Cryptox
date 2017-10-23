@@ -810,6 +810,21 @@ public:
 	PRINT_NODE(ArgumentStmt);
 };
 
+class ParamStmt : public Stmt
+{
+	std::vector<std::shared_ptr<ASTNode>> m_param;
+
+public:
+	void AppendParamter(std::shared_ptr<ASTNode>& node)
+	{
+		ASTNode::AppendChild(node);
+		m_param.push_back(node);
+	}
+
+	PRINT_NODE(ParamStmt);
+};
+
+
 class CompoundStmt : public Stmt
 {
 	std::list<std::shared_ptr<ASTNode>> m_children;

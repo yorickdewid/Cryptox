@@ -1619,7 +1619,7 @@ void Parser::Designation()
 void Parser::Designators()
 {
 	bool cont = false;
-	do {
+	do { //TODO: rewrite loop
 		switch (CURRENT_TOKEN()) {
 		case TK_BRACKET_OPEN:
 			NextToken();
@@ -1688,6 +1688,8 @@ bool Parser::DirectDeclarator()
 			}
 			else {
 				if (!ParameterTypeList()) {
+
+					///TODO
 					do {
 						if (MATCH_TOKEN(TK_IDENTIFIER)) {
 							EMIT_IDENTIFIER();
@@ -1697,6 +1699,8 @@ bool Parser::DirectDeclarator()
 							return false;//TMP
 						}
 					} while (MATCH_TOKEN(TK_COMMA));
+					///
+
 				}
 
 				//TODO: add parameters
@@ -1760,9 +1764,14 @@ void Parser::TypeQualifierList()
 bool Parser::ParameterTypeList()
 {
 	bool rs = false;
-	do {
+	for (;;) {
 		rs = ParameterDeclaration();
-	} while (MATCH_TOKEN(TK_COMMA));
+		if (NOT_TOKEN(TK_COMMA)) {
+			break;
+		}
+		
+		NextToken();
+	}
 
 	if (MATCH_TOKEN(TK_COMMA)) {
 		ExpectToken(TK_ELLIPSIS);
@@ -1773,15 +1782,16 @@ bool Parser::ParameterTypeList()
 
 bool Parser::ParameterDeclaration()
 {
-	//DeclarationSpecifiers();
 	if (!DeclarationSpecifiers()) { //TMP
 		return false;
 	}
 
-	Declarator();
-	AbstractDeclarator();
+	if (Declarator()) {
+		return true;
+	}
 
-	return true;
+	AbstractDeclarator();
+	return true; //?
 }
 
 bool Parser::FunctionDefinition()
