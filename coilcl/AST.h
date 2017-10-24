@@ -32,6 +32,7 @@ std::string RemoveClassFromName(_Ty *_name)
 class DeclRefExpr;
 class CompoundStmt;
 class ArgumentStmt;
+class ParamStmt;
 
 class ASTNode
 {
@@ -424,6 +425,20 @@ public:
 	}
 };
 
+class ParamDecl : public Decl
+{
+public:
+	ParamDecl(const std::string& name)
+		: Decl{ name }
+	{
+	}
+
+	virtual const std::string NodeName() const
+	{
+		return std::string{ RemoveClassFromName(typeid(ParamDecl).name()) } +" <line:" + std::to_string(line) + ",col:" + std::to_string(col) + "> " + m_identifier;
+	}
+};
+
 class FieldDecl : public Decl
 {
 public:
@@ -448,7 +463,7 @@ public:
 
 class FunctionDecl : public Decl
 {
-	std::shared_ptr<ASTNode> m_params;//TODO: Add parameters
+	std::shared_ptr<ParamStmt> m_params;//TODO: Add parameters
 	std::shared_ptr<CompoundStmt> m_body;
 	std::weak_ptr<FunctionDecl> m_protoRef;
 	bool m_isPrototype = true;
@@ -482,6 +497,14 @@ public:
 		ASTNode::AppendChild(NODE_UPCAST(node));
 		m_body = node;
 		m_isPrototype = false;
+	}
+
+	void SetParameterStatement(std::shared_ptr<ParamStmt>& node)
+	{
+		assert(!m_params);
+
+		ASTNode::AppendChild(NODE_UPCAST(node));
+		m_params = node;
 	}
 
 	auto IsPrototypeDefinition() const { return m_isPrototype; }

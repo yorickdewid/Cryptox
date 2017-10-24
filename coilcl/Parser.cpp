@@ -1705,6 +1705,8 @@ bool Parser::DirectDeclarator()
 
 				//TODO: add parameters
 				auto func = std::make_shared<FunctionDecl>(m_identifierStack.top());
+				func->SetParameterStatement(std::dynamic_pointer_cast<ParamStmt>(m_elementDescentPipe.next()));
+				m_elementDescentPipe.pop();
 				ExpectToken(TK_PARENTHESE_CLOSE);
 
 				stash->Enlist(func);
@@ -1764,17 +1766,31 @@ void Parser::TypeQualifierList()
 bool Parser::ParameterTypeList()
 {
 	bool rs = false;
+
+	auto startState = m_elementDescentPipe.state();
 	for (;;) {
 		rs = ParameterDeclaration();
 		if (NOT_TOKEN(TK_COMMA)) {
 			break;
 		}
-		
+
 		NextToken();
 	}
 
 	if (MATCH_TOKEN(TK_COMMA)) {
 		ExpectToken(TK_ELLIPSIS);
+		//TODO:....
+	}
+
+	m_elementDescentPipe.release_until(startState);
+
+	if (rs) {
+		auto param = std::make_shared<ParamStmt>();
+		while (!m_elementDescentPipe.empty()) {
+			param->AppendParamter(m_elementDescentPipe.next());
+			m_elementDescentPipe.pop();
+		}
+		m_elementDescentPipe.push(param);
 	}
 
 	return rs;
@@ -1787,6 +1803,10 @@ bool Parser::ParameterDeclaration()
 	}
 
 	if (Declarator()) {
+		auto var = std::make_shared<ParamDecl>(m_identifierStack.top());
+		m_identifierStack.pop();
+		m_elementDescentPipe.push(var);
+		m_elementDescentPipe.lock();
 		return true;
 	}
 
