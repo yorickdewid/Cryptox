@@ -17,12 +17,8 @@
 template<typename _Ty>
 std::string RemoveClassFromName(_Ty *_name)
 {
-	constexpr const char stripBlockStr[] = "::";
-	std::string f{ _name };
-	if (size_t pos = f.rfind(stripBlockStr) != std::string::npos) {
-		return f.substr(pos + sizeof(stripBlockStr) - 1);
-	}
 	constexpr const char stripClassStr[] = "class";
+	std::string f{ _name };
 	if (size_t pos = f.find_last_of(stripClassStr) != std::string::npos) {
 		return f.substr(pos + sizeof(stripClassStr) - 1);
 	}
@@ -189,7 +185,9 @@ public:
 	enum UnaryOperand
 	{
 		INC,		// ++
-		DEC			// --
+		DEC,		// --
+
+		ADDR,		// &
 	} m_operand;
 
 	const char *UnaryOperandStr(UnaryOperand operand) const
@@ -199,6 +197,8 @@ public:
 			return "++";
 		case UnaryOperand::DEC:
 			return "--";
+		case UnaryOperand::ADDR:
+			return "&";
 		}
 
 		return "<unknown>";

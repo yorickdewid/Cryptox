@@ -387,33 +387,53 @@ void Parser::EnumeratorList()
 bool Parser::UnaryOperator()
 {
 	switch (CURRENT_TOKEN()) {
-	case TK_AND_OP:
-		NextToken();
-		EMIT("AND");
-		return true;
 	case TK_AMPERSAND:
+	{
 		NextToken();
-		EMIT("AMPERSAND");
-		return true;
+		CastExpression();
+
+		const auto& refIdentifier = m_identifierStack.top();
+		auto decl = stash->Resolve<VarDecl, Decl>([&refIdentifier](std::shared_ptr<VarDecl>& varPtr) -> bool
+		{
+			return varPtr->Identifier() == refIdentifier;
+		});
+
+		if (decl == nullptr) {
+			throw ParseException{ std::string{ "use of undeclared identifier '" + refIdentifier + "'" }.c_str(), 0, 0 };
+		}
+
+		m_identifierStack.pop();
+		auto ref = make_ref(decl);
+
+		auto unaryOp = std::make_shared<CoilCl::AST::UnaryOperator>(CoilCl::AST::UnaryOperator::UnaryOperator::ADDR, CoilCl::AST::UnaryOperator::OperandSide::PREFIX, ref);
+		m_elementDescentPipe.push(unaryOp);
+		break;
+	}
+	case TK_ASTERISK:
+		NextToken();
+		EMIT("MULT");
+		break;
 	case TK_PLUS:
 		NextToken();
 		EMIT("PLUS");
-		return true;
+		break;
 	case TK_MINUS:
 		NextToken();
 		EMIT("MINUS");
-		return true;
+		break;
 	case TK_TILDE:
 		NextToken();
 		EMIT("TILDE");
-		return true;
+		break;
 	case TK_NOT:
 		NextToken();
 		EMIT("NOT");
-		return true;
+		break;
+	default:
+		return false;
 	}
 
-	return false;
+	return true;
 }
 
 void Parser::AssignmentOperator()
@@ -759,6 +779,8 @@ void Parser::PostfixExpression()
 		ExpectToken(TK_BRACE_CLOSE);
 	}*/
 
+	size_t startSz = m_identifierStack.size();
+
 	PrimaryExpression();
 
 	switch (CURRENT_TOKEN()) {
@@ -877,6 +899,12 @@ void Parser::PostfixExpression()
 		NextToken();
 		break;
 	}
+	default:
+	{
+		if (m_identifierStack.size() > startSz) {
+			std::cout << "Should DeclRefVar? > " << m_identifierStack.top() << std::endl;
+		}
+	}
 	}
 }
 
@@ -905,10 +933,10 @@ void Parser::UnaryExpression()
 		}
 		break;
 	default:
-		if (UnaryOperator()) {
-			CastExpression();
-		}
-		else {
+		if (!UnaryOperator()) {
+			//CastExpression();
+		//}
+		//else {
 			PostfixExpression();
 		}
 	}
