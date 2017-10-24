@@ -69,6 +69,7 @@ void Lexer::InitKeywords()
 // EndofUnit as current character.
 void Lexer::Next()
 {
+read_again:
 	if (m_offset < m_content.size()) {
 		m_currentChar = m_content[m_offset++];
 		m_currentColumn++;
@@ -79,7 +80,7 @@ void Lexer::Next()
 	// Otherwise ask the caller for more input data.
 	if (m_offset > 0) {
 		ConsumeNextChunk();
-		return;
+		goto read_again;
 	}
 
 	m_isEof = true;

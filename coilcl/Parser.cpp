@@ -1798,7 +1798,7 @@ bool Parser::ParameterTypeList()
 
 bool Parser::ParameterDeclaration()
 {
-	if (!DeclarationSpecifiers()) { //TMP
+	if (!DeclarationSpecifiers()) {
 		return false;
 	}
 
