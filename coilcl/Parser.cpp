@@ -410,21 +410,45 @@ bool Parser::UnaryOperator()
 		break;
 	}
 	case TK_PLUS:
+	{
 		NextToken();
-		EMIT("PLUS");
+		CastExpression();
+
+		auto resv = MAKE_RESV_REF();
+		auto unaryOp = std::make_shared<CoilCl::AST::UnaryOperator>(CoilCl::AST::UnaryOperator::UnaryOperator::INTPOS, CoilCl::AST::UnaryOperator::OperandSide::PREFIX, resv);
+		m_elementDescentPipe.push(unaryOp);
 		break;
+	}
 	case TK_MINUS:
+	{
 		NextToken();
-		EMIT("MINUS");
+		CastExpression();
+
+		auto resv = MAKE_RESV_REF();
+		auto unaryOp = std::make_shared<CoilCl::AST::UnaryOperator>(CoilCl::AST::UnaryOperator::UnaryOperator::INTNEG, CoilCl::AST::UnaryOperator::OperandSide::PREFIX, resv);
+		m_elementDescentPipe.push(unaryOp);
 		break;
+	}
 	case TK_TILDE:
+	{
 		NextToken();
-		EMIT("TILDE");
+		CastExpression();
+
+		auto resv = MAKE_RESV_REF();
+		auto unaryOp = std::make_shared<CoilCl::AST::UnaryOperator>(CoilCl::AST::UnaryOperator::UnaryOperator::BITNOT, CoilCl::AST::UnaryOperator::OperandSide::PREFIX, resv);
+		m_elementDescentPipe.push(unaryOp);
 		break;
+	}
 	case TK_NOT:
+	{
 		NextToken();
-		EMIT("NOT");
+		CastExpression();
+
+		auto resv = MAKE_RESV_REF();
+		auto unaryOp = std::make_shared<CoilCl::AST::UnaryOperator>(CoilCl::AST::UnaryOperator::UnaryOperator::BOOLNOT, CoilCl::AST::UnaryOperator::OperandSide::PREFIX, resv);
+		m_elementDescentPipe.push(unaryOp);
 		break;
+	}
 	default:
 		return false;
 	}

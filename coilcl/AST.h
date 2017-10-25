@@ -187,8 +187,14 @@ public:
 		INC,		// ++
 		DEC,		// --
 
+		INTPOS,		// +
+		INTNEG,		// -
+
 		ADDR,		// &
 		PTRVAL,		// *
+
+		BITNOT,		// ~
+		BOOLNOT,	// !
 	} m_operand;
 
 	const char *UnaryOperandStr(UnaryOperand operand) const
@@ -198,10 +204,18 @@ public:
 			return "++";
 		case UnaryOperand::DEC:
 			return "--";
+		case UnaryOperand::INTPOS:
+			return "+";
+		case UnaryOperand::INTNEG:
+			return "-";
 		case UnaryOperand::ADDR:
 			return "&";
 		case UnaryOperand::PTRVAL:
 			return "*";
+		case UnaryOperand::BITNOT:
+			return "~";
+		case UnaryOperand::BOOLNOT:
+			return "!";
 		}
 
 		return "<unknown>";
