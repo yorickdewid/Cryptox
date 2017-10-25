@@ -410,9 +410,27 @@ bool Parser::UnaryOperator()
 		break;
 	}
 	case TK_ASTERISK:
+	{
 		NextToken();
-		EMIT("MULT");
+		CastExpression();
+
+		const auto& refIdentifier = m_identifierStack.top();
+		auto decl = stash->Resolve<VarDecl, Decl>([&refIdentifier](std::shared_ptr<VarDecl>& varPtr) -> bool
+		{
+			return varPtr->Identifier() == refIdentifier;
+		});
+
+		if (decl == nullptr) {
+			throw ParseException{ std::string{ "use of undeclared identifier '" + refIdentifier + "'" }.c_str(), 0, 0 };
+		}
+
+		m_identifierStack.pop();
+		auto ref = make_ref(decl);
+
+		auto unaryOp = std::make_shared<CoilCl::AST::UnaryOperator>(CoilCl::AST::UnaryOperator::UnaryOperator::PTRVAL, CoilCl::AST::UnaryOperator::OperandSide::PREFIX, ref);
+		m_elementDescentPipe.push(unaryOp);
 		break;
+	}
 	case TK_PLUS:
 		NextToken();
 		EMIT("PLUS");
@@ -902,7 +920,33 @@ void Parser::PostfixExpression()
 	default:
 	{
 		if (m_identifierStack.size() > startSz) {
-			std::cout << "Should DeclRefVar? > " << m_identifierStack.top() << std::endl;
+			//std::cout << "Should DeclRefVar? > " << m_identifierStack.top() << std::endl;
+
+
+
+
+			/*const auto& refIdentifier = m_identifierStack.top();
+			auto decl = stash->Resolve<VarDecl, Decl>([&refIdentifier](std::shared_ptr<VarDecl>& varPtr) -> bool
+			{
+				return varPtr->Identifier() == refIdentifier;
+			});
+
+			if (decl == nullptr) {
+				throw ParseException{ std::string{ "use of undeclared identifier '" + refIdentifier + "'" }.c_str(), 0, 0 };
+			}
+
+			m_identifierStack.pop();
+			auto ref = make_ref(decl);
+
+			auto unaryOp = std::make_shared<CoilCl::AST::UnaryOperator>(CoilCl::AST::UnaryOperator::UnaryOperator::DEC, CoilCl::AST::UnaryOperator::OperandSide::POSTFIX, ref);
+			m_elementDescentPipe.push(unaryOp);
+
+			NextToken();
+			break;*/
+
+			auto resv = std::make_shared<ResolveRefExpr>(m_identifierStack.top());
+			m_identifierStack.pop();
+			m_elementDescentPipe.push(resv);
 		}
 	}
 	}
@@ -1831,9 +1875,16 @@ bool Parser::ParameterDeclaration()
 	}
 
 	if (Declarator()) {
-		auto var = std::make_shared<ParamDecl>(m_identifierStack.top());
+		auto param = std::make_shared<ParamDecl>(m_identifierStack.top());
 		m_identifierStack.pop();
-		m_elementDescentPipe.push(var);
+
+		/*stash->Enlist(param, [](decltype(param)& _param)
+		{
+			_param->Delist(...);
+		});
+		stash->Enlist(param->MakeDecl<VarDecl>());*/
+
+		m_elementDescentPipe.push(param);
 		m_elementDescentPipe.lock();
 		return true;
 	}
@@ -1882,11 +1933,10 @@ bool Parser::FunctionDefinition()
 		});
 
 		// Bind function to prototype
-		if (funcProto) {
-			func->BindPrototype(funcProto);
-		}
+		if (funcProto) { func->BindPrototype(funcProto); }
 	}
 
+	//stash->Purge<ParamDecl>();
 	m_elementDescentPipe.release_until(startState);
 	return true;
 }
