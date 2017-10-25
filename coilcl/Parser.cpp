@@ -16,6 +16,8 @@
 #define EMIT(m) std::cout << "EMIT::" << m << std::endl;
 #define EMIT_IDENTIFIER() std::cout << "EMIT::IDENTIFIER" << "("<< CURRENT_DATA()->As<std::string>() << ")" << std::endl;
 
+#define MAKE_RESV_REF() std::make_shared<DeclRefExpr>(m_identifierStack.top()); m_identifierStack.pop();
+
 class UnexpectedTokenException : public std::exception
 {
 public:
@@ -152,7 +154,7 @@ Parser::Parser(std::shared_ptr<Compiler::Profile>& profile)
 Parser& Parser::CheckCompatibility()
 {
 	//TODO: check profile options here
-	return *this;
+	return (*this);
 }
 
 void Parser::Error(const char* err)
@@ -392,20 +394,8 @@ bool Parser::UnaryOperator()
 		NextToken();
 		CastExpression();
 
-		const auto& refIdentifier = m_identifierStack.top();
-		auto decl = stash->Resolve<VarDecl, Decl>([&refIdentifier](std::shared_ptr<VarDecl>& varPtr) -> bool
-		{
-			return varPtr->Identifier() == refIdentifier;
-		});
-
-		if (decl == nullptr) {
-			throw ParseException{ std::string{ "use of undeclared identifier '" + refIdentifier + "'" }.c_str(), 0, 0 };
-		}
-
-		m_identifierStack.pop();
-		auto ref = make_ref(decl);
-
-		auto unaryOp = std::make_shared<CoilCl::AST::UnaryOperator>(CoilCl::AST::UnaryOperator::UnaryOperator::ADDR, CoilCl::AST::UnaryOperator::OperandSide::PREFIX, ref);
+		auto resv = MAKE_RESV_REF();
+		auto unaryOp = std::make_shared<CoilCl::AST::UnaryOperator>(CoilCl::AST::UnaryOperator::UnaryOperator::ADDR, CoilCl::AST::UnaryOperator::OperandSide::PREFIX, resv);
 		m_elementDescentPipe.push(unaryOp);
 		break;
 	}
@@ -414,20 +404,8 @@ bool Parser::UnaryOperator()
 		NextToken();
 		CastExpression();
 
-		const auto& refIdentifier = m_identifierStack.top();
-		auto decl = stash->Resolve<VarDecl, Decl>([&refIdentifier](std::shared_ptr<VarDecl>& varPtr) -> bool
-		{
-			return varPtr->Identifier() == refIdentifier;
-		});
-
-		if (decl == nullptr) {
-			throw ParseException{ std::string{ "use of undeclared identifier '" + refIdentifier + "'" }.c_str(), 0, 0 };
-		}
-
-		m_identifierStack.pop();
-		auto ref = make_ref(decl);
-
-		auto unaryOp = std::make_shared<CoilCl::AST::UnaryOperator>(CoilCl::AST::UnaryOperator::UnaryOperator::PTRVAL, CoilCl::AST::UnaryOperator::OperandSide::PREFIX, ref);
+		auto resv = MAKE_RESV_REF();
+		auto unaryOp = std::make_shared<CoilCl::AST::UnaryOperator>(CoilCl::AST::UnaryOperator::UnaryOperator::PTRVAL, CoilCl::AST::UnaryOperator::OperandSide::PREFIX, resv);
 		m_elementDescentPipe.push(unaryOp);
 		break;
 	}
@@ -463,20 +441,8 @@ void Parser::AssignmentOperator()
 		break;
 	case TK_MUL_ASSIGN:
 	{
-		const auto& refIdentifier = m_identifierStack.top();
-		auto decl = stash->Resolve<VarDecl, Decl>([&refIdentifier](std::shared_ptr<VarDecl>& funcPtr) -> bool
-		{
-			return funcPtr->Identifier() == refIdentifier;
-		});
-
-		if (decl == nullptr) {
-			throw ParseException{ std::string{ "implicit declaration of function '" + refIdentifier + "' is invalid" }.c_str(), 0, 0 };
-		}
-
-		m_identifierStack.pop();
-		auto ref = make_ref(decl);
-
-		auto comOp = std::make_shared<CompoundAssignOperator>(CompoundAssignOperator::CompoundAssignOperand::MUL, ref);
+		auto resv = MAKE_RESV_REF();
+		auto comOp = std::make_shared<CompoundAssignOperator>(CompoundAssignOperator::CompoundAssignOperand::MUL, resv);
 
 		NextToken();
 		AssignmentExpression();
@@ -488,20 +454,8 @@ void Parser::AssignmentOperator()
 	}
 	case TK_DIV_ASSIGN:
 	{
-		const auto& refIdentifier = m_identifierStack.top();
-		auto decl = stash->Resolve<VarDecl, Decl>([&refIdentifier](std::shared_ptr<VarDecl>& funcPtr) -> bool
-		{
-			return funcPtr->Identifier() == refIdentifier;
-		});
-
-		if (decl == nullptr) {
-			throw ParseException{ std::string{ "implicit declaration of function '" + refIdentifier + "' is invalid" }.c_str(), 0, 0 };
-		}
-
-		m_identifierStack.pop();
-		auto ref = make_ref(decl);
-
-		auto comOp = std::make_shared<CompoundAssignOperator>(CompoundAssignOperator::CompoundAssignOperand::DIV, ref);
+		auto resv = MAKE_RESV_REF();
+		auto comOp = std::make_shared<CompoundAssignOperator>(CompoundAssignOperator::CompoundAssignOperand::DIV, resv);
 
 		NextToken();
 		AssignmentExpression();
@@ -513,20 +467,8 @@ void Parser::AssignmentOperator()
 	}
 	case TK_MOD_ASSIGN:
 	{
-		const auto& refIdentifier = m_identifierStack.top();
-		auto decl = stash->Resolve<VarDecl, Decl>([&refIdentifier](std::shared_ptr<VarDecl>& funcPtr) -> bool
-		{
-			return funcPtr->Identifier() == refIdentifier;
-		});
-
-		if (decl == nullptr) {
-			throw ParseException{ std::string{ "implicit declaration of function '" + refIdentifier + "' is invalid" }.c_str(), 0, 0 };
-		}
-
-		m_identifierStack.pop();
-		auto ref = make_ref(decl);
-
-		auto comOp = std::make_shared<CompoundAssignOperator>(CompoundAssignOperator::CompoundAssignOperand::MOD, ref);
+		auto resv = MAKE_RESV_REF();
+		auto comOp = std::make_shared<CompoundAssignOperator>(CompoundAssignOperator::CompoundAssignOperand::MOD, resv);
 
 		NextToken();
 		AssignmentExpression();
@@ -538,20 +480,8 @@ void Parser::AssignmentOperator()
 	}
 	case TK_ADD_ASSIGN:
 	{
-		const auto& refIdentifier = m_identifierStack.top();
-		auto decl = stash->Resolve<VarDecl, Decl>([&refIdentifier](std::shared_ptr<VarDecl>& funcPtr) -> bool
-		{
-			return funcPtr->Identifier() == refIdentifier;
-		});
-
-		if (decl == nullptr) {
-			throw ParseException{ std::string{ "implicit declaration of function '" + refIdentifier + "' is invalid" }.c_str(), 0, 0 };
-		}
-
-		m_identifierStack.pop();
-		auto ref = make_ref(decl);
-
-		auto comOp = std::make_shared<CompoundAssignOperator>(CompoundAssignOperator::CompoundAssignOperand::ADD, ref);
+		auto resv = MAKE_RESV_REF();
+		auto comOp = std::make_shared<CompoundAssignOperator>(CompoundAssignOperator::CompoundAssignOperand::ADD, resv);
 
 		NextToken();
 		AssignmentExpression();
@@ -563,20 +493,8 @@ void Parser::AssignmentOperator()
 	}
 	case TK_SUB_ASSIGN:
 	{
-		const auto& refIdentifier = m_identifierStack.top();
-		auto decl = stash->Resolve<VarDecl, Decl>([&refIdentifier](std::shared_ptr<VarDecl>& funcPtr) -> bool
-		{
-			return funcPtr->Identifier() == refIdentifier;
-		});
-
-		if (decl == nullptr) {
-			throw ParseException{ std::string{ "implicit declaration of function '" + refIdentifier + "' is invalid" }.c_str(), 0, 0 };
-		}
-
-		m_identifierStack.pop();
-		auto ref = make_ref(decl);
-
-		auto comOp = std::make_shared<CompoundAssignOperator>(CompoundAssignOperator::CompoundAssignOperand::SUB, ref);
+		auto resv = MAKE_RESV_REF();
+		auto comOp = std::make_shared<CompoundAssignOperator>(CompoundAssignOperator::CompoundAssignOperand::SUB, resv);
 
 		NextToken();
 		AssignmentExpression();
@@ -588,20 +506,8 @@ void Parser::AssignmentOperator()
 	}
 	case TK_LEFT_ASSIGN:
 	{
-		const auto& refIdentifier = m_identifierStack.top();
-		auto decl = stash->Resolve<VarDecl, Decl>([&refIdentifier](std::shared_ptr<VarDecl>& funcPtr) -> bool
-		{
-			return funcPtr->Identifier() == refIdentifier;
-		});
-
-		if (decl == nullptr) {
-			throw ParseException{ std::string{ "implicit declaration of function '" + refIdentifier + "' is invalid" }.c_str(), 0, 0 };
-		}
-
-		m_identifierStack.pop();
-		auto ref = make_ref(decl);
-
-		auto comOp = std::make_shared<CompoundAssignOperator>(CompoundAssignOperator::CompoundAssignOperand::LEFT, ref);
+		auto resv = MAKE_RESV_REF();
+		auto comOp = std::make_shared<CompoundAssignOperator>(CompoundAssignOperator::CompoundAssignOperand::LEFT, resv);
 
 		NextToken();
 		AssignmentExpression();
@@ -613,20 +519,8 @@ void Parser::AssignmentOperator()
 	}
 	case TK_RIGHT_ASSIGN:
 	{
-		const auto& refIdentifier = m_identifierStack.top();
-		auto decl = stash->Resolve<VarDecl, Decl>([&refIdentifier](std::shared_ptr<VarDecl>& funcPtr) -> bool
-		{
-			return funcPtr->Identifier() == refIdentifier;
-		});
-
-		if (decl == nullptr) {
-			throw ParseException{ std::string{ "implicit declaration of function '" + refIdentifier + "' is invalid" }.c_str(), 0, 0 };
-		}
-
-		m_identifierStack.pop();
-		auto ref = make_ref(decl);
-
-		auto comOp = std::make_shared<CompoundAssignOperator>(CompoundAssignOperator::CompoundAssignOperand::RIGHT, ref);
+		auto resv = MAKE_RESV_REF();
+		auto comOp = std::make_shared<CompoundAssignOperator>(CompoundAssignOperator::CompoundAssignOperand::RIGHT, resv);
 
 		NextToken();
 		AssignmentExpression();
@@ -638,20 +532,8 @@ void Parser::AssignmentOperator()
 	}
 	case TK_AND_ASSIGN:
 	{
-		const auto& refIdentifier = m_identifierStack.top();
-		auto decl = stash->Resolve<VarDecl, Decl>([&refIdentifier](std::shared_ptr<VarDecl>& funcPtr) -> bool
-		{
-			return funcPtr->Identifier() == refIdentifier;
-		});
-
-		if (decl == nullptr) {
-			throw ParseException{ std::string{ "implicit declaration of function '" + refIdentifier + "' is invalid" }.c_str(), 0, 0 };
-		}
-
-		m_identifierStack.pop();
-		auto ref = make_ref(decl);
-
-		auto comOp = std::make_shared<CompoundAssignOperator>(CompoundAssignOperator::CompoundAssignOperand::AND, ref);
+		auto resv = MAKE_RESV_REF();
+		auto comOp = std::make_shared<CompoundAssignOperator>(CompoundAssignOperator::CompoundAssignOperand::AND, resv);
 
 		NextToken();
 		AssignmentExpression();
@@ -663,20 +545,8 @@ void Parser::AssignmentOperator()
 	}
 	case TK_XOR_ASSIGN:
 	{
-		const auto& refIdentifier = m_identifierStack.top();
-		auto decl = stash->Resolve<VarDecl, Decl>([&refIdentifier](std::shared_ptr<VarDecl>& funcPtr) -> bool
-		{
-			return funcPtr->Identifier() == refIdentifier;
-		});
-
-		if (decl == nullptr) {
-			throw ParseException{ std::string{ "implicit declaration of function '" + refIdentifier + "' is invalid" }.c_str(), 0, 0 };
-		}
-
-		m_identifierStack.pop();
-		auto ref = make_ref(decl);
-
-		auto comOp = std::make_shared<CompoundAssignOperator>(CompoundAssignOperator::CompoundAssignOperand::XOR, ref);
+		auto resv = MAKE_RESV_REF();
+		auto comOp = std::make_shared<CompoundAssignOperator>(CompoundAssignOperator::CompoundAssignOperand::XOR, resv);
 
 		NextToken();
 		AssignmentExpression();
@@ -688,20 +558,8 @@ void Parser::AssignmentOperator()
 	}
 	case TK_OR_ASSIGN:
 	{
-		const auto& refIdentifier = m_identifierStack.top();
-		auto decl = stash->Resolve<VarDecl, Decl>([&refIdentifier](std::shared_ptr<VarDecl>& funcPtr) -> bool
-		{
-			return funcPtr->Identifier() == refIdentifier;
-		});
-
-		if (decl == nullptr) {
-			throw ParseException{ std::string{ "implicit declaration of function '" + refIdentifier + "' is invalid" }.c_str(), 0, 0 };
-		}
-
-		m_identifierStack.pop();
-		auto ref = make_ref(decl);
-
-		auto comOp = std::make_shared<CompoundAssignOperator>(CompoundAssignOperator::CompoundAssignOperand::OR, ref);
+		auto resv = MAKE_RESV_REF();
+		auto comOp = std::make_shared<CompoundAssignOperator>(CompoundAssignOperator::CompoundAssignOperand::OR, resv);
 
 		NextToken();
 		AssignmentExpression();
@@ -764,7 +622,6 @@ void Parser::PrimaryExpression()
 	}
 }
 
-//TODO: merge with Expression()
 void Parser::ArgumentExpressionList()
 {
 	auto cont = false;
@@ -806,23 +663,12 @@ void Parser::PostfixExpression()
 	{
 		NextToken();
 
-		const auto& refIdentifier = m_identifierStack.top();
-		auto decl = stash->Resolve<VarDecl, Decl>([&refIdentifier](std::shared_ptr<VarDecl>& varPtr) -> bool
-		{
-			return varPtr->Identifier() == refIdentifier;
-		});
-
-		if (decl == nullptr) {
-			throw ParseException{ std::string{ "use of undeclared identifier '" + refIdentifier + "'" }.c_str(), 0, 0 };
-		}
-
-		m_identifierStack.pop();
-		auto ref = make_ref(decl);
+		auto resv = MAKE_RESV_REF();
 
 		Expression();
 		ExpectToken(TK_BRACKET_CLOSE);
 
-		auto arrsub = std::make_shared<ArraySubscriptExpr>(ref, m_elementDescentPipe.next());
+		auto arrsub = std::make_shared<ArraySubscriptExpr>(resv, m_elementDescentPipe.next());
 		m_elementDescentPipe.pop();
 		m_elementDescentPipe.push(arrsub);
 		break;
@@ -831,23 +677,11 @@ void Parser::PostfixExpression()
 	{
 		NextToken();
 
-		const auto& refIdentifier = m_identifierStack.top();
-		auto funcDelc = stash->Resolve<FunctionDecl, Decl>([&refIdentifier](std::shared_ptr<FunctionDecl>& funcPtr) -> bool
-		{
-			return funcPtr->Identifier() == refIdentifier;
-		});
-
-		if (funcDelc == nullptr) {
-			throw ParseException{ std::string{ "implicit declaration of function '" + refIdentifier + "' is invalid" }.c_str(), 0, 0 };
-		}
-
-		m_identifierStack.pop();
-		auto ref = make_ref(funcDelc);
+		auto resv = MAKE_RESV_REF();
 
 		if (MATCH_TOKEN(TK_PARENTHESE_CLOSE)) {
 			NextToken();
-			std::dynamic_pointer_cast<FunctionDecl>(funcDelc)->RegisterCaller();
-			m_elementDescentPipe.push(std::make_shared<CallExpr>(ref));
+			m_elementDescentPipe.push(std::make_shared<CallExpr>(resv));
 		}
 		else {
 			auto startState = m_elementDescentPipe.state();
@@ -861,7 +695,7 @@ void Parser::PostfixExpression()
 				m_elementDescentPipe.pop();
 			}
 
-			m_elementDescentPipe.push(std::make_shared<CallExpr>(ref, arg));
+			m_elementDescentPipe.push(std::make_shared<CallExpr>(resv, arg));
 		}
 		break;
 	}
@@ -877,20 +711,8 @@ void Parser::PostfixExpression()
 		break;
 	case TK_INC_OP:
 	{
-		const auto& refIdentifier = m_identifierStack.top();
-		auto decl = stash->Resolve<VarDecl, Decl>([&refIdentifier](std::shared_ptr<VarDecl>& varPtr) -> bool
-		{
-			return varPtr->Identifier() == refIdentifier;
-		});
-
-		if (decl == nullptr) {
-			throw ParseException{ std::string{ "use of undeclared identifier '" + refIdentifier + "'" }.c_str(), 0, 0 };
-		}
-
-		m_identifierStack.pop();
-		auto ref = make_ref(decl);
-
-		auto unaryOp = std::make_shared<CoilCl::AST::UnaryOperator>(CoilCl::AST::UnaryOperator::UnaryOperator::INC, CoilCl::AST::UnaryOperator::OperandSide::POSTFIX, ref);
+		auto resv = MAKE_RESV_REF();
+		auto unaryOp = std::make_shared<CoilCl::AST::UnaryOperator>(CoilCl::AST::UnaryOperator::UnaryOperator::INC, CoilCl::AST::UnaryOperator::OperandSide::POSTFIX, resv);
 		m_elementDescentPipe.push(unaryOp);
 
 		NextToken();
@@ -898,20 +720,8 @@ void Parser::PostfixExpression()
 	}
 	case TK_DEC_OP:
 	{
-		const auto& refIdentifier = m_identifierStack.top();
-		auto decl = stash->Resolve<VarDecl, Decl>([&refIdentifier](std::shared_ptr<VarDecl>& varPtr) -> bool
-		{
-			return varPtr->Identifier() == refIdentifier;
-		});
-
-		if (decl == nullptr) {
-			throw ParseException{ std::string{ "use of undeclared identifier '" + refIdentifier + "'" }.c_str(), 0, 0 };
-		}
-
-		m_identifierStack.pop();
-		auto ref = make_ref(decl);
-
-		auto unaryOp = std::make_shared<CoilCl::AST::UnaryOperator>(CoilCl::AST::UnaryOperator::UnaryOperator::DEC, CoilCl::AST::UnaryOperator::OperandSide::POSTFIX, ref);
+		auto resv = MAKE_RESV_REF();
+		auto unaryOp = std::make_shared<CoilCl::AST::UnaryOperator>(CoilCl::AST::UnaryOperator::UnaryOperator::DEC, CoilCl::AST::UnaryOperator::OperandSide::POSTFIX, resv);
 		m_elementDescentPipe.push(unaryOp);
 
 		NextToken();
@@ -920,32 +730,7 @@ void Parser::PostfixExpression()
 	default:
 	{
 		if (m_identifierStack.size() > startSz) {
-			//std::cout << "Should DeclRefVar? > " << m_identifierStack.top() << std::endl;
-
-
-
-
-			/*const auto& refIdentifier = m_identifierStack.top();
-			auto decl = stash->Resolve<VarDecl, Decl>([&refIdentifier](std::shared_ptr<VarDecl>& varPtr) -> bool
-			{
-				return varPtr->Identifier() == refIdentifier;
-			});
-
-			if (decl == nullptr) {
-				throw ParseException{ std::string{ "use of undeclared identifier '" + refIdentifier + "'" }.c_str(), 0, 0 };
-			}
-
-			m_identifierStack.pop();
-			auto ref = make_ref(decl);
-
-			auto unaryOp = std::make_shared<CoilCl::AST::UnaryOperator>(CoilCl::AST::UnaryOperator::UnaryOperator::DEC, CoilCl::AST::UnaryOperator::OperandSide::POSTFIX, ref);
-			m_elementDescentPipe.push(unaryOp);
-
-			NextToken();
-			break;*/
-
-			auto resv = std::make_shared<ResolveRefExpr>(m_identifierStack.top());
-			m_identifierStack.pop();
+			auto resv = MAKE_RESV_REF();
 			m_elementDescentPipe.push(resv);
 		}
 	}
@@ -1538,43 +1323,20 @@ void Parser::InitDeclaratorList()
 			Initializer();
 
 			std::shared_ptr<VarDecl> var;
-			if (!m_elementDescentPipe.empty()) {
-
-				// Assume list if there is more than one value
-				if (m_elementDescentPipe.size() > 1) {
-					auto list = std::make_shared<InitListExpr>();
-					while (!m_elementDescentPipe.empty()) {
-						list->AddListItem(m_elementDescentPipe.next());
-						m_elementDescentPipe.pop();
-					}
-					m_elementDescentPipe.push(list);
+			if (m_elementDescentPipe.size() > 1) {
+				auto list = std::make_shared<InitListExpr>();
+				while (!m_elementDescentPipe.empty()) {
+					list->AddListItem(m_elementDescentPipe.next());
+					m_elementDescentPipe.pop();
 				}
-
-				var = std::make_shared<VarDecl>(m_identifierStack.top(), m_elementDescentPipe.next());
-				m_identifierStack.pop();
-				m_elementDescentPipe.pop();
+				m_elementDescentPipe.push(list);
 			}
-			else {
-				const auto& refIdentifier = m_identifierStack.top();
-				auto decl = stash->Resolve<VarDecl, Decl>([&refIdentifier](std::shared_ptr<VarDecl>& varPtr) -> bool
-				{
-					return varPtr->Identifier() == refIdentifier;
-				});
 
-				if (decl == nullptr) {
-					throw ParseException{ std::string{ "use of undeclared identifier '" + refIdentifier + "'" }.c_str(), 0, 0 };
-				}
-
-				m_identifierStack.pop();
-				auto ref = make_ref(decl);
-
-				var = std::make_shared<VarDecl>(m_identifierStack.top(), ref);
-				m_identifierStack.pop();
-			}
+			var = std::make_shared<VarDecl>(m_identifierStack.top(), m_elementDescentPipe.next());
+			m_identifierStack.pop();
+			m_elementDescentPipe.pop();
 
 			assert(var != nullptr);
-
-			stash->Enlist(var);
 
 			m_elementDescentPipe.push(var);
 			m_elementDescentPipe.lock();
@@ -1754,7 +1516,6 @@ bool Parser::DirectDeclarator()
 				auto func = std::make_shared<FunctionDecl>(m_identifierStack.top());
 				m_identifierStack.pop();
 
-				stash->Enlist(func);
 				m_elementDescentPipe.push(func);
 				return true;
 			}
@@ -1775,13 +1536,11 @@ bool Parser::DirectDeclarator()
 
 				}
 
-				//TODO: add parameters
 				auto func = std::make_shared<FunctionDecl>(m_identifierStack.top());
 				func->SetParameterStatement(std::dynamic_pointer_cast<ParamStmt>(m_elementDescentPipe.next()));
 				m_elementDescentPipe.pop();
 				ExpectToken(TK_PARENTHESE_CLOSE);
 
-				stash->Enlist(func);
 				m_elementDescentPipe.push(func);
 				return true;
 			}
@@ -1878,12 +1637,6 @@ bool Parser::ParameterDeclaration()
 		auto param = std::make_shared<ParamDecl>(m_identifierStack.top());
 		m_identifierStack.pop();
 
-		/*stash->Enlist(param, [](decltype(param)& _param)
-		{
-			_param->Delist(...);
-		});
-		stash->Enlist(param->MakeDecl<VarDecl>());*/
-
 		m_elementDescentPipe.push(param);
 		m_elementDescentPipe.lock();
 		return true;
@@ -1920,23 +1673,12 @@ bool Parser::FunctionDefinition()
 	m_elementDescentPipe.lock();
 
 	while (Declarator());
-
 	auto res = CompoundStatement();
 	if (res) {
 		func->SetCompound(std::dynamic_pointer_cast<CompoundStmt>(m_elementDescentPipe.next()));
 		m_elementDescentPipe.pop();
-
-		auto funcProto = stash->Resolve<FunctionDecl>([&func](std::shared_ptr<FunctionDecl>& funcPtr) -> bool
-		{
-			return funcPtr->Identifier() == func->Identifier()
-				&& funcPtr->IsPrototypeDefinition();
-		});
-
-		// Bind function to prototype
-		if (funcProto) { func->BindPrototype(funcProto); }
 	}
 
-	//stash->Purge<ParamDecl>();
 	m_elementDescentPipe.release_until(startState);
 	return true;
 }
@@ -1987,5 +1729,5 @@ Parser& Parser::Execute()
 	NextToken();
 	TranslationUnit();
 
-	return *this;
+	return (*this);
 }

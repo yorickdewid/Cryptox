@@ -612,24 +612,6 @@ public:
 	PRINT_NODE(Expr);
 };
 
-class DeclRefExpr : public Expr
-{
-	std::weak_ptr<Decl> m_ref;
-
-public:
-	// We're not saving the reference as child in the root to prevent
-	// circulair references in the upper node.
-	DeclRefExpr(std::shared_ptr<Decl>& ref)
-		:m_ref{ ref }
-	{
-	}
-
-	const std::string NodeName() const
-	{
-		return std::string{ RemoveClassFromName(typeid(DeclRefExpr).name()) } +" <line:" + std::to_string(line) + ",col:" + std::to_string(col) + "> linked '" + m_ref.lock()->Identifier() + "'";
-	}
-};
-
 class ResolveRefExpr : public Expr
 {
 	std::string m_identifier;
@@ -640,12 +622,45 @@ public:
 	{
 	}
 
+	ResolveRefExpr() = default;
+
+protected:
 	const std::string NodeName() const
 	{
 		return std::string{ RemoveClassFromName(typeid(ResolveRefExpr).name()) } +" <line:" + std::to_string(line) + ",col:" + std::to_string(col) + "> '" + m_identifier + "'";
 	}
 };
 
+class DeclRefExpr : public ResolveRefExpr
+{
+	std::weak_ptr<Decl> m_ref;
+
+private:
+	auto IsResolved() const { return !m_ref.expired(); }
+
+public:
+	// We're not saving the reference as child in the root to prevent
+	// circulair references in the upper node.
+	explicit DeclRefExpr(std::shared_ptr<Decl>& ref)
+		: m_ref{ ref }
+	{
+	}
+
+	explicit DeclRefExpr(const std::string& identifier)
+		: ResolveRefExpr{ identifier }
+	{
+	}
+
+	const std::string NodeName() const
+	{
+		if (IsResolved()) {
+			return std::string{ RemoveClassFromName(typeid(DeclRefExpr).name()) } +" <line:" + std::to_string(line) + ",col:" + std::to_string(col) + "> linked '" + m_ref.lock()->Identifier() + "'";
+		}
+		else {
+			return ResolveRefExpr::NodeName();
+		}
+	}
+};
 
 class CallExpr : public Expr
 {
@@ -906,8 +921,3 @@ public:
 };
 #endif
 
-template<typename... _Ty, class _Decl = DeclRefExpr>
-inline std::shared_ptr<_Decl> make_ref(_Ty&&... _Args)
-{
-	return std::shared_ptr<_Decl>{new _Decl{ _Args... }};
-}

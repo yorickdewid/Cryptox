@@ -1,6 +1,7 @@
 #include "coilcl.h"
 #include "Profile.h"
 #include "Parser.h"
+#include "Semer.h"
 
 #include <string>
 #include <iostream>
@@ -106,7 +107,8 @@ public:
 			/*auto transunit = CoilCl::Preprocessor{ profile }
 				.InlineIncludes()
 				.StemMacros()
-				.DumpTranslationUnit<CoilCl::Reader::MemoryReader>();*/
+				.DumpTranslationUnit<CoilCl::Reader::MemoryReader>();
+			*/
 
 			// Syntax analysis
 			auto iast = Parser{ profile }
@@ -118,13 +120,19 @@ public:
 			iast->Print();
 
 			// Semantic analysis
+			CoilCl::Semer{ profile }
+				.Syntax(iast)
+				.PreliminaryAssert()
+				.StandardCompliance();
+
 			/*auto oast = CoilCl::Semer{ profile }
-				.Syntax<decltype(iast)>(iast)
+				.Syntax(iast)
 				.PreliminaryAssert()
 				.StandardCompliance()
 				.PedanticCompliance()
 				.Optimize<Optimizer>(CoilCl::Semer::OptimizeLevel::L0)
-				.TreeOperator<CoilCl::AST::Util::Copy>();*/
+				.TreeOperator<CoilCl::AST::Util::Copy>();
+			*/
 
 			// CoilCl::AST::Writer::ToFile(oast);
 			// auto oast = CoilCl::AST::Writer::FromFile();
@@ -133,7 +141,8 @@ public:
 			/*CoilCl::Emitter{ profile }
 				.Syntax<decltype(oast)>(oast)
 				.Sequence(CoilCl::Emiter::CASM)
-				.StreamSink<CoilCl::Stream::Console>();*/
+				.StreamSink<CoilCl::Stream::Console>();
+			*/
 		}
 		// Catch any leaked erros not caught in the stages
 		catch (std::exception& e) {

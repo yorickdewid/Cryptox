@@ -38,6 +38,9 @@
     <ClCompile Include="Keyword.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Semer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="VM.h">
@@ -71,6 +74,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Stage.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Semer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

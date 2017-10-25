@@ -307,8 +307,6 @@ private:
 	StateContainer<TokenState> m_comm;
 	std::shared_ptr<Compiler::Profile> m_profile;
 
-	std::unique_ptr<Stash<ASTNode>> stash = std::make_unique<Stash<ASTNode>>();
-
 	std::stack<std::string> m_identifierStack;
 	LockPipe<std::shared_ptr<ASTNode>> m_elementDescentPipe;
 };

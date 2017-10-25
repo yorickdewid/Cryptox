@@ -146,12 +146,14 @@
     <ClCompile Include="Lexer.cpp" />
     <ClCompile Include="OpCodes.h" />
     <ClCompile Include="Parser.cpp" />
+    <ClCompile Include="Semer.cpp" />
     <ClCompile Include="ValueObject.cpp" />
     <ClCompile Include="VM.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AST.h" />
     <ClInclude Include="coilcl.h" />
+    <ClInclude Include="Semer.h" />
     <ClInclude Include="Stage.h" />
     <ClInclude Include="IncompatibleException.h" />
     <ClInclude Include="Lexer.h" />

@@ -14,6 +14,9 @@ CoilCl::Semer::Semer(std::shared_ptr<Compiler::Profile>& profile)
 
 CoilCl::Semer& CoilCl::Semer::PreliminaryAssert()
 {
+	//TODO: identifier resolving & scoping
+	//TODO: type checking
+	//TODO: implicit cast
 	return (*this);
 }
 
@@ -36,4 +39,15 @@ void CoilCl::Semer::ResolveIdentifier()
 
 	m_identifierStack.pop();
 	auto ref = make_ref(decl);*/
+
+	/////////
+
+	/*auto funcProto = stash->Resolve<FunctionDecl>([&func](std::shared_ptr<FunctionDecl>& funcPtr) -> bool
+	{
+	return funcPtr->Identifier() == func->Identifier()
+	&& funcPtr->IsPrototypeDefinition();
+	});*/
+
+	// Bind function to prototype
+	//if (funcProto) { func->BindPrototype(funcProto); }
 }
