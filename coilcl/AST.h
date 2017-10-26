@@ -191,6 +191,50 @@ public:
 	}
 };
 
+class ConditionalOperator : public Operator
+{
+	std::shared_ptr<ASTNode> evalNode;
+	std::shared_ptr<ASTNode> truthStmt;
+	std::shared_ptr<ASTNode> altStmt;
+
+public:
+	ConditionalOperator(std::shared_ptr<ASTNode>& eval, std::shared_ptr<ASTNode> truth = nullptr, std::shared_ptr<ASTNode> alt = nullptr)
+		: evalNode{ eval }
+	{
+		ASTNode::AppendChild(eval);
+
+		if (truth) {
+			ASTNode::AppendChild(truth);
+			truthStmt = truth;
+		}
+
+		if (alt) {
+			ASTNode::AppendChild(alt);
+			altStmt = alt;
+		}
+	}
+
+	void SetTruthCompound(std::shared_ptr<ASTNode>& node)
+	{
+		ASTNode::AppendChild(node);
+		truthStmt = node;
+	}
+
+	void SetAltCompound(std::shared_ptr<ASTNode>& node)
+	{
+		ASTNode::AppendChild(node);
+		altStmt = node;
+	}
+
+	virtual const std::string NodeName() const
+	{
+		std::string _node{ RemoveClassFromName(typeid(ConditionalOperator).name()) };
+		_node += " <line:" + std::to_string(line) + ",col:" + std::to_string(col) + "> ";
+
+		return _node;
+	}
+};
+
 namespace CoilCl
 {
 namespace AST

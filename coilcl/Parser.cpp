@@ -1155,10 +1155,20 @@ void Parser::ConditionalExpression()
 	LogicalOrExpression();
 
 	if (MATCH_TOKEN(TK_QUESTION_MARK)) {
+		auto conOp = std::make_shared<ConditionalOperator>(m_elementDescentPipe.next());
+		m_elementDescentPipe.pop();
+
 		NextToken();
 		Expression();
+		conOp->SetTruthCompound(m_elementDescentPipe.next());
+		m_elementDescentPipe.pop();
+
 		ExpectToken(TK_COLON);
 		ConditionalExpression();
+
+		conOp->SetAltCompound(m_elementDescentPipe.next());
+		m_elementDescentPipe.pop();
+		m_elementDescentPipe.push(conOp);
 	}
 }
 
