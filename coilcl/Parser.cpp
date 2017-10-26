@@ -17,6 +17,7 @@
 #define EMIT_IDENTIFIER() std::cout << "EMIT::IDENTIFIER" << "("<< CURRENT_DATA()->As<std::string>() << ")" << std::endl;
 
 #define MAKE_RESV_REF() std::make_shared<DeclRefExpr>(m_identifierStack.top()); m_identifierStack.pop();
+#define MAKE_BUILTIN_FUNC(n) std::make_shared<BuiltinExpr>(std::make_shared<DeclRefExpr>(n));
 
 class UnexpectedTokenException : public std::exception
 {
@@ -678,7 +679,7 @@ void Parser::PostfixExpression()
 		ExpectToken(TK_BRACE_CLOSE);
 	}*/
 
-	size_t startSz = m_identifierStack.size();
+	auto startSz = m_identifierStack.size();
 
 	PrimaryExpression();
 
@@ -723,18 +724,35 @@ void Parser::PostfixExpression()
 		}
 		break;
 	}
-	case TK_DOT:
+	case TK_DOT: //TODO
+	{
 		NextToken();
-		EMIT("DOT");
 		ExpectIdentifier();
+
+		/*
+		auto resv = MAKE_RESV_REF();
+		auto memr = std::make_shared<MemberExpr>(resv);
+		m_elementDescentPipe.push(memr);
+		*/
+
 		break;
-	case TK_PTR_OP:
+	}
+	case TK_PTR_OP:  //TODO
+	{
 		NextToken();
-		EMIT("POINTER");
 		ExpectIdentifier();
+
+		/*
+		*/
+
 		break;
+	}
 	case TK_INC_OP:
 	{
+		if (m_identifierStack.size() == startSz) {
+			throw ParseException{ "expression is not assignable", 0, 0 };
+		}
+
 		auto resv = MAKE_RESV_REF();
 		auto unaryOp = std::make_shared<CoilCl::AST::UnaryOperator>(CoilCl::AST::UnaryOperator::UnaryOperator::INC, CoilCl::AST::UnaryOperator::OperandSide::POSTFIX, resv);
 		m_elementDescentPipe.push(unaryOp);
@@ -744,6 +762,10 @@ void Parser::PostfixExpression()
 	}
 	case TK_DEC_OP:
 	{
+		if (m_identifierStack.size() == startSz) {
+			throw ParseException{ "expression is not assignable", 0, 0 };
+		}
+
 		auto resv = MAKE_RESV_REF();
 		auto unaryOp = std::make_shared<CoilCl::AST::UnaryOperator>(CoilCl::AST::UnaryOperator::UnaryOperator::DEC, CoilCl::AST::UnaryOperator::OperandSide::POSTFIX, resv);
 		m_elementDescentPipe.push(unaryOp);
@@ -763,33 +785,61 @@ void Parser::PostfixExpression()
 
 void Parser::UnaryExpression()
 {
+	auto startSz = m_identifierStack.size();
+
 	switch (CURRENT_TOKEN()) {
 	case TK_INC_OP:
+	{
 		NextToken();
-		EMIT("++");
 		UnaryExpression();
+
+		if (m_identifierStack.size() != startSz) {
+			throw ParseException{ "expression is not assignable", 0, 0 };
+		}
+
+		auto ref = std::dynamic_pointer_cast<DeclRefExpr>(m_elementDescentPipe.next());
+		auto unaryOp = std::make_shared<CoilCl::AST::UnaryOperator>(CoilCl::AST::UnaryOperator::UnaryOperator::INC, CoilCl::AST::UnaryOperator::OperandSide::PREFIX, ref);
+		m_elementDescentPipe.pop();
+		m_elementDescentPipe.push(unaryOp);
+
 		break;
+	}
 	case TK_DEC_OP:
+	{
 		NextToken();
-		EMIT("--");
 		UnaryExpression();
+
+		if (m_identifierStack.size() != startSz) {
+			throw ParseException{ "expression is not assignable", 0, 0 };
+		}
+
+		auto ref = std::dynamic_pointer_cast<DeclRefExpr>(m_elementDescentPipe.next());
+		auto unaryOp = std::make_shared<CoilCl::AST::UnaryOperator>(CoilCl::AST::UnaryOperator::UnaryOperator::DEC, CoilCl::AST::UnaryOperator::OperandSide::PREFIX, ref);
+		m_elementDescentPipe.pop();
+		m_elementDescentPipe.push(unaryOp);
+
 		break;
+	}
 	case TK_SIZEOF:
+	{
 		NextToken();
+		auto func = MAKE_BUILTIN_FUNC("sizeof");
 		if (MATCH_TOKEN(TK_PARENTHESE_OPEN)) {
-			EMIT("SIZEOF");
+			NextToken();
 			TypeName();
 			ExpectToken(TK_PARENTHESE_CLOSE);
 		}
 		else {
 			UnaryExpression();
+
+			func->SetExpression(std::dynamic_pointer_cast<DeclRefExpr>(m_elementDescentPipe.next()));
+			m_elementDescentPipe.pop();
 		}
+		m_elementDescentPipe.push(func);
 		break;
+	}
 	default:
 		if (!UnaryOperator()) {
-			//CastExpression();
-		//}
-		//else {
 			PostfixExpression();
 		}
 	}

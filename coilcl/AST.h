@@ -700,6 +700,34 @@ public:
 	}
 };
 
+class BuiltinExpr : public CallExpr
+{
+	std::shared_ptr<DeclRefExpr> m_funcRef;
+	std::shared_ptr<ArgumentStmt> m_args;
+	std::shared_ptr<DeclRefExpr> m_rvalue;
+
+public:
+	BuiltinExpr(std::shared_ptr<DeclRefExpr>& func, std::shared_ptr<DeclRefExpr> expr = nullptr, std::shared_ptr<ArgumentStmt> args = nullptr)
+		: CallExpr{ func, args }
+		, m_rvalue{ expr }
+	{
+		if (expr != nullptr) {
+			ASTNode::AppendChild(NODE_UPCAST(expr));
+		}
+	}
+
+	void SetExpression(std::shared_ptr<DeclRefExpr>& node)
+	{
+		ASTNode::AppendChild(NODE_UPCAST(node));
+		m_rvalue = node;
+	}
+
+	const std::string NodeName() const
+	{
+		return std::string{ RemoveClassFromName(typeid(BuiltinExpr).name()) } +" <line:" + std::to_string(line) + ",col:" + std::to_string(col) + "> 'return type'";
+	}
+};
+
 class CastExpr : public Expr
 {
 	std::shared_ptr<ASTNode> rtype;
@@ -770,6 +798,12 @@ public:
 	}
 
 	PRINT_NODE(ArraySubscriptExpr);
+};
+
+class MemberExpr : public Expr
+{
+public:
+	PRINT_NODE(MemberExpr);
 };
 
 //
