@@ -8,11 +8,11 @@
 #include <functional>
 
 //TODO: function parameters
-//TODO: struct,union,loops
+//TODO: loops,struct,union,members,types
+//TODO: Single namespace
 //TODO: Full C99 parser ruleset
 //TODO: Preprocessing
 //TODO: Checking optimizer and compiler compat options
-//TODO: Single namespace
 //TODO: Debug output
 //TODO: Logging
 
@@ -122,6 +122,7 @@ public:
 			// Semantic analysis
 			CoilCl::Semer{ profile }
 				.Syntax(iast)
+				.StaticResolve()
 				.PreliminaryAssert()
 				.StandardCompliance();
 

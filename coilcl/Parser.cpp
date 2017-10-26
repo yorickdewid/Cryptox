@@ -994,25 +994,57 @@ void Parser::RelationalExpression()
 
 	switch (CURRENT_TOKEN()) {
 	case TK_LESS_THAN:
+	{
+		auto binOp = std::make_shared<BinaryOperator>(BinaryOperator::BinOperand::LT, m_elementDescentPipe.next());
+		m_elementDescentPipe.pop();
+
 		NextToken();
-		EMIT("CMP <");
 		ShiftExpression();
+
+		binOp->SetRightSide(m_elementDescentPipe.next());
+		m_elementDescentPipe.pop();
+		m_elementDescentPipe.push(binOp);
 		break;
+	}
 	case TK_GREATER_THAN:
+	{
+		auto binOp = std::make_shared<BinaryOperator>(BinaryOperator::BinOperand::GT, m_elementDescentPipe.next());
+		m_elementDescentPipe.pop();
+
 		NextToken();
-		EMIT("CMP >");
 		ShiftExpression();
+
+		binOp->SetRightSide(m_elementDescentPipe.next());
+		m_elementDescentPipe.pop();
+		m_elementDescentPipe.push(binOp);
 		break;
+	}
 	case TK_LE_OP:
+	{
+		auto binOp = std::make_shared<BinaryOperator>(BinaryOperator::BinOperand::LE, m_elementDescentPipe.next());
+		m_elementDescentPipe.pop();
+
 		NextToken();
-		EMIT("CMP <=");
 		ShiftExpression();
+
+		binOp->SetRightSide(m_elementDescentPipe.next());
+		m_elementDescentPipe.pop();
+		m_elementDescentPipe.push(binOp);
 		break;
+	}
 	case TK_GE_OP:
+	{
+		auto binOp = std::make_shared<BinaryOperator>(BinaryOperator::BinOperand::GE, m_elementDescentPipe.next());
+		m_elementDescentPipe.pop();
+
 		NextToken();
-		EMIT("CMP >=");
 		ShiftExpression();
+
+		binOp->SetRightSide(m_elementDescentPipe.next());
+		m_elementDescentPipe.pop();
+		m_elementDescentPipe.push(binOp);
 		break;
+	}
 	}
 }
 

@@ -115,7 +115,11 @@ public:
 		SRIGHT,		// >>
 
 		EQ,			// ==
-		NEQ			// !=
+		NEQ,		// !=
+		LT,			// <
+		GT,			// >
+		LE,			// <=
+		GE,			// >=
 	} m_operand;
 
 	const char *BinOperandStr(BinOperand operand) const
@@ -143,6 +147,14 @@ public:
 			return "==";
 		case BinOperand::NEQ:
 			return "!=";
+		case BinOperand::LT:
+			return "<";
+		case BinOperand::GT:
+			return ">";
+		case BinOperand::LE:
+			return "<=";
+		case BinOperand::GE:
+			return ">=";
 		}
 
 		return "<unknown>";

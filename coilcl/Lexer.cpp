@@ -153,6 +153,7 @@ int Lexer::Lex()
 			Next();
 			switch (m_currentChar) {
 			case '=':
+				Next();
 				return ReturnToken(TK_LE_OP);
 				break;
 			case '<':

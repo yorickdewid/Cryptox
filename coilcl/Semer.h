@@ -17,6 +17,7 @@ public:
 		return (*this);
 	}
 
+	Semer& StaticResolve();
 	Semer& PreliminaryAssert();
 	Semer& StandardCompliance();
 

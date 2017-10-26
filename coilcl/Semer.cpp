@@ -12,6 +12,12 @@ CoilCl::Semer::Semer(std::shared_ptr<Compiler::Profile>& profile)
 {
 }
 
+CoilCl::Semer& CoilCl::Semer::StaticResolve()
+{
+	//TODO: compile time expression resolving
+	return (*this);
+}
+
 CoilCl::Semer& CoilCl::Semer::PreliminaryAssert()
 {
 	//TODO: identifier resolving & scoping
