@@ -1121,9 +1121,15 @@ void Parser::LogicalAndExpression()
 	ExclusiveOrExpression();
 
 	if (MATCH_TOKEN(TK_AND_OP)) {
+		auto binOp = std::make_shared<BinaryOperator>(BinaryOperator::BinOperand::LAND, m_elementDescentPipe.next());
+		m_elementDescentPipe.pop();
+
 		NextToken();
-		EMIT("&&");
 		ExclusiveOrExpression();
+
+		binOp->SetRightSide(m_elementDescentPipe.next());
+		m_elementDescentPipe.pop();
+		m_elementDescentPipe.push(binOp);
 	}
 }
 
@@ -1132,9 +1138,15 @@ void Parser::LogicalOrExpression()
 	LogicalAndExpression();
 
 	if (MATCH_TOKEN(TK_OR_OP)) {
+		auto binOp = std::make_shared<BinaryOperator>(BinaryOperator::BinOperand::LOR, m_elementDescentPipe.next());
+		m_elementDescentPipe.pop();
+
 		NextToken();
-		EMIT("||");
 		LogicalAndExpression();
+
+		binOp->SetRightSide(m_elementDescentPipe.next());
+		m_elementDescentPipe.pop();
+		m_elementDescentPipe.push(binOp);
 	}
 }
 

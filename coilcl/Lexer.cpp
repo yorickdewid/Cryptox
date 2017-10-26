@@ -274,6 +274,7 @@ int Lexer::Lex()
 				return ReturnToken(TK_AND_ASSIGN);
 			}
 			else {
+				Next();
 				return ReturnToken(TK_AND_OP);
 			}
 

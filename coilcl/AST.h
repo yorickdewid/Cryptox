@@ -120,6 +120,9 @@ public:
 		GT,			// >
 		LE,			// <=
 		GE,			// >=
+
+		LAND,		// &&
+		LOR,		// ||
 	} m_operand;
 
 	const char *BinOperandStr(BinOperand operand) const
@@ -155,6 +158,10 @@ public:
 			return "<=";
 		case BinOperand::GE:
 			return ">=";
+		case BinOperand::LAND:
+			return "&&";
+		case BinOperand::LOR:
+			return "||";
 		}
 
 		return "<unknown>";
