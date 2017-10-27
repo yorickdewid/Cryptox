@@ -386,7 +386,6 @@ public:
 		m_body = node;
 	}
 
-	//PRINT_NODE(CompoundAssignOperator);
 	const std::string NodeName() const
 	{
 		return std::string{ RemoveClassFromName(typeid(CompoundAssignOperator).name()) } +" <line:" + std::to_string(line) + ",col:" + std::to_string(col) + "> 'return type' '" + CompoundAssignOperandStr(m_operand) + "'";
@@ -416,7 +415,6 @@ public:
 	{
 	}
 
-	// CRTP
 	const std::string NodeName() const
 	{
 		return std::string{ RemoveClassFromName(typeid(_DrivTy).name()) } +" <line:" + std::to_string(line) + ",col:" + std::to_string(col) + "> " + m_valueObj->ToString();
@@ -993,6 +991,21 @@ public:
 	PRINT_NODE(ParamStmt);
 };
 
+class LabelStmt : public Stmt
+{
+	std::string m_name;
+	std::shared_ptr<ASTNode> m_body;
+
+public:
+	LabelStmt(const std::string& name, std::shared_ptr<ASTNode>& node)
+		: m_name{ name }
+		, m_body{ node }
+	{
+		ASTNode::AppendChild(node);
+	}
+
+	PRINT_NODE(LabelStmt);
+};
 
 class CompoundStmt : public Stmt
 {

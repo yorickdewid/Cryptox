@@ -1178,13 +1178,20 @@ void Parser::AssignmentExpression()
 
 	UnaryExpression();
 	AssignmentOperator();
+	//TODO: add AssignmentExpression()
 }
 
 void Parser::Expression()
 {
-	do {
+	for (;;) {
 		AssignmentExpression();
-	} while (MATCH_TOKEN(TK_COMMA));
+		
+		if (NOT_TOKEN(TK_COMMA)) {
+			break;
+		}
+
+		NextToken();
+	}
 }
 
 void Parser::ConstantExpression()
@@ -1226,7 +1233,8 @@ bool Parser::JumpStatement()
 			m_elementDescentPipe.push(returnStmt);
 		}
 		break;
-	default: // Return if no match
+	default:
+		// Return if no match
 		return false;
 	}
 
@@ -1316,11 +1324,10 @@ void Parser::ExpressionStatement()
 {
 	if (MATCH_TOKEN(TK_COMMIT)) {
 		NextToken();
-		// EMIT
+		return;
 	}
-	else {
-		Expression();
-	}
+
+	Expression();
 }
 
 // Compound statements contain code block
@@ -1358,14 +1365,33 @@ bool Parser::LabeledStatement()
 {
 	switch (CURRENT_TOKEN()) {
 	case TK_IDENTIFIER:
-		EMIT_IDENTIFIER();
-		NextToken();
-		if (MATCH_TOKEN(TK_COLON)) {
+	{
+		// Snapshot current state in case of rollback
+		m_comm.Snapshot();
+		try {
+			auto lblName = CURRENT_DATA()->As<std::string>();
+			EMIT_IDENTIFIER();
 			NextToken();
+			ExpectToken(TK_COLON);
+
+			// Remove snapshot since we can continue this path
+			m_comm.DisposeSnapshot();
 			Statement();
-			return true;
+
+			if (m_elementDescentPipe.empty()) {
+				throw ParseException{ "expected statement", 0, 0 };
+			}
+
+			auto lbl = std::make_shared<LabelStmt>(lblName, m_elementDescentPipe.next());
+			m_elementDescentPipe.pop();
+			m_elementDescentPipe.push(lbl);
 		}
-		return false;
+		// Not a label, rollback the command state
+		catch (const UnexpectedTokenException&) {
+			m_comm.Revert();
+		}
+		break;
+	}
 	case TK_CASE:
 		NextToken();
 		ConstantExpression();
@@ -1388,8 +1414,8 @@ void Parser::Statement()
 	if (SelectionStatement()) { return; }
 	if (IterationStatement()) { return; }
 	if (JumpStatement()) { return; }
-	ExpressionStatement();
 	if (LabeledStatement()) { return; }
+	ExpressionStatement();
 }
 
 void Parser::BlockItems()
