@@ -242,7 +242,7 @@ namespace AST
 
 class UnaryOperator : public Operator
 {
-	std::shared_ptr<DeclRefExpr> m_body;
+	std::shared_ptr<ASTNode> m_body;
 
 public:
 	enum UnaryOperand
@@ -292,11 +292,11 @@ public:
 	} m_side;
 
 public:
-	UnaryOperator(UnaryOperand operand, OperandSide side, std::shared_ptr<DeclRefExpr>& node)
+	UnaryOperator(UnaryOperand operand, OperandSide side, std::shared_ptr<ASTNode>& node)
 		: m_operand{ operand }
 		, m_side{ side }
 	{
-		ASTNode::AppendChild(NODE_UPCAST(node));
+		ASTNode::AppendChild(node);
 		m_body = node;
 	}
 
@@ -765,7 +765,7 @@ class BuiltinExpr : public CallExpr
 {
 	std::shared_ptr<DeclRefExpr> m_funcRef;
 	std::shared_ptr<ArgumentStmt> m_args;
-	std::shared_ptr<DeclRefExpr> m_rvalue;
+	std::shared_ptr<ASTNode> m_rvalue;
 
 public:
 	BuiltinExpr(std::shared_ptr<DeclRefExpr>& func, std::shared_ptr<DeclRefExpr> expr = nullptr, std::shared_ptr<ArgumentStmt> args = nullptr)
@@ -777,9 +777,9 @@ public:
 		}
 	}
 
-	void SetExpression(std::shared_ptr<DeclRefExpr>& node)
+	void SetExpression(std::shared_ptr<ASTNode>& node)
 	{
-		ASTNode::AppendChild(NODE_UPCAST(node));
+		ASTNode::AppendChild(node);
 		m_rvalue = node;
 	}
 

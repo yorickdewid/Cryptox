@@ -397,7 +397,7 @@ bool Parser::UnaryOperator()
 		CastExpression();
 
 		auto resv = MAKE_RESV_REF();
-		auto unaryOp = std::make_shared<CoilCl::AST::UnaryOperator>(CoilCl::AST::UnaryOperator::UnaryOperator::ADDR, CoilCl::AST::UnaryOperator::OperandSide::PREFIX, resv);
+		auto unaryOp = std::make_shared<CoilCl::AST::UnaryOperator>(CoilCl::AST::UnaryOperator::UnaryOperator::ADDR, CoilCl::AST::UnaryOperator::OperandSide::PREFIX, std::dynamic_pointer_cast<ASTNode>(resv));
 		m_elementDescentPipe.push(unaryOp);
 		break;
 	}
@@ -407,7 +407,7 @@ bool Parser::UnaryOperator()
 		CastExpression();
 
 		auto resv = MAKE_RESV_REF();
-		auto unaryOp = std::make_shared<CoilCl::AST::UnaryOperator>(CoilCl::AST::UnaryOperator::UnaryOperator::PTRVAL, CoilCl::AST::UnaryOperator::OperandSide::PREFIX, resv);
+		auto unaryOp = std::make_shared<CoilCl::AST::UnaryOperator>(CoilCl::AST::UnaryOperator::UnaryOperator::PTRVAL, CoilCl::AST::UnaryOperator::OperandSide::PREFIX, std::dynamic_pointer_cast<ASTNode>(resv));
 		m_elementDescentPipe.push(unaryOp);
 		break;
 	}
@@ -417,7 +417,7 @@ bool Parser::UnaryOperator()
 		CastExpression();
 
 		auto resv = MAKE_RESV_REF();
-		auto unaryOp = std::make_shared<CoilCl::AST::UnaryOperator>(CoilCl::AST::UnaryOperator::UnaryOperator::INTPOS, CoilCl::AST::UnaryOperator::OperandSide::PREFIX, resv);
+		auto unaryOp = std::make_shared<CoilCl::AST::UnaryOperator>(CoilCl::AST::UnaryOperator::UnaryOperator::INTPOS, CoilCl::AST::UnaryOperator::OperandSide::PREFIX, std::dynamic_pointer_cast<ASTNode>(resv));
 		m_elementDescentPipe.push(unaryOp);
 		break;
 	}
@@ -426,7 +426,8 @@ bool Parser::UnaryOperator()
 		NextToken();
 		CastExpression();
 
-		auto resv = MAKE_RESV_REF();
+		auto resv = m_elementDescentPipe.next();
+		m_elementDescentPipe.pop();
 		auto unaryOp = std::make_shared<CoilCl::AST::UnaryOperator>(CoilCl::AST::UnaryOperator::UnaryOperator::INTNEG, CoilCl::AST::UnaryOperator::OperandSide::PREFIX, resv);
 		m_elementDescentPipe.push(unaryOp);
 		break;
@@ -437,7 +438,7 @@ bool Parser::UnaryOperator()
 		CastExpression();
 
 		auto resv = MAKE_RESV_REF();
-		auto unaryOp = std::make_shared<CoilCl::AST::UnaryOperator>(CoilCl::AST::UnaryOperator::UnaryOperator::BITNOT, CoilCl::AST::UnaryOperator::OperandSide::PREFIX, resv);
+		auto unaryOp = std::make_shared<CoilCl::AST::UnaryOperator>(CoilCl::AST::UnaryOperator::UnaryOperator::BITNOT, CoilCl::AST::UnaryOperator::OperandSide::PREFIX, std::dynamic_pointer_cast<ASTNode>(resv));
 		m_elementDescentPipe.push(unaryOp);
 		break;
 	}
@@ -447,7 +448,7 @@ bool Parser::UnaryOperator()
 		CastExpression();
 
 		auto resv = MAKE_RESV_REF();
-		auto unaryOp = std::make_shared<CoilCl::AST::UnaryOperator>(CoilCl::AST::UnaryOperator::UnaryOperator::BOOLNOT, CoilCl::AST::UnaryOperator::OperandSide::PREFIX, resv);
+		auto unaryOp = std::make_shared<CoilCl::AST::UnaryOperator>(CoilCl::AST::UnaryOperator::UnaryOperator::BOOLNOT, CoilCl::AST::UnaryOperator::OperandSide::PREFIX, std::dynamic_pointer_cast<ASTNode>(resv));
 		m_elementDescentPipe.push(unaryOp);
 		break;
 	}
@@ -458,7 +459,7 @@ bool Parser::UnaryOperator()
 	return true;
 }
 
-void Parser::AssignmentOperator()
+bool Parser::AssignmentOperator()
 {
 	switch (CURRENT_TOKEN()) {
 	case TK_ASSIGN:
@@ -467,8 +468,9 @@ void Parser::AssignmentOperator()
 		break;
 	case TK_MUL_ASSIGN:
 	{
-		auto resv = MAKE_RESV_REF();
+		auto resv = std::dynamic_pointer_cast<DeclRefExpr>(m_elementDescentPipe.next());
 		auto comOp = std::make_shared<CompoundAssignOperator>(CompoundAssignOperator::CompoundAssignOperand::MUL, resv);
+		m_elementDescentPipe.pop();
 
 		NextToken();
 		AssignmentExpression();
@@ -480,8 +482,9 @@ void Parser::AssignmentOperator()
 	}
 	case TK_DIV_ASSIGN:
 	{
-		auto resv = MAKE_RESV_REF();
+		auto resv = std::dynamic_pointer_cast<DeclRefExpr>(m_elementDescentPipe.next());
 		auto comOp = std::make_shared<CompoundAssignOperator>(CompoundAssignOperator::CompoundAssignOperand::DIV, resv);
+		m_elementDescentPipe.pop();
 
 		NextToken();
 		AssignmentExpression();
@@ -493,8 +496,9 @@ void Parser::AssignmentOperator()
 	}
 	case TK_MOD_ASSIGN:
 	{
-		auto resv = MAKE_RESV_REF();
+		auto resv = std::dynamic_pointer_cast<DeclRefExpr>(m_elementDescentPipe.next());
 		auto comOp = std::make_shared<CompoundAssignOperator>(CompoundAssignOperator::CompoundAssignOperand::MOD, resv);
+		m_elementDescentPipe.pop();
 
 		NextToken();
 		AssignmentExpression();
@@ -506,8 +510,9 @@ void Parser::AssignmentOperator()
 	}
 	case TK_ADD_ASSIGN:
 	{
-		auto resv = MAKE_RESV_REF();
+		auto resv = std::dynamic_pointer_cast<DeclRefExpr>(m_elementDescentPipe.next());
 		auto comOp = std::make_shared<CompoundAssignOperator>(CompoundAssignOperator::CompoundAssignOperand::ADD, resv);
+		m_elementDescentPipe.pop();
 
 		NextToken();
 		AssignmentExpression();
@@ -519,8 +524,9 @@ void Parser::AssignmentOperator()
 	}
 	case TK_SUB_ASSIGN:
 	{
-		auto resv = MAKE_RESV_REF();
+		auto resv = std::dynamic_pointer_cast<DeclRefExpr>(m_elementDescentPipe.next());
 		auto comOp = std::make_shared<CompoundAssignOperator>(CompoundAssignOperator::CompoundAssignOperand::SUB, resv);
+		m_elementDescentPipe.pop();
 
 		NextToken();
 		AssignmentExpression();
@@ -532,9 +538,11 @@ void Parser::AssignmentOperator()
 	}
 	case TK_LEFT_ASSIGN:
 	{
-		auto resv = MAKE_RESV_REF();
+		auto resv = std::dynamic_pointer_cast<DeclRefExpr>(m_elementDescentPipe.next());
 		auto comOp = std::make_shared<CompoundAssignOperator>(CompoundAssignOperator::CompoundAssignOperand::LEFT, resv);
+		m_elementDescentPipe.pop();
 
+		m_elementDescentPipe.pop();
 		NextToken();
 		AssignmentExpression();
 
@@ -545,8 +553,9 @@ void Parser::AssignmentOperator()
 	}
 	case TK_RIGHT_ASSIGN:
 	{
-		auto resv = MAKE_RESV_REF();
+		auto resv = std::dynamic_pointer_cast<DeclRefExpr>(m_elementDescentPipe.next());
 		auto comOp = std::make_shared<CompoundAssignOperator>(CompoundAssignOperator::CompoundAssignOperand::RIGHT, resv);
+		m_elementDescentPipe.pop();
 
 		NextToken();
 		AssignmentExpression();
@@ -558,8 +567,9 @@ void Parser::AssignmentOperator()
 	}
 	case TK_AND_ASSIGN:
 	{
-		auto resv = MAKE_RESV_REF();
+		auto resv = std::dynamic_pointer_cast<DeclRefExpr>(m_elementDescentPipe.next());
 		auto comOp = std::make_shared<CompoundAssignOperator>(CompoundAssignOperator::CompoundAssignOperand::AND, resv);
+		m_elementDescentPipe.pop();
 
 		NextToken();
 		AssignmentExpression();
@@ -571,8 +581,9 @@ void Parser::AssignmentOperator()
 	}
 	case TK_XOR_ASSIGN:
 	{
-		auto resv = MAKE_RESV_REF();
+		auto resv = std::dynamic_pointer_cast<DeclRefExpr>(m_elementDescentPipe.next());
 		auto comOp = std::make_shared<CompoundAssignOperator>(CompoundAssignOperator::CompoundAssignOperand::XOR, resv);
+		m_elementDescentPipe.pop();
 
 		NextToken();
 		AssignmentExpression();
@@ -584,8 +595,9 @@ void Parser::AssignmentOperator()
 	}
 	case TK_OR_ASSIGN:
 	{
-		auto resv = MAKE_RESV_REF();
+		auto resv = std::dynamic_pointer_cast<DeclRefExpr>(m_elementDescentPipe.next());
 		auto comOp = std::make_shared<CompoundAssignOperator>(CompoundAssignOperator::CompoundAssignOperand::OR, resv);
+		m_elementDescentPipe.pop();
 
 		NextToken();
 		AssignmentExpression();
@@ -595,7 +607,11 @@ void Parser::AssignmentOperator()
 		m_elementDescentPipe.push(comOp);
 		break;
 	}
+	default:
+		return false;
 	}
+
+	return true;
 }
 
 void Parser::PrimaryExpression()
@@ -755,7 +771,7 @@ void Parser::PostfixExpression()
 		}
 
 		auto resv = MAKE_RESV_REF();
-		auto unaryOp = std::make_shared<CoilCl::AST::UnaryOperator>(CoilCl::AST::UnaryOperator::UnaryOperator::INC, CoilCl::AST::UnaryOperator::OperandSide::POSTFIX, resv);
+		auto unaryOp = std::make_shared<CoilCl::AST::UnaryOperator>(CoilCl::AST::UnaryOperator::UnaryOperator::INC, CoilCl::AST::UnaryOperator::OperandSide::POSTFIX, std::dynamic_pointer_cast<ASTNode>(resv));
 		m_elementDescentPipe.push(unaryOp);
 
 		NextToken();
@@ -768,7 +784,7 @@ void Parser::PostfixExpression()
 		}
 
 		auto resv = MAKE_RESV_REF();
-		auto unaryOp = std::make_shared<CoilCl::AST::UnaryOperator>(CoilCl::AST::UnaryOperator::UnaryOperator::DEC, CoilCl::AST::UnaryOperator::OperandSide::POSTFIX, resv);
+		auto unaryOp = std::make_shared<CoilCl::AST::UnaryOperator>(CoilCl::AST::UnaryOperator::UnaryOperator::DEC, CoilCl::AST::UnaryOperator::OperandSide::POSTFIX, std::dynamic_pointer_cast<ASTNode>(resv));
 		m_elementDescentPipe.push(unaryOp);
 
 		NextToken();
@@ -798,8 +814,7 @@ void Parser::UnaryExpression()
 			throw ParseException{ "expression is not assignable", 0, 0 };
 		}
 
-		auto ref = std::dynamic_pointer_cast<DeclRefExpr>(m_elementDescentPipe.next());
-		auto unaryOp = std::make_shared<CoilCl::AST::UnaryOperator>(CoilCl::AST::UnaryOperator::UnaryOperator::INC, CoilCl::AST::UnaryOperator::OperandSide::PREFIX, ref);
+		auto unaryOp = std::make_shared<CoilCl::AST::UnaryOperator>(CoilCl::AST::UnaryOperator::UnaryOperator::INC, CoilCl::AST::UnaryOperator::OperandSide::PREFIX, m_elementDescentPipe.next());
 		m_elementDescentPipe.pop();
 		m_elementDescentPipe.push(unaryOp);
 
@@ -814,8 +829,7 @@ void Parser::UnaryExpression()
 			throw ParseException{ "expression is not assignable", 0, 0 };
 		}
 
-		auto ref = std::dynamic_pointer_cast<DeclRefExpr>(m_elementDescentPipe.next());
-		auto unaryOp = std::make_shared<CoilCl::AST::UnaryOperator>(CoilCl::AST::UnaryOperator::UnaryOperator::DEC, CoilCl::AST::UnaryOperator::OperandSide::PREFIX, ref);
+		auto unaryOp = std::make_shared<CoilCl::AST::UnaryOperator>(CoilCl::AST::UnaryOperator::UnaryOperator::DEC, CoilCl::AST::UnaryOperator::OperandSide::PREFIX, m_elementDescentPipe.next());
 		m_elementDescentPipe.pop();
 		m_elementDescentPipe.push(unaryOp);
 
@@ -825,17 +839,30 @@ void Parser::UnaryExpression()
 	{
 		NextToken();
 		auto func = MAKE_BUILTIN_FUNC("sizeof");
-		if (MATCH_TOKEN(TK_PARENTHESE_OPEN)) {
-			NextToken();
-			TypeName();
-			ExpectToken(TK_PARENTHESE_CLOSE);
-		}
-		else {
-			UnaryExpression();
 
-			func->SetExpression(std::dynamic_pointer_cast<DeclRefExpr>(m_elementDescentPipe.next()));
-			m_elementDescentPipe.pop();
+		// Snapshot current state in case of rollback
+		m_comm.Snapshot();
+		try {
+			if (MATCH_TOKEN(TK_PARENTHESE_OPEN)) {
+				NextToken();
+				TypeName();
+				ExpectToken(TK_PARENTHESE_CLOSE);
+
+				// Remove snapshot since we can continue this path
+				m_comm.DisposeSnapshot();
+				m_elementDescentPipe.push(func);
+				break;
+			}
 		}
+		// No typename, rollback the command state
+		catch (const UnexpectedTokenException&) {
+			m_comm.Revert();
+		}
+
+		UnaryExpression();
+
+		func->SetExpression(m_elementDescentPipe.next());
+		m_elementDescentPipe.pop();
 		m_elementDescentPipe.push(func);
 		break;
 	}
@@ -1177,9 +1204,10 @@ void Parser::AssignmentExpression()
 {
 	ConditionalExpression();
 
-	UnaryExpression();
-	AssignmentOperator();
-	//TODO: add AssignmentExpression()
+	//UnaryExpression(); // UnaryExpression is already run in the ConditionalExpression
+	if (AssignmentOperator()) {
+		AssignmentExpression();
+	}
 }
 
 void Parser::Expression()
@@ -1417,7 +1445,7 @@ bool Parser::LabeledStatement()
 		m_elementDescentPipe.pop();
 
 		ExpectToken(TK_COLON);
-		
+
 		Statement();
 
 		if (m_elementDescentPipe.empty()) {
@@ -1433,7 +1461,7 @@ bool Parser::LabeledStatement()
 	{
 		NextToken();
 		ExpectToken(TK_COLON);
-		
+
 		Statement();
 
 		if (m_elementDescentPipe.empty()) {
