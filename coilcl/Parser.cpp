@@ -1214,7 +1214,7 @@ bool Parser::JumpStatement()
 		break;
 	case TK_BREAK:
 		NextToken();
-		EMIT("ITR/SWTCH BREAK");
+		m_elementDescentPipe.push(std::make_shared<BreakStmt>());
 		break;
 	case TK_RETURN:
 		NextToken();
