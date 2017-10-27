@@ -949,6 +949,74 @@ public:
 	}
 };
 
+class SwitchStmt : public Stmt
+{
+	std::shared_ptr<ASTNode> evalNode;
+	std::shared_ptr<ASTNode> m_body;
+
+public:
+	SwitchStmt(std::shared_ptr<ASTNode>& eval, std::shared_ptr<ASTNode> body = nullptr)
+		: evalNode{ eval }
+	{
+		ASTNode::AppendChild(eval);
+
+		if (body) {
+			ASTNode::AppendChild(body);
+			m_body = body;
+		}
+	}
+
+	void SetBody(std::shared_ptr<ASTNode>& node)
+	{
+		ASTNode::AppendChild(node);
+		m_body = node;
+	}
+
+	PRINT_NODE(SwitchStmt);
+};
+
+class BreakStmt : public Stmt
+{
+
+public:
+	BreakStmt()
+	{
+	}
+
+	PRINT_NODE(BreakStmt);
+};
+
+class DefaultStmt : public Stmt
+{
+	std::shared_ptr<ASTNode> m_body;
+
+public:
+	DefaultStmt(std::shared_ptr<ASTNode>& body)
+		: m_body{ body }
+	{
+		ASTNode::AppendChild(body);
+	}
+
+	PRINT_NODE(DefaultStmt);
+};
+
+class CaseStmt : public Stmt
+{
+	std::shared_ptr<ASTNode> m_name;
+	std::shared_ptr<ASTNode> m_body;
+
+public:
+	CaseStmt(std::shared_ptr<ASTNode>& name, std::shared_ptr<ASTNode>& body)
+		: m_name{ name }
+		, m_body{ body }
+	{
+		ASTNode::AppendChild(name);
+		ASTNode::AppendChild(body);
+	}
+
+	PRINT_NODE(CaseStmt);
+};
+
 class DeclStmt : public Stmt
 {
 	std::list<std::shared_ptr<VarDecl>> m_var;

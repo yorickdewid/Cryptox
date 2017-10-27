@@ -1185,7 +1185,7 @@ void Parser::Expression()
 {
 	for (;;) {
 		AssignmentExpression();
-		
+
 		if (NOT_TOKEN(TK_COMMA)) {
 			break;
 		}
@@ -1234,7 +1234,6 @@ bool Parser::JumpStatement()
 		}
 		break;
 	default:
-		// Return if no match
 		return false;
 	}
 
@@ -1293,6 +1292,8 @@ bool Parser::SelectionStatement()
 
 		Statement();
 
+		// If the statement yields a body, save it and try
+		// with alternative compound
 		if (m_elementDescentPipe.size() > 0) {
 			ifStmt->SetTruthCompound(m_elementDescentPipe.next());
 			m_elementDescentPipe.pop();
@@ -1309,10 +1310,22 @@ bool Parser::SelectionStatement()
 	case TK_SWITCH:
 	{
 		NextToken();
-		ExpectToken(TK_BRACE_OPEN);
+		ExpectToken(TK_PARENTHESE_OPEN);
 		Expression();
-		ExpectToken(TK_BRACE_CLOSE);
+		ExpectToken(TK_PARENTHESE_CLOSE);
+
+		auto swStmt = std::make_shared<SwitchStmt>(m_elementDescentPipe.next());
+		m_elementDescentPipe.pop();
+
 		Statement();
+
+		// If the statement yields a body, save it
+		if (m_elementDescentPipe.size() > 0) {
+			swStmt->SetBody(m_elementDescentPipe.next());
+			m_elementDescentPipe.pop();
+		}
+
+		m_elementDescentPipe.push(swStmt);
 		return true;
 	}
 	}
@@ -1393,16 +1406,42 @@ bool Parser::LabeledStatement()
 		break;
 	}
 	case TK_CASE:
+	{
 		NextToken();
 		ConstantExpression();
+
+		auto lblLiteral = m_elementDescentPipe.next();
+		m_elementDescentPipe.pop();
+
 		ExpectToken(TK_COLON);
+		
 		Statement();
+
+		if (m_elementDescentPipe.empty()) {
+			throw ParseException{ "label at end of compound statement", 0, 0 };
+		}
+
+		auto cse = std::make_shared<CaseStmt>(lblLiteral, m_elementDescentPipe.next());
+		m_elementDescentPipe.pop();
+		m_elementDescentPipe.push(cse);
 		return true;
+	}
 	case TK_DEFAULT:
+	{
 		NextToken();
 		ExpectToken(TK_COLON);
+		
 		Statement();
+
+		if (m_elementDescentPipe.empty()) {
+			throw ParseException{ "label at end of compound statement", 0, 0 };
+		}
+
+		auto dflt = std::make_shared<DefaultStmt>(m_elementDescentPipe.next());
+		m_elementDescentPipe.pop();
+		m_elementDescentPipe.push(dflt);
 		return true;
+	}
 	}
 
 	return false;
