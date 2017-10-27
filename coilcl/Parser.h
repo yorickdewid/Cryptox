@@ -219,7 +219,7 @@ public:
 	}
 
 protected:
-	void Error(const char *err);
+	void Error(const char *err, Token token);
 	void ExpectToken(Token token);
 	void ExpectIdentifier();
 

@@ -131,9 +131,7 @@ struct Keyword
 	// Only the lexer is allowed to access the token keyword
 	friend class Lexer;
 
-#ifdef _DEBUG
 	std::string Print();
-#endif
 
 private:
 	Token m_token;

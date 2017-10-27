@@ -1,6 +1,5 @@
 #include "Lexer.h"
 
-#ifdef _DEBUG
 std::string Keyword::Print()
 {
 	switch (m_token) {
@@ -99,4 +98,3 @@ std::string Keyword::Print()
 	default:				return std::string{ "<UNKNOWN>" };
 	}
 }
-#endif

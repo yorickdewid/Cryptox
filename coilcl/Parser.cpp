@@ -26,13 +26,13 @@ public:
 	{
 	}
 
-	explicit UnexpectedTokenException(char const* const message, int line, int column) noexcept
+	explicit UnexpectedTokenException(char const* const message, int line, int column, Token token) noexcept
 		: m_line{ line }
 		, m_column{ column }
 	{
 		std::stringstream ss;
 		ss << "Semantic error: " << message;
-		ss << " before " << "' TOKEN '" << " token at "; //TODO: token
+		ss << " before " << "'" + Keyword{ token }.Print() + "'" << " token at "; //TODO: token
 		ss << line << ':' << column;
 		_msg = ss.str();
 	}
@@ -158,15 +158,15 @@ Parser& Parser::CheckCompatibility()
 	return (*this);
 }
 
-void Parser::Error(const char* err)
+void Parser::Error(const char* err, Token token)
 {
-	throw UnexpectedTokenException{ err, m_comm.Current().FetchLine(), m_comm.Current().FetchColumn() };
+	throw UnexpectedTokenException{ err, m_comm.Current().FetchLine(), m_comm.Current().FetchColumn(), token };
 }
 
 void Parser::ExpectToken(Token token)
 {
 	if (NOT_TOKEN(token)) {
-		Error("expected expression");
+		Error("expected expression", token);
 	}
 
 	NextToken();
@@ -176,7 +176,7 @@ void Parser::ExpectToken(Token token)
 void Parser::ExpectIdentifier()
 {
 	if (NOT_TOKEN(TK_IDENTIFIER)) {
-		Error("expected identifier");
+		Error("expected identifier", TK_IDENTIFIER);
 	}
 
 	assert(m_comm.Current().HasData());
@@ -810,9 +810,9 @@ void Parser::UnaryExpression()
 		NextToken();
 		UnaryExpression();
 
-		if (m_identifierStack.size() != startSz) {
+		/*if (m_identifierStack.size() != startSz) {
 			throw ParseException{ "expression is not assignable", 0, 0 };
-		}
+		}*/
 
 		auto unaryOp = std::make_shared<CoilCl::AST::UnaryOperator>(CoilCl::AST::UnaryOperator::UnaryOperator::INC, CoilCl::AST::UnaryOperator::OperandSide::PREFIX, m_elementDescentPipe.next());
 		m_elementDescentPipe.pop();
@@ -825,9 +825,9 @@ void Parser::UnaryExpression()
 		NextToken();
 		UnaryExpression();
 
-		if (m_identifierStack.size() != startSz) {
+		/*if (m_identifierStack.size() != startSz) {
 			throw ParseException{ "expression is not assignable", 0, 0 };
-		}
+		}*/
 
 		auto unaryOp = std::make_shared<CoilCl::AST::UnaryOperator>(CoilCl::AST::UnaryOperator::UnaryOperator::DEC, CoilCl::AST::UnaryOperator::OperandSide::PREFIX, m_elementDescentPipe.next());
 		m_elementDescentPipe.pop();
