@@ -172,6 +172,7 @@ void Parser::ExpectToken(Token token)
 	NextToken();
 }
 
+//TODO: remove ?
 void Parser::ExpectIdentifier()
 {
 	if (NOT_TOKEN(TK_IDENTIFIER)) {
@@ -1199,14 +1200,16 @@ void Parser::ConstantExpression()
 	ConditionalExpression();
 }
 
-// Labels and gotos
 bool Parser::JumpStatement()
 {
 	switch (CURRENT_TOKEN()) {
 	case TK_GOTO:
 		NextToken();
-		ExpectIdentifier();
-		EMIT("JMP GOTO");
+
+		//ExpectIdentifier();
+
+		m_elementDescentPipe.push(std::make_shared<GotoStmt>(CURRENT_DATA()->As<std::string>()));
+		NextToken();
 		break;
 	case TK_CONTINUE:
 		NextToken();

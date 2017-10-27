@@ -1075,6 +1075,22 @@ public:
 	PRINT_NODE(LabelStmt);
 };
 
+class GotoStmt : public Stmt
+{
+	std::string m_labelName;
+
+public:
+	GotoStmt(const std::string& name)
+		: m_labelName{ name }
+	{
+	}
+
+	virtual const std::string NodeName() const
+	{
+		return std::string{ RemoveClassFromName(typeid(GotoStmt).name()) } +" <line:" + std::to_string(line) + ",col:" + std::to_string(col) + "> '" + m_labelName + "'";
+	}
+};
+
 class CompoundStmt : public Stmt
 {
 	std::list<std::shared_ptr<ASTNode>> m_children;
