@@ -1640,18 +1640,10 @@ void Parser::InitDeclaratorList()
 
 		if (MATCH_TOKEN(TK_ASSIGN)) {
 			NextToken();
+
+			auto startState = m_elementDescentPipe.state();
 			Initializer();
-
-			/*std::shared_ptr<VarDecl> var;
-			if (m_elementDescentPipe.size() > 1) {
-				auto list = std::make_shared<InitListExpr>();
-				while (!m_elementDescentPipe.empty()) {
-					list->AddListItem(m_elementDescentPipe.next());
-					m_elementDescentPipe.pop();
-				}
-
-				m_elementDescentPipe.push(list);
-			}*/
+			m_elementDescentPipe.release_until(startState);
 
 			auto var = std::make_shared<VarDecl>(m_identifierStack.top(), m_elementDescentPipe.next());
 			m_identifierStack.pop();
@@ -1739,6 +1731,8 @@ void Parser::DirectAbstractDeclarator()
 void Parser::Initializer()
 {
 	if (MATCH_TOKEN(TK_BRACE_OPEN)) {
+		auto startState = m_elementDescentPipe.state();
+
 		do {
 			NextToken();
 
@@ -1757,6 +1751,8 @@ void Parser::Initializer()
 		} while (MATCH_TOKEN(TK_COMMA));
 		ExpectToken(TK_BRACE_CLOSE);
 
+		m_elementDescentPipe.release_until(startState);
+
 		auto list = std::make_shared<InitListExpr>();
 		while (!m_elementDescentPipe.empty()) {
 			list->AddListItem(m_elementDescentPipe.next());
@@ -1764,6 +1760,7 @@ void Parser::Initializer()
 		}
 
 		m_elementDescentPipe.push(list);
+		m_elementDescentPipe.lock();
 	}
 	else {
 		AssignmentExpression();
@@ -1872,24 +1869,22 @@ bool Parser::DirectDeclarator()
 			break;
 		case TK_BRACKET_OPEN:
 			NextToken();
-			if (MATCH_TOKEN(TK_BRACKET_CLOSE)) {
+			switch (CURRENT_TOKEN()) {
+			case TK_BRACKET_CLOSE:
 				NextToken();
 				EMIT("UNINIT ARRAY");
 				return true;//TODO: return ptr
-			}
-			else if (MATCH_TOKEN(TK_ASTERISK)) {
+			case TK_ASTERISK:
 				NextToken();
 				EMIT("UNINIT ARRAY VARIABLE SZ");
 				ExpectToken(TK_BRACKET_CLOSE);
 				return true;//TODO: return ptr
-			}
-			else if (MATCH_TOKEN(TK_STATIC)) {
+			case TK_STATIC:
 				NextToken();
 				TypeQualifierList();
 				AssignmentExpression();
 				ExpectToken(TK_BRACKET_CLOSE);
-			}
-			else {
+			default:
 				TypeQualifierList(); // optional
 
 				if (MATCH_TOKEN(TK_ASTERISK)) {
@@ -1902,18 +1897,22 @@ bool Parser::DirectDeclarator()
 				}
 
 				AssignmentExpression(); // optional
+
+				while (!m_elementDescentPipe.empty()) {
+					m_elementDescentPipe.pop();
+				}
+
 				ExpectToken(TK_BRACKET_CLOSE);
 			}
-
 			break;
 		default:
 			goto break_loop;
+			}
 		}
-	}
 
 break_loop:
 	return foundDecl;
-}
+	}
 
 void Parser::TypeQualifierList()
 {
