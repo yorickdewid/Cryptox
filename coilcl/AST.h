@@ -1001,6 +1001,31 @@ public:
 	PRINT_NODE(WhileStmt);
 };
 
+class DoStmt : public Stmt
+{
+	std::shared_ptr<ASTNode> evalNode;
+	std::shared_ptr<ASTNode> m_body;
+
+public:
+	DoStmt(std::shared_ptr<ASTNode>& body, std::shared_ptr<ASTNode> eval = nullptr)
+		: m_body{ body }
+	{
+		ASTNode::AppendChild(body);
+
+		if (eval) {
+			ASTNode::AppendChild(eval);
+			m_body = eval;
+		}
+	}
+
+	void SetEval(std::shared_ptr<ASTNode>& node)
+	{
+		ASTNode::AppendChild(node);
+		evalNode = node;
+	}
+
+	PRINT_NODE(DoStmt);
+};
 
 class BreakStmt : public Stmt
 {

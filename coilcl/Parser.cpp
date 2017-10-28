@@ -1291,18 +1291,29 @@ bool Parser::IterationStatement()
 			whlstmt->SetBody(m_elementDescentPipe.next());
 			m_elementDescentPipe.pop();
 		}
+
 		m_elementDescentPipe.push(whlstmt);
 		return true;
 	}
 	case TK_DO:
-		//NextToken();
+	{
+		NextToken();
 		Statement();
+
+		auto dostmt = std::make_shared<DoStmt>(m_elementDescentPipe.next());
+		m_elementDescentPipe.pop();
+
 		ExpectToken(TK_WHILE);
-		ExpectToken(TK_BRACE_OPEN);
+		ExpectToken(TK_PARENTHESE_OPEN);
 		Expression();
-		ExpectToken(TK_BRACE_CLOSE);
+		ExpectToken(TK_PARENTHESE_CLOSE);
 		ExpectToken(TK_COMMIT);
+
+		dostmt->SetEval(m_elementDescentPipe.next());
+		m_elementDescentPipe.pop();
+		m_elementDescentPipe.push(dostmt);
 		return true;
+	}
 	case TK_FOR:
 		ExpectToken(TK_BRACE_OPEN);
 		// expression_statement expression_statement
@@ -1379,12 +1390,12 @@ bool Parser::SelectionStatement()
 
 void Parser::ExpressionStatement()
 {
+	Expression();
+
 	if (MATCH_TOKEN(TK_COMMIT)) {
 		NextToken();
 		return;
 	}
-
-	Expression();
 }
 
 // Compound statements contain code block
