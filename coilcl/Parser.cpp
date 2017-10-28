@@ -704,8 +704,13 @@ void Parser::PostfixExpression()
 			// Remove snapshot since we can continue this path
 			m_comm.DisposeSnapshot();
 
+			auto list = std::make_shared<InitListExpr>();
+
 			for (;;) {
 				Initializer();
+
+				list->AddListItem(m_elementDescentPipe.next());
+				m_elementDescentPipe.pop();
 
 				if (NOT_TOKEN(TK_COMMA)) {
 					break;
@@ -714,6 +719,8 @@ void Parser::PostfixExpression()
 				NextToken();
 			}
 			ExpectToken(TK_BRACE_CLOSE);
+			
+			m_elementDescentPipe.push(std::make_shared<CompoundLiteralExpr>(list));
 		}
 
 		// Cannot cast, rollback the command state

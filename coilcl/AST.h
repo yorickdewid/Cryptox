@@ -849,7 +849,15 @@ public:
 
 class CompoundLiteralExpr : public Expr
 {
+	std::shared_ptr<InitListExpr> m_body;
+
 public:
+	CompoundLiteralExpr(std::shared_ptr<InitListExpr>& node)
+		: m_body{node}
+	{
+		ASTNode::AppendChild(NODE_UPCAST(node));
+	}
+
 	PRINT_NODE(CompoundLiteralExpr);
 };
 
