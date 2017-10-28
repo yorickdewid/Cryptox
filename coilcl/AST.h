@@ -107,6 +107,7 @@ public:
 		MUL,		// *
 		DIV,		// /
 		MOD,		// %
+		ASSGN,		// =
 
 		XOR,		// ^
 		AND,		// &
@@ -138,6 +139,8 @@ public:
 			return "/";
 		case BinOperand::MOD:
 			return "%";
+		case BinOperand::ASSGN:
+			return "=";
 		case BinOperand::XOR:
 			return "^";
 		case BinOperand::AND:
@@ -1025,6 +1028,33 @@ public:
 	}
 
 	PRINT_NODE(DoStmt);
+};
+
+class ForStmt : public Stmt
+{
+	std::shared_ptr<ASTNode> m_node1;
+	std::shared_ptr<ASTNode> m_node2;
+	std::shared_ptr<ASTNode> m_node3;
+	std::shared_ptr<ASTNode> m_body;
+
+public:
+	ForStmt(std::shared_ptr<ASTNode>& node1, std::shared_ptr<ASTNode>& node2, std::shared_ptr<ASTNode>& node3)
+		: m_node1{ node1 }
+		, m_node2{ node2 }
+		, m_node3{ node3 }
+	{
+		ASTNode::AppendChild(node1);
+		ASTNode::AppendChild(node2);
+		ASTNode::AppendChild(node3);
+	}
+
+	void SetBody(std::shared_ptr<ASTNode>& node)
+	{
+		ASTNode::AppendChild(node);
+		m_body = node;
+	}
+
+	PRINT_NODE(ForStmt);
 };
 
 class BreakStmt : public Stmt

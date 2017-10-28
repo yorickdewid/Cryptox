@@ -463,9 +463,18 @@ bool Parser::AssignmentOperator()
 {
 	switch (CURRENT_TOKEN()) {
 	case TK_ASSIGN:
+	{
+		auto binOp = std::make_shared<BinaryOperator>(BinaryOperator::BinOperand::ASSGN, m_elementDescentPipe.next());
+		m_elementDescentPipe.pop();
+
 		NextToken();
-		EMIT("ASSIGN");
+		AssignmentExpression();
+
+		binOp->SetRightSide(m_elementDescentPipe.next());
+		m_elementDescentPipe.pop();
+		m_elementDescentPipe.push(binOp);
 		break;
+	}
 	case TK_MUL_ASSIGN:
 	{
 		auto resv = std::dynamic_pointer_cast<DeclRefExpr>(m_elementDescentPipe.next());
@@ -1205,9 +1214,7 @@ void Parser::AssignmentExpression()
 	ConditionalExpression();
 
 	//UnaryExpression(); // UnaryExpression is already run in the ConditionalExpression
-	if (AssignmentOperator()) {
-		AssignmentExpression();
-	}
+	AssignmentOperator();
 }
 
 void Parser::Expression()
@@ -1315,16 +1322,56 @@ bool Parser::IterationStatement()
 		return true;
 	}
 	case TK_FOR:
-		ExpectToken(TK_BRACE_OPEN);
-		// expression_statement expression_statement
-		//
-		// expression_statement expression_statement expression
-		//
-		// declaration expression_statement
-		//
-		// declaration expression_statement expression
-		ExpectToken(TK_BRACE_CLOSE);
+		NextToken();
+		ExpectToken(TK_PARENTHESE_OPEN);
+
+		std::shared_ptr<ASTNode> node1;
+		std::shared_ptr<ASTNode> node2;
+		std::shared_ptr<ASTNode> node3;
+
+		Declaration();
+		if (!m_elementDescentPipe.empty()) {
+			node1 = m_elementDescentPipe.next();
+			m_elementDescentPipe.pop();
+
+			ExpressionStatement();
+			if (!m_elementDescentPipe.empty()) {
+				node2 = m_elementDescentPipe.next();
+				m_elementDescentPipe.pop();
+			}
+		}
+		else {
+			ExpressionStatement();
+			if (!m_elementDescentPipe.empty()) {
+				node1 = m_elementDescentPipe.next();
+				m_elementDescentPipe.pop();
+			}
+
+			ExpressionStatement();
+			if (!m_elementDescentPipe.empty()) {
+				node2 = m_elementDescentPipe.next();
+				m_elementDescentPipe.pop();
+			}
+		}
+
+		Expression();
+		if (!m_elementDescentPipe.empty()) {
+			node3 = m_elementDescentPipe.next();
+			m_elementDescentPipe.pop();
+		}
+
+		ExpectToken(TK_PARENTHESE_CLOSE);
+
+		auto forstmt = std::make_shared<ForStmt>(node1, node2, node3);
+
 		Statement();
+
+		if (!m_elementDescentPipe.empty()) {
+			forstmt->SetBody(m_elementDescentPipe.next());
+			m_elementDescentPipe.pop();
+		}
+
+		m_elementDescentPipe.push(forstmt);
 		return true;
 	}
 
@@ -1533,7 +1580,9 @@ void Parser::BlockItems()
 
 void Parser::Declaration()
 {
-	DeclarationSpecifiers();
+	if (!DeclarationSpecifiers()) {
+		return;
+	}
 
 	if (MATCH_TOKEN(TK_COMMIT)) {
 		NextToken();
