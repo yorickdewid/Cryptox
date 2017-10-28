@@ -975,6 +975,33 @@ public:
 	PRINT_NODE(SwitchStmt);
 };
 
+class WhileStmt : public Stmt
+{
+	std::shared_ptr<ASTNode> evalNode;
+	std::shared_ptr<ASTNode> m_body;
+
+public:
+	WhileStmt(std::shared_ptr<ASTNode>& eval, std::shared_ptr<ASTNode> body = nullptr)
+		: evalNode{ eval }
+	{
+		ASTNode::AppendChild(eval);
+
+		if (body) {
+			ASTNode::AppendChild(body);
+			m_body = body;
+		}
+	}
+
+	void SetBody(std::shared_ptr<ASTNode>& node)
+	{
+		ASTNode::AppendChild(node);
+		m_body = node;
+	}
+
+	PRINT_NODE(WhileStmt);
+};
+
+
 class BreakStmt : public Stmt
 {
 

@@ -1277,12 +1277,25 @@ bool Parser::IterationStatement()
 {
 	switch (CURRENT_TOKEN()) {
 	case TK_WHILE:
-		ExpectToken(TK_BRACE_OPEN);
+	{
+		NextToken();
+		ExpectToken(TK_PARENTHESE_OPEN);
 		Expression();
-		ExpectToken(TK_BRACE_CLOSE);
+		auto whlstmt = std::make_shared<WhileStmt>(m_elementDescentPipe.next());
+		ExpectToken(TK_PARENTHESE_CLOSE);
+		m_elementDescentPipe.pop();
+
 		Statement();
+
+		if (!m_elementDescentPipe.empty()) {
+			whlstmt->SetBody(m_elementDescentPipe.next());
+			m_elementDescentPipe.pop();
+		}
+		m_elementDescentPipe.push(whlstmt);
 		return true;
+	}
 	case TK_DO:
+		//NextToken();
 		Statement();
 		ExpectToken(TK_WHILE);
 		ExpectToken(TK_BRACE_OPEN);
