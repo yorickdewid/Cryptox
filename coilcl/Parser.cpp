@@ -1880,14 +1880,14 @@ bool Parser::DirectDeclarator()
 			else if (MATCH_TOKEN(TK_ASTERISK)) {
 				NextToken();
 				EMIT("UNINIT ARRAY VARIABLE SZ");
-				ExpectToken(TK_BRACE_CLOSE);
+				ExpectToken(TK_BRACKET_CLOSE);
 				return true;//TODO: return ptr
 			}
 			else if (MATCH_TOKEN(TK_STATIC)) {
 				NextToken();
 				TypeQualifierList();
 				AssignmentExpression();
-				ExpectToken(TK_BRACE_CLOSE);
+				ExpectToken(TK_BRACKET_CLOSE);
 			}
 			else {
 				TypeQualifierList(); // optional
@@ -1902,6 +1902,7 @@ bool Parser::DirectDeclarator()
 				}
 
 				AssignmentExpression(); // optional
+				ExpectToken(TK_BRACKET_CLOSE);
 			}
 
 			break;
