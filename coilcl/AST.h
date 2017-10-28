@@ -847,6 +847,12 @@ public:
 	PRINT_NODE(InitListExpr);
 };
 
+class CompoundLiteralExpr : public Expr
+{
+public:
+	PRINT_NODE(CompoundLiteralExpr);
+};
+
 class ArraySubscriptExpr : public Expr
 {
 	std::shared_ptr<DeclRefExpr> m_identifier;

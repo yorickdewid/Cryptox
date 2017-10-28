@@ -675,35 +675,52 @@ void Parser::PrimaryExpression()
 
 void Parser::ArgumentExpressionList()
 {
-	auto cont = false;
-	do {
-		cont = false;
+	for (;;) {
 		auto itemState = m_elementDescentPipe.state();
 		AssignmentExpression();
 		if (m_elementDescentPipe.is_changed(itemState)) {
 			m_elementDescentPipe.lock();
 		}
 
-		if (MATCH_TOKEN(TK_COMMA)) {
-			NextToken();
-			cont = true;
+		if (NOT_TOKEN(TK_COMMA)) {
+			break;
 		}
-	} while (cont);
+
+		NextToken();
+	}
 }
 
 void Parser::PostfixExpression()
 {
-	//TODO: Compound literal
-	/*if (MATCH_TOKEN(TK_PARENTHESE_OPEN)) {
-		NextToken();
-		TypeName();
-		ExpectToken(TK_PARENTHESE_CLOSE);
-		ExpectToken(TK_BRACE_OPEN);
-		do {
-			InitializerList();
-		} while (MATCH_TOKEN(TK_COMMA));
-		ExpectToken(TK_BRACE_CLOSE);
-	}*/
+	if (MATCH_TOKEN(TK_PARENTHESE_OPEN)) {
+		// Snapshot current state in case of rollback
+		m_comm.Snapshot();
+		try {
+			NextToken();
+			TypeName();
+			ExpectToken(TK_PARENTHESE_CLOSE);
+			ExpectToken(TK_BRACE_OPEN);
+
+			// Remove snapshot since we can continue this path
+			m_comm.DisposeSnapshot();
+
+			for (;;) {
+				Initializer();
+
+				if (NOT_TOKEN(TK_COMMA)) {
+					break;
+				}
+
+				NextToken();
+			}
+			ExpectToken(TK_BRACE_CLOSE);
+		}
+
+		// Cannot cast, rollback the command state
+		catch (const UnexpectedTokenException&) {
+			m_comm.Revert();
+		}
+	}
 
 	auto startSz = m_identifierStack.size();
 
@@ -800,12 +817,10 @@ void Parser::PostfixExpression()
 		break;
 	}
 	default:
-	{
 		if (m_identifierStack.size() > startSz) {
 			auto resv = MAKE_RESV_REF();
 			m_elementDescentPipe.push(resv);
 		}
-	}
 	}
 }
 
@@ -892,9 +907,15 @@ void Parser::CastExpression()
 			TypeName();
 			ExpectToken(TK_PARENTHESE_CLOSE);
 
+			CastExpression();
+
+			// If there are no element on the queue, no cast was found
+			if (m_elementDescentPipe.empty()) {
+				throw UnexpectedTokenException{};
+			}
+
 			// Remove snapshot since we can continue this path
 			m_comm.DisposeSnapshot();
-			CastExpression();
 
 			auto cast = std::make_shared<CastExpr>(m_elementDescentPipe.next());
 			m_elementDescentPipe.pop();
@@ -1592,11 +1613,13 @@ void Parser::Declaration()
 		InitDeclaratorList();
 		if (m_elementDescentPipe.is_changed(initState)) {
 			m_elementDescentPipe.release_until(initState);
+
 			auto decl = std::make_shared<DeclStmt>();
 			while (!m_elementDescentPipe.empty()) {
 				decl->AddDeclaration(std::dynamic_pointer_cast<VarDecl>(m_elementDescentPipe.next()));
 				m_elementDescentPipe.pop();
 			}
+
 			m_elementDescentPipe.push(decl);
 		}
 
@@ -1619,17 +1642,18 @@ void Parser::InitDeclaratorList()
 			NextToken();
 			Initializer();
 
-			std::shared_ptr<VarDecl> var;
+			/*std::shared_ptr<VarDecl> var;
 			if (m_elementDescentPipe.size() > 1) {
 				auto list = std::make_shared<InitListExpr>();
 				while (!m_elementDescentPipe.empty()) {
 					list->AddListItem(m_elementDescentPipe.next());
 					m_elementDescentPipe.pop();
 				}
-				m_elementDescentPipe.push(list);
-			}
 
-			var = std::make_shared<VarDecl>(m_identifierStack.top(), m_elementDescentPipe.next());
+				m_elementDescentPipe.push(list);
+			}*/
+
+			auto var = std::make_shared<VarDecl>(m_identifierStack.top(), m_elementDescentPipe.next());
 			m_identifierStack.pop();
 			m_elementDescentPipe.pop();
 
@@ -1657,14 +1681,12 @@ void Parser::InitDeclaratorList()
 void Parser::TypeName()
 {
 	SpecifierQualifierList();
-
 	AbstractDeclarator();
 }
 
 void Parser::AbstractDeclarator()
 {
 	Pointer();
-
 	DirectAbstractDeclarator();
 }
 
@@ -1722,7 +1744,6 @@ void Parser::Initializer()
 
 			// Snapshot current state in case of rollback
 			m_comm.Snapshot();
-
 			try {
 				Designation();
 				m_comm.DisposeSnapshot();
@@ -1735,6 +1756,14 @@ void Parser::Initializer()
 			Initializer();
 		} while (MATCH_TOKEN(TK_COMMA));
 		ExpectToken(TK_BRACE_CLOSE);
+
+		auto list = std::make_shared<InitListExpr>();
+		while (!m_elementDescentPipe.empty()) {
+			list->AddListItem(m_elementDescentPipe.next());
+			m_elementDescentPipe.pop();
+		}
+
+		m_elementDescentPipe.push(list);
 	}
 	else {
 		AssignmentExpression();
@@ -1778,7 +1807,6 @@ void Parser::Pointer()
 bool Parser::Declarator()
 {
 	Pointer();
-
 	return DirectDeclarator();
 }
 
@@ -1903,12 +1931,21 @@ bool Parser::ParameterTypeList()
 		}
 
 		NextToken();
+		if (MATCH_TOKEN(TK_ELLIPSIS)) {
+			NextToken();
+			rs = true;
+			//TODO: Change function signature
+		}
+
+		if (NOT_TOKEN(TK_COMMA)) {
+			break;
+		}
 	}
 
-	if (MATCH_TOKEN(TK_COMMA)) {
-		ExpectToken(TK_ELLIPSIS);
-		//TODO:....
-	}
+	//if (MATCH_TOKEN(TK_COMMA)) {
+	//	ExpectToken(TK_ELLIPSIS);
+	//	//TODO: Change function signature
+	//}
 
 	m_elementDescentPipe.release_until(startState);
 
@@ -1918,6 +1955,7 @@ bool Parser::ParameterTypeList()
 			param->AppendParamter(m_elementDescentPipe.next());
 			m_elementDescentPipe.pop();
 		}
+
 		m_elementDescentPipe.push(param);
 	}
 
