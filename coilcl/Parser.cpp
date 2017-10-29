@@ -331,10 +331,18 @@ bool Parser::StructOrUnionSpecifier()
 			for (;;) {
 				Declarator();
 
+				auto decl = m_identifierStack.top();
+				m_identifierStack.pop();
+				auto field = std::make_shared<FieldDecl>(decl);
+
 				if (MATCH_TOKEN(TK_COLON)) {
 					NextToken();
 					ConstantExpression();
+					field->SetBitField(std::dynamic_pointer_cast<IntegerLiteral>(m_elementDescentPipe.next()));
+					m_elementDescentPipe.pop();
 				}
+
+				rec->AddField(field);
 
 				if (NOT_TOKEN(TK_COMMA)) {
 					break;
@@ -344,10 +352,6 @@ bool Parser::StructOrUnionSpecifier()
 			}
 
 			ExpectToken(TK_COMMIT);
-
-			auto decl = m_identifierStack.top();
-			m_identifierStack.pop();
-			rec->AddField(std::make_shared<FieldDecl>(decl));
 		} while (NOT_TOKEN(TK_BRACE_CLOSE));
 
 		ExpectToken(TK_BRACE_CLOSE);
@@ -1263,7 +1267,7 @@ void Parser::AssignmentExpression()
 {
 	ConditionalExpression();
 
-	//UnaryExpression(); // UnaryExpression is already run in the ConditionalExpression
+	//UnaryExpression(); //XXX UnaryExpression is already run in the ConditionalExpression
 	AssignmentOperator();
 }
 
@@ -1291,7 +1295,7 @@ bool Parser::JumpStatement()
 	case TK_GOTO:
 		NextToken();
 
-		//ExpectIdentifier();
+		//ExpectIdentifier();//XXX: possible optimization
 
 		m_elementDescentPipe.push(std::make_shared<GotoStmt>(CURRENT_DATA()->As<std::string>()));
 		NextToken();
@@ -1606,6 +1610,8 @@ void Parser::Statement()
 	if (IterationStatement()) { return; }
 	if (JumpStatement()) { return; }
 	if (LabeledStatement()) { return; }
+
+	// Yield no result, try statement as expression
 	ExpressionStatement();
 }
 
@@ -1613,14 +1619,17 @@ void Parser::BlockItems()
 {
 	do {
 		auto itemState = m_elementDescentPipe.state();
+
 		Statement();
 		if (MATCH_TOKEN(TK_BRACE_CLOSE)) {
 			break;
 		}
+
 		if (m_elementDescentPipe.is_changed(itemState)) {
 			m_elementDescentPipe.lock();
 			itemState = m_elementDescentPipe.state();
 		}
+
 		Declaration();
 		if (m_elementDescentPipe.is_changed(itemState)) {
 			m_elementDescentPipe.lock();
@@ -1721,7 +1730,7 @@ void Parser::DirectAbstractDeclarator()
 			NextToken();
 			if (MATCH_TOKEN(TK_PARENTHESE_CLOSE)) {
 				NextToken();
-				EMIT("FUNC DELC EMPTY");
+				EMIT("FUNC DELC EMPTY");//TODO
 				cont = true;
 			}
 			else {
@@ -1736,13 +1745,13 @@ void Parser::DirectAbstractDeclarator()
 			NextToken();
 			if (MATCH_TOKEN(TK_BRACKET_CLOSE)) {
 				NextToken();
-				EMIT("UNINIT ARRAY?");
+				EMIT("UNINIT ARRAY?");//TODO
 				cont = true;
 			}
 			else if (MATCH_TOKEN(TK_ASTERISK)) {
 				NextToken();
 				ExpectToken(TK_BRACKET_CLOSE);
-				EMIT("UNINIT ARRAY VARIABLE SZ?");
+				EMIT("UNINIT ARRAY VARIABLE SZ?");//TODO
 				cont = true;
 			}
 			else {
@@ -1971,11 +1980,6 @@ bool Parser::ParameterTypeList()
 		}
 	}
 
-	//if (MATCH_TOKEN(TK_COMMA)) {
-	//	ExpectToken(TK_ELLIPSIS);
-	//	//TODO: Change function signature
-	//}
-
 	m_elementDescentPipe.release_until(startState);
 
 	if (rs) {
@@ -2067,7 +2071,7 @@ void Parser::ExternalDeclaration()
 		m_comm.DisposeSnapshot();
 	}
 
-	// At top leverl, release all lock
+	// At top level, release all locks
 	m_elementDescentPipe.release_until(LockPipe<decltype(m_elementDescentPipe)>::begin);
 }
 

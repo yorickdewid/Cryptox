@@ -524,10 +524,18 @@ public:
 
 class FieldDecl : public Decl
 {
+	std::shared_ptr<IntegerLiteral> m_bits;
+
 public:
 	FieldDecl(const std::string& name)
 		: Decl{ name }
 	{
+	}
+
+	void SetBitField(std::shared_ptr<IntegerLiteral>& node)
+	{
+		ASTNode::AppendChild(NODE_UPCAST(node));
+		m_bits = node;
 	}
 
 	virtual const std::string NodeName() const
@@ -545,7 +553,7 @@ public:
 	{
 		STRUCT,
 		UNION,
-	} m_type;
+	} m_type = RecordType::STRUCT;
 
 public:
 	RecordDecl(const std::string& name)
@@ -557,6 +565,11 @@ public:
 		: Decl{ }
 		, m_type{ type }
 	{
+	}
+
+	auto IsAnonymous() const
+	{
+		return m_identifier.empty();
 	}
 
 	void SetName(const std::string& name)
@@ -572,7 +585,13 @@ public:
 
 	virtual const std::string NodeName() const
 	{
-		return std::string{ RemoveClassFromName(typeid(RecordDecl).name()) } +" <line:" + std::to_string(line) + ",col:" + std::to_string(col) + "> " + m_identifier;
+		std::string _node{ RemoveClassFromName(typeid(RecordDecl).name()) };
+		_node += " <line:" + std::to_string(line) + ",col:" + std::to_string(col) + "> ";
+
+		_node += m_type == RecordType::STRUCT ? "struct " : "union ";
+		_node += IsAnonymous() ? "anonymous" : m_identifier;
+
+		return _node;
 	}
 };
 
