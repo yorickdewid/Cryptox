@@ -241,11 +241,9 @@ private:
 	auto TypeQualifier();
 	std::unique_ptr<Value> TypeSpecifier();
 	bool DeclarationSpecifiers();
-	void StructOrUnionSpecifier();
-	void StructDeclarationList();
+	bool StructOrUnionSpecifier();
 	void SpecifierQualifierList();
-	void StructDeclaratorList();
-	void EnumSpecifier();
+	bool EnumSpecifier();
 	void EnumeratorList();
 	bool UnaryOperator();
 	bool AssignmentOperator();

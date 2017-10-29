@@ -475,6 +475,8 @@ protected:
 	std::shared_ptr<ASTNode> m_returnType;
 
 public:
+	Decl() = default;
+
 	Decl(const std::string& name)
 		: m_identifier{ name }
 	{
@@ -528,18 +530,50 @@ public:
 	{
 	}
 
-	PRINT_NODE(FieldDecl);
+	virtual const std::string NodeName() const
+	{
+		return std::string{ RemoveClassFromName(typeid(FieldDecl).name()) } +" <line:" + std::to_string(line) + ",col:" + std::to_string(col) + "> " + m_identifier;
+	}
 };
 
 class RecordDecl : public Decl
 {
+	std::vector<std::shared_ptr<FieldDecl>> m_fields;
+
+public:
+	enum RecordType
+	{
+		STRUCT,
+		UNION,
+	} m_type;
+
 public:
 	RecordDecl(const std::string& name)
 		: Decl{ name }
 	{
 	}
 
-	PRINT_NODE(RecordDecl);
+	RecordDecl(RecordType type)
+		: Decl{ }
+		, m_type{ type }
+	{
+	}
+
+	void SetName(const std::string& name)
+	{
+		m_identifier = name;
+	}
+
+	void AddField(std::shared_ptr<FieldDecl>& node)
+	{
+		ASTNode::AppendChild(NODE_UPCAST(node));
+		m_fields.push_back(node);
+	}
+
+	virtual const std::string NodeName() const
+	{
+		return std::string{ RemoveClassFromName(typeid(RecordDecl).name()) } +" <line:" + std::to_string(line) + ",col:" + std::to_string(col) + "> " + m_identifier;
+	}
 };
 
 class FunctionDecl : public Decl
@@ -853,7 +887,7 @@ class CompoundLiteralExpr : public Expr
 
 public:
 	CompoundLiteralExpr(std::shared_ptr<InitListExpr>& node)
-		: m_body{node}
+		: m_body{ node }
 	{
 		ASTNode::AppendChild(NODE_UPCAST(node));
 	}

@@ -227,8 +227,12 @@ std::unique_ptr<Value> Parser::TypeSpecifier()
 		return std::move(std::make_unique<ValueObject<bool>>(Value::TypeSpecifier::T_BOOL));
 	}
 
-	EnumSpecifier();
-	StructOrUnionSpecifier();
+	if (EnumSpecifier()) {
+		//return something
+	}
+	if (StructOrUnionSpecifier()) {
+		//return something
+	}
 
 	return nullptr;
 }
@@ -275,6 +279,8 @@ bool Parser::DeclarationSpecifiers()
 			NextToken();
 			cont = true;
 		}
+
+		//TODO: function_specifier
 	}
 
 	if (tmpType == nullptr) {
@@ -292,40 +298,63 @@ bool Parser::DeclarationSpecifiers()
 	return true;
 }
 
-void Parser::StructOrUnionSpecifier()
+bool Parser::StructOrUnionSpecifier()
 {
+	bool isUnion = false;
+
 	switch (CURRENT_TOKEN()) {
 	case TK_STRUCT:
 		NextToken();
-		EMIT("STRUCT");
 		break;
 	case TK_UNION:
 		NextToken();
-		EMIT("UNION");
+		isUnion = true;
 		break;
-	default: // return if no union or struct was found
-		return;
+	default:
+		return false;
 	}
+
+	auto rec = std::make_shared<RecordDecl>(isUnion ? RecordDecl::RecordType::UNION : RecordDecl::RecordType::STRUCT);
 
 	if (MATCH_TOKEN(TK_IDENTIFIER)) {
 		EMIT_IDENTIFIER();
+		rec->SetName(CURRENT_DATA()->As<std::string>());
 		NextToken();
 	}
 
 	if (MATCH_TOKEN(TK_BRACE_OPEN)) {
 		NextToken();
-		StructDeclarationList();
+
+		do {
+			SpecifierQualifierList();
+			
+			for (;;) {
+				Declarator();
+
+				if (MATCH_TOKEN(TK_COLON)) {
+					NextToken();
+					ConstantExpression();
+				}
+
+				if (NOT_TOKEN(TK_COMMA)) {
+					break;
+				}
+
+				NextToken();
+			}
+
+			ExpectToken(TK_COMMIT);
+
+			auto decl = m_identifierStack.top();
+			m_identifierStack.pop();
+			rec->AddField(std::make_shared<FieldDecl>(decl));
+		} while (NOT_TOKEN(TK_BRACE_CLOSE));
+
 		ExpectToken(TK_BRACE_CLOSE);
 	}
-}
 
-void Parser::StructDeclarationList()
-{
-	do {
-		SpecifierQualifierList();
-		StructDeclaratorList();
-		ExpectToken(TK_COMMIT);
-	} while (NOT_TOKEN(TK_BRACE_CLOSE));
+	m_elementDescentPipe.push(rec);
+	return true;
 }
 
 void Parser::SpecifierQualifierList()
@@ -346,19 +375,7 @@ void Parser::SpecifierQualifierList()
 	} while (cont);
 }
 
-void Parser::StructDeclaratorList()
-{
-	do {
-		Declarator();
-
-		if (MATCH_TOKEN(TK_COLON)) {
-			NextToken();
-			ConstantExpression();
-		}
-	} while (MATCH_TOKEN(TK_COMMA));
-}
-
-void Parser::EnumSpecifier()
+bool Parser::EnumSpecifier()
 {
 	if (MATCH_TOKEN(TK_ENUM)) {
 		NextToken();
@@ -370,7 +387,11 @@ void Parser::EnumSpecifier()
 			EnumeratorList();
 			ExpectToken(TK_BRACE_CLOSE);
 		}
+
+		return true;
 	}
+
+	return false;
 }
 
 void Parser::EnumeratorList()
@@ -719,7 +740,7 @@ void Parser::PostfixExpression()
 				NextToken();
 			}
 			ExpectToken(TK_BRACE_CLOSE);
-			
+
 			m_elementDescentPipe.push(std::make_shared<CompoundLiteralExpr>(list));
 		}
 
@@ -1914,12 +1935,12 @@ bool Parser::DirectDeclarator()
 			break;
 		default:
 			goto break_loop;
-			}
 		}
+	}
 
 break_loop:
 	return foundDecl;
-	}
+}
 
 void Parser::TypeQualifierList()
 {

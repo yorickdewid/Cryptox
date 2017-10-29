@@ -8,7 +8,7 @@
 #include <functional>
 
 //TODO: function parameters
-//TODO: comstmt,struct,union,members,types
+//TODO: struct,union,members,types
 //TODO: Single namespace
 //TODO: Full C99 parser ruleset
 //TODO: Preprocessing
