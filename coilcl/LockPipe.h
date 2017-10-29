@@ -17,6 +17,8 @@ public:
 	typedef typename _Container::reference reference;
 	typedef typename _Container::const_reference const_reference;
 
+	static constexpr pipe_state begin = 0U;
+
 	LockPipe()
 		: c{}
 	{
@@ -75,6 +77,8 @@ public:
 	void clear()
 	{
 		c.clear();
+		while (!l.empty()) { l.pop(); }
+		index = 0;
 	}
 
 	auto empty(bool skipLock = false) const

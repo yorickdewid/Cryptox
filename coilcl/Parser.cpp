@@ -354,6 +354,7 @@ bool Parser::StructOrUnionSpecifier()
 	}
 
 	m_elementDescentPipe.push(rec);
+	m_elementDescentPipe.lock();
 	return true;
 }
 
@@ -2055,12 +2056,19 @@ void Parser::ExternalDeclaration()
 	if (!FunctionDefinition()) {
 		// Not a function, rollback the command state
 		m_comm.Revert();
+
+		// Clear all states since nothing should be kept moving forward
+		m_elementDescentPipe.clear();
+		ClearStack(m_identifierStack);
 		Declaration();
 	}
 	else {
 		// Remove snapshot since we can continue this path
 		m_comm.DisposeSnapshot();
 	}
+
+	// At top leverl, release all lock
+	m_elementDescentPipe.release_until(LockPipe<decltype(m_elementDescentPipe)>::begin);
 }
 
 void Parser::TranslationUnit()
@@ -2073,12 +2081,12 @@ void Parser::TranslationUnit()
 	do {
 		ExternalDeclaration();
 
-		if (!m_elementDescentPipe.empty()) {
+		while (!m_elementDescentPipe.empty()) {
 			AST_ROOT()->AppendChild(m_elementDescentPipe.next());
 			m_elementDescentPipe.pop();
 		}
 
-		// There should be no elements left by now
+		// There should be no elements
 		assert(m_elementDescentPipe.empty(true));
 
 		// Clear all lists where possible before adding new items
