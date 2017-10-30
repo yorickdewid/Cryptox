@@ -8,7 +8,7 @@
 #include <functional>
 
 //TODO: function parameters
-//TODO: struct,union,enum,members,typedef,types
+//TODO: members,typedef,types
 //TODO: Single namespace
 //TODO: Full C99 parser ruleset
 //TODO: Preprocessing
@@ -105,6 +105,7 @@ public:
 
 		try {
 			/*auto transunit = CoilCl::Preprocessor{ profile }
+				.MoveStage()
 				.InlineIncludes()
 				.StemMacros()
 				.DumpTranslationUnit<CoilCl::Reader::MemoryReader>();
@@ -112,6 +113,7 @@ public:
 
 			// Syntax analysis
 			auto iast = Parser{ profile }
+				//.MoveStage()
 				.CheckCompatibility()
 				.Execute()
 				.DumpAST();
@@ -121,12 +123,14 @@ public:
 
 			// Semantic analysis
 			CoilCl::Semer{ profile }
+				//.MoveStage()
 				.Syntax(iast)
 				.StaticResolve()
 				.PreliminaryAssert()
 				.StandardCompliance();
 
 			/*auto oast = CoilCl::Semer{ profile }
+				.MoveStage()
 				.Syntax(iast)
 				.PreliminaryAssert()
 				.StandardCompliance()

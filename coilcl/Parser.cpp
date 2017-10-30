@@ -105,9 +105,7 @@ private:
 class ParseException : public std::exception
 {
 public:
-	ParseException() noexcept
-	{
-	}
+	ParseException() noexcept = default;
 
 	explicit ParseException(char const* const message, int line, int column) noexcept
 		: m_line{ line }
@@ -184,6 +182,7 @@ void Parser::ExpectIdentifier()
 	NextToken();
 }
 
+// Storage class specifiers determine the lifetime and scope of the object
 auto Parser::StorageClassSpecifier()
 {
 	switch (CURRENT_TOKEN()) {
@@ -243,6 +242,7 @@ std::unique_ptr<Value> Parser::TypeSpecifier()
 	return nullptr;
 }
 
+// Specifying type correctness
 auto Parser::TypeQualifier()
 {
 	switch (CURRENT_TOKEN()) {
@@ -255,34 +255,43 @@ auto Parser::TypeQualifier()
 	return Value::TypeQualifier::NONE;
 }
 
+template<typename _Ty, typename _Decay = int>
+auto IsSet(_Ty v) -> bool
+{
+	return static_cast<bool>(static_cast<_Decay>(v));
+}
+
 bool Parser::DeclarationSpecifiers()
 {
 	std::shared_ptr<Value> tmpType = nullptr;
 	Value::StorageClassSpecifier tmpSCP = Value::StorageClassSpecifier::NONE;
-	Value::TypeQualifier tmpTQ = Value::TypeQualifier::NONE;
+	//Value::TypeQualifier tmpTQ = Value::TypeQualifier::NONE;
+	std::vector<Value::TypeQualifier> tmpTQ;
 	auto isInline = false;
 
 	bool cont = true;
 	while (cont) {
 		cont = false;
 
-		auto sc = StorageClassSpecifier();
-		if (static_cast<int>(sc)) {
-			tmpSCP = sc;
-			NextToken();
-			cont = true;
-		}
-
 		auto type = TypeSpecifier();
-		if (type != nullptr) {
+		if (type) {
 			NextToken();
 			cont = true;
 			tmpType = std::move(type);
 		}
 
+		// Only one specifier can be applied per object type
+		auto sc = StorageClassSpecifier();
+		if (IsSet(sc)) {
+			tmpSCP = sc;
+			NextToken();
+			cont = true;
+		}
+
+		// Can have multiple type qualifiers, list them
 		auto tq = TypeQualifier();
-		if (static_cast<int>(tq)) {
-			tmpTQ = tq;
+		if (IsSet(tq)) {
+			tmpTQ.push_back(tq);
 			NextToken();
 			cont = true;
 		}
@@ -295,15 +304,15 @@ bool Parser::DeclarationSpecifiers()
 		}
 	}
 
-	if (tmpType == nullptr) {
+	if (!tmpType) {
 		return false;
 	}
 
 	if (tmpSCP != Value::StorageClassSpecifier::NONE) {
 		tmpType->StorageClass(tmpSCP);
 	}
-	if (tmpTQ != Value::TypeQualifier::NONE) {
-		tmpType->Qualifier(tmpTQ);
+	for (const auto& tq : tmpTQ) {
+		tmpType->Qualifier(tq);
 	}
 	if (isInline) {
 		tmpType->SetInline();
@@ -315,7 +324,7 @@ bool Parser::DeclarationSpecifiers()
 
 bool Parser::StructOrUnionSpecifier()
 {
-	bool isUnion = false;
+	auto isUnion = false;
 
 	switch (CURRENT_TOKEN()) {
 	case TK_STRUCT:
@@ -1734,8 +1743,7 @@ void Parser::InitDeclaratorList()
 	} while (cont);
 }
 
-// Typenames are primitive types
-// and used defined structures
+// Typenames are primitive types and used defined structures
 void Parser::TypeName()
 {
 	SpecifierQualifierList();
@@ -1841,22 +1849,21 @@ void Parser::Designation()
 
 void Parser::Designators()
 {
-	bool cont = false;
-	do { //TODO: rewrite loop
+	for (;;) {
 		switch (CURRENT_TOKEN()) {
 		case TK_BRACKET_OPEN:
 			NextToken();
 			ConstantExpression();
 			ExpectToken(TK_BRACKET_CLOSE);
-			cont = true;
-			break;
+			continue;
 		case TK_DOT:
 			NextToken();
 			ExpectIdentifier();
-			cont = true;
+			continue;
+		default:
 			break;
 		}
-	} while (cont);
+	}
 }
 
 void Parser::Pointer()
