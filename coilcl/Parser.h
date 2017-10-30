@@ -244,7 +244,6 @@ private:
 	bool StructOrUnionSpecifier();
 	void SpecifierQualifierList();
 	bool EnumSpecifier();
-	void EnumeratorList();
 	bool UnaryOperator();
 	bool AssignmentOperator();
 

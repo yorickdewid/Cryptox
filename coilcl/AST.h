@@ -595,6 +595,65 @@ public:
 	}
 };
 
+class EnumConstantDecl : public Decl
+{
+	std::shared_ptr<ASTNode> m_body;
+
+public:
+	EnumConstantDecl(const std::string& name)
+		: Decl{ name }
+	{
+	}
+
+	void SetAssignment(std::shared_ptr<ASTNode>& node)
+	{
+		ASTNode::AppendChild(node);
+		m_body = node;
+	}
+
+	virtual const std::string NodeName() const
+	{
+		return std::string{ RemoveClassFromName(typeid(EnumConstantDecl).name()) } +" <line:" + std::to_string(line) + ",col:" + std::to_string(col) + "> " + m_identifier;
+	}
+};
+
+class EnumDecl : public Decl
+{
+	std::vector<std::shared_ptr<EnumConstantDecl>> m_constants;
+
+public:
+	EnumDecl()
+		: Decl{}
+	{
+	}
+
+	auto IsAnonymous() const
+	{
+		return m_identifier.empty();
+	}
+
+	void SetName(const std::string& name)
+	{
+		m_identifier = name;
+	}
+
+	void AddConstant(std::shared_ptr<EnumConstantDecl>& node)
+	{
+		ASTNode::AppendChild(NODE_UPCAST(node));
+		m_constants.push_back(node);
+	}
+
+	virtual const std::string NodeName() const
+	{
+		std::string _node{ RemoveClassFromName(typeid(EnumDecl).name()) };
+		_node += " <line:" + std::to_string(line) + ",col:" + std::to_string(col) + "> ";
+
+		_node += IsAnonymous() ? "anonymous" : m_identifier;
+
+		return _node;
+	}
+};
+
 class FunctionDecl : public Decl
 {
 	std::shared_ptr<ParamStmt> m_params;//TODO: Add parameters

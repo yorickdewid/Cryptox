@@ -327,7 +327,7 @@ bool Parser::StructOrUnionSpecifier()
 
 		do {
 			SpecifierQualifierList();
-			
+
 			for (;;) {
 				Declarator();
 
@@ -353,7 +353,6 @@ bool Parser::StructOrUnionSpecifier()
 
 			ExpectToken(TK_COMMIT);
 		} while (NOT_TOKEN(TK_BRACE_CLOSE));
-
 		ExpectToken(TK_BRACE_CLOSE);
 	}
 
@@ -384,34 +383,49 @@ bool Parser::EnumSpecifier()
 {
 	if (MATCH_TOKEN(TK_ENUM)) {
 		NextToken();
+
+		auto enm = std::make_shared<EnumDecl>();
+
 		if (MATCH_TOKEN(TK_IDENTIFIER)) {
 			EMIT_IDENTIFIER();
+			enm->SetName(CURRENT_DATA()->As<std::string>());
 			NextToken();
 		}
+
 		if (MATCH_TOKEN(TK_BRACE_OPEN)) {
-			EnumeratorList();
+			for (;;) {
+				NextToken();
+
+				if (MATCH_TOKEN(TK_IDENTIFIER)) {
+					EMIT_IDENTIFIER();
+
+					auto enmConst = std::make_shared<EnumConstantDecl>(CURRENT_DATA()->As<std::string>());
+
+					NextToken();
+					if (MATCH_TOKEN(TK_ASSIGN)) {
+						NextToken();
+						ConstantExpression();
+						enmConst->SetAssignment(m_elementDescentPipe.next());
+						m_elementDescentPipe.pop();
+					}
+
+					enm->AddConstant(enmConst);
+
+				}
+
+				if (NOT_TOKEN(TK_COMMA)) {
+					break;
+				}
+			}
 			ExpectToken(TK_BRACE_CLOSE);
 		}
 
+		m_elementDescentPipe.push(enm);
+		m_elementDescentPipe.lock();
 		return true;
 	}
 
 	return false;
-}
-
-void Parser::EnumeratorList()
-{
-	do {
-		NextToken();
-		if (MATCH_TOKEN(TK_IDENTIFIER)) {
-			EMIT_IDENTIFIER();
-			NextToken();
-			if (MATCH_TOKEN(TK_ASSIGN)) {
-				NextToken();
-				ConstantExpression();
-			}
-		}
-	} while (MATCH_TOKEN(TK_COMMA));
 }
 
 bool Parser::UnaryOperator()
@@ -2073,6 +2087,7 @@ void Parser::ExternalDeclaration()
 
 	// At top level, release all locks
 	m_elementDescentPipe.release_until(LockPipe<decltype(m_elementDescentPipe)>::begin);
+	assert(!m_elementDescentPipe.empty());
 }
 
 void Parser::TranslationUnit()
