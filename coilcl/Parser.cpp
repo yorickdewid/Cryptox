@@ -187,10 +187,14 @@ void Parser::ExpectIdentifier()
 auto Parser::StorageClassSpecifier()
 {
 	switch (CURRENT_TOKEN()) {
+	case TK_EXTERN:
+		return Value::StorageClassSpecifier::EXTERN;
 	case TK_REGISTER:
 		return Value::StorageClassSpecifier::REGISTER;
 	case TK_STATIC:
 		return Value::StorageClassSpecifier::STATIC;
+	case TK_AUTO:
+		return Value::StorageClassSpecifier::AUTO;
 	case TK_TYPEDEF:
 		return Value::StorageClassSpecifier::TYPEDEF;
 	}
