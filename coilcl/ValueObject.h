@@ -59,6 +59,9 @@ protected:
 	// to return the stored value
 	virtual StoreValue ReturnValue() const = 0;
 
+	// Function inliner
+	bool isInline = false;
+
 public:
 	Value(TypeSpecifier type)
 		: m_objectType{ type }
@@ -77,15 +80,10 @@ public:
 
 	virtual ~Value() = default;
 
-	inline void StorageClass(StorageClassSpecifier scp)
-	{
-		m_scSpecifier = scp;
-	}
-
-	inline void Qualifier(TypeQualifier tq)
-	{
-		m_typeQualifier = tq;
-	}
+	// Type specifier inputs
+	inline void StorageClass(StorageClassSpecifier scp) { m_scSpecifier = scp; }
+	inline void Qualifier(TypeQualifier tq) { m_typeQualifier = tq; }
+	inline void SetInline() { isInline = true; }
 
 	// Return the type specifier
 	TypeSpecifier DataType() const

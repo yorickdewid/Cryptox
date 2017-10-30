@@ -201,8 +201,6 @@ auto Parser::StorageClassSpecifier()
 std::unique_ptr<Value> Parser::TypeSpecifier()
 {
 	// TODO:
-	// - Complex
-	// - Imaginary
 	// - TYPE_NAME
 	switch (CURRENT_TOKEN()) {
 	case TK_VOID:
@@ -225,6 +223,10 @@ std::unique_ptr<Value> Parser::TypeSpecifier()
 		return std::move(std::make_unique<ValueObject<unsigned>>(Value::TypeSpecifier::T_INT));
 	case TK_BOOL:
 		return std::move(std::make_unique<ValueObject<bool>>(Value::TypeSpecifier::T_BOOL));
+	case TK_COMPLEX:
+		break;
+	case TK_IMAGINARY:
+		break;
 	}
 
 	if (EnumSpecifier()) {
@@ -254,6 +256,7 @@ bool Parser::DeclarationSpecifiers()
 	std::shared_ptr<Value> tmpType = nullptr;
 	Value::StorageClassSpecifier tmpSCP = Value::StorageClassSpecifier::NONE;
 	Value::TypeQualifier tmpTQ = Value::TypeQualifier::NONE;
+	auto isInline = false;
 
 	bool cont = true;
 	while (cont) {
@@ -280,7 +283,12 @@ bool Parser::DeclarationSpecifiers()
 			cont = true;
 		}
 
-		//TODO: function_specifier
+		// Function inline specifier
+		if (MATCH_TOKEN(TK_INLINE)) {
+			NextToken();
+			isInline = true;
+			cont = true;
+		}
 	}
 
 	if (tmpType == nullptr) {
@@ -292,6 +300,9 @@ bool Parser::DeclarationSpecifiers()
 	}
 	if (tmpTQ != Value::TypeQualifier::NONE) {
 		tmpType->Qualifier(tmpTQ);
+	}
+	if (isInline) {
+		tmpType->SetInline();
 	}
 
 	//m_specifiekStack.push(std::make_unique<ValueNode>(type));
@@ -410,7 +421,6 @@ bool Parser::EnumSpecifier()
 					}
 
 					enm->AddConstant(enmConst);
-
 				}
 
 				if (NOT_TOKEN(TK_COMMA)) {
