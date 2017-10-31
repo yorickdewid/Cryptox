@@ -265,7 +265,6 @@ bool Parser::DeclarationSpecifiers()
 {
 	std::shared_ptr<Value> tmpType = nullptr;
 	Value::StorageClassSpecifier tmpSCP = Value::StorageClassSpecifier::NONE;
-	//Value::TypeQualifier tmpTQ = Value::TypeQualifier::NONE;
 	std::vector<Value::TypeQualifier> tmpTQ;
 	auto isInline = false;
 
@@ -1753,6 +1752,9 @@ void Parser::TypeName()
 	AbstractDeclarator();
 }
 
+// An abstract declarator is a declarator without an identifier,
+// consisting of one or more pointer, array, or function modifiers.
+// Abstract declarator are used by typedefs and parameter lists
 void Parser::AbstractDeclarator()
 {
 	Pointer();
@@ -1767,11 +1769,13 @@ void Parser::DirectAbstractDeclarator()
 		switch (CURRENT_TOKEN()) {
 		case TK_PARENTHESE_OPEN:
 			NextToken();
+
+			// Pointer to void
 			if (MATCH_TOKEN(TK_PARENTHESE_CLOSE)) {
 				NextToken();
-				EMIT("FUNC DELC EMPTY");//TODO
 				cont = true;
 			}
+			// Pointer to some declarator
 			else {
 				AbstractDeclarator();
 				if (ParameterTypeList()) {
@@ -1780,19 +1784,22 @@ void Parser::DirectAbstractDeclarator()
 				ExpectToken(TK_PARENTHESE_CLOSE);
 			}
 			break;
+
 		case TK_BRACKET_OPEN:
 			NextToken();
+
+			// Empty array declarator
 			if (MATCH_TOKEN(TK_BRACKET_CLOSE)) {
 				NextToken();
-				EMIT("UNINIT ARRAY?");//TODO
 				cont = true;
 			}
+			// Array of pointers
 			else if (MATCH_TOKEN(TK_ASTERISK)) {
 				NextToken();
 				ExpectToken(TK_BRACKET_CLOSE);
-				EMIT("UNINIT ARRAY VARIABLE SZ?");//TODO
 				cont = true;
 			}
+			// Array with expression initalizer
 			else {
 				AssignmentExpression();
 				ExpectToken(TK_BRACKET_CLOSE);
@@ -1918,20 +1925,33 @@ bool Parser::DirectDeclarator()
 				return true;
 			}
 			else {
-				if (!ParameterTypeList()) {
+				const auto IdentifierListDecl = [=]
+				{
+					auto param = std::make_shared<ParamStmt>();
 
-					///TODO
-					do {
+					for (;;) {
 						if (MATCH_TOKEN(TK_IDENTIFIER)) {
 							EMIT_IDENTIFIER();
+
+							auto paramDecl = std::make_shared<ParamDecl>(CURRENT_DATA()->As<std::string>());
+							param->AppendParamter(std::dynamic_pointer_cast<ASTNode>(paramDecl));
 							NextToken();
 						}
-						else {
-							return false;//TMP
-						}
-					} while (MATCH_TOKEN(TK_COMMA));
-					///
 
+						if (NOT_TOKEN(TK_COMMA)) {
+							break;
+						}
+
+						NextToken();
+					}
+
+					m_elementDescentPipe.push(param);
+				};
+
+				// Try default parameter declarations first, if that fails
+				// give the ol' K&R decls a go
+				if (!ParameterTypeList()) {
+					IdentifierListDecl();
 				}
 
 				auto func = std::make_shared<FunctionDecl>(m_identifierStack.top());
@@ -1995,6 +2015,8 @@ void Parser::TypeQualifierList()
 	while (TypeQualifier() != Value::TypeQualifier::NONE);
 }
 
+// A parameter type list must contain at least the
+// parameter declaration with a type specifier
 bool Parser::ParameterTypeList()
 {
 	bool rs = false;
@@ -2033,6 +2055,9 @@ bool Parser::ParameterTypeList()
 	return rs;
 }
 
+// Parameter declaration can have only a specifier,
+// an specifier and declarator or specifier and abstract
+// declarator
 bool Parser::ParameterDeclaration()
 {
 	if (!DeclarationSpecifiers()) {
@@ -2049,7 +2074,7 @@ bool Parser::ParameterDeclaration()
 	}
 
 	AbstractDeclarator();
-	return true; //?
+	return true;
 }
 
 bool Parser::FunctionDefinition()
