@@ -522,6 +522,18 @@ public:
 	}
 };
 
+class TypedefDecl : public Decl
+{
+
+public:
+	TypedefDecl(const std::string& name)
+		: Decl{ name }
+	{
+	}
+
+	PRINT_NODE(TypedefDecl);
+};
+
 class FieldDecl : public Decl
 {
 	std::shared_ptr<IntegerLiteral> m_bits;
@@ -1009,7 +1021,13 @@ public:
 class NullStmt : public Stmt
 {
 public:
-	PRINT_NODE(Stmt);
+	PRINT_NODE(NullStmt);
+};
+
+class ContinueStmt : public Stmt
+{
+public:
+	PRINT_NODE(ContinueStmt);
 };
 
 class ReturnStmt : public Stmt

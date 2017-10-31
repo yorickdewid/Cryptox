@@ -1339,7 +1339,7 @@ bool Parser::JumpStatement()
 		break;
 	case TK_CONTINUE:
 		NextToken();
-		EMIT("ITR CONTINUE");
+		m_elementDescentPipe.push(std::make_shared<ContinueStmt>());
 		break;
 	case TK_BREAK:
 		NextToken();
