@@ -1004,8 +1004,34 @@ public:
 
 class MemberExpr : public Expr
 {
+	std::string m_name;
+	std::shared_ptr<DeclRefExpr> m_record;
+
 public:
-	PRINT_NODE(MemberExpr);
+	enum MemberType
+	{
+		REFERENCE,
+		POINTER,
+	} m_memberType;
+
+public:
+	MemberExpr(MemberType type, const std::string& name, std::shared_ptr<DeclRefExpr>& node)
+		: m_memberType{ type }
+		, m_name{ name }
+		, m_record{ node }
+	{
+		ASTNode::AppendChild(NODE_UPCAST(node));
+	}
+
+	const std::string NodeName() const
+	{
+		std::string _node{ RemoveClassFromName(typeid(MemberExpr).name()) };
+		_node += " <line:" + std::to_string(line) + ",col:" + std::to_string(col) + "> ";
+		_node += m_memberType == MemberType::REFERENCE ? "." : "->";
+		_node += m_name;
+
+		return _node;
+	}
 };
 
 //

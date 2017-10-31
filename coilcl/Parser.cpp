@@ -32,7 +32,7 @@ public:
 	{
 		std::stringstream ss;
 		ss << "Semantic error: " << message;
-		ss << " before " << "'" + Keyword{ token }.Print() + "'" << " token at "; //TODO: token
+		ss << " before " << "'" + Keyword{ token }.Print() + "'" << " token at ";
 		ss << line << ':' << column;
 		_msg = ss.str();
 	}
@@ -203,8 +203,6 @@ auto Parser::StorageClassSpecifier()
 
 std::unique_ptr<Value> Parser::TypeSpecifier()
 {
-	// TODO:
-	// - TYPE_NAME
 	switch (CURRENT_TOKEN()) {
 	case TK_VOID:
 		return std::move(std::make_unique<ValueObject<void>>(Value::TypeSpecifier::T_VOID));
@@ -238,6 +236,8 @@ std::unique_ptr<Value> Parser::TypeSpecifier()
 	if (StructOrUnionSpecifier()) {
 		//return something
 	}
+
+	//TODO: Check type for typename matches
 
 	return nullptr;
 }
@@ -837,27 +837,30 @@ void Parser::PostfixExpression()
 		}
 		break;
 	}
-	case TK_DOT: //TODO
+	case TK_DOT:
 	{
-		NextToken();
-		ExpectIdentifier();
-
-		/*
 		auto resv = MAKE_RESV_REF();
-		auto memr = std::make_shared<MemberExpr>(resv);
-		m_elementDescentPipe.push(memr);
-		*/
 
+		NextToken();
+		EMIT_IDENTIFIER();
+		//ExpectIdentifier();
+
+		auto member = CURRENT_DATA()->As<std::string>();
+		m_elementDescentPipe.push(std::make_shared<MemberExpr>(MemberExpr::MemberType::REFERENCE, member, resv));
+		NextToken();
 		break;
 	}
-	case TK_PTR_OP:  //TODO
+	case TK_PTR_OP:
 	{
+		auto resv = MAKE_RESV_REF();
+
 		NextToken();
-		ExpectIdentifier();
+		EMIT_IDENTIFIER();
+		//ExpectIdentifier();
 
-		/*
-		*/
-
+		auto member = CURRENT_DATA()->As<std::string>();
+		m_elementDescentPipe.push(std::make_shared<MemberExpr>(MemberExpr::MemberType::POINTER, member, resv));
+		NextToken();
 		break;
 	}
 	case TK_INC_OP:
