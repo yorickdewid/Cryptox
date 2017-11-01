@@ -152,6 +152,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AST.h" />
+    <ClInclude Include="Typedef.h" />
     <ClInclude Include="coilcl.h" />
     <ClInclude Include="Semer.h" />
     <ClInclude Include="Stage.h" />

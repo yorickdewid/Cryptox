@@ -79,5 +79,8 @@
     <ClInclude Include="Semer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Typedef.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
