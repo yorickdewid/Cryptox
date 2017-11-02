@@ -239,8 +239,9 @@ protected:
 private:
 	auto StorageClassSpecifier();
 	auto TypeQualifier();
-	std::unique_ptr<Value> TypeSpecifier();
+	bool TypeSpecifier();
 	bool DeclarationSpecifiers();
+	bool TypenameSpecifier();
 	bool StructOrUnionSpecifier();
 	void SpecifierQualifierList();
 	bool EnumSpecifier();
@@ -303,7 +304,9 @@ private:
 	std::shared_ptr<TranslationUnitDecl> m_ast;
 	StateContainer<TokenState> m_comm;
 	std::shared_ptr<Compiler::Profile> m_profile;
+	//std::vector<>
 
+	std::stack<std::shared_ptr<Typedef::TypedefBase>> m_typeStack;
 	std::stack<std::string> m_identifierStack;
 	LockPipe<std::shared_ptr<ASTNode>> m_elementDescentPipe;
 };

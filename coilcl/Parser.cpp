@@ -13,7 +13,6 @@
 #define AST_ROOT() m_ast
 
 //TODO: remove EMIT helpers
-#define EMIT(m) std::cout << "EMIT::" << m << std::endl;
 #define EMIT_IDENTIFIER() std::cout << "EMIT::IDENTIFIER" << "("<< CURRENT_DATA()->As<std::string>() << ")" << std::endl;
 
 #define MAKE_RESV_REF() std::make_shared<DeclRefExpr>(m_identifierStack.top()); m_identifierStack.pop();
@@ -185,74 +184,93 @@ void Parser::ExpectIdentifier()
 // Storage class specifiers determine the lifetime and scope of the object
 auto Parser::StorageClassSpecifier()
 {
+	using namespace Typedef;
+
 	switch (CURRENT_TOKEN()) {
 	case TK_EXTERN:
-		return Value::StorageClassSpecifier::EXTERN;
+		return TypedefBase::StorageClassSpecifier::EXTERN;
 	case TK_REGISTER:
-		return Value::StorageClassSpecifier::REGISTER;
+		return TypedefBase::StorageClassSpecifier::REGISTER;
 	case TK_STATIC:
-		return Value::StorageClassSpecifier::STATIC;
+		return TypedefBase::StorageClassSpecifier::STATIC;
 	case TK_AUTO:
-		return Value::StorageClassSpecifier::AUTO;
+		return TypedefBase::StorageClassSpecifier::AUTO;
 	case TK_TYPEDEF:
-		return Value::StorageClassSpecifier::TYPEDEF;
+		return TypedefBase::StorageClassSpecifier::TYPEDEF;
 	}
 
-	return Value::StorageClassSpecifier::NONE;
+	return TypedefBase::StorageClassSpecifier::NONE;
 }
 
-std::unique_ptr<Value> Parser::TypeSpecifier()
+bool Parser::TypeSpecifier()
 {
+	using namespace Typedef;
+
 	switch (CURRENT_TOKEN()) {
 	case TK_VOID:
-		return std::move(std::make_unique<ValueObject<void>>(Value::TypeSpecifier::T_VOID));
+		m_typeStack.push(Util::MakeBuiltinType(BuiltinType::Specifier::VOID));
+		return true;
 	case TK_CHAR:
-		return std::move(std::make_unique<ValueObject<std::string>>(Value::TypeSpecifier::T_CHAR));
+		m_typeStack.push(Util::MakeBuiltinType(BuiltinType::Specifier::CHAR));
+		return true;
 	case TK_SHORT:
-		return std::move(std::make_unique<ValueObject<short>>(Value::TypeSpecifier::T_SHORT));
+		m_typeStack.push(Util::MakeBuiltinType(BuiltinType::Specifier::SHORT));
+		return true;
 	case TK_INT:
-		return std::move(std::make_unique<ValueObject<int>>(Value::TypeSpecifier::T_INT));
+		m_typeStack.push(Util::MakeBuiltinType(BuiltinType::Specifier::INT));
+		return true;
 	case TK_LONG:
-		return std::move(std::make_unique<ValueObject<long>>(Value::TypeSpecifier::T_LONG));
+		m_typeStack.push(Util::MakeBuiltinType(BuiltinType::Specifier::LONG));
+		return true;
 	case TK_FLOAT:
-		return std::move(std::make_unique<ValueObject<float>>(Value::TypeSpecifier::T_FLOAT));
+		m_typeStack.push(Util::MakeBuiltinType(BuiltinType::Specifier::FLOAT));
+		return true;
 	case TK_DOUBLE:
-		return std::move(std::make_unique<ValueObject<double>>(Value::TypeSpecifier::T_DOUBLE));
+		m_typeStack.push(Util::MakeBuiltinType(BuiltinType::Specifier::DOUBLE));
+		return true;
 	case TK_SIGNED:
-		return std::move(std::make_unique<ValueObject<signed>>(Value::TypeSpecifier::T_INT));
+		m_typeStack.push(Util::MakeBuiltinType(BuiltinType::Specifier::INT));
+		return true;
 	case TK_UNSIGNED:
-		return std::move(std::make_unique<ValueObject<unsigned>>(Value::TypeSpecifier::T_INT));
+		m_typeStack.push(Util::MakeBuiltinType(BuiltinType::Specifier::INT));
+		return true;
 	case TK_BOOL:
-		return std::move(std::make_unique<ValueObject<bool>>(Value::TypeSpecifier::T_BOOL));
+		m_typeStack.push(Util::MakeBuiltinType(BuiltinType::Specifier::BOOL));
+		return true;
 	case TK_COMPLEX:
-		break;
+		return true;
 	case TK_IMAGINARY:
-		break;
+		return true;
 	}
 
 	if (EnumSpecifier()) {
-		//return something
+		return true;
 	}
+	
 	if (StructOrUnionSpecifier()) {
-		//return something
+		return true;
 	}
 
-	//TODO: Check type for typename matches
+	if (TypenameSpecifier()) {
+		return true;
+	}
 
-	return nullptr;
+	return false;
 }
 
 // Specifying type correctness
 auto Parser::TypeQualifier()
 {
+	using namespace Typedef;
+
 	switch (CURRENT_TOKEN()) {
 	case TK_CONST:
-		return Value::TypeQualifier::CONST;
+		return TypedefBase::TypeQualifier::CONST;
 	case TK_VOLATILE:
-		return Value::TypeQualifier::VOLATILE;
+		return TypedefBase::TypeQualifier::VOLATILE;
 	}
 
-	return Value::TypeQualifier::NONE;
+	return TypedefBase::TypeQualifier::NONE;
 }
 
 template<typename _Ty, typename _Decay = int>
@@ -263,20 +281,20 @@ auto IsSet(_Ty v) -> bool
 
 bool Parser::DeclarationSpecifiers()
 {
-	std::shared_ptr<Value> tmpType = nullptr;
-	Value::StorageClassSpecifier tmpSCP = Value::StorageClassSpecifier::NONE;
-	std::vector<Value::TypeQualifier> tmpTQ;
+	using namespace Typedef;
+
+	TypedefBase::StorageClassSpecifier tmpSCP = TypedefBase::StorageClassSpecifier::NONE;
+	std::vector<TypedefBase::TypeQualifier> tmpTQ;
 	auto isInline = false;
 
 	bool cont = true;
 	while (cont) {
 		cont = false;
 
-		auto type = TypeSpecifier();
-		if (type) {
+		// Find a type specifier
+		if (TypeSpecifier()) {
 			NextToken();
 			cont = true;
-			tmpType = std::move(type);
 		}
 
 		// Only one specifier can be applied per object type
@@ -303,22 +321,30 @@ bool Parser::DeclarationSpecifiers()
 		}
 	}
 
-	if (!tmpType) {
+	// No type was found
+	if (m_typeStack.empty()) {
 		return false;
 	}
 
-	if (tmpSCP != Value::StorageClassSpecifier::NONE) {
-		tmpType->StorageClass(tmpSCP);
+	// Append all stacked storage classes and qualifiers onto the value object
+	auto baseType = m_typeStack.top();
+	if (tmpSCP != TypedefBase::StorageClassSpecifier::NONE) {
+		baseType->StorageClass(tmpSCP);
 	}
 	for (const auto& tq : tmpTQ) {
-		tmpType->Qualifier(tq);
-	}
-	if (isInline) {
-		tmpType->SetInline();
+		baseType->Qualifier(tq);
 	}
 
-	//m_specifiekStack.push(std::make_unique<ValueNode>(type));
+	/*if (isInline) {
+		baseType->SetInline();
+	}*/
+
 	return true;
+}
+
+bool Parser::TypenameSpecifier()
+{
+	return false;
 }
 
 bool Parser::StructOrUnionSpecifier()
@@ -389,14 +415,13 @@ void Parser::SpecifierQualifierList()
 	bool cont = false;
 	do {
 		cont = false;
-		auto type = TypeSpecifier();
-		if (type != nullptr) {
+		if (TypeSpecifier()) {
 			NextToken();
 			cont = true;
 		}
 
 		auto tq = TypeQualifier();
-		if (tq != Value::TypeQualifier::NONE) {
+		if (tq != Typedef::TypedefBase::TypeQualifier::NONE) {
 			cont = true;
 		}
 	} while (cont);
@@ -1703,6 +1728,9 @@ void Parser::Declaration()
 		if (MATCH_TOKEN(TK_COMMIT)) {
 			NextToken();
 		}
+
+		//TODO: For now
+		m_typeStack.pop();
 	}
 }
 
@@ -1722,7 +1750,7 @@ void Parser::InitDeclaratorList()
 			Initializer();
 			m_elementDescentPipe.release_until(startState);
 
-			auto var = std::make_shared<VarDecl>(m_identifierStack.top(), m_elementDescentPipe.next());
+			auto var = std::make_shared<VarDecl>(m_identifierStack.top(), m_typeStack.top(), m_elementDescentPipe.next());
 			m_identifierStack.pop();
 			m_elementDescentPipe.pop();
 
@@ -1732,7 +1760,7 @@ void Parser::InitDeclaratorList()
 			m_elementDescentPipe.lock();
 		}
 		else {
-			auto var = std::make_shared<VarDecl>(m_identifierStack.top());
+			auto var = std::make_shared<VarDecl>(m_identifierStack.top(), m_typeStack.top());
 			m_identifierStack.pop();
 			m_elementDescentPipe.push(var);
 			m_elementDescentPipe.lock();
@@ -1871,7 +1899,7 @@ void Parser::Designators()
 			ExpectIdentifier();
 			continue;
 		default:
-			break;
+			return;
 		}
 	}
 }
@@ -1963,18 +1991,17 @@ bool Parser::DirectDeclarator()
 				return true;
 			}
 			break;
+
 		case TK_BRACKET_OPEN:
 			NextToken();
 			switch (CURRENT_TOKEN()) {
 			case TK_BRACKET_CLOSE:
 				NextToken();
-				EMIT("UNINIT ARRAY");
-				return true;//TODO: return ptr
+				return true;
 			case TK_ASTERISK:
 				NextToken();
-				EMIT("UNINIT ARRAY VARIABLE SZ");
 				ExpectToken(TK_BRACKET_CLOSE);
-				return true;//TODO: return ptr
+				return true;
 			case TK_STATIC:
 				NextToken();
 				TypeQualifierList();
@@ -2001,6 +2028,7 @@ bool Parser::DirectDeclarator()
 				ExpectToken(TK_BRACKET_CLOSE);
 			}
 			break;
+
 		default:
 			goto break_loop;
 		}
@@ -2012,7 +2040,7 @@ break_loop:
 
 void Parser::TypeQualifierList()
 {
-	while (TypeQualifier() != Value::TypeQualifier::NONE);
+	while (TypeQualifier() != Typedef::TypedefBase::TypeQualifier::NONE);
 }
 
 // A parameter type list must contain at least the
@@ -2090,6 +2118,7 @@ bool Parser::FunctionDefinition()
 		return false;
 	}
 
+	// No result so far, bail
 	if (m_elementDescentPipe.empty()) {
 		m_elementDescentPipe.release_until(startState);
 		return false;
@@ -2126,6 +2155,7 @@ void Parser::ExternalDeclaration()
 
 		// Clear all states since nothing should be kept moving forward
 		m_elementDescentPipe.clear();
+		ClearStack(m_typeStack);
 		ClearStack(m_identifierStack);
 		Declaration();
 	}
@@ -2139,6 +2169,7 @@ void Parser::ExternalDeclaration()
 	assert(!m_elementDescentPipe.empty());
 }
 
+// 
 void Parser::TranslationUnit()
 {
 	//TODO: For each translation unit run the parser loop
@@ -2158,6 +2189,7 @@ void Parser::TranslationUnit()
 		assert(m_elementDescentPipe.empty(true));
 
 		// Clear all lists where possible before adding new items
+		ClearStack(m_typeStack);
 		ClearStack(m_identifierStack);
 		m_comm.TryClear();
 	} while (!lex.IsDone());
