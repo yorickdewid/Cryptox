@@ -31,7 +31,7 @@ struct Value
 		REGISTER,
 	};
 
-	// _Ty qualifier
+	// Type qualifier
 	enum class TypeQualifier
 	{
 		NONE,
@@ -78,6 +78,7 @@ public:
 	{
 	}
 
+	// Value class is abstract
 	virtual ~Value() = default;
 
 	// Type specifier inputs

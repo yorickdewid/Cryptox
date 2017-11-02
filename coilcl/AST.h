@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Typedef.h"
 #include "ValueObject.h"
 
 #include <list>
@@ -13,6 +14,8 @@
 
 #define NODE_UPCAST(c) \
 	std::dynamic_pointer_cast<ASTNode>(c)
+
+using namespace CoilCl;
 
 template<typename _Ty>
 std::string RemoveClassFromName(_Ty *_name)
@@ -472,13 +475,21 @@ class Decl : public ASTNode
 {
 protected:
 	std::string m_identifier;
-	std::shared_ptr<ASTNode> m_returnType;
+	std::shared_ptr<Typedef::TypedefBase> m_returnType;
 
 public:
 	Decl() = default;
 
+	//TODO: temp, remove afterwards
 	Decl(const std::string& name)
 		: m_identifier{ name }
+	{
+	}
+
+	template<typename _TySpec>
+	Decl(const std::string& name, _TySpec specifier)
+		: m_identifier{ name }
+		, m_returnType{ specifier}
 	{
 	}
 
@@ -495,8 +506,8 @@ class VarDecl : public Decl
 	std::shared_ptr<ASTNode> m_body;
 
 public:
-	VarDecl(const std::string& name, std::shared_ptr<ASTNode> node = nullptr)
-		: Decl{ name }
+	VarDecl(const std::string& name, std::shared_ptr<Typedef::TypedefBase> type, std::shared_ptr<ASTNode> node = nullptr)
+		: Decl{ name, type }
 		, m_body{ node }
 	{
 		ASTNode::AppendChild(node);
@@ -504,7 +515,13 @@ public:
 
 	virtual const std::string NodeName() const
 	{
-		return std::string{ RemoveClassFromName(typeid(VarDecl).name()) } +" <line:" + std::to_string(line) + ",col:" + std::to_string(col) + "> " + m_identifier;
+		std::string _node{ RemoveClassFromName(typeid(VarDecl).name()) };
+		_node += " <line:" + std::to_string(line) + ",col:" + std::to_string(col) + "> ";
+		_node += m_identifier;
+		_node += " '" + Decl::m_returnType->TypeName() + "' ";
+		_node += Decl::m_returnType->StorageClassName();
+
+		return _node;
 	}
 };
 
@@ -668,13 +685,12 @@ public:
 
 class FunctionDecl : public Decl
 {
-	std::shared_ptr<ParamStmt> m_params;//TODO: Add parameters
+	std::shared_ptr<ParamStmt> m_params;
 	std::shared_ptr<CompoundStmt> m_body;
 	std::weak_ptr<FunctionDecl> m_protoRef;
+
 	bool m_isPrototype = true;
 	size_t m_useCount = 0;
-
-	static std::vector<std::weak_ptr<FunctionDecl>> m_crossResolveList;
 
 private:
 	auto IsUsed() const { return m_useCount > 0; }
@@ -1044,6 +1060,7 @@ public:
 	PRINT_NODE(Stmt);
 };
 
+//TODO: remove ?
 class NullStmt : public Stmt
 {
 public:
@@ -1380,4 +1397,3 @@ public:
 	}*/
 };
 #endif
-
