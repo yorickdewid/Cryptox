@@ -59,8 +59,8 @@ void Lexer::InitKeywords()
 	m_keywords.insert(std::make_pair("volatile", Keyword(TK_VOLATILE)));
 	m_keywords.insert(std::make_pair("while", Keyword(TK_WHILE)));
 
-	m_keywords.insert(std::make_pair("__LINE__", Keyword(TK___LINE__)));
-	m_keywords.insert(std::make_pair("__FILE__", Keyword(TK___FILE__)));
+	//m_keywords.insert(std::make_pair("__LINE__", Keyword(TK___LINE__)));
+	//m_keywords.insert(std::make_pair("__FILE__", Keyword(TK___FILE__)));
 }
 
 // Retrieve Next character from content and store it 
@@ -443,11 +443,13 @@ int Lexer::ReadID()
 		Next();
 	} while (std::isalnum(m_currentChar) || m_currentChar == '_');
 
+	// Match string as keyword
 	auto result = m_keywords.find(_longstr);
 	if (result != m_keywords.end()) {
 		return static_cast<int>(result->second.m_token);
 	}
 
+	// Commit string as string literal type
 	auto _svalue = _longstr;
 	m_data = std::make_unique<ValueObject<decltype(_svalue)>>(Value::TypeSpecifier::T_CHAR, _svalue);
 	return Token::TK_IDENTIFIER;
@@ -472,6 +474,7 @@ int Lexer::LexScalar()
 	std::string _longstr;
 
 	Next();
+
 	// Check if we dealing with an octal or hex. If not then we know it is some integer
 	if (firstchar == '0' && (std::toupper(m_currentChar) == 'X' || isdigit(m_currentChar))) {
 		if (isodigit(m_currentChar)) {
