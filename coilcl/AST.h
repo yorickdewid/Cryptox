@@ -696,7 +696,6 @@ private:
 	auto IsUsed() const { return m_useCount > 0; }
 
 public:
-	//TODO: type
 	explicit FunctionDecl(const std::string& name, std::shared_ptr<CompoundStmt>& node)
 		: Decl{ name }
 		, m_body{ node }
@@ -705,8 +704,8 @@ public:
 		ASTNode::AppendChild(NODE_UPCAST(node));
 	}
 
-	FunctionDecl(const std::string& name)
-		: Decl{ name }
+	explicit FunctionDecl(const std::string& name, std::shared_ptr<Typedef::TypedefBase> type)
+		: Decl{ name, type }
 	{
 	}
 
@@ -766,7 +765,8 @@ public:
 		}
 
 		_node += m_identifier;
-		_node += " 'return type'";
+		_node += " '" + Decl::m_returnType->TypeName() + "' ";
+		_node += Decl::m_returnType->StorageClassName();
 
 		return _node;
 	}

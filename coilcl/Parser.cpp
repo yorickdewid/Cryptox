@@ -1946,8 +1946,9 @@ bool Parser::DirectDeclarator()
 			if (MATCH_TOKEN(TK_PARENTHESE_CLOSE)) {
 				NextToken();
 
-				auto func = std::make_shared<FunctionDecl>(m_identifierStack.top());
+				auto func = std::make_shared<FunctionDecl>(m_identifierStack.top(), m_typeStack.top());
 				m_identifierStack.pop();
+				m_typeStack.pop();
 
 				m_elementDescentPipe.push(func);
 				return true;
@@ -1982,9 +1983,10 @@ bool Parser::DirectDeclarator()
 					IdentifierListDecl();
 				}
 
-				auto func = std::make_shared<FunctionDecl>(m_identifierStack.top());
+				auto func = std::make_shared<FunctionDecl>(m_identifierStack.top(), m_typeStack.top());
 				func->SetParameterStatement(std::dynamic_pointer_cast<ParamStmt>(m_elementDescentPipe.next()));
 				m_elementDescentPipe.pop();
+				m_typeStack.pop();
 				ExpectToken(TK_PARENTHESE_CLOSE);
 
 				m_elementDescentPipe.push(func);
