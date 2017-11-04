@@ -33,11 +33,11 @@ public:
 
 public:
 	virtual const std::string TypeName() const = 0;
+	virtual const std::string ValueToString() const = 0;
 
 	// Type specifier inputs
 	inline void StorageClass(StorageClassSpecifier storageClass) { m_storageClass = storageClass; }
 	inline void Qualifier(TypeQualifier qypeQualifier) { m_typeQualifier.push_back(qypeQualifier); }
-	//inline void SetInline() { isInline = true; }
 
 	const std::string StorageClassName() const
 	{
@@ -86,6 +86,11 @@ public:
 	BuiltinType(Specifier specifier)
 		: m_specifier{ specifier }
 	{
+	}
+
+	const std::string ValueToString() const
+	{
+		return "";
 	}
 
 	const std::string TypeName() const
