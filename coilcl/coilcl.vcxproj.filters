@@ -26,9 +26,6 @@
     <ClCompile Include="Lexer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="ValueObject.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Parser.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -42,6 +39,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Typedef.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Valuedef.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

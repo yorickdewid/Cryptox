@@ -1,3 +1,11 @@
+// Copyright (c) 2017 Quenza Inc. All rights reserved.
+//
+// This file is part of the Cryptox project.
+//
+// Use of this source code is governed by a private license
+// that can be found in the LICENSE file. Content can not be 
+// copied and/or distributed without the express of the author.
+
 #include "Parser.h"
 
 #include <iostream>
@@ -160,6 +168,8 @@ void Parser::Error(const char* err, Token token)
 	throw UnexpectedTokenException{ err, m_comm.Current().FetchLine(), m_comm.Current().FetchColumn(), token };
 }
 
+// Expect next token to be provided token, if so
+// move lexer forward. If not report error and bail.
 void Parser::ExpectToken(Token token)
 {
 	if (NOT_TOKEN(token)) {
@@ -202,6 +212,7 @@ auto Parser::StorageClassSpecifier()
 	return TypedefBase::StorageClassSpecifier::NONE;
 }
 
+// Type specifiers determine size of the object in memory
 bool Parser::TypeSpecifier()
 {
 	using namespace Typedef;
@@ -243,14 +254,17 @@ bool Parser::TypeSpecifier()
 		return true;
 	}
 
+	// Check for enum declarations
 	if (EnumSpecifier()) {
 		return true;
 	}
 	
+	// Check for struct or union declarations
 	if (StructOrUnionSpecifier()) {
 		return true;
 	}
 
+	// Check if identifier is registered as typename
 	if (TypenameSpecifier()) {
 		return true;
 	}
@@ -335,6 +349,7 @@ bool Parser::DeclarationSpecifiers()
 		baseType->Qualifier(tq);
 	}
 
+	//TODO: function inliner
 	/*if (isInline) {
 		baseType->SetInline();
 	}*/
@@ -342,6 +357,7 @@ bool Parser::DeclarationSpecifiers()
 	return true;
 }
 
+//TODO
 bool Parser::TypenameSpecifier()
 {
 	return false;
@@ -1731,7 +1747,6 @@ void Parser::Declaration()
 			NextToken();
 		}
 
-		//TODO: For now
 		m_typeStack.pop();
 	}
 }
@@ -2012,24 +2027,26 @@ bool Parser::DirectDeclarator()
 				AssignmentExpression();
 				ExpectToken(TK_BRACKET_CLOSE);
 			default:
-				TypeQualifierList(); // optional
+			{
+				TypeQualifierList();
 
 				if (MATCH_TOKEN(TK_ASTERISK)) {
 					NextToken();
 					return true;
 				}
 
-				if (MATCH_TOKEN(TK_STATIC)) { // optional
+				if (MATCH_TOKEN(TK_STATIC)) {
 					NextToken();
 				}
 
-				AssignmentExpression(); // optional
+				AssignmentExpression();
 
 				while (!m_elementDescentPipe.empty()) {
 					m_elementDescentPipe.pop();
 				}
 
 				ExpectToken(TK_BRACKET_CLOSE);
+			}
 			}
 			break;
 
@@ -2042,6 +2059,7 @@ break_loop:
 	return foundDecl;
 }
 
+// Continue until a type qualifier was found
 void Parser::TypeQualifierList()
 {
 	while (TypeQualifier() != Typedef::TypedefBase::TypeQualifier::NONE);
@@ -2173,12 +2191,12 @@ void Parser::ExternalDeclaration()
 	assert(!m_elementDescentPipe.empty());
 }
 
-// 
+//XXX: For each translation unit run the parser loop
+// For each transaltion unit create a new AST tree. As of this moment
+// only a single translation unit is supported
 void Parser::TranslationUnit()
 {
-	//TODO: For each translation unit run the parser loop
-
-	//TODO: name returns file name of current lexer, not translation unit
+	// Returns file name of current lexer input, this can also be an include
 	AST_ROOT() = std::make_shared<TranslationUnitDecl>(m_profile->MetaInfo()->name);
 
 	do {
@@ -2189,7 +2207,7 @@ void Parser::TranslationUnit()
 			m_elementDescentPipe.pop();
 		}
 
-		// There should be no elements
+		// There should be no elements left
 		assert(m_elementDescentPipe.empty(true));
 
 		// Clear all lists where possible before adding new items

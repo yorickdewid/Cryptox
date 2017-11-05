@@ -1,3 +1,11 @@
+// Copyright (c) 2017 Quenza Inc. All rights reserved.
+//
+// This file is part of the Cryptox project.
+//
+// Use of this source code is governed by a private license
+// that can be found in the LICENSE file. Content can not be 
+// copied and/or distributed without the express of the author.
+
 #include "coilcl.h"
 #include "Profile.h"
 #include "Parser.h"
@@ -15,6 +23,9 @@
 //TODO: Checking optimizer and compiler compat options
 //TODO: Debug output
 //TODO: Logging
+
+// Current compiler limitations
+// - No support for K&R function declarations
 
 #define SET_HANDLER(n,c) \
 	Compiler& Set##n##Handler(decltype(c) callback) \
