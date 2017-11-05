@@ -357,7 +357,7 @@ int Lexer::Lex()
 		}
 	}
 
-	return 0;
+	return TK_HALT;
 }
 
 void Lexer::LexBlockComment()
@@ -529,6 +529,7 @@ int Lexer::LexScalar()
 		m_data = std::make_unique<CoilCl::Valuedef::ValueObject<decltype(_fvalue)>>(CoilCl::Typedef::BuiltinType{ CoilCl::Typedef::BuiltinType::Specifier::DOUBLE }, _fvalue);
 		return TK_CONSTANT;
 	}
+	case OCTAL:
 	case INT:
 	{
 		auto _nvalue = boost::lexical_cast<int>(_longstr);
@@ -541,14 +542,9 @@ int Lexer::LexScalar()
 		m_data = std::make_unique<CoilCl::Valuedef::ValueObject<decltype(_nvalue)>>(CoilCl::Typedef::BuiltinType{ CoilCl::Typedef::BuiltinType::Specifier::INT }, _nvalue);
 		return TK_CONSTANT;
 	}
-	case OCTAL:
-		//TODO: convert to integer
-		/*LexOctal(&_longstr[0], (unsigned int *)&_nvalue);
-		return TK_CONSTANT;*/
-		break;
 	}
 
-	return 0;
+	return TK_HALT;
 }
 
 Lexer::Lexer(std::shared_ptr<Compiler::Profile>& profile)
