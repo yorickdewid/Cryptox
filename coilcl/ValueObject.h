@@ -1,80 +1,40 @@
 #pragma once
 
+#include "Typedef.h"
+
 #include <boost/scoped_array.hpp>
+#include <boost/variant.hpp>
 
-#include <string>
-
-struct Value
+class Value
 {
-	// Storage type, only for external usage
-	enum class TypeSpecifier
-	{
-		T_VOID,
-		T_CHAR,
-		T_SHORT,
-		T_INT,
-		T_LONG,
-		T_FLOAT,
-		T_DOUBLE,
-		T_BOOL,
-		T_PTR,
-	};
-
-	// Storage class specifier
-	enum class StorageClassSpecifier
-	{
-		NONE,
-		AUTO,
-		STATIC,
-		EXTERN,
-		TYPEDEF,
-		REGISTER,
-	};
-
-	// Type qualifier
-	enum class TypeQualifier
-	{
-		NONE,
-		CONST,
-		VOLATILE,
-	};
+public:
+	using variant_type = boost::variant<int, float, double, char, std::string>;
+	using array_type = boost::scoped_array<variant_type>;
 
 protected:
 	// The internal datastructure stores the value
 	// as close to the actual data type specifier.
-	union StoreValue
-	{
-		int i;
-		float f;
-		double d;
-		char c;
-		intptr_t *p;
-	};
+	variant_type m_value;
 
 	// If this counter is greater than 0, the external type is an array
-	boost::scoped_array<StoreValue> m_arrayPtr;
+	array_type m_arrayPtr;
 	size_t m_arraySize = 0;
-
-	// Value objects must implement a function
-	// to return the stored value
-	virtual StoreValue ReturnValue() const = 0;
 
 	// Function inliner
 	bool isInline = false;
 
 public:
-	Value(TypeSpecifier type)
-		: m_objectType{ type }
-	{
-	}
-
 	//TODO: Copy arrayPtr somehow
 	Value(const Value& other)
 		: m_isUnsigned{ other.m_isUnsigned }
 		, m_objectType{ other.m_objectType }
-		, m_scSpecifier{ other.m_scSpecifier }
-		, m_typeQualifier{ other.m_typeQualifier }
 		, m_arraySize{ other.m_arraySize }
+	{
+	}
+
+	Value(std::shared_ptr<CoilCl::Typedef::TypedefBase> typeBase, variant_type value)
+		: m_objectType{ typeBase }
+		, m_value{ value }
 	{
 	}
 
@@ -82,120 +42,55 @@ public:
 	virtual ~Value() = default;
 
 	// Type specifier inputs
-	inline void StorageClass(StorageClassSpecifier scp) { m_scSpecifier = scp; }
-	inline void Qualifier(TypeQualifier tq) { m_typeQualifier = tq; }
 	inline void SetInline() { isInline = true; }
 
 	// Return the type specifier
-	TypeSpecifier DataType() const
-	{
-		return m_objectType;
-	}
+	auto DataType() const { return m_objectType; }
+
+	template<typename _CastTy>
+	auto DataType() const { return std::dynamic_pointer_cast<_CastTy>(m_objectType); }
 
 	// Check if current storage type is array
-	inline auto IsArray() const
-	{
-		return m_arraySize != 0;
-	}
-
-	inline auto Size() const
-	{
-		return m_arraySize;
-	}
+	inline auto IsArray() const { return m_arraySize != 0; }
+	inline auto Size() const { return m_arraySize; }
 
 	template<typename _Ty>
-	_Ty As() const
-	{
-		return static_cast<_Ty>(ReturnValue().i);
-	}
+	_Ty As() const { return boost::get<_Ty>(m_value); }
 
-	template<>
-	float As() const
-	{
-		return ReturnValue().f;
-	}
-
-	template<>
-	std::string As() const
-	{
-		std::string str;
-		str.reserve(m_arraySize);
-
-		for (size_t i = 0; i < m_arraySize; ++i) {
-			if (i == (m_arraySize - 1) && m_arrayPtr[i].c == '\0') {
-				break;
-			}
-			str.push_back(m_arrayPtr[i].c);
-		}
-
-		return str;
-	}
-
-	std::string ToString() const
-	{
-		auto _type = ReturnValue();
-		switch (m_objectType) {
-		case Value::TypeSpecifier::T_CHAR:
-			return IsArray() ? As<std::string>() : std::string{ _type.c };
-		case Value::TypeSpecifier::T_SHORT:
-		case Value::TypeSpecifier::T_INT:
-		case Value::TypeSpecifier::T_LONG:
-			return std::to_string(_type.i);
-		case Value::TypeSpecifier::T_FLOAT:
-			return std::to_string(_type.f);
-		case Value::TypeSpecifier::T_DOUBLE:
-			return std::to_string(_type.d);
-		case Value::TypeSpecifier::T_BOOL:
-			return static_cast<bool>(_type.i) ? "true" : "false";
-		case Value::TypeSpecifier::T_PTR:
-			return "<ptr>";
-		default:
-			return "<unknown>";
-		}
-	}
-
+	// Stream variant output
 	friend std::ostream& operator<<(std::ostream& os, const Value& value)
 	{
-		os << value.ToString();
+		os << value.m_value;
+		return os;
 	}
 
 private:
 	bool m_isUnsigned = false;
-	TypeSpecifier m_objectType = TypeSpecifier::T_INT;
-	StorageClassSpecifier m_scSpecifier = StorageClassSpecifier::NONE;
-	TypeQualifier m_typeQualifier = TypeQualifier::NONE;
+	bool m_isVoid = false;
+	std::shared_ptr<CoilCl::Typedef::TypedefBase> m_objectType;
 };
 
 template<typename _Ty>
 class ValueObject : public Value
 {
-	StoreValue m_value;
-
-	StoreValue ReturnValue() const override
-	{
-		return m_value;
-	}
-
-	typedef ValueObject<_Ty> _Myty;
+	using _Myty = ValueObject<_Ty>;
 
 public:
-	ValueObject(TypeSpecifier type, _Ty v)
-		: Value{ type }
-		, m_value{ v }
+	ValueObject(CoilCl::Typedef::BuiltinType&& type, _Ty value)
+		: Value{ std::make_shared<CoilCl::Typedef::BuiltinType>(type), value }
 	{
 	}
 
-	ValueObject(TypeSpecifier type)
-		: Value{ type }
+	/*ValueObject(CoilCl::Typedef::RecordType&& type, _Ty value)
+		: Value{ std::make_shared<CoilCl::Typedef::RecordType>(type), value }
 	{
-	}
+	}*/
 
-	ValueObject(const _Myty& other)
-		: Value{ other }
-		, m_value{ other.m_value }
-	{
-	}
+	ValueObject(const _Myty& other) = default;
+	ValueObject(_Myty&& other) = default;
 };
+
+#if 0
 
 template<>
 class ValueObject<void> : public Value
@@ -309,3 +204,5 @@ public:
 	{
 	}
 };
+
+#endif

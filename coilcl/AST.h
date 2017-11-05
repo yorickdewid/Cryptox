@@ -401,7 +401,7 @@ public:
 //
 // Literal nodes
 //
-
+#include <sstream>
 template<typename _NativTy, class _DrivTy>
 class Literal : public ASTNode
 {
@@ -423,7 +423,13 @@ public:
 
 	const std::string NodeName() const
 	{
-		return std::string{ RemoveClassFromName(typeid(_DrivTy).name()) } +" <line:" + std::to_string(line) + ",col:" + std::to_string(col) + "> " + m_valueObj->ToString();
+		std::stringstream ss;
+		ss << RemoveClassFromName(typeid(_DrivTy).name());
+		ss << " <line:" << line << ",col:" << col << "> ";
+		ss << "'" << m_valueObj->DataType()->TypeName() << "' ";
+		ss << *m_valueObj;
+
+		return ss.str();
 	}
 };
 
@@ -489,7 +495,7 @@ public:
 	template<typename _TySpec>
 	Decl(const std::string& name, _TySpec specifier)
 		: m_identifier{ name }
-		, m_returnType{ specifier}
+		, m_returnType{ specifier }
 	{
 	}
 

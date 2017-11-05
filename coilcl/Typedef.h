@@ -32,6 +32,7 @@ public:
 	};
 
 public:
+	// Abstract methods
 	virtual const std::string TypeName() const = 0;
 	virtual const std::string ValueToString() const = 0;
 
@@ -39,29 +40,8 @@ public:
 	inline void StorageClass(StorageClassSpecifier storageClass) { m_storageClass = storageClass; }
 	inline void Qualifier(TypeQualifier qypeQualifier) { m_typeQualifier.push_back(qypeQualifier); }
 
-	const std::string StorageClassName() const
-	{
-		switch (m_storageClass) {
-		case StorageClassSpecifier::AUTO:		return "auto";
-		case StorageClassSpecifier::STATIC:		return "static";
-		case StorageClassSpecifier::EXTERN:		return "extern";
-		case StorageClassSpecifier::REGISTER:	return "register";
-		default:								return "";
-		}
-	}
-
-	const std::string QualifierName() const
-	{
-		std::string result;
-		for (const auto& qualifier : m_typeQualifier) {
-			switch (qualifier) {
-			case TypeQualifier::CONST:		result += "const "; break;
-			case TypeQualifier::VOLATILE:	result += "volatile "; break;
-			}
-		}
-
-		return result;
-	}
+	const std::string StorageClassName() const;
+	const std::string QualifierName() const;
 
 protected:
 	StorageClassSpecifier m_storageClass;
@@ -93,24 +73,9 @@ public:
 		return "";
 	}
 
-	const std::string TypeName() const
-	{
-		auto qualifier = TypedefBase::QualifierName();
+	const std::string TypeName() const;
 
-		switch (m_specifier) {
-		case Specifier::VOID:	qualifier += "void"; break;
-		case Specifier::CHAR:	qualifier += "char"; break;
-		case Specifier::SHORT:	qualifier += "short"; break;
-		case Specifier::INT:	qualifier += "int"; break;
-		case Specifier::LONG:	qualifier += "long"; break;
-		case Specifier::FLOAT:	qualifier += "float"; break;
-		case Specifier::DOUBLE:	qualifier += "double"; break;
-		case Specifier::BOOL:	qualifier += "bool"; break;
-		default:				qualifier += "<unknown>"; break;
-		}
-
-		return qualifier;
-	}
+	auto TypeSpecifier() const { return m_specifier; }
 
 private:
 	Specifier m_specifier;
@@ -121,10 +86,8 @@ class RecordType : public TypedefBase
 	std::unique_ptr<TypedefBase> m_upCast;
 
 public:
-	const std::string TypeName() const
-	{
-		return "struct xxx:struct xxx";
-	}
+	const std::string TypeName() const { return "struct xxx:struct xxx"; }
+	const std::string ValueToString() const { return ""; }
 };
 
 class TypedefType : public TypedefBase
@@ -132,10 +95,8 @@ class TypedefType : public TypedefBase
 	std::unique_ptr<TypedefBase> m_upCast;
 
 public:
-	const std::string TypeName() const
-	{
-		return "woeit_t:int";
-	}
+	const std::string TypeName() const { return "woeit_t:int"; }
+	const std::string ValueToString() const { return ""; }
 };
 
 } // namespace Typedef

@@ -41,6 +41,9 @@
     <ClCompile Include="Semer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Typedef.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="VM.h">

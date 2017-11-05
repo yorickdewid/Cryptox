@@ -148,6 +148,7 @@
     <ClCompile Include="OpCodes.h" />
     <ClCompile Include="Parser.cpp" />
     <ClCompile Include="Semer.cpp" />
+    <ClCompile Include="Typedef.cpp" />
     <ClCompile Include="ValueObject.cpp" />
     <ClCompile Include="VM.cpp" />
   </ItemGroup>

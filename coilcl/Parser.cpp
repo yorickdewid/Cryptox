@@ -712,6 +712,8 @@ bool Parser::AssignmentOperator()
 
 void Parser::PrimaryExpression()
 {
+	using Typedef::BuiltinType;
+
 	switch (CURRENT_TOKEN()) {
 	case TK_IDENTIFIER:
 		EMIT_IDENTIFIER();
@@ -720,20 +722,20 @@ void Parser::PrimaryExpression()
 		break;
 
 	case TK_CONSTANT:
-		switch (CURRENT_DATA()->DataType()) {
-		case Value::TypeSpecifier::T_INT:
+		switch (CURRENT_DATA()->DataType<BuiltinType>()->TypeSpecifier()) {
+		case BuiltinType::Specifier::INT:
 		{
 			auto object = std::dynamic_pointer_cast<ValueObject<int>>(CURRENT_DATA());
 			m_elementDescentPipe.push(std::make_shared<IntegerLiteral>(std::move(object)));
 			break;
 		}
-		case Value::TypeSpecifier::T_DOUBLE:
+		case BuiltinType::Specifier::DOUBLE:
 		{
 			auto object = std::dynamic_pointer_cast<ValueObject<double>>(CURRENT_DATA());
 			m_elementDescentPipe.push(std::make_shared<FloatingLiteral>(std::move(object)));
 			break;
 		}
-		case Value::TypeSpecifier::T_CHAR:
+		case BuiltinType::Specifier::CHAR:
 		{
 			if (CURRENT_DATA()->IsArray()) {
 				auto object = std::dynamic_pointer_cast<ValueObject<std::string>>(CURRENT_DATA());

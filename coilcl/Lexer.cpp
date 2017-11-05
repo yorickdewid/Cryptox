@@ -58,9 +58,6 @@ void Lexer::InitKeywords()
 	m_keywords.insert(std::make_pair("void", Keyword(TK_VOID)));
 	m_keywords.insert(std::make_pair("volatile", Keyword(TK_VOLATILE)));
 	m_keywords.insert(std::make_pair("while", Keyword(TK_WHILE)));
-
-	//m_keywords.insert(std::make_pair("__LINE__", Keyword(TK___LINE__)));
-	//m_keywords.insert(std::make_pair("__FILE__", Keyword(TK___FILE__)));
 }
 
 // Retrieve Next character from content and store it 
@@ -117,10 +114,6 @@ int Lexer::Lex()
 			// Move onto the next line and keep track of where we are in the source
 			VNext();
 			continue;
-
-			/*case '#'):
-				LexLineComment();
-				continue;*/
 
 		case '/':
 			Next();
@@ -361,7 +354,6 @@ int Lexer::Lex()
 			else {
 				Error("stray '" + std::string{ m_currentChar } +"' in program");
 			}
-
 		}
 	}
 
@@ -424,13 +416,13 @@ int Lexer::ReadString(int ndelim)
 			Error("constant too long");
 		}
 
-		char _cvalue = _longstr[0];
-		m_data = std::make_unique<ValueObject<decltype(_cvalue)>>(Value::TypeSpecifier::T_CHAR, _cvalue);
+		auto _cvalue = _longstr[0];
+		m_data = std::make_unique<ValueObject<decltype(_cvalue)>>(CoilCl::Typedef::BuiltinType{ CoilCl::Typedef::BuiltinType::Specifier::CHAR }, _cvalue);
 		return Token::TK_CONSTANT;
 	}
 
 	auto _svalue = _longstr;
-	m_data = std::make_unique<ValueObject<decltype(_svalue)>>(Value::TypeSpecifier::T_CHAR, _svalue);
+	m_data = std::make_unique<ValueObject<decltype(_svalue)>>(CoilCl::Typedef::BuiltinType{ CoilCl::Typedef::BuiltinType::Specifier::CHAR }, _svalue);
 	return Token::TK_CONSTANT;
 }
 
@@ -449,9 +441,9 @@ int Lexer::ReadID()
 		return static_cast<int>(result->second.m_token);
 	}
 
-	// Commit string as string literal type
+	// Save string as identifier
 	auto _svalue = _longstr;
-	m_data = std::make_unique<ValueObject<decltype(_svalue)>>(Value::TypeSpecifier::T_CHAR, _svalue);
+	m_data = std::make_unique<ValueObject<decltype(_svalue)>>(CoilCl::Typedef::BuiltinType{ CoilCl::Typedef::BuiltinType::Specifier::CHAR }, _svalue);
 	return Token::TK_IDENTIFIER;
 }
 
@@ -534,18 +526,18 @@ int Lexer::LexScalar()
 	case DOUBLE:
 	{
 		auto _fvalue = boost::lexical_cast<double>(_longstr);
-		m_data = std::make_unique<ValueObject<decltype(_fvalue)>>(Value::TypeSpecifier::T_DOUBLE, _fvalue);
+		m_data = std::make_unique<ValueObject<decltype(_fvalue)>>(CoilCl::Typedef::BuiltinType{ CoilCl::Typedef::BuiltinType::Specifier::DOUBLE }, _fvalue);
 		return TK_CONSTANT;
 	}
 	case INT:
 	case HEX:
 	{
 		auto _nvalue = boost::lexical_cast<int>(_longstr);
-		m_data = std::make_unique<ValueObject<decltype(_nvalue)>>(Value::TypeSpecifier::T_INT, _nvalue);
+		m_data = std::make_unique<ValueObject<decltype(_nvalue)>>(CoilCl::Typedef::BuiltinType{ CoilCl::Typedef::BuiltinType::Specifier::INT }, _nvalue);
 		return TK_CONSTANT;
 	}
 	case OCTAL:
-		//TODO
+		//TODO: convert to integer
 		/*LexOctal(&_longstr[0], (unsigned int *)&_nvalue);
 		return TK_CONSTANT;*/
 		break;
