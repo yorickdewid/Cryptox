@@ -530,9 +530,14 @@ int Lexer::LexScalar()
 		return TK_CONSTANT;
 	}
 	case INT:
-	case HEX:
 	{
 		auto _nvalue = boost::lexical_cast<int>(_longstr);
+		m_data = std::make_unique<CoilCl::Valuedef::ValueObject<decltype(_nvalue)>>(CoilCl::Typedef::BuiltinType{ CoilCl::Typedef::BuiltinType::Specifier::INT }, _nvalue);
+		return TK_CONSTANT;
+	}
+	case HEX:
+	{
+		int _nvalue = std::stoul(_longstr, nullptr, 16);
 		m_data = std::make_unique<CoilCl::Valuedef::ValueObject<decltype(_nvalue)>>(CoilCl::Typedef::BuiltinType{ CoilCl::Typedef::BuiltinType::Specifier::INT }, _nvalue);
 		return TK_CONSTANT;
 	}
