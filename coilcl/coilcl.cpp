@@ -16,7 +16,6 @@
 #include <functional>
 
 //TODO: function parameters
-//TODO: types
 //TODO: Single namespace
 //TODO: Full C99 parser ruleset
 //TODO: Preprocessing
@@ -157,6 +156,7 @@ public:
 			/*CoilCl::Emitter{ profile }
 				.Syntax<decltype(oast)>(oast)
 				.Sequence(CoilCl::Emiter::CASM)
+				.Sequence(CoilCl::Emiter::RPTS)
 				.StreamSink<CoilCl::Stream::Console>();
 			*/
 		}

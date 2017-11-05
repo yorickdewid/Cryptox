@@ -1,14 +1,23 @@
 // Copyright (c) 2017 Quenza Inc. All rights reserved.
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file. See the AUTHORS file for names of contributors.
+//
+// This file is part of the Cryptox project.
+//
+// Use of this source code is governed by a private license
+// that can be found in the LICENSE file. Content can not be 
+// copied and/or distributed without the express of the author.
 
-#ifndef _OPCODES_H_
-#define _OPCODES_H_
+#pragma once
 
 #define MAX_FUNC_STACKSIZE 0xFF
 #define MAX_LITERALS ((LVInteger)0x7FFFFFFF)
 
-enum BitWiseOP {
+namespace CoilCl
+{
+namespace VM
+{
+
+enum BitWiseOP
+{
 	BW_AND = 0,			// &&
 	BW_OR = 2,			// ||
 	BW_XOR = 3,			// &
@@ -16,14 +25,16 @@ enum BitWiseOP {
 	BW_SHIFTR = 5,		// >>
 };
 
-enum CmpOP {
+enum CmpOP
+{
 	CMP_G = 0,			// Greather than
 	CMP_GE = 2,			// Greather than or equal to
 	CMP_L = 3,			// Less than
 	CMP_LE = 4,			// less than or equal to
 };
 
-enum AppendArrayType {
+enum AppendArrayType
+{
 	AAT_STACK = 0,
 	AAT_LITERAL = 1,
 	AAT_INT = 2,
@@ -31,7 +42,8 @@ enum AppendArrayType {
 	AAT_BOOL = 4
 };
 
-enum Opcode {
+enum Opcode
+{
 	_OP_LINE = 0x00,
 	_OP_LOAD = 0x01,
 	_OP_LOADINT = 0x02,
@@ -96,13 +108,16 @@ enum Opcode {
 	_OP_CLOSE = 0x3C
 };
 
-struct InstructionDesc {
+struct InstructionDesc
+{
 	const char *name;
 };
 
-struct Instruction {
+struct Instruction
+{
 	Instruction() = default;
-	Instruction(Opcode _op, int a0 = 0, int a1 = 0, int a2 = 0, int a3 = 0) {
+	Instruction(Opcode _op, int a0 = 0, int a1 = 0, int a2 = 0, int a3 = 0)
+	{
 		op = (unsigned char)_op;
 		_arg0 = (unsigned char)a0;
 		_arg1 = (__int32)a1;
@@ -117,4 +132,6 @@ struct Instruction {
 	unsigned char _arg3;
 };
 
-#endif // _OPCODES_H_
+} //namespace CoilCl
+} //namespace VM
+
