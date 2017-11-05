@@ -417,12 +417,12 @@ int Lexer::ReadString(int ndelim)
 		}
 
 		auto _cvalue = _longstr[0];
-		m_data = std::make_unique<ValueObject<decltype(_cvalue)>>(CoilCl::Typedef::BuiltinType{ CoilCl::Typedef::BuiltinType::Specifier::CHAR }, _cvalue);
+		m_data = std::make_unique<CoilCl::Valuedef::ValueObject<decltype(_cvalue)>>(CoilCl::Typedef::BuiltinType{ CoilCl::Typedef::BuiltinType::Specifier::CHAR }, _cvalue);
 		return Token::TK_CONSTANT;
 	}
 
 	auto _svalue = _longstr;
-	m_data = std::make_unique<ValueObject<decltype(_svalue)>>(CoilCl::Typedef::BuiltinType{ CoilCl::Typedef::BuiltinType::Specifier::CHAR }, _svalue);
+	m_data = std::make_unique<CoilCl::Valuedef::ValueObject<decltype(_svalue)>>(CoilCl::Typedef::BuiltinType{ CoilCl::Typedef::BuiltinType::Specifier::CHAR }, _svalue);
 	return Token::TK_CONSTANT;
 }
 
@@ -443,7 +443,7 @@ int Lexer::ReadID()
 
 	// Save string as identifier
 	auto _svalue = _longstr;
-	m_data = std::make_unique<ValueObject<decltype(_svalue)>>(CoilCl::Typedef::BuiltinType{ CoilCl::Typedef::BuiltinType::Specifier::CHAR }, _svalue);
+	m_data = std::make_unique<CoilCl::Valuedef::ValueObject<decltype(_svalue)>>(CoilCl::Typedef::BuiltinType{ CoilCl::Typedef::BuiltinType::Specifier::CHAR }, _svalue);
 	return Token::TK_IDENTIFIER;
 }
 
@@ -526,14 +526,14 @@ int Lexer::LexScalar()
 	case DOUBLE:
 	{
 		auto _fvalue = boost::lexical_cast<double>(_longstr);
-		m_data = std::make_unique<ValueObject<decltype(_fvalue)>>(CoilCl::Typedef::BuiltinType{ CoilCl::Typedef::BuiltinType::Specifier::DOUBLE }, _fvalue);
+		m_data = std::make_unique<CoilCl::Valuedef::ValueObject<decltype(_fvalue)>>(CoilCl::Typedef::BuiltinType{ CoilCl::Typedef::BuiltinType::Specifier::DOUBLE }, _fvalue);
 		return TK_CONSTANT;
 	}
 	case INT:
 	case HEX:
 	{
 		auto _nvalue = boost::lexical_cast<int>(_longstr);
-		m_data = std::make_unique<ValueObject<decltype(_nvalue)>>(CoilCl::Typedef::BuiltinType{ CoilCl::Typedef::BuiltinType::Specifier::INT }, _nvalue);
+		m_data = std::make_unique<CoilCl::Valuedef::ValueObject<decltype(_nvalue)>>(CoilCl::Typedef::BuiltinType{ CoilCl::Typedef::BuiltinType::Specifier::INT }, _nvalue);
 		return TK_CONSTANT;
 	}
 	case OCTAL:

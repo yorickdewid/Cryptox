@@ -164,7 +164,7 @@
     <ClInclude Include="Profile.h" />
     <ClInclude Include="SourceLocation.h" />
     <ClInclude Include="LockPipe.h" />
-    <ClInclude Include="ValueObject.h" />
+    <ClInclude Include="Valuedef.h" />
     <ClInclude Include="VM.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

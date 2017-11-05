@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Typedef.h"
-#include "ValueObject.h"
+#include "Valuedef.h"
 
 #include <list>
 #include <vector>
@@ -406,17 +406,17 @@ template<typename _NativTy, class _DrivTy>
 class Literal : public ASTNode
 {
 protected:
-	std::shared_ptr<ValueObject<_NativTy>> m_valueObj;
+	std::shared_ptr<CoilCl::Valuedef::ValueObject<_NativTy>> m_valueObj;
 
 public:
 	// Default to void type with no data
 	Literal()
-		: m_valueObj{ new ValueObject<void>{Value::TypeSpecifier::T_VOID} }
+		: m_valueObj{ new CoilCl::Valuedef::ValueObject<void>{Value::TypeSpecifier::T_VOID} }
 	{
 	}
 
 	// Move data object from lexer into literal
-	Literal(std::shared_ptr<ValueObject<_NativTy>>&& object)
+	Literal(std::shared_ptr<CoilCl::Valuedef::ValueObject<_NativTy>>&& object)
 		: m_valueObj{ std::move(object) }
 	{
 	}

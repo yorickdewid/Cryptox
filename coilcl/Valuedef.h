@@ -5,6 +5,11 @@
 #include <boost/scoped_array.hpp>
 #include <boost/variant.hpp>
 
+namespace CoilCl
+{
+namespace Valuedef
+{
+
 class Value
 {
 public:
@@ -20,8 +25,7 @@ protected:
 	array_type m_arrayPtr;
 	size_t m_arraySize = 0;
 
-	// Function inliner
-	bool isInline = false;
+	bool m_isVoid = false;
 
 public:
 	//TODO: Copy arrayPtr somehow
@@ -32,9 +36,14 @@ public:
 	{
 	}
 
-	Value(std::shared_ptr<CoilCl::Typedef::TypedefBase> typeBase, variant_type value)
+	Value(std::shared_ptr<Typedef::TypedefBase> typeBase, variant_type value)
 		: m_objectType{ typeBase }
 		, m_value{ value }
+	{
+	}
+
+	Value(std::shared_ptr<Typedef::TypedefBase> typeBase)
+		: m_objectType{ typeBase }
 	{
 	}
 
@@ -42,7 +51,7 @@ public:
 	virtual ~Value() = default;
 
 	// Type specifier inputs
-	inline void SetInline() { isInline = true; }
+	inline void SetInline() { m_isInline = true; }
 
 	// Return the type specifier
 	auto DataType() const { return m_objectType; }
@@ -65,9 +74,9 @@ public:
 	}
 
 private:
+	bool m_isInline = false;
 	bool m_isUnsigned = false;
-	bool m_isVoid = false;
-	std::shared_ptr<CoilCl::Typedef::TypedefBase> m_objectType;
+	std::shared_ptr<Typedef::TypedefBase> m_objectType;
 };
 
 template<typename _Ty>
@@ -76,13 +85,13 @@ class ValueObject : public Value
 	using _Myty = ValueObject<_Ty>;
 
 public:
-	ValueObject(CoilCl::Typedef::BuiltinType&& type, _Ty value)
-		: Value{ std::make_shared<CoilCl::Typedef::BuiltinType>(type), value }
+	ValueObject(Typedef::BuiltinType&& type, _Ty value)
+		: Value{ std::make_shared<Typedef::BuiltinType>(type), value }
 	{
 	}
 
-	/*ValueObject(CoilCl::Typedef::RecordType&& type, _Ty value)
-		: Value{ std::make_shared<CoilCl::Typedef::RecordType>(type), value }
+	/*ValueObject(Typedef::RecordType&& type, _Ty value)
+		: Value{ std::make_shared<Typedef::RecordType>(type), value }
 	{
 	}*/
 
@@ -90,95 +99,31 @@ public:
 	ValueObject(_Myty&& other) = default;
 };
 
-#if 0
-
 template<>
 class ValueObject<void> : public Value
 {
-	StoreValue m_value;
-
-	StoreValue ReturnValue() const override
-	{
-		return m_value;
-	}
+	using Specifier = Typedef::BuiltinType::Specifier;
+	using _Myty = ValueObject<void>;
 
 public:
-	ValueObject(TypeSpecifier type)
-		: Value{ type }
+	ValueObject()
+		: Value{ Util::MakeBuiltinType(Specifier::VOID) }
 	{
+		m_isVoid = true;
 	}
 
-	ValueObject(const ValueObject& other) = default;
+	ValueObject(const _Myty& other) = default;
+	ValueObject(_Myty&& other) = default;
 };
 
-template<>
-class ValueObject<float> : public Value
-{
-	StoreValue m_value;
+} // namespace Typedef
+} // namespace CoilCl
 
-	StoreValue ReturnValue() const override
-	{
-		return m_value;
-	}
-
-public:
-	ValueObject(TypeSpecifier type, float v)
-		: Value{ type }
-	{
-		m_value.f = v;
-	}
-
-	ValueObject(TypeSpecifier type)
-		: Value{ type }
-	{
-	}
-
-	ValueObject(const ValueObject& other)
-		: Value(other)
-		, m_value{ other.m_value }
-	{
-	}
-};
-
-template<>
-class ValueObject<double> : public Value
-{
-	StoreValue m_value;
-
-	StoreValue ReturnValue() const override
-	{
-		return m_value;
-	}
-
-public:
-	ValueObject(TypeSpecifier type, double v)
-		: Value{ type }
-	{
-		m_value.d = v;
-	}
-
-	ValueObject(TypeSpecifier type)
-		: Value{ type }
-	{
-	}
-
-	ValueObject(const ValueObject& other)
-		: Value(other)
-		, m_value{ other.m_value }
-	{
-	}
-};
+#if 0
 
 template<>
 class ValueObject<std::string> : public Value
 {
-	StoreValue m_value;
-
-	StoreValue ReturnValue() const override
-	{
-		return m_value;
-	}
-
 public:
 	ValueObject(TypeSpecifier type, std::string str)
 		: Value{ type }

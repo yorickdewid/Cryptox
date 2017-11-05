@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Profile.h"
-#include "ValueObject.h"
+#include "Valuedef.h"
 
 #include <string>
 #include <memory>
@@ -157,7 +157,7 @@ public:
 		return m_isEof;
 	}
 
-	std::unique_ptr<Value>& Data()
+	std::unique_ptr<CoilCl::Valuedef::Value>& Data()
 	{
 		return m_data;
 	}
@@ -207,7 +207,7 @@ protected:
 private:
 	std::unordered_map<std::string, Keyword> m_keywords;
 	std::function<void(const std::string& msg, char token, int line, int column)> m_errHandler;
-	std::unique_ptr<Value> m_data = nullptr;
+	std::unique_ptr<CoilCl::Valuedef::Value> m_data = nullptr;
 	char m_currentChar;
 	bool m_isEof = false;
 	int m_currentColumn = 0;

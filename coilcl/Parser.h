@@ -8,6 +8,8 @@
 #include <deque>
 #include <stack>
 
+using namespace CoilCl::Valuedef;
+
 template<typename _Ty>
 struct is_stack : public std::false_type {};
 
