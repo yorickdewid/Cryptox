@@ -2,19 +2,24 @@
 
 #include <ostream>
 
-namespace Coil
+namespace CoilCl
 {
 
 struct Stage
 {
-	enum StageName
+	/*enum StageName
 	{
 		SyntacticAnalysis,
 		SemanticAnalysis,
 		Emitter,
-	};
+	};*/
 
-	static const char *Print(StageName name)
+	void MoveStage()
+	{
+
+	}
+
+	/*static const char *Print(StageName name)
 	{
 		switch (name) {
 		case SyntacticAnalysis:
@@ -26,12 +31,7 @@ struct Stage
 		}
 
 		return "<unknown>";
-	}
-
-	/*friend std::ostream& operator<<(std::ostream& os, const Stage& other)
-	{
-		//TODO
 	}*/
 };
 
-} // namespace Coil
+} // namespace CoilCl

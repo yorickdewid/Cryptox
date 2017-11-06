@@ -1,11 +1,12 @@
 #pragma once
 
 #include "Profile.h"
+#include "Stage.h"
 
 namespace CoilCl
 {
 
-class Semer
+class Semer : public Stage
 {
 public:
 	Semer(std::shared_ptr<Compiler::Profile>& profile);

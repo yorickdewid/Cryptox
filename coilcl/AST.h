@@ -14,6 +14,7 @@
 #include <list>
 #include <vector>
 #include <memory>
+#include <sstream>
 
 #define PRINT_NODE(n) \
 	virtual const std::string NodeName() const { \
@@ -409,7 +410,7 @@ public:
 //
 // Literal nodes
 //
-#include <sstream>
+
 template<typename _NativTy, class _DrivTy>
 class Literal : public ASTNode
 {
@@ -435,7 +436,7 @@ public:
 		ss << RemoveClassFromName(typeid(_DrivTy).name());
 		ss << " <line:" << line << ",col:" << col << "> ";
 		ss << "'" << m_valueObj->DataType()->TypeName() << "' ";
-		ss << *m_valueObj;
+		ss << (*m_valueObj);
 
 		return ss.str();
 	}

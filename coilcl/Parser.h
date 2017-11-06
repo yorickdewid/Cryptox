@@ -3,6 +3,7 @@
 #include "Profile.h"
 #include "Lexer.h"
 #include "AST.h"
+#include "Stage.h"
 #include "LockPipe.h"
 
 #include <deque>
@@ -208,17 +209,14 @@ public:
 	}
 };
 
-class Parser
+class Parser : public CoilCl::Stage
 {
 public:
 	Parser(std::shared_ptr<Compiler::Profile>& profile);
 	Parser& Execute();
 	Parser& CheckCompatibility();
 
-	std::shared_ptr<TranslationUnitDecl> DumpAST() const
-	{
-		return m_ast;
-	}
+	std::shared_ptr<TranslationUnitDecl> DumpAST() const { return m_ast; }
 
 protected:
 	void Error(const char *err, Token token);
@@ -306,7 +304,6 @@ private:
 	std::shared_ptr<TranslationUnitDecl> m_ast;
 	StateContainer<TokenState> m_comm;
 	std::shared_ptr<Compiler::Profile> m_profile;
-	//std::vector<>
 
 	std::stack<std::shared_ptr<Typedef::TypedefBase>> m_typeStack;
 	std::stack<std::string> m_identifierStack;
