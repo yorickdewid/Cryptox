@@ -3,7 +3,10 @@
 #include "Typedef.h"
 
 #include <boost/scoped_array.hpp>
-#include <boost/variant.hpp>
+#include <boost/any.hpp>
+#include <boost/lexical_cast.hpp>
+
+#include <string>
 
 namespace CoilCl
 {
@@ -13,7 +16,7 @@ namespace Valuedef
 class Value
 {
 public:
-	using variant_type = boost::variant<int, float, double, char, std::string>;
+	using variant_type = boost::any;
 	using array_type = boost::scoped_array<variant_type>;
 
 protected:
@@ -64,15 +67,10 @@ public:
 	inline auto Size() const { return m_arraySize; }
 
 	template<typename _Ty>
-	_Ty As() const { return boost::get<_Ty>(m_value); }
+	_Ty As() const { return boost::any_cast<_Ty>(m_value); }
 
-	// Stream variant output
-	friend std::ostream& operator<<(std::ostream& os, const Value& value)
-	{
-		os << value.m_value;
-		return os;
-	}
-
+	virtual const std::string Print() const = 0;
+	
 private:
 	bool m_isInline = false;
 	bool m_isUnsigned = false;
@@ -90,10 +88,16 @@ public:
 	{
 	}
 
-	/*ValueObject(Typedef::RecordType&& type, _Ty value)
-		: Value{ std::make_shared<Typedef::RecordType>(type), value }
+	virtual const std::string Print() const override
 	{
-	}*/
+		return boost::lexical_cast<std::string>(boost::any_cast<_Ty>(m_value));
+	}
+
+	friend std::ostream& operator<<(std::ostream& os, const _Myty& value)
+	{
+		os << boost::any_cast<_Ty>(value.m_value);
+		return os;
+	}
 
 	ValueObject(const _Myty& other) = default;
 	ValueObject(_Myty&& other) = default;
@@ -110,6 +114,17 @@ public:
 		: Value{ Util::MakeBuiltinType(Specifier::VOID) }
 	{
 		m_isVoid = true;
+	}
+
+	virtual const std::string Print() const override
+	{
+		return "<void>";
+	}
+
+	friend std::ostream& operator<<(std::ostream& os, const _Myty& value)
+	{
+		os << value.Print();
+		return os;
 	}
 
 	ValueObject(const _Myty& other) = default;
