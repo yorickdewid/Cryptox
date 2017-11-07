@@ -118,7 +118,7 @@ public:
 
 	virtual const std::string Print() const override
 	{
-		return "<void>";
+		return typeid(void).name();
 	}
 
 	friend std::ostream& operator<<(std::ostream& os, const _Myty& value)

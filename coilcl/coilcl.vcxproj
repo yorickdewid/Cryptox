@@ -147,6 +147,7 @@
     <ClCompile Include="Lexer.cpp" />
     <ClCompile Include="OpCodes.h" />
     <ClCompile Include="Parser.cpp" />
+    <ClCompile Include="Preprocessor.cpp" />
     <ClCompile Include="Semer.cpp" />
     <ClCompile Include="Typedef.cpp" />
     <ClCompile Include="Valuedef.cpp" />
@@ -154,6 +155,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AST.h" />
+    <ClInclude Include="Preprocessor.h" />
     <ClInclude Include="Typedef.h" />
     <ClInclude Include="coilcl.h" />
     <ClInclude Include="Semer.h" />

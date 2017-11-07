@@ -1458,6 +1458,7 @@ bool Parser::IterationStatement()
 		return true;
 	}
 	case TK_FOR:
+	{
 		NextToken();
 		ExpectToken(TK_PARENTHESE_OPEN);
 
@@ -1509,6 +1510,7 @@ bool Parser::IterationStatement()
 
 		m_elementDescentPipe.push(forstmt);
 		return true;
+	}
 	}
 
 	return false;
