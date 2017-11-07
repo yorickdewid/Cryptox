@@ -31,7 +31,7 @@ public:
 	}
 	
 	Preprocessor& Transform();
-	void ImportSource();
+	void ImportSource(std::string source);
 	void Definition();
 	void ConditionalStatement();
 	void ProcessStatement(const std::string& str);
@@ -40,7 +40,7 @@ public:
 private:
 	int m_bitset;
 	std::string pipe;
-	std::unordered_map<std::string, std::function<void(void)>> m_keywords;
+	std::unordered_map<std::string, std::function<void(std::string)>> m_keywords;
 	std::shared_ptr<Compiler::Profile> m_profile;
 };
 

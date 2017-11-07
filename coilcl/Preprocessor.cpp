@@ -2,6 +2,8 @@
 
 #include <iostream>
 
+#include <boost/algorithm/string.hpp>
+
 #define PREPROC_TOKEN '#'
 
 #define BITSET(b) (m_bitset & b)
@@ -11,27 +13,34 @@ using namespace CoilCl;
 Preprocessor::Preprocessor(std::shared_ptr<Compiler::Profile>& profile)
 	: m_profile{ profile }
 {
-	m_keywords["include"] = std::bind(&Preprocessor::ImportSource, this);
+	m_keywords["include"] = [=](std::string expr)
+	{
+		if (BITSET(PARSE_INCLUDE)) {
+			this->ImportSource(expr);
+		}
+	};
+
 	m_keywords["define"] = std::bind(&Preprocessor::Definition, this);
 	m_keywords["undef"] = std::bind(&Preprocessor::Definition, this);
+
 	m_keywords["if"] = std::bind(&Preprocessor::ConditionalStatement, this);
 	m_keywords["ifdef"] = std::bind(&Preprocessor::ConditionalStatement, this);
 	m_keywords["ifndef"] = std::bind(&Preprocessor::ConditionalStatement, this);
 	m_keywords["else"] = std::bind(&Preprocessor::ConditionalStatement, this);
 	m_keywords["elif"] = std::bind(&Preprocessor::ConditionalStatement, this);
 	m_keywords["endif"] = std::bind(&Preprocessor::ConditionalStatement, this);
-	m_keywords["pragma"] = [=] {};
+	/*m_keywords["pragma"] = [=] {};
+
 	m_keywords["error"] = [=] {};
-	m_keywords["line"] = [=] {};
+	m_keywords["line"] = [=] {};*/
 }
 
-void Preprocessor::ImportSource()
+void Preprocessor::ImportSource(std::string source)
 {
-	if (!BITSET(PARSE_INCLUDE)) {
-		return;
-	}
-
-	///
+	source.erase(0, 1);
+	source.erase(source.size() - 1);
+	
+	std::cout << "importing '" << source << "'" << std::endl;
 }
 
 void Preprocessor::Definition()
@@ -52,7 +61,8 @@ void Preprocessor::ProcessStatement(const std::string& str)
 {
 	size_t endkw = str.find_first_of(' ');
 	if (m_keywords[str.substr(0, endkw)] != nullptr) {
-		m_keywords[str.substr(0, endkw)]();
+		auto value = boost::algorithm::trim_copy(str.substr(endkw + 1));
+		m_keywords[str.substr(0, endkw)](value);
 	}
 }
 

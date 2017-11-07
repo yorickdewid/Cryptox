@@ -8,6 +8,7 @@
 
 #include "coilcl.h"
 #include "Profile.h"
+#include "Preprocessor.h"
 #include "Parser.h"
 #include "Semer.h"
 
@@ -114,12 +115,17 @@ public:
 		auto profile = std::dynamic_pointer_cast<Profile>(compiler);
 
 		try {
-			/*auto transunit = CoilCl::Preprocessor{ profile }
-				.MoveStage()
-				.InlineIncludes()
-				.StemMacros()
-				.DumpTranslationUnit<CoilCl::Reader::MemoryReader>();
-			*/
+			// auto transunit = 
+			CoilCl::Preprocessor{ profile }
+				// .MoveStage()
+				.Options(CoilCl::Preprocessor::Option::PARSE_DEFINE
+						 | CoilCl::Preprocessor::Option::PARSE_INCLUDE
+						 | CoilCl::Preprocessor::Option::PARSE_MACRO
+						 | CoilCl::Preprocessor::Option::PARSE_PRAGMA)
+				.Transform();
+				// .DumpTranslationUnit<CoilCl::Reader::MemoryReader>();
+
+			return;////////
 
 			// Syntax analysis
 			auto iast = Parser{ profile }
