@@ -34,7 +34,6 @@ public:
 public:
 	// Abstract methods
 	virtual const std::string TypeName() const = 0;
-	virtual const std::string ValueToString() const = 0;
 
 	// Type specifier inputs
 	inline void StorageClass(StorageClassSpecifier storageClass) { m_storageClass = storageClass; }
@@ -68,16 +67,17 @@ public:
 	{
 	}
 
-	const std::string ValueToString() const
-	{
-		return "";
-	}
+	// Set MSB signness
+	inline void SetUnsigned() { m_isSigned = false; }
+	inline auto Signed() const { return m_isSigned; }
+	inline auto Unsigned() const { return !Signed(); }
 
 	const std::string TypeName() const;
 
 	auto TypeSpecifier() const { return m_specifier; }
 
 private:
+	bool m_isSigned = true;
 	Specifier m_specifier;
 };
 
@@ -87,7 +87,6 @@ class RecordType : public TypedefBase
 
 public:
 	const std::string TypeName() const { return "struct xxx:struct xxx"; }
-	const std::string ValueToString() const { return ""; }
 };
 
 class TypedefType : public TypedefBase

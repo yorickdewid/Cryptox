@@ -25,18 +25,24 @@ protected:
 	variant_type m_value;
 
 	// If this counter is greater than 0, the external type is an array
-	array_type m_arrayPtr;
-	size_t m_arraySize = 0;
+	struct
+	{
+		array_type m_Ptr;
+		size_t m_Size = 0;
+	} m_array;
 
 	bool m_isVoid = false;
 
 public:
-	//TODO: Copy arrayPtr somehow
+	// Special member funcion, copy constructor
 	Value(const Value& other)
-		: m_isUnsigned{ other.m_isUnsigned }
-		, m_objectType{ other.m_objectType }
-		, m_arraySize{ other.m_arraySize }
+		: m_objectType{ other.m_objectType }
+		, m_value{ other.m_value }
+		, m_isVoid{ other.m_isVoid }
+		, m_isInline{ other.m_isInline }
 	{
+		//m_array.m_Ptr = other.m_array.m_Ptr; // TODO
+		m_array.m_Size = other.m_array.m_Size;
 	}
 
 	Value(std::shared_ptr<Typedef::TypedefBase> typeBase, variant_type value)
@@ -63,21 +69,20 @@ public:
 	auto DataType() const { return std::dynamic_pointer_cast<_CastTy>(m_objectType); }
 
 	// Check if current storage type is array
-	inline auto IsArray() const { return m_arraySize != 0; }
-	inline auto Size() const { return m_arraySize; }
+	inline auto IsArray() const { return m_array.m_Size != 0; }
+	inline auto Size() const { return m_array.m_Size; }
 
 	template<typename _Ty>
 	_Ty As() const { return boost::any_cast<_Ty>(m_value); }
 
 	virtual const std::string Print() const = 0;
-	
+
 private:
 	bool m_isInline = false;
-	bool m_isUnsigned = false;
 	std::shared_ptr<Typedef::TypedefBase> m_objectType;
 };
 
-template<typename _Ty>
+template<typename _Ty, typename _ = void>
 class ValueObject : public Value
 {
 	using _Myty = ValueObject<_Ty>;
@@ -98,13 +103,37 @@ public:
 		os << boost::any_cast<_Ty>(value.m_value);
 		return os;
 	}
+};
 
-	ValueObject(const _Myty& other) = default;
-	ValueObject(_Myty&& other) = default;
+template<typename _Ty>
+class ValueObject<_Ty,
+	typename std::enable_if<std::is_fundamental<_Ty>::value
+	&& !std::is_void<_Ty>::value>::type>
+	: public Value
+{
+	using Specifier = Typedef::BuiltinType::Specifier;
+	using _Myty = ValueObject<_Ty>;
+
+public:
+	ValueObject(Typedef::BuiltinType&& type, _Ty value)
+		: Value{ std::make_shared<Typedef::BuiltinType>(type), value }
+	{
+	}
+
+	virtual const std::string Print() const override
+	{
+		return boost::lexical_cast<std::string>(boost::any_cast<_Ty>(m_value));
+	}
+
+	friend std::ostream& operator<<(std::ostream& os, const _Myty& value)
+	{
+		os << value.Print();
+		return os;
+	}
 };
 
 template<>
-class ValueObject<void> : public Value
+class ValueObject<void, void> : public Value
 {
 	using Specifier = Typedef::BuiltinType::Specifier;
 	using _Myty = ValueObject<void>;
@@ -126,9 +155,6 @@ public:
 		os << value.Print();
 		return os;
 	}
-
-	ValueObject(const _Myty& other) = default;
-	ValueObject(_Myty&& other) = default;
 };
 
 } // namespace Typedef
