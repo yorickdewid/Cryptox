@@ -11,7 +11,8 @@
 using namespace CoilCl;
 
 Preprocessor::Preprocessor(std::shared_ptr<Compiler::Profile>& profile)
-	: m_profile{ profile }
+	: Stage{ this }
+	, m_profile{ profile }
 {
 	m_keywords["include"] = [=](std::string expr)
 	{
@@ -20,8 +21,19 @@ Preprocessor::Preprocessor(std::shared_ptr<Compiler::Profile>& profile)
 		}
 	};
 
-	m_keywords["define"] = std::bind(&Preprocessor::Definition, this);
-	m_keywords["undef"] = std::bind(&Preprocessor::Definition, this);
+	m_keywords["define"] = [=](std::string expr)
+	{
+		if (BITSET(PARSE_DEFINE)) {
+			this->Definition(expr);
+		}
+	};
+	m_keywords["undef"] = [=](std::string expr)
+	{
+		if (BITSET(PARSE_DEFINE)) {
+			this->DefinitionUntag(expr);
+		}
+	};
+	//m_keywords["undef"] = std::bind(&Preprocessor::Definition, this);
 
 	m_keywords["if"] = std::bind(&Preprocessor::ConditionalStatement, this);
 	m_keywords["ifdef"] = std::bind(&Preprocessor::ConditionalStatement, this);
@@ -35,23 +47,31 @@ Preprocessor::Preprocessor(std::shared_ptr<Compiler::Profile>& profile)
 	m_keywords["line"] = [=] {};*/
 }
 
+// External sources
 void Preprocessor::ImportSource(std::string source)
 {
 	source.erase(0, 1);
 	source.erase(source.size() - 1);
-	
+
+	//m_profile->Include(source);
+
 	std::cout << "importing '" << source << "'" << std::endl;
 }
 
-void Preprocessor::Definition()
+// Definition and expansion
+void Preprocessor::Definition(std::string args)
 {
-	if (!BITSET(PARSE_DEFINE)) {
-		return;
-	}
-
-	///
+	std::cout << "replacement '" << args << "'" << std::endl;
 }
 
+// Definition and expansion
+void Preprocessor::DefinitionUntag(std::string args)
+{
+	std::cout << "remove '" << args << "'" << std::endl;
+}
+
+
+// Conditional compilation
 void Preprocessor::ConditionalStatement()
 {
 
@@ -75,6 +95,8 @@ bool Preprocessor::SkipWhitespace(char c)
 		|| c == '\r';
 }
 
+//TODO: Check for __LINE__,__FILE__ last
+//TODO: Allow linebreak
 Preprocessor& Preprocessor::Transform()
 {
 	for (;;) {

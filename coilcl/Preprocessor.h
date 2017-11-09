@@ -9,7 +9,7 @@
 namespace CoilCl
 {
 
-class Preprocessor : public Stage
+class Preprocessor : public Stage<Preprocessor>
 {
 public:
 	enum Option
@@ -22,17 +22,18 @@ public:
 	};
 
 public:
-	Preprocessor(std::shared_ptr<Compiler::Profile>& profile);
+	Preprocessor(std::shared_ptr<Compiler::Profile>&);
 
 	Preprocessor& Options(int optionSet)
 	{
 		m_bitset = optionSet;
 		return (*this);
 	}
-	
+
 	Preprocessor& Transform();
-	void ImportSource(std::string source);
-	void Definition();
+	void ImportSource(std::string);
+	void Definition(std::string);
+	void DefinitionUntag(std::string);
 	void ConditionalStatement();
 	void ProcessStatement(const std::string& str);
 	bool SkipWhitespace(char c);
