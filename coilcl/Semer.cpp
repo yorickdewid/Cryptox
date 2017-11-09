@@ -8,7 +8,8 @@ inline std::shared_ptr<_Decl> make_ref(_Ty&&... _Args)
 }
 
 CoilCl::Semer::Semer(std::shared_ptr<Compiler::Profile>& profile)
-	: m_profile{ profile }
+	: Stage{ this }
+	, m_profile{ profile }
 {
 }
 

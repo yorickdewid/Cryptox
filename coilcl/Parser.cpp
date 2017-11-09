@@ -148,7 +148,8 @@ private:
 };
 
 Parser::Parser(std::shared_ptr<Compiler::Profile>& profile)
-	: m_profile{ profile }
+	: Stage{ this }
+	, m_profile{ profile }
 	, lex{ profile }
 {
 	lex.ErrorHandler([](const std::string& err, char token, int line, int column)
@@ -258,7 +259,7 @@ bool Parser::TypeSpecifier()
 	if (EnumSpecifier()) {
 		return true;
 	}
-	
+
 	// Check for struct or union declarations
 	if (StructOrUnionSpecifier()) {
 		return true;

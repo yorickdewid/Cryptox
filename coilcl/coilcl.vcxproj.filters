@@ -91,5 +91,8 @@
     <ClInclude Include="Preprocessor.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="UnsupportedOperationException.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

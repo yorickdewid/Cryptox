@@ -5,8 +5,10 @@
 namespace CoilCl
 {
 
+template<typename _Ty>
 struct Stage
 {
+
 	/*enum StageName
 	{
 		SyntacticAnalysis,
@@ -14,9 +16,15 @@ struct Stage
 		Emitter,
 	};*/
 
-	void MoveStage()
-	{
 
+	Stage(_Ty* derived)
+		: m_derived{ derived }
+	{
+	}
+
+	_Ty& MoveStage() const
+	{
+		return (*m_derived);
 	}
 
 	/*static const char *Print(StageName name)
@@ -32,6 +40,9 @@ struct Stage
 
 		return "<unknown>";
 	}*/
+
+private:
+	_Ty* m_derived;
 };
 
 } // namespace CoilCl

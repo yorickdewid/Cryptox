@@ -6,7 +6,7 @@
 namespace CoilCl
 {
 
-class Semer : public Stage
+class Semer : public Stage<Semer>
 {
 public:
 	Semer(std::shared_ptr<Compiler::Profile>& profile);

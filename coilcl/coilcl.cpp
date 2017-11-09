@@ -116,20 +116,18 @@ public:
 
 		try {
 			// auto transunit = 
-			CoilCl::Preprocessor{ profile }
-				// .MoveStage()
-				.Options(CoilCl::Preprocessor::Option::PARSE_DEFINE
-						 | CoilCl::Preprocessor::Option::PARSE_INCLUDE
-						 | CoilCl::Preprocessor::Option::PARSE_MACRO
-						 | CoilCl::Preprocessor::Option::PARSE_PRAGMA)
-				.Transform();
+			//CoilCl::Preprocessor{ profile }
+			//	// .MoveStage()
+			//	.Options(CoilCl::Preprocessor::Option::PARSE_DEFINE
+			//			 | CoilCl::Preprocessor::Option::PARSE_INCLUDE
+			//			 | CoilCl::Preprocessor::Option::PARSE_MACRO
+			//			 | CoilCl::Preprocessor::Option::PARSE_PRAGMA)
+			//	.Transform();
 				// .DumpTranslationUnit<CoilCl::Reader::MemoryReader>();
-
-			return;////////
 
 			// Syntax analysis
 			auto iast = Parser{ profile }
-				//.MoveStage()
+				.MoveStage()
 				.CheckCompatibility()
 				.Execute()
 				.DumpAST();
@@ -139,7 +137,7 @@ public:
 
 			// Semantic analysis
 			CoilCl::Semer{ profile }
-				//.MoveStage()
+				.MoveStage()
 				.Syntax(iast)
 				.StaticResolve()
 				.PreliminaryAssert()
