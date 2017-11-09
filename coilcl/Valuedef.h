@@ -16,7 +16,6 @@ class Value
 {
 public:
 	using variant_type = boost::any;
-	using array_type = std::vector<variant_type>;
 
 protected:
 	// The internal datastructure stores the value
@@ -26,7 +25,6 @@ protected:
 	// If this counter is greater than 0, the external type is an array
 	struct
 	{
-		array_type m_Ptr;
 		size_t m_Size = 0;
 		bool _0terminator = false;
 	} m_array;
@@ -41,8 +39,8 @@ public:
 		, m_isVoid{ other.m_isVoid }
 		, m_isInline{ other.m_isInline }
 	{
-		m_array.m_Ptr = other.m_array.m_Ptr;
 		m_array.m_Size = other.m_array.m_Size;
+		m_array._0terminator = other.m_array._0terminator;
 	}
 
 	Value(std::shared_ptr<Typedef::TypedefBase> typeBase, variant_type value)
@@ -72,9 +70,21 @@ public:
 	inline auto IsArray() const { return m_array.m_Size != 0; }
 	inline auto Size() const { return m_array.m_Size; }
 
+	// By default try direct cast from any
 	template<typename _Ty>
 	_Ty As() const { return boost::any_cast<_Ty>(m_value); }
 
+	// If string was required, try cast any to vector and string
+	template<>
+	auto As() const -> std::string
+	{
+		auto vec = boost::any_cast<std::vector<std::string::value_type>>(m_value);
+		return m_array._0terminator ?
+			std::string{ vec.begin(), vec.end() - 1 } :
+			std::string{ vec.begin(), vec.end() };
+	}
+
+	// Print value
 	virtual const std::string Print() const = 0;
 
 private:
@@ -83,22 +93,7 @@ private:
 };
 
 template<typename _Ty, typename _ = void>
-class ValueObject : public Value
-{
-	using _Myty = ValueObject<_Ty>;
-
-public:
-	ValueObject(Typedef::BuiltinType&& type, _Ty value)
-		: Value{ std::make_shared<Typedef::BuiltinType>(type) }
-	{
-		static_assert(false, "unsupported template specialization");
-	}
-
-	virtual const std::string Print() const override
-	{
-		static_assert(false, "unsupported template specialization");
-	}
-};
+class ValueObject;
 
 template<typename _Ty>
 class ValueObject<_Ty,
@@ -117,6 +112,7 @@ public:
 	virtual const std::string Print() const override
 	{
 		return boost::lexical_cast<std::string>(boost::any_cast<_Ty>(m_value));
+		//return Value::As<std::string>();
 	}
 
 	friend std::ostream& operator<<(std::ostream& os, const _Myty& value)
@@ -127,8 +123,8 @@ public:
 };
 
 template<typename _Ty>
-class ValueObject < _Ty,
-	typename std::enable_if < std::is_compound<_Ty>::value
+class ValueObject<_Ty,
+	typename std::enable_if<std::is_compound<_Ty>::value
 	&& !std::is_void<_Ty>::value && !std::is_enum<_Ty>::value
 	&& !std::is_null_pointer<_Ty>::value && !std::is_function<_Ty>::value>::type>
 	: public Value
@@ -136,24 +132,27 @@ class ValueObject < _Ty,
 	using _Myty = ValueObject<_Ty>;
 
 public:
-	// Expect a string type thingy
 	explicit ValueObject(Typedef::BuiltinType&& type, _Ty value)
 		: Value{ std::make_shared<Typedef::BuiltinType>(type) }
 	{
-		m_array.m_Ptr.reserve(value.size() + 1);
+		using container_type = std::remove_reference<decltype(value[0])>::type;
+
+		std::vector<container_type> tmpArray;
+		tmpArray.reserve(value.size() + 1);
 
 		for (size_t i = 0; i < value.size(); ++i) {
-			m_array.m_Ptr.push_back(value[i]);
+			tmpArray.push_back(value[i]);
 		}
 
-		m_array.m_Ptr.push_back('\0');
-		m_array.m_Size = m_array.m_Ptr.size();
+		tmpArray.push_back('\0');
+		m_array.m_Size = tmpArray.size();
+		m_value = std::move(tmpArray);
 		m_array._0terminator = true;
 	}
 
 	virtual const std::string Print() const override
 	{
-		return boost::lexical_cast<std::string>(boost::any_cast<_Ty>(m_value));
+		return Value::As<std::string>();
 	}
 
 	friend std::ostream& operator<<(std::ostream& os, const _Myty& value)

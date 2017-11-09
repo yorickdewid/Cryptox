@@ -3,6 +3,7 @@
 #include <string>
 #include <memory>
 #include <vector>
+#include <list>
 
 namespace CoilCl
 {
@@ -83,7 +84,7 @@ private:
 
 class RecordType : public TypedefBase
 {
-	std::unique_ptr<TypedefBase> m_upCast;
+	std::list<std::string> m_recordList;
 
 public:
 	const std::string TypeName() const { return "struct xxx:struct xxx"; }
@@ -91,7 +92,8 @@ public:
 
 class TypedefType : public TypedefBase
 {
-	std::unique_ptr<TypedefBase> m_upCast;
+	std::list<std::string> m_typedefList;
+	std::unique_ptr<TypedefBase> m_resolveType;
 
 public:
 	const std::string TypeName() const { return "woeit_t:int"; }
