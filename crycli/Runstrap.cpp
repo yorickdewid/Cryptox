@@ -50,7 +50,7 @@ protected:
 // according to the reader interface.
 class StreamReaderAdapter : private NonCopyable
 {
-	static const size_t defaultChunkSize = 100;
+	static const size_t defaultChunkSize = 128;
 
 public:
 	explicit StreamReaderAdapter(std::shared_ptr<Reader>& reader)
@@ -176,10 +176,10 @@ void CCBErrorHandler(void *user_data, const char *message, char fatal)
 void RunSourceFile(Env& env, const std::string& m_sourceFile)
 {
 	auto reader = std::make_shared<FileReader>(m_sourceFile);
-	StreamReaderAdapter{ std::dynamic_pointer_cast<Reader>(reader) }.SetStreamChuckSize(256).Start();
+	StreamReaderAdapter{ std::dynamic_pointer_cast<Reader>(reader) }.Start();
 }
 
-//TODO
+//TODO: Implement
 // Direct API call to run a multiple files
 void RunSourceFile(Env& env, const std::vector<std::string>& sourceFiles)
 {
@@ -191,5 +191,5 @@ void RunSourceFile(Env& env, const std::vector<std::string>& sourceFiles)
 void RunMemoryString(Env& env, const std::string& content)
 {
 	auto reader = std::make_shared<StringReader>(content);
-	StreamReaderAdapter{ std::dynamic_pointer_cast<Reader>(reader) }.Start();
+	StreamReaderAdapter{ std::dynamic_pointer_cast<Reader>(reader) }.SetStreamChuckSize(256).Start();
 }

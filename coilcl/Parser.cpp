@@ -399,7 +399,7 @@ bool Parser::StructOrUnionSpecifier()
 
 				auto decl = m_identifierStack.top();
 				m_identifierStack.pop();
-				auto field = std::make_shared<FieldDecl>(decl);
+				auto field = std::make_shared<FieldDecl>(decl, m_typeStack.top());
 
 				if (MATCH_TOKEN(TK_COLON)) {
 					NextToken();
@@ -407,6 +407,8 @@ bool Parser::StructOrUnionSpecifier()
 					field->SetBitField(std::dynamic_pointer_cast<IntegerLiteral>(m_elementDescentPipe.next()));
 					m_elementDescentPipe.pop();
 				}
+
+				m_typeStack.pop();
 
 				rec->AddField(field);
 

@@ -571,8 +571,8 @@ class FieldDecl : public Decl
 	std::shared_ptr<IntegerLiteral> m_bits;
 
 public:
-	FieldDecl(const std::string& name)
-		: Decl{ name }
+	FieldDecl(const std::string& name, std::shared_ptr<Typedef::TypedefBase> type)
+		: Decl{ name, type }
 	{
 	}
 
@@ -584,7 +584,13 @@ public:
 
 	virtual const std::string NodeName() const
 	{
-		return std::string{ RemoveClassFromName(typeid(FieldDecl).name()) } +" <line:" + std::to_string(line) + ",col:" + std::to_string(col) + "> " + m_identifier;
+		std::string _node{ RemoveClassFromName(typeid(FieldDecl).name()) };
+		_node += " <line:" + std::to_string(line) + ",col:" + std::to_string(col) + "> ";
+		_node += m_identifier;
+		_node += " '" + Decl::m_returnType->TypeName() + "' ";
+		_node += Decl::m_returnType->StorageClassName();
+
+		return _node;
 	}
 };
 
