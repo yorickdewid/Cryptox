@@ -4,22 +4,20 @@
  *
  * This file is part of the Cryptox project.
  *
- * Content can not be copied and/or distributed without the express
- * permission of the author.
  */
 
-const int myprint() {
-	printf("hai\n");
-	return 1 + 2;
-}
+//  #  include    <ma in.cil.h>
 
-int main() {
-	int i = ((1));
-	unsigned int j = (unsigned int) i;
+//    #	define WOEI ((1+2)*67)/3
 
-	if (i == 1) {
-		myprint();
-	}
+//    #undef WOEI
+// #if 3 > 2
+// # error "NEIN"
+// #endif
 
-	return 0;
-}
+// char *u = "lalala";
+
+struct woei {
+	int u;
+	char c;
+};

@@ -1,0 +1,8 @@
+CMAKE_MINIMUM_REQUIRED (VERSION 2.8)
+PROJECT (Cryptox)
+
+# Set VERSION
+SET (Cryptox_VERSION_MAJOR 0)
+SET (Cryptox_VERSION_MINOR 1)
+
+#ADD_EXECUTABLE(Tutorial tutorial.cxx)
