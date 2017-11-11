@@ -36,12 +36,8 @@
 
 # Executables
 *.exe
-*.out
-*.app
 
 # Directories
 /packages
-/Debug
-/Release
 .vs/
 
