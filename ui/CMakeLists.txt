@@ -12,3 +12,13 @@ add_library(${PROJECT_NAME} SHARED
 	${${PROJECT_NAME}_src}
 	${${PROJECT_NAME}_h}
 )
+
+# Define output directories
+set_target_properties(${PROJECT_NAME}
+    PROPERTIES
+	OUTPUT_NAME "cryptox"
+	PROJECT_LABEL "Graphical User Interface"
+    ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
+    LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
+    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
+)
