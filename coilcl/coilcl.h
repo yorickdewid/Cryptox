@@ -14,7 +14,7 @@
 #endif
 
 #ifdef _WIN32
-# if defined(COILCL_EXPORTS)
+# if defined(COILCL_EXPORTS) || defined(CoilCl_EXPORTS)
 #  define COILCLAPI   __declspec(dllexport)
 # else
 #  define COILCLAPI   __declspec(dllimport)
