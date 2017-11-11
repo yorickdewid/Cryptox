@@ -9,8 +9,7 @@ endif()
 
 # Set VERSION
 set(Cryptox_VERSION_MAJOR 0)
-set(Cryptox_VERSION_MINOR 1)
-set(Cryptox_VERSION ${Cryptox_VERSION_MAJOR}.${Cryptox_VERSION_MINOR})
+set(Cryptox_VERSION ${Cryptox_VERSION_MAJOR})
 
 # Use solution folders
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
