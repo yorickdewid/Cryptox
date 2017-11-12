@@ -344,10 +344,10 @@ bool Parser::DeclarationSpecifiers()
 	// Append all stacked storage classes and qualifiers onto the value object
 	auto baseType = m_typeStack.top();
 	if (tmpSCP != TypedefBase::StorageClassSpecifier::NONE) {
-		baseType->StorageClass(tmpSCP);
+		baseType->SetStorageClass(tmpSCP);
 	}
 	for (const auto& tq : tmpTQ) {
-		baseType->Qualifier(tq);
+		baseType->SetQualifier(tq);
 	}
 
 	//TODO: function inliner
@@ -1732,6 +1732,18 @@ void Parser::Declaration()
 
 	if (MATCH_TOKEN(TK_COMMIT)) {
 		NextToken();
+	}
+	else if (m_typeStack.top()->StorageClass() == Typedef::BuiltinType::StorageClassSpecifier::TYPEDEF) {
+		//ExpectIdentifier();
+		if (MATCH_TOKEN(TK_IDENTIFIER)) {
+			auto name = CURRENT_DATA()->As<std::string>();
+			NextToken();
+			ExpectToken(TK_COMMIT);
+			
+			m_elementDescentPipe.push(std::make_shared<TypedefDecl>(name));
+			m_typeStack.pop();
+			return;
+		}
 	}
 	else {
 		auto initState = m_elementDescentPipe.state();

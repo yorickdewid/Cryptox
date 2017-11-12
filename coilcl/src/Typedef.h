@@ -37,11 +37,13 @@ public:
 	virtual const std::string TypeName() const = 0;
 
 	// Type specifier inputs
-	inline void StorageClass(StorageClassSpecifier storageClass) { m_storageClass = storageClass; }
-	inline void Qualifier(TypeQualifier qypeQualifier) { m_typeQualifier.push_back(qypeQualifier); }
+	inline void SetStorageClass(StorageClassSpecifier storageClass) { m_storageClass = storageClass; }
+	inline void SetQualifier(TypeQualifier qypeQualifier) { m_typeQualifier.push_back(qypeQualifier); }
 
 	const std::string StorageClassName() const;
 	const std::string QualifierName() const;
+
+	inline StorageClassSpecifier StorageClass() const { return m_storageClass; }
 
 protected:
 	StorageClassSpecifier m_storageClass;
