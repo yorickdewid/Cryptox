@@ -86,7 +86,7 @@ private:
 
 class RecordType : public TypedefBase
 {
-	std::list<std::string> m_recordList;
+	std::list<std::string> m_recordList; //?
 
 public:
 	const std::string TypeName() const { return "struct xxx:struct xxx"; }
@@ -94,12 +94,20 @@ public:
 
 class TypedefType : public TypedefBase
 {
-	std::list<std::string> m_typedefList;
-	std::unique_ptr<TypedefBase> m_resolveType;
+	std::string m_name;
+	std::shared_ptr<TypedefBase> m_resolveType;
 
 public:
-	const std::string TypeName() const { return "woeit_t:int"; }
-	const std::string ValueToString() const { return ""; }
+	TypedefType(const std::string& name, std::shared_ptr<TypedefBase>& nativeType)
+		: m_name{ name }
+		, m_resolveType{ std::move(nativeType) }
+	{
+	}
+
+	const std::string TypeName() const
+	{
+		return m_name + ":" + m_resolveType->TypeName();
+	}
 };
 
 } // namespace Typedef
@@ -117,9 +125,9 @@ inline auto MakeRecordType()
 	return std::make_shared<Typedef::RecordType>();
 }
 
-inline auto MakeTypedefType()
+inline auto MakeTypedefType(const std::string& name, std::shared_ptr<Typedef::TypedefBase>& type)
 {
-	return std::make_shared<Typedef::TypedefType>();
+	return std::make_shared<Typedef::TypedefType>(name, type);
 }
 
 } // namespace Util

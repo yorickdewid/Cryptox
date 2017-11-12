@@ -361,6 +361,18 @@ bool Parser::DeclarationSpecifiers()
 //TODO
 bool Parser::TypenameSpecifier()
 {
+	if (MATCH_TOKEN(TK_IDENTIFIER)) {
+		auto name = CURRENT_DATA()->As<std::string>();
+
+		auto res = m_typedefList[name];
+		if (res == nullptr) {
+			return false;
+		}
+
+		m_typeStack.push(Util::MakeTypedefType(name, res));
+		return true;
+	}
+
 	return false;
 }
 
@@ -1739,8 +1751,9 @@ void Parser::Declaration()
 			auto name = CURRENT_DATA()->As<std::string>();
 			NextToken();
 			ExpectToken(TK_COMMIT);
-			
-			m_elementDescentPipe.push(std::make_shared<TypedefDecl>(name));
+
+			m_elementDescentPipe.push(std::make_shared<TypedefDecl>(name, m_typeStack.top()));
+			m_typedefList[name] = m_typeStack.top();
 			m_typeStack.pop();
 			return;
 		}

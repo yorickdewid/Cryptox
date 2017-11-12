@@ -508,10 +508,7 @@ public:
 	{
 	}
 
-	auto Identifier() const
-	{
-		return m_identifier;
-	}
+	auto Identifier() const { return m_identifier; }
 
 	PRINT_NODE(Decl);
 };
@@ -556,14 +553,22 @@ public:
 
 class TypedefDecl : public Decl
 {
-
 public:
-	TypedefDecl(const std::string& name)
-		: Decl{ name }
+	TypedefDecl(const std::string& name, std::shared_ptr<Typedef::TypedefBase> type)
+		: Decl{ name, type }
 	{
 	}
 
-	PRINT_NODE(TypedefDecl);
+	virtual const std::string NodeName() const
+	{
+		std::string _node{ RemoveClassFromName(typeid(TypedefDecl).name()) };
+		_node += " <line:" + std::to_string(line) + ",col:" + std::to_string(col) + "> ";
+		_node += m_identifier;
+		_node += " '" + Decl::m_returnType->TypeName() + "' ";
+		_node += Decl::m_returnType->StorageClassName();
+
+		return _node;
+	}
 };
 
 class FieldDecl : public Decl

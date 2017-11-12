@@ -16,6 +16,7 @@
 
 #include <deque>
 #include <stack>
+#include <map>
 
 using namespace CoilCl::Valuedef;
 
@@ -313,6 +314,7 @@ private:
 	StateContainer<TokenState> m_comm;
 	std::shared_ptr<Compiler::Profile> m_profile;
 
+	std::map<std::string, std::shared_ptr<Typedef::TypedefBase>> m_typedefList;
 	std::stack<std::shared_ptr<Typedef::TypedefBase>> m_typeStack;
 	std::stack<std::string> m_identifierStack;
 	LockPipe<std::shared_ptr<ASTNode>> m_elementDescentPipe;
