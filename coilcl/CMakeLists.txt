@@ -10,6 +10,10 @@ set(${PROJECT_NAME}_VERSION ${Cryptox_VERSION_MAJOR}.${${PROJECT_NAME}_VERSION_M
 set(${PROJECT_NAME}_SRC src)
 set(${PROJECT_NAME}_INCLUDE include)
 
+# Options
+option(${Cryptox_ID}_CIL_BUILD_INTERPRETER "Build with interpreter support" ON)
+option(${Cryptox_ID}_CIL_BUILD_VM "Build with VM support" ON)
+
 # Fetch sources
 file(GLOB ${PROJECT_NAME}_src ${${PROJECT_NAME}_SRC}/*.cpp ${${PROJECT_NAME}_SRC}/*.h)
 file(GLOB ${PROJECT_NAME}_h ${${PROJECT_NAME}_INCLUDE}/*.h)
@@ -36,7 +40,7 @@ set_target_properties(${PROJECT_NAME}
 
 # Expose public includes to other
 # subprojects through cache variable
-set(${PROJECT_NAME}_INCLUDE_DIRS ${PROJECT_SOURCE_DIR}
+set(${PROJECT_NAME}_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/${${PROJECT_NAME}_INCLUDE}
     CACHE INTERNAL "${PROJECT_NAME}: Include Directories" FORCE)
 
 install(TARGETS ${PROJECT_NAME}
