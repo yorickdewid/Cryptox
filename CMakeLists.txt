@@ -1,6 +1,12 @@
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 3.1)
 project(Cryptox)
+
 set(Cryptox_ID Cry)
+set(Cryptox_CIL CIL)
+
+if (POLICY CMP0025)
+	cmake_policy(SET CMP0025 NEW)
+endif ()
 
 # In-source builds are disabled.
 if(${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_BINARY_DIR})
@@ -10,6 +16,8 @@ endif()
 # Set VERSION
 set(Cryptox_VERSION_MAJOR 0)
 set(Cryptox_VERSION ${Cryptox_VERSION_MAJOR})
+
+message(STATUS "Crytox release ${Cryptox_VERSION}")
 
 # Use solution folders
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
@@ -30,6 +38,7 @@ find_package(Boost 1.61 REQUIRED COMPONENTS
 	filesystem
 )
 
+# Add boost to include
 if(Boost_FOUND)
 	message(STATUS "Using boost version ${Boost_VERSION}")
 	include_directories(${Boost_INCLUDE_DIRS})
@@ -46,6 +55,9 @@ endif()
 # Compiler flags
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+set(CMAKE_VERBOSE_MAKEFILE ON)
+set(CMAKE_COLOR_MAKEFILE ON)
 
 # Direct output to certain directories
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
