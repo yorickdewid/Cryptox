@@ -315,16 +315,16 @@ bool Parser::DeclarationSpecifiers()
 		// Only one specifier can be applied per object type
 		auto sc = StorageClassSpecifier();
 		if (IsSet(sc)) {
-			tmpSCP = sc;
 			NextToken();
+			tmpSCP = sc;
 			cont = true;
 		}
 
 		// Can have multiple type qualifiers, list them
 		auto tq = TypeQualifier();
 		if (IsSet(tq)) {
-			tmpTQ.push_back(tq);
 			NextToken();
+			tmpTQ.push_back(tq);
 			cont = true;
 		}
 
@@ -461,19 +461,32 @@ bool Parser::StructOrUnionSpecifier()
 
 void Parser::SpecifierQualifierList()
 {
+	std::vector<CoilCl::Typedef::TypedefBase::TypeQualifier> tmpTQ;
+
 	bool cont = false;
 	do {
 		cont = false;
+
+		// Find a type specifier
 		if (TypeSpecifier()) {
 			NextToken();
 			cont = true;
 		}
 
+		// Can have multiple type qualifiers, list them
 		auto tq = TypeQualifier();
 		if (tq != Typedef::TypedefBase::TypeQualifier::NONE) {
+			NextToken();
+			tmpTQ.push_back(tq);
 			cont = true;
 		}
 	} while (cont);
+
+	// Append all stacked storage classes and qualifiers onto the value object
+	auto baseType = m_typeStack.top();
+	for (const auto& tq : tmpTQ) {
+		baseType->SetQualifier(tq);
+	}
 }
 
 bool Parser::EnumSpecifier()
