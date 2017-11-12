@@ -65,6 +65,7 @@ public:
 		BOOL,
 	};
 
+public:
 	BuiltinType(Specifier specifier)
 		: m_specifier{ specifier }
 	{
@@ -86,10 +87,29 @@ private:
 
 class RecordType : public TypedefBase
 {
-	std::list<std::string> m_recordList; //?
+	std::string m_name;
 
 public:
-	const std::string TypeName() const { return "struct xxx:struct xxx"; }
+	enum class Specifier
+	{
+		STRUCT,
+		UNION,
+	};
+
+public:
+	RecordType(const std::string& name, Specifier specifier)
+		: m_name{ name }
+		, m_specifier{ specifier }
+	{
+	}
+
+	const std::string TypeName() const
+	{
+		return (m_specifier == Specifier::UNION ? "union " : "struct ") + m_name;
+	}
+
+private:
+	Specifier m_specifier;
 };
 
 class TypedefType : public TypedefBase
@@ -120,9 +140,9 @@ inline auto MakeBuiltinType(Typedef::BuiltinType::Specifier specifier)
 	return std::make_shared<Typedef::BuiltinType>(specifier);
 }
 
-inline auto MakeRecordType()
+inline auto MakeRecordType(const std::string& name, Typedef::RecordType::Specifier specifier)
 {
-	return std::make_shared<Typedef::RecordType>();
+	return std::make_shared<Typedef::RecordType>(name, specifier);
 }
 
 inline auto MakeTypedefType(const std::string& name, std::shared_ptr<Typedef::TypedefBase>& type)

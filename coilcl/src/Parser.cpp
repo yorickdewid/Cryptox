@@ -358,7 +358,6 @@ bool Parser::DeclarationSpecifiers()
 	return true;
 }
 
-//TODO
 bool Parser::TypenameSpecifier()
 {
 	if (MATCH_TOKEN(TK_IDENTIFIER)) {
@@ -392,16 +391,23 @@ bool Parser::StructOrUnionSpecifier()
 		return false;
 	}
 
-	auto rec = std::make_shared<RecordDecl>(isUnion ? RecordDecl::RecordType::UNION : RecordDecl::RecordType::STRUCT);
-
+	std::string name;
 	if (MATCH_TOKEN(TK_IDENTIFIER)) {
 		EMIT_IDENTIFIER();
-		rec->SetName(CURRENT_DATA()->As<std::string>());
+		name = CURRENT_DATA()->As<std::string>();
 		NextToken();
 	}
 
 	if (MATCH_TOKEN(TK_BRACE_OPEN)) {
+		using RecType = RecordDecl::RecordType;
+		
 		NextToken();
+		auto rec = std::make_shared<RecordDecl>(isUnion ? RecType::UNION : RecType::STRUCT);
+
+		if (!name.empty()) {
+			rec->SetName(name);
+			m_recordList[std::make_pair(name, !static_cast<int>(isUnion))] = rec;
+		}
 
 		do {
 			SpecifierQualifierList();
@@ -434,10 +440,22 @@ bool Parser::StructOrUnionSpecifier()
 			ExpectToken(TK_COMMIT);
 		} while (NOT_TOKEN(TK_BRACE_CLOSE));
 		ExpectToken(TK_BRACE_CLOSE);
+
+		m_elementDescentPipe.push(rec);
+		m_elementDescentPipe.lock();
+	}
+	else {
+		using Specifier = Typedef::RecordType::Specifier;
+
+		auto res = m_recordList[std::make_pair(name, !static_cast<int>(isUnion))];
+		if (res == nullptr) {
+			return false;
+		}
+
+		m_typeStack.push(Util::MakeRecordType(name, isUnion ? Specifier::UNION : Specifier::STRUCT));
+		m_comm.ShiftBackward();
 	}
 
-	m_elementDescentPipe.push(rec);
-	m_elementDescentPipe.lock();
 	return true;
 }
 

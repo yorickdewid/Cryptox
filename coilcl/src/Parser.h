@@ -138,22 +138,15 @@ public:
 		index++;
 	}
 
-	inline auto& Previous()
-	{
-		//TODO: out of bounds exception
-		return m_tokenList[index - 1];
-	}
-
-	inline auto& Current()
-	{
-		return m_tokenList[index - 1];
-	}
+	inline auto& Previous() { return m_tokenList[index > 1 ? (index - 1) : index]; }
+	inline auto& Current() { return m_tokenList[index - 1]; }
 
 	inline void Snapshot()
 	{
 		m_snapshopList.push(index);
 	}
 
+	// Revert to last snapshot
 	inline void Revert()
 	{
 		index = m_snapshopList.top();
@@ -167,14 +160,14 @@ public:
 	}
 
 	// Check if the next item is the last item
-	inline auto IsIndexHead() const
-	{
-		return index == m_tokenList.size();
-	}
+	inline auto IsIndexHead() const { return index == m_tokenList.size(); }
 
-	inline void ShiftForward()
+	inline void ShiftForward() { ++index; }
+	inline void ShiftBackward()
 	{
-		++index;
+		if (index > 1) {
+			--index;
+		}
 	}
 
 	inline auto& operator[](size_t idx)
@@ -215,6 +208,16 @@ public:
 			Clear();
 			Push(std::move(currentItem));
 		}
+	}
+};
+
+struct CompareStringPair
+{
+	using type = std::pair<std::string, int>;
+
+	auto operator()(const type& a, const type& b) const
+	{
+		return a.first < b.first;
 	}
 };
 
@@ -314,6 +317,8 @@ private:
 	StateContainer<TokenState> m_comm;
 	std::shared_ptr<Compiler::Profile> m_profile;
 
+	// Temporary parser containers
+	std::map<std::pair<std::string, int>, std::shared_ptr<RecordDecl>, CompareStringPair> m_recordList;
 	std::map<std::string, std::shared_ptr<Typedef::TypedefBase>> m_typedefList;
 	std::stack<std::shared_ptr<Typedef::TypedefBase>> m_typeStack;
 	std::stack<std::string> m_identifierStack;

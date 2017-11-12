@@ -16,7 +16,6 @@
 #include <iostream>
 #include <functional>
 
-//TODO: function parameters
 //TODO: Single namespace
 //TODO: Full C99 parser ruleset
 //TODO: Preprocessing
