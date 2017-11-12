@@ -2237,6 +2237,7 @@ bool Parser::FunctionDefinition()
 		m_elementDescentPipe.pop();
 	}
 
+	// Release locks since function declaration
 	m_elementDescentPipe.release_until(startState);
 	return true;
 }
@@ -2244,11 +2245,17 @@ bool Parser::FunctionDefinition()
 // Try as function; if that fails assume declaration
 void Parser::ExternalDeclaration()
 {
+	// Usless commits must be ignored
+	if (MATCH_TOKEN(TK_COMMIT)) {
+		NextToken();
+	}
+
 	// Snapshot current state in case of rollback
 	m_comm.Snapshot();
 
 	// Try function first
 	if (!FunctionDefinition()) {
+
 		// Not a function, rollback the command state
 		m_comm.Revert();
 
@@ -2262,6 +2269,7 @@ void Parser::ExternalDeclaration()
 		Declaration();
 	}
 	else {
+
 		// Remove snapshot since we can continue this path
 		m_comm.DisposeSnapshot();
 	}
@@ -2289,11 +2297,9 @@ void Parser::TranslationUnit()
 			m_elementDescentPipe.pop();
 		}
 
-		// There should be no elements left
-		assert(m_elementDescentPipe.empty(true));
-
 		// Clear all lists where possible before adding new items
 		m_pointerCounter = 0;
+		m_elementDescentPipe.clear();
 		ClearStack(m_typeStack);
 		ClearStack(m_identifierStack);
 		m_comm.TryClear();
