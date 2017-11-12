@@ -300,6 +300,7 @@ bool Parser::DeclarationSpecifiers()
 
 	TypedefBase::StorageClassSpecifier tmpSCP = TypedefBase::StorageClassSpecifier::NONE;
 	std::vector<TypedefBase::TypeQualifier> tmpTQ;
+	auto typeCount = m_typeStack.size();
 	auto isInline = false;
 
 	bool cont = true;
@@ -307,7 +308,7 @@ bool Parser::DeclarationSpecifiers()
 		cont = false;
 
 		// Find a type specifier
-		if (TypeSpecifier()) {
+		if (typeCount == m_typeStack.size() && TypeSpecifier()) {
 			NextToken();
 			cont = true;
 		}
@@ -400,7 +401,7 @@ bool Parser::StructOrUnionSpecifier()
 
 	if (MATCH_TOKEN(TK_BRACE_OPEN)) {
 		using RecType = RecordDecl::RecordType;
-		
+
 		NextToken();
 		auto rec = std::make_shared<RecordDecl>(isUnion ? RecType::UNION : RecType::STRUCT);
 
@@ -462,13 +463,14 @@ bool Parser::StructOrUnionSpecifier()
 void Parser::SpecifierQualifierList()
 {
 	std::vector<CoilCl::Typedef::TypedefBase::TypeQualifier> tmpTQ;
+	auto typeCount = m_typeStack.size();
 
 	bool cont = false;
 	do {
 		cont = false;
 
 		// Find a type specifier
-		if (TypeSpecifier()) {
+		if (typeCount == m_typeStack.size() && TypeSpecifier()) {
 			NextToken();
 			cont = true;
 		}
