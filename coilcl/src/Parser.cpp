@@ -547,8 +547,9 @@ bool Parser::UnaryOperator()
 		NextToken();
 		CastExpression();
 
-		auto resv = MAKE_RESV_REF();
-		auto unaryOp = std::make_shared<CoilCl::AST::UnaryOperator>(CoilCl::AST::UnaryOperator::UnaryOperator::ADDR, CoilCl::AST::UnaryOperator::OperandSide::PREFIX, std::dynamic_pointer_cast<ASTNode>(resv));
+		auto resv = m_elementDescentPipe.next();
+		m_elementDescentPipe.pop();
+		auto unaryOp = std::make_shared<CoilCl::AST::UnaryOperator>(CoilCl::AST::UnaryOperator::UnaryOperator::ADDR, CoilCl::AST::UnaryOperator::OperandSide::PREFIX, resv);
 		m_elementDescentPipe.push(unaryOp);
 		break;
 	}
@@ -557,8 +558,9 @@ bool Parser::UnaryOperator()
 		NextToken();
 		CastExpression();
 
-		auto resv = MAKE_RESV_REF();
-		auto unaryOp = std::make_shared<CoilCl::AST::UnaryOperator>(CoilCl::AST::UnaryOperator::UnaryOperator::PTRVAL, CoilCl::AST::UnaryOperator::OperandSide::PREFIX, std::dynamic_pointer_cast<ASTNode>(resv));
+		auto resv = m_elementDescentPipe.next();
+		m_elementDescentPipe.pop();
+		auto unaryOp = std::make_shared<CoilCl::AST::UnaryOperator>(CoilCl::AST::UnaryOperator::UnaryOperator::PTRVAL, CoilCl::AST::UnaryOperator::OperandSide::PREFIX, resv);
 		m_elementDescentPipe.push(unaryOp);
 		break;
 	}
@@ -567,8 +569,9 @@ bool Parser::UnaryOperator()
 		NextToken();
 		CastExpression();
 
-		auto resv = MAKE_RESV_REF();
-		auto unaryOp = std::make_shared<CoilCl::AST::UnaryOperator>(CoilCl::AST::UnaryOperator::UnaryOperator::INTPOS, CoilCl::AST::UnaryOperator::OperandSide::PREFIX, std::dynamic_pointer_cast<ASTNode>(resv));
+		auto resv = m_elementDescentPipe.next();
+		m_elementDescentPipe.pop();
+		auto unaryOp = std::make_shared<CoilCl::AST::UnaryOperator>(CoilCl::AST::UnaryOperator::UnaryOperator::INTPOS, CoilCl::AST::UnaryOperator::OperandSide::PREFIX, resv);
 		m_elementDescentPipe.push(unaryOp);
 		break;
 	}
@@ -588,8 +591,9 @@ bool Parser::UnaryOperator()
 		NextToken();
 		CastExpression();
 
-		auto resv = MAKE_RESV_REF();
-		auto unaryOp = std::make_shared<CoilCl::AST::UnaryOperator>(CoilCl::AST::UnaryOperator::UnaryOperator::BITNOT, CoilCl::AST::UnaryOperator::OperandSide::PREFIX, std::dynamic_pointer_cast<ASTNode>(resv));
+		auto resv = m_elementDescentPipe.next();
+		m_elementDescentPipe.pop();
+		auto unaryOp = std::make_shared<CoilCl::AST::UnaryOperator>(CoilCl::AST::UnaryOperator::UnaryOperator::BITNOT, CoilCl::AST::UnaryOperator::OperandSide::PREFIX, resv);
 		m_elementDescentPipe.push(unaryOp);
 		break;
 	}
@@ -598,8 +602,9 @@ bool Parser::UnaryOperator()
 		NextToken();
 		CastExpression();
 
-		auto resv = MAKE_RESV_REF();
-		auto unaryOp = std::make_shared<CoilCl::AST::UnaryOperator>(CoilCl::AST::UnaryOperator::UnaryOperator::BOOLNOT, CoilCl::AST::UnaryOperator::OperandSide::PREFIX, std::dynamic_pointer_cast<ASTNode>(resv));
+		auto resv = m_elementDescentPipe.next();
+		m_elementDescentPipe.pop();
+		auto unaryOp = std::make_shared<CoilCl::AST::UnaryOperator>(CoilCl::AST::UnaryOperator::UnaryOperator::BOOLNOT, CoilCl::AST::UnaryOperator::OperandSide::PREFIX, resv);
 		m_elementDescentPipe.push(unaryOp);
 		break;
 	}
@@ -980,6 +985,7 @@ void Parser::PostfixExpression()
 		break;
 	}
 	default:
+		// If an identifier was found, wrap it in a declaration reference
 		if (m_identifierStack.size() > startSz) {
 			auto resv = MAKE_RESV_REF();
 			m_elementDescentPipe.push(resv);
@@ -2209,12 +2215,14 @@ bool Parser::FunctionDefinition()
 		return false;
 	}
 
+	// Check if we found a function
 	auto func = std::dynamic_pointer_cast<FunctionDecl>(m_elementDescentPipe.next());
 	if (func == nullptr) {
 		m_elementDescentPipe.release_until(startState);
 		return false;
 	}
 
+	// Found a function statement, lock it
 	m_elementDescentPipe.lock();
 
 	while (Declarator());
@@ -2234,6 +2242,7 @@ void Parser::ExternalDeclaration()
 	// Snapshot current state in case of rollback
 	m_comm.Snapshot();
 
+	// Try function first
 	if (!FunctionDefinition()) {
 		// Not a function, rollback the command state
 		m_comm.Revert();
@@ -2243,6 +2252,7 @@ void Parser::ExternalDeclaration()
 		ClearStack(m_typeStack);
 		ClearStack(m_identifierStack);
 
+		// Function failed, must succeed as declaration
 		Declaration();
 	}
 	else {
@@ -2264,8 +2274,10 @@ void Parser::TranslationUnit()
 	AST_ROOT() = std::make_shared<TranslationUnitDecl>(m_profile->MetaInfo()->name);
 
 	do {
+		// All the translation units start with a declaration
 		ExternalDeclaration();
 
+		// Move elements from list into AST root
 		while (!m_elementDescentPipe.empty()) {
 			AST_ROOT()->AppendChild(m_elementDescentPipe.next());
 			m_elementDescentPipe.pop();
@@ -2281,6 +2293,7 @@ void Parser::TranslationUnit()
 	} while (!lex.IsDone());
 }
 
+// Run the parser
 Parser& Parser::Execute()
 {
 	NextToken();
