@@ -491,6 +491,7 @@ class Decl : public ASTNode
 protected:
 	std::string m_identifier;
 	std::shared_ptr<Typedef::TypedefBase> m_returnType;
+	size_t m_ptrCount = 0;
 
 public:
 	Decl() = default;
@@ -508,9 +509,22 @@ public:
 	{
 	}
 
+	inline auto IsPointer() const { return m_ptrCount > 0; }
+	inline void SetPointer(size_t ptrCount) { m_ptrCount = ptrCount; }
+
 	auto Identifier() const { return m_identifier; }
 
 	PRINT_NODE(Decl);
+
+protected:
+	std::string PointerName() const
+	{
+		if (m_ptrCount == 0) {
+			return "";
+		}
+
+		return " " + std::string(m_ptrCount, '*');
+	}
 };
 
 class VarDecl : public Decl
@@ -530,7 +544,7 @@ public:
 		std::string _node{ RemoveClassFromName(typeid(VarDecl).name()) };
 		_node += " <line:" + std::to_string(line) + ",col:" + std::to_string(col) + "> ";
 		_node += m_identifier;
-		_node += " '" + Decl::m_returnType->TypeName() + "' ";
+		_node += " '" + Decl::m_returnType->TypeName() + Decl::PointerName() + "' ";
 		_node += Decl::m_returnType->StorageClassName();
 
 		return _node;
@@ -1399,27 +1413,3 @@ public:
 
 	PRINT_NODE(CompoundStmt);
 };
-
-#if as
-class ValueNode : public ASTNode
-{
-	std::unique_ptr<Value> value = nullptr;
-
-public:
-	ValueNode()
-		: value{ new ValueObject<void>(Value::TypeSpecifier::T_VOID) }
-	{
-	}
-
-	ValueNode(std::unique_ptr<Value>& _value)
-	{
-		value = std::move(_value);
-	}
-
-	/*ValueNode(std::function<Value *(void)> valueDelegate)
-	{
-		auto x = valueDelegate();
-		value = std::unique_ptr<Value>(valueDelegate());
-	}*/
-};
-#endif

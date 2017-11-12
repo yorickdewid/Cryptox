@@ -1837,6 +1837,8 @@ void Parser::InitDeclaratorList()
 			m_elementDescentPipe.release_until(startState);
 
 			auto var = std::make_shared<VarDecl>(m_identifierStack.top(), m_typeStack.top(), m_elementDescentPipe.next());
+			var->SetPointer(m_pointerCounter);
+			m_pointerCounter = 0;
 			m_identifierStack.pop();
 			m_elementDescentPipe.pop();
 
@@ -1847,6 +1849,8 @@ void Parser::InitDeclaratorList()
 		}
 		else {
 			auto var = std::make_shared<VarDecl>(m_identifierStack.top(), m_typeStack.top());
+			var->SetPointer(m_pointerCounter);
+			m_pointerCounter = 0;
 			m_identifierStack.pop();
 			m_elementDescentPipe.push(var);
 			m_elementDescentPipe.lock();
@@ -1993,6 +1997,7 @@ void Parser::Designators()
 void Parser::Pointer()
 {
 	while (MATCH_TOKEN(TK_ASTERISK)) {
+		m_pointerCounter++;
 		NextToken();
 		TypeQualifierList();
 	}
@@ -2248,6 +2253,7 @@ void Parser::ExternalDeclaration()
 		m_comm.Revert();
 
 		// Clear all states since nothing should be kept moving forward
+		m_pointerCounter = 0;
 		m_elementDescentPipe.clear();
 		ClearStack(m_typeStack);
 		ClearStack(m_identifierStack);
@@ -2287,6 +2293,7 @@ void Parser::TranslationUnit()
 		assert(m_elementDescentPipe.empty(true));
 
 		// Clear all lists where possible before adding new items
+		m_pointerCounter = 0;
 		ClearStack(m_typeStack);
 		ClearStack(m_identifierStack);
 		m_comm.TryClear();

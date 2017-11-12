@@ -319,6 +319,7 @@ private:
 	std::shared_ptr<Compiler::Profile> m_profile;
 
 	// Temporary parser containers
+	size_t m_pointerCounter = 0;
 	std::map<std::pair<std::string, int>, std::shared_ptr<RecordDecl>, CompareStringPair> m_recordList;
 	std::map<std::string, std::shared_ptr<Typedef::TypedefBase>> m_typedefList;
 	std::stack<std::shared_ptr<Typedef::TypedefBase>> m_typeStack;
