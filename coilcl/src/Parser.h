@@ -141,6 +141,7 @@ public:
 	inline auto& Previous() { return m_tokenList[index > 1 ? (index - 1) : index]; }
 	inline auto& Current() { return m_tokenList[index - 1]; }
 
+	// Take snapshot of current index
 	inline void Snapshot()
 	{
 		m_snapshopList.push(index);
@@ -162,31 +163,33 @@ public:
 	// Check if the next item is the last item
 	inline auto IsIndexHead() const { return index == m_tokenList.size(); }
 
-	inline void ShiftForward() { ++index; }
+	// Take one step forward
+	inline void ShiftForward()
+	{
+		if (m_tokenList.size() > index) {
+			++index;
+		}
+	}
+
+	// Take one step back, but preserve the list
 	inline void ShiftBackward()
 	{
-		if (index > 1) {
+		if (index > 0) {
 			--index;
 		}
 	}
 
+	// Access token at random position
 	inline auto& operator[](size_t idx)
 	{
 		return m_tokenList[idx];
 	}
 
+	// Remove all snapshots, and restore index
 	void Reset()
 	{
 		index = m_tokenList.size();
 		ClearStack(m_snapshopList);
-	}
-
-	// Take one step back, but preserve the list
-	void Undo()
-	{
-		if (index > 0) {
-			--index;
-		}
 	}
 
 	// Clear the token and snapshot list, this action will free all allocated memory
@@ -194,9 +197,7 @@ public:
 	{
 		index = 0;
 		m_tokenList.clear();
-		while (!m_snapshopList.empty()) {
-			m_snapshopList.pop();
-		}
+		ClearStack(m_snapshopList);
 	}
 
 	// If the next item is the last item, clear the list

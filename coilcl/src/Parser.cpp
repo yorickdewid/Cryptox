@@ -2227,6 +2227,7 @@ void Parser::ExternalDeclaration()
 		m_elementDescentPipe.clear();
 		ClearStack(m_typeStack);
 		ClearStack(m_identifierStack);
+
 		Declaration();
 	}
 	else {
