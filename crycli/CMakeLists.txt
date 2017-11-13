@@ -7,7 +7,7 @@ file(GLOB ${PROJECT_NAME}_h *.h)
 
 include_directories(${CoilCl_INCLUDE_DIRS})
 
-# Ignore getenv security checks
+# Ignore security checks
 if(WIN32)
 	add_definitions(-D_SCL_SECURE_NO_WARNINGS)
 	add_definitions(-D_CRT_SECURE_NO_WARNINGS)

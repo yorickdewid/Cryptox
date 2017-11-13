@@ -2159,25 +2159,25 @@ void Parser::TypeQualifierList()
 // parameter declaration with a type specifier
 bool Parser::ParameterTypeList()
 {
-	bool rs = false;
-
+	auto rs = false;
 	auto startState = m_elementDescentPipe.state();
-	for (;;) {
-		rs = ParameterDeclaration();
-		if (NOT_TOKEN(TK_COMMA)) {
-			break;
-		}
 
-		NextToken();
+	for (;;) {
 		if (MATCH_TOKEN(TK_ELLIPSIS)) {
 			NextToken();
 			rs = true;
 			//TODO: Change function signature
 		}
 
+		if (ParameterDeclaration()) {
+			rs = true;
+		}
+
 		if (NOT_TOKEN(TK_COMMA)) {
 			break;
 		}
+
+		NextToken();
 	}
 
 	m_elementDescentPipe.release_until(startState);

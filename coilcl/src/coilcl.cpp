@@ -25,6 +25,7 @@
 
 // Current compiler limitations
 // - No support for K&R function declarations
+// - Singe translation unit
 
 #define SET_HANDLER(n,c) \
 	Compiler& Set##n##Handler(decltype(c) callback) \

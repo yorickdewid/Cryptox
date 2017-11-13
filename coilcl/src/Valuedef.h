@@ -112,7 +112,6 @@ public:
 	virtual const std::string Print() const override
 	{
 		return boost::lexical_cast<std::string>(boost::any_cast<_Ty>(m_value));
-		//return Value::As<std::string>();
 	}
 
 	friend std::ostream& operator<<(std::ostream& os, const _Myty& value)
