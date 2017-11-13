@@ -584,7 +584,7 @@ public:
 		std::string _node{ RemoveClassFromName(typeid(TypedefDecl).name()) };
 		_node += " <line:" + std::to_string(line) + ",col:" + std::to_string(col) + "> ";
 		_node += m_identifier;
-		_node += " '" + Decl::m_returnType->TypeName() + "' ";
+		_node += " '" + Decl::m_returnType->TypeName() + Decl::PointerName() + "' ";
 		_node += Decl::m_returnType->StorageClassName();
 
 		return _node;
@@ -811,7 +811,7 @@ public:
 		}
 
 		_node += m_identifier;
-		_node += " '" + Decl::m_returnType->TypeName() + "' ";
+		_node += " '" + Decl::m_returnType->TypeName() + Decl::PointerName() + "' ";
 		_node += Decl::m_returnType->StorageClassName();
 
 		return _node;

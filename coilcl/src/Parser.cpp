@@ -1800,16 +1800,20 @@ void Parser::Declaration()
 	if (MATCH_TOKEN(TK_COMMIT)) {
 		NextToken();
 	}
+	// Check if the specifier results yield a typedef
 	else if (m_typeStack.top()->StorageClass() == Typedef::BuiltinType::StorageClassSpecifier::TYPEDEF) {
-		//ExpectIdentifier();
-		if (MATCH_TOKEN(TK_IDENTIFIER)) {
-			auto name = CURRENT_DATA()->As<std::string>();
-			NextToken();
+		if (Declarator()) {
 			ExpectToken(TK_COMMIT);
 
-			m_elementDescentPipe.push(std::make_shared<TypedefDecl>(name, m_typeStack.top()));
+			auto name = m_identifierStack.top();
+			auto def = std::make_shared<TypedefDecl>(name, m_typeStack.top());
+			def->SetPointer(m_pointerCounter);
+			m_pointerCounter = 0;
 			m_typedefList[name] = m_typeStack.top();
+			m_identifierStack.pop();
 			m_typeStack.pop();
+			
+			m_elementDescentPipe.push(def);
 			return;
 		}
 	}
@@ -2054,6 +2058,8 @@ bool Parser::DirectDeclarator()
 				NextToken();
 
 				auto func = std::make_shared<FunctionDecl>(m_identifierStack.top(), m_typeStack.top());
+				func->SetPointer(m_pointerCounter);
+				m_pointerCounter = 0;
 				m_identifierStack.pop();
 				m_typeStack.pop();
 
@@ -2093,6 +2099,8 @@ bool Parser::DirectDeclarator()
 
 				auto func = std::make_shared<FunctionDecl>(m_identifierStack.top(), m_typeStack.top());
 				func->SetParameterStatement(std::dynamic_pointer_cast<ParamStmt>(m_elementDescentPipe.next()));
+				func->SetPointer(m_pointerCounter);
+				m_pointerCounter = 0;
 				m_elementDescentPipe.pop();
 				m_typeStack.pop();
 				ExpectToken(TK_PARENTHESE_CLOSE);
@@ -2276,10 +2284,7 @@ void Parser::ExternalDeclaration()
 	// Snapshot current state in case of rollback
 	m_comm.Snapshot();
 
-	// Try function first
 	if (!FunctionDefinition()) {
-
-		// Not a function, rollback the command state
 		m_comm.Revert();
 
 		// Clear all states since nothing should be kept moving forward
@@ -2292,8 +2297,6 @@ void Parser::ExternalDeclaration()
 		Declaration();
 	}
 	else {
-
-		// Remove snapshot since we can continue this path
 		m_comm.DisposeSnapshot();
 	}
 

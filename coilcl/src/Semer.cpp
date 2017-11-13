@@ -13,17 +13,23 @@ CoilCl::Semer::Semer(std::shared_ptr<Compiler::Profile>& profile)
 {
 }
 
+// Resolve all static expresions such as
+// native type size calculations.
 CoilCl::Semer& CoilCl::Semer::StaticResolve()
 {
 	//TODO: compile time expression resolving
 	return (*this);
 }
 
+// Run all semantic checks that defines the language,
+// this comprises type checking, object scope validation,
+// implicit casting and identifier resolving.
 CoilCl::Semer& CoilCl::Semer::PreliminaryAssert()
 {
 	//TODO: identifier resolving & scoping
 	//TODO: type checking
 	//TODO: implicit cast
+	//TODO: object usage counting
 	return (*this);
 }
 
