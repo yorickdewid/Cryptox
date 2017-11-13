@@ -4,9 +4,15 @@ project(Cryptox)
 set(Cryptox_ID Cry)
 set(Cryptox_CIL CIL)
 
-if (POLICY CMP0025)
+if(POLICY CMP0025)
 	cmake_policy(SET CMP0025 NEW)
-endif ()
+endif()
+
+# Include modules
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/")
+
+# Find the host operating system and architecture
+include(FindOS)
 
 # In-source builds are disabled.
 if(${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_BINARY_DIR})
