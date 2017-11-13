@@ -554,14 +554,20 @@ public:
 class ParamDecl : public Decl
 {
 public:
-	ParamDecl(const std::string& name)
-		: Decl{ name }
+	ParamDecl(const std::string& name, std::shared_ptr<Typedef::TypedefBase> type)
+		: Decl{ name, type }
 	{
 	}
 
 	virtual const std::string NodeName() const
 	{
-		return std::string{ RemoveClassFromName(typeid(ParamDecl).name()) } +" <line:" + std::to_string(line) + ",col:" + std::to_string(col) + "> " + m_identifier;
+		std::string _node{ RemoveClassFromName(typeid(ParamDecl).name()) };
+		_node += " <line:" + std::to_string(line) + ",col:" + std::to_string(col) + "> ";
+		_node += m_identifier;
+		_node += " '" + Decl::m_returnType->TypeName() + Decl::PointerName() + "' ";
+		_node += Decl::m_returnType->StorageClassName();
+
+		return _node;
 	}
 };
 

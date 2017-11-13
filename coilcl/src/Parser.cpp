@@ -2069,8 +2069,9 @@ bool Parser::DirectDeclarator()
 						if (MATCH_TOKEN(TK_IDENTIFIER)) {
 							EMIT_IDENTIFIER();
 
-							auto paramDecl = std::make_shared<ParamDecl>(CURRENT_DATA()->As<std::string>());
-							param->AppendParamter(std::dynamic_pointer_cast<ASTNode>(paramDecl));
+							//TODO
+							/*auto paramDecl = std::make_shared<ParamDecl>(CURRENT_DATA()->As<std::string>());
+							param->AppendParamter(std::dynamic_pointer_cast<ASTNode>(paramDecl));*/
 							NextToken();
 						}
 
@@ -2195,18 +2196,23 @@ bool Parser::ParameterTypeList()
 	return rs;
 }
 
-// Parameter declaration can have only a specifier,
-// an specifier and declarator or specifier and abstract
-// declarator
+// Parameter declaration can have only a specifier;
+// a specifier and declarator or specifier and abstract
+// declarator.
 bool Parser::ParameterDeclaration()
 {
 	if (!DeclarationSpecifiers()) {
 		return false;
 	}
 
+	// If a declarator was found, create the parameter and pop all used lists
+	// since the next parameter cannot depend on this data.
 	if (Declarator()) {
-		auto param = std::make_shared<ParamDecl>(m_identifierStack.top());
+		auto param = std::make_shared<ParamDecl>(m_identifierStack.top(), m_typeStack.top());
+		param->SetPointer(m_pointerCounter);
+		m_pointerCounter = 0;
 		m_identifierStack.pop();
+		m_typeStack.pop();
 
 		m_elementDescentPipe.push(param);
 		m_elementDescentPipe.lock();
