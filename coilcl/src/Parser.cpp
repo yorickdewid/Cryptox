@@ -848,7 +848,7 @@ void Parser::ArgumentExpressionList()
 	}
 }
 
-void Parser::PostfixExpression()
+void Parser::CompoundLiteral()
 {
 	if (MATCH_TOKEN(TK_PARENTHESE_OPEN)) {
 		// Snapshot current state in case of rollback
@@ -886,6 +886,11 @@ void Parser::PostfixExpression()
 			m_comm.Revert();
 		}
 	}
+}
+
+void Parser::PostfixExpression()
+{
+	CompoundLiteral();
 
 	auto startSz = m_identifierStack.size();
 
@@ -985,10 +990,21 @@ void Parser::PostfixExpression()
 		break;
 	}
 	default:
-		// If an identifier was found, wrap it in a declaration reference
+		// An identifier was found without any postfix expression thereafter.
+		// This is either a referenced identifier or typedef specifier. Check
+		// typedef first before assuming referenced identifier. If no typedef
+		// was found wrap the declaration in a declaration reference.
 		if (m_identifierStack.size() > startSz) {
-			auto resv = MAKE_RESV_REF();
-			m_elementDescentPipe.push(resv);
+			if (m_typedefList[m_identifierStack.top()] == nullptr) {
+				auto resv = MAKE_RESV_REF();
+				m_elementDescentPipe.push(resv);
+			}
+			// Identifier is typedef specifier, shift back and pop identifier
+			// stack as typedef cannot be used as statement expression.
+			else {
+				m_comm.ShiftBackward();
+				m_identifierStack.pop();
+			}
 		}
 	}
 }
@@ -2245,7 +2261,8 @@ bool Parser::FunctionDefinition()
 // Try as function; if that fails assume declaration
 void Parser::ExternalDeclaration()
 {
-	// Usless commits must be ignored
+	// Usless commits must be ignored, this saves as few trips
+	// into function or declaration statements.
 	if (MATCH_TOKEN(TK_COMMIT)) {
 		NextToken();
 	}

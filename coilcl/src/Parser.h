@@ -260,6 +260,7 @@ private:
 	bool EnumSpecifier();
 	bool UnaryOperator();
 	bool AssignmentOperator();
+	void CompoundLiteral();
 
 private: // Expressions
 	void PrimaryExpression();
