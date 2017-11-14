@@ -403,7 +403,7 @@ bool Parser::StructOrUnionSpecifier()
 		using RecType = RecordDecl::RecordType;
 
 		NextToken();
-		auto rec = std::make_shared<RecordDecl>(isUnion ? RecType::UNION : RecType::STRUCT);
+		auto& rec = std::make_shared<RecordDecl>(isUnion ? RecType::UNION : RecType::STRUCT);
 
 		if (!name.empty()) {
 			rec->SetName(name);
@@ -419,6 +419,8 @@ bool Parser::StructOrUnionSpecifier()
 				auto decl = m_identifierStack.top();
 				m_identifierStack.pop();
 				auto field = std::make_shared<FieldDecl>(decl, m_typeStack.top());
+				field->SetPointer(m_pointerCounter);
+				m_pointerCounter = 0;
 
 				if (MATCH_TOKEN(TK_COLON)) {
 					NextToken();
@@ -1812,7 +1814,7 @@ void Parser::Declaration()
 			m_typedefList[name] = m_typeStack.top();
 			m_identifierStack.pop();
 			m_typeStack.pop();
-			
+
 			m_elementDescentPipe.push(def);
 			return;
 		}
