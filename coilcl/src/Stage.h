@@ -5,29 +5,16 @@
 namespace CoilCl
 {
 
-template<typename _Ty>
-struct Stage
+struct StageType
 {
-
-	/*enum StageName
+	enum Type
 	{
 		SyntacticAnalysis,
 		SemanticAnalysis,
 		Emitter,
-	};*/
+	};
 
-
-	Stage(_Ty* derived)
-		: m_derived{ derived }
-	{
-	}
-
-	_Ty& MoveStage() const
-	{
-		return (*m_derived);
-	}
-
-	/*static const char *Print(StageName name)
+	static const char *print(Type name)
 	{
 		switch (name) {
 		case SyntacticAnalysis:
@@ -39,7 +26,21 @@ struct Stage
 		}
 
 		return "<unknown>";
-	}*/
+	}
+};
+
+template<typename _Ty>
+struct Stage
+{
+	Stage(_Ty* derived)
+		: m_derived{ derived }
+	{
+	}
+
+	_Ty& MoveStage() const
+	{
+		return (*m_derived);
+	}
 
 private:
 	_Ty* m_derived;

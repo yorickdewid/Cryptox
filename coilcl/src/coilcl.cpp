@@ -8,6 +8,7 @@
 
 #include "coilcl.h"
 #include "Profile.h"
+#include "Scheme.h"
 #include "Preprocessor.h"
 #include "Parser.h"
 #include "Semer.h"
@@ -125,20 +126,24 @@ public:
 			//	.Transform();
 				// .DumpTranslationUnit<CoilCl::Reader::MemoryReader>();
 
+			CoilCl::Scheme scheme;
+
 			// Syntax analysis
-			auto iast = Parser{ profile }
+			auto ast = Parser{ profile }
 				.MoveStage()
 				.CheckCompatibility()
 				.Execute()
 				.DumpAST();
 
+			scheme.Ast(ast);
+
 			// For now dump contents to screen
-			iast->Print();
+			scheme.Ast()->Print();
 
 			// Semantic analysis
 			CoilCl::Semer{ profile }
 				.MoveStage()
-				.Syntax(iast)
+				.Syntax(scheme.Ast())
 				.StaticResolve()
 				.PreliminaryAssert()
 				.StandardCompliance();

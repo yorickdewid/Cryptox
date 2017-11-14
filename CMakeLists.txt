@@ -1,8 +1,9 @@
 cmake_minimum_required(VERSION 3.1)
 project(Cryptox)
 
-set(Cryptox_ID Cry)
-set(Cryptox_CIL CIL)
+# Define helper keywords
+set(${PROJECT_NAME}_ID Cry)
+set(${PROJECT_NAME}_CIL CIL)
 
 if(POLICY CMP0025)
 	cmake_policy(SET CMP0025 NEW)
@@ -20,10 +21,15 @@ if(${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_BINARY_DIR})
 endif()
 
 # Set VERSION
-set(Cryptox_VERSION_MAJOR 0)
-set(Cryptox_VERSION ${Cryptox_VERSION_MAJOR})
+set(${PROJECT_NAME}_VERSION_MAJOR 0)
+set(${PROJECT_NAME}_MINOR_VERSION 19)
+set(${PROJECT_NAME}_PATCH_VERSION 2)
+set(${PROJECT_NAME}_VERSION ${${PROJECT_NAME}_VERSION_MAJOR}.${${PROJECT_NAME}_MINOR_VERSION}.${${PROJECT_NAME}_PATCH_VERSION})
 
-message(STATUS "Crytox release ${Cryptox_VERSION}")
+message(STATUS "Crytox release ${${PROJECT_NAME}_VERSION}")
+
+# Options
+option(${${PROJECT_NAME}_ID}_BUILD_BUTEST "Build Boost Unit Test" ON)
 
 # Use solution folders
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
@@ -52,11 +58,11 @@ if(Boost_FOUND)
 endif()
 
 # Check wxWidgets
-find_package(wxWidgets COMPONENTS)
+#find_package(wxWidgets COMPONENTS)
 
-if(wxWidgets_FOUND)
-	include(${wxWidgets_USE_FILE})
-endif()
+#if(wxWidgets_FOUND)
+#	include(${wxWidgets_USE_FILE})
+#endif()
 
 # Compiler flags
 set(CMAKE_CXX_STANDARD 14)
@@ -84,5 +90,9 @@ add_subdirectory(entropysrv)
 #add_subdirectory(cmncore)
 #add_subdirectory(shapework)
 #add_subdirectory(shellasset)
-add_subdirectory(butest)
 add_subdirectory(crylib)
+
+if (BUILD_BUTEST)
+	message(STATUS "Building with Boost Unit Test")
+	add_subdirectory(butest)
+endif()

@@ -10,7 +10,7 @@
 
 /**
  * @name        fullfeat.cil.c
- * @purpose     Full C99 language feature set
+ * @purpose     Full C99 language feature set to test Parser
  * @author      Blub Corp.
  * @modified    Yorick de Wid
  * @created     2017-08-12
@@ -47,8 +47,8 @@ enum {
 } _e_item;
 
 typedef struct {
-    int i;
-    int j;
+    int *const i;
+    volatile int j;
     
     // Anonymous inline union declaration with variable
     union {
