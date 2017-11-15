@@ -12,11 +12,13 @@ namespace CoilCl
 class Scheme
 {
 public:
+	// Output
 	auto& Ast() const
 	{
 		return m_ast;
 	}
 
+	// Input
 	void Ast(std::shared_ptr<TranslationUnitDecl>& ast) const
 	{
 		m_ast = ast;

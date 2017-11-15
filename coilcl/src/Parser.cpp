@@ -241,10 +241,10 @@ bool Parser::TypeSpecifier()
 		m_typeStack.push(Util::MakeBuiltinType(BuiltinType::Specifier::DOUBLE));
 		return true;
 	case TK_SIGNED:
-		m_typeStack.push(Util::MakeBuiltinType(BuiltinType::Specifier::INT));
+		m_typeStack.push(Util::MakeBuiltinType(BuiltinType::Specifier::SIGNED));
 		return true;
 	case TK_UNSIGNED:
-		m_typeStack.push(Util::MakeBuiltinType(BuiltinType::Specifier::INT));
+		m_typeStack.push(Util::MakeBuiltinType(BuiltinType::Specifier::UNSIGNED));
 		return true;
 	case TK_BOOL:
 		m_typeStack.push(Util::MakeBuiltinType(BuiltinType::Specifier::BOOL));
@@ -307,8 +307,11 @@ bool Parser::DeclarationSpecifiers()
 	while (cont) {
 		cont = false;
 
-		// Find a type specifier
-		if (typeCount == m_typeStack.size() && TypeSpecifier()) {
+		// Find a type specifier, per preference only once. Certain types allow for
+		// multiple specifiers to combine into a single type base, if we found such a
+		// type, we permit another run.
+		if ((typeCount == m_typeStack.size() || m_typeStack.top()->AllowCoalescence())
+			&& TypeSpecifier()) {
 			NextToken();
 			cont = true;
 		}
@@ -337,13 +340,26 @@ bool Parser::DeclarationSpecifiers()
 		}
 	}
 
-	// No type was found
-	if (m_typeStack.empty()) {
+	// No type was found, bail
+	if (typeCount == m_typeStack.size()) {
 		return false;
 	}
 
+	// Result yields multiple types, try type coalescence
+	auto deltaTypeCount = m_typeStack.size() - typeCount;
+	if (deltaTypeCount > 1) {
+		auto lastType = m_typeStack.top();
+		m_typeStack.pop();
+		for (size_t i = 0; i < (deltaTypeCount - 1); ++i) {
+			lastType->Consolidate(m_typeStack.top());
+			m_typeStack.pop();
+		}
+
+		m_typeStack.push(std::move(lastType));
+	}
+
 	// Append all stacked storage classes and qualifiers onto the value object
-	auto baseType = m_typeStack.top();
+	auto& baseType = m_typeStack.top();
 	if (tmpSCP != TypedefBase::StorageClassSpecifier::NONE) {
 		baseType->SetStorageClass(tmpSCP);
 	}
@@ -362,9 +378,9 @@ bool Parser::DeclarationSpecifiers()
 bool Parser::TypenameSpecifier()
 {
 	if (MATCH_TOKEN(TK_IDENTIFIER)) {
-		auto name = CURRENT_DATA()->As<std::string>();
+		auto& name = CURRENT_DATA()->As<std::string>();
 
-		auto res = m_typedefList[name];
+		auto& res = m_typedefList[name];
 		if (res == nullptr) {
 			return false;
 		}
@@ -416,9 +432,9 @@ bool Parser::StructOrUnionSpecifier()
 			for (;;) {
 				Declarator();
 
-				auto decl = m_identifierStack.top();
+				auto& decl = m_identifierStack.top();
 				m_identifierStack.pop();
-				auto field = std::make_shared<FieldDecl>(decl, m_typeStack.top());
+				auto& field = std::make_shared<FieldDecl>(decl, m_typeStack.top());
 				field->SetPointer(m_pointerCounter);
 				m_pointerCounter = 0;
 
@@ -450,7 +466,7 @@ bool Parser::StructOrUnionSpecifier()
 	else {
 		using Specifier = Typedef::RecordType::Specifier;
 
-		auto res = m_recordList[std::make_pair(name, !static_cast<int>(isUnion))];
+		auto& res = m_recordList[std::make_pair(name, !static_cast<int>(isUnion))];
 		if (res == nullptr) {
 			return false;
 		}
@@ -487,7 +503,7 @@ void Parser::SpecifierQualifierList()
 	} while (cont);
 
 	// Append all stacked storage classes and qualifiers onto the value object
-	auto baseType = m_typeStack.top();
+	auto& baseType = m_typeStack.top();
 	for (const auto& tq : tmpTQ) {
 		baseType->SetQualifier(tq);
 	}
@@ -498,7 +514,7 @@ bool Parser::EnumSpecifier()
 	if (MATCH_TOKEN(TK_ENUM)) {
 		NextToken();
 
-		auto enm = std::make_shared<EnumDecl>();
+		auto& enm = std::make_shared<EnumDecl>();
 
 		if (MATCH_TOKEN(TK_IDENTIFIER)) {
 			EMIT_IDENTIFIER();

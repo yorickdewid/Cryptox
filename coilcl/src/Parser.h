@@ -118,7 +118,7 @@ class StateContainer
 {
 	std::stack<size_t> m_snapshopList;
 	std::vector<_Ty> m_tokenList;
-	size_t index = 0;
+	mutable size_t index = 0;
 
 public:
 	StateContainer(size_t reserved_elements = 10)
@@ -164,7 +164,7 @@ public:
 	inline auto IsIndexHead() const { return index == m_tokenList.size(); }
 
 	// Take one step forward
-	inline void ShiftForward()
+	inline void ShiftForward() const
 	{
 		if (m_tokenList.size() > index) {
 			++index;
@@ -172,7 +172,7 @@ public:
 	}
 
 	// Take one step back, but preserve the list
-	inline void ShiftBackward()
+	inline void ShiftBackward() const
 	{
 		if (index > 0) {
 			--index;
@@ -180,7 +180,7 @@ public:
 	}
 
 	// Access token at random position
-	inline auto& operator[](size_t idx)
+	inline auto& operator[](size_t idx) const
 	{
 		return m_tokenList[idx];
 	}

@@ -816,23 +816,6 @@ public:
 
 		return _node;
 	}
-
-	/*FunctionDecl(std::unique_ptr<Value>& value)
-	{
-		assert(value->DataType() == Value::TypeSpecifier::T_CHAR);
-
-		if (value->IsArray()) {
-			identifier = value->As<std::string>();
-		}
-		else {
-			identifier.push_back(value->As<char>());
-		}
-	}
-
-	void ReturnType(std::unique_ptr<ASTNode> rtnVal)
-	{
-		returnType = std::move(rtnVal);
-	}*/
 };
 
 class TranslationUnitDecl

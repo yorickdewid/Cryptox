@@ -8,10 +8,14 @@
 
 #pragma once
 
+#include "UnsupportedOperationException.h"
+
+#include <cassert>
 #include <string>
 #include <memory>
 #include <vector>
 #include <list>
+#include <bitset>
 
 namespace CoilCl
 {
@@ -43,6 +47,8 @@ public:
 public:
 	// Abstract methods
 	virtual const std::string TypeName() const = 0;
+	virtual bool AllowCoalescence() const = 0;
+	virtual void Consolidate(std::shared_ptr<TypedefBase>& type) = 0;
 
 	// Type specifier inputs
 	inline void SetStorageClass(StorageClassSpecifier storageClass) { m_storageClass = storageClass; }
@@ -60,6 +66,16 @@ protected:
 
 class BuiltinType : public TypedefBase
 {
+	enum
+	{
+		NONE,
+		IS_UNSIGNED,
+		IS_SHORT,
+		IS_LONG,
+	};
+
+	std::bitset<4> m_typeOptions;
+
 public:
 	enum class Specifier
 	{
@@ -68,6 +84,8 @@ public:
 		SHORT,
 		INT,
 		LONG,
+		SIGNED,
+		UNSIGNED,
 		FLOAT,
 		DOUBLE,
 		BOOL,
@@ -79,17 +97,54 @@ public:
 	{
 	}
 
-	// Set MSB signness
-	inline void SetUnsigned() { m_isSigned = false; }
-	inline auto Signed() const { return m_isSigned; }
-	inline auto Unsigned() const { return !Signed(); }
+	// Set type options
+	inline auto Unsigned() const { return m_typeOptions.test(IS_UNSIGNED); }
+	inline auto Signed() const { return !Unsigned(); }
+	inline auto Short() const { return m_typeOptions.test(IS_SHORT); }
+	inline auto Long() const { return m_typeOptions.test(IS_LONG); }
 
 	const std::string TypeName() const;
 
+	bool AllowCoalescence() const
+	{
+		switch (m_specifier) {
+		case Specifier::SHORT:
+		case Specifier::INT:
+		case Specifier::LONG:
+		case Specifier::SIGNED:
+		case Specifier::UNSIGNED:
+			return true;
+		default:
+			break;
+		}
+
+		return false;
+	}
+
 	auto TypeSpecifier() const { return m_specifier; }
 
+	void Consolidate(std::shared_ptr<TypedefBase>& type)
+	{
+		assert(type->AllowCoalescence());
+
+		auto& otherType = std::dynamic_pointer_cast<BuiltinType>(type);
+		switch (otherType->TypeSpecifier()) {
+		case Specifier::SIGNED:
+			m_typeOptions.reset(IS_UNSIGNED);
+			break;
+		case Specifier::UNSIGNED:
+			m_typeOptions.set(IS_UNSIGNED);
+			break;
+		case Specifier::SHORT:
+			m_typeOptions.set(IS_SHORT);
+			break;
+		case Specifier::LONG:
+			m_typeOptions.set(IS_LONG);
+			break;
+		}
+	}
+
 private:
-	bool m_isSigned = true;
 	Specifier m_specifier;
 };
 
@@ -116,6 +171,13 @@ public:
 		return (m_specifier == Specifier::UNION ? "union " : "struct ") + m_name;
 	}
 
+	bool AllowCoalescence() const { return false; }
+
+	void Consolidate(std::shared_ptr<TypedefBase>& type)
+	{
+		throw UnsupportedOperationException{ "TypedefType::Consolidate" };
+	}
+
 private:
 	Specifier m_specifier;
 };
@@ -136,6 +198,13 @@ public:
 	{
 		return m_name + ":" + m_resolveType->TypeName();
 	}
+
+	bool AllowCoalescence() const { return false; }
+
+	void Consolidate(std::shared_ptr<TypedefBase>& type)
+	{
+		throw UnsupportedOperationException{ "TypedefType::Consolidate" };
+	}
 };
 
 } // namespace Typedef
@@ -143,14 +212,16 @@ public:
 namespace Util
 {
 
-inline auto MakeBuiltinType(Typedef::BuiltinType::Specifier specifier)
+template<typename... _TyArgs>
+inline auto MakeBuiltinType(_TyArgs&&... args)
 {
-	return std::make_shared<Typedef::BuiltinType>(specifier);
+	return std::make_shared<Typedef::BuiltinType>(std::forward<_TyArgs>(args)...);
 }
 
-inline auto MakeRecordType(const std::string& name, Typedef::RecordType::Specifier specifier)
+template<typename... _TyArgs>
+inline auto MakeRecordType(const std::string& name, _TyArgs&&... args)
 {
-	return std::make_shared<Typedef::RecordType>(name, specifier);
+	return std::make_shared<Typedef::RecordType>(name, args...);
 }
 
 inline auto MakeTypedefType(const std::string& name, std::shared_ptr<Typedef::TypedefBase>& type)
