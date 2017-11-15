@@ -30,6 +30,7 @@ message(STATUS "Crytox release ${${PROJECT_NAME}_VERSION}")
 
 # Options
 option(${${PROJECT_NAME}_ID}_BUILD_BUTEST "Build Boost Unit Test" ON)
+option(${${PROJECT_NAME}_ID}_BUILD_WALL "Build with all warning options" OFF)
 
 # Use solution folders
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
@@ -69,6 +70,16 @@ set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
+# Build sources with additional warnings
+if(${${PROJECT_NAME}_ID}_BUILD_WALL)
+	if(CMAKE_COMPILER_IS_GNUCC)
+		set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -Wall -Wextra")
+	endif()
+	if(MSVC)
+		set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} /W4")
+	endif()
+endif()
+
 set(CMAKE_VERBOSE_MAKEFILE ON)
 set(CMAKE_COLOR_MAKEFILE ON)
 
@@ -92,7 +103,7 @@ add_subdirectory(entropysrv)
 #add_subdirectory(shellasset)
 add_subdirectory(crylib)
 
-if (BUILD_BUTEST)
+if (${${PROJECT_NAME}_ID}_BUILD_BUTEST)
 	message(STATUS "Building with Boost Unit Test")
 	add_subdirectory(butest)
 endif()
