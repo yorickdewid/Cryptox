@@ -68,13 +68,40 @@ class BuiltinType : public TypedefBase
 {
 	enum
 	{
-		NONE,
+		IS_SIGNED,
 		IS_UNSIGNED,
 		IS_SHORT,
 		IS_LONG,
 	};
 
 	std::bitset<4> m_typeOptions;
+
+private:
+	// If specifier matches a type option, set the option bit
+	// and default the type to integer.
+	void SpecifierToOptions()
+	{
+		switch (m_specifier) {
+		case Specifier::SIGNED:
+			m_typeOptions.set(IS_SIGNED);
+			m_typeOptions.reset(IS_UNSIGNED);
+			m_specifier = Specifier::INT;
+			break;
+		case Specifier::UNSIGNED:
+			m_typeOptions.set(IS_UNSIGNED);
+			m_typeOptions.set(IS_SIGNED);
+			m_specifier = Specifier::INT;
+			break;
+		case Specifier::SHORT:
+			m_typeOptions.set(IS_SHORT);
+			m_specifier = Specifier::INT;
+			break;
+		case Specifier::LONG:
+			m_typeOptions.set(IS_LONG);
+			m_specifier = Specifier::INT;
+			break;
+		}
+	}
 
 public:
 	enum class Specifier
@@ -95,6 +122,7 @@ public:
 	BuiltinType(Specifier specifier)
 		: m_specifier{ specifier }
 	{
+		SpecifierToOptions();
 	}
 
 	// Set type options
@@ -105,21 +133,8 @@ public:
 
 	const std::string TypeName() const;
 
-	bool AllowCoalescence() const
-	{
-		switch (m_specifier) {
-		case Specifier::SHORT:
-		case Specifier::INT:
-		case Specifier::LONG:
-		case Specifier::SIGNED:
-		case Specifier::UNSIGNED:
-			return true;
-		default:
-			break;
-		}
-
-		return false;
-	}
+	// If any type options are set, allow type coalescence
+	bool AllowCoalescence() const { return m_typeOptions.any(); }
 
 	auto TypeSpecifier() const { return m_specifier; }
 
@@ -128,20 +143,9 @@ public:
 		assert(type->AllowCoalescence());
 
 		auto& otherType = std::dynamic_pointer_cast<BuiltinType>(type);
-		switch (otherType->TypeSpecifier()) {
-		case Specifier::SIGNED:
-			m_typeOptions.reset(IS_UNSIGNED);
-			break;
-		case Specifier::UNSIGNED:
-			m_typeOptions.set(IS_UNSIGNED);
-			break;
-		case Specifier::SHORT:
-			m_typeOptions.set(IS_SHORT);
-			break;
-		case Specifier::LONG:
-			m_typeOptions.set(IS_LONG);
-			break;
-		}
+		if (otherType->Unsigned()) { m_typeOptions.set(IS_UNSIGNED); }
+		if (otherType->Short()) { m_typeOptions.set(IS_SHORT); }
+		if (otherType->Long()) { m_typeOptions.set(IS_LONG); }
 	}
 
 private:

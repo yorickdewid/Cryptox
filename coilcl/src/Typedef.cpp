@@ -35,21 +35,21 @@ const std::string BuiltinType::TypeName() const
 
 	std::string option;
 	if (m_typeOptions.test(IS_UNSIGNED)) {
-		option = "unsigned ";
+		option += "unsigned ";
 	}
-	else if (m_typeOptions.test(IS_SHORT)) {
-		option = "short ";
+	if (m_typeOptions.test(IS_SHORT)) {
+		option += "short ";
 	}
-	else if (m_typeOptions.test(IS_LONG)) {
-		option = "long ";
+	if (m_typeOptions.test(IS_LONG)) {
+		option += "long ";
 	}
 
 	switch (m_specifier) {
 	case Specifier::VOID:	qualifier += option + "void"; break;
 	case Specifier::CHAR:	qualifier += option + "char"; break;
+	case Specifier::LONG:	qualifier += option + "long"; break;
 	case Specifier::SHORT:	qualifier += option + "short"; break;
 	case Specifier::INT:	qualifier += option + "int"; break;
-	case Specifier::LONG:	qualifier += option + "long"; break;
 	case Specifier::FLOAT:	qualifier += option + "float"; break;
 	case Specifier::DOUBLE:	qualifier += option + "double"; break;
 	case Specifier::BOOL:	qualifier += option + "bool"; break;
