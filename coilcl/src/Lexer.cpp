@@ -386,6 +386,8 @@ void Lexer::LexBlockComment()
 			m_currentLine++;
 			Next();
 			continue;
+		case EndOfUnit:
+			return;
 		default:
 			Next();
 		}
@@ -396,7 +398,7 @@ void Lexer::LexLineComment()
 {
 	do {
 		Next();
-	} while (m_currentChar != '\n');
+	} while (m_currentChar != '\n' && m_currentChar != EndOfUnit);
 }
 
 int Lexer::ReadString(int ndelim)
@@ -408,7 +410,7 @@ int Lexer::ReadString(int ndelim)
 		return -1;
 	}*/
 
-	while (m_currentChar != ndelim) {
+	while (m_currentChar != ndelim && m_currentChar != EndOfUnit) {
 		_longstr.push_back(m_currentChar);
 		Next();
 	}
