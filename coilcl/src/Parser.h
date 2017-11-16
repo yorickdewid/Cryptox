@@ -229,7 +229,14 @@ public:
 	Parser& Execute();
 	Parser& CheckCompatibility();
 
-	std::shared_ptr<TranslationUnitDecl> DumpAST() const { return m_ast; }
+	std::shared_ptr<TranslationUnitDecl> DumpAST() const
+	{
+		if (m_ast == nullptr) {
+			throw CoilCl::Stage<Parser>::StageException{"abstract program is empty"};
+		}
+
+		return m_ast;
+	}
 
 protected:
 	void Error(const char *err, Token token);

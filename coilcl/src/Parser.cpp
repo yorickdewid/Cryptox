@@ -2354,7 +2354,9 @@ void Parser::TranslationUnit()
 Parser& Parser::Execute()
 {
 	NextToken();
-	TranslationUnit();
+	if (!lex.IsDone()) {
+		TranslationUnit();
+	}
 
 	return (*this);
 }

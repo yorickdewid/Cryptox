@@ -1,6 +1,7 @@
 #pragma once
 
 #include <ostream>
+#include <stdexcept>
 
 namespace CoilCl
 {
@@ -32,6 +33,20 @@ struct StageType
 template<typename _Ty>
 struct Stage
 {
+	class StageException : public std::runtime_error
+	{
+	public:
+		StageException(const std::string& message) noexcept
+			: std::runtime_error{ std::string{typeid(_Ty).name()}.erase(0,6) + ": " + message }
+		{
+		}
+
+		virtual const char *what() const noexcept
+		{
+			return std::runtime_error::what();
+		}
+	};
+
 	Stage(_Ty* derived)
 		: m_derived{ derived }
 	{
