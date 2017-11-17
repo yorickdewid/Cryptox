@@ -20,9 +20,6 @@
 
 #define AST_ROOT() m_ast
 
-//TODO: remove EMIT helpers
-#define EMIT_IDENTIFIER() std::cout << "EMIT::IDENTIFIER" << "("<< CURRENT_DATA()->As<std::string>() << ")" << std::endl;
-
 #define MAKE_RESV_REF() std::make_shared<DeclRefExpr>(m_identifierStack.top()); m_identifierStack.pop();
 #define MAKE_BUILTIN_FUNC(n) std::make_shared<BuiltinExpr>(std::make_shared<DeclRefExpr>(n));
 
@@ -410,7 +407,6 @@ bool Parser::StructOrUnionSpecifier()
 
 	std::string name;
 	if (MATCH_TOKEN(TK_IDENTIFIER)) {
-		EMIT_IDENTIFIER();
 		name = CURRENT_DATA()->As<std::string>();
 		NextToken();
 	}
@@ -517,7 +513,6 @@ bool Parser::EnumSpecifier()
 		auto& enm = std::make_shared<EnumDecl>();
 
 		if (MATCH_TOKEN(TK_IDENTIFIER)) {
-			EMIT_IDENTIFIER();
 			enm->SetName(CURRENT_DATA()->As<std::string>());
 			NextToken();
 		}
@@ -527,8 +522,6 @@ bool Parser::EnumSpecifier()
 				NextToken();
 
 				if (MATCH_TOKEN(TK_IDENTIFIER)) {
-					EMIT_IDENTIFIER();
-
 					auto enmConst = std::make_shared<EnumConstantDecl>(CURRENT_DATA()->As<std::string>());
 
 					NextToken();
@@ -803,7 +796,6 @@ void Parser::PrimaryExpression()
 
 	switch (CURRENT_TOKEN()) {
 	case TK_IDENTIFIER:
-		EMIT_IDENTIFIER();
 		m_identifierStack.push(CURRENT_DATA()->As<std::string>());
 		NextToken();
 		break;
@@ -960,7 +952,6 @@ void Parser::PostfixExpression()
 		auto resv = MAKE_RESV_REF();
 
 		NextToken();
-		EMIT_IDENTIFIER();
 		//ExpectIdentifier();
 
 		auto member = CURRENT_DATA()->As<std::string>();
@@ -973,7 +964,6 @@ void Parser::PostfixExpression()
 		auto resv = MAKE_RESV_REF();
 
 		NextToken();
-		EMIT_IDENTIFIER();
 		//ExpectIdentifier();
 
 		auto member = CURRENT_DATA()->As<std::string>();
@@ -1711,7 +1701,6 @@ bool Parser::LabeledStatement()
 		m_comm.Snapshot();
 		try {
 			auto lblName = CURRENT_DATA()->As<std::string>();
-			EMIT_IDENTIFIER();
 			NextToken();
 			ExpectToken(TK_COLON);
 
@@ -2054,7 +2043,6 @@ bool Parser::DirectDeclarator()
 	if (MATCH_TOKEN(TK_IDENTIFIER)) {
 		auto name = CURRENT_DATA()->As<std::string>();
 		m_identifierStack.push(name);
-		EMIT_IDENTIFIER();
 		foundDecl = true;
 		NextToken();
 	}
@@ -2091,8 +2079,6 @@ bool Parser::DirectDeclarator()
 
 					for (;;) {
 						if (MATCH_TOKEN(TK_IDENTIFIER)) {
-							EMIT_IDENTIFIER();
-
 							//TODO
 							/*auto paramDecl = std::make_shared<ParamDecl>(CURRENT_DATA()->As<std::string>());
 							param->AppendParamter(std::dynamic_pointer_cast<ASTNode>(paramDecl));*/
