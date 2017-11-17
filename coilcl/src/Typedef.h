@@ -73,6 +73,8 @@ class BuiltinType : public TypedefBase
 		IS_SHORT,
 		IS_LONG,
 		IS_LONG_LONG,
+		IS_COMPLEX,
+		IS_IMAGINARY,
 	};
 
 	std::bitset<8> m_typeOptions;
@@ -131,6 +133,8 @@ public:
 	inline auto Signed() const { return !Unsigned(); }
 	inline auto Short() const { return m_typeOptions.test(IS_SHORT); }
 	inline auto Long() const { return m_typeOptions.test(IS_LONG); }
+	inline auto Complex() const { return m_typeOptions.test(IS_COMPLEX); }
+	inline auto Imaginary() const { return m_typeOptions.test(IS_IMAGINARY); }
 
 	const std::string TypeName() const;
 
@@ -178,12 +182,12 @@ public:
 	{
 	}
 
-	const std::string TypeName() const
+	const std::string TypeName() const final
 	{
 		return (m_specifier == Specifier::UNION ? "union " : "struct ") + m_name;
 	}
 
-	bool AllowCoalescence() const { return false; }
+	bool AllowCoalescence() const final { return false; }
 
 	void Consolidate(std::shared_ptr<TypedefBase>& type)
 	{
@@ -206,12 +210,12 @@ public:
 	{
 	}
 
-	const std::string TypeName() const
+	const std::string TypeName() const final
 	{
 		return m_name + ":" + m_resolveType->TypeName();
 	}
 
-	bool AllowCoalescence() const { return false; }
+	bool AllowCoalescence() const final { return false; }
 
 	void Consolidate(std::shared_ptr<TypedefBase>& type)
 	{
