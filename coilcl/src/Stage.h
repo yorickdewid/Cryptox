@@ -33,6 +33,8 @@ struct StageType
 template<typename _Ty>
 struct Stage
 {
+	using StageBase = Stage<_Ty>;
+
 	class StageException : public std::runtime_error
 	{
 	public:

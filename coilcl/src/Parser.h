@@ -232,7 +232,7 @@ public:
 	std::shared_ptr<TranslationUnitDecl> DumpAST() const
 	{
 		if (m_ast == nullptr) {
-			throw CoilCl::Stage<Parser>::StageException{"abstract program is empty"};
+			throw StageBase::StageException{"abstract program is empty"};
 		}
 
 		return m_ast;
