@@ -24,6 +24,8 @@ public:
 public:
 	Preprocessor(std::shared_ptr<Compiler::Profile>&);
 
+	std::string Name() const { return "Preprocessor"; }
+
 	Preprocessor& Options(int optionSet)
 	{
 		m_bitset = optionSet;

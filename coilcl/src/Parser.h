@@ -226,13 +226,16 @@ class Parser : public CoilCl::Stage<Parser>
 {
 public:
 	Parser(std::shared_ptr<Compiler::Profile>& profile);
+
+	std::string Name() const { return "Parser"; }
+
 	Parser& Execute();
 	Parser& CheckCompatibility();
 
 	std::shared_ptr<TranslationUnitDecl> DumpAST() const
 	{
 		if (m_ast == nullptr) {
-			throw StageBase::StageException{"abstract program is empty"};
+			throw StageBase::StageException{ Name(), "abstract program is empty" };
 		}
 
 		return m_ast;

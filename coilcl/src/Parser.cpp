@@ -250,9 +250,9 @@ bool Parser::TypeSpecifier()
 		m_typeStack.push(Util::MakeBuiltinType(BuiltinType::Specifier::BOOL));
 		return true;
 	case TK_COMPLEX:
-		throw StageBase::StageException{ "complex types are not supported" };
+		throw StageBase::StageException{ Name(), "complex types are not supported" };
 	case TK_IMAGINARY:
-		throw StageBase::StageException{ "imaginary types are not supported" };
+		throw StageBase::StageException{ Name(), "imaginary types are not supported" };
 	}
 
 	// Check for enum declarations

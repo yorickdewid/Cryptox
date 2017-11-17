@@ -11,6 +11,8 @@ class Semer : public Stage<Semer>
 public:
 	Semer(std::shared_ptr<Compiler::Profile>& profile);
 	
+	std::string Name() const { return "Semer"; }
+
 	template<typename _Ty>
 	Semer& Syntax(_Ty&& ast)
 	{

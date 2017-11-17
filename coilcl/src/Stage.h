@@ -1,6 +1,15 @@
+// Copyright (c) 2017 Quenza Inc. All rights reserved.
+//
+// This file is part of the Cryptox project.
+//
+// Use of this source code is governed by a private license
+// that can be found in the LICENSE file. Content can not be 
+// copied and/or distributed without the express of the author.
+
 #pragma once
 
 #include <ostream>
+#include <string>
 #include <stdexcept>
 
 namespace CoilCl
@@ -35,11 +44,13 @@ struct Stage
 {
 	using StageBase = Stage<_Ty>;
 
+	virtual std::string Name() const = 0;
+
 	class StageException : public std::runtime_error
 	{
 	public:
-		StageException(const std::string& message) noexcept
-			: std::runtime_error{ std::string{typeid(_Ty).name()}.erase(0,6) + ": " + message }
+		StageException(const std::string& name, const std::string& message) noexcept
+			: std::runtime_error{ name + ": " + message }
 		{
 		}
 
