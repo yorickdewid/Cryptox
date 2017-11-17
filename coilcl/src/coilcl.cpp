@@ -17,8 +17,8 @@
 #include <iostream>
 #include <functional>
 
-//TODO: Single namespace
 //TODO: Full C99 parser ruleset
+//TODO: Single namespace
 //TODO: Preprocessing
 //TODO: Checking optimizer and compiler compat options
 //TODO: Debug output
@@ -27,6 +27,7 @@
 // Current compiler limitations
 // - No support for K&R function declarations
 // - Singe translation unit
+// - Lexer does not check on end of literal char or end of string literal
 
 #define SET_HANDLER(n,c) \
 	Compiler& Set##n##Handler(decltype(c) callback) \

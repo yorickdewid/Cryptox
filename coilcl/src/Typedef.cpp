@@ -40,7 +40,10 @@ const std::string BuiltinType::TypeName() const
 	if (m_typeOptions.test(IS_SHORT)) {
 		option += "short ";
 	}
-	if (m_typeOptions.test(IS_LONG)) {
+	if (m_typeOptions.test(IS_LONG_LONG)) {
+		option += "long long ";
+	}
+	else if (m_typeOptions.test(IS_LONG)) {
 		option += "long ";
 	}
 

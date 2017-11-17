@@ -72,9 +72,10 @@ class BuiltinType : public TypedefBase
 		IS_UNSIGNED,
 		IS_SHORT,
 		IS_LONG,
+		IS_LONG_LONG,
 	};
 
-	std::bitset<4> m_typeOptions;
+	std::bitset<8> m_typeOptions;
 
 private:
 	// If specifier matches a type option, set the option bit
@@ -145,7 +146,14 @@ public:
 		auto& otherType = std::dynamic_pointer_cast<BuiltinType>(type);
 		if (otherType->Unsigned()) { m_typeOptions.set(IS_UNSIGNED); }
 		if (otherType->Short()) { m_typeOptions.set(IS_SHORT); }
-		if (otherType->Long()) { m_typeOptions.set(IS_LONG); }
+		if (otherType->Long()) {
+			if (this->Long()) {
+				m_typeOptions.set(IS_LONG_LONG);
+			}
+			else {
+				m_typeOptions.set(IS_LONG);
+			}
+		}
 	}
 
 private:
