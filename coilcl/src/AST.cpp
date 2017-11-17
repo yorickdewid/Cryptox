@@ -2,17 +2,23 @@
 
 #include <iostream>
 
-void ASTNode::Print(int level, bool last)
+void ASTNode::Print(int level, bool last, std::vector<int> ignore)
 {
 	if (level == 0) {
 		std::cout << NodeName() << std::endl;
 	}
 	else {
 		for (size_t i = 0; i < static_cast<size_t>(level) - 1; ++i) {
-			std::cout << "| ";
+			if (std::find(ignore.begin(), ignore.end(), i) == ignore.end()) {
+				std::cout << "| ";
+			}
+			else {
+				std::cout << "  ";
+			}
 		}
 
 		if (last) {
+			ignore.push_back(level - 1);
 			std::cout << "`-" << NodeName() << std::endl;
 		}
 		else {
@@ -22,7 +28,7 @@ void ASTNode::Print(int level, bool last)
 
 	for (auto& weakChild : children) {
 		if (auto delegateChildren = weakChild.lock()) {
-			delegateChildren->Print(level + 1, &weakChild == &children.back());
+			delegateChildren->Print(level + 1, &weakChild == &children.back(), ignore);
 		}
 	}
 }
