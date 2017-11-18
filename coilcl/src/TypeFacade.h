@@ -24,12 +24,13 @@ class TypeFacade
 	size_t m_ptrCount = 0;
 
 public:
-	TypeFacade() = default; //TMP
+	TypeFacade() = default;
 	TypeFacade(std::shared_ptr<Typedef::TypedefBase>& type)
 		: m_type{ type }
 	{
 	}
 
+	inline auto HasValue() const { return m_type != nullptr; }
 	inline auto IsPointer() const { return m_ptrCount > 0; }
 	inline void SetPointer(size_t ptrCount) { m_ptrCount = ptrCount; }
 

@@ -499,7 +499,7 @@ protected:
 	AST::TypeFacade m_returnType;
 
 public:
-	Decl() = default;
+	Decl() = default; //TODO: temp, remove afterwards
 	virtual ~Decl() = 0;
 
 	//TODO: temp, remove afterwards
@@ -739,6 +739,7 @@ class FunctionDecl : public Decl
 	std::shared_ptr<ParamStmt> m_params;
 	std::shared_ptr<CompoundStmt> m_body;
 	std::weak_ptr<FunctionDecl> m_protoRef;
+	std::vector<AST::TypeFacade> m_signature;
 
 	bool m_isPrototype = true;
 	size_t m_useCount = 0;
@@ -797,29 +798,43 @@ public:
 
 	const std::string NodeName() const
 	{
-		std::string _node{ RemoveClassFromName(typeid(FunctionDecl).name()) };
-		_node += " <line:" + std::to_string(line) + ",col:" + std::to_string(col) + "> ";
+		std::stringstream ss;
+		ss << RemoveClassFromName(typeid(FunctionDecl).name());
+		ss << " <line:" << line << ",col:" << col << "> ";
 
 		if (IsPrototypeDefinition()) {
-			_node += "proto ";
+			ss << "proto ";
 		}
+#if 0
 		else if (HasPrototypeDefinition()) {
-			_node += "linked ";
+			ss << "linked ";
 
 			if (m_protoRef.lock()->IsUsed()) {
-				_node += "used ";
+				ss << "used ";
 			}
 		}
 
 		if (IsUsed()) {
-			_node += "used ";
+			ss << "used ";
+		}
+#endif
+
+		ss << m_identifier;
+
+		if (!m_signature.empty()) {
+			ss << " '" << Decl::ReturnType().TypeName() + " (";
+			for (auto& type : m_signature) {
+				ss << type.TypeName();
+			}
+			ss << ")' ";
+		}
+		else {
+			ss<< " '" << Decl::ReturnType().TypeName() << "' ";
 		}
 
-		_node += m_identifier;
-		_node += " '" + Decl::ReturnType().TypeName() + "' ";
-		_node += Decl::ReturnType()->StorageClassName();
+		ss << Decl::ReturnType()->StorageClassName();
 
-		return _node;
+		return ss.str();
 	}
 };
 
@@ -858,24 +873,13 @@ public:
 class Expr : public ASTNode
 {
 protected:
-	std::shared_ptr<Typedef::TypedefBase> m_returnType;
-	size_t m_ptrCount = 0;
+	AST::TypeFacade m_returnType;
 
 public:
 	virtual ~Expr() = 0;
 
-	inline auto IsPointer() const { return m_ptrCount > 0; }
-	inline void SetPointer(size_t ptrCount) { m_ptrCount = ptrCount; }
-
-protected:
-	std::string PointerName() const
-	{
-		if (m_ptrCount == 0) {
-			return "";
-		}
-
-		return " " + std::string(m_ptrCount, '*');
-	}
+	auto& ReturnType() { return m_returnType; }
+	auto& ReturnType() const { return m_returnType; }
 };
 
 class ResolveRefExpr : public Expr
@@ -950,9 +954,9 @@ public:
 		std::string _node{ RemoveClassFromName(typeid(CallExpr).name()) };
 		_node += " <line:" + std::to_string(line) + ",col:" + std::to_string(col) + "> ";
 
-		if (m_returnType) {
-			_node += " '" + Expr::m_returnType->TypeName() + Expr::PointerName() + "' ";
-			_node += Expr::m_returnType->StorageClassName();
+		if (Expr::ReturnType().HasValue()) {
+			_node += " '" + Expr::ReturnType().TypeName() + "' ";
+			_node += Expr::ReturnType()->StorageClassName();
 		}
 
 		return _node;
@@ -1138,37 +1142,37 @@ public:
 
 class IfStmt : public Stmt
 {
-	std::shared_ptr<ASTNode> evalNode;
-	std::shared_ptr<ASTNode> truthStmt;
-	std::shared_ptr<ASTNode> altStmt;
+	std::shared_ptr<ASTNode> m_evalNode;
+	std::shared_ptr<ASTNode> m_truthStmt;
+	std::shared_ptr<ASTNode> m_altStmt;
 
 public:
 	IfStmt(std::shared_ptr<ASTNode>& eval, std::shared_ptr<ASTNode> truth = nullptr, std::shared_ptr<ASTNode> alt = nullptr)
-		: evalNode{ eval }
+		: m_evalNode{ eval }
 	{
 		ASTNode::AppendChild(eval);
 
 		if (truth) {
 			ASTNode::AppendChild(truth);
-			truthStmt = truth;
+			m_truthStmt = truth;
 		}
 
 		if (alt) {
 			ASTNode::AppendChild(alt);
-			altStmt = alt;
+			m_altStmt = alt;
 		}
 	}
 
 	void SetTruthCompound(std::shared_ptr<ASTNode>& node)
 	{
 		ASTNode::AppendChild(node);
-		truthStmt = node;
+		m_truthStmt = node;
 	}
 
 	void SetAltCompound(std::shared_ptr<ASTNode>& node)
 	{
 		ASTNode::AppendChild(node);
-		altStmt = node;
+		m_altStmt = node;
 	}
 
 	virtual const std::string NodeName() const
@@ -1176,11 +1180,11 @@ public:
 		std::string _node{ RemoveClassFromName(typeid(IfStmt).name()) };
 		_node += " <line:" + std::to_string(line) + ",col:" + std::to_string(col) + "> ";
 
-		if (truthStmt == nullptr) {
+		if (m_truthStmt) {
 			_node += "notruth ";
 		}
 
-		if (altStmt == nullptr) {
+		if (m_altStmt == nullptr) {
 			_node += "noalt ";
 		}
 
@@ -1295,7 +1299,6 @@ public:
 
 class BreakStmt : public Stmt
 {
-
 public:
 	BreakStmt()
 	{
