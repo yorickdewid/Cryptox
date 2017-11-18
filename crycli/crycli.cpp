@@ -85,6 +85,19 @@ int main(int argc, const char *argv[])
 				  .style(po::command_line_style::default_style | po::command_line_style::allow_long_disguise)
 				  .run(), vm, true);
 
+		auto usage = [=]
+		{
+			std::stringstream ss;
+			ss << desc;
+			ss << codegen;
+			ss << optim;
+			ss << debug;
+
+			std::string helpMsg = ss.str();
+			boost::algorithm::replace_all(helpMsg, "--", "-");
+			std::cout << helpMsg << std::endl;
+		};
+
 		// Initialize compiler environment
 		Env env = Env::InitBasicEnvironment();
 
@@ -96,15 +109,7 @@ int main(int argc, const char *argv[])
 		// Termination options, either of these 
 		// routines will return after execution
 		if (vm.count("help")) {
-			std::stringstream ss;
-			ss << desc;
-			ss << codegen;
-			ss << optim;
-			ss << debug;
-
-			std::string helpMsg = ss.str();
-			boost::algorithm::replace_all(helpMsg, "--", "-");
-			std::cout << helpMsg << std::endl;
+			usage();
 			return 1;
 		}
 		// Parse input file as source
@@ -142,7 +147,8 @@ int main(int argc, const char *argv[])
 		}
 		// Anything else; we're in trouble
 		else {
-			throw std::exception{};
+			usage();
+			return 1;
 		}
 	}
 	catch (const std::exception& e) {
