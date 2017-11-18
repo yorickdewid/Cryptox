@@ -9,6 +9,7 @@ set(${PROJECT_NAME}_VERSION ${Cryptox_VERSION_MAJOR}.${${PROJECT_NAME}_VERSION_M
 # Project directories
 set(${PROJECT_NAME}_SRC src)
 set(${PROJECT_NAME}_INCLUDE include)
+set(${PROJECT_NAME}_RESOURCE res)
 
 # Options
 option(${Cryptox_ID}_CIL_BUILD_INTERPRETER "Build with interpreter support" ON)
@@ -17,16 +18,19 @@ option(${Cryptox_ID}_CIL_BUILD_VM "Build with VM support" ON)
 # Fetch sources
 file(GLOB ${PROJECT_NAME}_src ${${PROJECT_NAME}_SRC}/*.cpp ${${PROJECT_NAME}_SRC}/*.h)
 file(GLOB ${PROJECT_NAME}_h ${${PROJECT_NAME}_INCLUDE}/*.h)
+file(GLOB ${PROJECT_NAME}_rel ${${PROJECT_NAME}_RESOURCE}/*.rc)
 
 include_directories(${${PROJECT_NAME}_INCLUDE})
 
 add_library(${PROJECT_NAME} SHARED
 	${${PROJECT_NAME}_src}
 	${${PROJECT_NAME}_h}
+    ${${PROJECT_NAME}_rel}
 )
 
-# Public header
+# File groups
 source_group("External Header Files" FILES ${${PROJECT_NAME}_h})
+source_group("Project Related Files" FILES ${${PROJECT_NAME}_rel})
 
 # Define output directories
 set_target_properties(${PROJECT_NAME}
