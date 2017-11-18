@@ -27,7 +27,7 @@
 using namespace CoilCl;
 
 template<typename _Ty>
-std::string RemoveClassFromName(_Ty *_name)
+constexpr std::string RemoveClassFromName(_Ty *_name)
 {
 	constexpr const char stripClassStr[] = "class";
 	std::string f{ _name };
@@ -100,7 +100,7 @@ protected:
 class Operator : public ASTNode
 {
 protected:
-	// return type
+	std::shared_ptr<Typedef::TypedefBase> m_returnType;
 
 public:
 	PRINT_NODE(Operator);
@@ -187,22 +187,27 @@ public:
 		: m_operand{ operand }
 		, m_lhs{ leftSide }
 	{
-		//node->SetParent(NODE_UPCAST(GetSharedSelf()));
-
 		ASTNode::AppendChild(leftSide);
 	}
 
 	void SetRightSide(std::shared_ptr<ASTNode>& node)
 	{
-		//node->SetParent(NODE_UPCAST(GetSharedSelf()));
-
 		ASTNode::AppendChild(node);
 		m_rhs = node;
 	}
 
 	const std::string NodeName() const
 	{
-		return std::string{ RemoveClassFromName(typeid(BinaryOperator).name()) } +" <line:" + std::to_string(line) + ",col:" + std::to_string(col) + "> 'return type' '" + BinOperandStr(m_operand) + "'";
+		std::string _node{ RemoveClassFromName(typeid(BinaryOperator).name()) };
+		_node += " <line:" + std::to_string(line) + ",col:" + std::to_string(col) + "> ";
+
+		if (m_returnType) {
+			_node + "'return type' ";//TODO
+		}
+
+		_node += "'" + std::string{ BinOperandStr(m_operand) } +"'";
+
+		return _node;
 	}
 };
 
@@ -495,6 +500,7 @@ protected:
 
 public:
 	Decl() = default;
+	virtual ~Decl() = 0;
 
 	//TODO: temp, remove afterwards
 	Decl(const std::string& name)
@@ -513,8 +519,6 @@ public:
 	inline void SetPointer(size_t ptrCount) { m_ptrCount = ptrCount; }
 
 	auto Identifier() const { return m_identifier; }
-
-	PRINT_NODE(Decl);
 
 protected:
 	std::string PointerName() const
@@ -559,11 +563,23 @@ public:
 	{
 	}
 
+	ParamDecl(std::shared_ptr<Typedef::TypedefBase> type)
+		: Decl{ "", type }
+	{
+	}
+
 	virtual const std::string NodeName() const
 	{
 		std::string _node{ RemoveClassFromName(typeid(ParamDecl).name()) };
 		_node += " <line:" + std::to_string(line) + ",col:" + std::to_string(col) + "> ";
-		_node += m_identifier;
+
+		if (m_identifier.empty()) {
+			_node += "abstract";
+		}
+		else {
+			_node += m_identifier;
+		}
+
 		_node += " '" + Decl::m_returnType->TypeName() + Decl::PointerName() + "' ";
 		_node += Decl::m_returnType->StorageClassName();
 
@@ -698,7 +714,7 @@ class EnumDecl : public Decl
 
 public:
 	EnumDecl()
-		: Decl{}
+		: Decl{} //TOOD: nope! At least give a name
 	{
 	}
 
@@ -853,10 +869,24 @@ public:
 class Expr : public ASTNode
 {
 protected:
-	// return type
+	std::shared_ptr<Typedef::TypedefBase> m_returnType;
+	size_t m_ptrCount = 0;
 
 public:
-	PRINT_NODE(Expr);
+	virtual ~Expr() = 0;
+
+	inline auto IsPointer() const { return m_ptrCount > 0; }
+	inline void SetPointer(size_t ptrCount) { m_ptrCount = ptrCount; }
+
+protected:
+	std::string PointerName() const
+	{
+		if (m_ptrCount == 0) {
+			return "";
+		}
+
+		return " " + std::string(m_ptrCount, '*');
+	}
 };
 
 class ResolveRefExpr : public Expr
@@ -903,9 +933,8 @@ public:
 		if (IsResolved()) {
 			return std::string{ RemoveClassFromName(typeid(DeclRefExpr).name()) } +" <line:" + std::to_string(line) + ",col:" + std::to_string(col) + "> linked '" + m_ref.lock()->Identifier() + "'";
 		}
-		else {
-			return ResolveRefExpr::NodeName();
-		}
+
+		return ResolveRefExpr::NodeName();
 	}
 };
 
@@ -929,7 +958,15 @@ public:
 
 	const std::string NodeName() const
 	{
-		return std::string{ RemoveClassFromName(typeid(CallExpr).name()) } +" <line:" + std::to_string(line) + ",col:" + std::to_string(col) + "> 'return type'";
+		std::string _node{ RemoveClassFromName(typeid(CallExpr).name()) };
+		_node += " <line:" + std::to_string(line) + ",col:" + std::to_string(col) + "> ";
+
+		if (m_returnType) {
+			_node += " '" + Expr::m_returnType->TypeName() + Expr::PointerName() + "' ";
+			_node += Expr::m_returnType->StorageClassName();
+		}
+
+		return _node;
 	}
 };
 
@@ -1086,14 +1123,8 @@ public:
 class Stmt : public ASTNode
 {
 public:
+	virtual ~Stmt() = 0;
 	PRINT_NODE(Stmt);
-};
-
-//TODO: remove ?
-class NullStmt : public Stmt
-{
-public:
-	PRINT_NODE(NullStmt);
 };
 
 class ContinueStmt : public Stmt

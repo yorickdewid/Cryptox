@@ -2355,6 +2355,15 @@ bool Parser::ParameterDeclaration()
 	}
 
 	AbstractDeclarator();
+
+	auto decl = std::make_shared<ParamDecl>(m_typeStack.top());
+	decl->SetLocation(CURRENT_LOCATION());
+	decl->SetPointer(m_pointerCounter);
+	m_pointerCounter = 0;
+	m_typeStack.pop();
+
+	m_elementDescentPipe.push(decl);
+	m_elementDescentPipe.lock();
 	return true;
 }
 
@@ -2465,7 +2474,10 @@ void Parser::TranslationUnit()
 	} while (!lex.IsDone());
 }
 
-// Run the parser
+// Run the parser. If the translation unit is done after
+// the first token, we either processed an empty file or
+// a source file with only comments and zero tokens. When this
+// occurs, return without any ast root tree
 Parser& Parser::Execute()
 {
 	NextToken();

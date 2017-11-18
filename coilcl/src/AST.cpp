@@ -2,6 +2,11 @@
 
 #include <iostream>
 
+// Implement abstract class dtor
+Decl::~Decl() {}
+Expr::~Expr() {}
+Stmt::~Stmt() {}
+
 void ASTNode::Print(int level, bool last, std::vector<int> ignore)
 {
 	if (level == 0) {
