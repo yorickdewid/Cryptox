@@ -79,6 +79,8 @@ public:
 
 	// Fetch source column from current token state
 	inline auto FetchColumn() const { return m_column; }
+
+	inline auto FetchLocation() const { return std::make_pair(m_line, m_column); }
 };
 
 template<typename _Ty>

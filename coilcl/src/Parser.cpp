@@ -15,13 +15,13 @@
 #define CURRENT_DATA() m_comm.Current().FetchData()
 #define PREVIOUS_TOKEN() m_comm.Previous().FetchToken()
 #define CURRENT_TOKEN() m_comm.Current().FetchToken()
+#define CURRENT_LOCATION() m_comm.Current().FetchLocation()
 #define MATCH_TOKEN(t) (CURRENT_TOKEN() == t)
 #define NOT_TOKEN(t) (CURRENT_TOKEN() != t)
 
 #define AST_ROOT() m_ast
 
 #define MAKE_RESV_REF() std::make_shared<DeclRefExpr>(m_identifierStack.top()); m_identifierStack.pop();
-#define MAKE_BUILTIN_FUNC(n) std::make_shared<BuiltinExpr>(std::make_shared<DeclRefExpr>(n));
 
 class UnexpectedTokenException : public std::exception
 {
@@ -415,7 +415,8 @@ bool Parser::StructOrUnionSpecifier()
 		using RecType = RecordDecl::RecordType;
 
 		NextToken();
-		auto& rec = std::make_shared<RecordDecl>(isUnion ? RecType::UNION : RecType::STRUCT);
+		auto rec = std::make_shared<RecordDecl>(isUnion ? RecType::UNION : RecType::STRUCT);
+		rec->SetLocation(CURRENT_LOCATION());
 
 		if (!name.empty()) {
 			rec->SetName(name);
@@ -430,7 +431,8 @@ bool Parser::StructOrUnionSpecifier()
 
 				auto& decl = m_identifierStack.top();
 				m_identifierStack.pop();
-				auto& field = std::make_shared<FieldDecl>(decl, m_typeStack.top());
+				auto field = std::make_shared<FieldDecl>(decl, m_typeStack.top());
+				field->SetLocation(CURRENT_LOCATION());
 				field->SetPointer(m_pointerCounter);
 				m_pointerCounter = 0;
 
@@ -510,7 +512,8 @@ bool Parser::EnumSpecifier()
 	if (MATCH_TOKEN(TK_ENUM)) {
 		NextToken();
 
-		auto& enm = std::make_shared<EnumDecl>();
+		auto enm = std::make_shared<EnumDecl>();
+		enm->SetLocation(CURRENT_LOCATION());
 
 		if (MATCH_TOKEN(TK_IDENTIFIER)) {
 			enm->SetName(CURRENT_DATA()->As<std::string>());
@@ -523,6 +526,7 @@ bool Parser::EnumSpecifier()
 
 				if (MATCH_TOKEN(TK_IDENTIFIER)) {
 					auto enmConst = std::make_shared<EnumConstantDecl>(CURRENT_DATA()->As<std::string>());
+					enmConst->SetLocation(CURRENT_LOCATION());
 
 					NextToken();
 					if (MATCH_TOKEN(TK_ASSIGN)) {
@@ -561,6 +565,7 @@ bool Parser::UnaryOperator()
 		auto resv = m_elementDescentPipe.next();
 		m_elementDescentPipe.pop();
 		auto unaryOp = std::make_shared<CoilCl::AST::UnaryOperator>(CoilCl::AST::UnaryOperator::UnaryOperator::ADDR, CoilCl::AST::UnaryOperator::OperandSide::PREFIX, resv);
+		unaryOp->SetLocation(CURRENT_LOCATION());
 		m_elementDescentPipe.push(unaryOp);
 		break;
 	}
@@ -572,6 +577,7 @@ bool Parser::UnaryOperator()
 		auto resv = m_elementDescentPipe.next();
 		m_elementDescentPipe.pop();
 		auto unaryOp = std::make_shared<CoilCl::AST::UnaryOperator>(CoilCl::AST::UnaryOperator::UnaryOperator::PTRVAL, CoilCl::AST::UnaryOperator::OperandSide::PREFIX, resv);
+		unaryOp->SetLocation(CURRENT_LOCATION());
 		m_elementDescentPipe.push(unaryOp);
 		break;
 	}
@@ -583,6 +589,7 @@ bool Parser::UnaryOperator()
 		auto resv = m_elementDescentPipe.next();
 		m_elementDescentPipe.pop();
 		auto unaryOp = std::make_shared<CoilCl::AST::UnaryOperator>(CoilCl::AST::UnaryOperator::UnaryOperator::INTPOS, CoilCl::AST::UnaryOperator::OperandSide::PREFIX, resv);
+		unaryOp->SetLocation(CURRENT_LOCATION());
 		m_elementDescentPipe.push(unaryOp);
 		break;
 	}
@@ -594,6 +601,7 @@ bool Parser::UnaryOperator()
 		auto resv = m_elementDescentPipe.next();
 		m_elementDescentPipe.pop();
 		auto unaryOp = std::make_shared<CoilCl::AST::UnaryOperator>(CoilCl::AST::UnaryOperator::UnaryOperator::INTNEG, CoilCl::AST::UnaryOperator::OperandSide::PREFIX, resv);
+		unaryOp->SetLocation(CURRENT_LOCATION());
 		m_elementDescentPipe.push(unaryOp);
 		break;
 	}
@@ -605,6 +613,7 @@ bool Parser::UnaryOperator()
 		auto resv = m_elementDescentPipe.next();
 		m_elementDescentPipe.pop();
 		auto unaryOp = std::make_shared<CoilCl::AST::UnaryOperator>(CoilCl::AST::UnaryOperator::UnaryOperator::BITNOT, CoilCl::AST::UnaryOperator::OperandSide::PREFIX, resv);
+		unaryOp->SetLocation(CURRENT_LOCATION());
 		m_elementDescentPipe.push(unaryOp);
 		break;
 	}
@@ -616,6 +625,7 @@ bool Parser::UnaryOperator()
 		auto resv = m_elementDescentPipe.next();
 		m_elementDescentPipe.pop();
 		auto unaryOp = std::make_shared<CoilCl::AST::UnaryOperator>(CoilCl::AST::UnaryOperator::UnaryOperator::BOOLNOT, CoilCl::AST::UnaryOperator::OperandSide::PREFIX, resv);
+		unaryOp->SetLocation(CURRENT_LOCATION());
 		m_elementDescentPipe.push(unaryOp);
 		break;
 	}
@@ -632,6 +642,7 @@ bool Parser::AssignmentOperator()
 	case TK_ASSIGN:
 	{
 		auto binOp = std::make_shared<BinaryOperator>(BinaryOperator::BinOperand::ASSGN, m_elementDescentPipe.next());
+		binOp->SetLocation(CURRENT_LOCATION());
 		m_elementDescentPipe.pop();
 
 		NextToken();
@@ -646,6 +657,7 @@ bool Parser::AssignmentOperator()
 	{
 		auto resv = std::dynamic_pointer_cast<DeclRefExpr>(m_elementDescentPipe.next());
 		auto comOp = std::make_shared<CompoundAssignOperator>(CompoundAssignOperator::CompoundAssignOperand::MUL, resv);
+		comOp->SetLocation(CURRENT_LOCATION());
 		m_elementDescentPipe.pop();
 
 		NextToken();
@@ -660,6 +672,7 @@ bool Parser::AssignmentOperator()
 	{
 		auto resv = std::dynamic_pointer_cast<DeclRefExpr>(m_elementDescentPipe.next());
 		auto comOp = std::make_shared<CompoundAssignOperator>(CompoundAssignOperator::CompoundAssignOperand::DIV, resv);
+		comOp->SetLocation(CURRENT_LOCATION());
 		m_elementDescentPipe.pop();
 
 		NextToken();
@@ -674,6 +687,7 @@ bool Parser::AssignmentOperator()
 	{
 		auto resv = std::dynamic_pointer_cast<DeclRefExpr>(m_elementDescentPipe.next());
 		auto comOp = std::make_shared<CompoundAssignOperator>(CompoundAssignOperator::CompoundAssignOperand::MOD, resv);
+		comOp->SetLocation(CURRENT_LOCATION());
 		m_elementDescentPipe.pop();
 
 		NextToken();
@@ -688,6 +702,7 @@ bool Parser::AssignmentOperator()
 	{
 		auto resv = std::dynamic_pointer_cast<DeclRefExpr>(m_elementDescentPipe.next());
 		auto comOp = std::make_shared<CompoundAssignOperator>(CompoundAssignOperator::CompoundAssignOperand::ADD, resv);
+		comOp->SetLocation(CURRENT_LOCATION());
 		m_elementDescentPipe.pop();
 
 		NextToken();
@@ -702,6 +717,7 @@ bool Parser::AssignmentOperator()
 	{
 		auto resv = std::dynamic_pointer_cast<DeclRefExpr>(m_elementDescentPipe.next());
 		auto comOp = std::make_shared<CompoundAssignOperator>(CompoundAssignOperator::CompoundAssignOperand::SUB, resv);
+		comOp->SetLocation(CURRENT_LOCATION());
 		m_elementDescentPipe.pop();
 
 		NextToken();
@@ -716,6 +732,7 @@ bool Parser::AssignmentOperator()
 	{
 		auto resv = std::dynamic_pointer_cast<DeclRefExpr>(m_elementDescentPipe.next());
 		auto comOp = std::make_shared<CompoundAssignOperator>(CompoundAssignOperator::CompoundAssignOperand::LEFT, resv);
+		comOp->SetLocation(CURRENT_LOCATION());
 		m_elementDescentPipe.pop();
 
 		m_elementDescentPipe.pop();
@@ -731,6 +748,7 @@ bool Parser::AssignmentOperator()
 	{
 		auto resv = std::dynamic_pointer_cast<DeclRefExpr>(m_elementDescentPipe.next());
 		auto comOp = std::make_shared<CompoundAssignOperator>(CompoundAssignOperator::CompoundAssignOperand::RIGHT, resv);
+		comOp->SetLocation(CURRENT_LOCATION());
 		m_elementDescentPipe.pop();
 
 		NextToken();
@@ -745,6 +763,7 @@ bool Parser::AssignmentOperator()
 	{
 		auto resv = std::dynamic_pointer_cast<DeclRefExpr>(m_elementDescentPipe.next());
 		auto comOp = std::make_shared<CompoundAssignOperator>(CompoundAssignOperator::CompoundAssignOperand::AND, resv);
+		comOp->SetLocation(CURRENT_LOCATION());
 		m_elementDescentPipe.pop();
 
 		NextToken();
@@ -759,6 +778,7 @@ bool Parser::AssignmentOperator()
 	{
 		auto resv = std::dynamic_pointer_cast<DeclRefExpr>(m_elementDescentPipe.next());
 		auto comOp = std::make_shared<CompoundAssignOperator>(CompoundAssignOperator::CompoundAssignOperand::XOR, resv);
+		comOp->SetLocation(CURRENT_LOCATION());
 		m_elementDescentPipe.pop();
 
 		NextToken();
@@ -773,6 +793,7 @@ bool Parser::AssignmentOperator()
 	{
 		auto resv = std::dynamic_pointer_cast<DeclRefExpr>(m_elementDescentPipe.next());
 		auto comOp = std::make_shared<CompoundAssignOperator>(CompoundAssignOperator::CompoundAssignOperand::OR, resv);
+		comOp->SetLocation(CURRENT_LOCATION());
 		m_elementDescentPipe.pop();
 
 		NextToken();
@@ -805,24 +826,32 @@ void Parser::PrimaryExpression()
 		case BuiltinType::Specifier::INT:
 		{
 			auto object = std::dynamic_pointer_cast<ValueObject<int>>(CURRENT_DATA());
-			m_elementDescentPipe.push(std::make_shared<IntegerLiteral>(std::move(object)));
+			auto literal = std::make_shared<IntegerLiteral>(std::move(object));
+			literal->SetLocation(CURRENT_LOCATION());
+			m_elementDescentPipe.push(literal);
 			break;
 		}
 		case BuiltinType::Specifier::DOUBLE:
 		{
 			auto object = std::dynamic_pointer_cast<ValueObject<double>>(CURRENT_DATA());
-			m_elementDescentPipe.push(std::make_shared<FloatingLiteral>(std::move(object)));
+			auto literal = std::make_shared<FloatingLiteral>(std::move(object));
+			literal->SetLocation(CURRENT_LOCATION());
+			m_elementDescentPipe.push(literal);
 			break;
 		}
 		case BuiltinType::Specifier::CHAR:
 		{
 			if (CURRENT_DATA()->IsArray()) {
 				auto object = std::dynamic_pointer_cast<ValueObject<std::string>>(CURRENT_DATA());
-				m_elementDescentPipe.push(std::make_shared<StringLiteral>(std::move(object)));
+				auto literal = std::make_shared<StringLiteral>(std::move(object));
+				literal->SetLocation(CURRENT_LOCATION());
+				m_elementDescentPipe.push(literal);
 			}
 			else {
 				auto object = std::dynamic_pointer_cast<ValueObject<char>>(CURRENT_DATA());
-				m_elementDescentPipe.push(std::make_shared<CharacterLiteral>(std::move(object)));
+				auto literal = std::make_shared<CharacterLiteral>(std::move(object));
+				literal->SetLocation(CURRENT_LOCATION());
+				m_elementDescentPipe.push(literal);
 			}
 			break;
 		}
@@ -835,6 +864,7 @@ void Parser::PrimaryExpression()
 		Expression();
 
 		auto parenthesis = std::make_shared<ParenExpr>(m_elementDescentPipe.next());
+		parenthesis->SetLocation(CURRENT_LOCATION());
 		m_elementDescentPipe.pop();
 		m_elementDescentPipe.push(parenthesis);
 		ExpectToken(TK_PARENTHESE_CLOSE);
@@ -873,6 +903,7 @@ void Parser::CompoundLiteral()
 			m_comm.DisposeSnapshot();
 
 			auto list = std::make_shared<InitListExpr>();
+			list->SetLocation(CURRENT_LOCATION());
 
 			for (;;) {
 				Initializer();
@@ -888,7 +919,9 @@ void Parser::CompoundLiteral()
 			}
 			ExpectToken(TK_BRACE_CLOSE);
 
-			m_elementDescentPipe.push(std::make_shared<CompoundLiteralExpr>(list));
+			auto comp = std::make_shared<CompoundLiteralExpr>(list);
+			comp->SetLocation(CURRENT_LOCATION());
+			m_elementDescentPipe.push(comp);
 		}
 
 		// Cannot cast, rollback the command state
@@ -912,11 +945,13 @@ void Parser::PostfixExpression()
 		NextToken();
 
 		auto resv = MAKE_RESV_REF();
+		resv->SetLocation(CURRENT_LOCATION());
 
 		Expression();
 		ExpectToken(TK_BRACKET_CLOSE);
 
 		auto arrsub = std::make_shared<ArraySubscriptExpr>(resv, m_elementDescentPipe.next());
+		arrsub->SetLocation(CURRENT_LOCATION());
 		m_elementDescentPipe.pop();
 		m_elementDescentPipe.push(arrsub);
 		break;
@@ -926,10 +961,13 @@ void Parser::PostfixExpression()
 		NextToken();
 
 		auto resv = MAKE_RESV_REF();
+		resv->SetLocation(CURRENT_LOCATION());
 
 		if (MATCH_TOKEN(TK_PARENTHESE_CLOSE)) {
 			NextToken();
-			m_elementDescentPipe.push(std::make_shared<CallExpr>(resv));
+			auto call = std::make_shared<CallExpr>(resv);
+			call->SetLocation(CURRENT_LOCATION());
+			m_elementDescentPipe.push(call);
 		}
 		else {
 			auto startState = m_elementDescentPipe.state();
@@ -938,36 +976,45 @@ void Parser::PostfixExpression()
 			ExpectToken(TK_PARENTHESE_CLOSE);
 
 			auto arg = std::make_shared<ArgumentStmt>();
+			arg->SetLocation(CURRENT_LOCATION());
 			while (!m_elementDescentPipe.empty()) {
 				arg->AppendArgument(m_elementDescentPipe.next());
 				m_elementDescentPipe.pop();
 			}
 
-			m_elementDescentPipe.push(std::make_shared<CallExpr>(resv, arg));
+			auto call = std::make_shared<CallExpr>(resv, arg);
+			call->SetLocation(CURRENT_LOCATION());
+			m_elementDescentPipe.push(call);
 		}
 		break;
 	}
 	case TK_DOT:
 	{
 		auto resv = MAKE_RESV_REF();
+		resv->SetLocation(CURRENT_LOCATION());
 
 		NextToken();
 		//ExpectIdentifier();
 
 		auto member = CURRENT_DATA()->As<std::string>();
-		m_elementDescentPipe.push(std::make_shared<MemberExpr>(MemberExpr::MemberType::REFERENCE, member, resv));
+		auto expr = std::make_shared<MemberExpr>(MemberExpr::MemberType::REFERENCE, member, resv);
+		expr->SetLocation(CURRENT_LOCATION());
+		m_elementDescentPipe.push(expr);
 		NextToken();
 		break;
 	}
 	case TK_PTR_OP:
 	{
 		auto resv = MAKE_RESV_REF();
+		resv->SetLocation(CURRENT_LOCATION());
 
 		NextToken();
 		//ExpectIdentifier();
 
 		auto member = CURRENT_DATA()->As<std::string>();
-		m_elementDescentPipe.push(std::make_shared<MemberExpr>(MemberExpr::MemberType::POINTER, member, resv));
+		auto expr = std::make_shared<MemberExpr>(MemberExpr::MemberType::POINTER, member, resv);
+		expr->SetLocation(CURRENT_LOCATION());
+		m_elementDescentPipe.push(expr);
 		NextToken();
 		break;
 	}
@@ -978,7 +1025,9 @@ void Parser::PostfixExpression()
 		}
 
 		auto resv = MAKE_RESV_REF();
+		resv->SetLocation(CURRENT_LOCATION());
 		auto unaryOp = std::make_shared<CoilCl::AST::UnaryOperator>(CoilCl::AST::UnaryOperator::UnaryOperator::INC, CoilCl::AST::UnaryOperator::OperandSide::POSTFIX, std::dynamic_pointer_cast<ASTNode>(resv));
+		unaryOp->SetLocation(CURRENT_LOCATION());
 		m_elementDescentPipe.push(unaryOp);
 
 		NextToken();
@@ -991,7 +1040,9 @@ void Parser::PostfixExpression()
 		}
 
 		auto resv = MAKE_RESV_REF();
+		resv->SetLocation(CURRENT_LOCATION());
 		auto unaryOp = std::make_shared<CoilCl::AST::UnaryOperator>(CoilCl::AST::UnaryOperator::UnaryOperator::DEC, CoilCl::AST::UnaryOperator::OperandSide::POSTFIX, std::dynamic_pointer_cast<ASTNode>(resv));
+		unaryOp->SetLocation(CURRENT_LOCATION());
 		m_elementDescentPipe.push(unaryOp);
 
 		NextToken();
@@ -1005,6 +1056,7 @@ void Parser::PostfixExpression()
 		if (m_identifierStack.size() > startSz) {
 			if (m_typedefList[m_identifierStack.top()] == nullptr) {
 				auto resv = MAKE_RESV_REF();
+				resv->SetLocation(CURRENT_LOCATION());
 				m_elementDescentPipe.push(resv);
 			}
 			// Identifier is typedef specifier, shift back and pop identifier
@@ -1032,6 +1084,7 @@ void Parser::UnaryExpression()
 		}*/
 
 		auto unaryOp = std::make_shared<CoilCl::AST::UnaryOperator>(CoilCl::AST::UnaryOperator::UnaryOperator::INC, CoilCl::AST::UnaryOperator::OperandSide::PREFIX, m_elementDescentPipe.next());
+		unaryOp->SetLocation(CURRENT_LOCATION());
 		m_elementDescentPipe.pop();
 		m_elementDescentPipe.push(unaryOp);
 
@@ -1047,6 +1100,7 @@ void Parser::UnaryExpression()
 		}*/
 
 		auto unaryOp = std::make_shared<CoilCl::AST::UnaryOperator>(CoilCl::AST::UnaryOperator::UnaryOperator::DEC, CoilCl::AST::UnaryOperator::OperandSide::PREFIX, m_elementDescentPipe.next());
+		unaryOp->SetLocation(CURRENT_LOCATION());
 		m_elementDescentPipe.pop();
 		m_elementDescentPipe.push(unaryOp);
 
@@ -1055,7 +1109,11 @@ void Parser::UnaryExpression()
 	case TK_SIZEOF:
 	{
 		NextToken();
-		auto func = MAKE_BUILTIN_FUNC("sizeof");
+
+		auto ref = std::make_shared<DeclRefExpr>("sizeof");
+		ref->SetLocation(CURRENT_LOCATION());
+		auto func = std::make_shared<BuiltinExpr>(ref);
+		func->SetLocation(CURRENT_LOCATION());
 
 		// Snapshot current state in case of rollback
 		m_comm.Snapshot();
@@ -1111,6 +1169,7 @@ void Parser::CastExpression()
 			m_comm.DisposeSnapshot();
 
 			auto cast = std::make_shared<CastExpr>(m_elementDescentPipe.next());
+			cast->SetLocation(CURRENT_LOCATION());
 			m_elementDescentPipe.pop();
 			m_elementDescentPipe.push(cast);
 			return;
@@ -1132,6 +1191,7 @@ void Parser::MultiplicativeExpression()
 	case TK_ASTERISK:
 	{
 		auto binOp = std::make_shared<BinaryOperator>(BinaryOperator::BinOperand::MUL, m_elementDescentPipe.next());
+		binOp->SetLocation(CURRENT_LOCATION());
 		m_elementDescentPipe.pop();
 
 		NextToken();
@@ -1145,6 +1205,7 @@ void Parser::MultiplicativeExpression()
 	case TK_SLASH:
 	{
 		auto binOp = std::make_shared<BinaryOperator>(BinaryOperator::BinOperand::DIV, m_elementDescentPipe.next());
+		binOp->SetLocation(CURRENT_LOCATION());
 		m_elementDescentPipe.pop();
 
 		NextToken();
@@ -1158,6 +1219,7 @@ void Parser::MultiplicativeExpression()
 	case TK_PERCENT:
 	{
 		auto binOp = std::make_shared<BinaryOperator>(BinaryOperator::BinOperand::MOD, m_elementDescentPipe.next());
+		binOp->SetLocation(CURRENT_LOCATION());
 		m_elementDescentPipe.pop();
 
 		NextToken();
@@ -1179,6 +1241,7 @@ void Parser::AdditiveExpression()
 	case TK_PLUS:
 	{
 		auto binOp = std::make_shared<BinaryOperator>(BinaryOperator::BinOperand::PLUS, m_elementDescentPipe.next());
+		binOp->SetLocation(CURRENT_LOCATION());
 		m_elementDescentPipe.pop();
 
 		NextToken();
@@ -1192,6 +1255,7 @@ void Parser::AdditiveExpression()
 	case TK_MINUS:
 	{
 		auto binOp = std::make_shared<BinaryOperator>(BinaryOperator::BinOperand::MINUS, m_elementDescentPipe.next());
+		binOp->SetLocation(CURRENT_LOCATION());
 		m_elementDescentPipe.pop();
 
 		NextToken();
@@ -1213,6 +1277,7 @@ void Parser::ShiftExpression()
 	case TK_LEFT_OP:
 	{
 		auto binOp = std::make_shared<BinaryOperator>(BinaryOperator::BinOperand::SLEFT, m_elementDescentPipe.next());
+		binOp->SetLocation(CURRENT_LOCATION());
 		m_elementDescentPipe.pop();
 
 		NextToken();
@@ -1226,6 +1291,7 @@ void Parser::ShiftExpression()
 	case TK_RIGHT_OP:
 	{
 		auto binOp = std::make_shared<BinaryOperator>(BinaryOperator::BinOperand::SRIGHT, m_elementDescentPipe.next());
+		binOp->SetLocation(CURRENT_LOCATION());
 		m_elementDescentPipe.pop();
 
 		NextToken();
@@ -1247,6 +1313,7 @@ void Parser::RelationalExpression()
 	case TK_LESS_THAN:
 	{
 		auto binOp = std::make_shared<BinaryOperator>(BinaryOperator::BinOperand::LT, m_elementDescentPipe.next());
+		binOp->SetLocation(CURRENT_LOCATION());
 		m_elementDescentPipe.pop();
 
 		NextToken();
@@ -1260,6 +1327,7 @@ void Parser::RelationalExpression()
 	case TK_GREATER_THAN:
 	{
 		auto binOp = std::make_shared<BinaryOperator>(BinaryOperator::BinOperand::GT, m_elementDescentPipe.next());
+		binOp->SetLocation(CURRENT_LOCATION());
 		m_elementDescentPipe.pop();
 
 		NextToken();
@@ -1273,6 +1341,7 @@ void Parser::RelationalExpression()
 	case TK_LE_OP:
 	{
 		auto binOp = std::make_shared<BinaryOperator>(BinaryOperator::BinOperand::LE, m_elementDescentPipe.next());
+		binOp->SetLocation(CURRENT_LOCATION());
 		m_elementDescentPipe.pop();
 
 		NextToken();
@@ -1286,6 +1355,7 @@ void Parser::RelationalExpression()
 	case TK_GE_OP:
 	{
 		auto binOp = std::make_shared<BinaryOperator>(BinaryOperator::BinOperand::GE, m_elementDescentPipe.next());
+		binOp->SetLocation(CURRENT_LOCATION());
 		m_elementDescentPipe.pop();
 
 		NextToken();
@@ -1307,6 +1377,7 @@ void Parser::EqualityExpression()
 	case TK_EQ_OP:
 	{
 		auto binOp = std::make_shared<BinaryOperator>(BinaryOperator::BinOperand::EQ, m_elementDescentPipe.next());
+		binOp->SetLocation(CURRENT_LOCATION());
 		m_elementDescentPipe.pop();
 
 		NextToken();
@@ -1320,6 +1391,7 @@ void Parser::EqualityExpression()
 	case TK_NE_OP:
 	{
 		auto binOp = std::make_shared<BinaryOperator>(BinaryOperator::BinOperand::NEQ, m_elementDescentPipe.next());
+		binOp->SetLocation(CURRENT_LOCATION());
 		m_elementDescentPipe.pop();
 
 		NextToken();
@@ -1339,6 +1411,7 @@ void Parser::AndExpression()
 
 	if (MATCH_TOKEN(TK_AMPERSAND)) {
 		auto binOp = std::make_shared<BinaryOperator>(BinaryOperator::BinOperand::AND, m_elementDescentPipe.next());
+		binOp->SetLocation(CURRENT_LOCATION());
 		m_elementDescentPipe.pop();
 
 		NextToken();
@@ -1356,6 +1429,7 @@ void Parser::ExclusiveOrExpression()
 
 	if (MATCH_TOKEN(TK_CARET)) {
 		auto binOp = std::make_shared<BinaryOperator>(BinaryOperator::BinOperand::XOR, m_elementDescentPipe.next());
+		binOp->SetLocation(CURRENT_LOCATION());
 		m_elementDescentPipe.pop();
 
 		NextToken();
@@ -1373,6 +1447,7 @@ void Parser::LogicalAndExpression()
 
 	if (MATCH_TOKEN(TK_AND_OP)) {
 		auto binOp = std::make_shared<BinaryOperator>(BinaryOperator::BinOperand::LAND, m_elementDescentPipe.next());
+		binOp->SetLocation(CURRENT_LOCATION());
 		m_elementDescentPipe.pop();
 
 		NextToken();
@@ -1390,6 +1465,7 @@ void Parser::LogicalOrExpression()
 
 	if (MATCH_TOKEN(TK_OR_OP)) {
 		auto binOp = std::make_shared<BinaryOperator>(BinaryOperator::BinOperand::LOR, m_elementDescentPipe.next());
+		binOp->SetLocation(CURRENT_LOCATION());
 		m_elementDescentPipe.pop();
 
 		NextToken();
@@ -1407,6 +1483,7 @@ void Parser::ConditionalExpression()
 
 	if (MATCH_TOKEN(TK_QUESTION_MARK)) {
 		auto conOp = std::make_shared<ConditionalOperator>(m_elementDescentPipe.next());
+		conOp->SetLocation(CURRENT_LOCATION());
 		m_elementDescentPipe.pop();
 
 		NextToken();
@@ -1453,30 +1530,46 @@ bool Parser::JumpStatement()
 {
 	switch (CURRENT_TOKEN()) {
 	case TK_GOTO:
+	{
 		NextToken();
 
 		//ExpectIdentifier();//XXX: possible optimization
 
-		m_elementDescentPipe.push(std::make_shared<GotoStmt>(CURRENT_DATA()->As<std::string>()));
+		auto stmt = std::make_shared<GotoStmt>(CURRENT_DATA()->As<std::string>());
+		stmt->SetLocation(CURRENT_LOCATION());
+		m_elementDescentPipe.push(stmt);
 		NextToken();
 		break;
+	}
 	case TK_CONTINUE:
+	{
 		NextToken();
-		m_elementDescentPipe.push(std::make_shared<ContinueStmt>());
+		auto stmt = std::make_shared<ContinueStmt>();
+		stmt->SetLocation(CURRENT_LOCATION());
+		m_elementDescentPipe.push(stmt);
 		break;
+	}
 	case TK_BREAK:
+	{
 		NextToken();
-		m_elementDescentPipe.push(std::make_shared<BreakStmt>());
+		auto stmt = std::make_shared<BreakStmt>();
+		stmt->SetLocation(CURRENT_LOCATION());
+		m_elementDescentPipe.push(stmt);
 		break;
+	}
 	case TK_RETURN:
+	{
 		NextToken();
 		if (MATCH_TOKEN(TK_COMMIT)) {
-			m_elementDescentPipe.push(std::make_shared<ReturnStmt>());
+			auto stmt = std::make_shared<ReturnStmt>();
+			stmt->SetLocation(CURRENT_LOCATION());
+			m_elementDescentPipe.push(stmt);
 		}
 		else {
 			Expression();
 
 			auto returnStmt = std::make_shared<ReturnStmt>();
+			returnStmt->SetLocation(CURRENT_LOCATION());
 			while (!m_elementDescentPipe.empty()) {
 				returnStmt->SetReturnNode(m_elementDescentPipe.next());
 				m_elementDescentPipe.pop();
@@ -1485,6 +1578,7 @@ bool Parser::JumpStatement()
 			m_elementDescentPipe.push(returnStmt);
 		}
 		break;
+	}
 	default:
 		return false;
 	}
@@ -1502,18 +1596,19 @@ bool Parser::IterationStatement()
 		NextToken();
 		ExpectToken(TK_PARENTHESE_OPEN);
 		Expression();
-		auto whlstmt = std::make_shared<WhileStmt>(m_elementDescentPipe.next());
+		auto stmt = std::make_shared<WhileStmt>(m_elementDescentPipe.next());
+		stmt->SetLocation(CURRENT_LOCATION());
 		ExpectToken(TK_PARENTHESE_CLOSE);
 		m_elementDescentPipe.pop();
 
 		Statement();
 
 		if (!m_elementDescentPipe.empty()) {
-			whlstmt->SetBody(m_elementDescentPipe.next());
+			stmt->SetBody(m_elementDescentPipe.next());
 			m_elementDescentPipe.pop();
 		}
 
-		m_elementDescentPipe.push(whlstmt);
+		m_elementDescentPipe.push(stmt);
 		return true;
 	}
 	case TK_DO:
@@ -1521,7 +1616,8 @@ bool Parser::IterationStatement()
 		NextToken();
 		Statement();
 
-		auto dostmt = std::make_shared<DoStmt>(m_elementDescentPipe.next());
+		auto stmt = std::make_shared<DoStmt>(m_elementDescentPipe.next());
+		stmt->SetLocation(CURRENT_LOCATION());
 		m_elementDescentPipe.pop();
 
 		ExpectToken(TK_WHILE);
@@ -1530,9 +1626,9 @@ bool Parser::IterationStatement()
 		ExpectToken(TK_PARENTHESE_CLOSE);
 		ExpectToken(TK_COMMIT);
 
-		dostmt->SetEval(m_elementDescentPipe.next());
+		stmt->SetEval(m_elementDescentPipe.next());
 		m_elementDescentPipe.pop();
-		m_elementDescentPipe.push(dostmt);
+		m_elementDescentPipe.push(stmt);
 		return true;
 	}
 	case TK_FOR:
@@ -1577,16 +1673,17 @@ bool Parser::IterationStatement()
 
 		ExpectToken(TK_PARENTHESE_CLOSE);
 
-		auto forstmt = std::make_shared<ForStmt>(node1, node2, node3);
+		auto stmt = std::make_shared<ForStmt>(node1, node2, node3);
+		stmt->SetLocation(CURRENT_LOCATION());
 
 		Statement();
 
 		if (!m_elementDescentPipe.empty()) {
-			forstmt->SetBody(m_elementDescentPipe.next());
+			stmt->SetBody(m_elementDescentPipe.next());
 			m_elementDescentPipe.pop();
 		}
 
-		m_elementDescentPipe.push(forstmt);
+		m_elementDescentPipe.push(stmt);
 		return true;
 	}
 	}
@@ -1605,7 +1702,8 @@ bool Parser::SelectionStatement()
 		Expression();
 		ExpectToken(TK_PARENTHESE_CLOSE);
 
-		auto ifStmt = std::make_shared<IfStmt>(m_elementDescentPipe.next());
+		auto stmt = std::make_shared<IfStmt>(m_elementDescentPipe.next());
+		stmt->SetLocation(CURRENT_LOCATION());
 		m_elementDescentPipe.pop();
 
 		Statement();
@@ -1613,7 +1711,7 @@ bool Parser::SelectionStatement()
 		// If the statement yields a body, save it and try
 		// with alternative compound
 		if (m_elementDescentPipe.size() > 0) {
-			ifStmt->SetTruthCompound(m_elementDescentPipe.next());
+			stmt->SetTruthCompound(m_elementDescentPipe.next());
 			m_elementDescentPipe.pop();
 
 			if (MATCH_TOKEN(TK_ELSE)) {
@@ -1622,7 +1720,7 @@ bool Parser::SelectionStatement()
 			}
 		}
 
-		m_elementDescentPipe.push(ifStmt);
+		m_elementDescentPipe.push(stmt);
 		return true;
 	}
 	case TK_SWITCH:
@@ -1632,18 +1730,19 @@ bool Parser::SelectionStatement()
 		Expression();
 		ExpectToken(TK_PARENTHESE_CLOSE);
 
-		auto swStmt = std::make_shared<SwitchStmt>(m_elementDescentPipe.next());
+		auto stmt = std::make_shared<SwitchStmt>(m_elementDescentPipe.next());
+		stmt->SetLocation(CURRENT_LOCATION());
 		m_elementDescentPipe.pop();
 
 		Statement();
 
 		// If the statement yields a body, save it
 		if (m_elementDescentPipe.size() > 0) {
-			swStmt->SetBody(m_elementDescentPipe.next());
+			stmt->SetBody(m_elementDescentPipe.next());
 			m_elementDescentPipe.pop();
 		}
 
-		m_elementDescentPipe.push(swStmt);
+		m_elementDescentPipe.push(stmt);
 		return true;
 	}
 	}
@@ -1678,13 +1777,14 @@ bool Parser::CompoundStatement()
 
 		// Squash all stack elements in compound statment
 		// body and push compound on the stack
-		auto compound = std::make_shared<CompoundStmt>();
+		auto stmt = std::make_shared<CompoundStmt>();
+		stmt->SetLocation(CURRENT_LOCATION());
 		while (!m_elementDescentPipe.empty()) {
-			compound->AppendChild(m_elementDescentPipe.next());
+			stmt->AppendChild(m_elementDescentPipe.next());
 			m_elementDescentPipe.pop();
 		}
 
-		m_elementDescentPipe.push(compound);
+		m_elementDescentPipe.push(stmt);
 		return true;
 	}
 
@@ -1712,9 +1812,10 @@ bool Parser::LabeledStatement()
 				throw ParseException{ "expected statement", 0, 0 };
 			}
 
-			auto lbl = std::make_shared<LabelStmt>(lblName, m_elementDescentPipe.next());
+			auto stmt = std::make_shared<LabelStmt>(lblName, m_elementDescentPipe.next());
+			stmt->SetLocation(CURRENT_LOCATION());
 			m_elementDescentPipe.pop();
-			m_elementDescentPipe.push(lbl);
+			m_elementDescentPipe.push(stmt);
 		}
 		// Not a label, rollback the command state
 		catch (const UnexpectedTokenException&) {
@@ -1738,9 +1839,10 @@ bool Parser::LabeledStatement()
 			throw ParseException{ "label at end of compound statement", 0, 0 };
 		}
 
-		auto cse = std::make_shared<CaseStmt>(lblLiteral, m_elementDescentPipe.next());
+		auto stmt = std::make_shared<CaseStmt>(lblLiteral, m_elementDescentPipe.next());
+		stmt->SetLocation(CURRENT_LOCATION());
 		m_elementDescentPipe.pop();
-		m_elementDescentPipe.push(cse);
+		m_elementDescentPipe.push(stmt);
 		return true;
 	}
 	case TK_DEFAULT:
@@ -1754,9 +1856,10 @@ bool Parser::LabeledStatement()
 			throw ParseException{ "label at end of compound statement", 0, 0 };
 		}
 
-		auto dflt = std::make_shared<DefaultStmt>(m_elementDescentPipe.next());
+		auto stmt = std::make_shared<DefaultStmt>(m_elementDescentPipe.next());
+		stmt->SetLocation(CURRENT_LOCATION());
 		m_elementDescentPipe.pop();
-		m_elementDescentPipe.push(dflt);
+		m_elementDescentPipe.push(stmt);
 		return true;
 	}
 	}
@@ -1776,11 +1879,13 @@ void Parser::Statement()
 	ExpressionStatement();
 }
 
+// Loop as long as there are items found within the block
 void Parser::BlockItems()
 {
 	do {
 		auto itemState = m_elementDescentPipe.state();
 
+		// Test statement first
 		Statement();
 		if (MATCH_TOKEN(TK_BRACE_CLOSE)) {
 			break;
@@ -1791,6 +1896,7 @@ void Parser::BlockItems()
 			itemState = m_elementDescentPipe.state();
 		}
 
+		// Continue with declaration
 		Declaration();
 		if (m_elementDescentPipe.is_changed(itemState)) {
 			m_elementDescentPipe.lock();
@@ -1813,14 +1919,15 @@ void Parser::Declaration()
 			ExpectToken(TK_COMMIT);
 
 			auto name = m_identifierStack.top();
-			auto def = std::make_shared<TypedefDecl>(name, m_typeStack.top());
-			def->SetPointer(m_pointerCounter);
+			auto decl = std::make_shared<TypedefDecl>(name, m_typeStack.top());
+			decl->SetLocation(CURRENT_LOCATION());
+			decl->SetPointer(m_pointerCounter);
 			m_pointerCounter = 0;
 			m_typedefList[name] = m_typeStack.top();
 			m_identifierStack.pop();
 			m_typeStack.pop();
 
-			m_elementDescentPipe.push(def);
+			m_elementDescentPipe.push(decl);
 			return;
 		}
 	}
@@ -1831,6 +1938,7 @@ void Parser::Declaration()
 			m_elementDescentPipe.release_until(initState);
 
 			auto decl = std::make_shared<DeclStmt>();
+			decl->SetLocation(CURRENT_LOCATION());
 			while (!m_elementDescentPipe.empty()) {
 				decl->AddDeclaration(std::dynamic_pointer_cast<VarDecl>(m_elementDescentPipe.next()));
 				m_elementDescentPipe.pop();
@@ -1863,23 +1971,23 @@ void Parser::InitDeclaratorList()
 			Initializer();
 			m_elementDescentPipe.release_until(startState);
 
-			auto var = std::make_shared<VarDecl>(m_identifierStack.top(), m_typeStack.top(), m_elementDescentPipe.next());
-			var->SetPointer(m_pointerCounter);
+			auto decl = std::make_shared<VarDecl>(m_identifierStack.top(), m_typeStack.top(), m_elementDescentPipe.next());
+			decl->SetLocation(CURRENT_LOCATION());
+			decl->SetPointer(m_pointerCounter);
 			m_pointerCounter = 0;
 			m_identifierStack.pop();
 			m_elementDescentPipe.pop();
 
-			assert(var != nullptr);
-
-			m_elementDescentPipe.push(var);
+			m_elementDescentPipe.push(decl);
 			m_elementDescentPipe.lock();
 		}
 		else {
-			auto var = std::make_shared<VarDecl>(m_identifierStack.top(), m_typeStack.top());
-			var->SetPointer(m_pointerCounter);
+			auto decl = std::make_shared<VarDecl>(m_identifierStack.top(), m_typeStack.top());
+			decl->SetLocation(CURRENT_LOCATION());
+			decl->SetPointer(m_pointerCounter);
 			m_pointerCounter = 0;
 			m_identifierStack.pop();
-			m_elementDescentPipe.push(var);
+			m_elementDescentPipe.push(decl);
 			m_elementDescentPipe.lock();
 
 			if (MATCH_TOKEN(TK_COMMA)) {
@@ -1912,6 +2020,8 @@ void Parser::DirectAbstractDeclarator()
 	do {
 		cont = false;
 		switch (CURRENT_TOKEN()) {
+
+			// Expect function
 		case TK_PARENTHESE_OPEN:
 			NextToken();
 
@@ -1930,6 +2040,7 @@ void Parser::DirectAbstractDeclarator()
 			}
 			break;
 
+			// Expect array
 		case TK_BRACKET_OPEN:
 			NextToken();
 
@@ -1982,13 +2093,14 @@ void Parser::Initializer()
 
 		m_elementDescentPipe.release_until(startState);
 
-		auto list = std::make_shared<InitListExpr>();
+		auto expr = std::make_shared<InitListExpr>();
+		expr->SetLocation(CURRENT_LOCATION());
 		while (!m_elementDescentPipe.empty()) {
-			list->AddListItem(m_elementDescentPipe.next());
+			expr->AddListItem(m_elementDescentPipe.next());
 			m_elementDescentPipe.pop();
 		}
 
-		m_elementDescentPipe.push(list);
+		m_elementDescentPipe.push(expr);
 		m_elementDescentPipe.lock();
 	}
 	else {
@@ -2021,6 +2133,7 @@ void Parser::Designators()
 	}
 }
 
+// As long as we find pointers, continue
 void Parser::Pointer()
 {
 	while (MATCH_TOKEN(TK_ASTERISK)) {
@@ -2058,30 +2171,35 @@ bool Parser::DirectDeclarator()
 	// Declarations following an identifier
 	for (;;) {
 		switch (CURRENT_TOKEN()) {
+
+			// Expect function
 		case TK_PARENTHESE_OPEN:
 			NextToken();
 			if (MATCH_TOKEN(TK_PARENTHESE_CLOSE)) {
 				NextToken();
 
-				auto func = std::make_shared<FunctionDecl>(m_identifierStack.top(), m_typeStack.top());
-				func->SetPointer(m_pointerCounter);
+				auto decl = std::make_shared<FunctionDecl>(m_identifierStack.top(), m_typeStack.top());
+				decl->SetLocation(CURRENT_LOCATION());
+				decl->SetPointer(m_pointerCounter);
 				m_pointerCounter = 0;
 				m_identifierStack.pop();
 				m_typeStack.pop();
 
-				m_elementDescentPipe.push(func);
+				m_elementDescentPipe.push(decl);
 				return true;
 			}
 			else {
 				const auto IdentifierListDecl = [=]
 				{
-					auto param = std::make_shared<ParamStmt>();
+					auto stmt = std::make_shared<ParamStmt>();
+					stmt->SetLocation(CURRENT_LOCATION());
 
 					for (;;) {
 						if (MATCH_TOKEN(TK_IDENTIFIER)) {
 							//TODO
 							/*auto paramDecl = std::make_shared<ParamDecl>(CURRENT_DATA()->As<std::string>());
-							param->AppendParamter(std::dynamic_pointer_cast<ASTNode>(paramDecl));*/
+							paramDecl->SetLocation(CURRENT_LOCATION());
+							stmt->AppendParamter(std::dynamic_pointer_cast<ASTNode>(paramDecl));*/
 							NextToken();
 						}
 
@@ -2092,7 +2210,7 @@ bool Parser::DirectDeclarator()
 						NextToken();
 					}
 
-					m_elementDescentPipe.push(param);
+					m_elementDescentPipe.push(stmt);
 				};
 
 				// Try default parameter declarations first, if that fails
@@ -2101,19 +2219,21 @@ bool Parser::DirectDeclarator()
 					IdentifierListDecl();
 				}
 
-				auto func = std::make_shared<FunctionDecl>(m_identifierStack.top(), m_typeStack.top());
-				func->SetParameterStatement(std::dynamic_pointer_cast<ParamStmt>(m_elementDescentPipe.next()));
-				func->SetPointer(m_pointerCounter);
+				auto decl = std::make_shared<FunctionDecl>(m_identifierStack.top(), m_typeStack.top());
+				decl->SetLocation(CURRENT_LOCATION());
+				decl->SetParameterStatement(std::dynamic_pointer_cast<ParamStmt>(m_elementDescentPipe.next()));
+				decl->SetPointer(m_pointerCounter);
 				m_pointerCounter = 0;
 				m_elementDescentPipe.pop();
 				m_typeStack.pop();
 				ExpectToken(TK_PARENTHESE_CLOSE);
 
-				m_elementDescentPipe.push(func);
+				m_elementDescentPipe.push(decl);
 				return true;
 			}
 			break;
 
+			// Expect array
 		case TK_BRACKET_OPEN:
 			NextToken();
 			switch (CURRENT_TOKEN()) {
@@ -2153,6 +2273,7 @@ bool Parser::DirectDeclarator()
 			}
 			break;
 
+			// No body, bail
 		default:
 			goto break_loop;
 		}
@@ -2196,13 +2317,14 @@ bool Parser::ParameterTypeList()
 	m_elementDescentPipe.release_until(startState);
 
 	if (rs) {
-		auto param = std::make_shared<ParamStmt>();
+		auto stmt = std::make_shared<ParamStmt>();
+		stmt->SetLocation(CURRENT_LOCATION());
 		while (!m_elementDescentPipe.empty()) {
-			param->AppendParamter(m_elementDescentPipe.next());
+			stmt->AppendParamter(m_elementDescentPipe.next());
 			m_elementDescentPipe.pop();
 		}
 
-		m_elementDescentPipe.push(param);
+		m_elementDescentPipe.push(stmt);
 	}
 
 	return rs;
@@ -2220,13 +2342,14 @@ bool Parser::ParameterDeclaration()
 	// If a declarator was found, create the parameter and pop all used lists
 	// since the next parameter cannot depend on this data.
 	if (Declarator()) {
-		auto param = std::make_shared<ParamDecl>(m_identifierStack.top(), m_typeStack.top());
-		param->SetPointer(m_pointerCounter);
+		auto decl = std::make_shared<ParamDecl>(m_identifierStack.top(), m_typeStack.top());
+		decl->SetLocation(CURRENT_LOCATION());
+		decl->SetPointer(m_pointerCounter);
 		m_pointerCounter = 0;
 		m_identifierStack.pop();
 		m_typeStack.pop();
 
-		m_elementDescentPipe.push(param);
+		m_elementDescentPipe.push(decl);
 		m_elementDescentPipe.lock();
 		return true;
 	}
@@ -2315,7 +2438,13 @@ void Parser::ExternalDeclaration()
 void Parser::TranslationUnit()
 {
 	// Returns file name of current lexer input, this can also be an include
-	AST_ROOT() = std::make_shared<TranslationUnitDecl>(m_profile->MetaInfo()->name);
+	auto tu_ast = std::make_shared<TranslationUnitDecl>(m_profile->MetaInfo()->name);
+	tu_ast->SetLocation(0, 0);
+
+	// Set translation unit as top level tree root
+	if (AST_ROOT() == nullptr) {
+		AST_ROOT() = tu_ast;
+	}
 
 	do {
 		// All the translation units start with a declaration

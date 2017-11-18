@@ -45,8 +45,8 @@ class ParamStmt;
 class ASTNode
 {
 protected:
-	int line = -1;
-	int col = -1;
+	mutable int line = -1;
+	mutable int col = -1;
 
 public:
 	ASTNode() = default;
@@ -61,13 +61,13 @@ public:
 		return children.size();
 	}
 
-	void SetLocation(int _line, int _col)
+	void SetLocation(int _line, int _col) const
 	{
 		line = _line;
 		col = _col;
 	}
 
-	void SetLocation(std::pair<int, int>& loc)
+	void SetLocation(std::pair<int, int>& loc) const
 	{
 		line = loc.first;
 		col = loc.second;

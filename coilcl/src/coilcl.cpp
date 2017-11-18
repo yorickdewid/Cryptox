@@ -17,13 +17,6 @@
 #include <iostream>
 #include <functional>
 
-//TODO: Full C99 parser ruleset
-//TODO: Single namespace
-//TODO: Preprocessing
-//TODO: Checking optimizer and compiler compat options
-//TODO: Debug output
-//TODO: Logging
-
 // Current compiler limitations
 // - No support for K&R function declarations
 // - Singe translation unit
@@ -158,9 +151,6 @@ public:
 				.Optimize<Optimizer>(CoilCl::Semer::OptimizeLevel::L0)
 				.TreeOperator<CoilCl::AST::Util::Copy>();
 			*/
-
-			// CoilCl::AST::Writer::ToFile(oast);
-			// auto oast = CoilCl::AST::Writer::FromFile();
 
 			// Build result
 			/*CoilCl::Emitter{ profile }
