@@ -2,7 +2,7 @@ project(Crycli CXX)
 
 message(STATUS "Configure ${PROJECT_NAME}")
 
-file(GLOB ${PROJECT_NAME}_src *.cpp)
+file(GLOB ${PROJECT_NAME}_src *.cpp *.rc)
 file(GLOB ${PROJECT_NAME}_h *.h)
 
 include_directories(${CoilCl_INCLUDE_DIRS})
