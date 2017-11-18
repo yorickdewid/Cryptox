@@ -8,8 +8,9 @@
 
 #pragma once
 
-#include "Typedef.h"
+#include "Typedef.h" //TODO: remove ?
 #include "Valuedef.h"
+#include "TypeFacade.h"
 
 #include <list>
 #include <vector>
@@ -495,8 +496,7 @@ class Decl : public ASTNode
 {
 protected:
 	std::string m_identifier;
-	std::shared_ptr<Typedef::TypedefBase> m_returnType;
-	size_t m_ptrCount = 0;
+	AST::TypeFacade m_returnType;
 
 public:
 	Decl() = default;
@@ -515,20 +515,9 @@ public:
 	{
 	}
 
-	inline auto IsPointer() const { return m_ptrCount > 0; }
-	inline void SetPointer(size_t ptrCount) { m_ptrCount = ptrCount; }
-
+	auto& ReturnType() { return m_returnType; }
+	auto& ReturnType() const { return m_returnType; }
 	auto Identifier() const { return m_identifier; }
-
-protected:
-	std::string PointerName() const
-	{
-		if (m_ptrCount == 0) {
-			return "";
-		}
-
-		return " " + std::string(m_ptrCount, '*');
-	}
 };
 
 class VarDecl : public Decl
@@ -548,8 +537,8 @@ public:
 		std::string _node{ RemoveClassFromName(typeid(VarDecl).name()) };
 		_node += " <line:" + std::to_string(line) + ",col:" + std::to_string(col) + "> ";
 		_node += m_identifier;
-		_node += " '" + Decl::m_returnType->TypeName() + Decl::PointerName() + "' ";
-		_node += Decl::m_returnType->StorageClassName();
+		_node += " '" + Decl::ReturnType().TypeName() + "' ";
+		_node += Decl::ReturnType()->StorageClassName();
 
 		return _node;
 	}
@@ -580,8 +569,8 @@ public:
 			_node += m_identifier;
 		}
 
-		_node += " '" + Decl::m_returnType->TypeName() + Decl::PointerName() + "' ";
-		_node += Decl::m_returnType->StorageClassName();
+		_node += " '" + Decl::ReturnType().TypeName() + "' ";
+		_node += Decl::ReturnType()->StorageClassName();
 
 		return _node;
 	}
@@ -600,8 +589,8 @@ public:
 		std::string _node{ RemoveClassFromName(typeid(TypedefDecl).name()) };
 		_node += " <line:" + std::to_string(line) + ",col:" + std::to_string(col) + "> ";
 		_node += m_identifier;
-		_node += " '" + Decl::m_returnType->TypeName() + Decl::PointerName() + "' ";
-		_node += Decl::m_returnType->StorageClassName();
+		_node += " '" + Decl::ReturnType().TypeName() + "' ";
+		_node += Decl::ReturnType()->StorageClassName();
 
 		return _node;
 	}
@@ -628,8 +617,8 @@ public:
 		std::string _node{ RemoveClassFromName(typeid(FieldDecl).name()) };
 		_node += " <line:" + std::to_string(line) + ",col:" + std::to_string(col) + "> ";
 		_node += m_identifier;
-		_node += " '" + Decl::m_returnType->TypeName() + Decl::PointerName() + "' ";
-		_node += Decl::m_returnType->StorageClassName();
+		_node += " '" + Decl::ReturnType().TypeName() + "' ";
+		_node += Decl::ReturnType()->StorageClassName();
 
 		return _node;
 	}
@@ -827,8 +816,8 @@ public:
 		}
 
 		_node += m_identifier;
-		_node += " '" + Decl::m_returnType->TypeName() + Decl::PointerName() + "' ";
-		_node += Decl::m_returnType->StorageClassName();
+		_node += " '" + Decl::ReturnType().TypeName() + "' ";
+		_node += Decl::ReturnType()->StorageClassName();
 
 		return _node;
 	}
