@@ -355,19 +355,20 @@ bool Parser::DeclarationSpecifiers()
 		m_typeStack.push(std::move(lastType));
 	}
 
-	// Append all stacked storage classes and qualifiers onto the value object
 	auto& baseType = m_typeStack.top();
 	if (tmpSCP != TypedefBase::StorageClassSpecifier::NONE) {
 		baseType->SetStorageClass(tmpSCP);
 	}
+	
+	// Append all stacked qualifiers onto the value object
 	for (const auto& tq : tmpTQ) {
 		baseType->SetQualifier(tq);
 	}
 
-	//TODO: function inliner
-	/*if (isInline) {
+	// Function inlining
+	if (isInline) {
 		baseType->SetInline();
-	}*/
+	}
 
 	return true;
 }

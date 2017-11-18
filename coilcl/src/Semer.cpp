@@ -27,6 +27,7 @@ CoilCl::Semer& CoilCl::Semer::StaticResolve()
 CoilCl::Semer& CoilCl::Semer::PreliminaryAssert()
 {
 	//TODO: identifier resolving & scoping
+	//TODO: match function prototype with body
 	//TODO: type checking
 	//TODO: implicit cast
 	//TODO: object usage counting

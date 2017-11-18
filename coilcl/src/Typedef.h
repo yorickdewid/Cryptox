@@ -53,19 +53,23 @@ public:
 	// Type specifier inputs
 	inline void SetStorageClass(StorageClassSpecifier storageClass) { m_storageClass = storageClass; }
 	inline void SetQualifier(TypeQualifier qypeQualifier) { m_typeQualifier.push_back(qypeQualifier); }
+	inline void SetInline() { m_isInline = true; }
 
 	const std::string StorageClassName() const;
 	const std::string QualifierName() const;
 
 	inline StorageClassSpecifier StorageClass() const { return m_storageClass; }
+	inline auto IsInline() const { return m_isInline; }
 
 protected:
+	bool m_isInline = false;
 	StorageClassSpecifier m_storageClass;
 	std::vector<TypeQualifier> m_typeQualifier{ 2 };
 };
 
 class BuiltinType : public TypedefBase
 {
+	// Additional type options
 	enum
 	{
 		IS_SIGNED,

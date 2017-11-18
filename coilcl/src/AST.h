@@ -757,8 +757,10 @@ class FunctionDecl : public Decl
 	bool m_isPrototype = true;
 	size_t m_useCount = 0;
 
+#if 0
 private:
 	auto IsUsed() const { return m_useCount > 0; }
+#endif
 
 public:
 	explicit FunctionDecl(const std::string& name, std::shared_ptr<CompoundStmt>& node)
@@ -804,10 +806,12 @@ public:
 		m_protoRef = node;
 	}
 
+#if 0
 	void RegisterCaller()
 	{
 		m_useCount++;
 	}
+#endif
 
 	const std::string NodeName() const
 	{
@@ -842,10 +846,14 @@ public:
 			ss << ")' ";
 		}
 		else {
-			ss<< " '" << Decl::ReturnType().TypeName() << "' ";
+			ss << " '" << Decl::ReturnType().TypeName() << "' ";
 		}
 
-		ss << Decl::ReturnType()->StorageClassName();
+		ss << Decl::ReturnType()->StorageClassName() << " ";
+
+		if (Decl::ReturnType()->IsInline()) {
+			ss << "inline";
+		}
 
 		return ss.str();
 	}

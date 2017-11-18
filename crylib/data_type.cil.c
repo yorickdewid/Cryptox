@@ -40,10 +40,10 @@ long double ld;
 
 _Bool b;
 
-float _Complex fc;
-double _Complex dc;
-long double _Complex ldc;
+// float _Complex fc;
+// double _Complex dc;
+// long double _Complex ldc;
 
-float _Imaginary fi;
-double _Imaginary di;
-long double _Imaginary ldi;
+// float _Imaginary fi;
+// double _Imaginary di;
+// long double _Imaginary ldi;

@@ -168,6 +168,11 @@ void funcx() {
 }
 #endif
 
+void func4() {
+    int x;
+    auto int y;
+}
+
 // Application entrypoint
 int main(int argc, char *argv[]) {
 
