@@ -576,6 +576,17 @@ public:
 	}
 };
 
+class VariadicDecl : public Decl
+{
+public:
+	VariadicDecl()
+		: Decl{}
+	{
+	}
+
+	PRINT_NODE(VariadicDecl);
+};
+
 class TypedefDecl : public Decl
 {
 public:

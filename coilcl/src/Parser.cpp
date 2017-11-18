@@ -2299,8 +2299,11 @@ bool Parser::ParameterTypeList()
 	for (;;) {
 		if (MATCH_TOKEN(TK_ELLIPSIS)) {
 			NextToken();
+
+			auto decl = std::make_shared<VariadicDecl>();
+			decl->SetLocation(CURRENT_LOCATION());
+			m_elementDescentPipe.push(decl);
 			rs = true;
-			//TODO: Change function signature
 		}
 
 		if (ParameterDeclaration()) {
@@ -2354,8 +2357,8 @@ bool Parser::ParameterDeclaration()
 		return true;
 	}
 
+	// Found a type, but no identifier. Add type as abstract declaration
 	AbstractDeclarator();
-
 	auto decl = std::make_shared<ParamDecl>(m_typeStack.top());
 	decl->SetLocation(CURRENT_LOCATION());
 	decl->ReturnType().SetPointer(m_pointerCounter);
