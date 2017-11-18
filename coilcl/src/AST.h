@@ -202,9 +202,11 @@ public:
 		std::string _node{ RemoveClassFromName(typeid(BinaryOperator).name()) };
 		_node += " <line:" + std::to_string(line) + ",col:" + std::to_string(col) + "> ";
 
+#if 0
 		if (m_returnType) {
 			_node + "'return type' ";//TODO
 		}
+#endif
 
 		_node += "'" + std::string{ BinOperandStr(m_operand) } +"'";
 
@@ -324,7 +326,7 @@ public:
 	const std::string NodeName() const
 	{
 		std::string _node{ RemoveClassFromName(typeid(UnaryOperator).name()) };
-		_node += " <line:" + std::to_string(line) + ",col:" + std::to_string(col) + "> 'return type' ";
+		_node += " <line:" + std::to_string(line) + ",col:" + std::to_string(col) + "> ";
 
 		switch (m_side) {
 		case UnaryOperator::POSTFIX:
@@ -409,7 +411,7 @@ public:
 
 	const std::string NodeName() const
 	{
-		return std::string{ RemoveClassFromName(typeid(CompoundAssignOperator).name()) } +" <line:" + std::to_string(line) + ",col:" + std::to_string(col) + "> 'return type' '" + CompoundAssignOperandStr(m_operand) + "'";
+		return std::string{ RemoveClassFromName(typeid(CompoundAssignOperator).name()) } +" <line:" + std::to_string(line) + ",col:" + std::to_string(col) + "> '" + CompoundAssignOperandStr(m_operand) + "'";
 	}
 };
 
@@ -998,7 +1000,7 @@ public:
 
 	const std::string NodeName() const
 	{
-		return std::string{ RemoveClassFromName(typeid(BuiltinExpr).name()) } +" <line:" + std::to_string(line) + ",col:" + std::to_string(col) + "> 'return type'";
+		return std::string{ RemoveClassFromName(typeid(BuiltinExpr).name()) } +" <line:" + std::to_string(line) + ",col:" + std::to_string(col) + "> ";
 	}
 };
 

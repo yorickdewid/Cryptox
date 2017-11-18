@@ -6,18 +6,11 @@
  *
  */
 
-//  #  include    <ma in.cil.h>
+int printf(const char *fmt, ...);
 
-//    #	define WOEI ((1+2)*67)/3
-
-//    #undef WOEI
-// #if 3 > 2
-// # error "NEIN"
-// #endif
-
-// char *u = "lalala";
-
-struct woei {
-	int u;
-	char c;
-};
+int main() {
+    /* My first program in C */
+    printf("Hello, %s!\n", "world");
+    
+    return 34 + 43;
+}
