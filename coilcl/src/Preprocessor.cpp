@@ -140,3 +140,8 @@ Preprocessor& Preprocessor::Transform()
 
 	return (*this);
 }
+
+std::string Preprocessor::DumpTranslationUnitChunk()
+{
+	return "kaas";
+}

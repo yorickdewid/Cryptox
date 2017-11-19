@@ -40,6 +40,7 @@ public:
 	void ConditionalStatement();
 	void ProcessStatement(const std::string& str);
 	bool SkipWhitespace(char c);
+	std::string DumpTranslationUnitChunk();
 
 private:
 	int m_bitset;

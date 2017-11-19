@@ -12,6 +12,7 @@
 #include "Preprocessor.h"
 #include "Parser.h"
 #include "Semer.h"
+#include "UnsupportedOperationException.h"
 
 #include <string>
 #include <iostream>
@@ -29,13 +30,13 @@
 		return (*this); \
 	}
 
-#define DYNAMIC_FORDWARD(p) \
+#define DYNAMIC_FORWARD(p) \
 	std::move(*(p.release()))
 
 namespace Compiler //TODO: change namespace to CoilCl::
 {
 
-class Compiler
+class Compiler final
 	: public Profile
 	, public std::enable_shared_from_this<Compiler>
 {
@@ -95,6 +96,12 @@ public:
 		return metaHandler();
 	}
 
+	// Write warning to error handler and continue execution
+	inline void Warning(const std::string& message)
+	{
+		errorHandler(message, false);
+	}
+
 	// Write error to error handler and continue execution
 	inline void Error(const std::string& message)
 	{
@@ -107,27 +114,33 @@ public:
 		errorHandler(message, isFatal);
 	}
 
-	static void Dispatch(std::shared_ptr<Compiler>& compiler)
+	static void Dispatch(std::shared_ptr<Compiler>&& compiler)
 	{
-		// Convert compiler object to profile in order to limit access for components
+		// Convert compiler object to profile interface in order to limit access for components
 		auto profile = std::dynamic_pointer_cast<Profile>(compiler);
 
+		// Create an empty program for the first stage
 		std::unique_ptr<CoilCl::Program> program = std::make_unique<CoilCl::Program>();
 
 		try {
-#if 0
-			// auto transunit = 
-			CoilCl::Preprocessor{ profile }
+			auto preproc = CoilCl::Preprocessor{ profile }
 				.MoveStage()
 				.Options(CoilCl::Preprocessor::Option::PARSE_DEFINE
 						 | CoilCl::Preprocessor::Option::PARSE_INCLUDE
 						 | CoilCl::Preprocessor::Option::PARSE_MACRO
 						 | CoilCl::Preprocessor::Option::PARSE_PRAGMA)
-				.CheckCompatibility()
-				.Transform();
-			// .DumpTranslationUnit<CoilCl::Reader::MemoryReader>();
+				.CheckCompatibility();
 
-#endif
+			// Replace chunk reader function so that read requests
+			// can be forwarded to the preprocessor
+			compiler->SetReaderHandler([&preproc]()->std::string
+			{
+				return preproc
+					.Transform()
+					.DumpTranslationUnitChunk();
+			});
+
+			return;
 
 			// Syntax analysis
 			auto& ast = Parser{ profile }
@@ -137,7 +150,7 @@ public:
 				.DumpAST();
 
 			// Compose the definitive program structure
-			program = std::make_unique<CoilCl::Program>(DYNAMIC_FORDWARD(program), std::move(ast));
+			program = std::make_unique<CoilCl::Program>(DYNAMIC_FORWARD(program), std::move(ast));
 
 			// For now dump contents to screen
 			program->Ast()->Print();
@@ -242,5 +255,5 @@ COILCLAPI void Compile(compiler_info_t *cl_info) NOTHROW
 	coilcl->CaptureBackRefPtr(cl_info);
 
 	// Start compiler
-	Compiler::Dispatch(coilcl);
+	Compiler::Dispatch(std::move(coilcl));
 }

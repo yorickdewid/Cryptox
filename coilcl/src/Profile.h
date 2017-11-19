@@ -16,8 +16,6 @@
 namespace Compiler //TODO: rename to CoiCl
 {
 
-//TODO: add stage option structs
-
 struct Profile
 {
 	virtual std::string ReadInput() = 0;
