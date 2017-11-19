@@ -45,6 +45,7 @@ struct Stage
 	using StageBase = Stage<_Ty>;
 
 	virtual std::string Name() const = 0;
+	virtual _Ty& CheckCompatibility() = 0;
 
 	class StageException : public std::runtime_error
 	{

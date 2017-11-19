@@ -20,6 +20,7 @@ public:
 		return (*this);
 	}
 
+	Semer& CheckCompatibility();
 	Semer& StaticResolve();
 	Semer& PreliminaryAssert();
 	Semer& StandardCompliance();

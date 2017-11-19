@@ -109,18 +109,22 @@ public:
 		// Convert compiler object to profile in order to limit access for components
 		auto profile = std::dynamic_pointer_cast<Profile>(compiler);
 
+		CoilCl::Scheme scheme;
+
 		try {
 			// auto transunit = 
-			//CoilCl::Preprocessor{ profile }
-			//	// .MoveStage()
-			//	.Options(CoilCl::Preprocessor::Option::PARSE_DEFINE
-			//			 | CoilCl::Preprocessor::Option::PARSE_INCLUDE
-			//			 | CoilCl::Preprocessor::Option::PARSE_MACRO
-			//			 | CoilCl::Preprocessor::Option::PARSE_PRAGMA)
-			//	.Transform();
-				// .DumpTranslationUnit<CoilCl::Reader::MemoryReader>();
+#if 0
+			CoilCl::Preprocessor{ profile }
+				.MoveStage()
+				.Options(CoilCl::Preprocessor::Option::PARSE_DEFINE
+						 | CoilCl::Preprocessor::Option::PARSE_INCLUDE
+						 | CoilCl::Preprocessor::Option::PARSE_MACRO
+						 | CoilCl::Preprocessor::Option::PARSE_PRAGMA)
+				.CheckCompatibility()
+				.Transform();
 
-			CoilCl::Scheme scheme;
+#endif
+			// .DumpTranslationUnit<CoilCl::Reader::MemoryReader>();
 
 			// Syntax analysis
 			auto ast = Parser{ profile }
@@ -138,13 +142,15 @@ public:
 			CoilCl::Semer{ profile }
 				.MoveStage()
 				.Syntax(scheme.Ast())
+				.CheckCompatibility()
 				.StaticResolve()
 				.PreliminaryAssert()
 				.StandardCompliance();
 
 			/*auto oast = CoilCl::Semer{ profile }
 				.MoveStage()
-				.Syntax(iast)
+				.Syntax(scheme.Ast())
+				.CheckCompatibility()
 				.PreliminaryAssert()
 				.StandardCompliance()
 				.PedanticCompliance()
@@ -152,11 +158,13 @@ public:
 				.TreeOperator<CoilCl::AST::Util::Copy>();
 			*/
 
-			// Build result
+			// Source building
 			/*CoilCl::Emitter{ profile }
-				.Syntax<decltype(oast)>(oast)
+				.MoveStage()
+				.Syntax<decltype(oast)>(scheme.Ast())
 				.Sequence(CoilCl::Emiter::CASM)
 				.Sequence(CoilCl::Emiter::RPTS)
+				.CheckCompatibility()
 				.StreamSink<CoilCl::Stream::Console>();
 			*/
 		}

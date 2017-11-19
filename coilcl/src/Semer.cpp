@@ -13,6 +13,11 @@ CoilCl::Semer::Semer(std::shared_ptr<Compiler::Profile>& profile)
 {
 }
 
+CoilCl::Semer& CoilCl:: Semer::CheckCompatibility()
+{
+	return (*this);
+}
+
 // Resolve all static expresions such as
 // native type size calculations.
 CoilCl::Semer& CoilCl::Semer::StaticResolve()
