@@ -47,6 +47,11 @@ Preprocessor::Preprocessor(std::shared_ptr<Compiler::Profile>& profile)
 	m_keywords["line"] = [=] {};*/
 }
 
+Preprocessor& Preprocessor::CheckCompatibility()
+{
+	return (*this);
+}
+
 // External sources
 void Preprocessor::ImportSource(std::string source)
 {

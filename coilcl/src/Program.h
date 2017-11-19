@@ -11,7 +11,7 @@ namespace CoilCl
 
 // Program is the resulting structure for all compiler stages.
 // Only stages are allowed to alter the program internals.
-class Program
+class Program final
 {
 public:
 	enum Condition

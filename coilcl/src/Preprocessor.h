@@ -32,6 +32,7 @@ public:
 		return (*this);
 	}
 
+	Preprocessor& CheckCompatibility();
 	Preprocessor& Transform();
 	void ImportSource(std::string);
 	void Definition(std::string);
