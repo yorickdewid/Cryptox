@@ -8,7 +8,7 @@
 
 #include "coilcl.h"
 #include "Profile.h"
-#include "Scheme.h"
+#include "Program.h"
 #include "Preprocessor.h"
 #include "Parser.h"
 #include "Semer.h"
@@ -29,7 +29,10 @@
 		return (*this); \
 	}
 
-namespace Compiler
+#define DYNAMIC_FORDWARD(p) \
+	std::move(*(p.release()))
+
+namespace Compiler //TODO: change namespace to CoilCl::
 {
 
 class Compiler
@@ -109,11 +112,11 @@ public:
 		// Convert compiler object to profile in order to limit access for components
 		auto profile = std::dynamic_pointer_cast<Profile>(compiler);
 
-		CoilCl::Scheme scheme;
+		std::unique_ptr<CoilCl::Program> program = std::make_unique<CoilCl::Program>();
 
 		try {
-			// auto transunit = 
 #if 0
+			// auto transunit = 
 			CoilCl::Preprocessor{ profile }
 				.MoveStage()
 				.Options(CoilCl::Preprocessor::Option::PARSE_DEFINE
@@ -122,26 +125,27 @@ public:
 						 | CoilCl::Preprocessor::Option::PARSE_PRAGMA)
 				.CheckCompatibility()
 				.Transform();
-
-#endif
 			// .DumpTranslationUnit<CoilCl::Reader::MemoryReader>();
 
+#endif
+
 			// Syntax analysis
-			auto ast = Parser{ profile }
+			auto& ast = Parser{ profile }
 				.MoveStage()
 				.CheckCompatibility()
 				.Execute()
 				.DumpAST();
 
-			scheme.Ast(ast);
+			// Compose the definitive program structure
+			program = std::make_unique<CoilCl::Program>(DYNAMIC_FORDWARD(program), std::move(ast));
 
 			// For now dump contents to screen
-			scheme.Ast()->Print();
+			program->Ast()->Print();
 
 			// Semantic analysis
 			CoilCl::Semer{ profile }
 				.MoveStage()
-				.Syntax(scheme.Ast())
+				.Syntax(program->Ast())
 				.CheckCompatibility()
 				.StaticResolve()
 				.PreliminaryAssert()

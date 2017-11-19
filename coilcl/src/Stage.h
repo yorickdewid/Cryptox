@@ -44,6 +44,7 @@ struct Stage
 {
 	using StageBase = Stage<_Ty>;
 
+	// Abstract methods for stage implementation
 	virtual std::string Name() const = 0;
 	virtual _Ty& CheckCompatibility() = 0;
 
