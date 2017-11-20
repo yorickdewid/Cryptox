@@ -227,7 +227,7 @@ struct CompareStringPair
 class Parser : public CoilCl::Stage<Parser>
 {
 public:
-	Parser(std::shared_ptr<Compiler::Profile>& profile);
+	Parser(std::shared_ptr<CoilCl::Profile>& profile);
 
 	std::string Name() const { return "Parser"; }
 
@@ -329,7 +329,7 @@ private:
 	Lexer lex;
 	std::shared_ptr<TranslationUnitDecl> m_ast;
 	StateContainer<TokenState> m_comm;
-	std::shared_ptr<Compiler::Profile> m_profile;
+	std::shared_ptr<CoilCl::Profile> m_profile;
 
 	// Temporary parser containers
 	size_t m_pointerCounter = 0;

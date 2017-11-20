@@ -7,7 +7,7 @@ inline std::shared_ptr<_Decl> make_ref(_Ty&&... _Args)
 	return std::shared_ptr<_Decl>{new _Decl{ _Args... }};
 }
 
-CoilCl::Semer::Semer(std::shared_ptr<Compiler::Profile>& profile)
+CoilCl::Semer::Semer(std::shared_ptr<CoilCl::Profile>& profile)
 	: Stage{ this }
 	, m_profile{ profile }
 {

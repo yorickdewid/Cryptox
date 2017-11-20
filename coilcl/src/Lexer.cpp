@@ -557,7 +557,7 @@ int Lexer::LexScalar()
 	return TK_HALT;
 }
 
-Lexer::Lexer(std::shared_ptr<Compiler::Profile>& profile)
+Lexer::Lexer(std::shared_ptr<CoilCl::Profile>& profile)
 	: m_profile{ profile }
 {
 	// Register all tokenized keywords

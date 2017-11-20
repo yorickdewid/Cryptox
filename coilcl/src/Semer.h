@@ -9,7 +9,7 @@ namespace CoilCl
 class Semer : public Stage<Semer>
 {
 public:
-	Semer(std::shared_ptr<Compiler::Profile>& profile);
+	Semer(std::shared_ptr<CoilCl::Profile>& profile);
 	
 	std::string Name() const { return "Semer"; }
 
@@ -29,7 +29,7 @@ public:
 
 private:
 	std::shared_ptr<ASTNode> m_ast;
-	std::shared_ptr<Compiler::Profile> m_profile;
+	std::shared_ptr<CoilCl::Profile> m_profile;
 };
 
 } // namespace CoilCl

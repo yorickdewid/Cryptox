@@ -13,7 +13,7 @@
 #include <string>
 #include <memory>
 
-namespace Compiler //TODO: rename to CoiCl
+namespace CoilCl
 {
 
 struct Profile

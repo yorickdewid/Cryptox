@@ -144,7 +144,7 @@ private:
 	int m_column;
 };
 
-Parser::Parser(std::shared_ptr<Compiler::Profile>& profile)
+Parser::Parser(std::shared_ptr<CoilCl::Profile>& profile)
 	: Stage{ this }
 	, m_profile{ profile }
 	, lex{ profile }

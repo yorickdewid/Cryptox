@@ -148,7 +148,7 @@ private:
 class Lexer
 {
 public:
-	Lexer(std::shared_ptr<Compiler::Profile>&);
+	Lexer(std::shared_ptr<CoilCl::Profile>&);
 
 	inline void ErrorHandler(const std::function<void(const std::string& msg, char token, int line, int column)> errHandler)
 	{
@@ -208,7 +208,7 @@ private:
 	}
 
 protected:
-	std::shared_ptr<Compiler::Profile>& m_profile;
+	std::shared_ptr<CoilCl::Profile>& m_profile;
 	std::string m_content;
 	size_t m_offset = 0;
 
