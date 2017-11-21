@@ -10,7 +10,7 @@
 
 using namespace CoilCl;
 
-Preprocessor::Preprocessor(std::shared_ptr<Compiler::Profile>& profile)
+Preprocessor::Preprocessor(std::shared_ptr<CoilCl::Profile>& profile)
 	: Stage{ this }
 	, m_profile{ profile }
 {
@@ -27,13 +27,13 @@ Preprocessor::Preprocessor(std::shared_ptr<Compiler::Profile>& profile)
 			this->Definition(expr);
 		}
 	};
+
 	m_keywords["undef"] = [=](std::string expr)
 	{
 		if (BITSET(PARSE_DEFINE)) {
 			this->DefinitionUntag(expr);
 		}
 	};
-	//m_keywords["undef"] = std::bind(&Preprocessor::Definition, this);
 
 	m_keywords["if"] = std::bind(&Preprocessor::ConditionalStatement, this);
 	m_keywords["ifdef"] = std::bind(&Preprocessor::ConditionalStatement, this);
@@ -75,7 +75,6 @@ void Preprocessor::DefinitionUntag(std::string args)
 	std::cout << "remove '" << args << "'" << std::endl;
 }
 
-
 // Conditional compilation
 void Preprocessor::ConditionalStatement()
 {
@@ -102,46 +101,35 @@ bool Preprocessor::SkipWhitespace(char c)
 
 //TODO: Check for __LINE__,__FILE__ last
 //TODO: Allow linebreak
-Preprocessor& Preprocessor::Transform()
+void Preprocessor::Transform(std::string& output)
 {
-	for (;;) {
-		auto input = m_profile->ReadInput();
-		if (input.empty()) {
-			break;
-		}
-
-		pipe += input;
-
-		auto dirty = false;
-		for (size_t i = 0; i < input.size(); ++i) {
-			if (input[i] == PREPROC_TOKEN && !dirty) {
-				size_t endoffset = input.substr(i).find_first_of("\r\n");
-				int _i = i; ++i;
-				for (; SkipWhitespace(input[i]); ++i);
-				ProcessStatement(input.substr(i, endoffset - (i - _i)));
-				i += (endoffset - (i - _i));
-			}
-
-			// Found a newline
-			if (input[i] == '\n') {
-				dirty = false;
-				continue;
-			}
-			// Skip all whitespace
-			else if (SkipWhitespace(input[i])) {
-				continue;
-			}
-
-			dirty = true;
-		}
-
-		std::cout << input << std::endl;
+	auto input = m_profile->ReadInput();
+	if (input.empty()) {
+		return;
 	}
 
-	return (*this);
-}
+	output = input;
 
-std::string Preprocessor::DumpTranslationUnitChunk()
-{
-	return "kaas";
+	auto dirty = false;
+	for (size_t i = 0; i < input.size(); ++i) {
+		if (input[i] == PREPROC_TOKEN && !dirty) {
+			size_t endoffset = input.substr(i).find_first_of("\r\n");
+			int _i = i; ++i;
+			for (; SkipWhitespace(input[i]); ++i);
+			ProcessStatement(input.substr(i, endoffset - (i - _i)));
+			i += (endoffset - (i - _i));
+		}
+
+		// Found a newline
+		if (input[i] == '\n') {
+			dirty = false;
+			continue;
+		}
+		// Skip all whitespace
+		else if (SkipWhitespace(input[i])) {
+			continue;
+		}
+
+		dirty = true;
+	}
 }

@@ -37,7 +37,7 @@ namespace Compiler //TODO: change namespace to CoilCl::
 {
 
 class Compiler final
-	: public Profile
+	: public CoilCl::Profile
 	, public std::enable_shared_from_this<Compiler>
 {
 	std::function<std::string()> readHandler;
@@ -123,7 +123,7 @@ public:
 		std::unique_ptr<CoilCl::Program> program = std::make_unique<CoilCl::Program>();
 
 		try {
-			auto preproc = CoilCl::Preprocessor{ profile }
+			auto preproc = CoilCl::Preprocessor(profile)
 				.MoveStage()
 				.Options(CoilCl::Preprocessor::Option::PARSE_DEFINE
 						 | CoilCl::Preprocessor::Option::PARSE_INCLUDE
@@ -131,14 +131,51 @@ public:
 						 | CoilCl::Preprocessor::Option::PARSE_PRAGMA)
 				.CheckCompatibility();
 
+			class CompilerPatch final : public Profile
+			{
+				CoilCl::Preprocessor& m_processor;
+				Profile *m_parent;
+
+			public:
+				CompilerPatch(CoilCl::Preprocessor& proc, Profile *parent)
+					: m_processor{ proc }
+					, m_parent{ parent }
+				{
+				}
+
+				virtual std::string ReadInput() override final
+				{
+					return m_processor.DumpTranslationUnitChunk();
+				}
+
+				virtual bool Include(const std::string&) override final
+				{
+					throw UnsupportedOperationException{ "include" };
+				}
+
+				virtual std::shared_ptr<metainfo_t> MetaInfo()
+				{
+					return m_parent->MetaInfo();
+				}
+
+				virtual inline void Error(const std::string& message, bool isFatal)
+				{
+					m_parent->Error(message, isFatal);
+				}
+			};
+
 			// Replace chunk reader function so that read requests
 			// can be forwarded to the preprocessor
-			compiler->SetReaderHandler([&preproc]()->std::string
-			{
-				return preproc
-					.Transform()
-					.DumpTranslationUnitChunk();
-			});
+			CompilerPatch profilePatch{ preproc, profile.get() };
+
+			for (;;) {
+				auto input = profilePatch.ReadInput();
+				if (input.empty()) {
+					break;
+				}
+
+				std::cout << input << std::endl;
+			}
 
 			return;
 

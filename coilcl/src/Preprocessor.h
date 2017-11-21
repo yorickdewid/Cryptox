@@ -22,7 +22,7 @@ public:
 	};
 
 public:
-	Preprocessor(std::shared_ptr<Compiler::Profile>&);
+	Preprocessor(std::shared_ptr<CoilCl::Profile>&);
 
 	std::string Name() const { return "Preprocessor"; }
 
@@ -33,20 +33,27 @@ public:
 	}
 
 	Preprocessor& CheckCompatibility();
-	Preprocessor& Transform();
+	void Transform(std::string&);
+
+	std::string DumpTranslationUnitChunk()
+	{
+		std::string tmp;
+		Transform(std::ref(tmp));
+		return tmp;
+	}
+
+public:
 	void ImportSource(std::string);
 	void Definition(std::string);
 	void DefinitionUntag(std::string);
 	void ConditionalStatement();
 	void ProcessStatement(const std::string& str);
 	bool SkipWhitespace(char c);
-	std::string DumpTranslationUnitChunk();
 
 private:
 	int m_bitset;
-	std::string pipe;
 	std::unordered_map<std::string, std::function<void(std::string)>> m_keywords;
-	std::shared_ptr<Compiler::Profile> m_profile;
+	std::shared_ptr<CoilCl::Profile> m_profile;
 };
 
 } // namespace CoilCl
