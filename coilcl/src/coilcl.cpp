@@ -134,21 +134,21 @@ public:
 			class CompilerPatch final : public Profile
 			{
 				CoilCl::Preprocessor& m_processor;
-				Profile *m_parent;
+				std::shared_ptr<Profile> m_parent;
 
 			public:
-				CompilerPatch(CoilCl::Preprocessor& proc, Profile *parent)
+				CompilerPatch(CoilCl::Preprocessor& proc, std::shared_ptr<Profile>& parent)
 					: m_processor{ proc }
 					, m_parent{ parent }
 				{
 				}
 
-				virtual std::string ReadInput() override final
+				virtual std::string ReadInput()
 				{
 					return m_processor.DumpTranslationUnitChunk();
 				}
 
-				virtual bool Include(const std::string&) override final
+				virtual bool Include(const std::string&)
 				{
 					throw UnsupportedOperationException{ "include" };
 				}
@@ -166,7 +166,7 @@ public:
 
 			// Replace chunk reader function so that read requests
 			// can be forwarded to the preprocessor
-			CompilerPatch profilePatch{ preproc, profile.get() };
+			CompilerPatch profilePatch{ preproc, profile };
 
 			for (;;) {
 				auto input = profilePatch.ReadInput();
@@ -174,9 +174,10 @@ public:
 					break;
 				}
 
-				std::cout << input << std::endl;
+				std::cout << input;
 			}
 
+			std::cout << std::endl;
 			return;
 
 			// Syntax analysis
