@@ -35,16 +35,19 @@ Preprocessor::Preprocessor(std::shared_ptr<CoilCl::Profile>& profile)
 		}
 	};
 
-	m_keywords["if"] = std::bind(&Preprocessor::ConditionalStatement, this);
+	/*m_keywords["if"] = std::bind(&Preprocessor::ConditionalStatement, this);
 	m_keywords["ifdef"] = std::bind(&Preprocessor::ConditionalStatement, this);
 	m_keywords["ifndef"] = std::bind(&Preprocessor::ConditionalStatement, this);
 	m_keywords["else"] = std::bind(&Preprocessor::ConditionalStatement, this);
 	m_keywords["elif"] = std::bind(&Preprocessor::ConditionalStatement, this);
-	m_keywords["endif"] = std::bind(&Preprocessor::ConditionalStatement, this);
-	/*m_keywords["pragma"] = [=] {};
+	m_keywords["endif"] = std::bind(&Preprocessor::ConditionalStatement, this);*/
+	/*m_keywords["pragma"] = [=] {};*/
 
-	m_keywords["error"] = [=] {};
-	m_keywords["line"] = [=] {};*/
+	m_keywords["error"] = [=](std::string expr)
+	{
+		throw StageBase::StageException{ Name(), expr };
+	};
+	//m_keywords["line"] = [=] {};*/
 }
 
 Preprocessor& Preprocessor::CheckCompatibility()
@@ -83,11 +86,16 @@ void Preprocessor::ConditionalStatement()
 
 void Preprocessor::ProcessStatement(const std::string& str)
 {
+	auto rs = std::make_shared<StatementOperation>();
+
 	size_t endkw = str.find_first_of(' ');
 	if (m_keywords[str.substr(0, endkw)] != nullptr) {
 		auto value = boost::algorithm::trim_copy(str.substr(endkw + 1));
+
 		m_keywords[str.substr(0, endkw)](value);
 	}
+
+	//return rs;
 }
 
 bool Preprocessor::SkipWhitespace(char c)
@@ -100,7 +108,7 @@ bool Preprocessor::SkipWhitespace(char c)
 }
 
 //TODO: Check for __LINE__,__FILE__ last
-//TODO: Allow linebreak
+//TODO: Allow linebreak -> '\'
 void Preprocessor::Transform(std::string& output)
 {
 	auto input = m_profile->ReadInput();
@@ -108,16 +116,21 @@ void Preprocessor::Transform(std::string& output)
 		return;
 	}
 
-	output = input;
-
 	auto dirty = false;
 	for (size_t i = 0; i < input.size(); ++i) {
 		if (input[i] == PREPROC_TOKEN && !dirty) {
-			size_t endoffset = input.substr(i).find_first_of("\r\n");
-			int _i = i; ++i;
+			const auto endoffset = input.substr(i).find_first_of("\r\n");
+			const auto startoffset = ++i;
+			const auto _i = startoffset;
+
 			for (; SkipWhitespace(input[i]); ++i);
-			ProcessStatement(input.substr(i, endoffset - (i - _i)));
-			i += (endoffset - (i - _i));
+			auto& args = input.substr(i, endoffset - (i - _i));
+			ProcessStatement(args);
+			//i += (endoffset - (i - _i));
+
+			//std::make_pair(startoffset, endoffset)
+
+			input.erase(startoffset - 1, endoffset);
 		}
 
 		// Found a newline
@@ -132,4 +145,7 @@ void Preprocessor::Transform(std::string& output)
 
 		dirty = true;
 	}
+
+	// Write altered source to supplied output
+	output = input;
 }
