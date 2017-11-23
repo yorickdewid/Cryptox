@@ -123,8 +123,8 @@ public:
 		std::unique_ptr<CoilCl::Program> program = std::make_unique<CoilCl::Program>();
 
 		try {
-			auto preproc = CoilCl::Preprocessor(profile)
-				.MoveStage()
+			auto& preproc = std::make_unique<CoilCl::Preprocessor>(profile);
+				preproc->MoveStage()
 				.Options(CoilCl::Preprocessor::Option::PARSE_DEFINE
 						 | CoilCl::Preprocessor::Option::PARSE_INCLUDE
 						 | CoilCl::Preprocessor::Option::PARSE_MACRO
@@ -133,19 +133,19 @@ public:
 
 			class CompilerPatch final : public Profile
 			{
-				CoilCl::Preprocessor& m_processor;
+				std::unique_ptr<CoilCl::Preprocessor> m_processor;
 				std::shared_ptr<Profile> m_parent;
 
 			public:
-				CompilerPatch(CoilCl::Preprocessor& proc, std::shared_ptr<Profile>& parent)
-					: m_processor{ proc }
+				CompilerPatch(std::unique_ptr<CoilCl::Preprocessor>&& proc, std::shared_ptr<Profile>& parent)
+					: m_processor{ std::move(proc) }
 					, m_parent{ parent }
 				{
 				}
 
 				virtual std::string ReadInput()
 				{
-					return m_processor.DumpTranslationUnitChunk();
+					return m_processor->DumpTranslationUnitChunk();
 				}
 
 				virtual bool Include(const std::string&)
@@ -166,7 +166,7 @@ public:
 
 			// Replace chunk reader function so that read requests
 			// can be forwarded to the preprocessor
-			CompilerPatch profilePatch{ preproc, profile };
+			CompilerPatch profilePatch{ std::move(preproc), profile };
 
 			for (;;) {
 				auto input = profilePatch.ReadInput();
