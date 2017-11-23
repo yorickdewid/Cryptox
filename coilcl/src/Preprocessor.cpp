@@ -43,11 +43,33 @@ Preprocessor::Preprocessor(std::shared_ptr<CoilCl::Profile>& profile)
 	m_keywords["endif"] = std::bind(&Preprocessor::ConditionalStatement, this);*/
 	/*m_keywords["pragma"] = [=] {};*/
 
+	m_keywords["pragma"] = [=](std::string expr)
+	{
+		auto initToken = expr.substr(0, expr.find(' '));
+		auto args = expr.substr(expr.find(' ') + 1);
+		if (initToken == args) {
+			args = "";
+		}
+
+		// Once is a special case, handle it right away
+		if (initToken == "once") {
+			//TODO: handle once
+			return;
+		}
+
+		/*
+		CILParser{ initToken, m_profile }
+			.Args(args);
+			.Execute()
+		*/
+	};
+
 	m_keywords["error"] = [=](std::string expr)
 	{
 		throw StageBase::StageException{ Name(), expr };
 	};
-	//m_keywords["line"] = [=] {};*/
+
+	//m_keywords["line"] = [=] {};
 }
 
 Preprocessor& Preprocessor::CheckCompatibility()
@@ -69,13 +91,25 @@ void Preprocessor::ImportSource(std::string source)
 // Definition and expansion
 void Preprocessor::Definition(std::string args)
 {
-	std::cout << "replacement '" << args << "'" << std::endl;
+	auto definition = args.substr(0, args.find(' '));
+	auto value = args.substr(args.find(' ') + 1);
+	if (definition == args) {
+		value = "";
+	}
+
+	m_definitionList[definition] = value;
+
+	//std::cout << "replacement '" << definition << "' -> '" << value << "'" << std::endl;
 }
 
 // Definition and expansion
 void Preprocessor::DefinitionUntag(std::string args)
 {
-	std::cout << "remove '" << args << "'" << std::endl;
+	auto definition = args.substr(0, args.find(' '));
+
+	m_definitionList.erase(definition);
+
+	//std::cout << "remove '" << definition << "'" << std::endl;
 }
 
 // Conditional compilation

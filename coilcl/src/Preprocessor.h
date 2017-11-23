@@ -3,15 +3,34 @@
 #include "Profile.h"
 #include "Stage.h"
 
+#include <map>
 #include <functional>
 #include <unordered_map>
 
 namespace CoilCl
 {
 
+class StatementOperation
+{
+public:
+	enum class TokenDesignator
+	{
+		TOKEN_ERASE,
+		TOKEN_REPLACE,
+	};
+
+	enum class Subscription
+	{
+		ON_ALL_TOKENS,
+		ON_EVERY_LINE,
+	};
+};
+
 class Preprocessor : public Stage<Preprocessor>
 {
 public:
+	using location = std::pair<size_t, size_t>;
+
 	enum Option
 	{
 		PARSE_INCLUDE = 0x1,
@@ -49,6 +68,9 @@ public:
 	void ConditionalStatement();
 	void ProcessStatement(const std::string& str);
 	bool SkipWhitespace(char c);
+
+private:
+	std::map<std::string, std::string> m_definitionList;
 
 private:
 	int m_bitset;
