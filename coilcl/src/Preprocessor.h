@@ -10,7 +10,7 @@
 namespace CoilCl
 {
 
-class StatementOperation
+struct StatementOperation
 {
 public:
 	enum class TokenDesignator
@@ -24,6 +24,24 @@ public:
 		ON_ALL_TOKENS,
 		ON_EVERY_LINE,
 	};
+
+	enum class Priority
+	{
+		FIRST,
+		UNDEFINED,
+		LAST,
+	};
+
+	void Subscribe(Subscription subscription, Priority prio = Priority::UNDEFINED)
+	{
+		m_subscription = subscription;
+	}
+
+public:
+	TokenDesignator TokenResult = TokenDesignator::TOKEN_ERASE;
+
+private:
+	Subscription m_subscription;
 };
 
 class Preprocessor : public Stage<Preprocessor>
@@ -61,20 +79,20 @@ public:
 		return tmp;
 	}
 
-public:
+private:
 	void ImportSource(std::string);
-	void Definition(std::string);
+	void Definition(std::shared_ptr<StatementOperation>& op, std::string);
 	void DefinitionUntag(std::string);
 	void ConditionalStatement();
-	void ProcessStatement(const std::string& str);
 	bool SkipWhitespace(char c);
+	std::shared_ptr<StatementOperation> ProcessStatement(const std::string& str);
 
 private:
 	std::map<std::string, std::string> m_definitionList;
 
 private:
 	int m_bitset;
-	std::unordered_map<std::string, std::function<void(std::string)>> m_keywords;
+	std::unordered_map<std::string, std::function<void(std::shared_ptr<StatementOperation>&, std::string)>> m_keywords;
 	std::shared_ptr<CoilCl::Profile> m_profile;
 };
 
