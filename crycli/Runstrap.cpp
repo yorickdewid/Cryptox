@@ -53,7 +53,7 @@ class StreamReaderAdapter : private NonCopyable
 	static const size_t defaultChunkSize = 128;
 
 public:
-	explicit StreamReaderAdapter(std::shared_ptr<Reader>& reader)
+	explicit StreamReaderAdapter(const std::shared_ptr<Reader>& reader)
 		: contentReader{ std::move(reader) }
 	{
 	}
@@ -110,7 +110,7 @@ private:
 template<class _Ty1, typename _Ty2>
 constexpr _Ty1& side_cast(_Ty2 *_opaquePtr) noexcept
 {
-	return static_cast<_Ty1&>(*static_cast<_Ty1 *>(const_cast<std::remove_const<_Ty2>::type*>(_opaquePtr)));
+	return static_cast<_Ty1&>(*static_cast<_Ty1 *>(const_cast<typename std::remove_const<_Ty2>::type*>(_opaquePtr)));
 }
 
 datachunk_t *CCBFetchChunk(void *user_data)
@@ -126,7 +126,7 @@ datachunk_t *CCBFetchChunk(void *user_data)
 	std::copy(str.begin(), str.end(), strArray);
 	strArray[str.size()] = '\0';
 
-	return new datachunk_t{ str.size(), strArray, static_cast<char>(true) };
+	return new datachunk_t{ static_cast<unsigned int>(str.size()), strArray, static_cast<char>(true) };
 }
 
 int CCBLoadExternalSource(void *user_data, const char *source)
