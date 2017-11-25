@@ -14,6 +14,7 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/")
 
 # Find the host operating system and architecture
 include(FindOS)
+include(CheckCXXCompilerFlag)
 
 # In-source builds are disabled.
 if(${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_BINARY_DIR})
@@ -66,7 +67,16 @@ endif()
 #endif()
 
 # Compiler flags
-set(CMAKE_CXX_STANDARD 14)
+if(COMPILER_SUPPORTS_CXX17)
+	set(CMAKE_CXX_STANDARD 17)
+	message(STATUS "Using C++17")
+elseif(COMPILER_SUPPORTS_CXX14)
+	set(CMAKE_CXX_STANDARD 14)
+	message(STATUS "Using C++14")
+else()
+	message(FATAL_ERROR "The compiler ${CMAKE_CXX_COMPILER} has no C++14 support")
+endif()
+
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
