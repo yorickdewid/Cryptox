@@ -19,8 +19,8 @@
 # else
 #  define COILCLAPI   __declspec(dllimport)
 # endif
-#elif
-# define PFBASEAPI
+#else
+# define COILCLAPI
 #endif
 
 #define COILCLAPIVER	100
@@ -59,7 +59,7 @@ extern "C" {
 	// C compatible string structure
 	typedef struct
 	{
-		size_t size;
+		unsigned int size;
 		const char *ptr;
 		char unmanaged_res;
 	} datachunk_t;

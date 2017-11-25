@@ -376,7 +376,7 @@ bool Parser::DeclarationSpecifiers()
 bool Parser::TypenameSpecifier()
 {
 	if (MATCH_TOKEN(TK_IDENTIFIER)) {
-		auto& name = CURRENT_DATA()->As<std::string>();
+		const auto& name = CURRENT_DATA()->As<std::string>();
 
 		auto& res = m_typedefList[name];
 		if (res == nullptr) {

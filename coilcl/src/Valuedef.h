@@ -83,7 +83,6 @@ public:
 	_Ty As() const { return boost::any_cast<_Ty>(m_value); }
 
 	// If string was required, try cast any to vector and string
-	template<>
 	auto As() const -> std::string
 	{
 		auto vec = boost::any_cast<std::vector<std::string::value_type>>(m_value);
@@ -142,7 +141,7 @@ public:
 	explicit ValueObject(Typedef::BuiltinType&& type, _Ty value)
 		: Value{ std::make_shared<Typedef::BuiltinType>(type) }
 	{
-		using container_type = std::remove_reference<decltype(value[0])>::type;
+		using container_type = typename std::remove_reference<decltype(value[0])>::type;
 
 		std::vector<container_type> tmpArray;
 		tmpArray.reserve(value.size() + 1);

@@ -123,7 +123,7 @@ public:
 		std::unique_ptr<CoilCl::Program> program = std::make_unique<CoilCl::Program>();
 
 		try {
-			auto& preproc = std::make_unique<CoilCl::Preprocessor>(profile);
+			auto preproc = std::make_unique<CoilCl::Preprocessor>(profile);
 				preproc->MoveStage()
 				.Options(CoilCl::Preprocessor::Option::PARSE_DEFINE
 						 | CoilCl::Preprocessor::Option::PARSE_INCLUDE
@@ -181,7 +181,7 @@ public:
 			return;
 
 			// Syntax analysis
-			auto& ast = Parser{ profile }
+			auto ast = Parser{ profile }
 				.MoveStage()
 				.CheckCompatibility()
 				.Execute()

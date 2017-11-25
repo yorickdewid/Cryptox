@@ -21,9 +21,6 @@
 #define __need_NULL
 #include <stddef.h>
 
-__BEGIN_DECLS
- 
-
 #if (defined __USE_XOPEN || defined __USE_XOPEN2K8) && !defined _SYS_WAIT_H
 /* XPG requires a few symbols from <sys/wait.h> being defined.  */
 # include <bits/waitflags.h>

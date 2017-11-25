@@ -35,12 +35,12 @@ public:
 	}
 
 	LockPipe(const _Myty& other)
-		: c{ cont }
+		: c{ other }
 	{
 	}
 
 	LockPipe(_Myty&& other)
-		: c{ std::move(cont) }
+		: c{ std::move(other) }
 	{
 	}
 
@@ -172,7 +172,7 @@ public:
 	}
 
 	void swap(_Myty& other)
-		noexcept(_Is_nothrow_swappable<_Container>::value)
+		noexcept(std::is_nothrow_constructible<_Container>::value)
 	{
 		std::swap(c, other.c);
 	}

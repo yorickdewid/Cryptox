@@ -68,7 +68,7 @@ public:
 		col = _col;
 	}
 
-	void SetLocation(std::pair<int, int>& loc) const
+	void SetLocation(const std::pair<int, int>& loc) const
 	{
 		line = loc.first;
 		col = loc.second;
@@ -78,13 +78,13 @@ public:
 
 	void Print(int level = 0, bool last = 0, std::vector<int> ignore = {});
 
-	void SetParent(std::shared_ptr<ASTNode>& node)
+	void SetParent(const std::shared_ptr<ASTNode>& node)
 	{
 		parent = node;
 	}
 
 protected:
-	virtual void AppendChild(std::shared_ptr<ASTNode>& node)
+	virtual void AppendChild(const std::shared_ptr<ASTNode>& node)
 	{
 		children.push_back(node);
 	}
@@ -184,7 +184,7 @@ public:
 	}
 
 public:
-	BinaryOperator(BinOperand operand, std::shared_ptr<ASTNode>& leftSide)
+	BinaryOperator(BinOperand operand, const std::shared_ptr<ASTNode>& leftSide)
 		: m_operand{ operand }
 		, m_lhs{ leftSide }
 	{
@@ -315,7 +315,7 @@ public:
 	} m_side;
 
 public:
-	UnaryOperator(UnaryOperand operand, OperandSide side, std::shared_ptr<ASTNode>& node)
+	UnaryOperator(UnaryOperand operand, OperandSide side, const std::shared_ptr<ASTNode>& node)
 		: m_operand{ operand }
 		, m_side{ side }
 	{
@@ -396,7 +396,7 @@ public:
 	}
 
 public:
-	CompoundAssignOperator(CompoundAssignOperand operand, std::shared_ptr<DeclRefExpr>& node)
+	CompoundAssignOperator(CompoundAssignOperand operand, const std::shared_ptr<DeclRefExpr>& node)
 		: m_operand{ operand }
 	{
 		ASTNode::AppendChild(NODE_UPCAST(node));
@@ -428,7 +428,7 @@ protected:
 public:
 	// Default to void type with no data
 	Literal()
-		: m_valueObj{ new CoilCl::Valuedef::ValueObject<void>{Value::TypeSpecifier::T_VOID} }
+		: m_valueObj{ CoilCl::Typedef::BuiltinType{ CoilCl::Typedef::BuiltinType::Specifier::VOID } }
 	{
 	}
 
@@ -619,7 +619,7 @@ public:
 	{
 	}
 
-	void SetBitField(std::shared_ptr<IntegerLiteral>& node)
+	void SetBitField(const std::shared_ptr<IntegerLiteral>& node)
 	{
 		ASTNode::AppendChild(NODE_UPCAST(node));
 		m_bits = node;
@@ -777,7 +777,7 @@ public:
 	}
 
 	// If function declaration has a body, its not a prototype
-	void SetCompound(std::shared_ptr<CompoundStmt>& node)
+	void SetCompound(const std::shared_ptr<CompoundStmt>& node)
 	{
 		assert(!m_body);
 
@@ -786,7 +786,7 @@ public:
 		m_isPrototype = false;
 	}
 
-	void SetParameterStatement(std::shared_ptr<ParamStmt>& node)
+	void SetParameterStatement(const std::shared_ptr<ParamStmt>& node)
 	{
 		assert(!m_params);
 
@@ -798,7 +798,7 @@ public:
 	auto HasPrototypeDefinition() const { return !m_protoRef.expired(); }
 
 	// Bind function body to prototype definition
-	void BindPrototype(std::shared_ptr<FunctionDecl>& node)
+	void BindPrototype(const std::shared_ptr<FunctionDecl>& node)
 	{
 		assert(!m_isPrototype);
 		assert(m_protoRef.expired());
@@ -876,7 +876,7 @@ public:
 	{
 	}
 
-	void AppendChild(std::shared_ptr<ASTNode>& node) final
+	void AppendChild(const std::shared_ptr<ASTNode>& node) final
 	{
 		node->SetParent(NODE_UPCAST(GetSharedSelf()));
 
@@ -1364,7 +1364,7 @@ class DeclStmt : public Stmt
 	std::list<std::shared_ptr<VarDecl>> m_var;
 
 public:
-	void AddDeclaration(std::shared_ptr<VarDecl>& node)
+	void AddDeclaration(const std::shared_ptr<VarDecl>& node)
 	{
 		ASTNode::AppendChild(NODE_UPCAST(node));
 		m_var.push_back(node);
@@ -1438,7 +1438,7 @@ class CompoundStmt : public Stmt
 	std::list<std::shared_ptr<ASTNode>> m_children;
 
 public:
-	void AppendChild(std::shared_ptr<ASTNode>& node) final
+	void AppendChild(const std::shared_ptr<ASTNode>& node) final
 	{
 		ASTNode::AppendChild(node);
 		m_children.push_back(node);

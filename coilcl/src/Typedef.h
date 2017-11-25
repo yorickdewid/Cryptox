@@ -151,7 +151,7 @@ public:
 	{
 		assert(type->AllowCoalescence());
 
-		auto& otherType = std::dynamic_pointer_cast<BuiltinType>(type);
+		auto otherType = std::dynamic_pointer_cast<BuiltinType>(type);
 		if (otherType->Unsigned()) { m_typeOptions.set(IS_UNSIGNED); }
 		if (otherType->Short()) { m_typeOptions.set(IS_SHORT); }
 		if (otherType->Long()) {
