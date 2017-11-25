@@ -82,15 +82,6 @@ public:
 	template<typename _Ty>
 	_Ty As() const { return boost::any_cast<_Ty>(m_value); }
 
-	// If string was required, try cast any to vector and string
-	auto As() const -> std::string
-	{
-		auto vec = boost::any_cast<std::vector<std::string::value_type>>(m_value);
-		return m_array._0terminator ?
-			std::string{ vec.begin(), vec.end() - 1 } :
-			std::string{ vec.begin(), vec.end() };
-	}
-
 	// Print value
 	virtual const std::string Print() const = 0;
 
@@ -98,6 +89,16 @@ private:
 	bool m_isInline = false;
 	std::shared_ptr<Typedef::TypedefBase> m_objectType;
 };
+
+// If string was required, try cast any to vector and string
+template<>
+inline auto Value::As() const -> std::string
+{
+	auto vec = boost::any_cast<std::vector<std::string::value_type>>(m_value);
+	return m_array._0terminator ?
+		std::string{ vec.begin(), vec.end() - 1 } :
+		std::string{ vec.begin(), vec.end() };
+}
 
 template<typename _Ty, typename _ = void>
 class ValueObject;
