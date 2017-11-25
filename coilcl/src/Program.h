@@ -1,6 +1,6 @@
 #pragma once
 
-#include "AST.h"
+#include "ASTNode.h"
 #include "Stage.h"
 
 #include <memory>
@@ -36,7 +36,6 @@ public:
 	{
 	}
 
-	//inline void Ast(std::shared_ptr<TranslationUnitDecl>& ast) const { m_ast = ast; }
 	inline auto& Ast() const { return m_ast; }
 
 	// Syntax becomes program after assertion passed

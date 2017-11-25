@@ -76,7 +76,13 @@ public:
 
 	virtual const std::string NodeName() const = 0;
 
+	//TODO: replace with for_each ?
 	void Print(int level = 0, bool last = 0, std::vector<int> ignore = {});
+	
+	template<typename _Ty>
+	void ForEach()
+	{
+	}
 
 	void SetParent(const std::shared_ptr<ASTNode>& node)
 	{

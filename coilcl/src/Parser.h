@@ -10,7 +10,7 @@
 
 #include "Profile.h"
 #include "Lexer.h"
-#include "AST.h"
+#include "ASTNode.h"
 #include "Stage.h"
 #include "LockPipe.h"
 
