@@ -17,15 +17,42 @@ namespace AST
 
 class AST
 {
+	using _ValTy = ASTNode;
+
+public: // Member types
+	using value_type = _ValTy;
+	using reference = _ValTy&;
+	using const_reference = const _ValTy&;
+	using pointer = _ValTy*;
+	using const_pointer = const _ValTy*;
+	using size_type = std::size_t;
+	using difference_type = std::ptrdiff_t;
+
 public:
 	class Iterator
 	{
 		std::shared_ptr<ASTNode> cNode;
 
-	public:
-		Iterator(std::shared_ptr<ASTNode>& node) : cNode{ node } {}
+	private:
+		using _MyTy = Iterator;
 
-		Iterator operator++()
+	public:
+		using value_type = _ValTy;
+		using reference = _ValTy&;
+		using pointer = _ValTy*;
+		using difference_type = std::ptrdiff_t;
+
+		Iterator() : cNode{ nullptr } {}
+		Iterator(std::shared_ptr<ASTNode>& node) : cNode{ node } {}
+		Iterator(const Iterator&) = default;
+
+		_MyTy& operator++()
+		{
+			this->operator++(1);
+			return (*this);
+		}
+
+		_MyTy& operator++(int adv)
 		{
 			// No children in this node, work upwards and sideways
 			if (cNode->ChildrenCount() == 0) {
@@ -38,18 +65,19 @@ public:
 						return wPtr.lock() == cNode;
 					});
 
-					if (selfListItem == parentChildren.end()) {
-						//nope
-						printf("lolz");
+					if (selfListItem + 1 == parentChildren.end()) {
+						cNode = nullptr;
+						return (*this);
 					}
-
-					auto weakNeighbour = selfListItem + 1;
-					if (auto neighbour = weakNeighbour->lock()) {
-						cNode = neighbour;
+					else {
+						auto weakNeighbour = selfListItem + 1;
+						if (auto neighbour = weakNeighbour->lock()) {
+							cNode = neighbour;
+						}
 					}
 				}
 				else {
-					// Broken iterator ? Root ?
+					//cNode = nullptr;
 				}
 			}
 			else {
@@ -58,27 +86,24 @@ public:
 					cNode = firstChild;
 				}
 				else {
-					///
+					//cNode = nullptr;
 				}
 			}
 
-			return *this;
+			return (*this);
 		}
 
-		ASTNode& operator*()
-		{
-			return *(cNode.get());
-		}
+		// Iterator element access
+		reference operator*() { return *(cNode.get()); }
+		pointer operator->() { return cNode.get(); }
 
-		ASTNode& operator->()
-		{
-			return *(cNode.get());
-		}
-
-		bool operator!=(Iterator const &other) const
-		{
-			return cNode != other.cNode;
-		}
+		//Iterator& operator=(const Iterator& other) { return Iterator{ other }; }
+		bool operator==(const Iterator &other) const { return cNode == other.cNode; }
+		bool operator!=(const Iterator &other) const { return cNode != other.cNode; }
+		bool operator<(const Iterator& other) const { return cNode < other.cNode; }
+		bool operator>(const Iterator& other) const { return cNode > other.cNode; }
+		bool operator<=(const Iterator& other) const { return cNode <= other.cNode; }
+		bool operator>=(const Iterator& other) const { return cNode >= other.cNode; }
 	};
 
 	/*class ConstIterator
@@ -98,31 +123,11 @@ public:
 	{
 	}
 
-	iterator begin()
-	{
-		return Iterator(m_tree);
-	}
+	// Iterators
+	iterator begin() { return Iterator{ m_tree }; }
+	iterator end() { return Iterator{}; }
 
-	iterator end()
-	{
-		std::shared_ptr<ASTNode> node = m_tree;
-
-		for (;;) {
-			if (node->ChildrenCount() == 0) {
-				return Iterator(node);
-			}
-			else {
-				if (auto lastChild = node->Children().back().lock()) {
-					node = lastChild;
-				}
-				else {
-					throw std::exception{};
-				}
-			}
-		}
-
-		throw std::exception{};
-	}
+	// 
 
 	/*const_iterator begin() const
 	{

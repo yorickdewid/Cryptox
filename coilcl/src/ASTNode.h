@@ -12,7 +12,6 @@
 #include "Valuedef.h"
 #include "TypeFacade.h"
 
-#include <list>
 #include <vector>
 #include <memory>
 #include <sstream>
@@ -89,6 +88,32 @@ public:
 		parent = node;
 	}
 
+	//TODO: friend
+	// Forward the random access operator on the child node list
+	std::weak_ptr<ASTNode> operator[](int idx)
+	{
+		return children[idx];
+	}
+
+	//TODO: friend
+	// Forward the random access operator on the child node list
+	std::weak_ptr<ASTNode> At(int idx)
+	{
+		return children[idx];
+	}
+
+	//TODO: friend
+	std::weak_ptr<ASTNode> Parent()
+	{
+		return parent;
+	}
+
+	//TODO: friend
+	std::vector<std::weak_ptr<ASTNode>>& Children()
+	{
+		return children;
+	}
+
 protected:
 	virtual void AppendChild(const std::shared_ptr<ASTNode>& node)
 	{
@@ -96,7 +121,7 @@ protected:
 	}
 
 protected:
-	std::list<std::weak_ptr<ASTNode>> children;
+	std::vector<std::weak_ptr<ASTNode>> children;
 	std::weak_ptr<ASTNode> parent;//TODO
 };
 
@@ -865,6 +890,7 @@ public:
 	}
 };
 
+//TODO: prevent stack instantiation
 class TranslationUnitDecl
 	: public Decl
 	, public std::enable_shared_from_this<TranslationUnitDecl>
