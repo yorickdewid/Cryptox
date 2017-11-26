@@ -17,6 +17,7 @@ namespace AST
 
 class AST
 {
+	using _MyTy = AST;
 	using _ValTy = ASTNode;
 
 public: // Member types
@@ -41,6 +42,7 @@ public:
 		using reference = _ValTy&;
 		using pointer = _ValTy*;
 		using difference_type = std::ptrdiff_t;
+		using iterator_category = std::forward_iterator_tag;
 
 		Iterator() : cNode{ nullptr } {}
 		Iterator(std::shared_ptr<ASTNode>& node) : cNode{ node } {}
@@ -126,9 +128,6 @@ public:
 	// Iterators
 	iterator begin() { return Iterator{ m_tree }; }
 	iterator end() { return Iterator{}; }
-
-	// 
-
 	/*const_iterator begin() const
 	{
 		return ConstIterator(a);
@@ -138,6 +137,20 @@ public:
 	{
 		return ConstIterator(a);
 	}*/
+
+	// 
+	/*reference front()
+	{
+		return m_tree->At(0);
+	}*/
+
+	/*void swap(_MyTy&)
+	{
+
+	}*/
+	
+	//size_type size() const { return std::distance(this->begin(), this->end()); }
+	//bool empty() const { return std::distance(this->begin(), this->end()) == 0; }
 
 private:
 	std::shared_ptr<ASTNode> m_tree;
