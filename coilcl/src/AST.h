@@ -37,24 +37,8 @@ public:
 	private:
 		using _MyTy = Iterator;
 
-	public:
-		using value_type = _ValTy;
-		using reference = _ValTy&;
-		using pointer = _ValTy*;
-		using difference_type = std::ptrdiff_t;
-		using iterator_category = std::forward_iterator_tag;
-
-		Iterator() : cNode{ nullptr } {}
-		Iterator(std::shared_ptr<ASTNode>& node) : cNode{ node } {}
-		Iterator(const Iterator&) = default;
-
-		_MyTy& operator++()
-		{
-			this->operator++(1);
-			return (*this);
-		}
-
-		_MyTy& operator++(int adv)
+	private:
+		void IncrementInternalTree()
 		{
 			// No children in this node, work upwards and sideways
 			if (cNode->ChildrenCount() == 0) {
@@ -69,7 +53,6 @@ public:
 
 					if (selfListItem + 1 == parentChildren.end()) {
 						cNode = nullptr;
-						return (*this);
 					}
 					else {
 						auto weakNeighbour = selfListItem + 1;
@@ -79,7 +62,7 @@ public:
 					}
 				}
 				else {
-					//cNode = nullptr;
+					cNode = nullptr;
 				}
 			}
 			else {
@@ -88,11 +71,34 @@ public:
 					cNode = firstChild;
 				}
 				else {
-					//cNode = nullptr;
+					cNode = nullptr;
 				}
 			}
+		}
 
+	public:
+		using value_type = _ValTy;
+		using reference = _ValTy&;
+		using pointer = _ValTy*;
+		using difference_type = std::ptrdiff_t;
+		using iterator_category = std::forward_iterator_tag;
+
+		// Constructors
+		Iterator() : cNode{ nullptr } {}
+		Iterator(const std::shared_ptr<ASTNode>& node) : cNode{ node } {}
+		Iterator(const Iterator&) = default;
+
+		_MyTy& operator++()
+		{
+			IncrementInternalTree();
 			return (*this);
+		}
+
+		_MyTy operator++(int)
+		{
+			_MyTy tmp = (*this);
+			++(*this);
+			return tmp;
 		}
 
 		// Iterator element access
@@ -108,17 +114,93 @@ public:
 		bool operator>=(const Iterator& other) const { return cNode >= other.cNode; }
 	};
 
-	/*class ConstIterator
+	class ConstIterator
 	{
-	public:
-		ConstIterator(const int*)
+		std::shared_ptr<ASTNode> cNode;
+
+	private:
+		using _MyTy = ConstIterator;
+
+	private:
+		void IncrementInternalTree()
 		{
+			// No children in this node, work upwards and sideways
+			if (cNode->ChildrenCount() == 0) {
+				auto weakParent = cNode->Parent();
+				if (auto parent = weakParent.lock()) {
+					auto parentChildren = parent->Children();
+
+					auto selfListItem = std::find_if(parentChildren.begin(), parentChildren.end(), [=](std::weak_ptr<ASTNode>& wPtr)
+					{
+						return wPtr.lock() == cNode;
+					});
+
+					if (selfListItem + 1 == parentChildren.end()) {
+						cNode = nullptr;
+					}
+					else {
+						auto weakNeighbour = selfListItem + 1;
+						if (auto neighbour = weakNeighbour->lock()) {
+							cNode = neighbour;
+						}
+					}
+				}
+				else {
+					cNode = nullptr;
+				}
+			}
+			else {
+				auto firstWeakChild = cNode->At(0);
+				if (auto firstChild = firstWeakChild.lock()) {
+					cNode = firstChild;
+				}
+				else {
+					cNode = nullptr;
+				}
+			}
 		}
-	};*/
+
+	public:
+		using value_type = _ValTy;
+		using reference = _ValTy&;
+		using pointer = _ValTy*;
+		using difference_type = std::ptrdiff_t;
+		using iterator_category = std::forward_iterator_tag;
+
+		// Constructors
+		ConstIterator() : cNode{ nullptr } {}
+		ConstIterator(const std::shared_ptr<ASTNode>& node) : cNode{ node } {}
+		ConstIterator(const ConstIterator&) = default;
+
+		const _MyTy& operator++()
+		{
+			IncrementInternalTree();
+			return (*this);
+		}
+
+		const _MyTy operator++(int)
+		{
+			_MyTy tmp = (*this);
+			++(*this);
+			return tmp;
+		}
+
+		// Iterator element access
+		reference operator*() { return *(cNode.get()); }
+		pointer operator->() { return cNode.get(); }
+
+		//ConstIterator& operator=(const Iterator& other) { return ConstIterator{ other }; }
+		bool operator==(const ConstIterator &other) const { return cNode == other.cNode; }
+		bool operator!=(const ConstIterator &other) const { return cNode != other.cNode; }
+		bool operator<(const ConstIterator& other) const { return cNode < other.cNode; }
+		bool operator>(const ConstIterator& other) const { return cNode > other.cNode; }
+		bool operator<=(const ConstIterator& other) const { return cNode <= other.cNode; }
+		bool operator>=(const ConstIterator& other) const { return cNode >= other.cNode; }
+	};
 
 public:
 	using iterator = Iterator;
-	//using const_iterator = ConstIterator;
+	using const_iterator = ConstIterator;
 
 	AST(std::shared_ptr<ASTNode>&& tree)
 		: m_tree{ std::move(tree) }
@@ -128,29 +210,14 @@ public:
 	// Iterators
 	iterator begin() { return Iterator{ m_tree }; }
 	iterator end() { return Iterator{}; }
-	/*const_iterator begin() const
-	{
-		return ConstIterator(a);
-	}
+	const_iterator begin() const { return ConstIterator{ m_tree }; }
+	const_iterator end() const { return ConstIterator{}; }
+	const_iterator cbegin() const { return ConstIterator{ m_tree }; }
+	const_iterator cend() const { return ConstIterator{}; }
 
-	const_iterator end() const
-	{
-		return ConstIterator(a);
-	}*/
-
-	// 
-	/*reference front()
-	{
-		return m_tree->At(0);
-	}*/
-
-	/*void swap(_MyTy&)
-	{
-
-	}*/
-	
-	//size_type size() const { return std::distance(this->begin(), this->end()); }
-	//bool empty() const { return std::distance(this->begin(), this->end()) == 0; }
+	// Capacity
+	size_type size() { return std::distance(this->begin(), this->end()); }
+	bool empty() { return std::distance(this->begin(), this->end()) == 0; }
 
 private:
 	std::shared_ptr<ASTNode> m_tree;
