@@ -24,6 +24,11 @@
 #define NODE_UPCAST(c) \
 	std::dynamic_pointer_cast<ASTNode>(c)
 
+#define POLY_IMPL() \
+	std::shared_ptr<ASTNode> PolySelf() { \
+		return std::dynamic_pointer_cast<ASTNode>(GetSharedSelf()); \
+	}
+
 using namespace CoilCl;
 
 template<typename _Ty>
@@ -109,7 +114,7 @@ public:
 	//TODO: friend
 	std::weak_ptr<ASTNode> Parent()
 	{
-		return parent;
+		return m_parent;
 	}
 
 	//TODO: friend
@@ -138,12 +143,12 @@ protected:
 
 	void SetParent(const std::shared_ptr<ASTNode>&& node)
 	{
-		parent = node;
+		m_parent = node;
 	}
 
 protected:
 	std::vector<std::weak_ptr<ASTNode>> children;
-	std::weak_ptr<ASTNode> parent;//TODO
+	std::weak_ptr<ASTNode> m_parent;
 };
 
 //
@@ -154,12 +159,11 @@ class Operator : public ASTNode
 {
 protected:
 	std::shared_ptr<Typedef::TypedefBase> m_returnType;
-
-public:
-	PRINT_NODE(Operator);
 };
 
-class BinaryOperator : public Operator
+class BinaryOperator
+	: public Operator
+	, public SelfReference<BinaryOperator>
 {
 	std::shared_ptr<ASTNode> m_lhs;
 	std::shared_ptr<ASTNode> m_rhs;
@@ -247,6 +251,8 @@ public:
 	{
 		ASTNode::AppendChild(node);
 		m_rhs = node;
+
+		ASTNode::UpdateDelegate();
 	}
 
 	const std::string NodeName() const
@@ -264,9 +270,14 @@ public:
 
 		return _node;
 	}
+
+private:
+	POLY_IMPL();
 };
 
-class ConditionalOperator : public Operator
+class ConditionalOperator
+	: public Operator
+	, public SelfReference<ConditionalOperator>
 {
 	std::shared_ptr<ASTNode> evalNode;
 	std::shared_ptr<ASTNode> truthStmt;
@@ -293,12 +304,16 @@ public:
 	{
 		ASTNode::AppendChild(node);
 		truthStmt = node;
+
+		ASTNode::UpdateDelegate();
 	}
 
 	void SetAltCompound(std::shared_ptr<ASTNode>& node)
 	{
 		ASTNode::AppendChild(node);
 		altStmt = node;
+
+		ASTNode::UpdateDelegate();
 	}
 
 	virtual const std::string NodeName() const
@@ -308,6 +323,9 @@ public:
 
 		return _node;
 	}
+
+private:
+	POLY_IMPL();
 };
 
 namespace CoilCl
@@ -315,7 +333,9 @@ namespace CoilCl
 namespace AST
 {
 
-class UnaryOperator : public Operator
+class UnaryOperator
+	: public Operator
+	, public SelfReference<UnaryOperator>
 {
 	std::shared_ptr<ASTNode> m_body;
 
@@ -394,12 +414,17 @@ public:
 		_node += "'";
 		return _node;
 	}
+
+private:
+	POLY_IMPL();
 };
 
 } // namespace AST
 } // namespace CoilCl
 
-class CompoundAssignOperator : public Operator
+class CompoundAssignOperator
+	: public Operator
+	, public SelfReference<CompoundAssignOperator>
 {
 	std::shared_ptr<ASTNode> m_body;
 	std::shared_ptr<DeclRefExpr> m_identifier;
@@ -459,12 +484,17 @@ public:
 	{
 		ASTNode::AppendChild(node);
 		m_body = node;
+
+		ASTNode::UpdateDelegate();
 	}
 
 	const std::string NodeName() const
 	{
 		return std::string{ RemoveClassFromName(typeid(CompoundAssignOperator).name()) } +" <line:" + std::to_string(line) + ",col:" + std::to_string(col) + "> '" + CompoundAssignOperandStr(m_operand) + "'";
 	}
+
+private:
+	POLY_IMPL();
 };
 
 //
@@ -472,7 +502,9 @@ public:
 //
 
 template<typename _NativTy, class _DrivTy>
-class Literal : public ASTNode
+class Literal
+	: public ASTNode
+	, public SelfReference<_DrivTy>
 {
 protected:
 	std::shared_ptr<CoilCl::Valuedef::ValueObject<_NativTy>> m_valueObj;
@@ -500,6 +532,9 @@ public:
 
 		return ss.str();
 	}
+
+private:
+	POLY_IMPL();
 };
 
 class CharacterLiteral : public Literal<char, CharacterLiteral>
@@ -574,7 +609,9 @@ public:
 	auto Identifier() const { return m_identifier; }
 };
 
-class VarDecl : public Decl
+class VarDecl
+	: public Decl
+	, public SelfReference<VarDecl>
 {
 	std::shared_ptr<ASTNode> m_body;
 
@@ -596,9 +633,14 @@ public:
 
 		return _node;
 	}
+
+private:
+	POLY_IMPL();
 };
 
-class ParamDecl : public Decl
+class ParamDecl
+	: public Decl
+	, public SelfReference<ParamDecl>
 {
 public:
 	ParamDecl(const std::string& name, std::shared_ptr<Typedef::TypedefBase> type)
@@ -628,9 +670,14 @@ public:
 
 		return _node;
 	}
+
+private:
+	POLY_IMPL();
 };
 
-class VariadicDecl : public Decl
+class VariadicDecl
+	: public Decl
+	, public SelfReference<VariadicDecl>
 {
 public:
 	VariadicDecl()
@@ -639,9 +686,14 @@ public:
 	}
 
 	PRINT_NODE(VariadicDecl);
+
+private:
+	POLY_IMPL();
 };
 
-class TypedefDecl : public Decl
+class TypedefDecl
+	: public Decl
+	, public SelfReference<TypedefDecl>
 {
 public:
 	TypedefDecl(const std::string& name, std::shared_ptr<Typedef::TypedefBase> type)
@@ -659,9 +711,14 @@ public:
 
 		return _node;
 	}
+
+private:
+	POLY_IMPL();
 };
 
-class FieldDecl : public Decl
+class FieldDecl
+	: public Decl
+	, public SelfReference<FieldDecl>
 {
 	std::shared_ptr<IntegerLiteral> m_bits;
 
@@ -675,6 +732,8 @@ public:
 	{
 		ASTNode::AppendChild(NODE_UPCAST(node));
 		m_bits = node;
+
+		ASTNode::UpdateDelegate();
 	}
 
 	virtual const std::string NodeName() const
@@ -687,9 +746,14 @@ public:
 
 		return _node;
 	}
+
+private:
+	POLY_IMPL();
 };
 
-class RecordDecl : public Decl
+class RecordDecl
+	: public Decl
+	, public SelfReference<RecordDecl>
 {
 	std::vector<std::shared_ptr<FieldDecl>> m_fields;
 
@@ -726,6 +790,8 @@ public:
 	{
 		ASTNode::AppendChild(NODE_UPCAST(node));
 		m_fields.push_back(node);
+
+		ASTNode::UpdateDelegate();
 	}
 
 	virtual const std::string NodeName() const
@@ -738,9 +804,14 @@ public:
 
 		return _node;
 	}
+
+private:
+	POLY_IMPL();
 };
 
-class EnumConstantDecl : public Decl
+class EnumConstantDecl
+	: public Decl
+	, public SelfReference<EnumConstantDecl>
 {
 	std::shared_ptr<ASTNode> m_body;
 
@@ -754,15 +825,22 @@ public:
 	{
 		ASTNode::AppendChild(node);
 		m_body = node;
+
+		ASTNode::UpdateDelegate();
 	}
 
-	virtual const std::string NodeName() const
+	const std::string NodeName() const
 	{
 		return std::string{ RemoveClassFromName(typeid(EnumConstantDecl).name()) } +" <line:" + std::to_string(line) + ",col:" + std::to_string(col) + "> " + m_identifier;
 	}
+
+private:
+	POLY_IMPL();
 };
 
-class EnumDecl : public Decl
+class EnumDecl
+	: public Decl
+	, public SelfReference<EnumDecl>
 {
 	std::vector<std::shared_ptr<EnumConstantDecl>> m_constants;
 
@@ -786,9 +864,11 @@ public:
 	{
 		ASTNode::AppendChild(NODE_UPCAST(node));
 		m_constants.push_back(node);
+
+		ASTNode::UpdateDelegate();
 	}
 
-	virtual const std::string NodeName() const
+	const std::string NodeName() const
 	{
 		std::string _node{ RemoveClassFromName(typeid(EnumDecl).name()) };
 		_node += " <line:" + std::to_string(line) + ",col:" + std::to_string(col) + "> ";
@@ -797,9 +877,14 @@ public:
 
 		return _node;
 	}
+
+private:
+	POLY_IMPL();
 };
 
-class FunctionDecl : public Decl
+class FunctionDecl
+	: public Decl
+	, public SelfReference<FunctionDecl>
 {
 	std::shared_ptr<ParamStmt> m_params;
 	std::shared_ptr<CompoundStmt> m_body;
@@ -836,6 +921,8 @@ public:
 		ASTNode::AppendChild(NODE_UPCAST(node));
 		m_body = node;
 		m_isPrototype = false;
+
+		ASTNode::UpdateDelegate();
 	}
 
 	void SetParameterStatement(const std::shared_ptr<ParamStmt>& node)
@@ -844,6 +931,8 @@ public:
 
 		ASTNode::AppendChild(NODE_UPCAST(node));
 		m_params = node;
+
+		ASTNode::UpdateDelegate();
 	}
 
 	auto IsPrototypeDefinition() const { return m_isPrototype; }
@@ -909,6 +998,9 @@ public:
 
 		return ss.str();
 	}
+
+private:
+	POLY_IMPL();
 };
 
 class TranslationUnitDecl
@@ -931,12 +1023,10 @@ public:
 		ASTNode::UpdateDelegate();
 	}
 
-	std::shared_ptr<ASTNode> PolySelf() final
-	{
-		return std::dynamic_pointer_cast<ASTNode>(GetSharedSelf());
-	}
-
 	PRINT_NODE(TranslationUnitDecl);
+
+private:
+	POLY_IMPL();
 };
 
 //
@@ -955,7 +1045,9 @@ public:
 	auto& ReturnType() const { return m_returnType; }
 };
 
-class ResolveRefExpr : public Expr
+class ResolveRefExpr
+	: public Expr
+	, public SelfReference<ResolveRefExpr>
 {
 	std::string m_identifier;
 
@@ -972,9 +1064,14 @@ protected:
 	{
 		return std::string{ RemoveClassFromName(typeid(ResolveRefExpr).name()) } +" <line:" + std::to_string(line) + ",col:" + std::to_string(col) + "> '" + m_identifier + "'";
 	}
+
+private:
+	POLY_IMPL();
 };
 
-class DeclRefExpr : public ResolveRefExpr
+class DeclRefExpr
+	: public ResolveRefExpr
+	, public SelfReference<DeclRefExpr>
 {
 	std::weak_ptr<Decl> m_ref;
 
@@ -1002,9 +1099,16 @@ public:
 
 		return ResolveRefExpr::NodeName();
 	}
+
+	std::shared_ptr<ASTNode> PolySelf()
+	{
+		return std::dynamic_pointer_cast<ASTNode>(SelfReference<DeclRefExpr>::GetSharedSelf());
+	}
 };
 
-class CallExpr : public Expr
+class CallExpr
+	: public Expr
+	, public SelfReference<CallExpr>
 {
 	std::shared_ptr<DeclRefExpr> m_funcRef;
 	std::shared_ptr<ArgumentStmt> m_args;
@@ -1034,9 +1138,14 @@ public:
 
 		return _node;
 	}
+
+private:
+	POLY_IMPL();
 };
 
-class BuiltinExpr : public CallExpr
+class BuiltinExpr
+	: public CallExpr
+	, public SelfReference<BuiltinExpr>
 {
 	std::shared_ptr<DeclRefExpr> m_funcRef;
 	std::shared_ptr<ArgumentStmt> m_args;
@@ -1056,15 +1165,24 @@ public:
 	{
 		ASTNode::AppendChild(node);
 		m_rvalue = node;
+
+		ASTNode::UpdateDelegate();
 	}
 
 	const std::string NodeName() const
 	{
 		return std::string{ RemoveClassFromName(typeid(BuiltinExpr).name()) } +" <line:" + std::to_string(line) + ",col:" + std::to_string(col) + "> ";
 	}
+
+	std::shared_ptr<ASTNode> PolySelf()
+	{
+		return std::dynamic_pointer_cast<ASTNode>(SelfReference<BuiltinExpr>::GetSharedSelf());
+	}
 };
 
-class CastExpr : public Expr
+class CastExpr
+	: public Expr
+	, public SelfReference<CastExpr>
 {
 	std::shared_ptr<ASTNode> rtype;
 	bool m_implicit = true;
@@ -1089,23 +1207,33 @@ public:
 
 		return _node;
 	}
+
+private:
+	POLY_IMPL();
 };
 
-class ParenExpr : public Expr
+class ParenExpr
+	: public Expr
+	, public SelfReference<ParenExpr>
 {
 	std::shared_ptr<ASTNode> m_body;
 
 public:
 	ParenExpr(std::shared_ptr<ASTNode>& node)
+		: m_body{ node }
 	{
 		ASTNode::AppendChild(node);
-		m_body = node;
 	}
 
 	PRINT_NODE(ParenExpr);
+
+private:
+	POLY_IMPL();
 };
 
-class InitListExpr : public Expr
+class InitListExpr
+	: public Expr
+	, public SelfReference<InitListExpr>
 {
 	std::vector<std::shared_ptr<ASTNode>> m_children;
 
@@ -1114,12 +1242,19 @@ public:
 	{
 		ASTNode::AppendChild(node);
 		m_children.push_back(node);
+
+		ASTNode::UpdateDelegate();
 	}
 
 	PRINT_NODE(InitListExpr);
+
+private:
+	POLY_IMPL();
 };
 
-class CompoundLiteralExpr : public Expr
+class CompoundLiteralExpr
+	: public Expr
+	, public SelfReference<CompoundLiteralExpr>
 {
 	std::shared_ptr<InitListExpr> m_body;
 
@@ -1131,9 +1266,14 @@ public:
 	}
 
 	PRINT_NODE(CompoundLiteralExpr);
+
+private:
+	POLY_IMPL();
 };
 
-class ArraySubscriptExpr : public Expr
+class ArraySubscriptExpr
+	: public Expr
+	, public SelfReference<ArraySubscriptExpr>
 {
 	std::shared_ptr<DeclRefExpr> m_identifier;
 	std::shared_ptr<ASTNode> m_offset;
@@ -1148,9 +1288,14 @@ public:
 	}
 
 	PRINT_NODE(ArraySubscriptExpr);
+
+private:
+	POLY_IMPL();
 };
 
-class MemberExpr : public Expr
+class MemberExpr
+	: public Expr
+	, public SelfReference<MemberExpr>
 {
 	std::string m_name;
 	std::shared_ptr<DeclRefExpr> m_record;
@@ -1180,6 +1325,9 @@ public:
 
 		return _node;
 	}
+
+private:
+	POLY_IMPL();
 };
 
 //
@@ -1190,16 +1338,22 @@ class Stmt : public ASTNode
 {
 public:
 	virtual ~Stmt() = 0;
-	PRINT_NODE(Stmt);
 };
 
-class ContinueStmt : public Stmt
+class ContinueStmt
+	: public Stmt
+	, public SelfReference<ContinueStmt>
 {
 public:
 	PRINT_NODE(ContinueStmt);
+
+private:
+	POLY_IMPL();
 };
 
-class ReturnStmt : public Stmt
+class ReturnStmt
+	: public Stmt
+	, public SelfReference<ReturnStmt>
 {
 	std::shared_ptr<ASTNode> m_returnNode;
 
@@ -1208,12 +1362,19 @@ public:
 	{
 		ASTNode::AppendChild(node);
 		m_returnNode = node;
+
+		ASTNode::UpdateDelegate();
 	}
 
 	PRINT_NODE(ReturnStmt);
+
+private:
+	POLY_IMPL();
 };
 
-class IfStmt : public Stmt
+class IfStmt
+	: public Stmt
+	, public SelfReference<IfStmt>
 {
 	std::shared_ptr<ASTNode> m_evalNode;
 	std::shared_ptr<ASTNode> m_truthStmt;
@@ -1240,12 +1401,16 @@ public:
 	{
 		ASTNode::AppendChild(node);
 		m_truthStmt = node;
+
+		ASTNode::UpdateDelegate();
 	}
 
 	void SetAltCompound(std::shared_ptr<ASTNode>& node)
 	{
 		ASTNode::AppendChild(node);
 		m_altStmt = node;
+
+		ASTNode::UpdateDelegate();
 	}
 
 	virtual const std::string NodeName() const
@@ -1263,9 +1428,14 @@ public:
 
 		return _node;
 	}
+
+private:
+	POLY_IMPL();
 };
 
-class SwitchStmt : public Stmt
+class SwitchStmt
+	: public Stmt
+	, public SelfReference<SwitchStmt>
 {
 	std::shared_ptr<ASTNode> evalNode;
 	std::shared_ptr<ASTNode> m_body;
@@ -1286,12 +1456,19 @@ public:
 	{
 		ASTNode::AppendChild(node);
 		m_body = node;
+
+		ASTNode::UpdateDelegate();
 	}
 
 	PRINT_NODE(SwitchStmt);
+
+private:
+	POLY_IMPL();
 };
 
-class WhileStmt : public Stmt
+class WhileStmt
+	: public Stmt
+	, public SelfReference<WhileStmt>
 {
 	std::shared_ptr<ASTNode> evalNode;
 	std::shared_ptr<ASTNode> m_body;
@@ -1312,12 +1489,19 @@ public:
 	{
 		ASTNode::AppendChild(node);
 		m_body = node;
+		
+		ASTNode::UpdateDelegate();
 	}
 
 	PRINT_NODE(WhileStmt);
+
+private:
+	POLY_IMPL();
 };
 
-class DoStmt : public Stmt
+class DoStmt
+	: public Stmt
+	, public SelfReference<DoStmt>
 {
 	std::shared_ptr<ASTNode> evalNode;
 	std::shared_ptr<ASTNode> m_body;
@@ -1338,12 +1522,19 @@ public:
 	{
 		ASTNode::AppendChild(node);
 		evalNode = node;
+
+		ASTNode::UpdateDelegate();
 	}
 
 	PRINT_NODE(DoStmt);
+
+private:
+	POLY_IMPL();
 };
 
-class ForStmt : public Stmt
+class ForStmt
+	: public Stmt
+	, public SelfReference<ForStmt>
 {
 	std::shared_ptr<ASTNode> m_node1;
 	std::shared_ptr<ASTNode> m_node2;
@@ -1365,12 +1556,19 @@ public:
 	{
 		ASTNode::AppendChild(node);
 		m_body = node;
+
+		ASTNode::UpdateDelegate();
 	}
 
 	PRINT_NODE(ForStmt);
+
+private:
+	POLY_IMPL();
 };
 
-class BreakStmt : public Stmt
+class BreakStmt
+	: public Stmt
+	, public SelfReference<BreakStmt>
 {
 public:
 	BreakStmt()
@@ -1378,6 +1576,9 @@ public:
 	}
 
 	PRINT_NODE(BreakStmt);
+
+private:
+	POLY_IMPL();
 };
 
 class DefaultStmt
@@ -1393,15 +1594,15 @@ public:
 		ASTNode::AppendChild(body);
 	}
 
-	std::shared_ptr<ASTNode> PolySelf() final
-	{
-		return std::dynamic_pointer_cast<ASTNode>(GetSharedSelf());
-	}
-
 	PRINT_NODE(DefaultStmt);
+
+private:
+	POLY_IMPL();
 };
 
-class CaseStmt: public Stmt
+class CaseStmt
+	: public Stmt
+	, public SelfReference<CaseStmt>
 {
 	std::shared_ptr<ASTNode> m_name;
 	std::shared_ptr<ASTNode> m_body;
@@ -1416,9 +1617,14 @@ public:
 	}
 
 	PRINT_NODE(CaseStmt);
+
+private:
+	POLY_IMPL();
 };
 
-class DeclStmt : public Stmt
+class DeclStmt
+	: public Stmt
+	, public SelfReference<DeclStmt>
 {
 	std::list<std::shared_ptr<VarDecl>> m_var;
 
@@ -1427,12 +1633,19 @@ public:
 	{
 		ASTNode::AppendChild(NODE_UPCAST(node));
 		m_var.push_back(node);
+
+		ASTNode::UpdateDelegate();
 	}
 
 	PRINT_NODE(DeclStmt);
+
+private:
+	POLY_IMPL();
 };
 
-class ArgumentStmt : public Stmt
+class ArgumentStmt
+	: public Stmt
+	, public SelfReference<ArgumentStmt>
 {
 	std::vector<std::shared_ptr<ASTNode>> m_arg;
 
@@ -1441,12 +1654,19 @@ public:
 	{
 		ASTNode::AppendChild(node);
 		m_arg.push_back(node);
+
+		ASTNode::UpdateDelegate();
 	}
 
 	PRINT_NODE(ArgumentStmt);
+
+private:
+	POLY_IMPL();
 };
 
-class ParamStmt : public Stmt
+class ParamStmt
+	: public Stmt
+	, public SelfReference<ParamStmt>
 {
 	std::vector<std::shared_ptr<ASTNode>> m_param;
 
@@ -1455,12 +1675,19 @@ public:
 	{
 		ASTNode::AppendChild(node);
 		m_param.push_back(node);
+
+		ASTNode::UpdateDelegate();
 	}
 
 	PRINT_NODE(ParamStmt);
+
+private:
+	POLY_IMPL();
 };
 
-class LabelStmt : public Stmt
+class LabelStmt
+	: public Stmt
+	, public SelfReference<LabelStmt>
 {
 	std::string m_name;
 	std::shared_ptr<ASTNode> m_body;
@@ -1474,9 +1701,14 @@ public:
 	}
 
 	PRINT_NODE(LabelStmt);
+
+private:
+	POLY_IMPL();
 };
 
-class GotoStmt : public Stmt
+class GotoStmt
+	: public Stmt
+	, public SelfReference<GotoStmt>
 {
 	std::string m_labelName;
 
@@ -1490,9 +1722,14 @@ public:
 	{
 		return std::string{ RemoveClassFromName(typeid(GotoStmt).name()) } +" <line:" + std::to_string(line) + ",col:" + std::to_string(col) + "> '" + m_labelName + "'";
 	}
+
+private:
+	POLY_IMPL();
 };
 
-class CompoundStmt : public Stmt
+class CompoundStmt
+	: public Stmt
+	, public SelfReference<CompoundStmt>
 {
 	std::list<std::shared_ptr<ASTNode>> m_children;
 
@@ -1501,7 +1738,12 @@ public:
 	{
 		ASTNode::AppendChild(node);
 		m_children.push_back(node);
+
+		ASTNode::UpdateDelegate();
 	}
 
 	PRINT_NODE(CompoundStmt);
+
+private:
+	POLY_IMPL();
 };
