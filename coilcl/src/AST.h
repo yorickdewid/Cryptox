@@ -126,6 +126,7 @@ public:
 		{
 			// No children in this node, work upwards and sideways
 			if (cNode->ChildrenCount() == 0) {
+			redo:
 				auto weakParent = cNode->Parent();
 				if (auto parent = weakParent.lock()) {
 					auto parentChildren = parent->Children();
@@ -136,7 +137,8 @@ public:
 					});
 
 					if (selfListItem + 1 == parentChildren.end()) {
-						cNode = nullptr;
+						cNode = parent;
+						goto redo;
 					}
 					else {
 						auto weakNeighbour = selfListItem + 1;
