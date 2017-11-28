@@ -37,6 +37,19 @@ constexpr std::string RemoveClassFromName(_Ty *_name)
 	return f;
 }
 
+template <typename _Ty>
+struct Identity { using type = typename _Ty::value_type; };
+
+template<typename _Ty, typename _Base = ASTNode>
+class SelfReference : public std::enable_shared_from_this<_Ty>
+{
+protected:
+	std::shared_ptr<_Base> GetSharedSelf()
+	{
+		return shared_from_this();
+	}
+};
+
 class DeclRefExpr;
 class CompoundStmt;
 class ArgumentStmt;
@@ -74,19 +87,10 @@ public:
 	}
 
 	virtual const std::string NodeName() const = 0;
+	virtual std::shared_ptr<ASTNode> PolySelf() = 0;
 
 	//TODO: replace with for_each ?
 	void Print(int level = 0, bool last = 0, std::vector<int> ignore = {});
-	
-	template<typename _Ty>
-	void ForEach()
-	{
-	}
-
-	void SetParent(const std::shared_ptr<ASTNode>& node)
-	{
-		parent = node;
-	}
 
 	//TODO: friend
 	// Forward the random access operator on the child node list
@@ -114,10 +118,27 @@ public:
 		return children;
 	}
 
+	void UpdateDelegate()
+	{
+		std::transform(children.begin(), children.end(), children.begin(), [this](Identity<decltype(children)>::type wPtr)
+		{
+			if (auto ptr = wPtr.lock()) {
+				ptr->SetParent(std::move(this->PolySelf()));
+			}
+
+			return wPtr;
+		});
+	}
+
 protected:
 	virtual void AppendChild(const std::shared_ptr<ASTNode>& node)
 	{
 		children.push_back(node);
+	}
+
+	void SetParent(const std::shared_ptr<ASTNode>&& node)
+	{
+		parent = node;
 	}
 
 protected:
@@ -890,17 +911,11 @@ public:
 	}
 };
 
-//TODO: prevent stack instantiation
 class TranslationUnitDecl
 	: public Decl
-	, public std::enable_shared_from_this<TranslationUnitDecl>
+	, public SelfReference<TranslationUnitDecl>
 {
 	std::list<std::shared_ptr<ASTNode>> m_children;
-
-	std::shared_ptr<TranslationUnitDecl> GetSharedSelf()
-	{
-		return shared_from_this();
-	}
 
 public:
 	TranslationUnitDecl(const std::string& sourceName)
@@ -910,10 +925,15 @@ public:
 
 	void AppendChild(const std::shared_ptr<ASTNode>& node) final
 	{
-		node->SetParent(NODE_UPCAST(GetSharedSelf()));
-
 		ASTNode::AppendChild(node);
 		m_children.push_back(node);
+
+		ASTNode::UpdateDelegate();
+	}
+
+	std::shared_ptr<ASTNode> PolySelf() final
+	{
+		return std::dynamic_pointer_cast<ASTNode>(GetSharedSelf());
 	}
 
 	PRINT_NODE(TranslationUnitDecl);
@@ -1360,21 +1380,28 @@ public:
 	PRINT_NODE(BreakStmt);
 };
 
-class DefaultStmt : public Stmt
+class DefaultStmt
+	: public Stmt
+	, public SelfReference<DefaultStmt>
 {
 	std::shared_ptr<ASTNode> m_body;
 
 public:
-	DefaultStmt(std::shared_ptr<ASTNode>& body)
+	DefaultStmt(const std::shared_ptr<ASTNode>& body)
 		: m_body{ body }
 	{
 		ASTNode::AppendChild(body);
 	}
 
+	std::shared_ptr<ASTNode> PolySelf() final
+	{
+		return std::dynamic_pointer_cast<ASTNode>(GetSharedSelf());
+	}
+
 	PRINT_NODE(DefaultStmt);
 };
 
-class CaseStmt : public Stmt
+class CaseStmt: public Stmt
 {
 	std::shared_ptr<ASTNode> m_name;
 	std::shared_ptr<ASTNode> m_body;
