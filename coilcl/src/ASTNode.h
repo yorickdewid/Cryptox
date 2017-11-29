@@ -1003,24 +1003,35 @@ private:
 	POLY_IMPL();
 };
 
+// The translation unit declaration cannot be stack instantiated
+// and thus provides the declaration class a make command.
 class TranslationUnitDecl
 	: public Decl
 	, public SelfReference<TranslationUnitDecl>
 {
 	std::list<std::shared_ptr<ASTNode>> m_children;
 
-public:
+private:
 	TranslationUnitDecl(const std::string& sourceName)
 		: Decl{ sourceName }
 	{
 	}
 
+public:
 	void AppendChild(const std::shared_ptr<ASTNode>& node) final
 	{
 		ASTNode::AppendChild(node);
 		m_children.push_back(node);
 
 		ASTNode::UpdateDelegate();
+	}
+
+	template<typename... _Args>
+	static std::shared_ptr<TranslationUnitDecl> Make(_Args&&... args)
+	{
+		auto ptr = std::shared_ptr<TranslationUnitDecl>{ new TranslationUnitDecl{ std::forward<_Args>(args)... } };
+		ptr->UpdateDelegate();
+		return ptr;
 	}
 
 	PRINT_NODE(TranslationUnitDecl);
@@ -1071,7 +1082,6 @@ private:
 
 class DeclRefExpr
 	: public ResolveRefExpr
-	, public SelfReference<DeclRefExpr>
 {
 	std::weak_ptr<Decl> m_ref;
 
@@ -1102,7 +1112,7 @@ public:
 
 	std::shared_ptr<ASTNode> PolySelf()
 	{
-		return std::dynamic_pointer_cast<ASTNode>(SelfReference<DeclRefExpr>::GetSharedSelf());
+		return std::dynamic_pointer_cast<ASTNode>(ResolveRefExpr::GetSharedSelf());
 	}
 };
 
@@ -1143,9 +1153,8 @@ private:
 	POLY_IMPL();
 };
 
-class BuiltinExpr
+class BuiltinExpr final
 	: public CallExpr
-	, public SelfReference<BuiltinExpr>
 {
 	std::shared_ptr<DeclRefExpr> m_funcRef;
 	std::shared_ptr<ArgumentStmt> m_args;
@@ -1169,14 +1178,14 @@ public:
 		ASTNode::UpdateDelegate();
 	}
 
-	const std::string NodeName() const
+	const std::string NodeName() const final
 	{
 		return std::string{ RemoveClassFromName(typeid(BuiltinExpr).name()) } +" <line:" + std::to_string(line) + ",col:" + std::to_string(col) + "> ";
 	}
 
 	std::shared_ptr<ASTNode> PolySelf()
 	{
-		return std::dynamic_pointer_cast<ASTNode>(SelfReference<BuiltinExpr>::GetSharedSelf());
+		return std::dynamic_pointer_cast<ASTNode>(CallExpr::GetSharedSelf());
 	}
 };
 
