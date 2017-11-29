@@ -6,6 +6,7 @@
 // that can be found in the LICENSE file. Content can not be 
 // copied and/or distributed without the express of the author.
 
+#include "AST.h"
 #include "Parser.h"
 
 #include <iostream>
@@ -21,7 +22,7 @@
 
 #define AST_ROOT() m_ast
 
-#define MAKE_RESV_REF() std::make_shared<DeclRefExpr>(m_identifierStack.top()); m_identifierStack.pop();
+#define MAKE_RESV_REF() CoilCl::AST::MakeASTNode<DeclRefExpr>(m_identifierStack.top()); m_identifierStack.pop();
 
 class UnexpectedTokenException : public std::exception
 {
@@ -416,7 +417,7 @@ bool Parser::StructOrUnionSpecifier()
 		using RecType = RecordDecl::RecordType;
 
 		NextToken();
-		auto rec = std::make_shared<RecordDecl>(isUnion ? RecType::UNION : RecType::STRUCT);
+		auto rec = CoilCl::AST::MakeASTNode<RecordDecl>(isUnion ? RecType::UNION : RecType::STRUCT);
 		rec->SetLocation(CURRENT_LOCATION());
 
 		if (!name.empty()) {
@@ -432,7 +433,7 @@ bool Parser::StructOrUnionSpecifier()
 
 				auto& decl = m_identifierStack.top();
 				m_identifierStack.pop();
-				auto field = std::make_shared<FieldDecl>(decl, m_typeStack.top());
+				auto field = CoilCl::AST::MakeASTNode<FieldDecl>(decl, m_typeStack.top());
 				field->SetLocation(CURRENT_LOCATION());
 				field->ReturnType().SetPointer(m_pointerCounter);
 				m_pointerCounter = 0;
@@ -513,7 +514,7 @@ bool Parser::EnumSpecifier()
 	if (MATCH_TOKEN(TK_ENUM)) {
 		NextToken();
 
-		auto enm = std::make_shared<EnumDecl>();
+		auto enm = CoilCl::AST::MakeASTNode<EnumDecl>();
 		enm->SetLocation(CURRENT_LOCATION());
 
 		if (MATCH_TOKEN(TK_IDENTIFIER)) {
@@ -526,7 +527,7 @@ bool Parser::EnumSpecifier()
 				NextToken();
 
 				if (MATCH_TOKEN(TK_IDENTIFIER)) {
-					auto enmConst = std::make_shared<EnumConstantDecl>(CURRENT_DATA()->As<std::string>());
+					auto enmConst = CoilCl::AST::MakeASTNode<EnumConstantDecl>(CURRENT_DATA()->As<std::string>());
 					enmConst->SetLocation(CURRENT_LOCATION());
 
 					NextToken();
@@ -565,7 +566,7 @@ bool Parser::UnaryOperator()
 
 		auto resv = m_elementDescentPipe.next();
 		m_elementDescentPipe.pop();
-		auto unaryOp = std::make_shared<CoilCl::AST::UnaryOperator>(CoilCl::AST::UnaryOperator::UnaryOperator::ADDR, CoilCl::AST::UnaryOperator::OperandSide::PREFIX, resv);
+		auto unaryOp = CoilCl::AST::MakeASTNode<CoilCl::AST::UnaryOperator>(CoilCl::AST::UnaryOperator::UnaryOperator::ADDR, CoilCl::AST::UnaryOperator::OperandSide::PREFIX, resv);
 		unaryOp->SetLocation(CURRENT_LOCATION());
 		m_elementDescentPipe.push(unaryOp);
 		break;
@@ -577,7 +578,7 @@ bool Parser::UnaryOperator()
 
 		auto resv = m_elementDescentPipe.next();
 		m_elementDescentPipe.pop();
-		auto unaryOp = std::make_shared<CoilCl::AST::UnaryOperator>(CoilCl::AST::UnaryOperator::UnaryOperator::PTRVAL, CoilCl::AST::UnaryOperator::OperandSide::PREFIX, resv);
+		auto unaryOp = CoilCl::AST::MakeASTNode<CoilCl::AST::UnaryOperator>(CoilCl::AST::UnaryOperator::UnaryOperator::PTRVAL, CoilCl::AST::UnaryOperator::OperandSide::PREFIX, resv);
 		unaryOp->SetLocation(CURRENT_LOCATION());
 		m_elementDescentPipe.push(unaryOp);
 		break;
@@ -589,7 +590,7 @@ bool Parser::UnaryOperator()
 
 		auto resv = m_elementDescentPipe.next();
 		m_elementDescentPipe.pop();
-		auto unaryOp = std::make_shared<CoilCl::AST::UnaryOperator>(CoilCl::AST::UnaryOperator::UnaryOperator::INTPOS, CoilCl::AST::UnaryOperator::OperandSide::PREFIX, resv);
+		auto unaryOp = CoilCl::AST::MakeASTNode<CoilCl::AST::UnaryOperator>(CoilCl::AST::UnaryOperator::UnaryOperator::INTPOS, CoilCl::AST::UnaryOperator::OperandSide::PREFIX, resv);
 		unaryOp->SetLocation(CURRENT_LOCATION());
 		m_elementDescentPipe.push(unaryOp);
 		break;
@@ -601,7 +602,7 @@ bool Parser::UnaryOperator()
 
 		auto resv = m_elementDescentPipe.next();
 		m_elementDescentPipe.pop();
-		auto unaryOp = std::make_shared<CoilCl::AST::UnaryOperator>(CoilCl::AST::UnaryOperator::UnaryOperator::INTNEG, CoilCl::AST::UnaryOperator::OperandSide::PREFIX, resv);
+		auto unaryOp = CoilCl::AST::MakeASTNode<CoilCl::AST::UnaryOperator>(CoilCl::AST::UnaryOperator::UnaryOperator::INTNEG, CoilCl::AST::UnaryOperator::OperandSide::PREFIX, resv);
 		unaryOp->SetLocation(CURRENT_LOCATION());
 		m_elementDescentPipe.push(unaryOp);
 		break;
@@ -613,7 +614,7 @@ bool Parser::UnaryOperator()
 
 		auto resv = m_elementDescentPipe.next();
 		m_elementDescentPipe.pop();
-		auto unaryOp = std::make_shared<CoilCl::AST::UnaryOperator>(CoilCl::AST::UnaryOperator::UnaryOperator::BITNOT, CoilCl::AST::UnaryOperator::OperandSide::PREFIX, resv);
+		auto unaryOp = CoilCl::AST::MakeASTNode<CoilCl::AST::UnaryOperator>(CoilCl::AST::UnaryOperator::UnaryOperator::BITNOT, CoilCl::AST::UnaryOperator::OperandSide::PREFIX, resv);
 		unaryOp->SetLocation(CURRENT_LOCATION());
 		m_elementDescentPipe.push(unaryOp);
 		break;
@@ -625,7 +626,7 @@ bool Parser::UnaryOperator()
 
 		auto resv = m_elementDescentPipe.next();
 		m_elementDescentPipe.pop();
-		auto unaryOp = std::make_shared<CoilCl::AST::UnaryOperator>(CoilCl::AST::UnaryOperator::UnaryOperator::BOOLNOT, CoilCl::AST::UnaryOperator::OperandSide::PREFIX, resv);
+		auto unaryOp = CoilCl::AST::MakeASTNode<CoilCl::AST::UnaryOperator>(CoilCl::AST::UnaryOperator::UnaryOperator::BOOLNOT, CoilCl::AST::UnaryOperator::OperandSide::PREFIX, resv);
 		unaryOp->SetLocation(CURRENT_LOCATION());
 		m_elementDescentPipe.push(unaryOp);
 		break;
@@ -642,7 +643,7 @@ bool Parser::AssignmentOperator()
 	switch (CURRENT_TOKEN()) {
 	case TK_ASSIGN:
 	{
-		auto binOp = std::make_shared<BinaryOperator>(BinaryOperator::BinOperand::ASSGN, m_elementDescentPipe.next());
+		auto binOp = CoilCl::AST::MakeASTNode<BinaryOperator>(BinaryOperator::BinOperand::ASSGN, m_elementDescentPipe.next());
 		binOp->SetLocation(CURRENT_LOCATION());
 		m_elementDescentPipe.pop();
 
@@ -657,7 +658,7 @@ bool Parser::AssignmentOperator()
 	case TK_MUL_ASSIGN:
 	{
 		auto resv = std::dynamic_pointer_cast<DeclRefExpr>(m_elementDescentPipe.next());
-		auto comOp = std::make_shared<CompoundAssignOperator>(CompoundAssignOperator::CompoundAssignOperand::MUL, resv);
+		auto comOp = CoilCl::AST::MakeASTNode<CompoundAssignOperator>(CompoundAssignOperator::CompoundAssignOperand::MUL, resv);
 		comOp->SetLocation(CURRENT_LOCATION());
 		m_elementDescentPipe.pop();
 
@@ -672,7 +673,7 @@ bool Parser::AssignmentOperator()
 	case TK_DIV_ASSIGN:
 	{
 		auto resv = std::dynamic_pointer_cast<DeclRefExpr>(m_elementDescentPipe.next());
-		auto comOp = std::make_shared<CompoundAssignOperator>(CompoundAssignOperator::CompoundAssignOperand::DIV, resv);
+		auto comOp = CoilCl::AST::MakeASTNode<CompoundAssignOperator>(CompoundAssignOperator::CompoundAssignOperand::DIV, resv);
 		comOp->SetLocation(CURRENT_LOCATION());
 		m_elementDescentPipe.pop();
 
@@ -687,7 +688,7 @@ bool Parser::AssignmentOperator()
 	case TK_MOD_ASSIGN:
 	{
 		auto resv = std::dynamic_pointer_cast<DeclRefExpr>(m_elementDescentPipe.next());
-		auto comOp = std::make_shared<CompoundAssignOperator>(CompoundAssignOperator::CompoundAssignOperand::MOD, resv);
+		auto comOp = CoilCl::AST::MakeASTNode<CompoundAssignOperator>(CompoundAssignOperator::CompoundAssignOperand::MOD, resv);
 		comOp->SetLocation(CURRENT_LOCATION());
 		m_elementDescentPipe.pop();
 
@@ -702,7 +703,7 @@ bool Parser::AssignmentOperator()
 	case TK_ADD_ASSIGN:
 	{
 		auto resv = std::dynamic_pointer_cast<DeclRefExpr>(m_elementDescentPipe.next());
-		auto comOp = std::make_shared<CompoundAssignOperator>(CompoundAssignOperator::CompoundAssignOperand::ADD, resv);
+		auto comOp = CoilCl::AST::MakeASTNode<CompoundAssignOperator>(CompoundAssignOperator::CompoundAssignOperand::ADD, resv);
 		comOp->SetLocation(CURRENT_LOCATION());
 		m_elementDescentPipe.pop();
 
@@ -717,7 +718,7 @@ bool Parser::AssignmentOperator()
 	case TK_SUB_ASSIGN:
 	{
 		auto resv = std::dynamic_pointer_cast<DeclRefExpr>(m_elementDescentPipe.next());
-		auto comOp = std::make_shared<CompoundAssignOperator>(CompoundAssignOperator::CompoundAssignOperand::SUB, resv);
+		auto comOp = CoilCl::AST::MakeASTNode<CompoundAssignOperator>(CompoundAssignOperator::CompoundAssignOperand::SUB, resv);
 		comOp->SetLocation(CURRENT_LOCATION());
 		m_elementDescentPipe.pop();
 
@@ -732,7 +733,7 @@ bool Parser::AssignmentOperator()
 	case TK_LEFT_ASSIGN:
 	{
 		auto resv = std::dynamic_pointer_cast<DeclRefExpr>(m_elementDescentPipe.next());
-		auto comOp = std::make_shared<CompoundAssignOperator>(CompoundAssignOperator::CompoundAssignOperand::LEFT, resv);
+		auto comOp = CoilCl::AST::MakeASTNode<CompoundAssignOperator>(CompoundAssignOperator::CompoundAssignOperand::LEFT, resv);
 		comOp->SetLocation(CURRENT_LOCATION());
 		m_elementDescentPipe.pop();
 
@@ -748,7 +749,7 @@ bool Parser::AssignmentOperator()
 	case TK_RIGHT_ASSIGN:
 	{
 		auto resv = std::dynamic_pointer_cast<DeclRefExpr>(m_elementDescentPipe.next());
-		auto comOp = std::make_shared<CompoundAssignOperator>(CompoundAssignOperator::CompoundAssignOperand::RIGHT, resv);
+		auto comOp = CoilCl::AST::MakeASTNode<CompoundAssignOperator>(CompoundAssignOperator::CompoundAssignOperand::RIGHT, resv);
 		comOp->SetLocation(CURRENT_LOCATION());
 		m_elementDescentPipe.pop();
 
@@ -763,7 +764,7 @@ bool Parser::AssignmentOperator()
 	case TK_AND_ASSIGN:
 	{
 		auto resv = std::dynamic_pointer_cast<DeclRefExpr>(m_elementDescentPipe.next());
-		auto comOp = std::make_shared<CompoundAssignOperator>(CompoundAssignOperator::CompoundAssignOperand::AND, resv);
+		auto comOp = CoilCl::AST::MakeASTNode<CompoundAssignOperator>(CompoundAssignOperator::CompoundAssignOperand::AND, resv);
 		comOp->SetLocation(CURRENT_LOCATION());
 		m_elementDescentPipe.pop();
 
@@ -778,7 +779,7 @@ bool Parser::AssignmentOperator()
 	case TK_XOR_ASSIGN:
 	{
 		auto resv = std::dynamic_pointer_cast<DeclRefExpr>(m_elementDescentPipe.next());
-		auto comOp = std::make_shared<CompoundAssignOperator>(CompoundAssignOperator::CompoundAssignOperand::XOR, resv);
+		auto comOp = CoilCl::AST::MakeASTNode<CompoundAssignOperator>(CompoundAssignOperator::CompoundAssignOperand::XOR, resv);
 		comOp->SetLocation(CURRENT_LOCATION());
 		m_elementDescentPipe.pop();
 
@@ -793,7 +794,7 @@ bool Parser::AssignmentOperator()
 	case TK_OR_ASSIGN:
 	{
 		auto resv = std::dynamic_pointer_cast<DeclRefExpr>(m_elementDescentPipe.next());
-		auto comOp = std::make_shared<CompoundAssignOperator>(CompoundAssignOperator::CompoundAssignOperand::OR, resv);
+		auto comOp = CoilCl::AST::MakeASTNode<CompoundAssignOperator>(CompoundAssignOperator::CompoundAssignOperand::OR, resv);
 		comOp->SetLocation(CURRENT_LOCATION());
 		m_elementDescentPipe.pop();
 
@@ -827,7 +828,7 @@ void Parser::PrimaryExpression()
 		case BuiltinType::Specifier::INT:
 		{
 			auto object = std::dynamic_pointer_cast<ValueObject<int>>(CURRENT_DATA());
-			auto literal = std::make_shared<IntegerLiteral>(std::move(object));
+			auto literal = CoilCl::AST::MakeASTNode<IntegerLiteral>(std::move(object));
 			literal->SetLocation(CURRENT_LOCATION());
 			m_elementDescentPipe.push(literal);
 			break;
@@ -835,7 +836,7 @@ void Parser::PrimaryExpression()
 		case BuiltinType::Specifier::DOUBLE:
 		{
 			auto object = std::dynamic_pointer_cast<ValueObject<double>>(CURRENT_DATA());
-			auto literal = std::make_shared<FloatingLiteral>(std::move(object));
+			auto literal = CoilCl::AST::MakeASTNode<FloatingLiteral>(std::move(object));
 			literal->SetLocation(CURRENT_LOCATION());
 			m_elementDescentPipe.push(literal);
 			break;
@@ -844,13 +845,13 @@ void Parser::PrimaryExpression()
 		{
 			if (CURRENT_DATA()->IsArray()) {
 				auto object = std::dynamic_pointer_cast<ValueObject<std::string>>(CURRENT_DATA());
-				auto literal = std::make_shared<StringLiteral>(std::move(object));
+				auto literal = CoilCl::AST::MakeASTNode<StringLiteral>(std::move(object));
 				literal->SetLocation(CURRENT_LOCATION());
 				m_elementDescentPipe.push(literal);
 			}
 			else {
 				auto object = std::dynamic_pointer_cast<ValueObject<char>>(CURRENT_DATA());
-				auto literal = std::make_shared<CharacterLiteral>(std::move(object));
+				auto literal = CoilCl::AST::MakeASTNode<CharacterLiteral>(std::move(object));
 				literal->SetLocation(CURRENT_LOCATION());
 				m_elementDescentPipe.push(literal);
 			}
@@ -864,7 +865,7 @@ void Parser::PrimaryExpression()
 		NextToken();
 		Expression();
 
-		auto parenthesis = std::make_shared<ParenExpr>(m_elementDescentPipe.next());
+		auto parenthesis = CoilCl::AST::MakeASTNode<ParenExpr>(m_elementDescentPipe.next());
 		parenthesis->SetLocation(CURRENT_LOCATION());
 		m_elementDescentPipe.pop();
 		m_elementDescentPipe.push(parenthesis);
@@ -903,7 +904,7 @@ void Parser::CompoundLiteral()
 			// Remove snapshot since we can continue this path
 			m_comm.DisposeSnapshot();
 
-			auto list = std::make_shared<InitListExpr>();
+			auto list = CoilCl::AST::MakeASTNode<InitListExpr>();
 			list->SetLocation(CURRENT_LOCATION());
 
 			for (;;) {
@@ -920,7 +921,7 @@ void Parser::CompoundLiteral()
 			}
 			ExpectToken(TK_BRACE_CLOSE);
 
-			auto comp = std::make_shared<CompoundLiteralExpr>(list);
+			auto comp = CoilCl::AST::MakeASTNode<CompoundLiteralExpr>(list);
 			comp->SetLocation(CURRENT_LOCATION());
 			m_elementDescentPipe.push(comp);
 		}
@@ -951,7 +952,7 @@ void Parser::PostfixExpression()
 		Expression();
 		ExpectToken(TK_BRACKET_CLOSE);
 
-		auto arrsub = std::make_shared<ArraySubscriptExpr>(resv, m_elementDescentPipe.next());
+		auto arrsub = CoilCl::AST::MakeASTNode<ArraySubscriptExpr>(resv, m_elementDescentPipe.next());
 		arrsub->SetLocation(CURRENT_LOCATION());
 		m_elementDescentPipe.pop();
 		m_elementDescentPipe.push(arrsub);
@@ -966,7 +967,7 @@ void Parser::PostfixExpression()
 
 		if (MATCH_TOKEN(TK_PARENTHESE_CLOSE)) {
 			NextToken();
-			auto call = std::make_shared<CallExpr>(resv);
+			auto call = CoilCl::AST::MakeASTNode<CallExpr>(resv);
 			call->SetLocation(CURRENT_LOCATION());
 			m_elementDescentPipe.push(call);
 		}
@@ -976,14 +977,14 @@ void Parser::PostfixExpression()
 			m_elementDescentPipe.release_until(startState);
 			ExpectToken(TK_PARENTHESE_CLOSE);
 
-			auto arg = std::make_shared<ArgumentStmt>();
+			auto arg = CoilCl::AST::MakeASTNode<ArgumentStmt>();
 			arg->SetLocation(CURRENT_LOCATION());
 			while (!m_elementDescentPipe.empty()) {
 				arg->AppendArgument(m_elementDescentPipe.next());
 				m_elementDescentPipe.pop();
 			}
 
-			auto call = std::make_shared<CallExpr>(resv, arg);
+			auto call = CoilCl::AST::MakeASTNode<CallExpr>(resv, arg);
 			call->SetLocation(CURRENT_LOCATION());
 			m_elementDescentPipe.push(call);
 		}
@@ -998,7 +999,7 @@ void Parser::PostfixExpression()
 		//ExpectIdentifier();
 
 		auto member = CURRENT_DATA()->As<std::string>();
-		auto expr = std::make_shared<MemberExpr>(MemberExpr::MemberType::REFERENCE, member, resv);
+		auto expr = CoilCl::AST::MakeASTNode<MemberExpr>(MemberExpr::MemberType::REFERENCE, member, resv);
 		expr->SetLocation(CURRENT_LOCATION());
 		m_elementDescentPipe.push(expr);
 		NextToken();
@@ -1013,7 +1014,7 @@ void Parser::PostfixExpression()
 		//ExpectIdentifier();
 
 		auto member = CURRENT_DATA()->As<std::string>();
-		auto expr = std::make_shared<MemberExpr>(MemberExpr::MemberType::POINTER, member, resv);
+		auto expr = CoilCl::AST::MakeASTNode<MemberExpr>(MemberExpr::MemberType::POINTER, member, resv);
 		expr->SetLocation(CURRENT_LOCATION());
 		m_elementDescentPipe.push(expr);
 		NextToken();
@@ -1027,7 +1028,7 @@ void Parser::PostfixExpression()
 
 		auto resv = MAKE_RESV_REF();
 		resv->SetLocation(CURRENT_LOCATION());
-		auto unaryOp = std::make_shared<CoilCl::AST::UnaryOperator>(CoilCl::AST::UnaryOperator::UnaryOperator::INC, CoilCl::AST::UnaryOperator::OperandSide::POSTFIX, std::dynamic_pointer_cast<ASTNode>(resv));
+		auto unaryOp = CoilCl::AST::MakeASTNode<CoilCl::AST::UnaryOperator>(CoilCl::AST::UnaryOperator::UnaryOperator::INC, CoilCl::AST::UnaryOperator::OperandSide::POSTFIX, std::dynamic_pointer_cast<ASTNode>(resv));
 		unaryOp->SetLocation(CURRENT_LOCATION());
 		m_elementDescentPipe.push(unaryOp);
 
@@ -1042,7 +1043,7 @@ void Parser::PostfixExpression()
 
 		auto resv = MAKE_RESV_REF();
 		resv->SetLocation(CURRENT_LOCATION());
-		auto unaryOp = std::make_shared<CoilCl::AST::UnaryOperator>(CoilCl::AST::UnaryOperator::UnaryOperator::DEC, CoilCl::AST::UnaryOperator::OperandSide::POSTFIX, std::dynamic_pointer_cast<ASTNode>(resv));
+		auto unaryOp = CoilCl::AST::MakeASTNode<CoilCl::AST::UnaryOperator>(CoilCl::AST::UnaryOperator::UnaryOperator::DEC, CoilCl::AST::UnaryOperator::OperandSide::POSTFIX, std::dynamic_pointer_cast<ASTNode>(resv));
 		unaryOp->SetLocation(CURRENT_LOCATION());
 		m_elementDescentPipe.push(unaryOp);
 
@@ -1084,7 +1085,7 @@ void Parser::UnaryExpression()
 			throw ParseException{ "expression is not assignable", 0, 0 };
 		}*/
 
-		auto unaryOp = std::make_shared<CoilCl::AST::UnaryOperator>(CoilCl::AST::UnaryOperator::UnaryOperator::INC, CoilCl::AST::UnaryOperator::OperandSide::PREFIX, m_elementDescentPipe.next());
+		auto unaryOp = CoilCl::AST::MakeASTNode<CoilCl::AST::UnaryOperator>(CoilCl::AST::UnaryOperator::UnaryOperator::INC, CoilCl::AST::UnaryOperator::OperandSide::PREFIX, m_elementDescentPipe.next());
 		unaryOp->SetLocation(CURRENT_LOCATION());
 		m_elementDescentPipe.pop();
 		m_elementDescentPipe.push(unaryOp);
@@ -1100,7 +1101,7 @@ void Parser::UnaryExpression()
 			throw ParseException{ "expression is not assignable", 0, 0 };
 		}*/
 
-		auto unaryOp = std::make_shared<CoilCl::AST::UnaryOperator>(CoilCl::AST::UnaryOperator::UnaryOperator::DEC, CoilCl::AST::UnaryOperator::OperandSide::PREFIX, m_elementDescentPipe.next());
+		auto unaryOp = CoilCl::AST::MakeASTNode<CoilCl::AST::UnaryOperator>(CoilCl::AST::UnaryOperator::UnaryOperator::DEC, CoilCl::AST::UnaryOperator::OperandSide::PREFIX, m_elementDescentPipe.next());
 		unaryOp->SetLocation(CURRENT_LOCATION());
 		m_elementDescentPipe.pop();
 		m_elementDescentPipe.push(unaryOp);
@@ -1111,9 +1112,9 @@ void Parser::UnaryExpression()
 	{
 		NextToken();
 
-		auto ref = std::make_shared<DeclRefExpr>("sizeof");
+		auto ref = CoilCl::AST::MakeASTNode<DeclRefExpr>("sizeof");
 		ref->SetLocation(CURRENT_LOCATION());
-		auto func = std::make_shared<BuiltinExpr>(ref);
+		auto func = CoilCl::AST::MakeASTNode<BuiltinExpr>(ref);
 		func->SetLocation(CURRENT_LOCATION());
 
 		// Snapshot current state in case of rollback
@@ -1169,7 +1170,7 @@ void Parser::CastExpression()
 			// Remove snapshot since we can continue this path
 			m_comm.DisposeSnapshot();
 
-			auto cast = std::make_shared<CastExpr>(m_elementDescentPipe.next());
+			auto cast = CoilCl::AST::MakeASTNode<CastExpr>(m_elementDescentPipe.next());
 			cast->SetLocation(CURRENT_LOCATION());
 			m_elementDescentPipe.pop();
 			m_elementDescentPipe.push(cast);
@@ -1191,7 +1192,7 @@ void Parser::MultiplicativeExpression()
 	switch (CURRENT_TOKEN()) {
 	case TK_ASTERISK:
 	{
-		auto binOp = std::make_shared<BinaryOperator>(BinaryOperator::BinOperand::MUL, m_elementDescentPipe.next());
+		auto binOp = CoilCl::AST::MakeASTNode<BinaryOperator>(BinaryOperator::BinOperand::MUL, m_elementDescentPipe.next());
 		binOp->SetLocation(CURRENT_LOCATION());
 		m_elementDescentPipe.pop();
 
@@ -1205,7 +1206,7 @@ void Parser::MultiplicativeExpression()
 	}
 	case TK_SLASH:
 	{
-		auto binOp = std::make_shared<BinaryOperator>(BinaryOperator::BinOperand::DIV, m_elementDescentPipe.next());
+		auto binOp = CoilCl::AST::MakeASTNode<BinaryOperator>(BinaryOperator::BinOperand::DIV, m_elementDescentPipe.next());
 		binOp->SetLocation(CURRENT_LOCATION());
 		m_elementDescentPipe.pop();
 
@@ -1219,7 +1220,7 @@ void Parser::MultiplicativeExpression()
 	}
 	case TK_PERCENT:
 	{
-		auto binOp = std::make_shared<BinaryOperator>(BinaryOperator::BinOperand::MOD, m_elementDescentPipe.next());
+		auto binOp = CoilCl::AST::MakeASTNode<BinaryOperator>(BinaryOperator::BinOperand::MOD, m_elementDescentPipe.next());
 		binOp->SetLocation(CURRENT_LOCATION());
 		m_elementDescentPipe.pop();
 
@@ -1241,7 +1242,7 @@ void Parser::AdditiveExpression()
 	switch (CURRENT_TOKEN()) {
 	case TK_PLUS:
 	{
-		auto binOp = std::make_shared<BinaryOperator>(BinaryOperator::BinOperand::PLUS, m_elementDescentPipe.next());
+		auto binOp = CoilCl::AST::MakeASTNode<BinaryOperator>(BinaryOperator::BinOperand::PLUS, m_elementDescentPipe.next());
 		binOp->SetLocation(CURRENT_LOCATION());
 		m_elementDescentPipe.pop();
 
@@ -1255,7 +1256,7 @@ void Parser::AdditiveExpression()
 	}
 	case TK_MINUS:
 	{
-		auto binOp = std::make_shared<BinaryOperator>(BinaryOperator::BinOperand::MINUS, m_elementDescentPipe.next());
+		auto binOp = CoilCl::AST::MakeASTNode<BinaryOperator>(BinaryOperator::BinOperand::MINUS, m_elementDescentPipe.next());
 		binOp->SetLocation(CURRENT_LOCATION());
 		m_elementDescentPipe.pop();
 
@@ -1277,7 +1278,7 @@ void Parser::ShiftExpression()
 	switch (CURRENT_TOKEN()) {
 	case TK_LEFT_OP:
 	{
-		auto binOp = std::make_shared<BinaryOperator>(BinaryOperator::BinOperand::SLEFT, m_elementDescentPipe.next());
+		auto binOp = CoilCl::AST::MakeASTNode<BinaryOperator>(BinaryOperator::BinOperand::SLEFT, m_elementDescentPipe.next());
 		binOp->SetLocation(CURRENT_LOCATION());
 		m_elementDescentPipe.pop();
 
@@ -1291,7 +1292,7 @@ void Parser::ShiftExpression()
 	}
 	case TK_RIGHT_OP:
 	{
-		auto binOp = std::make_shared<BinaryOperator>(BinaryOperator::BinOperand::SRIGHT, m_elementDescentPipe.next());
+		auto binOp = CoilCl::AST::MakeASTNode<BinaryOperator>(BinaryOperator::BinOperand::SRIGHT, m_elementDescentPipe.next());
 		binOp->SetLocation(CURRENT_LOCATION());
 		m_elementDescentPipe.pop();
 
@@ -1313,7 +1314,7 @@ void Parser::RelationalExpression()
 	switch (CURRENT_TOKEN()) {
 	case TK_LESS_THAN:
 	{
-		auto binOp = std::make_shared<BinaryOperator>(BinaryOperator::BinOperand::LT, m_elementDescentPipe.next());
+		auto binOp = CoilCl::AST::MakeASTNode<BinaryOperator>(BinaryOperator::BinOperand::LT, m_elementDescentPipe.next());
 		binOp->SetLocation(CURRENT_LOCATION());
 		m_elementDescentPipe.pop();
 
@@ -1327,7 +1328,7 @@ void Parser::RelationalExpression()
 	}
 	case TK_GREATER_THAN:
 	{
-		auto binOp = std::make_shared<BinaryOperator>(BinaryOperator::BinOperand::GT, m_elementDescentPipe.next());
+		auto binOp = CoilCl::AST::MakeASTNode<BinaryOperator>(BinaryOperator::BinOperand::GT, m_elementDescentPipe.next());
 		binOp->SetLocation(CURRENT_LOCATION());
 		m_elementDescentPipe.pop();
 
@@ -1341,7 +1342,7 @@ void Parser::RelationalExpression()
 	}
 	case TK_LE_OP:
 	{
-		auto binOp = std::make_shared<BinaryOperator>(BinaryOperator::BinOperand::LE, m_elementDescentPipe.next());
+		auto binOp = CoilCl::AST::MakeASTNode<BinaryOperator>(BinaryOperator::BinOperand::LE, m_elementDescentPipe.next());
 		binOp->SetLocation(CURRENT_LOCATION());
 		m_elementDescentPipe.pop();
 
@@ -1355,7 +1356,7 @@ void Parser::RelationalExpression()
 	}
 	case TK_GE_OP:
 	{
-		auto binOp = std::make_shared<BinaryOperator>(BinaryOperator::BinOperand::GE, m_elementDescentPipe.next());
+		auto binOp = CoilCl::AST::MakeASTNode<BinaryOperator>(BinaryOperator::BinOperand::GE, m_elementDescentPipe.next());
 		binOp->SetLocation(CURRENT_LOCATION());
 		m_elementDescentPipe.pop();
 
@@ -1377,7 +1378,7 @@ void Parser::EqualityExpression()
 	switch (CURRENT_TOKEN()) {
 	case TK_EQ_OP:
 	{
-		auto binOp = std::make_shared<BinaryOperator>(BinaryOperator::BinOperand::EQ, m_elementDescentPipe.next());
+		auto binOp = CoilCl::AST::MakeASTNode<BinaryOperator>(BinaryOperator::BinOperand::EQ, m_elementDescentPipe.next());
 		binOp->SetLocation(CURRENT_LOCATION());
 		m_elementDescentPipe.pop();
 
@@ -1391,7 +1392,7 @@ void Parser::EqualityExpression()
 	}
 	case TK_NE_OP:
 	{
-		auto binOp = std::make_shared<BinaryOperator>(BinaryOperator::BinOperand::NEQ, m_elementDescentPipe.next());
+		auto binOp = CoilCl::AST::MakeASTNode<BinaryOperator>(BinaryOperator::BinOperand::NEQ, m_elementDescentPipe.next());
 		binOp->SetLocation(CURRENT_LOCATION());
 		m_elementDescentPipe.pop();
 
@@ -1411,7 +1412,7 @@ void Parser::AndExpression()
 	EqualityExpression();
 
 	if (MATCH_TOKEN(TK_AMPERSAND)) {
-		auto binOp = std::make_shared<BinaryOperator>(BinaryOperator::BinOperand::AND, m_elementDescentPipe.next());
+		auto binOp = CoilCl::AST::MakeASTNode<BinaryOperator>(BinaryOperator::BinOperand::AND, m_elementDescentPipe.next());
 		binOp->SetLocation(CURRENT_LOCATION());
 		m_elementDescentPipe.pop();
 
@@ -1429,7 +1430,7 @@ void Parser::ExclusiveOrExpression()
 	AndExpression();
 
 	if (MATCH_TOKEN(TK_CARET)) {
-		auto binOp = std::make_shared<BinaryOperator>(BinaryOperator::BinOperand::XOR, m_elementDescentPipe.next());
+		auto binOp = CoilCl::AST::MakeASTNode<BinaryOperator>(BinaryOperator::BinOperand::XOR, m_elementDescentPipe.next());
 		binOp->SetLocation(CURRENT_LOCATION());
 		m_elementDescentPipe.pop();
 
@@ -1447,7 +1448,7 @@ void Parser::LogicalAndExpression()
 	ExclusiveOrExpression();
 
 	if (MATCH_TOKEN(TK_AND_OP)) {
-		auto binOp = std::make_shared<BinaryOperator>(BinaryOperator::BinOperand::LAND, m_elementDescentPipe.next());
+		auto binOp = CoilCl::AST::MakeASTNode<BinaryOperator>(BinaryOperator::BinOperand::LAND, m_elementDescentPipe.next());
 		binOp->SetLocation(CURRENT_LOCATION());
 		m_elementDescentPipe.pop();
 
@@ -1465,7 +1466,7 @@ void Parser::LogicalOrExpression()
 	LogicalAndExpression();
 
 	if (MATCH_TOKEN(TK_OR_OP)) {
-		auto binOp = std::make_shared<BinaryOperator>(BinaryOperator::BinOperand::LOR, m_elementDescentPipe.next());
+		auto binOp = CoilCl::AST::MakeASTNode<BinaryOperator>(BinaryOperator::BinOperand::LOR, m_elementDescentPipe.next());
 		binOp->SetLocation(CURRENT_LOCATION());
 		m_elementDescentPipe.pop();
 
@@ -1483,7 +1484,7 @@ void Parser::ConditionalExpression()
 	LogicalOrExpression();
 
 	if (MATCH_TOKEN(TK_QUESTION_MARK)) {
-		auto conOp = std::make_shared<ConditionalOperator>(m_elementDescentPipe.next());
+		auto conOp = CoilCl::AST::MakeASTNode<ConditionalOperator>(m_elementDescentPipe.next());
 		conOp->SetLocation(CURRENT_LOCATION());
 		m_elementDescentPipe.pop();
 
@@ -1536,7 +1537,7 @@ bool Parser::JumpStatement()
 
 		//ExpectIdentifier();//XXX: possible optimization
 
-		auto stmt = std::make_shared<GotoStmt>(CURRENT_DATA()->As<std::string>());
+		auto stmt = CoilCl::AST::MakeASTNode<GotoStmt>(CURRENT_DATA()->As<std::string>());
 		stmt->SetLocation(CURRENT_LOCATION());
 		m_elementDescentPipe.push(stmt);
 		NextToken();
@@ -1545,7 +1546,7 @@ bool Parser::JumpStatement()
 	case TK_CONTINUE:
 	{
 		NextToken();
-		auto stmt = std::make_shared<ContinueStmt>();
+		auto stmt = CoilCl::AST::MakeASTNode<ContinueStmt>();
 		stmt->SetLocation(CURRENT_LOCATION());
 		m_elementDescentPipe.push(stmt);
 		break;
@@ -1553,7 +1554,7 @@ bool Parser::JumpStatement()
 	case TK_BREAK:
 	{
 		NextToken();
-		auto stmt = std::make_shared<BreakStmt>();
+		auto stmt = CoilCl::AST::MakeASTNode<BreakStmt>();
 		stmt->SetLocation(CURRENT_LOCATION());
 		m_elementDescentPipe.push(stmt);
 		break;
@@ -1562,14 +1563,14 @@ bool Parser::JumpStatement()
 	{
 		NextToken();
 		if (MATCH_TOKEN(TK_COMMIT)) {
-			auto stmt = std::make_shared<ReturnStmt>();
+			auto stmt = CoilCl::AST::MakeASTNode<ReturnStmt>();
 			stmt->SetLocation(CURRENT_LOCATION());
 			m_elementDescentPipe.push(stmt);
 		}
 		else {
 			Expression();
 
-			auto returnStmt = std::make_shared<ReturnStmt>();
+			auto returnStmt = CoilCl::AST::MakeASTNode<ReturnStmt>();
 			returnStmt->SetLocation(CURRENT_LOCATION());
 			while (!m_elementDescentPipe.empty()) {
 				returnStmt->SetReturnNode(m_elementDescentPipe.next());
@@ -1597,7 +1598,7 @@ bool Parser::IterationStatement()
 		NextToken();
 		ExpectToken(TK_PARENTHESE_OPEN);
 		Expression();
-		auto stmt = std::make_shared<WhileStmt>(m_elementDescentPipe.next());
+		auto stmt = CoilCl::AST::MakeASTNode<WhileStmt>(m_elementDescentPipe.next());
 		stmt->SetLocation(CURRENT_LOCATION());
 		ExpectToken(TK_PARENTHESE_CLOSE);
 		m_elementDescentPipe.pop();
@@ -1617,7 +1618,7 @@ bool Parser::IterationStatement()
 		NextToken();
 		Statement();
 
-		auto stmt = std::make_shared<DoStmt>(m_elementDescentPipe.next());
+		auto stmt = CoilCl::AST::MakeASTNode<DoStmt>(m_elementDescentPipe.next());
 		stmt->SetLocation(CURRENT_LOCATION());
 		m_elementDescentPipe.pop();
 
@@ -1674,7 +1675,7 @@ bool Parser::IterationStatement()
 
 		ExpectToken(TK_PARENTHESE_CLOSE);
 
-		auto stmt = std::make_shared<ForStmt>(node1, node2, node3);
+		auto stmt = CoilCl::AST::MakeASTNode<ForStmt>(node1, node2, node3);
 		stmt->SetLocation(CURRENT_LOCATION());
 
 		Statement();
@@ -1703,7 +1704,7 @@ bool Parser::SelectionStatement()
 		Expression();
 		ExpectToken(TK_PARENTHESE_CLOSE);
 
-		auto stmt = std::make_shared<IfStmt>(m_elementDescentPipe.next());
+		auto stmt = CoilCl::AST::MakeASTNode<IfStmt>(m_elementDescentPipe.next());
 		stmt->SetLocation(CURRENT_LOCATION());
 		m_elementDescentPipe.pop();
 
@@ -1731,7 +1732,7 @@ bool Parser::SelectionStatement()
 		Expression();
 		ExpectToken(TK_PARENTHESE_CLOSE);
 
-		auto stmt = std::make_shared<SwitchStmt>(m_elementDescentPipe.next());
+		auto stmt = CoilCl::AST::MakeASTNode<SwitchStmt>(m_elementDescentPipe.next());
 		stmt->SetLocation(CURRENT_LOCATION());
 		m_elementDescentPipe.pop();
 
@@ -1778,7 +1779,7 @@ bool Parser::CompoundStatement()
 
 		// Squash all stack elements in compound statment
 		// body and push compound on the stack
-		auto stmt = std::make_shared<CompoundStmt>();
+		auto stmt = CoilCl::AST::MakeASTNode<CompoundStmt>();
 		stmt->SetLocation(CURRENT_LOCATION());
 		while (!m_elementDescentPipe.empty()) {
 			stmt->AppendChild(m_elementDescentPipe.next());
@@ -1813,7 +1814,7 @@ bool Parser::LabeledStatement()
 				throw ParseException{ "expected statement", 0, 0 };
 			}
 
-			auto stmt = std::make_shared<LabelStmt>(lblName, m_elementDescentPipe.next());
+			auto stmt = CoilCl::AST::MakeASTNode<LabelStmt>(lblName, m_elementDescentPipe.next());
 			stmt->SetLocation(CURRENT_LOCATION());
 			m_elementDescentPipe.pop();
 			m_elementDescentPipe.push(stmt);
@@ -1840,7 +1841,7 @@ bool Parser::LabeledStatement()
 			throw ParseException{ "label at end of compound statement", 0, 0 };
 		}
 
-		auto stmt = std::make_shared<CaseStmt>(lblLiteral, m_elementDescentPipe.next());
+		auto stmt = CoilCl::AST::MakeASTNode<CaseStmt>(lblLiteral, m_elementDescentPipe.next());
 		stmt->SetLocation(CURRENT_LOCATION());
 		m_elementDescentPipe.pop();
 		m_elementDescentPipe.push(stmt);
@@ -1857,7 +1858,7 @@ bool Parser::LabeledStatement()
 			throw ParseException{ "label at end of compound statement", 0, 0 };
 		}
 
-		auto stmt = std::make_shared<DefaultStmt>(m_elementDescentPipe.next());
+		auto stmt = CoilCl::AST::MakeASTNode<DefaultStmt>(m_elementDescentPipe.next());
 		stmt->SetLocation(CURRENT_LOCATION());
 		m_elementDescentPipe.pop();
 		m_elementDescentPipe.push(stmt);
@@ -1920,7 +1921,7 @@ void Parser::Declaration()
 			ExpectToken(TK_COMMIT);
 
 			auto name = m_identifierStack.top();
-			auto decl = std::make_shared<TypedefDecl>(name, m_typeStack.top());
+			auto decl = CoilCl::AST::MakeASTNode<TypedefDecl>(name, m_typeStack.top());
 			decl->SetLocation(CURRENT_LOCATION());
 			decl->ReturnType().SetPointer(m_pointerCounter);
 			m_pointerCounter = 0;
@@ -1938,7 +1939,7 @@ void Parser::Declaration()
 		if (m_elementDescentPipe.is_changed(initState)) {
 			m_elementDescentPipe.release_until(initState);
 
-			auto decl = std::make_shared<DeclStmt>();
+			auto decl = CoilCl::AST::MakeASTNode<DeclStmt>();
 			decl->SetLocation(CURRENT_LOCATION());
 			while (!m_elementDescentPipe.empty()) {
 				decl->AddDeclaration(std::dynamic_pointer_cast<VarDecl>(m_elementDescentPipe.next()));
@@ -1972,7 +1973,7 @@ void Parser::InitDeclaratorList()
 			Initializer();
 			m_elementDescentPipe.release_until(startState);
 
-			auto decl = std::make_shared<VarDecl>(m_identifierStack.top(), m_typeStack.top(), m_elementDescentPipe.next());
+			auto decl = CoilCl::AST::MakeASTNode<VarDecl>(m_identifierStack.top(), m_typeStack.top(), m_elementDescentPipe.next());
 			decl->SetLocation(CURRENT_LOCATION());
 			decl->ReturnType().SetPointer(m_pointerCounter);
 			m_pointerCounter = 0;
@@ -1983,7 +1984,7 @@ void Parser::InitDeclaratorList()
 			m_elementDescentPipe.lock();
 		}
 		else {
-			auto decl = std::make_shared<VarDecl>(m_identifierStack.top(), m_typeStack.top());
+			auto decl = CoilCl::AST::MakeASTNode<VarDecl>(m_identifierStack.top(), m_typeStack.top());
 			decl->SetLocation(CURRENT_LOCATION());
 			decl->ReturnType().SetPointer(m_pointerCounter);
 			m_pointerCounter = 0;
@@ -2094,7 +2095,7 @@ void Parser::Initializer()
 
 		m_elementDescentPipe.release_until(startState);
 
-		auto expr = std::make_shared<InitListExpr>();
+		auto expr = CoilCl::AST::MakeASTNode<InitListExpr>();
 		expr->SetLocation(CURRENT_LOCATION());
 		while (!m_elementDescentPipe.empty()) {
 			expr->AddListItem(m_elementDescentPipe.next());
@@ -2179,7 +2180,7 @@ bool Parser::DirectDeclarator()
 			if (MATCH_TOKEN(TK_PARENTHESE_CLOSE)) {
 				NextToken();
 
-				auto decl = std::make_shared<FunctionDecl>(m_identifierStack.top(), m_typeStack.top());
+				auto decl = CoilCl::AST::MakeASTNode<FunctionDecl>(m_identifierStack.top(), m_typeStack.top());
 				decl->SetLocation(CURRENT_LOCATION());
 				decl->ReturnType().SetPointer(m_pointerCounter);
 				m_pointerCounter = 0;
@@ -2192,13 +2193,13 @@ bool Parser::DirectDeclarator()
 			else {
 				const auto IdentifierListDecl = [=]
 				{
-					auto stmt = std::make_shared<ParamStmt>();
+					auto stmt = CoilCl::AST::MakeASTNode<ParamStmt>();
 					stmt->SetLocation(CURRENT_LOCATION());
 
 					for (;;) {
 						if (MATCH_TOKEN(TK_IDENTIFIER)) {
 							//TODO
-							/*auto paramDecl = std::make_shared<ParamDecl>(CURRENT_DATA()->As<std::string>());
+							/*auto paramDecl = CoilCl::AST::MakeASTNode<ParamDecl>(CURRENT_DATA()->As<std::string>());
 							paramDecl->SetLocation(CURRENT_LOCATION());
 							stmt->AppendParamter(std::dynamic_pointer_cast<ASTNode>(paramDecl));*/
 							NextToken();
@@ -2220,7 +2221,7 @@ bool Parser::DirectDeclarator()
 					IdentifierListDecl();
 				}
 
-				auto decl = std::make_shared<FunctionDecl>(m_identifierStack.top(), m_typeStack.top());
+				auto decl = CoilCl::AST::MakeASTNode<FunctionDecl>(m_identifierStack.top(), m_typeStack.top());
 				decl->SetLocation(CURRENT_LOCATION());
 				decl->SetParameterStatement(std::dynamic_pointer_cast<ParamStmt>(m_elementDescentPipe.next()));
 				decl->ReturnType().SetPointer(m_pointerCounter);
@@ -2301,7 +2302,7 @@ bool Parser::ParameterTypeList()
 		if (MATCH_TOKEN(TK_ELLIPSIS)) {
 			NextToken();
 
-			auto decl = std::make_shared<VariadicDecl>();
+			auto decl = CoilCl::AST::MakeASTNode<VariadicDecl>();
 			decl->SetLocation(CURRENT_LOCATION());
 			m_elementDescentPipe.push(decl);
 			rs = true;
@@ -2321,7 +2322,7 @@ bool Parser::ParameterTypeList()
 	m_elementDescentPipe.release_until(startState);
 
 	if (rs) {
-		auto stmt = std::make_shared<ParamStmt>();
+		auto stmt = CoilCl::AST::MakeASTNode<ParamStmt>();
 		stmt->SetLocation(CURRENT_LOCATION());
 		while (!m_elementDescentPipe.empty()) {
 			stmt->AppendParamter(m_elementDescentPipe.next());
@@ -2346,7 +2347,7 @@ bool Parser::ParameterDeclaration()
 	// If a declarator was found, create the parameter and pop all used lists
 	// since the next parameter cannot depend on this data.
 	if (Declarator()) {
-		auto decl = std::make_shared<ParamDecl>(m_identifierStack.top(), m_typeStack.top());
+		auto decl = CoilCl::AST::MakeASTNode<ParamDecl>(m_identifierStack.top(), m_typeStack.top());
 		decl->SetLocation(CURRENT_LOCATION());
 		decl->ReturnType().SetPointer(m_pointerCounter);
 		m_pointerCounter = 0;
@@ -2360,7 +2361,7 @@ bool Parser::ParameterDeclaration()
 
 	// Found a type, but no identifier. Add type as abstract declaration
 	AbstractDeclarator();
-	auto decl = std::make_shared<ParamDecl>(m_typeStack.top());
+	auto decl = CoilCl::AST::MakeASTNode<ParamDecl>(m_typeStack.top());
 	decl->SetLocation(CURRENT_LOCATION());
 	decl->ReturnType().SetPointer(m_pointerCounter);
 	m_pointerCounter = 0;
@@ -2451,12 +2452,12 @@ void Parser::ExternalDeclaration()
 void Parser::TranslationUnit()
 {
 	// Returns file name of current lexer input, this can also be an include
-	auto tu_ast = std::make_shared<TranslationUnitDecl>(m_profile->MetaInfo()->name);
-	tu_ast->SetLocation(0, 0);
+	auto localAst = TranslationUnitDecl::Make(m_profile->MetaInfo()->name);
+	localAst->SetLocation(0, 0);
 
 	// Set translation unit as top level tree root
 	if (AST_ROOT() == nullptr) {
-		AST_ROOT() = tu_ast;
+		AST_ROOT() = localAst;
 	}
 
 	do {

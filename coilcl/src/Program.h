@@ -1,5 +1,6 @@
 #pragma once
 
+#include "AST.h"
 #include "ASTNode.h"
 #include "Stage.h"
 
@@ -30,13 +31,15 @@ public:
 	Program(const Program&) = delete;
 
 	Program(Program&& other, std::shared_ptr<TranslationUnitDecl>&& ast)
-		: m_ast{ std::move(ast) }
+		: m_ast{ new AST::AST{ std::move(ast) } }
 		, m_treeCondition{ other.m_treeCondition }
 		, m_lastStage{ other.m_lastStage }
 	{
 	}
 
-	inline auto& Ast() const { return m_ast; }
+	inline auto AstCopy() { return m_ast->deep_copy(); }
+
+	inline auto AstPassthrough() const { return m_ast->operator->(); }
 
 	// Syntax becomes program after assertion passed
 	inline auto IsRunnable() const { return m_treeCondition >= Condition::ASSERTION_PASSED; }
@@ -47,7 +50,7 @@ public:
 private:
 	Condition m_treeCondition;
 	StageType m_lastStage;
-	mutable std::shared_ptr<TranslationUnitDecl> m_ast;
+	std::unique_ptr<AST::AST> m_ast;
 };
 
 } // namespace CoilCl

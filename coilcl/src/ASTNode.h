@@ -95,7 +95,7 @@ public:
 	virtual std::shared_ptr<ASTNode> PolySelf() = 0;
 
 	//TODO: replace with for_each ?
-	void Print(int level = 0, bool last = 0, std::vector<int> ignore = {});
+	void Print(int level = 0, bool last = 0, std::vector<int> ignore = {}) const;
 
 	//TODO: friend
 	// Forward the random access operator on the child node list

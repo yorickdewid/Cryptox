@@ -209,6 +209,15 @@ public:
 	{
 	}
 
+	AST(std::shared_ptr<ASTNode>& tree)
+		: m_tree{ tree }
+	{
+	}
+
+	// No implicit copy, only move
+	AST(const AST&) = delete;
+	AST(AST&&) = default;
+
 	// Iterators
 	iterator begin() { return Iterator{ m_tree }; }
 	iterator end() { return Iterator{}; }
@@ -221,9 +230,28 @@ public:
 	size_type size() { return std::distance(this->begin(), this->end()); }
 	bool empty() { return std::distance(this->begin(), this->end()) == 0; }
 
+	ASTNode *operator->() const
+	{
+		return m_tree.get();
+	}
+
+	AST deep_copy()
+	{
+		AST tmp{ m_tree };
+		return tmp;
+	}
+
 private:
 	std::shared_ptr<ASTNode> m_tree;
 };
+
+template<typename _Ty, typename... _Args>
+inline auto MakeASTNode(_Args&&... args)
+{
+	auto ptr = std::make_shared<_Ty>(std::forward<_Args>(args)...);
+	ptr->UpdateDelegate();
+	return ptr;
+}
 
 } // namespace AST
 } // namespace CoilCl

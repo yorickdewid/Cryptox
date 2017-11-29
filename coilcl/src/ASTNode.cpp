@@ -7,7 +7,7 @@ Decl::~Decl() {}
 Expr::~Expr() {}
 Stmt::~Stmt() {}
 
-void ASTNode::Print(int level, bool last, std::vector<int> ignore)
+void ASTNode::Print(int level, bool last, std::vector<int> ignore) const
 {
 	if (level == 0) {
 		std::cout << NodeName() << std::endl;

@@ -123,8 +123,9 @@ public:
 		std::unique_ptr<CoilCl::Program> program = std::make_unique<CoilCl::Program>();
 
 		try {
+#if 0
 			auto preproc = std::make_unique<CoilCl::Preprocessor>(profile);
-				preproc->MoveStage()
+			preproc->MoveStage()
 				.Options(CoilCl::Preprocessor::Option::PARSE_DEFINE
 						 | CoilCl::Preprocessor::Option::PARSE_INCLUDE
 						 | CoilCl::Preprocessor::Option::PARSE_MACRO
@@ -169,7 +170,7 @@ public:
 			CompilerPatch profilePatch{ std::move(preproc), profile };
 
 			for (;;) {
-				auto input = profilePatch.ReadInput();
+				const std::string input = profilePatch.ReadInput();
 				if (input.empty()) {
 					break;
 				}
@@ -179,9 +180,10 @@ public:
 
 			std::cout << std::endl;
 			return;
+#endif
 
 			// Syntax analysis
-			auto ast = Parser{ profile }
+			std::shared_ptr<TranslationUnitDecl> ast = Parser{ profile }
 				.MoveStage()
 				.CheckCompatibility()
 				.Execute()
@@ -191,27 +193,18 @@ public:
 			program = std::make_unique<CoilCl::Program>(DYNAMIC_FORWARD(program), std::move(ast));
 
 			// For now dump contents to screen
-			program->Ast()->Print();
+			program->AstPassthrough()->Print();
 
 			// Semantic analysis
-			CoilCl::Semer{ profile }
+			CoilCl::Semer{ profile, std::move(program->AstCopy()) }
 				.MoveStage()
-				.Syntax(program->Ast())
 				.CheckCompatibility()
 				.StaticResolve()
 				.PreliminaryAssert()
 				.StandardCompliance();
-
-			/*auto oast = CoilCl::Semer{ profile }
-				.MoveStage()
-				.Syntax(scheme.Ast())
-				.CheckCompatibility()
-				.PreliminaryAssert()
-				.StandardCompliance()
-				.PedanticCompliance()
-				.Optimize<Optimizer>(CoilCl::Semer::OptimizeLevel::L0)
-				.TreeOperator<CoilCl::AST::Util::Copy>();
-			*/
+			//.PedanticCompliance()
+			//.Optimize<Optimizer>(CoilCl::Semer::OptimizeLevel::L0)
+			//.TreeOperator<CoilCl::AST::Util::Copy>();
 
 			// Source building
 			/*CoilCl::Emitter{ profile }
