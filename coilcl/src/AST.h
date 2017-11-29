@@ -22,10 +22,10 @@ class AST
 
 public: // Member types
 	using value_type = _ValTy;
-	using reference = _ValTy&;
-	using const_reference = const _ValTy&;
-	using pointer = _ValTy*;
-	using const_pointer = const _ValTy*;
+	using reference = value_type&;
+	using const_reference = const value_type&;
+	using pointer = value_type*;
+	using const_pointer = const value_type*;
 	using size_type = std::size_t;
 	using difference_type = std::ptrdiff_t;
 
@@ -78,8 +78,8 @@ public:
 
 	public:
 		using value_type = _ValTy;
-		using reference = _ValTy&;
-		using pointer = _ValTy*;
+		using reference = value_type&;
+		using pointer = value_type*;
 		using difference_type = std::ptrdiff_t;
 		using iterator_category = std::forward_iterator_tag;
 
@@ -164,8 +164,8 @@ public:
 
 	public:
 		using value_type = _ValTy;
-		using reference = _ValTy&;
-		using pointer = _ValTy*;
+		using reference = value_type&;
+		using pointer = value_type*;
 		using difference_type = std::ptrdiff_t;
 		using iterator_category = std::forward_iterator_tag;
 
@@ -190,6 +190,11 @@ public:
 		// Iterator element access
 		reference operator*() { return *(cNode.get()); }
 		pointer operator->() { return cNode.get(); }
+
+		auto shared_ptr() -> decltype(cNode)
+		{
+			return cNode;
+		}
 
 		//ConstIterator& operator=(const Iterator& other) { return ConstIterator{ other }; }
 		bool operator==(const ConstIterator &other) const { return cNode == other.cNode; }
