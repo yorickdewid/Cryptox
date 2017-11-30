@@ -1127,6 +1127,9 @@ void Parser::UnaryExpression()
 
 				// Remove snapshot since we can continue this path
 				m_comm.DisposeSnapshot();
+
+				func->SetTypename(m_typeStack.top());
+				m_typeStack.pop();
 				m_elementDescentPipe.push(func);
 				break;
 			}

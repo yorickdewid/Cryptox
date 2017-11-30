@@ -84,38 +84,6 @@ public:
 };
 
 template<typename _Ty>
-class Stash
-{
-public:
-	template<typename _STy>
-	void Enlist(_STy& type)
-	{
-		using shared_type = typename _STy::element_type;
-		m_stash.push_back(static_cast<std::weak_ptr<_Ty>>(std::weak_ptr<shared_type>(type)));
-	}
-
-	template<typename _DeclTy, typename _BaseTy = _DeclTy, class = typename std::enable_if<std::is_base_of<_BaseTy, _DeclTy>::value>::type>
-	auto Resolve(std::function<bool(std::shared_ptr<_DeclTy>)> checkCb) -> std::shared_ptr<_BaseTy>
-	{
-		for (auto& ptr : m_stash) {
-			if (auto node = ptr.lock()) {
-				auto declRs = std::dynamic_pointer_cast<_DeclTy>(node);
-				if (declRs != nullptr) {
-					if (checkCb(declRs)) {
-						return std::dynamic_pointer_cast<_BaseTy>(declRs);
-					}
-				}
-			}
-		}
-
-		return nullptr;
-	}
-
-private:
-	std::vector<std::weak_ptr<_Ty>> m_stash;
-};
-
-template<typename _Ty>
 class StateContainer
 {
 	std::stack<size_t> m_snapshopList;
