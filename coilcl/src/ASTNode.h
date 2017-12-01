@@ -125,14 +125,11 @@ public:
 
 	void UpdateDelegate()
 	{
-		std::transform(children.begin(), children.end(), children.begin(), [this](Identity<decltype(children)>::type wPtr)
-		{
+		for (auto& wPtr : children) {
 			if (auto ptr = wPtr.lock()) {
 				ptr->SetParent(std::move(this->PolySelf()));
 			}
-
-			return wPtr;
-		});
+		}
 	}
 
 protected:
@@ -1070,6 +1067,12 @@ public:
 
 	ResolveRefExpr() = default;
 
+	//TODO: friend
+	auto Identifier() const
+	{
+		return m_identifier;
+	}
+
 protected:
 	const std::string NodeName() const
 	{
@@ -1085,9 +1088,6 @@ class DeclRefExpr
 {
 	std::weak_ptr<Decl> m_ref;
 
-private:
-	auto IsResolved() const { return !m_ref.expired(); }
-
 public:
 	// We're not saving the reference as child in the root to prevent
 	// circulair references in the upper node.
@@ -1100,6 +1100,9 @@ public:
 		: ResolveRefExpr{ identifier }
 	{
 	}
+
+	//TODO: friend
+	auto IsResolved() const { return !m_ref.expired(); }
 
 	const std::string NodeName() const
 	{
@@ -1149,6 +1152,12 @@ public:
 		return _node;
 	}
 
+	//TODO: friend
+	auto FuncDeclRef() const
+	{
+		return m_funcRef;
+	}
+
 private:
 	POLY_IMPL();
 };
@@ -1156,14 +1165,13 @@ private:
 class BuiltinExpr final
 	: public CallExpr
 {
-	std::shared_ptr<DeclRefExpr> m_funcRef;
-	std::shared_ptr<ArgumentStmt> m_args;
-	std::shared_ptr<ASTNode> m_rvalue;
+	std::shared_ptr<ASTNode> m_expr;
+	AST::TypeFacade m_typenameType;
 
 public:
 	BuiltinExpr(std::shared_ptr<DeclRefExpr>& func, std::shared_ptr<DeclRefExpr> expr = nullptr, std::shared_ptr<ArgumentStmt> args = nullptr)
 		: CallExpr{ func, args }
-		, m_rvalue{ expr }
+		, m_expr{ expr }
 	{
 		if (expr != nullptr) {
 			ASTNode::AppendChild(NODE_UPCAST(expr));
@@ -1173,10 +1181,20 @@ public:
 	void SetExpression(std::shared_ptr<ASTNode>& node)
 	{
 		ASTNode::AppendChild(node);
-		m_rvalue = node;
+		m_expr = node;
 
 		ASTNode::UpdateDelegate();
 	}
+
+	//TODO: move?
+	void SetTypename(std::shared_ptr<Typedef::TypedefBase>& type)
+	{
+		m_typenameType = type;
+	}
+
+	///TODO: friends
+	auto Expression() const { return m_expr; }
+	auto TypeName() const { return m_typenameType; }
 
 	const std::string NodeName() const final
 	{
@@ -1498,7 +1516,7 @@ public:
 	{
 		ASTNode::AppendChild(node);
 		m_body = node;
-		
+
 		ASTNode::UpdateDelegate();
 	}
 
@@ -1665,6 +1683,12 @@ public:
 		m_arg.push_back(node);
 
 		ASTNode::UpdateDelegate();
+	}
+
+	void Emplace(size_t idx, std::shared_ptr<ASTNode>&& node)
+	{
+		ASTNode::AppendChild(node);
+		m_arg[idx] = std::move(node);
 	}
 
 	PRINT_NODE(ArgumentStmt);
