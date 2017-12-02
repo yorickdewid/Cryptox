@@ -56,12 +56,20 @@ protected:
 	}
 };
 
+class ASTNode;
+
+struct ModifierInterface
+{
+	virtual void Emplace(size_t, const std::shared_ptr<ASTNode>&&) = 0;
+	virtual size_t ModifierCount() const = 0;
+};
+
 class DeclRefExpr;
 class CompoundStmt;
 class ArgumentStmt;
 class ParamStmt;
 
-class ASTNode
+class ASTNode : public ModifierInterface
 {
 protected:
 	using _MyTy = ASTNode;
@@ -78,9 +86,12 @@ public:
 	{
 	}
 
-	inline size_t ChildrenCount() const
+	inline size_t ChildrenCount() const { return children.size(); }
+	size_t ModifierCount() const { return m_state.Alteration(); }
+
+	virtual void Emplace(size_t idx, const std::shared_ptr<ASTNode>&& node)
 	{
-		return children.size();
+		throw UnsupportedOperationException{ "Emplace" };
 	}
 
 	void SetLocation(int _line, int _col) const
@@ -148,11 +159,6 @@ protected:
 	{
 		m_parent = node;
 	}
-
-	/*void Modify()
-	{
-		m_state.Bump(std::move(this->PolySelf()));
-	}*/
 
 protected:
 	CoilCl::AST::ASTState<_MyTy> m_state;
@@ -273,17 +279,17 @@ public:
 #if 0
 		if (m_returnType) {
 			_node + "'return type' ";//TODO
-		}
+	}
 #endif
 
 		_node += "'" + std::string{ BinOperandStr(m_operand) } +"'";
 
 		return _node;
-	}
+}
 
 private:
 	POLY_IMPL();
-};
+	};
 
 class ConditionalOperator
 	: public Operator
@@ -502,7 +508,7 @@ public:
 
 	const std::string NodeName() const
 	{
-		return std::string{ RemoveClassFromName(typeid(CompoundAssignOperator).name()) } +" {" + std::to_string(m_state.Alteration()) + "}" +" <line:" + std::to_string(line) + ",col:" + std::to_string(col) + "> '" + CompoundAssignOperandStr(m_operand) + "'";
+		return std::string{ RemoveClassFromName(typeid(CompoundAssignOperator).name()) } +" {" + std::to_string(m_state.Alteration()) + "}" + " <line:" + std::to_string(line) + ",col:" + std::to_string(col) + "> '" + CompoundAssignOperandStr(m_operand) + "'";
 	}
 
 private:
@@ -970,7 +976,7 @@ public:
 	void RegisterCaller()
 	{
 		m_useCount++;
-}
+	}
 #endif
 
 	const std::string NodeName() const
@@ -1712,7 +1718,7 @@ public:
 		ASTNode::UpdateDelegate();
 	}
 
-	void Emplace(size_t idx, std::shared_ptr<ASTNode>&& node)
+	void Emplace(size_t idx, const std::shared_ptr<ASTNode>&& node) override final
 	{
 		m_state.Bump(*this);
 
