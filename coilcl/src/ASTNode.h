@@ -30,6 +30,9 @@
 		return std::dynamic_pointer_cast<ASTNode>(GetSharedSelf()); \
 	}
 
+#define BUMP_STATE() \
+	m_state.Bump((*this));
+
 using namespace CoilCl;
 
 template<typename _Ty>
@@ -43,6 +46,8 @@ constexpr std::string RemoveClassFromName(_Ty *_name)
 	return f;
 }
 
+class ASTNode;
+
 template <typename _Ty>
 struct Identity { using type = typename _Ty::value_type; };
 
@@ -55,8 +60,6 @@ protected:
 		return shared_from_this();
 	}
 };
-
-class ASTNode;
 
 struct ModifierInterface
 {
@@ -110,8 +113,11 @@ public:
 	virtual const std::string NodeName() const = 0;
 	virtual std::shared_ptr<ASTNode> PolySelf() = 0;
 
-	//TODO: replace with for_each ?
-	void Print(int level = 0, bool last = 0, std::vector<int> ignore = {}) const;
+	template<int _Ver>
+	inline void Print() { this->Print(_Ver); }
+
+	//TODO: replace with algorithm ?
+	void Print(int version, int level = 0, bool last = 0, std::vector<int> ignore = {}) const;
 
 	//TODO: friend
 	// Forward the random access operator on the child node list
@@ -153,6 +159,12 @@ protected:
 	virtual void AppendChild(const std::shared_ptr<ASTNode>& node)
 	{
 		children.push_back(node);
+	}
+
+	virtual void RemoveChild(size_t idx)
+	{
+		assert(idx < children.size());
+		children.erase(children.begin() + idx);
 	}
 
 	void SetParent(const std::shared_ptr<ASTNode>&& node)
@@ -279,7 +291,7 @@ public:
 #if 0
 		if (m_returnType) {
 			_node + "'return type' ";//TODO
-	}
+		}
 #endif
 
 		_node += "'" + std::string{ BinOperandStr(m_operand) } +"'";
@@ -996,7 +1008,7 @@ public:
 			if (m_protoRef.lock()->IsUsed()) {
 				ss << "used ";
 			}
-		}
+	}
 
 		if (IsUsed()) {
 			ss << "used ";
@@ -1720,8 +1732,9 @@ public:
 
 	void Emplace(size_t idx, const std::shared_ptr<ASTNode>&& node) override final
 	{
-		m_state.Bump(*this);
+		BUMP_STATE();
 
+		ASTNode::RemoveChild(idx);
 		ASTNode::AppendChild(node);
 		m_arg[idx] = std::move(node);
 	}

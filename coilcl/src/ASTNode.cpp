@@ -7,7 +7,7 @@ Decl::~Decl() {}
 Expr::~Expr() {}
 Stmt::~Stmt() {}
 
-void ASTNode::Print(int level, bool last, std::vector<int> ignore) const
+void ASTNode::Print(int version, int level, bool last, std::vector<int> ignore) const
 {
 	if (level == 0) {
 		std::cout << NodeName() << std::endl;
@@ -31,9 +31,21 @@ void ASTNode::Print(int level, bool last, std::vector<int> ignore) const
 		}
 	}
 
-	for (auto& weakChild : children) {
-		if (auto delegateChildren = weakChild.lock()) {
-			delegateChildren->Print(level + 1, &weakChild == &children.back(), ignore);
+	const auto traverse = [=](const std::vector<std::weak_ptr<ASTNode>>& cList)
+	{
+		for (const auto& weakChild : cList) {
+			if (auto delegateChildren = weakChild.lock()) {
+				delegateChildren->Print(version, level + 1, &weakChild == &cList.back(), ignore);
+			}
 		}
+	};
+
+	// If original version was requested, print node version zero
+	if (version == 0 && m_state.HasAlteration()) {
+		const auto& nodeVersion = m_state.front();
+		traverse(nodeVersion->children);
+		return;
 	}
+
+	traverse(children);
 }
