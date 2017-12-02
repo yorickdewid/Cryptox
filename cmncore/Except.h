@@ -53,6 +53,24 @@ public:
 	}
 };
 
+class NotImplementedException : public std::runtime_error
+{
+public:
+	NotImplementedException(const std::string& message) noexcept
+		: std::runtime_error{ message }
+	{
+	}
+
+	explicit NotImplementedException(char const* const message) noexcept
+		: std::runtime_error{ message }
+	{
+	}
+
+	virtual const char *what() const noexcept
+	{
+		return std::runtime_error::what();
+	}
+};
 
 } // namespace Except
 } // namespace CmnCore
