@@ -196,15 +196,17 @@ public:
 			program->AstPassthrough()->Print();
 
 			// Semantic analysis
-			CoilCl::Semer{ profile, std::move(program->AstCopy()) }
+			CoilCl::Semer{ profile, std::move(program->Ast()) }
 				.MoveStage()
 				.CheckCompatibility()
 				.StaticResolve()
 				.PreliminaryAssert()
 				.StandardCompliance();
 			//.PedanticCompliance()
-			//.Optimize<Optimizer>(CoilCl::Semer::OptimizeLevel::L0)
-			//.TreeOperator<CoilCl::AST::Util::Copy>();
+			//.Optimize<Optimizer>(CoilCl::Semer::OptimizeLevel::L0);
+
+			// For now dump contents to screen
+			program->AstPassthrough()->Print();
 
 			// Source building
 			/*CoilCl::Emitter{ profile }

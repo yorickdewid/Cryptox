@@ -37,7 +37,7 @@ public:
 	{
 	}
 
-	inline auto AstCopy() { return m_ast->deep_copy(); }
+	inline auto Ast() { return m_ast->tree_ref(); }
 
 	inline auto AstPassthrough() const { return m_ast->operator->(); }
 
