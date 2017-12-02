@@ -113,8 +113,14 @@ public:
 	virtual const std::string NodeName() const = 0;
 	virtual std::shared_ptr<ASTNode> PolySelf() = 0;
 
-	template<int _Ver>
-	inline void Print() { this->Print(_Ver); }
+	enum struct Traverse
+	{
+		STAGE_FIRST = 0,
+		STAGE_LAST = -1
+	};
+
+	template<Traverse _Ver>
+	inline void Print() { this->Print(static_cast<int>(_Ver)); }
 
 	//TODO: replace with algorithm ?
 	void Print(int version, int level = 0, bool last = 0, std::vector<int> ignore = {}) const;
@@ -297,11 +303,11 @@ public:
 		_node += "'" + std::string{ BinOperandStr(m_operand) } +"'";
 
 		return _node;
-}
+	}
 
 private:
 	POLY_IMPL();
-	};
+};
 
 class ConditionalOperator
 	: public Operator
@@ -1008,7 +1014,7 @@ public:
 			if (m_protoRef.lock()->IsUsed()) {
 				ss << "used ";
 			}
-	}
+		}
 
 		if (IsUsed()) {
 			ss << "used ";

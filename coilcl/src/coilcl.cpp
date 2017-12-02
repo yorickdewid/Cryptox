@@ -193,7 +193,7 @@ public:
 			program = std::make_unique<CoilCl::Program>(DYNAMIC_FORWARD(program), std::move(ast));
 
 			// For now dump contents to screen
-			program->AstPassthrough()->Print();
+			program->AstPassthrough()->Print<ASTNode::Traverse::STAGE_FIRST>();
 
 			// Semantic analysis
 			CoilCl::Semer{ profile, std::move(program->Ast()) }
@@ -206,7 +206,7 @@ public:
 			//.Optimize<Optimizer>(CoilCl::Semer::OptimizeLevel::L0);
 
 			// For now dump contents to screen
-			program->AstPassthrough()->Print();
+			program->AstPassthrough()->Print<ASTNode::Traverse::STAGE_LAST>();
 
 			// Source building
 			/*CoilCl::Emitter{ profile }
@@ -217,6 +217,8 @@ public:
 				.CheckCompatibility()
 				.StreamSink<CoilCl::Stream::Console>();
 			*/
+
+			program->AstPassthrough()->Print<ASTNode::Traverse::STAGE_FIRST>();
 		}
 		// Catch any leaked erros not caught in the stages
 		catch (std::exception& e) {
