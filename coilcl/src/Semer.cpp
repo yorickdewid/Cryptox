@@ -51,6 +51,7 @@ CoilCl::Semer& CoilCl::Semer::CheckCompatibility()
 	return (*this);
 }
 
+//TODO: loop
 // Resolve all static expresions such as
 // native type size calculations.
 CoilCl::Semer& CoilCl::Semer::StaticResolve()
@@ -74,15 +75,13 @@ CoilCl::Semer& CoilCl::Semer::StaticResolve()
 			else {
 				AST::TypeFacade type = builtinExpr->TypeName();
 
-				size_t unboxSz = 4; // type->UnboxedSize();
-
 				//TODO: helper ?
 				// Replace static builtin operation with integer result
-				auto m_data = std::make_unique<CoilCl::Valuedef::ValueObject<int>>(CoilCl::Typedef::BuiltinType{ CoilCl::Typedef::BuiltinType::Specifier::INT }, unboxSz);
+				auto m_data = std::make_unique<CoilCl::Valuedef::ValueObject<int>>(CoilCl::Typedef::BuiltinType{ CoilCl::Typedef::BuiltinType::Specifier::INT }, type.Size());
 				auto literal = CoilCl::AST::MakeASTNode<IntegerLiteral>(std::move(m_data));
 
 				//TODO: static 1
-				// Emplace current object over existing
+				// Emplace current object on existing
 				if (auto parent = builtinExpr->Parent().lock()) {
 					parent->Emplace(1, literal);
 				}

@@ -49,15 +49,18 @@ public:
 	virtual const std::string TypeName() const = 0;
 	virtual bool AllowCoalescence() const = 0;
 	virtual void Consolidate(std::shared_ptr<TypedefBase>& type) = 0;
+	virtual size_t UnboxedSize() const = 0;
 
 	// Type specifier inputs
 	inline void SetStorageClass(StorageClassSpecifier storageClass) { m_storageClass = storageClass; }
 	inline void SetQualifier(TypeQualifier qypeQualifier) { m_typeQualifier.push_back(qypeQualifier); }
 	inline void SetInline() { m_isInline = true; }
 
+	// Stringify type name
 	const std::string StorageClassName() const;
 	const std::string QualifierName() const;
 
+	// Additional type specifiers
 	inline StorageClassSpecifier StorageClass() const { return m_storageClass; }
 	inline auto IsInline() const { return m_isInline; }
 
@@ -140,12 +143,15 @@ public:
 	inline auto Complex() const { return m_typeOptions.test(IS_COMPLEX); }
 	inline auto Imaginary() const { return m_typeOptions.test(IS_IMAGINARY); }
 
+	// Return type name string
 	const std::string TypeName() const;
 
 	// If any type options are set, allow type coalescence
 	bool AllowCoalescence() const { return m_typeOptions.any(); }
 
 	auto TypeSpecifier() const { return m_specifier; }
+
+	size_t UnboxedSize() const;
 
 	void Consolidate(std::shared_ptr<TypedefBase>& type)
 	{
@@ -193,6 +199,9 @@ public:
 
 	bool AllowCoalescence() const final { return false; }
 
+	//TODO: quite the puzzle
+	size_t UnboxedSize() const { return 0; }
+
 	void Consolidate(std::shared_ptr<TypedefBase>& type)
 	{
 		throw UnsupportedOperationException{ "TypedefType::Consolidate" };
@@ -220,6 +229,8 @@ public:
 	}
 
 	bool AllowCoalescence() const final { return false; }
+
+	size_t UnboxedSize() const { return m_resolveType->UnboxedSize(); }
 
 	void Consolidate(std::shared_ptr<TypedefBase>& type)
 	{

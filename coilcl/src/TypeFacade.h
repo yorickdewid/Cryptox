@@ -33,6 +33,7 @@ public:
 	inline auto HasValue() const { return m_type != nullptr; }
 	inline auto IsPointer() const { return m_ptrCount > 0; }
 	inline void SetPointer(size_t ptrCount) { m_ptrCount = ptrCount; }
+	inline auto Size() const { return m_type->UnboxedSize(); }
 
 	// Concat type base name and pointer counter for convenience
 	auto TypeName() const
@@ -46,6 +47,7 @@ public:
 		return m_type.get();
 	}
 
+private:
 	std::string PointerName() const
 	{
 		if (m_ptrCount == 0) {

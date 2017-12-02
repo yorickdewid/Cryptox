@@ -8,17 +8,18 @@ typedef size_t pipe_state;
 template<typename _Ty, typename _Container = std::deque<_Ty>>
 class LockPipe
 {
-	typedef LockPipe<_Ty, _Container> _Myty;
+	using _Myty = LockPipe<_Ty, _Container>;
 
 public:
-	typedef _Container cointainer_type;
-	typedef typename _Container::value_type value_type;
-	typedef typename _Container::size_type size_type;
-	typedef typename _Container::reference reference;
-	typedef typename _Container::const_reference const_reference;
+	using container_type = _Container;
+	using value_type = typename _Container::value_type;
+	using size_type = typename _Container::size_type;
+	using reference = typename _Container::reference;
+	using const_reference = typename _Container::const_reference;
 
 	static constexpr pipe_state begin = 0U;
 
+public:
 	LockPipe()
 		: c{}
 	{

@@ -62,5 +62,20 @@ const std::string BuiltinType::TypeName() const
 	return qualifier;
 }
 
+size_t BuiltinType::UnboxedSize() const
+{
+	switch (m_specifier) {
+	case Specifier::VOID:		throw std::exception{};//TODO
+	case Specifier::CHAR:		return sizeof(char);
+	case Specifier::LONG:		return sizeof(long);
+	case Specifier::SHORT:		return sizeof(short);
+	case Specifier::INT:		return sizeof(int);
+	case Specifier::FLOAT:		return sizeof(float);
+	case Specifier::DOUBLE:		return sizeof(double);
+	case Specifier::BOOL:		return sizeof(bool);
+	default:					break;
+	}
+}
+
 } // namespace Typedef
 } // namespace CoilCl
