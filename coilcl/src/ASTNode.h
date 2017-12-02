@@ -11,6 +11,7 @@
 #include "Typedef.h" //TODO: remove ?
 #include "Valuedef.h"
 #include "TypeFacade.h"
+#include "ASTState.h"
 
 #include <vector>
 #include <memory>
@@ -18,7 +19,7 @@
 
 #define PRINT_NODE(n) \
 	virtual const std::string NodeName() const { \
-		return std::string{ RemoveClassFromName(typeid(n).name()) } + " <line:" + std::to_string(line) + ",col:" + std::to_string(col) + ">"; \
+		return std::string{ RemoveClassFromName(typeid(n).name()) } + " {" + std::to_string(m_state.Alteration()) + "}" + " <line:" + std::to_string(line) + ",col:" + std::to_string(col) + ">"; \
 	}
 
 #define NODE_UPCAST(c) \
@@ -63,6 +64,9 @@ class ParamStmt;
 class ASTNode
 {
 protected:
+	using _MyTy = ASTNode;
+
+protected:
 	mutable int line = -1;
 	mutable int col = -1;
 
@@ -91,6 +95,7 @@ public:
 		col = loc.second;
 	}
 
+	// Abstract function interfaces
 	virtual const std::string NodeName() const = 0;
 	virtual std::shared_ptr<ASTNode> PolySelf() = 0;
 
@@ -123,6 +128,7 @@ public:
 		return children;
 	}
 
+	//TODO: friend
 	void UpdateDelegate()
 	{
 		for (auto& wPtr : children) {
@@ -143,9 +149,15 @@ protected:
 		m_parent = node;
 	}
 
+	/*void Modify()
+	{
+		m_state.Bump(std::move(this->PolySelf()));
+	}*/
+
 protected:
-	std::vector<std::weak_ptr<ASTNode>> children;
-	std::weak_ptr<ASTNode> m_parent;
+	CoilCl::AST::ASTState<_MyTy> m_state;
+	std::vector<std::weak_ptr<_MyTy>> children;
+	std::weak_ptr<_MyTy> m_parent;
 };
 
 //
@@ -255,6 +267,7 @@ public:
 	const std::string NodeName() const
 	{
 		std::string _node{ RemoveClassFromName(typeid(BinaryOperator).name()) };
+		_node += " {" + std::to_string(m_state.Alteration()) + "}";
 		_node += " <line:" + std::to_string(line) + ",col:" + std::to_string(col) + "> ";
 
 #if 0
@@ -316,6 +329,7 @@ public:
 	virtual const std::string NodeName() const
 	{
 		std::string _node{ RemoveClassFromName(typeid(ConditionalOperator).name()) };
+		_node += " {" + std::to_string(m_state.Alteration()) + "}";
 		_node += " <line:" + std::to_string(line) + ",col:" + std::to_string(col) + "> ";
 
 		return _node;
@@ -395,6 +409,7 @@ public:
 	const std::string NodeName() const
 	{
 		std::string _node{ RemoveClassFromName(typeid(UnaryOperator).name()) };
+		_node += +" {" + std::to_string(m_state.Alteration()) + "}";
 		_node += " <line:" + std::to_string(line) + ",col:" + std::to_string(col) + "> ";
 
 		switch (m_side) {
@@ -487,7 +502,7 @@ public:
 
 	const std::string NodeName() const
 	{
-		return std::string{ RemoveClassFromName(typeid(CompoundAssignOperator).name()) } +" <line:" + std::to_string(line) + ",col:" + std::to_string(col) + "> '" + CompoundAssignOperandStr(m_operand) + "'";
+		return std::string{ RemoveClassFromName(typeid(CompoundAssignOperator).name()) } +" {" + std::to_string(m_state.Alteration()) + "}" +" <line:" + std::to_string(line) + ",col:" + std::to_string(col) + "> '" + CompoundAssignOperandStr(m_operand) + "'";
 	}
 
 private:
@@ -523,6 +538,7 @@ public:
 	{
 		std::stringstream ss;
 		ss << RemoveClassFromName(typeid(_DrivTy).name());
+		ss << " {" + std::to_string(m_state.Alteration()) + "}";
 		ss << " <line:" << line << ",col:" << col << "> ";
 		ss << "'" << m_valueObj->DataType()->TypeName() << "' ";
 		ss << (*m_valueObj);
@@ -623,6 +639,7 @@ public:
 	virtual const std::string NodeName() const
 	{
 		std::string _node{ RemoveClassFromName(typeid(VarDecl).name()) };
+		_node += " {" + std::to_string(m_state.Alteration()) + "}";
 		_node += " <line:" + std::to_string(line) + ",col:" + std::to_string(col) + "> ";
 		_node += m_identifier;
 		_node += " '" + Decl::ReturnType().TypeName() + "' ";
@@ -653,6 +670,7 @@ public:
 	virtual const std::string NodeName() const
 	{
 		std::string _node{ RemoveClassFromName(typeid(ParamDecl).name()) };
+		_node += " {" + std::to_string(m_state.Alteration()) + "}";
 		_node += " <line:" + std::to_string(line) + ",col:" + std::to_string(col) + "> ";
 
 		if (m_identifier.empty()) {
@@ -701,6 +719,7 @@ public:
 	virtual const std::string NodeName() const
 	{
 		std::string _node{ RemoveClassFromName(typeid(TypedefDecl).name()) };
+		_node += " {" + std::to_string(m_state.Alteration()) + "}";
 		_node += " <line:" + std::to_string(line) + ",col:" + std::to_string(col) + "> ";
 		_node += m_identifier;
 		_node += " '" + Decl::ReturnType().TypeName() + "' ";
@@ -736,6 +755,7 @@ public:
 	virtual const std::string NodeName() const
 	{
 		std::string _node{ RemoveClassFromName(typeid(FieldDecl).name()) };
+		_node += " {" + std::to_string(m_state.Alteration()) + "}";
 		_node += " <line:" + std::to_string(line) + ",col:" + std::to_string(col) + "> ";
 		_node += m_identifier;
 		_node += " '" + Decl::ReturnType().TypeName() + "' ";
@@ -794,6 +814,7 @@ public:
 	virtual const std::string NodeName() const
 	{
 		std::string _node{ RemoveClassFromName(typeid(RecordDecl).name()) };
+		_node += " {" + std::to_string(m_state.Alteration()) + "}";
 		_node += " <line:" + std::to_string(line) + ",col:" + std::to_string(col) + "> ";
 
 		_node += m_type == RecordType::STRUCT ? "struct " : "union ";
@@ -828,7 +849,7 @@ public:
 
 	const std::string NodeName() const
 	{
-		return std::string{ RemoveClassFromName(typeid(EnumConstantDecl).name()) } +" <line:" + std::to_string(line) + ",col:" + std::to_string(col) + "> " + m_identifier;
+		return std::string{ RemoveClassFromName(typeid(EnumConstantDecl).name()) } +" {" + std::to_string(m_state.Alteration()) + "}" + " <line:" + std::to_string(line) + ",col:" + std::to_string(col) + "> " + m_identifier;
 	}
 
 private:
@@ -868,6 +889,7 @@ public:
 	const std::string NodeName() const
 	{
 		std::string _node{ RemoveClassFromName(typeid(EnumDecl).name()) };
+		_node += " {" + std::to_string(m_state.Alteration()) + "}";
 		_node += " <line:" + std::to_string(line) + ",col:" + std::to_string(col) + "> ";
 
 		_node += IsAnonymous() ? "anonymous" : m_identifier;
@@ -948,13 +970,14 @@ public:
 	void RegisterCaller()
 	{
 		m_useCount++;
-	}
+}
 #endif
 
 	const std::string NodeName() const
 	{
 		std::stringstream ss;
 		ss << RemoveClassFromName(typeid(FunctionDecl).name());
+		ss << " {" + std::to_string(m_state.Alteration()) + "}";
 		ss << " <line:" << line << ",col:" << col << "> ";
 
 		if (IsPrototypeDefinition()) {
@@ -1076,7 +1099,7 @@ public:
 protected:
 	const std::string NodeName() const
 	{
-		return std::string{ RemoveClassFromName(typeid(ResolveRefExpr).name()) } +" <line:" + std::to_string(line) + ",col:" + std::to_string(col) + "> '" + m_identifier + "'";
+		return std::string{ RemoveClassFromName(typeid(ResolveRefExpr).name()) } +" {" + std::to_string(m_state.Alteration()) + "}" + " <line:" + std::to_string(line) + ",col:" + std::to_string(col) + "> '" + m_identifier + "'";
 	}
 
 private:
@@ -1107,7 +1130,7 @@ public:
 	const std::string NodeName() const
 	{
 		if (IsResolved()) {
-			return std::string{ RemoveClassFromName(typeid(DeclRefExpr).name()) } +" <line:" + std::to_string(line) + ",col:" + std::to_string(col) + "> linked '" + m_ref.lock()->Identifier() + "'";
+			return std::string{ RemoveClassFromName(typeid(DeclRefExpr).name()) } +" {" + std::to_string(m_state.Alteration()) + "}" + " <line:" + std::to_string(line) + ",col:" + std::to_string(col) + "> linked '" + m_ref.lock()->Identifier() + "'";
 		}
 
 		return ResolveRefExpr::NodeName();
@@ -1142,6 +1165,7 @@ public:
 	const std::string NodeName() const
 	{
 		std::string _node{ RemoveClassFromName(typeid(CallExpr).name()) };
+		_node += " {" + std::to_string(m_state.Alteration()) + "}";
 		_node += " <line:" + std::to_string(line) + ",col:" + std::to_string(col) + "> ";
 
 		if (Expr::ReturnType().HasValue()) {
@@ -1198,7 +1222,7 @@ public:
 
 	const std::string NodeName() const final
 	{
-		return std::string{ RemoveClassFromName(typeid(BuiltinExpr).name()) } +" <line:" + std::to_string(line) + ",col:" + std::to_string(col) + "> ";
+		return std::string{ RemoveClassFromName(typeid(BuiltinExpr).name()) } +" {" + std::to_string(m_state.Alteration()) + "}" + " <line:" + std::to_string(line) + ",col:" + std::to_string(col) + "> ";
 	}
 
 	std::shared_ptr<ASTNode> PolySelf()
@@ -1226,6 +1250,7 @@ public:
 	const std::string NodeName() const
 	{
 		std::string _node{ RemoveClassFromName(typeid(CastExpr).name()) };
+		_node += " {" + std::to_string(m_state.Alteration()) + "}";
 		_node += " <line:" + std::to_string(line) + ",col:" + std::to_string(col) + "> ";
 
 		if (m_implicit) {
@@ -1346,6 +1371,7 @@ public:
 	const std::string NodeName() const
 	{
 		std::string _node{ RemoveClassFromName(typeid(MemberExpr).name()) };
+		_node += " {" + std::to_string(m_state.Alteration()) + "}";
 		_node += " <line:" + std::to_string(line) + ",col:" + std::to_string(col) + "> ";
 		_node += m_memberType == MemberType::REFERENCE ? "." : "->";
 		_node += m_name;
@@ -1443,6 +1469,7 @@ public:
 	virtual const std::string NodeName() const
 	{
 		std::string _node{ RemoveClassFromName(typeid(IfStmt).name()) };
+		_node += " {" + std::to_string(m_state.Alteration()) + "}";
 		_node += " <line:" + std::to_string(line) + ",col:" + std::to_string(col) + "> ";
 
 		if (m_truthStmt) {
@@ -1687,6 +1714,8 @@ public:
 
 	void Emplace(size_t idx, std::shared_ptr<ASTNode>&& node)
 	{
+		m_state.Bump(*this);
+
 		ASTNode::AppendChild(node);
 		m_arg[idx] = std::move(node);
 	}
@@ -1753,7 +1782,7 @@ public:
 
 	virtual const std::string NodeName() const
 	{
-		return std::string{ RemoveClassFromName(typeid(GotoStmt).name()) } +" <line:" + std::to_string(line) + ",col:" + std::to_string(col) + "> '" + m_labelName + "'";
+		return std::string{ RemoveClassFromName(typeid(GotoStmt).name()) } +" {" + std::to_string(m_state.Alteration()) + "}" + " <line:" + std::to_string(line) + ",col:" + std::to_string(col) + "> '" + m_labelName + "'";
 	}
 
 private:
