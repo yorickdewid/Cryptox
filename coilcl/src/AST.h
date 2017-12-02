@@ -191,12 +191,11 @@ public:
 		reference operator*() { return *(cNode.get()); }
 		pointer operator->() { return cNode.get(); }
 
-		auto shared_ptr() -> decltype(cNode)
+		auto shared_ptr() -> decltype(cNode) const
 		{
 			return cNode;
 		}
 
-		//ConstIterator& operator=(const Iterator& other) { return ConstIterator{ other }; }
 		bool operator==(const ConstIterator &other) const { return cNode == other.cNode; }
 		bool operator!=(const ConstIterator &other) const { return cNode != other.cNode; }
 		bool operator<(const ConstIterator& other) const { return cNode < other.cNode; }
@@ -240,7 +239,7 @@ public:
 		return m_tree.get();
 	}
 
-	AST deep_copy()
+	AST tree_ref()
 	{
 		AST tmp{ m_tree };
 		return tmp;
