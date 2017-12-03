@@ -24,14 +24,22 @@ void CoilCl::AST::ForwardItemTree::ForwardInternalTree(std::shared_ptr<ASTNode>&
 				return wPtr.lock() == node;
 			});
 
+			// Parent cannot find this child, pass control back to parent
+			if (selfListItem == parentChildren.end()) {
+				node = parent;
+				goto redo;
+			}
+
+			// Reached end of parent children list, move up
 			if (selfListItem + 1 == parentChildren.end()) {
 				node = parent;
 				goto redo;
 			}
+			// Pick right neighbor as next node
 			else {
-				auto weakNeighbour = selfListItem + 1;
-				if (auto neighbour = weakNeighbour->lock()) {
-					node = neighbour;
+				auto weakNeighbor = selfListItem + 1;
+				if (auto neighbor = weakNeighbor->lock()) {
+					node = neighbor;
 				}
 			}
 		}
@@ -39,6 +47,7 @@ void CoilCl::AST::ForwardItemTree::ForwardInternalTree(std::shared_ptr<ASTNode>&
 			node = nullptr;
 		}
 	}
+	// Node has children, descent to outer left
 	else {
 		auto firstWeakChild = node->At(0);
 		if (auto firstChild = firstWeakChild.lock()) {

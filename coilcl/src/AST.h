@@ -83,6 +83,11 @@ public:
 		reference operator*() { return *(cNode.get()); }
 		pointer operator->() { return cNode.get(); }
 
+		auto shared_ptr() -> decltype(cNode) const
+		{
+			return cNode;
+		}
+
 		bool operator==(const Iterator &other) const { return cNode == other.cNode; }
 		bool operator!=(const Iterator &other) const { return cNode != other.cNode; }
 		bool operator<(const Iterator& other) const { return cNode < other.cNode; }
