@@ -660,6 +660,15 @@ public:
 		ASTNode::AppendChild(node);
 	}
 
+	void Emplace(size_t idx, const std::shared_ptr<ASTNode>&& node) override
+	{
+		BUMP_STATE();
+
+		ASTNode::RemoveChild(idx);
+		ASTNode::AppendChild(node);
+		m_body = std::move(node);
+	}
+
 	virtual const std::string NodeName() const
 	{
 		std::string _node{ RemoveClassFromName(typeid(VarDecl).name()) };
