@@ -24,6 +24,14 @@ struct ASTEqual
 	}
 };
 
+class ForwardItemTree
+{
+protected:
+	ForwardItemTree() = default;
+	
+	static void ForwardInternalTree(std::shared_ptr<ASTNode>& node);
+};
+
 class AST
 {
 	using _MyTy = AST;
@@ -39,51 +47,12 @@ public: // Member types
 	using difference_type = std::ptrdiff_t;
 
 public:
-	class Iterator
+	class Iterator : public ForwardItemTree
 	{
 		std::shared_ptr<ASTNode> cNode;
 
 	private:
 		using _MyTy = Iterator;
-
-	private:
-		void IncrementInternalTree()
-		{
-			// No children in this node, work upwards and sideways
-			if (cNode->ChildrenCount() == 0) {
-				auto weakParent = cNode->Parent();
-				if (auto parent = weakParent.lock()) {
-					auto parentChildren = parent->Children();
-
-					auto selfListItem = std::find_if(parentChildren.begin(), parentChildren.end(), [=](std::weak_ptr<ASTNode>& wPtr)
-					{
-						return wPtr.lock() == cNode;
-					});
-
-					if (selfListItem + 1 == parentChildren.end()) {
-						cNode = nullptr;
-					}
-					else {
-						auto weakNeighbour = selfListItem + 1;
-						if (auto neighbour = weakNeighbour->lock()) {
-							cNode = neighbour;
-						}
-					}
-				}
-				else {
-					cNode = nullptr;
-				}
-			}
-			else {
-				auto firstWeakChild = cNode->At(0);
-				if (auto firstChild = firstWeakChild.lock()) {
-					cNode = firstChild;
-				}
-				else {
-					cNode = nullptr;
-				}
-			}
-		}
 
 	public:
 		using value_type = _ValTy;
@@ -99,7 +68,7 @@ public:
 
 		_MyTy& operator++()
 		{
-			IncrementInternalTree();
+			ForwardItemTree::ForwardInternalTree(std::ref(cNode));
 			return (*this);
 		}
 
@@ -114,7 +83,6 @@ public:
 		reference operator*() { return *(cNode.get()); }
 		pointer operator->() { return cNode.get(); }
 
-		//Iterator& operator=(const Iterator& other) { return Iterator{ other }; }
 		bool operator==(const Iterator &other) const { return cNode == other.cNode; }
 		bool operator!=(const Iterator &other) const { return cNode != other.cNode; }
 		bool operator<(const Iterator& other) const { return cNode < other.cNode; }
@@ -123,53 +91,12 @@ public:
 		bool operator>=(const Iterator& other) const { return cNode >= other.cNode; }
 	};
 
-	class ConstIterator
+	class ConstIterator : public ForwardItemTree
 	{
 		std::shared_ptr<ASTNode> cNode;
 
 	private:
 		using _MyTy = ConstIterator;
-
-	private:
-		void IncrementInternalTree()
-		{
-			// No children in this node, work upwards and sideways
-			if (cNode->ChildrenCount() == 0) {
-			redo:
-				auto weakParent = cNode->Parent();
-				if (auto parent = weakParent.lock()) {
-					auto parentChildren = parent->Children();
-
-					auto selfListItem = std::find_if(parentChildren.begin(), parentChildren.end(), [=](std::weak_ptr<ASTNode>& wPtr)
-					{
-						return wPtr.lock() == cNode;
-					});
-
-					if (selfListItem + 1 == parentChildren.end()) {
-						cNode = parent;
-						goto redo;
-					}
-					else {
-						auto weakNeighbour = selfListItem + 1;
-						if (auto neighbour = weakNeighbour->lock()) {
-							cNode = neighbour;
-						}
-					}
-				}
-				else {
-					cNode = nullptr;
-				}
-			}
-			else {
-				auto firstWeakChild = cNode->At(0);
-				if (auto firstChild = firstWeakChild.lock()) {
-					cNode = firstChild;
-				}
-				else {
-					cNode = nullptr;
-				}
-			}
-		}
 
 	public:
 		using value_type = _ValTy;
@@ -185,7 +112,7 @@ public:
 
 		const _MyTy& operator++()
 		{
-			IncrementInternalTree();
+			ForwardItemTree::ForwardInternalTree(std::ref(cNode));
 			return (*this);
 		}
 
