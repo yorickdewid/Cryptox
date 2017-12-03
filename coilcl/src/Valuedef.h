@@ -194,5 +194,16 @@ public:
 	}
 };
 
-} // namespace Typedef
+} // namespace Valuedef
+
+namespace Util
+{
+
+template<typename _NativTy, typename _ValTy>
+inline auto MakeValueObject(Typedef::BuiltinType&& type, _ValTy value)
+{
+	return std::make_unique<CoilCl::Valuedef::ValueObject<_NativTy>>(std::move(type), value);
+}
+
+} // namespace Util
 } // namespace CoilCl

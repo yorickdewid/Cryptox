@@ -219,6 +219,11 @@ public:
 			*/
 
 			program->AstPassthrough()->Print<ASTNode::Traverse::STAGE_FIRST>();
+
+			// For now; the program should not be runnable
+			if (!program->IsRunnable()) {
+				std::cout << "resulting program not runnable, cyka blyat" << std::endl;
+			}
 		}
 		// Catch any leaked erros not caught in the stages
 		catch (std::exception& e) {

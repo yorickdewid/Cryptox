@@ -52,6 +52,8 @@ public:
 	Semer& PreliminaryAssert();
 	Semer& StandardCompliance();
 
+private:
+	void NamedDeclaration();
 	void ResolveIdentifier();
 
 private:

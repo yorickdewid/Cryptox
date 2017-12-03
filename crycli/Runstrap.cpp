@@ -48,12 +48,12 @@ protected:
 // Adapter between different reader implementations. The adapter will prepare
 // all settings for compiler calls and return the appropriate datastructures
 // according to the reader interface.
-class StreamReaderAdapter : private NonCopyable
+class StreamReaderAdapter final : private NonCopyable
 {
 	static const size_t defaultChunkSize = 128;
 
 public:
-	explicit StreamReaderAdapter(const std::shared_ptr<Reader>& reader)
+	StreamReaderAdapter(const std::shared_ptr<Reader>&& reader)
 		: contentReader{ std::move(reader) }
 	{
 	}
@@ -176,7 +176,7 @@ void CCBErrorHandler(void *user_data, const char *message, char fatal)
 void RunSourceFile(Env& env, const std::string& m_sourceFile)
 {
 	auto reader = std::make_shared<FileReader>(m_sourceFile);
-	StreamReaderAdapter{ std::dynamic_pointer_cast<Reader>(reader) }.Start();
+	StreamReaderAdapter{ std::move(std::dynamic_pointer_cast<Reader>(reader)) }.Start();
 }
 
 //TODO: Implement
@@ -191,5 +191,5 @@ void RunSourceFile(Env& env, const std::vector<std::string>& sourceFiles)
 void RunMemoryString(Env& env, const std::string& content)
 {
 	auto reader = std::make_shared<StringReader>(content);
-	StreamReaderAdapter{ std::dynamic_pointer_cast<Reader>(reader) }.SetStreamChuckSize(256).Start();
+	StreamReaderAdapter{ std::move(std::dynamic_pointer_cast<Reader>(reader)) }.SetStreamChuckSize(256).Start();
 }

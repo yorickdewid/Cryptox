@@ -29,6 +29,7 @@ public:
 public:
 	Program() = default;
 	Program(const Program&) = delete;
+	Program(Program&&) = default;
 
 	Program(Program&& other, std::shared_ptr<TranslationUnitDecl>&& ast)
 		: m_ast{ new AST::AST{ std::move(ast) } }
@@ -36,6 +37,10 @@ public:
 		, m_lastStage{ other.m_lastStage }
 	{
 	}
+
+	// Do not assign
+	Program& operator=(const Program&) = delete;
+	Program& operator=(Program&&) = delete;
 
 	inline auto Ast() { return m_ast->tree_ref(); }
 
@@ -46,6 +51,9 @@ public:
 
 	// Program follows a language if it meets the language specification
 	inline auto IsLanguage() const { return m_treeCondition >= Condition::COMPLANT; }
+
+	// Program follows a language if it meets the language specification
+	inline auto IsOptimized() const { return m_treeCondition >= Condition::OPTIMIZED; }
 
 private:
 	Condition m_treeCondition;
