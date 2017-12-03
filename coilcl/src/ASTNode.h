@@ -667,6 +667,8 @@ public:
 		ASTNode::RemoveChild(idx);
 		ASTNode::AppendChild(node);
 		m_body = std::move(node);
+
+		ASTNode::UpdateDelegate();
 	}
 
 	virtual const std::string NodeName() const
@@ -1752,6 +1754,8 @@ public:
 		ASTNode::RemoveChild(idx);
 		ASTNode::AppendChild(node);
 		m_arg[idx] = std::move(node);
+
+		ASTNode::UpdateDelegate();
 	}
 
 	PRINT_NODE(ArgumentStmt);
