@@ -15,6 +15,15 @@ namespace CoilCl
 namespace AST
 {
 
+template<typename _Ty>
+struct ASTEqual
+{
+	bool operator()(ASTNode& item)
+	{
+		return typeid(item) == typeid(_Ty);
+	}
+};
+
 class AST
 {
 	using _MyTy = AST;

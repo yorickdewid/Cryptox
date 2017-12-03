@@ -8,8 +8,6 @@
 
 #pragma once
 
-#include <stdexcept>
-
 namespace CmnCore
 {
 namespace Algorithm
