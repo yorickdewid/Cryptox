@@ -92,7 +92,7 @@ public:
 	inline size_t ChildrenCount() const { return children.size(); }
 	size_t ModifierCount() const { return m_state.Alteration(); }
 
-	virtual void Emplace(size_t idx, const std::shared_ptr<ASTNode>&& node)
+	[[noreturn]] virtual void Emplace(size_t idx, const std::shared_ptr<ASTNode>&& node)
 	{
 		throw UnsupportedOperationException{ "Emplace" };
 	}

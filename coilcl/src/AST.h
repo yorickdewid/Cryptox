@@ -15,12 +15,21 @@ namespace CoilCl
 namespace AST
 {
 
-template<typename _Ty>
+template<typename _Ty, typename _Cmp = ASTNode>
 struct ASTEqual
 {
-	bool operator()(ASTNode& item)
+	bool operator()(_Cmp& item)
 	{
 		return typeid(item) == typeid(_Ty);
+	}
+};
+
+template<typename _Ty, typename _Cmp = ASTNode>
+struct ASTDerived
+{
+	bool operator()(_Cmp& item)
+	{
+		return dynamic_cast<_Ty*>(&item) != nullptr;
 	}
 };
 
