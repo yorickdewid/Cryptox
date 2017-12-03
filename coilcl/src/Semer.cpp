@@ -9,13 +9,14 @@ inline std::shared_ptr<_Decl> make_ref(_Ty&&... _Args)
 	return std::shared_ptr<_Decl>{new _Decl{ _Args... }};
 }
 
-template<typename _Ty>
-inline auto FindTreeType(AST::AST& ast) -> AST::AST::const_iterator
+template<typename _InputIt, typename _UnaryPredicate, typename _UnaryCallback>
+void OnMatch(_InputIt first, _InputIt last, _UnaryPredicate p, _UnaryCallback c)
 {
-	return std::find_if(ast.cbegin(), ast.cend(), [](ASTNode& item)
-	{
-		return typeid(item) == typeid(_Ty);
-	});
+	for (; first != last; ++first) {
+		if (p(*first)) {
+			c(first);
+		}
+	}
 }
 
 //XXX: for now
@@ -51,17 +52,15 @@ CoilCl::Semer& CoilCl::Semer::CheckCompatibility()
 	return (*this);
 }
 
-//TODO: loop
 // Resolve all static expresions such as
 // native type size calculations.
 CoilCl::Semer& CoilCl::Semer::StaticResolve()
 {
-	std::array<std::string, 1> staticLookup{ "sizeof" };
+	const std::array<std::string, 1> staticLookup{ "sizeof" };
 
-	AST::AST::const_iterator itr = FindTreeType<BuiltinExpr>(m_ast);
-
-	// Found any static expressions
-	if (itr != m_ast.cend()) {
+	AST::ASTEqual<BuiltinExpr> eqOp;
+	OnMatch(m_ast.begin(), m_ast.end(), eqOp, [&staticLookup](AST::AST::iterator itr)
+	{
 		auto builtinExpr = std::dynamic_pointer_cast<BuiltinExpr>(itr.shared_ptr());
 		auto declRefName = builtinExpr->FuncDeclRef()->Identifier();
 
@@ -73,20 +72,27 @@ CoilCl::Semer& CoilCl::Semer::StaticResolve()
 			}
 			// No expression, use typename
 			else {
-				AST::TypeFacade type = builtinExpr->TypeName();
-
 				// Replace static builtin operation with integer result
-				auto m_data = Util::MakeValueObject<int>(Typedef::BuiltinType::Specifier::INT, type.Size());
+				auto m_data = Util::MakeValueObject<int>(Typedef::BuiltinType::Specifier::INT, builtinExpr->TypeName().Size());
 				auto literal = CoilCl::AST::MakeASTNode<IntegerLiteral>(std::move(m_data));
 
-				//TODO: static 1
 				// Emplace current object on existing
 				if (auto parent = builtinExpr->Parent().lock()) {
-					parent->Emplace(1, literal);
+					auto parentChildren = parent->Children();
+
+					auto selfListItem = std::find_if(parentChildren.begin(), parentChildren.end(), [=](std::weak_ptr<ASTNode>& wPtr)
+					{
+						return wPtr.lock() == builtinExpr;
+					});
+
+					if (selfListItem != parentChildren.end()) {
+						size_t idx = std::distance(parentChildren.begin(), selfListItem);
+						parent->Emplace(idx, literal);
+					}
 				}
 			}
 		}
-	}
+	});
 
 	return (*this);
 }
