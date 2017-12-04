@@ -9,8 +9,9 @@
 #pragma once
 
 #include "Typedef.h" //TODO: remove ?
-#include "Valuedef.h"
+#include "Valuedef.h" //TODO: remove ?
 #include "TypeFacade.h"
+#include "RefCount.h"
 #include "ASTState.h"
 
 #include <vector>
@@ -618,7 +619,9 @@ public:
 // Declaration nodes
 //
 
-class Decl : public ASTNode
+class Decl
+	: public ASTNode
+	, public CoilCl::AST::RefCount
 {
 protected:
 	std::string m_identifier;
@@ -676,6 +679,11 @@ public:
 		std::string _node{ RemoveClassFromName(typeid(VarDecl).name()) };
 		_node += " {" + std::to_string(m_state.Alteration()) + "}";
 		_node += " <line:" + std::to_string(line) + ",col:" + std::to_string(col) + "> ";
+
+		if (RefCount::IsUsed()) {
+			_node += "used ";
+		}
+
 		_node += m_identifier;
 		_node += " '" + Decl::ReturnType().TypeName() + "' ";
 		_node += Decl::ReturnType()->StorageClassName();
@@ -948,11 +956,6 @@ class FunctionDecl
 	bool m_isPrototype = true;
 	size_t m_useCount = 0;
 
-#if 0
-private:
-	auto IsUsed() const { return m_useCount > 0; }
-#endif
-
 public:
 	explicit FunctionDecl(const std::string& name, std::shared_ptr<CompoundStmt>& node)
 		: Decl{ name }
@@ -1001,13 +1004,6 @@ public:
 		m_protoRef = node;
 	}
 
-#if 0
-	void RegisterCaller()
-	{
-		m_useCount++;
-	}
-#endif
-
 	const std::string NodeName() const
 	{
 		std::stringstream ss;
@@ -1022,15 +1018,15 @@ public:
 		else if (HasPrototypeDefinition()) {
 			ss << "linked ";
 
-			if (m_protoRef.lock()->IsUsed()) {
+			/*if (m_protoRef.lock()->IsUsed()) {
 				ss << "used ";
-			}
+			}*/
 		}
 
-		if (IsUsed()) {
+#endif
+		if (RefCount::IsUsed()) {
 			ss << "used ";
 		}
-#endif
 
 		ss << m_identifier;
 
