@@ -189,7 +189,7 @@ public:
 				.Execute()
 				.DumpAST();
 
-			// Compose the definitive program structure
+			// Compose definitive program structure
 			program = std::make_unique<CoilCl::Program>(DYNAMIC_FORWARD(program), std::move(ast));
 
 			// For now dump contents to screen
@@ -222,7 +222,7 @@ public:
 
 			// For now; the program should not be runnable
 			if (!program->IsRunnable()) {
-				std::cout << "resulting program not runnable, cyka blyat" << std::endl;
+				std::cout << "resulting program not runnable" << std::endl;
 			}
 		}
 		// Catch any leaked erros not caught in the stages

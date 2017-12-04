@@ -1014,16 +1014,10 @@ public:
 		if (IsPrototypeDefinition()) {
 			ss << "proto ";
 		}
-#if 0
 		else if (HasPrototypeDefinition()) {
 			ss << "linked ";
-
-			/*if (m_protoRef.lock()->IsUsed()) {
-				ss << "used ";
-			}*/
 		}
 
-#endif
 		if (RefCount::IsUsed()) {
 			ss << "used ";
 		}

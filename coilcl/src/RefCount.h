@@ -17,11 +17,10 @@ class RefCount
 {
 public:
 	auto IsUsed() const { return m_useCount > 0; }
+	void RegisterCaller() { ++m_useCount; }
 
 protected:
 	RefCount() = default;
-
-	void RegisterCaller() { ++m_useCount; }
 
 private:
 	int m_useCount = 0;

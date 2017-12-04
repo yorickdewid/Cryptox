@@ -2,13 +2,7 @@
 #include "ASTNode.h"
 #include "Semer.h"
 
-//TODO: ?
-template<typename... _Ty, class _Decl = DeclRefExpr>
-inline std::shared_ptr<_Decl> make_ref(_Ty&&... _Args)
-{
-	return std::shared_ptr<_Decl>{new _Decl{ _Args... }};
-}
-
+//XXX: for now
 template<typename _InputIt, typename _UnaryPredicate, typename _UnaryCallback>
 void OnMatch(_InputIt first, _InputIt last, _UnaryPredicate p, _UnaryCallback c)
 {
@@ -44,7 +38,6 @@ CoilCl::Semer::Semer(std::shared_ptr<CoilCl::Profile>& profile, AST::AST&& ast)
 	, m_profile{ profile }
 	, m_ast{ std::move(ast) }
 {
-	//m_resolvStash.Enlist()
 }
 
 CoilCl::Semer& CoilCl::Semer::CheckCompatibility()
@@ -52,8 +45,8 @@ CoilCl::Semer& CoilCl::Semer::CheckCompatibility()
 	return (*this);
 }
 
-// Resolve all static expresions such as
-// native type size calculations.
+// Resolve all static expresions such as native type size calculations
+// and inject the expression result back into the tree
 CoilCl::Semer& CoilCl::Semer::StaticResolve()
 {
 	const std::array<std::string, 1> staticLookup{ "sizeof" };
@@ -102,9 +95,7 @@ CoilCl::Semer& CoilCl::Semer::StaticResolve()
 // implicit casting and identifier resolving.
 CoilCl::Semer& CoilCl::Semer::PreliminaryAssert()
 {
-	/*AST::AST::const_iterator itr = FindTreeType<DeclRefExpr>(m_ast);
-
-	if (itr != m_ast.cend()) {
+	/*if (itr != m_ast.cend()) {
 		auto declExpr = std::dynamic_pointer_cast<DeclRefExpr>(itr.shared_ptr());
 		if (!declExpr->IsResolved()) {
 			auto resvName = declExpr->Identifier();
@@ -114,8 +105,9 @@ CoilCl::Semer& CoilCl::Semer::PreliminaryAssert()
 		}
 	}*/
 
-	NamedDeclaration();
-	ResolveIdentifier();
+	//NamedDeclaration();
+	//ResolveIdentifier();
+	BindPrototype();
 	//TODO: identifier resolving & scoping
 	//TODO: match function prototype with body
 	//TODO: type checking
@@ -128,10 +120,25 @@ CoilCl::Semer& CoilCl::Semer::StandardCompliance()
 {
 	return (*this);
 }
-
+#include <iostream>
+// Extract identifiers from declarations and stash them per scoped block.
+// All declaration nodes have an identifier, which could be empty.
 void CoilCl::Semer::NamedDeclaration()
 {
-	//
+	AST::ASTEqual<TranslationUnitDecl> traunOp;
+	AST::ASTDerived<Decl> drivdOp;
+	OnMatch(m_ast.begin(), m_ast.end(), drivdOp, [&traunOp, this](AST::AST::iterator itr)
+	{
+		auto node = itr.shared_ptr();
+		auto decl = std::dynamic_pointer_cast<Decl>(node);
+		if (traunOp(*decl.get())) {
+			return;
+		}
+		if (!decl->Identifier().empty()) {
+			this->m_resolveList[decl->Identifier()] = node;
+			std::cout << "Declaration: " << decl->Identifier() << std::endl;
+		}
+	});
 }
 
 void CoilCl::Semer::ResolveIdentifier()
@@ -159,4 +166,32 @@ void CoilCl::Semer::ResolveIdentifier()
 
 	// Bind function to prototype
 	//if (funcProto) { func->BindPrototype(funcProto); }
+}
+
+void CoilCl::Semer::BindPrototype()
+{
+	Stash<ASTNode> m_resolFuncProto;
+
+	AST::ASTEqual<FunctionDecl> eqOp;
+	OnMatch(m_ast.begin(), m_ast.end(), eqOp, [&m_resolFuncProto](AST::AST::iterator itr)
+	{
+		auto func = std::dynamic_pointer_cast<FunctionDecl>(itr.shared_ptr());
+		if (func->IsPrototypeDefinition()) {
+			m_resolFuncProto.Enlist(func);
+		}
+		else {
+			auto funcProto = m_resolFuncProto.Resolve<FunctionDecl>([&func](std::shared_ptr<FunctionDecl>& funcPtr) -> bool
+			{
+				return funcPtr->Identifier() == func->Identifier()
+					&& funcPtr->IsPrototypeDefinition();
+			});
+
+			if (!funcProto) {
+				return;
+			}
+
+			func->BindPrototype(funcProto);
+			funcProto->RegisterCaller();
+		}
+	});
 }

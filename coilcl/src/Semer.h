@@ -3,6 +3,8 @@
 #include "Profile.h"
 #include "Stage.h"
 
+#include <map>
+
 namespace CoilCl
 {
 
@@ -19,16 +21,19 @@ public:
 
 	template<typename _DeclTy,
 		typename _BaseTy = _DeclTy,
-		class = typename std::enable_if<std::is_base_of<_BaseTy, _DeclTy>::value>::type>
-	auto Resolve(std::function<bool(std::shared_ptr<_DeclTy>)> checkCb) -> std::shared_ptr<_BaseTy>
+		typename _UnaryPredicate,
+		typename = typename std::enable_if<std::is_base_of<_BaseTy, _DeclTy>::value>::type>
+		auto Resolve(_UnaryPredicate c) -> std::shared_ptr<_BaseTy>
 	{
-		for (auto& ptr : m_stash) {
-			if (auto node = ptr.lock()) {
+		for (const auto& wPtr : m_stash) {
+			if (auto node = wPtr.lock()) {
 				auto declRs = std::dynamic_pointer_cast<_DeclTy>(node);
-				if (declRs != nullptr) {
-					if (checkCb(declRs)) {
-						return std::dynamic_pointer_cast<_BaseTy>(declRs);
-					}
+				if (declRs == nullptr) {
+					return nullptr;
+				}
+
+				if (c(declRs)) {
+					return std::dynamic_pointer_cast<_BaseTy>(declRs);
 				}
 			}
 		}
@@ -44,7 +49,7 @@ class Semer : public Stage<Semer>
 {
 public:
 	Semer(std::shared_ptr<CoilCl::Profile>& profile, AST::AST&& ast);
-	
+
 	std::string Name() const { return "Semer"; }
 
 	Semer& CheckCompatibility();
@@ -55,10 +60,12 @@ public:
 private:
 	void NamedDeclaration();
 	void ResolveIdentifier();
+	void BindPrototype();
 
 private:
 	AST::AST m_ast;
 	Stash<ASTNode> m_resolvStash;
+	std::map<std::string, std::shared_ptr<ASTNode>> m_resolveList;
 	std::shared_ptr<CoilCl::Profile> m_profile;
 };
 
