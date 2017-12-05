@@ -62,6 +62,26 @@ protected:
 	}
 };
 
+class UniqueObj
+{
+public:
+	using unique_type = int;
+
+private:
+	unique_type id;
+
+public:
+	UniqueObj()
+	{
+		id = ++_id;
+	}
+
+	inline auto Id() const -> decltype(id) { return id; }
+
+private:
+	static int _id;
+};
+
 struct ModifierInterface
 {
 	virtual void Emplace(size_t, const std::shared_ptr<ASTNode>&&) = 0;
@@ -73,7 +93,9 @@ class CompoundStmt;
 class ArgumentStmt;
 class ParamStmt;
 
-class ASTNode : public ModifierInterface
+class ASTNode
+	: public ModifierInterface
+	, public UniqueObj
 {
 protected:
 	using _MyTy = ASTNode;
@@ -93,7 +115,8 @@ public:
 	inline size_t ChildrenCount() const { return children.size(); }
 	size_t ModifierCount() const { return m_state.Alteration(); }
 
-	[[noreturn]] virtual void Emplace(size_t idx, const std::shared_ptr<ASTNode>&& node)
+	[[noreturn]]
+	virtual void Emplace(size_t idx, const std::shared_ptr<ASTNode>&& node)
 	{
 		throw UnsupportedOperationException{ "Emplace" };
 	}
@@ -298,17 +321,17 @@ public:
 #if 0
 		if (m_returnType) {
 			_node + "'return type' ";//TODO
-		}
+	}
 #endif
 
 		_node += "'" + std::string{ BinOperandStr(m_operand) } +"'";
 
 		return _node;
-	}
+}
 
 private:
 	POLY_IMPL();
-};
+	};
 
 class ConditionalOperator
 	: public Operator

@@ -7,6 +7,8 @@ Decl::~Decl() {}
 Expr::~Expr() {}
 Stmt::~Stmt() {}
 
+int UniqueObj::_id = 100;
+
 void ASTNode::Print(int version, int level, bool last, std::vector<int> ignore) const
 {
 	if (level == 0) {
