@@ -105,14 +105,13 @@ CoilCl::Semer& CoilCl::Semer::PreliminaryAssert()
 		}
 	}*/
 
-	//NamedDeclaration();
-	//ResolveIdentifier();
-	BindPrototype();
 	//TODO: identifier resolving & scoping
-	//TODO: match function prototype with body
+	NamedDeclaration();
+	ResolveIdentifier();
+	BindPrototype();
 	//TODO: type checking
-	//TODO: implicit cast
-	//TODO: object usage counting
+	CheckDataType();
+
 	return (*this);
 }
 
@@ -120,6 +119,22 @@ CoilCl::Semer& CoilCl::Semer::StandardCompliance()
 {
 	return (*this);
 }
+
+template<typename _Ty>
+std::shared_ptr<ASTNode> Closest(std::shared_ptr<ASTNode>& node)
+{
+	AST::ASTEqual<_Ty> eqOp;
+	if (auto parent = node->Parent().lock()) {
+		if (!eqOp(*parent.get())) {
+			return Closest<_Ty>(parent);
+		}
+
+		return parent;
+	}
+
+	return nullptr;
+}
+
 #include <iostream>
 // Extract identifiers from declarations and stash them per scoped block.
 // All declaration nodes have an identifier, which could be empty.
@@ -134,15 +149,38 @@ void CoilCl::Semer::NamedDeclaration()
 		if (traunOp(*decl.get())) {
 			return;
 		}
+
 		if (!decl->Identifier().empty()) {
-			this->m_resolveList[decl->Identifier()] = node;
-			std::cout << "Declaration: " << decl->Identifier() << std::endl;
+			auto func = Closest<FunctionDecl>(node);
+			if (func == nullptr) {
+				auto block = Closest<CompoundStmt>(node);
+				if (block == nullptr) {
+					this->m_resolveList[decl->Identifier()] = node;
+					std::cout << "Global declaration: " << decl->Identifier() << std::endl;
+				}
+				else {
+					std::cout << "block declaration: " << decl->Identifier() << std::endl;
+				}
+			}
+			else {
+				std::cout << "Local declaration: " << decl->Identifier() << std::endl;
+			}
 		}
 	});
 }
 
 void CoilCl::Semer::ResolveIdentifier()
 {
+	/*AST::ASTEqual<DeclRefExpr> eqOp;
+	OnMatch(m_ast.begin(), m_ast.end(), eqOp, [this](AST::AST::iterator itr)
+	{
+		auto decl = std::dynamic_pointer_cast<DeclRefExpr>(itr.shared_ptr());
+		if (!decl->IsResolved()) {
+
+		}
+	});*/
+
+
 	/*const auto& refIdentifier = m_identifierStack.top();
 	auto decl = stash->Resolve<VarDecl, Decl>([&refIdentifier](std::shared_ptr<VarDecl>& varPtr) -> bool
 	{
@@ -155,17 +193,6 @@ void CoilCl::Semer::ResolveIdentifier()
 
 	m_identifierStack.pop();
 	auto ref = make_ref(decl);*/
-
-	/////////
-
-	/*auto funcProto = stash->Resolve<FunctionDecl>([&func](std::shared_ptr<FunctionDecl>& funcPtr) -> bool
-	{
-	return funcPtr->Identifier() == func->Identifier()
-	&& funcPtr->IsPrototypeDefinition();
-	});*/
-
-	// Bind function to prototype
-	//if (funcProto) { func->BindPrototype(funcProto); }
 }
 
 void CoilCl::Semer::BindPrototype()
@@ -194,4 +221,9 @@ void CoilCl::Semer::BindPrototype()
 			funcProto->RegisterCaller();
 		}
 	});
+}
+
+void CoilCl::Semer::CheckDataType()
+{
+	//TODO: implicit cast
 }

@@ -61,6 +61,7 @@ private:
 	void NamedDeclaration();
 	void ResolveIdentifier();
 	void BindPrototype();
+	void CheckDataType();
 
 private:
 	AST::AST m_ast;
