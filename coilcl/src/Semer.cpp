@@ -33,6 +33,44 @@ public:
 	}
 };
 
+class SemanticException : public std::exception
+{
+public:
+	SemanticException() noexcept = default;
+
+	explicit SemanticException(char const* const message, int line, int column) noexcept
+		: m_line{ line }
+		, m_column{ column }
+	{
+		std::stringstream ss;
+		ss << "Semantic error: " << message;
+		ss << " " << line << ':' << column;
+		_msg = ss.str();
+	}
+
+	virtual int Line() const noexcept
+	{
+		return m_line;
+	}
+
+	virtual int Column() const noexcept
+	{
+		return m_column;
+	}
+
+	virtual const char *what() const noexcept
+	{
+		return _msg.c_str();
+	}
+
+protected:
+	std::string _msg;
+
+private:
+	int m_line;
+	int m_column;
+};
+
 CoilCl::Semer::Semer(std::shared_ptr<CoilCl::Profile>& profile, AST::AST&& ast)
 	: Stage{ this }
 	, m_profile{ profile }
@@ -172,7 +210,7 @@ void CoilCl::Semer::ResolveIdentifier()
 				if (block == nullptr) {
 					auto binder = this->m_resolveList[0].find(decl->Identifier());
 					if (binder == this->m_resolveList[0].end()) {
-						throw std::exception{};//TODO
+						throw SemanticException{ "use of undeclared identifier'x'", 0, 0 };
 					}
 
 					decl->Resolve(binder->second);
@@ -186,7 +224,7 @@ void CoilCl::Semer::ResolveIdentifier()
 				if (binder == this->m_resolveList[func->Id()].end()) {
 					binder = this->m_resolveList[0].find(decl->Identifier());
 					if (binder == this->m_resolveList[0].end()) {
-						throw std::exception{};//TODO
+						throw SemanticException{ "use of undeclared identifier'x'", 0, 0 };
 					}
 				}
 
@@ -194,19 +232,6 @@ void CoilCl::Semer::ResolveIdentifier()
 			}
 		}
 	});
-
-	/*const auto& refIdentifier = m_identifierStack.top();
-	auto decl = stash->Resolve<VarDecl, Decl>([&refIdentifier](std::shared_ptr<VarDecl>& varPtr) -> bool
-	{
-	return varPtr->Identifier() == refIdentifier;
-	});
-
-	if (decl == nullptr) {
-	throw ParseException{ std::string{ "use of undeclared identifier '" + refIdentifier + "'" }.c_str(), 0, 0 };
-	}
-
-	m_identifierStack.pop();
-	auto ref = make_ref(decl);*/
 }
 
 void CoilCl::Semer::BindPrototype()
