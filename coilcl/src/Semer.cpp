@@ -95,21 +95,9 @@ CoilCl::Semer& CoilCl::Semer::StaticResolve()
 // implicit casting and identifier resolving.
 CoilCl::Semer& CoilCl::Semer::PreliminaryAssert()
 {
-	/*if (itr != m_ast.cend()) {
-		auto declExpr = std::dynamic_pointer_cast<DeclRefExpr>(itr.shared_ptr());
-		if (!declExpr->IsResolved()) {
-			auto resvName = declExpr->Identifier();
-			if (std::any_of(staticLookup.cbegin(), staticLookup.cend(), [&resvName](const std::string& c) { return c == resvName; })) {
-				printf("lolz");
-			}
-		}
-	}*/
-
-	//TODO: identifier resolving & scoping
 	NamedDeclaration();
 	ResolveIdentifier();
 	BindPrototype();
-	//TODO: type checking
 	CheckDataType();
 
 	return (*this);
@@ -155,7 +143,7 @@ void CoilCl::Semer::NamedDeclaration()
 			if (func == nullptr) {
 				auto block = Closest<CompoundStmt>(node);
 				if (block == nullptr) {
-					this->m_resolveList2[0][decl->Identifier()] = node;
+					this->m_resolveList[0][decl->Identifier()] = node;
 					std::cout << "Global declaration [0]: " << decl->Identifier() << std::endl;
 				}
 				else {
@@ -163,7 +151,7 @@ void CoilCl::Semer::NamedDeclaration()
 				}
 			}
 			else {
-				this->m_resolveList2[func->Id()][decl->Identifier()] = node;
+				this->m_resolveList[func->Id()][decl->Identifier()] = node;
 				std::cout << "Local declaration [" + std::to_string(func->Id()) + "]: " << decl->Identifier() << std::endl;
 			}
 		}
@@ -172,15 +160,40 @@ void CoilCl::Semer::NamedDeclaration()
 
 void CoilCl::Semer::ResolveIdentifier()
 {
-	/*AST::ASTEqual<DeclRefExpr> eqOp;
+	AST::ASTEqual<DeclRefExpr> eqOp;
 	OnMatch(m_ast.begin(), m_ast.end(), eqOp, [this](AST::AST::iterator itr)
 	{
-		auto decl = std::dynamic_pointer_cast<DeclRefExpr>(itr.shared_ptr());
+		auto node = itr.shared_ptr();
+		auto decl = std::dynamic_pointer_cast<DeclRefExpr>(node);
 		if (!decl->IsResolved()) {
+			auto func = Closest<FunctionDecl>(node);
+			if (func == nullptr) {
+				auto block = Closest<CompoundStmt>(node);
+				if (block == nullptr) {
+					auto binder = this->m_resolveList[0].find(decl->Identifier());
+					if (binder == this->m_resolveList[0].end()) {
+						throw std::exception{};//TODO
+					}
 
+					decl->Resolve(binder->second);
+				}
+				else {
+					throw std::exception{};//TODO
+				}
+			}
+			else {
+				auto binder = this->m_resolveList[func->Id()].find(decl->Identifier());
+				if (binder == this->m_resolveList[func->Id()].end()) {
+					binder = this->m_resolveList[0].find(decl->Identifier());
+					if (binder == this->m_resolveList[0].end()) {
+						throw std::exception{};//TODO
+					}
+				}
+
+				decl->Resolve(binder->second);
+			}
 		}
-	});*/
-
+	});
 
 	/*const auto& refIdentifier = m_identifierStack.top();
 	auto decl = stash->Resolve<VarDecl, Decl>([&refIdentifier](std::shared_ptr<VarDecl>& varPtr) -> bool

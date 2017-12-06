@@ -331,17 +331,17 @@ public:
 #if 0
 		if (m_returnType) {
 			_node + "'return type' ";//TODO
-	}
+		}
 #endif
 
 		_node += "'" + std::string{ BinOperandStr(m_operand) } +"'";
 
 		return _node;
-}
+	}
 
 private:
 	POLY_IMPL();
-	};
+};
 
 class ConditionalOperator
 	: public Operator
@@ -1184,6 +1184,11 @@ public:
 
 	//TODO: friend
 	auto IsResolved() const { return !m_ref.expired(); }
+
+	void Resolve(const std::shared_ptr<ASTNode>& ref)
+	{
+		m_ref = std::dynamic_pointer_cast<Decl>(ref);
+	}
 
 	const std::string NodeName() const
 	{

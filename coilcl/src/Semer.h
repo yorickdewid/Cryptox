@@ -71,8 +71,7 @@ private:
 private:
 	AST::AST m_ast;
 	Stash<ASTNode> m_resolvStash;
-	std::map<UniqueObj::unique_type, std::map<std::string, std::shared_ptr<ASTNode>>> m_resolveList2;
-	std::map<std::string, std::shared_ptr<ASTNode>> m_resolveList;
+	std::map<UniqueObj::unique_type, std::map<std::string, std::shared_ptr<ASTNode>>> m_resolveList;
 	std::shared_ptr<CoilCl::Profile> m_profile;
 };
 
