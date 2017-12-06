@@ -214,6 +214,7 @@ void CoilCl::Semer::ResolveIdentifier()
 					}
 
 					decl->Resolve(binder->second);
+					std::dynamic_pointer_cast<Decl>(binder->second)->RegisterCaller();
 				}
 				else {
 					throw std::exception{};//TODO
@@ -229,6 +230,7 @@ void CoilCl::Semer::ResolveIdentifier()
 				}
 
 				decl->Resolve(binder->second);
+				std::dynamic_pointer_cast<Decl>(binder->second)->RegisterCaller();
 			}
 		}
 	});
