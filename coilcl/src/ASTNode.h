@@ -78,6 +78,16 @@ public:
 
 	inline auto Id() const -> decltype(id) { return id; }
 
+	bool operator==(const UniqueObj& other)
+	{
+		return id == other.id;
+	}
+
+	bool operator!=(const UniqueObj& other)
+	{
+		return id != other.id;
+	}
+
 private:
 	static int _id;
 };

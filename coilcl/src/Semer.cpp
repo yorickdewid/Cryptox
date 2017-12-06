@@ -155,15 +155,16 @@ void CoilCl::Semer::NamedDeclaration()
 			if (func == nullptr) {
 				auto block = Closest<CompoundStmt>(node);
 				if (block == nullptr) {
-					this->m_resolveList[decl->Identifier()] = node;
-					std::cout << "Global declaration: " << decl->Identifier() << std::endl;
+					this->m_resolveList2[0][decl->Identifier()] = node;
+					std::cout << "Global declaration [0]: " << decl->Identifier() << std::endl;
 				}
 				else {
-					std::cout << "block declaration: " << decl->Identifier() << std::endl;
+					throw std::exception{};//TODO
 				}
 			}
 			else {
-				std::cout << "Local declaration: " << decl->Identifier() << std::endl;
+				this->m_resolveList2[func->Id()][decl->Identifier()] = node;
+				std::cout << "Local declaration [" + std::to_string(func->Id()) + "]: " << decl->Identifier() << std::endl;
 			}
 		}
 	});
@@ -213,12 +214,10 @@ void CoilCl::Semer::BindPrototype()
 					&& funcPtr->IsPrototypeDefinition();
 			});
 
-			if (!funcProto) {
-				return;
+			if (funcProto) {
+				func->BindPrototype(funcProto);
+				funcProto->RegisterCaller();
 			}
-
-			func->BindPrototype(funcProto);
-			funcProto->RegisterCaller();
 		}
 	});
 }
