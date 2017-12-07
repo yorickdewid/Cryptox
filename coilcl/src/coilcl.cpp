@@ -208,6 +208,7 @@ public:
 
 			// For now dump contents to screen
 			program->AstPassthrough()->Print<ASTNode::Traverse::STAGE_LAST>();
+			program->PrintSymbols();
 
 			// Source building
 			/*CoilCl::Emitter{ profile }
