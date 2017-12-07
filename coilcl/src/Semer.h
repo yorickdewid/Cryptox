@@ -57,11 +57,24 @@ public:
 	Semer& PreliminaryAssert();
 	Semer& StandardCompliance();
 
+	template<typename _MapTy>
+	Semer& ExtractSymbols(_MapTy& map)
+	{
+		auto callback = [&map](const std::string name, const std::shared_ptr<ASTNode>& node)
+		{
+			map[name] = node;
+		};
+
+		FuncToSymbol(callback);
+		return (*this);
+	}
+
 private:
 	void NamedDeclaration();
 	void ResolveIdentifier();
 	void BindPrototype();
 	void CheckDataType();
+	void FuncToSymbol(std::function<void(const std::string, const std::shared_ptr<ASTNode>& node)>);
 
 	inline void ClearnInternalState()
 	{

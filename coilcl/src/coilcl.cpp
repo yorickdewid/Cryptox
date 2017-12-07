@@ -201,7 +201,8 @@ public:
 				.CheckCompatibility()
 				.StaticResolve()
 				.PreliminaryAssert()
-				.StandardCompliance();
+				.StandardCompliance()
+				.ExtractSymbols(program->FillSymbols());
 			//.PedanticCompliance()
 			//.Optimize<Optimizer>(CoilCl::Semer::OptimizeLevel::L0);
 
@@ -218,7 +219,7 @@ public:
 				.StreamSink<CoilCl::Stream::Console>();
 			*/
 
-			program->AstPassthrough()->Print<ASTNode::Traverse::STAGE_FIRST>();
+			//program->AstPassthrough()->Print<ASTNode::Traverse::STAGE_FIRST>();
 
 			// For now; the program should not be runnable
 			if (!program->IsRunnable()) {

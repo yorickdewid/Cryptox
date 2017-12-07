@@ -58,6 +58,7 @@ public:
 
 	// Symbol operations
 	inline bool HasSymbol(const std::string& name) const { return m_symbols.find(name) != m_symbols.end(); }
+	auto& FillSymbols() { return m_symbols; } //TODO: friend?
 
 	// Check program status
 	inline auto IsRunnable() const { return m_treeCondition >= Condition::ASSERTION_PASSED; }
@@ -69,7 +70,7 @@ private:
 	StageType m_lastStage;
 
 private:
-	std::map<std::string, std::weak_ptr<ASTNode>> m_symbols;
+	std::map<std::string, std::shared_ptr<ASTNode>> m_symbols;
 	std::unique_ptr<AST::AST> m_ast;
 };
 

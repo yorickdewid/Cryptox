@@ -146,6 +146,20 @@ CoilCl::Semer& CoilCl::Semer::StandardCompliance()
 	return (*this);
 }
 
+void CoilCl::Semer::FuncToSymbol(std::function<void(const std::string, const std::shared_ptr<ASTNode>& node)> insert)
+{
+	AST::ASTEqual<FunctionDecl> eqOp;
+	OnMatch(m_ast.begin(), m_ast.end(), eqOp, [&insert](AST::AST::iterator itr)
+	{
+		auto func = std::dynamic_pointer_cast<FunctionDecl>(itr.shared_ptr());
+		if (func->ReturnType()->IsInline() || func->IsPrototypeDefinition()) {
+			return;
+		}
+
+		insert(func->Identifier(), func);
+	});
+}
+
 template<typename _Ty>
 std::shared_ptr<ASTNode> Closest(std::shared_ptr<ASTNode>& node)
 {
@@ -161,7 +175,7 @@ std::shared_ptr<ASTNode> Closest(std::shared_ptr<ASTNode>& node)
 	return nullptr;
 }
 
-#include <iostream>
+//#include <iostream>
 // Extract identifiers from declarations and stash them per scoped block.
 // All declaration nodes have an identifier, which could be empty.
 void CoilCl::Semer::NamedDeclaration()
@@ -182,7 +196,7 @@ void CoilCl::Semer::NamedDeclaration()
 				auto block = Closest<CompoundStmt>(node);
 				if (block == nullptr) {
 					this->m_resolveList[0][decl->Identifier()] = node;
-					std::cout << "Global declaration [0]: " << decl->Identifier() << std::endl;
+					//std::cout << "Global declaration [0]: " << decl->Identifier() << std::endl;
 				}
 				else {
 					throw std::exception{};//TODO
@@ -190,7 +204,7 @@ void CoilCl::Semer::NamedDeclaration()
 			}
 			else {
 				this->m_resolveList[func->Id()][decl->Identifier()] = node;
-				std::cout << "Local declaration [" + std::to_string(func->Id()) + "]: " << decl->Identifier() << std::endl;
+				//std::cout << "Local declaration [" + std::to_string(func->Id()) + "]: " << decl->Identifier() << std::endl;
 			}
 		}
 	});
