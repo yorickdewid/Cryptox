@@ -278,5 +278,22 @@ void CoilCl::Semer::BindPrototype()
 
 void CoilCl::Semer::CheckDataType()
 {
+	AST::ASTEqual<FunctionDecl> eqOp;
+
+	// Compare function with its prototype, if exist
+	OnMatch(m_ast.begin(), m_ast.end(), eqOp, [](AST::AST::iterator itr)
+	{
+		auto func = std::dynamic_pointer_cast<FunctionDecl>(itr.shared_ptr());
+		if (func->IsPrototypeDefinition() || !func->HasPrototypeDefinition()) {
+			return;
+		}
+
+		// Return type must match
+		if (func->PrototypeDefinition()->ReturnType() != func->ReturnType()) {
+			throw SemanticException{ "conflicting types for 'x'", 0, 0 };
+		}
+	});
+
+
 	//TODO: implicit cast
 }

@@ -30,6 +30,7 @@ public:
 	{
 	}
 
+	// Fetch type information
 	inline auto HasValue() const { return m_type != nullptr; }
 	inline auto IsPointer() const { return m_ptrCount > 0; }
 	inline void SetPointer(size_t ptrCount) { m_ptrCount = ptrCount; }
@@ -46,6 +47,9 @@ public:
 	{
 		return m_type.get();
 	}
+
+	bool operator==(const TypeFacade& other) const { return m_type->Equals(other.m_type.get()); }
+	bool operator!=(const TypeFacade& other) const { return !m_type->Equals(other.m_type.get()); }
 
 private:
 	std::string PointerName() const

@@ -50,6 +50,7 @@ public:
 	virtual bool AllowCoalescence() const = 0;
 	virtual void Consolidate(std::shared_ptr<TypedefBase>& type) = 0;
 	virtual size_t UnboxedSize() const = 0;
+	virtual bool Equals(TypedefBase* other) const = 0;
 
 	// Type specifier inputs
 	inline void SetStorageClass(StorageClassSpecifier storageClass) { m_storageClass = storageClass; }
@@ -153,6 +154,13 @@ public:
 
 	size_t UnboxedSize() const;
 
+	bool Equals(TypedefBase* other) const
+	{
+		auto self = static_cast<BuiltinType*>(other);
+		return m_specifier == self->m_specifier
+			&& m_typeOptions == self->m_typeOptions;
+	}
+
 	void Consolidate(std::shared_ptr<TypedefBase>& type)
 	{
 		assert(type->AllowCoalescence());
@@ -202,6 +210,13 @@ public:
 	//TODO: quite the puzzle
 	size_t UnboxedSize() const { return 0; }
 
+	bool Equals(TypedefBase* other) const
+	{
+		auto self = static_cast<RecordType*>(other);
+		return m_specifier == self->m_specifier
+			&& m_name == self->m_name;
+	}
+
 	void Consolidate(std::shared_ptr<TypedefBase>& type)
 	{
 		throw UnsupportedOperationException{ "TypedefType::Consolidate" };
@@ -231,6 +246,13 @@ public:
 	bool AllowCoalescence() const final { return false; }
 
 	size_t UnboxedSize() const { return m_resolveType->UnboxedSize(); }
+
+	bool Equals(TypedefBase* other) const
+	{
+		auto self = static_cast<TypedefType*>(other);
+		return m_resolveType == self->m_resolveType
+			&& m_name == self->m_name;
+	}
 
 	void Consolidate(std::shared_ptr<TypedefBase>& type)
 	{

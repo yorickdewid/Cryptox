@@ -1027,6 +1027,7 @@ public:
 
 	auto IsPrototypeDefinition() const { return m_isPrototype; }
 	auto HasPrototypeDefinition() const { return !m_protoRef.expired(); }
+	auto PrototypeDefinition() const { return m_protoRef.lock(); }
 
 	// Bind function body to prototype definition
 	void BindPrototype(const std::shared_ptr<FunctionDecl>& node)
