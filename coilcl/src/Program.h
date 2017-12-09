@@ -57,6 +57,7 @@ public:
 	inline auto AstPassthrough() const { return m_ast->operator->(); }
 
 	// Symbol operations
+	void PrintSymbols();
 	inline bool HasSymbol(const std::string& name) const { return m_symbols.find(name) != m_symbols.end(); }
 	auto& FillSymbols() { return m_symbols; } //TODO: friend?
 
