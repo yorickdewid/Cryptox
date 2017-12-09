@@ -772,7 +772,7 @@ class VariadicDecl
 {
 public:
 	VariadicDecl()
-		: Decl{}
+		: Decl{ "", std::dynamic_pointer_cast<Typedef::TypedefBase>(Util::MakeVariadicType()) }
 	{
 	}
 

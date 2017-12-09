@@ -260,6 +260,20 @@ public:
 	}
 };
 
+class VariadicType : public TypedefBase
+{
+public:
+	const std::string TypeName() const final { return "..."; }
+	bool AllowCoalescence() const final { return false; }
+	size_t UnboxedSize() const { return 0; }
+	bool Equals(TypedefBase* other) const { return true; }
+
+	void Consolidate(std::shared_ptr<TypedefBase>& type)
+	{
+		throw UnsupportedOperationException{ "VariadicType::Consolidate" };
+	}
+};
+
 } // namespace Typedef
 
 namespace Util
@@ -280,6 +294,11 @@ inline auto MakeRecordType(const std::string& name, _TyArgs&&... args)
 inline auto MakeTypedefType(const std::string& name, std::shared_ptr<Typedef::TypedefBase>& type)
 {
 	return std::make_shared<Typedef::TypedefType>(name, type);
+}
+
+inline auto MakeVariadicType()
+{
+	return std::make_shared<Typedef::VariadicType>();
 }
 
 } // namespace Util
