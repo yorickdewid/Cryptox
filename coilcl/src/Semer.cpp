@@ -275,13 +275,18 @@ void CoilCl::Semer::BindPrototype()
 void CoilCl::Semer::DeduceTypes()
 {
 	AST::ASTEqual<FunctionDecl> eqOp;
-	OnMatch(m_ast.begin(), m_ast.end(), eqOp, [](AST::AST::iterator itr)
+	AST::ASTEqual<VariadicDecl> eqVaria;
+	OnMatch(m_ast.begin(), m_ast.end(), eqOp, [&eqVaria](AST::AST::iterator itr)
 	{
 		std::vector<AST::TypeFacade> paramTypeList;
 
 		auto func = std::dynamic_pointer_cast<FunctionDecl>(itr.shared_ptr());
-		for (const auto& wChild : func->ParameterStatement()->Children()) {
-			if (auto child = wChild.lock()) {
+		auto children = func->ParameterStatement()->Children();
+		for (auto it = children.begin(); it != children.end(); ++it) {
+			if (auto child = it->lock()) {
+				if (eqVaria(*child.get()) && it != children.end() - 1) {
+					throw SemanticException{ "no argument expected after '...'", 0, 0 };
+				}
 				paramTypeList.push_back(std::dynamic_pointer_cast<Decl>(child)->ReturnType());
 			}
 		}
