@@ -83,6 +83,21 @@ CoilCl::Semer& CoilCl::Semer::CheckCompatibility()
 	return (*this);
 }
 
+template<typename _Ty>
+std::shared_ptr<ASTNode> Closest(std::shared_ptr<ASTNode>& node)
+{
+	AST::ASTEqual<_Ty> eqOp;
+	if (auto parent = node->Parent().lock()) {
+		if (!eqOp(*parent.get())) {
+			return Closest<_Ty>(parent);
+		}
+
+		return parent;
+	}
+
+	return nullptr;
+}
+
 // Resolve all static expresions such as native type size calculations
 // and inject the expression result back into the tree
 CoilCl::Semer& CoilCl::Semer::StaticResolve()
@@ -136,13 +151,9 @@ CoilCl::Semer& CoilCl::Semer::PreliminaryAssert()
 	NamedDeclaration();
 	ResolveIdentifier();
 	BindPrototype();
+	DeduceTypes();
 	CheckDataType();
 
-	return (*this);
-}
-
-CoilCl::Semer& CoilCl::Semer::StandardCompliance()
-{
 	return (*this);
 }
 
@@ -158,21 +169,6 @@ void CoilCl::Semer::FuncToSymbol(std::function<void(const std::string, const std
 
 		insert(func->Identifier(), func);
 	});
-}
-
-template<typename _Ty>
-std::shared_ptr<ASTNode> Closest(std::shared_ptr<ASTNode>& node)
-{
-	AST::ASTEqual<_Ty> eqOp;
-	if (auto parent = node->Parent().lock()) {
-		if (!eqOp(*parent.get())) {
-			return Closest<_Ty>(parent);
-		}
-
-		return parent;
-	}
-
-	return nullptr;
 }
 
 //#include <iostream>
@@ -276,6 +272,32 @@ void CoilCl::Semer::BindPrototype()
 	});
 }
 
+void CoilCl::Semer::DeduceTypes()
+{
+	AST::ASTEqual<VariadicDecl> eqVaria;
+	AST::ASTEqual<FunctionDecl> eqOp;
+
+	OnMatch(m_ast.begin(), m_ast.end(), eqOp, [&eqVaria](AST::AST::iterator itr)
+	{
+		std::vector<AST::TypeFacade> paramTypeList;
+
+		auto func = std::dynamic_pointer_cast<FunctionDecl>(itr.shared_ptr());
+		for (const auto& wChild : func->ParameterStatement()->Children()) {
+			if (auto child = wChild.lock()) {
+				if (eqVaria(*child.get())) {
+					continue;
+				}
+
+				paramTypeList.push_back(std::dynamic_pointer_cast<Decl>(child)->ReturnType());
+			}
+		}
+
+		if (!paramTypeList.empty()) {
+			func->SetSignature(std::move(paramTypeList));
+		}
+	});
+}
+
 void CoilCl::Semer::CheckDataType()
 {
 	AST::ASTEqual<FunctionDecl> eqOp;
@@ -294,6 +316,10 @@ void CoilCl::Semer::CheckDataType()
 		}
 	});
 
-
 	//TODO: implicit cast
+}
+
+CoilCl::Semer& CoilCl::Semer::StandardCompliance()
+{
+	return (*this);
 }

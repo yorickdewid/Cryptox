@@ -73,6 +73,7 @@ private:
 	void NamedDeclaration();
 	void ResolveIdentifier();
 	void BindPrototype();
+	void DeduceTypes();
 	void CheckDataType();
 	void FuncToSymbol(std::function<void(const std::string, const std::shared_ptr<ASTNode>& node)>);
 

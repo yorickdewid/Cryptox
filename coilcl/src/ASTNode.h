@@ -1015,6 +1015,13 @@ public:
 		ASTNode::UpdateDelegate();
 	}
 
+	void SetSignature(std::vector<AST::TypeFacade>&& signature)
+	{
+		assert(!signature.empty());
+
+		m_signature = std::move(signature);
+	}
+
 	void SetParameterStatement(const std::shared_ptr<ParamStmt>& node)
 	{
 		assert(!m_params);
@@ -1025,6 +1032,7 @@ public:
 		ASTNode::UpdateDelegate();
 	}
 
+	auto& ParameterStatement() const { return m_params; }
 	auto IsPrototypeDefinition() const { return m_isPrototype; }
 	auto HasPrototypeDefinition() const { return !m_protoRef.expired(); }
 	auto PrototypeDefinition() const { return m_protoRef.lock(); }
@@ -1060,8 +1068,11 @@ public:
 
 		if (!m_signature.empty()) {
 			ss << " '" << Decl::ReturnType().TypeName() + " (";
-			for (auto& type : m_signature) {
-				ss << type.TypeName();
+			for (auto it = m_signature.begin(); it != m_signature.end(); ++it) {
+				ss << it->TypeName();
+				if (m_signature.size() > 1 && it != m_signature.end() - 1) {
+					ss << ", ";
+				}
 			}
 			ss << ")' ";
 		}
