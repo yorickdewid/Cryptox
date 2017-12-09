@@ -1197,6 +1197,7 @@ public:
 
 	//TODO: friend
 	auto IsResolved() const { return !m_ref.expired(); }
+	auto Reference() const { return m_ref.lock(); }
 
 	void Resolve(const std::shared_ptr<ASTNode>& ref)
 	{
@@ -1251,6 +1252,8 @@ public:
 
 		return _node;
 	}
+
+	auto& ArgumentStatement() const { return m_args; }
 
 	//TODO: friend
 	auto FuncDeclRef() const

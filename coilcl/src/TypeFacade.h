@@ -48,6 +48,11 @@ public:
 		return m_type.get();
 	}
 
+	const std::type_info& Type() const
+	{
+		return typeid(*m_type.get());
+	}
+
 	bool operator==(const TypeFacade& other) const { return m_type->Equals(other.m_type.get()); }
 	bool operator!=(const TypeFacade& other) const { return !m_type->Equals(other.m_type.get()); }
 

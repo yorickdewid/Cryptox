@@ -209,7 +209,7 @@ void CoilCl::Semer::NamedDeclaration()
 void CoilCl::Semer::ResolveIdentifier()
 {
 	AST::ASTEqual<DeclRefExpr> eqOp;
-	OnMatch(m_ast.begin(), m_ast.end(), eqOp, [this](AST::AST::iterator itr)
+	OnMatch(m_ast.begin(), m_ast.end(), eqOp, [=](AST::AST::iterator itr)
 	{
 		auto node = itr.shared_ptr();
 		auto decl = std::dynamic_pointer_cast<DeclRefExpr>(node);
@@ -281,10 +281,10 @@ void CoilCl::Semer::DeduceTypes()
 		std::vector<AST::TypeFacade> paramTypeList;
 
 		auto func = std::dynamic_pointer_cast<FunctionDecl>(itr.shared_ptr());
-		auto children = func->ParameterStatement()->Children();
-		for (auto it = children.begin(); it != children.end(); ++it) {
+		auto parameters = func->ParameterStatement()->Children();
+		for (auto it = parameters.begin(); it != parameters.end(); ++it) {
 			if (auto child = it->lock()) {
-				if (eqVaria(*child.get()) && it != children.end() - 1) {
+				if (eqVaria(*child.get()) && it != parameters.end() - 1) {
 					throw SemanticException{ "no argument expected after '...'", 0, 0 };
 				}
 				paramTypeList.push_back(std::dynamic_pointer_cast<Decl>(child)->ReturnType());
@@ -299,10 +299,11 @@ void CoilCl::Semer::DeduceTypes()
 
 void CoilCl::Semer::CheckDataType()
 {
-	AST::ASTEqual<FunctionDecl> eqOp;
+	AST::ASTEqual<FunctionDecl> eqFuncOp;
+	AST::ASTEqual<CallExpr> eqCallOp;
 
 	// Compare function with its prototype, if exist
-	OnMatch(m_ast.begin(), m_ast.end(), eqOp, [](AST::AST::iterator itr)
+	OnMatch(m_ast.begin(), m_ast.end(), eqFuncOp, [](AST::AST::iterator itr)
 	{
 		auto func = std::dynamic_pointer_cast<FunctionDecl>(itr.shared_ptr());
 		if (func->IsPrototypeDefinition() || !func->HasPrototypeDefinition()) {
@@ -320,7 +321,30 @@ void CoilCl::Semer::CheckDataType()
 		}
 	});
 
-	//TODO: implicit cast
+	// Match function signature with caller
+	OnMatch(m_ast.begin(), m_ast.end(), eqCallOp, [](AST::AST::iterator itr)
+	{
+		auto call = std::dynamic_pointer_cast<CallExpr>(itr.shared_ptr());
+		auto arguments = call->ArgumentStatement()->Children();
+		assert(call->FuncDeclRef()->IsResolved());
+
+		auto func = std::dynamic_pointer_cast<FunctionDecl>(call->FuncDeclRef()->Reference());
+
+		// Make an exception for variadic argument
+		bool canHaveTooMany = true;
+		if (func->Signature().back().Type() == typeid(Typedef::VariadicType)) {
+			canHaveTooMany = false;
+		}
+
+		if (func->Signature().size() > arguments.size()) {
+			throw SemanticException{ "too few arguments to function call, expected at least 0, have 0", 0, 0 };
+		}
+		else if (func->Signature().size() < arguments.size() && canHaveTooMany) {
+			throw SemanticException{ "too many arguments to function call, expected 0, have 0", 0, 0 };
+		}
+	});
+
+	//TODO: Check expressions & return types
 }
 
 CoilCl::Semer& CoilCl::Semer::StandardCompliance()
