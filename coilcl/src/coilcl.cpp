@@ -193,7 +193,7 @@ public:
 			program = std::make_unique<CoilCl::Program>(DYNAMIC_FORWARD(program), std::move(ast));
 
 			// For now dump contents to screen
-			program->AstPassthrough()->Print<ASTNode::Traverse::STAGE_FIRST>();
+			//program->AstPassthrough()->Print<ASTNode::Traverse::STAGE_FIRST>();
 
 			// Semantic analysis
 			CoilCl::Semer{ profile, std::move(program->Ast()) }
@@ -202,9 +202,9 @@ public:
 				.StaticResolve()
 				.PreliminaryAssert()
 				.StandardCompliance()
+				.PedanticCompliance()
+				.Optimize<CoilCl::LeanOptimzer>()
 				.ExtractSymbols(program->FillSymbols());
-			//.PedanticCompliance()
-			//.Optimize<Optimizer>(CoilCl::Semer::OptimizeLevel::L0);
 
 			// For now dump contents to screen
 			program->AstPassthrough()->Print<ASTNode::Traverse::STAGE_LAST>();

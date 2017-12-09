@@ -1143,7 +1143,7 @@ protected:
 public:
 	virtual ~Expr() = 0;
 
-	auto& ReturnType() { return m_returnType; }
+	void SetReturnType(AST::TypeFacade type) { m_returnType = type; }
 	auto& ReturnType() const { return m_returnType; }
 };
 
@@ -1246,7 +1246,7 @@ public:
 		_node += " <line:" + std::to_string(line) + ",col:" + std::to_string(col) + "> ";
 
 		if (Expr::ReturnType().HasValue()) {
-			_node += " '" + Expr::ReturnType().TypeName() + "' ";
+			_node += "'" + Expr::ReturnType().TypeName() + "' ";
 			_node += Expr::ReturnType()->StorageClassName();
 		}
 
@@ -1315,12 +1315,10 @@ class CastExpr
 	, public SelfReference<CastExpr>
 {
 	std::shared_ptr<ASTNode> rtype;
-	bool m_implicit = true;
 
 public:
 	CastExpr(std::shared_ptr<ASTNode>& node, bool implicit = false)
 		: Expr{}
-		, m_implicit{ implicit }
 	{
 		ASTNode::AppendChild(node);
 		rtype = node;
@@ -1332,15 +1330,21 @@ public:
 		_node += " {" + std::to_string(m_state.Alteration()) + "}";
 		_node += " <line:" + std::to_string(line) + ",col:" + std::to_string(col) + "> ";
 
-		if (m_implicit) {
-			_node += "implicit ";
-		}
-
 		return _node;
 	}
 
 private:
 	POLY_IMPL();
+};
+
+class ImplicitConvertionExpr
+	: public Expr
+	, public SelfReference<ImplicitConvertionExpr>
+{
+public:
+	ImplicitConvertionExpr() = default;
+
+	PRINT_NODE(ImplicitConvertionExpr);
 };
 
 class ParenExpr

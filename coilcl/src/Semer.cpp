@@ -278,6 +278,9 @@ void CoilCl::Semer::DeduceTypes()
 {
 	AST::ASTEqual<FunctionDecl> eqOp;
 	AST::ASTEqual<VariadicDecl> eqVaria;
+	AST::ASTEqual<CallExpr> eqCall;
+
+	// Set signature in function definition
 	OnMatch(m_ast.begin(), m_ast.end(), eqOp, [&eqVaria](AST::AST::iterator itr)
 	{
 		std::vector<AST::TypeFacade> paramTypeList;
@@ -297,12 +300,23 @@ void CoilCl::Semer::DeduceTypes()
 			func->SetSignature(std::move(paramTypeList));
 		}
 	});
+
+	// Set return type on call expression
+	OnMatch(m_ast.begin(), m_ast.end(), eqCall, [&eqVaria](AST::AST::iterator itr)
+	{
+		auto call = std::dynamic_pointer_cast<CallExpr>(itr.shared_ptr());
+		auto func = std::dynamic_pointer_cast<FunctionDecl>(call->FuncDeclRef()->Reference());
+		assert(call->FuncDeclRef()->IsResolved());
+		
+		call->SetReturnType(func->ReturnType());
+	});
 }
 
 void CoilCl::Semer::CheckDataType()
 {
 	AST::ASTEqual<FunctionDecl> eqFuncOp;
 	AST::ASTEqual<CallExpr> eqCallOp;
+	AST::ASTDerived<Expr> dirExp;
 
 	// Compare function with its prototype, if exist
 	OnMatch(m_ast.begin(), m_ast.end(), eqFuncOp, [](AST::AST::iterator itr)
@@ -327,10 +341,10 @@ void CoilCl::Semer::CheckDataType()
 	OnMatch(m_ast.begin(), m_ast.end(), eqCallOp, [](AST::AST::iterator itr)
 	{
 		auto call = std::dynamic_pointer_cast<CallExpr>(itr.shared_ptr());
-		auto arguments = call->ArgumentStatement()->Children();
-		assert(call->FuncDeclRef()->IsResolved());
-
 		auto func = std::dynamic_pointer_cast<FunctionDecl>(call->FuncDeclRef()->Reference());
+		assert(call->FuncDeclRef()->IsResolved());
+		
+		auto arguments = call->ArgumentStatement()->Children();
 
 		// Make an exception for variadic argument
 		bool canHaveTooMany = true;
@@ -347,6 +361,10 @@ void CoilCl::Semer::CheckDataType()
 	});
 
 	//TODO: Check expressions & return types
+	OnMatch(m_ast.begin(), m_ast.end(), dirExp, [](AST::AST::iterator itr)
+	{
+		auto expr = std::dynamic_pointer_cast<Expr>(itr.shared_ptr());
+	});
 }
 
 CoilCl::Semer& CoilCl::Semer::StandardCompliance()
