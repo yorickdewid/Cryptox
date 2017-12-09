@@ -154,6 +154,8 @@ CoilCl::Semer& CoilCl::Semer::PreliminaryAssert()
 	DeduceTypes();
 	CheckDataType();
 
+	//ASSERTION_PASSED
+
 	return (*this);
 }
 
@@ -348,6 +350,11 @@ void CoilCl::Semer::CheckDataType()
 }
 
 CoilCl::Semer& CoilCl::Semer::StandardCompliance()
+{
+	return (*this);
+}
+
+CoilCl::Semer& CoilCl::Semer::PedanticCompliance()
 {
 	return (*this);
 }
