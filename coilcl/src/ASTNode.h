@@ -1032,6 +1032,7 @@ public:
 		ASTNode::UpdateDelegate();
 	}
 
+	auto& Signature() const { return m_signature; }
 	auto& ParameterStatement() const { return m_params; }
 	auto IsPrototypeDefinition() const { return m_isPrototype; }
 	auto HasPrototypeDefinition() const { return !m_protoRef.expired(); }

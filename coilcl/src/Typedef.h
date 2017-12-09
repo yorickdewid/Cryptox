@@ -156,7 +156,11 @@ public:
 
 	bool Equals(TypedefBase* other) const
 	{
-		auto self = static_cast<BuiltinType*>(other);
+		auto self = dynamic_cast<BuiltinType*>(other);
+		if (self == nullptr) {
+			return false;
+		}
+
 		return m_specifier == self->m_specifier
 			&& m_typeOptions == self->m_typeOptions;
 	}
@@ -212,7 +216,11 @@ public:
 
 	bool Equals(TypedefBase* other) const
 	{
-		auto self = static_cast<RecordType*>(other);
+		auto self = dynamic_cast<RecordType*>(other);
+		if (self == nullptr) {
+			return false;
+		}
+
 		return m_specifier == self->m_specifier
 			&& m_name == self->m_name;
 	}
@@ -249,7 +257,11 @@ public:
 
 	bool Equals(TypedefBase* other) const
 	{
-		auto self = static_cast<TypedefType*>(other);
+		auto self = dynamic_cast<TypedefType*>(other);
+		if (self == nullptr) {
+			return false;
+		}
+
 		return m_resolveType == self->m_resolveType
 			&& m_name == self->m_name;
 	}
@@ -266,7 +278,11 @@ public:
 	const std::string TypeName() const final { return "..."; }
 	bool AllowCoalescence() const final { return false; }
 	size_t UnboxedSize() const { return 0; }
-	bool Equals(TypedefBase* other) const { return true; }
+
+	bool Equals(TypedefBase* other) const
+	{
+		return dynamic_cast<VariadicType*>(other) != nullptr;
+	}
 
 	void Consolidate(std::shared_ptr<TypedefBase>& type)
 	{

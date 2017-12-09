@@ -308,6 +308,11 @@ void CoilCl::Semer::CheckDataType()
 		if (func->PrototypeDefinition()->ReturnType() != func->ReturnType()) {
 			throw SemanticException{ "conflicting types for 'x'", 0, 0 };
 		}
+
+		// Function signature must match
+		if (func->PrototypeDefinition()->Signature() != func->Signature()) {
+			throw SemanticException{ "conflicting types for 'x'", 0, 0 };
+		}
 	});
 
 	//TODO: implicit cast
