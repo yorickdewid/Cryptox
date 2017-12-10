@@ -3,6 +3,7 @@
 #include <iostream>
 
 // Implement abstract class dtor
+Operator::~Operator() {}
 Decl::~Decl() {}
 Expr::~Expr() {}
 Stmt::~Stmt() {}

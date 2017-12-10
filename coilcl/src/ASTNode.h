@@ -225,7 +225,13 @@ protected:
 class Operator : public ASTNode
 {
 protected:
-	std::shared_ptr<Typedef::TypedefBase> m_returnType;
+	AST::TypeFacade m_returnType;
+
+public:
+	virtual ~Operator() = 0;
+
+	void SetReturnType(AST::TypeFacade type) { m_returnType = type; }
+	auto& ReturnType() const { return m_returnType; }
 };
 
 class BinaryOperator
@@ -328,11 +334,10 @@ public:
 		_node += " {" + std::to_string(m_state.Alteration()) + "}";
 		_node += " <line:" + std::to_string(line) + ",col:" + std::to_string(col) + "> ";
 
-#if 0
-		if (m_returnType) {
-			_node + "'return type' ";//TODO
+		if (Operator::ReturnType().HasValue()) {
+			_node += "'" + Operator::ReturnType().TypeName() + "' ";
+			_node += Operator::ReturnType()->StorageClassName();
 		}
-#endif
 
 		_node += "'" + std::string{ BinOperandStr(m_operand) } +"'";
 
@@ -591,6 +596,8 @@ public:
 		: m_valueObj{ std::move(object) }
 	{
 	}
+
+	auto ReturnType() const { return AST::TypeFacade(m_valueObj->DataType()); }
 
 	const std::string NodeName() const
 	{
@@ -1337,14 +1344,24 @@ private:
 	POLY_IMPL();
 };
 
+//TODO: converter function
 class ImplicitConvertionExpr
 	: public Expr
 	, public SelfReference<ImplicitConvertionExpr>
 {
+	std::shared_ptr<ASTNode> m_body;
+
 public:
-	ImplicitConvertionExpr() = default;
+	ImplicitConvertionExpr(std::shared_ptr<ASTNode>& node)
+		: m_body{ node }
+	{
+		ASTNode::AppendChild(node);
+	}
 
 	PRINT_NODE(ImplicitConvertionExpr);
+
+private:
+	POLY_IMPL();
 };
 
 class ParenExpr
