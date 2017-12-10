@@ -15,8 +15,11 @@ namespace CoilCl
 namespace AST
 {
 
+namespace Compare
+{
+
 template<typename _Ty, typename _Cmp = ASTNode>
-struct ASTEqual
+struct Equal
 {
 	bool operator()(_Cmp& item)
 	{
@@ -25,7 +28,7 @@ struct ASTEqual
 };
 
 template<typename _Ty, typename _Cmp = ASTNode>
-struct ASTDerived
+struct Derived
 {
 	bool operator()(_Cmp& item)
 	{
@@ -33,11 +36,37 @@ struct ASTDerived
 	}
 };
 
+template<typename _Cmp, typename... _VariaTy>
+struct CombinedOrImpl;
+
+template<typename _Cmp, typename _FirstTy, typename... _VariaTy>
+struct CombinedOrImpl<_Cmp, _FirstTy, _VariaTy...>
+{
+	bool operator()(_Cmp& item)
+	{
+		return Equal<_FirstTy>{}(item) || CombinedOrImpl<_Cmp, _VariaTy...>{}(item);
+	}
+};
+
+template<typename _Cmp, typename _LastTy>
+struct CombinedOrImpl<_Cmp, _LastTy>
+{
+	bool operator()(_Cmp& item)
+	{
+		return Equal<_LastTy>{}(item);
+	}
+};
+
+template<typename... _VariaTy>
+using CombinedOr = CombinedOrImpl<ASTNode, _VariaTy...>;
+
+} // namespace Compare
+
 class ForwardItemTree
 {
 protected:
 	ForwardItemTree() = default;
-	
+
 	static void ForwardInternalTree(std::shared_ptr<ASTNode>& node);
 };
 
