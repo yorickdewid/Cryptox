@@ -1,6 +1,7 @@
 #include "AST.h"
 #include "ASTNode.h"
 #include "Semer.h"
+#include "Converter.h"
 
 //XXX: for now
 template<typename _InputIt, typename _UnaryPredicate, typename _UnaryCallback>
@@ -86,7 +87,7 @@ CoilCl::Semer& CoilCl::Semer::CheckCompatibility()
 template<typename _Ty>
 std::shared_ptr<ASTNode> Closest(std::shared_ptr<ASTNode>& node)
 {
-	AST::ASTEqual<_Ty> eqOp;
+	AST::Compare::Equal<_Ty> eqOp;
 	if (auto parent = node->Parent().lock()) {
 		if (!eqOp(*parent.get())) {
 			return Closest<_Ty>(parent);
@@ -104,7 +105,7 @@ CoilCl::Semer& CoilCl::Semer::StaticResolve()
 {
 	const std::array<std::string, 1> staticLookup{ "sizeof" };
 
-	AST::ASTEqual<BuiltinExpr> eqOp;
+	AST::Compare::Equal<BuiltinExpr> eqOp;
 	OnMatch(m_ast.begin(), m_ast.end(), eqOp, [&staticLookup](AST::AST::iterator itr)
 	{
 		auto builtinExpr = std::dynamic_pointer_cast<BuiltinExpr>(itr.shared_ptr());
@@ -161,7 +162,7 @@ CoilCl::Semer& CoilCl::Semer::PreliminaryAssert()
 
 void CoilCl::Semer::FuncToSymbol(std::function<void(const std::string, const std::shared_ptr<ASTNode>& node)> insert)
 {
-	AST::ASTEqual<FunctionDecl> eqOp;
+	AST::Compare::Equal<FunctionDecl> eqOp;
 	OnMatch(m_ast.begin(), m_ast.end(), eqOp, [&insert](AST::AST::iterator itr)
 	{
 		auto func = std::dynamic_pointer_cast<FunctionDecl>(itr.shared_ptr());
@@ -178,8 +179,9 @@ void CoilCl::Semer::FuncToSymbol(std::function<void(const std::string, const std
 // All declaration nodes have an identifier, which could be empty.
 void CoilCl::Semer::NamedDeclaration()
 {
-	AST::ASTEqual<TranslationUnitDecl> traunOp;
-	AST::ASTDerived<Decl> drivdOp;
+	AST::Compare::Equal<TranslationUnitDecl> traunOp;
+	AST::Compare::Derived<Decl> drivdOp;
+
 	OnMatch(m_ast.begin(), m_ast.end(), drivdOp, [&traunOp, this](AST::AST::iterator itr)
 	{
 		auto node = itr.shared_ptr();
@@ -210,7 +212,8 @@ void CoilCl::Semer::NamedDeclaration()
 
 void CoilCl::Semer::ResolveIdentifier()
 {
-	AST::ASTEqual<DeclRefExpr> eqOp;
+	AST::Compare::Equal<DeclRefExpr> eqOp;
+
 	OnMatch(m_ast.begin(), m_ast.end(), eqOp, [=](AST::AST::iterator itr)
 	{
 		auto node = itr.shared_ptr();
@@ -250,9 +253,9 @@ void CoilCl::Semer::ResolveIdentifier()
 
 void CoilCl::Semer::BindPrototype()
 {
+	AST::Compare::Equal<FunctionDecl> eqOp;
 	Stash<ASTNode> m_resolFuncProto;
 
-	AST::ASTEqual<FunctionDecl> eqOp;
 	OnMatch(m_ast.begin(), m_ast.end(), eqOp, [&m_resolFuncProto](AST::AST::iterator itr)
 	{
 		auto func = std::dynamic_pointer_cast<FunctionDecl>(itr.shared_ptr());
@@ -276,9 +279,10 @@ void CoilCl::Semer::BindPrototype()
 
 void CoilCl::Semer::DeduceTypes()
 {
-	AST::ASTEqual<FunctionDecl> eqOp;
-	AST::ASTEqual<VariadicDecl> eqVaria;
-	AST::ASTEqual<CallExpr> eqCall;
+	AST::Compare::Equal<FunctionDecl> eqOp;
+	AST::Compare::Equal<VariadicDecl> eqVaria;
+	AST::Compare::Equal<CallExpr> eqCall;
+	//AST::Compare::Derived<Operator> dervOp;
 
 	// Set signature in function definition
 	OnMatch(m_ast.begin(), m_ast.end(), eqOp, [&eqVaria](AST::AST::iterator itr)
@@ -302,21 +306,21 @@ void CoilCl::Semer::DeduceTypes()
 	});
 
 	// Set return type on call expression
-	OnMatch(m_ast.begin(), m_ast.end(), eqCall, [&eqVaria](AST::AST::iterator itr)
+	OnMatch(m_ast.begin(), m_ast.end(), eqCall, [](AST::AST::iterator itr)
 	{
 		auto call = std::dynamic_pointer_cast<CallExpr>(itr.shared_ptr());
 		auto func = std::dynamic_pointer_cast<FunctionDecl>(call->FuncDeclRef()->Reference());
 		assert(call->FuncDeclRef()->IsResolved());
-		
+
 		call->SetReturnType(func->ReturnType());
 	});
 }
 
 void CoilCl::Semer::CheckDataType()
 {
-	AST::ASTEqual<FunctionDecl> eqFuncOp;
-	AST::ASTEqual<CallExpr> eqCallOp;
-	AST::ASTDerived<Expr> dirExp;
+	AST::Compare::Equal<FunctionDecl> eqFuncOp;
+	AST::Compare::Equal<CallExpr> eqCallOp;
+	//AST::Compare::Derived<Expr> dirExp;
 
 	// Compare function with its prototype, if exist
 	OnMatch(m_ast.begin(), m_ast.end(), eqFuncOp, [](AST::AST::iterator itr)
@@ -343,7 +347,7 @@ void CoilCl::Semer::CheckDataType()
 		auto call = std::dynamic_pointer_cast<CallExpr>(itr.shared_ptr());
 		auto func = std::dynamic_pointer_cast<FunctionDecl>(call->FuncDeclRef()->Reference());
 		assert(call->FuncDeclRef()->IsResolved());
-		
+
 		auto arguments = call->ArgumentStatement()->Children();
 
 		// Make an exception for variadic argument
@@ -360,10 +364,34 @@ void CoilCl::Semer::CheckDataType()
 		}
 	});
 
+	AST::Compare::Equal<VarDecl> eqVar;
+
 	//TODO: Check expressions & return types
-	OnMatch(m_ast.begin(), m_ast.end(), dirExp, [](AST::AST::iterator itr)
+	OnMatch(m_ast.begin(), m_ast.end(), eqVar, [](AST::AST::iterator itr)
 	{
-		auto expr = std::dynamic_pointer_cast<Expr>(itr.shared_ptr());
+		auto var = std::dynamic_pointer_cast<VarDecl>(itr.shared_ptr());
+		AST::TypeFacade baseType = var->ReturnType();
+
+		for (const auto& wIntializer : var->Children()) {
+			if (auto intializer = wIntializer.lock()) {
+				AST::TypeFacade initType;
+				if (auto expr = std::dynamic_pointer_cast<Expr>(intializer)) {
+					initType = expr->ReturnType();
+				}
+				else if (auto lit = std::dynamic_pointer_cast<IntegerLiteral>(intializer)) {
+					initType = lit->ReturnType();
+				}
+
+				assert(initType.HasValue());
+				if (initType != baseType) {
+					auto converter = AST::MakeASTNode<ImplicitConvertionExpr>(intializer);
+					var->Emplace(0, converter);
+
+					//Conv::is_convertible<Typedef::BuiltinType, Typedef::BuiltinType>::value;
+					//Conv::Cast();
+				}
+			}
+		}
 	});
 }
 
