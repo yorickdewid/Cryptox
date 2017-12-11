@@ -366,7 +366,7 @@ void CoilCl::Semer::CheckDataType()
 
 	AST::Compare::Equal<VarDecl> eqVar;
 
-	//TODO: Check expressions & return types
+	// Inject type converter if expression result and requested type are different
 	OnMatch(m_ast.begin(), m_ast.end(), eqVar, [](AST::AST::iterator itr)
 	{
 		auto var = std::dynamic_pointer_cast<VarDecl>(itr.shared_ptr());
@@ -374,6 +374,7 @@ void CoilCl::Semer::CheckDataType()
 
 		for (const auto& wIntializer : var->Children()) {
 			if (auto intializer = wIntializer.lock()) {
+
 				AST::TypeFacade initType;
 				if (auto expr = std::dynamic_pointer_cast<Expr>(intializer)) {
 					initType = expr->ReturnType();
@@ -381,14 +382,18 @@ void CoilCl::Semer::CheckDataType()
 				else if (auto lit = std::dynamic_pointer_cast<IntegerLiteral>(intializer)) {
 					initType = lit->ReturnType();
 				}
-
 				assert(initType.HasValue());
-				if (initType != baseType) {
-					auto converter = AST::MakeASTNode<ImplicitConvertionExpr>(intializer);
-					var->Emplace(0, converter);
 
-					//Conv::is_convertible<Typedef::BuiltinType, Typedef::BuiltinType>::value;
-					//Conv::Cast();
+				if (baseType != initType) {
+					try {
+						auto methodTag = Conv::Cast::Transmute(baseType, initType);
+						auto converter = AST::MakeASTNode<ImplicitConvertionExpr>(intializer, methodTag);
+						converter->SetReturnType(baseType);
+						var->Emplace(0, converter);
+					}
+					catch (Conv::ConverterException& e) {
+						throw SemanticException{ e.what(), 0, 0 };
+					}
 				}
 			}
 		}

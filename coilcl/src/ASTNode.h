@@ -11,6 +11,7 @@
 #include "Typedef.h" //TODO: remove ?
 #include "Valuedef.h" //TODO: remove ?
 #include "TypeFacade.h"
+#include "Converter.h"
 #include "RefCount.h"
 #include "ASTState.h"
 
@@ -1350,15 +1351,31 @@ class ImplicitConvertionExpr
 	, public SelfReference<ImplicitConvertionExpr>
 {
 	std::shared_ptr<ASTNode> m_body;
+	Conv::Cast::Tag m_convOp;
 
 public:
-	ImplicitConvertionExpr(std::shared_ptr<ASTNode>& node)
+	ImplicitConvertionExpr(std::shared_ptr<ASTNode>& node, Conv::Cast::Tag convOp)
 		: m_body{ node }
+		, m_convOp{ convOp }
 	{
 		ASTNode::AppendChild(node);
 	}
 
-	PRINT_NODE(ImplicitConvertionExpr);
+	virtual const std::string NodeName() const
+	{
+		std::string _node{ RemoveClassFromName(typeid(ImplicitConvertionExpr).name()) };
+		_node += " {" + std::to_string(m_state.Alteration()) + "}";
+		_node += " <line:" + std::to_string(line) + ",col:" + std::to_string(col) + "> ";
+
+		if (Expr::ReturnType().HasValue()) {
+			_node += "'" + Expr::ReturnType().TypeName() + "' ";
+			_node += Expr::ReturnType()->StorageClassName();
+		}
+
+		_node += Conv::Cast::PrintTag(m_convOp);
+
+		return _node;
+	}
 
 private:
 	POLY_IMPL();
