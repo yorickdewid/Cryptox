@@ -59,6 +59,9 @@ class Compiler final
 	};
 
 protected:
+	using ProgramPtr = std::unique_ptr<CoilCl::Program>;
+
+protected:
 	StageOptions<codegen> stageOne;
 
 public:
@@ -114,13 +117,13 @@ public:
 		errorHandler(message, isFatal);
 	}
 
-	static void Dispatch(std::shared_ptr<Compiler>&& compiler)
+	static ProgramPtr Dispatch(std::shared_ptr<Compiler>&& compiler)
 	{
 		// Convert compiler object to profile interface in order to limit access for components
 		auto profile = std::dynamic_pointer_cast<Profile>(compiler);
 
 		// Create an empty program for the first stage
-		std::unique_ptr<CoilCl::Program> program = std::make_unique<CoilCl::Program>();
+		ProgramPtr program = std::make_unique<CoilCl::Program>();
 
 		try {
 #if 0
@@ -193,7 +196,7 @@ public:
 			program = std::make_unique<CoilCl::Program>(DYNAMIC_FORWARD(program), std::move(ast));
 
 			// For now dump contents to screen
-			//program->AstPassthrough()->Print<ASTNode::Traverse::STAGE_FIRST>();
+			program->AstPassthrough()->Print<ASTNode::Traverse::STAGE_FIRST>();
 
 			// Semantic analysis
 			CoilCl::Semer{ profile, std::move(program->Ast()) }
@@ -210,6 +213,7 @@ public:
 			program->AstPassthrough()->Print<ASTNode::Traverse::STAGE_LAST>();
 			program->PrintSymbols();
 
+#ifdef EMITTER
 			// Source building
 			/*CoilCl::Emitter{ profile }
 				.MoveStage()
@@ -219,18 +223,16 @@ public:
 				.CheckCompatibility()
 				.StreamSink<CoilCl::Stream::Console>();
 			*/
+#endif
 
 			//program->AstPassthrough()->Print<ASTNode::Traverse::STAGE_FIRST>();
-
-			// For now; the program should not be runnable
-			if (!program->IsRunnable()) {
-				std::cout << "resulting program not runnable" << std::endl;
-			}
 		}
 		// Catch any leaked erros not caught in the stages
 		catch (std::exception& e) {
 			compiler->Error(e.what());
 		}
+
+		return program;
 	}
 };
 
@@ -297,5 +299,8 @@ COILCLAPI void Compile(compiler_info_t *cl_info) NOTHROW
 	coilcl->CaptureBackRefPtr(cl_info);
 
 	// Start compiler
-	Compiler::Dispatch(std::move(coilcl));
+	auto program = Compiler::Dispatch(std::move(coilcl));
+	if (!program->IsRunnable()) {
+		std::cout << "resulting program not runnable" << std::endl;
+	}
 }

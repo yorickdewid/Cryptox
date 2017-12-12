@@ -67,6 +67,7 @@ public:
 		INTEGRAL_CAST,
 		ARRAY_CAST,
 		LTOR_CAST,
+		CONST_CAST,
 		FUNCTION_CAST,
 	};
 

@@ -365,7 +365,8 @@ void CoilCl::Semer::CheckDataType()
 	});
 
 	AST::Compare::Equal<VarDecl> eqVar;
-
+	
+	//TODO: function return
 	// Inject type converter if expression result and requested type are different
 	OnMatch(m_ast.begin(), m_ast.end(), eqVar, [](AST::AST::iterator itr)
 	{
@@ -383,7 +384,8 @@ void CoilCl::Semer::CheckDataType()
 					initType = lit->ReturnType();
 				}
 				assert(initType.HasValue());
-
+				
+				// Find mutator if types do not match
 				if (baseType != initType) {
 					try {
 						auto methodTag = Conv::Cast::Transmute(baseType, initType);
