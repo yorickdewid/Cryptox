@@ -290,6 +290,10 @@ void CoilCl::Semer::DeduceTypes()
 		std::vector<AST::TypeFacade> paramTypeList;
 
 		auto func = std::dynamic_pointer_cast<FunctionDecl>(itr.shared_ptr());
+		if (func->ParameterStatement() == nullptr) {
+			return;
+		}
+
 		auto parameters = func->ParameterStatement()->Children();
 		for (auto it = parameters.begin(); it != parameters.end(); ++it) {
 			if (auto child = it->lock()) {

@@ -1075,19 +1075,14 @@ public:
 
 		ss << m_identifier;
 
-		if (!m_signature.empty()) {
-			ss << " '" << Decl::ReturnType().TypeName() + " (";
-			for (auto it = m_signature.begin(); it != m_signature.end(); ++it) {
-				ss << it->TypeName();
-				if (m_signature.size() > 1 && it != m_signature.end() - 1) {
-					ss << ", ";
-				}
+		ss << " '" << Decl::ReturnType().TypeName() + " (";
+		for (auto it = m_signature.begin(); it != m_signature.end(); ++it) {
+			ss << it->TypeName();
+			if (m_signature.size() > 1 && it != m_signature.end() - 1) {
+				ss << ", ";
 			}
-			ss << ")' ";
 		}
-		else {
-			ss << " '" << Decl::ReturnType().TypeName() << "' ";
-		}
+		ss << ")' ";
 
 		ss << Decl::ReturnType()->StorageClassName() << " ";
 
