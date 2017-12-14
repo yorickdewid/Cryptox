@@ -1520,16 +1520,19 @@ class ReturnStmt
 	: public Stmt
 	, public SelfReference<ReturnStmt>
 {
-	std::shared_ptr<ASTNode> m_returnNode;
+	std::shared_ptr<ASTNode> m_returnExpr;
 
 public:
 	void SetReturnNode(std::shared_ptr<ASTNode>& node)
 	{
 		ASTNode::AppendChild(node);
-		m_returnNode = node;
+		m_returnExpr = node;
 
 		ASTNode::UpdateDelegate();
 	}
+
+	auto HasExpression() const { return m_returnExpr != nullptr; }
+	auto& Expression() const { return m_returnExpr; }
 
 	PRINT_NODE(ReturnStmt);
 

@@ -3,6 +3,8 @@
 #include "Semer.h"
 #include "Converter.h"
 
+#define PTR_NATIVE(p) (*(p).get())
+
 //XXX: for now
 template<typename _InputIt, typename _UnaryPredicate, typename _UnaryCallback>
 void OnMatch(_InputIt first, _InputIt last, _UnaryPredicate p, _UnaryCallback c)
@@ -85,15 +87,15 @@ CoilCl::Semer& CoilCl::Semer::CheckCompatibility()
 }
 
 template<typename _Ty>
-std::shared_ptr<ASTNode> Closest(std::shared_ptr<ASTNode>& node)
+std::shared_ptr<_Ty> Closest(std::shared_ptr<ASTNode>& node)
 {
 	AST::Compare::Equal<_Ty> eqOp;
 	if (auto parent = node->Parent().lock()) {
-		if (!eqOp(*parent.get())) {
+		if (!eqOp(PTR_NATIVE(parent))) {
 			return Closest<_Ty>(parent);
 		}
 
-		return parent;
+		return std::dynamic_pointer_cast<_Ty>(parent);
 	}
 
 	return nullptr;
@@ -186,7 +188,7 @@ void CoilCl::Semer::NamedDeclaration()
 	{
 		auto node = itr.shared_ptr();
 		auto decl = std::dynamic_pointer_cast<Decl>(node);
-		if (traunOp(*decl.get())) {
+		if (traunOp(PTR_NATIVE(decl))) {
 			return;
 		}
 
@@ -297,7 +299,7 @@ void CoilCl::Semer::DeduceTypes()
 		auto parameters = func->ParameterStatement()->Children();
 		for (auto it = parameters.begin(); it != parameters.end(); ++it) {
 			if (auto child = it->lock()) {
-				if (eqVaria(*child.get()) && it != parameters.end() - 1) {
+				if (eqVaria(PTR_NATIVE(child)) && it != parameters.end() - 1) {
 					throw SemanticException{ "no argument expected after '...'", 0, 0 };
 				}
 				paramTypeList.push_back(std::dynamic_pointer_cast<Decl>(child)->ReturnType());
@@ -369,39 +371,62 @@ void CoilCl::Semer::CheckDataType()
 	});
 
 	AST::Compare::Equal<VarDecl> eqVar;
-	
+
 	//TODO: function return
 	// Inject type converter if expression result and requested type are different
 	OnMatch(m_ast.begin(), m_ast.end(), eqVar, [](AST::AST::iterator itr)
 	{
-		auto var = std::dynamic_pointer_cast<VarDecl>(itr.shared_ptr());
-		AST::TypeFacade baseType = var->ReturnType();
+		auto decl = std::dynamic_pointer_cast<Decl>(itr.shared_ptr());
+		AST::TypeFacade baseType = decl->ReturnType();
 
-		for (const auto& wIntializer : var->Children()) {
+		for (const auto& wIntializer : decl->Children()) {
 			if (auto intializer = wIntializer.lock()) {
 
 				AST::TypeFacade initType;
 				if (auto expr = std::dynamic_pointer_cast<Expr>(intializer)) {
 					initType = expr->ReturnType();
 				}
+				//TODO: any literal
 				else if (auto lit = std::dynamic_pointer_cast<IntegerLiteral>(intializer)) {
 					initType = lit->ReturnType();
 				}
 				assert(initType.HasValue());
-				
+
 				// Find mutator if types do not match
 				if (baseType != initType) {
 					try {
 						auto methodTag = Conv::Cast::Transmute(baseType, initType);
 						auto converter = AST::MakeASTNode<ImplicitConvertionExpr>(intializer, methodTag);
 						converter->SetReturnType(baseType);
-						var->Emplace(0, converter);
+						decl->Emplace(0, converter);
 					}
 					catch (Conv::ConverterException& e) {
 						throw SemanticException{ e.what(), 0, 0 };
 					}
 				}
 			}
+		}
+	});
+
+	AST::Compare::Equal<ReturnStmt> eqRet;
+	OnMatch(m_ast.begin(), m_ast.end(), eqRet, [&eqFuncOp](AST::AST::iterator itr)
+	{
+		auto node = itr.shared_ptr();
+		auto stmt = std::dynamic_pointer_cast<ReturnStmt>(node);
+
+		auto func = Closest<FunctionDecl>(node);
+		if (func == nullptr) {
+			throw SemanticException{ "return must be scoped by function declaration", 0, 0 };
+		}
+
+		// Function expected type from return
+		if (!stmt->HasExpression() && !func->ReturnType()->Equals(Util::MakeBuiltinType(Typedef::BuiltinType::Specifier::VOID).get())) {
+			throw SemanticException{ "function declaration expected expression on return", 0, 0 };
+		}
+
+		// Function expects no returning type
+		if (stmt->HasExpression() && func->ReturnType()->Equals(Util::MakeBuiltinType(Typedef::BuiltinType::Specifier::VOID).get())) {
+			throw SemanticException{ "unexpected expression on return", 0, 0 };
 		}
 	});
 }
