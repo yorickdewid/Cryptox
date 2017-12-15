@@ -60,6 +60,30 @@ struct CombinedOrImpl<_Cmp, _LastTy>
 template<typename... _VariaTy>
 using CombinedOr = CombinedOrImpl<ASTNode, _VariaTy...>;
 
+template<typename _Cmp, typename... _VariaTy>
+struct MultiDeriveImpl;
+
+template<typename _Cmp, typename _FirstTy, typename... _VariaTy>
+struct MultiDeriveImpl<_Cmp, _FirstTy, _VariaTy...>
+{
+	bool operator()(_Cmp& item)
+	{
+		return Derived<_FirstTy>{}(item) || MultiDeriveImpl<_Cmp, _VariaTy...>{}(item);
+	}
+};
+
+template<typename _Cmp, typename _LastTy>
+struct MultiDeriveImpl<_Cmp, _LastTy>
+{
+	bool operator()(_Cmp& item)
+	{
+		return Derived<_LastTy>{}(item);
+	}
+};
+
+template<typename... _VariaTy>
+using MultiDerive = MultiDeriveImpl<ASTNode, _VariaTy...>;
+
 } // namespace Compare
 
 class ForwardItemTree
