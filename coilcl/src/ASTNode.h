@@ -1147,7 +1147,7 @@ public:
 	virtual ~Expr() = 0;
 
 	void SetReturnType(AST::TypeFacade type) { m_returnType = type; }
-	auto& ReturnType() const { return m_returnType; }
+	virtual AST::TypeFacade ReturnType() const { return m_returnType; }
 };
 
 class ResolveRefExpr
@@ -1207,10 +1207,29 @@ public:
 		m_ref = std::dynamic_pointer_cast<Decl>(ref);
 	}
 
+	AST::TypeFacade ReturnType() const override
+	{
+		if (IsResolved()) {
+			return Reference()->ReturnType();
+		}
+		
+		return m_returnType;
+	}
+
 	const std::string NodeName() const
 	{
 		if (IsResolved()) {
-			return std::string{ RemoveClassFromName(typeid(DeclRefExpr).name()) } +" {" + std::to_string(m_state.Alteration()) + "}" + " <line:" + std::to_string(line) + ",col:" + std::to_string(col) + "> linked '" + m_ref.lock()->Identifier() + "'";
+			std::string _node{ RemoveClassFromName(typeid(DeclRefExpr).name()) };
+			_node += " {" + std::to_string(m_state.Alteration()) + "}";
+			_node += " <line:" + std::to_string(line) + ",col:" + std::to_string(col) + "> ";
+			_node += "linked '" + m_ref.lock()->Identifier() + "'";
+
+			if (Reference()->ReturnType().HasValue()) {
+				_node += "'" + Reference()->ReturnType().TypeName() + "' ";
+				_node += Reference()->ReturnType()->StorageClassName();
+			}
+
+			return _node;
 		}
 
 		return ResolveRefExpr::NodeName();
