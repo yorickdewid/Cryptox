@@ -20,7 +20,7 @@ template<typename _ConvTy, typename _ParentTy, typename _ChildTy>
 void InjectConverter(std::shared_ptr<_ParentTy> parent, std::shared_ptr<_ChildTy> child, _ConvTy baseType, _ConvTy initType)
 {
 	try {
-		auto methodTag = Conv::Cast::Transmute(baseType, initType);
+		Conv::Cast::Tag methodTag = Conv::Cast::Transmute(baseType, initType);
 		auto converter = AST::MakeASTNode<ImplicitConvertionExpr>(child, methodTag);
 		converter->SetReturnType(baseType);
 		parent->Emplace(0, converter);
@@ -413,7 +413,7 @@ void CoilCl::Semer::CheckDataType()
 	// Inject type converter if expression result and requested type are different
 	OnMatch(m_ast.begin(), m_ast.end(), eqVar, [](AST::AST::iterator itr)
 	{
-		auto decl = std::dynamic_pointer_cast<Decl>(itr.shared_ptr());
+		auto decl = std::dynamic_pointer_cast<VarDecl>(itr.shared_ptr());
 		AST::TypeFacade baseType = decl->ReturnType();
 
 		for (const auto& wIntializer : decl->Children()) {
@@ -487,7 +487,7 @@ void CoilCl::Semer::CheckDataType()
 
 		// Find mutator if types do not match
 		if (baseType != initType) {
-			InjectConverter(func, intializer, baseType, initType);
+			InjectConverter(stmt, intializer, baseType, initType);
 		}
 	});
 }
