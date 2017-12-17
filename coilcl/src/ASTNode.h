@@ -1553,6 +1553,17 @@ public:
 	auto HasExpression() const { return m_returnExpr != nullptr; }
 	auto& Expression() const { return m_returnExpr; }
 
+	void Emplace(size_t idx, const std::shared_ptr<ASTNode>&& node) override
+	{
+		BUMP_STATE();
+
+		ASTNode::RemoveChild(idx);
+		ASTNode::AppendChild(node);
+		m_returnExpr = std::move(node);
+
+		ASTNode::UpdateDelegate();
+	}
+
 	PRINT_NODE(ReturnStmt);
 
 private:

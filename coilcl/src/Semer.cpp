@@ -278,15 +278,12 @@ void CoilCl::Semer::BindPrototype()
 		}
 	});
 }
-
+#include <iostream>
 void CoilCl::Semer::DeduceTypes()
 {
+	// Set signature in function definition
 	AST::Compare::Equal<FunctionDecl> eqOp;
 	AST::Compare::Equal<VariadicDecl> eqVaria;
-	AST::Compare::Equal<CallExpr> eqCall;
-	//AST::Compare::Derived<Operator> dervOp;
-
-	// Set signature in function definition
 	OnMatch(m_ast.begin(), m_ast.end(), eqOp, [&eqVaria](AST::AST::iterator itr)
 	{
 		std::vector<AST::TypeFacade> paramTypeList;
@@ -312,6 +309,7 @@ void CoilCl::Semer::DeduceTypes()
 	});
 
 	// Set return type on call expression
+	AST::Compare::Equal<CallExpr> eqCall;
 	OnMatch(m_ast.begin(), m_ast.end(), eqCall, [](AST::AST::iterator itr)
 	{
 		auto call = std::dynamic_pointer_cast<CallExpr>(itr.shared_ptr());
@@ -319,6 +317,31 @@ void CoilCl::Semer::DeduceTypes()
 		assert(call->FuncDeclRef()->IsResolved());
 
 		call->SetReturnType(func->ReturnType());
+	});
+
+	// Set return type on operators
+	AST::Compare::Derived<Operator> drvOp;
+	OnMatch(m_ast.begin(), m_ast.end(), drvOp, [](AST::AST::iterator itr)
+	{
+		auto opr = std::dynamic_pointer_cast<Operator>(itr.shared_ptr());
+
+		AST::AST delegate{ opr };
+		AST::Compare::Derived<Expr> baseNodeOp;
+		OnMatch(delegate.begin(), delegate.end(), baseNodeOp, [&opr](AST::AST::iterator del_itr)
+		{
+			auto type = std::dynamic_pointer_cast<Expr>(del_itr.shared_ptr())->ReturnType();
+			opr->SetReturnType(type);
+			return;
+		});
+
+		AST::Compare::MultiDerive<Operator, IntegerLiteral> drvOp2;
+		OnMatch(delegate.begin(), delegate.end(), drvOp2, [&opr](AST::AST::iterator del_itr)
+		{
+			/*auto node = del_itr.shared_ptr();
+			if (!node->HasReturnType()) {
+				node->SetReturnType(opr->ReturnType());
+			}*/
+		});
 	});
 }
 
@@ -413,8 +436,9 @@ void CoilCl::Semer::CheckDataType()
 	{
 		auto node = itr.shared_ptr();
 		auto stmt = std::dynamic_pointer_cast<ReturnStmt>(node);
-
 		auto func = Closest<FunctionDecl>(node);
+
+		// No function found at return parent
 		if (func == nullptr) {
 			throw SemanticException{ "return must be scoped by function declaration", 0, 0 };
 		}
@@ -427,6 +451,45 @@ void CoilCl::Semer::CheckDataType()
 		// Function expects no returning type
 		if (stmt->HasExpression() && func->ReturnType()->Equals(Util::MakeBuiltinType(Typedef::BuiltinType::Specifier::VOID).get())) {
 			throw SemanticException{ "unexpected expression on return", 0, 0 };
+		}
+		// If type is void and expresion is empty, continue
+		else if (func->ReturnType()->Equals(Util::MakeBuiltinType(Typedef::BuiltinType::Specifier::VOID).get())) {
+			return;
+		}
+
+		auto intializer = stmt->Expression();
+
+		AST::Compare::MultiDerive<Operator, Expr, IntegerLiteral> baseNodeOp;
+		if (!baseNodeOp(PTR_NATIVE(intializer))) {
+			throw SemanticException{ "expected operator, expression or literal", 0, 0 };
+		}
+
+		auto baseType = func->ReturnType();
+		
+		AST::TypeFacade initType;
+		if (auto expr = std::dynamic_pointer_cast<Expr>(intializer)) {
+			initType = expr->ReturnType();
+		}
+		else if (auto expr = std::dynamic_pointer_cast<Operator>(intializer)) {
+			initType = expr->ReturnType();
+		}
+		//TODO: any literal
+		else if (auto lit = std::dynamic_pointer_cast<IntegerLiteral>(intializer)) {
+			initType = lit->ReturnType();
+		}
+		assert(initType.HasValue());
+
+		// Find mutator if types do not match
+		if (baseType != initType) {
+			try {
+				auto methodTag = Conv::Cast::Transmute(baseType, initType);
+				auto converter = AST::MakeASTNode<ImplicitConvertionExpr>(intializer, methodTag);
+				converter->SetReturnType(baseType);
+				stmt->Emplace(0, converter);
+			}
+			catch (Conv::ConverterException& e) {
+				throw SemanticException{ e.what(), 0, 0 };
+			}
 		}
 	});
 }
