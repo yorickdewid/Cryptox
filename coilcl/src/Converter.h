@@ -72,8 +72,8 @@ public:
 	};
 
 public:
-	template<typename _InputTy, typename _OutputTy>
-	static Tag Transmute(_InputTy from, _OutputTy to)
+	template<typename _ConvTy>
+	static Tag Transmute(_ConvTy from, _ConvTy to)
 	{
 		//TODO
 		return Tag::INTEGRAL_CAST;

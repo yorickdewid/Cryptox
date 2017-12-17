@@ -16,6 +16,20 @@ void OnMatch(_InputIt first, _InputIt last, _UnaryPredicate p, _UnaryCallback c)
 	}
 }
 
+template<typename _ConvTy, typename _ParentTy, typename _ChildTy>
+void InjectConverter(std::shared_ptr<_ParentTy> parent, std::shared_ptr<_ChildTy> child, _ConvTy baseType, _ConvTy initType)
+{
+	try {
+		auto methodTag = Conv::Cast::Transmute(baseType, initType);
+		auto converter = AST::MakeASTNode<ImplicitConvertionExpr>(child, methodTag);
+		converter->SetReturnType(baseType);
+		parent->Emplace(0, converter);
+	}
+	catch (Conv::ConverterException& e) {
+		throw SemanticException{ e.what(), 0, 0 };
+	}
+}
+
 //XXX: for now
 class NotImplementedException : public std::runtime_error
 {
@@ -417,15 +431,7 @@ void CoilCl::Semer::CheckDataType()
 
 				// Find mutator if types do not match
 				if (baseType != initType) {
-					try {
-						auto methodTag = Conv::Cast::Transmute(baseType, initType);
-						auto converter = AST::MakeASTNode<ImplicitConvertionExpr>(intializer, methodTag);
-						converter->SetReturnType(baseType);
-						decl->Emplace(0, converter);
-					}
-					catch (Conv::ConverterException& e) {
-						throw SemanticException{ e.what(), 0, 0 };
-					}
+					InjectConverter(decl, intializer, baseType, initType);
 				}
 			}
 		}
@@ -465,7 +471,7 @@ void CoilCl::Semer::CheckDataType()
 		}
 
 		auto baseType = func->ReturnType();
-		
+
 		AST::TypeFacade initType;
 		if (auto expr = std::dynamic_pointer_cast<Expr>(intializer)) {
 			initType = expr->ReturnType();
@@ -481,15 +487,7 @@ void CoilCl::Semer::CheckDataType()
 
 		// Find mutator if types do not match
 		if (baseType != initType) {
-			try {
-				auto methodTag = Conv::Cast::Transmute(baseType, initType);
-				auto converter = AST::MakeASTNode<ImplicitConvertionExpr>(intializer, methodTag);
-				converter->SetReturnType(baseType);
-				stmt->Emplace(0, converter);
-			}
-			catch (Conv::ConverterException& e) {
-				throw SemanticException{ e.what(), 0, 0 };
-			}
+			InjectConverter(func, intializer, baseType, initType);
 		}
 	});
 }
