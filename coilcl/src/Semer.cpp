@@ -16,14 +16,14 @@ void OnMatch(_InputIt first, _InputIt last, _UnaryPredicate p, _UnaryCallback c)
 	}
 }
 
-template<typename _ConvTy, typename _ParentTy, typename _ChildTy>
+template<size_t _Idx = 0, typename _ConvTy, typename _ParentTy, typename _ChildTy>
 void InjectConverter(std::shared_ptr<_ParentTy> parent, std::shared_ptr<_ChildTy> child, _ConvTy baseType, _ConvTy initType)
 {
 	try {
 		Conv::Cast::Tag methodTag = Conv::Cast::Transmute(baseType, initType);
 		auto converter = AST::MakeASTNode<ImplicitConvertionExpr>(child, methodTag);
 		converter->SetReturnType(baseType);
-		parent->Emplace(0, converter);
+		parent->Emplace(_Idx, converter);
 	}
 	catch (Conv::ConverterException& e) {
 		throw SemanticException{ e.what(), 0, 0 };
@@ -363,7 +363,6 @@ void CoilCl::Semer::CheckDataType()
 {
 	AST::Compare::Equal<FunctionDecl> eqFuncOp;
 	AST::Compare::Equal<CallExpr> eqCallOp;
-	//AST::Compare::Derived<Expr> dirExp;
 
 	// Compare function with its prototype, if exist
 	OnMatch(m_ast.begin(), m_ast.end(), eqFuncOp, [](AST::AST::iterator itr)
@@ -407,10 +406,8 @@ void CoilCl::Semer::CheckDataType()
 		}
 	});
 
+	// Inject type converter in vardecl
 	AST::Compare::Equal<VarDecl> eqVar;
-
-	//TODO: function return
-	// Inject type converter if expression result and requested type are different
 	OnMatch(m_ast.begin(), m_ast.end(), eqVar, [](AST::AST::iterator itr)
 	{
 		auto decl = std::dynamic_pointer_cast<VarDecl>(itr.shared_ptr());
@@ -427,6 +424,7 @@ void CoilCl::Semer::CheckDataType()
 				else if (auto lit = std::dynamic_pointer_cast<IntegerLiteral>(intializer)) {
 					initType = lit->ReturnType();
 				}
+				//TODO: any operator
 				assert(initType.HasValue());
 
 				// Find mutator if types do not match
@@ -437,6 +435,69 @@ void CoilCl::Semer::CheckDataType()
 		}
 	});
 
+	// Inject type converter in operator
+	AST::Compare::Derived<Operator> eqOp;
+	OnMatch(m_ast.begin(), m_ast.end(), eqOp, [](AST::AST::iterator itr)
+	{
+		enum
+		{
+			OperatorLHS = 0,
+			OperatorRHS = 1,
+		};
+
+		auto opr = std::dynamic_pointer_cast<Operator>(itr.shared_ptr());
+		AST::TypeFacade baseType = opr->ReturnType();
+
+		auto intializerLHS = opr->Children().front().lock();
+		auto intializerRHS = opr->Children().back().lock();
+
+		if (intializerLHS) {
+			AST::TypeFacade initType;
+
+			if (std::dynamic_pointer_cast<ImplicitConvertionExpr>(intializerLHS) != nullptr) {
+				return;
+			}
+
+			if (auto expr = std::dynamic_pointer_cast<Expr>(intializerLHS)) {
+				initType = expr->ReturnType();
+			}
+			//TODO: any literal
+			else if (auto lit = std::dynamic_pointer_cast<IntegerLiteral>(intializerLHS)) {
+				initType = lit->ReturnType();
+			}
+			//TODO: any operator
+			assert(initType.HasValue());
+
+			if (baseType != initType) {
+				InjectConverter<OperatorLHS>(opr, intializerLHS, baseType, initType);
+			}
+		}
+
+		if (intializerRHS) {
+			AST::TypeFacade initType;
+
+			if (std::dynamic_pointer_cast<ImplicitConvertionExpr>(intializerRHS) != nullptr) {
+				return;
+			}
+
+			if (auto expr = std::dynamic_pointer_cast<Expr>(intializerRHS)) {
+				initType = expr->ReturnType();
+			}
+			//TODO: any literal
+			else if (auto lit = std::dynamic_pointer_cast<IntegerLiteral>(intializerRHS)) {
+				initType = lit->ReturnType();
+			}
+			//TODO: any operator
+			assert(initType.HasValue());
+
+			// Find mutator if types do not match
+			if (baseType != initType) {
+				InjectConverter<OperatorRHS>(opr, intializerRHS, baseType, initType);
+			}
+		}
+	});
+
+	// Check function return type
 	AST::Compare::Equal<ReturnStmt> eqRet;
 	OnMatch(m_ast.begin(), m_ast.end(), eqRet, [&eqFuncOp](AST::AST::iterator itr)
 	{

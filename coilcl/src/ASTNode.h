@@ -329,6 +329,24 @@ public:
 		ASTNode::UpdateDelegate();
 	}
 
+	void Emplace(size_t idx, const std::shared_ptr<ASTNode>&& node) override
+	{
+		assert(idx == 0 || idx == 1);
+		BUMP_STATE();
+
+		ASTNode::RemoveChild(idx);
+		ASTNode::AppendChild(node);
+
+		if (idx == 0) {
+			m_lhs = std::move(node);
+		}
+		else {
+			m_rhs = std::move(node);
+		}
+
+		ASTNode::UpdateDelegate();
+	}
+
 	const std::string NodeName() const
 	{
 		std::string _node{ RemoveClassFromName(typeid(BinaryOperator).name()) };
@@ -1212,7 +1230,7 @@ public:
 		if (IsResolved()) {
 			return Reference()->ReturnType();
 		}
-		
+
 		return m_returnType;
 	}
 
