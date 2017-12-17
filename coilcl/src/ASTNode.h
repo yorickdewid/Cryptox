@@ -93,6 +93,20 @@ private:
 	static int _id;
 };
 
+class Returnable
+{
+	AST::TypeFacade m_returnType;
+
+public:
+	Returnable() = default;
+	Returnable(AST::TypeFacade type) : m_returnType{ type } {}
+	Returnable(AST::TypeFacade&& type) : m_returnType{ std::move(type) } {}
+
+	bool HasReturnType() { return m_returnType.HasValue(); }
+	void SetReturnType(AST::TypeFacade type) { m_returnType = type; }
+	virtual AST::TypeFacade ReturnType() const { return m_returnType; }
+};
+
 struct ModifierInterface
 {
 	virtual void Emplace(size_t, const std::shared_ptr<ASTNode>&&) = 0;
@@ -223,16 +237,12 @@ protected:
 // Operator nodes
 //
 
-class Operator : public ASTNode
+class Operator
+	: public Returnable
+	, public ASTNode
 {
-protected:
-	AST::TypeFacade m_returnType;
-
 public:
 	virtual ~Operator() = 0;
-
-	void SetReturnType(AST::TypeFacade type) { m_returnType = type; }
-	auto& ReturnType() const { return m_returnType; }
 };
 
 class BinaryOperator
@@ -616,6 +626,7 @@ public:
 	{
 	}
 
+	//TODO: intergate with Returnable
 	auto ReturnType() const { return AST::TypeFacade(m_valueObj->DataType()); }
 
 	const std::string NodeName() const
@@ -679,12 +690,12 @@ public:
 //
 
 class Decl
-	: public ASTNode
+	: public Returnable
+	, public ASTNode
 	, public CoilCl::AST::RefCount
 {
 protected:
 	std::string m_identifier;
-	AST::TypeFacade m_returnType;
 
 public:
 	Decl() = default; //TODO: temp, remove afterwards
@@ -698,13 +709,11 @@ public:
 
 	template<typename _TySpec>
 	Decl(const std::string& name, _TySpec specifier)
-		: m_identifier{ name }
-		, m_returnType{ specifier }
+		: Returnable{ specifier }
+		, m_identifier{ name }
 	{
 	}
 
-	auto& ReturnType() { return m_returnType; }
-	auto& ReturnType() const { return m_returnType; }
 	auto Identifier() const { return m_identifier; }
 };
 
@@ -744,8 +753,8 @@ public:
 		}
 
 		_node += m_identifier;
-		_node += " '" + Decl::ReturnType().TypeName() + "' ";
-		_node += Decl::ReturnType()->StorageClassName();
+		_node += " '" + ReturnType().TypeName() + "' ";
+		_node += ReturnType()->StorageClassName();
 
 		return _node;
 	}
@@ -782,8 +791,8 @@ public:
 			_node += m_identifier;
 		}
 
-		_node += " '" + Decl::ReturnType().TypeName() + "' ";
-		_node += Decl::ReturnType()->StorageClassName();
+		_node += " '" + ReturnType().TypeName() + "' ";
+		_node += ReturnType()->StorageClassName();
 
 		return _node;
 	}
@@ -824,8 +833,8 @@ public:
 		_node += " {" + std::to_string(m_state.Alteration()) + "}";
 		_node += " <line:" + std::to_string(line) + ",col:" + std::to_string(col) + "> ";
 		_node += m_identifier;
-		_node += " '" + Decl::ReturnType().TypeName() + "' ";
-		_node += Decl::ReturnType()->StorageClassName();
+		_node += " '" + ReturnType().TypeName() + "' ";
+		_node += ReturnType()->StorageClassName();
 
 		return _node;
 	}
@@ -860,8 +869,8 @@ public:
 		_node += " {" + std::to_string(m_state.Alteration()) + "}";
 		_node += " <line:" + std::to_string(line) + ",col:" + std::to_string(col) + "> ";
 		_node += m_identifier;
-		_node += " '" + Decl::ReturnType().TypeName() + "' ";
-		_node += Decl::ReturnType()->StorageClassName();
+		_node += " '" + ReturnType().TypeName() + "' ";
+		_node += ReturnType()->StorageClassName();
 
 		return _node;
 	}
@@ -1058,6 +1067,7 @@ public:
 		ASTNode::UpdateDelegate();
 	}
 
+	auto HasSignature() const { return !m_signature.empty(); }
 	auto& Signature() const { return m_signature; }
 	auto& ParameterStatement() const { return m_params; }
 	auto IsPrototypeDefinition() const { return m_isPrototype; }
@@ -1093,7 +1103,7 @@ public:
 
 		ss << m_identifier;
 
-		ss << " '" << Decl::ReturnType().TypeName() + " (";
+		ss << " '" << ReturnType().TypeName() + " (";
 		for (auto it = m_signature.begin(); it != m_signature.end(); ++it) {
 			ss << it->TypeName();
 			if (m_signature.size() > 1 && it != m_signature.end() - 1) {
@@ -1102,9 +1112,9 @@ public:
 		}
 		ss << ")' ";
 
-		ss << Decl::ReturnType()->StorageClassName() << " ";
+		ss << ReturnType()->StorageClassName() << " ";
 
-		if (Decl::ReturnType()->IsInline()) {
+		if (ReturnType()->IsInline()) {
 			ss << "inline";
 		}
 
@@ -1156,16 +1166,12 @@ private:
 // Expression nodes
 //
 
-class Expr : public ASTNode
+class Expr
+	: public Returnable
+	, public ASTNode
 {
-protected:
-	AST::TypeFacade m_returnType;
-
 public:
 	virtual ~Expr() = 0;
-
-	void SetReturnType(AST::TypeFacade type) { m_returnType = type; }
-	virtual AST::TypeFacade ReturnType() const { return m_returnType; }
 };
 
 class ResolveRefExpr
@@ -1231,7 +1237,7 @@ public:
 			return Reference()->ReturnType();
 		}
 
-		return m_returnType;
+		return Returnable::ReturnType();
 	}
 
 	const std::string NodeName() const
@@ -1285,9 +1291,9 @@ public:
 		_node += " {" + std::to_string(m_state.Alteration()) + "}";
 		_node += " <line:" + std::to_string(line) + ",col:" + std::to_string(col) + "> ";
 
-		if (Expr::ReturnType().HasValue()) {
-			_node += "'" + Expr::ReturnType().TypeName() + "' ";
-			_node += Expr::ReturnType()->StorageClassName();
+		if (ReturnType().HasValue()) {
+			_node += "'" + ReturnType().TypeName() + "' ";
+			_node += ReturnType()->StorageClassName();
 		}
 
 		return _node;
@@ -1399,9 +1405,9 @@ public:
 		_node += " {" + std::to_string(m_state.Alteration()) + "}";
 		_node += " <line:" + std::to_string(line) + ",col:" + std::to_string(col) + "> ";
 
-		if (Expr::ReturnType().HasValue()) {
-			_node += "'" + Expr::ReturnType().TypeName() + "' ";
-			_node += Expr::ReturnType()->StorageClassName();
+		if (ReturnType().HasValue()) {
+			_node += "'" + ReturnType().TypeName() + "' ";
+			_node += ReturnType()->StorageClassName();
 		}
 
 		_node += Conv::Cast::PrintTag(m_convOp);
