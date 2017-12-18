@@ -715,7 +715,7 @@ protected:
 
 public:
 	Decl() = default; //TODO: temp, remove afterwards
-	virtual ~Decl() = 0;
+	//virtual ~Decl() = 0;//TODO
 
 	//TODO: temp, remove afterwards
 	Decl(const std::string& name)

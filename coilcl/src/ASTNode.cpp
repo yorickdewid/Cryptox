@@ -5,7 +5,7 @@
 // Implement abstract class dtor
 Operator::~Operator() {}
 Literal::~Literal() {}
-Decl::~Decl() {}
+//Decl::~Decl() {} //TODO
 Expr::~Expr() {}
 Stmt::~Stmt() {}
 

@@ -115,6 +115,24 @@ std::shared_ptr<_Ty> Closest(std::shared_ptr<ASTNode>& node)
 	return nullptr;
 }
 
+template<size_t _Idx = 0, typename _ConvTy, typename _ParentTy, typename _ChildTy>
+void IsConversionRequired(std::shared_ptr<_ParentTy> parent, std::shared_ptr<_ChildTy> child, _ConvTy baseType)
+{
+	if (std::dynamic_pointer_cast<ImplicitConvertionExpr>(child) != nullptr) {
+		return;
+	}
+
+	AST::TypeFacade initType;
+	if (auto ret = std::dynamic_pointer_cast<Returnable>(child)) {
+		initType = ret->ReturnType();
+	}
+
+	assert(initType.HasValue());
+	if (baseType != initType) {
+		InjectConverter<_Idx>(parent, child, baseType, initType);
+	}
+}
+
 // Resolve all static expresions such as native type size calculations
 // and inject the expression result back into the tree
 CoilCl::Semer& CoilCl::Semer::StaticResolve()
@@ -330,10 +348,11 @@ void CoilCl::Semer::DeduceTypes()
 	{
 		auto call = std::dynamic_pointer_cast<CallExpr>(itr.shared_ptr());
 		assert(call->FuncDeclRef()->IsResolved());
+		assert(call->FuncDeclRef()->HasReturnType());
 
-		//TODO: has return type?
-
-		call->SetReturnType(call->FuncDeclRef()->Reference()->ReturnType());
+		if (!call->HasReturnType()) {
+			call->SetReturnType(call->FuncDeclRef()->Reference()->ReturnType());
+		}
 	});
 
 	// Set return type on operators and delegate type down the tree. The operator type
@@ -407,6 +426,7 @@ void CoilCl::Semer::CheckDataType()
 			canHaveTooMany = false;
 		}
 
+		// If argument size is off, throw exception
 		if (func->Signature().size() > arguments.size()) {
 			throw SemanticException{ "too few arguments to function call, expected at least 0, have 0", 0, 0 };
 		}
@@ -424,22 +444,7 @@ void CoilCl::Semer::CheckDataType()
 
 		for (const auto& wIntializer : decl->Children()) {
 			if (auto intializer = wIntializer.lock()) {
-
-				AST::TypeFacade initType;
-				if (auto expr = std::dynamic_pointer_cast<Expr>(intializer)) {
-					initType = expr->ReturnType();
-				}
-				//TODO: any literal
-				else if (auto lit = std::dynamic_pointer_cast<IntegerLiteral>(intializer)) {
-					initType = lit->ReturnType();
-				}
-				//TODO: any operator
-				assert(initType.HasValue());
-
-				// Find mutator if types do not match
-				if (baseType != initType) {
-					InjectConverter(decl, intializer, baseType, initType);
-				}
+				IsConversionRequired(decl, intializer, baseType);
 			}
 		}
 	});
@@ -458,51 +463,13 @@ void CoilCl::Semer::CheckDataType()
 		AST::TypeFacade baseType = opr->ReturnType();
 
 		auto intializerLHS = opr->Children().front().lock();
-		auto intializerRHS = opr->Children().back().lock();
-
 		if (intializerLHS) {
-			AST::TypeFacade initType;
-
-			if (std::dynamic_pointer_cast<ImplicitConvertionExpr>(intializerLHS) != nullptr) {
-				return;
-			}
-
-			if (auto expr = std::dynamic_pointer_cast<Expr>(intializerLHS)) {
-				initType = expr->ReturnType();
-			}
-			//TODO: any literal
-			else if (auto lit = std::dynamic_pointer_cast<IntegerLiteral>(intializerLHS)) {
-				initType = lit->ReturnType();
-			}
-			//TODO: any operator
-			assert(initType.HasValue());
-
-			if (baseType != initType) {
-				InjectConverter<OperatorLHS>(opr, intializerLHS, baseType, initType);
-			}
+			IsConversionRequired<OperatorLHS>(opr, intializerLHS, baseType);
 		}
 
+		auto intializerRHS = opr->Children().back().lock();
 		if (intializerRHS) {
-			AST::TypeFacade initType;
-
-			if (std::dynamic_pointer_cast<ImplicitConvertionExpr>(intializerRHS) != nullptr) {
-				return;
-			}
-
-			if (auto expr = std::dynamic_pointer_cast<Expr>(intializerRHS)) {
-				initType = expr->ReturnType();
-			}
-			//TODO: any literal
-			else if (auto lit = std::dynamic_pointer_cast<IntegerLiteral>(intializerRHS)) {
-				initType = lit->ReturnType();
-			}
-			//TODO: any operator
-			assert(initType.HasValue());
-
-			// Find mutator if types do not match
-			if (baseType != initType) {
-				InjectConverter<OperatorRHS>(opr, intializerRHS, baseType, initType);
-			}
+			IsConversionRequired<OperatorRHS>(opr, intializerRHS, baseType);
 		}
 	});
 
@@ -541,24 +508,7 @@ void CoilCl::Semer::CheckDataType()
 		}
 
 		auto baseType = func->ReturnType();
-
-		AST::TypeFacade initType;
-		if (auto expr = std::dynamic_pointer_cast<Expr>(intializer)) {
-			initType = expr->ReturnType();
-		}
-		else if (auto expr = std::dynamic_pointer_cast<Operator>(intializer)) {
-			initType = expr->ReturnType();
-		}
-		//TODO: any literal
-		else if (auto lit = std::dynamic_pointer_cast<IntegerLiteral>(intializer)) {
-			initType = lit->ReturnType();
-		}
-		assert(initType.HasValue());
-
-		// Find mutator if types do not match
-		if (baseType != initType) {
-			InjectConverter(stmt, intializer, baseType, initType);
-		}
+		IsConversionRequired(stmt, intializer, baseType);
 	});
 }
 
