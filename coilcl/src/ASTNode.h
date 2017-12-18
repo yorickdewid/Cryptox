@@ -99,11 +99,13 @@ class Returnable
 
 public:
 	Returnable() = default;
-	Returnable(AST::TypeFacade type) : m_returnType{ type } {}
-	Returnable(AST::TypeFacade&& type) : m_returnType{ std::move(type) } {}
+	Returnable(AST::TypeFacade type)
+		: m_returnType{ type }
+	{
+	}
 
-	bool HasReturnType() { return m_returnType.HasValue(); }
-	void SetReturnType(AST::TypeFacade type) { m_returnType = type; }
+	virtual bool HasReturnType() { return m_returnType.HasValue(); }
+	virtual void SetReturnType(AST::TypeFacade type) { m_returnType = type; }
 	virtual AST::TypeFacade ReturnType() const { return m_returnType; }
 };
 
@@ -605,9 +607,25 @@ private:
 // Literal nodes
 //
 
-template<typename _NativTy, class _DrivTy>
 class Literal
-	: public ASTNode
+	: public Returnable
+	, public ASTNode
+{
+public:
+	virtual ~Literal() = 0;
+
+	Literal() = default;
+	
+	template<typename... _VariaTy>
+	Literal(_VariaTy&&... args)
+		: Returnable{ std::forward<_VariaTy>(args)... }
+	{
+	}
+};
+
+template<typename _NativTy, class _DrivTy>
+class LiteralImpl
+	: public Literal
 	, public SelfReference<_DrivTy>
 {
 protected:
@@ -615,19 +633,17 @@ protected:
 
 public:
 	// Default to void type with no data
-	Literal()
-		: m_valueObj{ CoilCl::Typedef::BuiltinType{ CoilCl::Typedef::BuiltinType::Specifier::VOID } }
+	LiteralImpl()
+		: LiteralImpl{ CoilCl::Util::MakeBuiltinType(CoilCl::Typedef::BuiltinType::Specifier::VOID) }
 	{
 	}
 
 	// Move data object from lexer into literal
-	Literal(std::shared_ptr<CoilCl::Valuedef::ValueObject<_NativTy>>&& object)
-		: m_valueObj{ std::move(object) }
+	LiteralImpl(std::shared_ptr<CoilCl::Valuedef::ValueObject<_NativTy>>&& object)
+		: Literal{ AST::TypeFacade{ object->DataType() } }
+		, m_valueObj{ std::move(object) }
 	{
 	}
-
-	//TODO: intergate with Returnable
-	auto ReturnType() const { return AST::TypeFacade(m_valueObj->DataType()); }
 
 	const std::string NodeName() const
 	{
@@ -635,7 +651,7 @@ public:
 		ss << RemoveClassFromName(typeid(_DrivTy).name());
 		ss << " {" + std::to_string(m_state.Alteration()) + "}";
 		ss << " <line:" << line << ",col:" << col << "> ";
-		ss << "'" << m_valueObj->DataType()->TypeName() << "' ";
+		ss << "'" << ReturnType()->TypeName() << "' ";
 		ss << (*m_valueObj);
 
 		return ss.str();
@@ -645,42 +661,42 @@ private:
 	POLY_IMPL();
 };
 
-class CharacterLiteral : public Literal<char, CharacterLiteral>
+class CharacterLiteral : public LiteralImpl<char, CharacterLiteral>
 {
 public:
 	template<typename _Ty>
 	CharacterLiteral(_Ty&& value)
-		: Literal{ std::forward<_Ty>(value) }
+		: LiteralImpl{ std::forward<_Ty>(value) }
 	{
 	}
 };
 
-class StringLiteral : public Literal<std::string, StringLiteral>
+class StringLiteral : public LiteralImpl<std::string, StringLiteral>
 {
 public:
 	template<typename _Ty>
 	StringLiteral(_Ty&& value)
-		: Literal{ std::forward<_Ty>(value) }
+		: LiteralImpl{ std::forward<_Ty>(value) }
 	{
 	}
 };
 
-class IntegerLiteral : public Literal<int, IntegerLiteral>
+class IntegerLiteral : public LiteralImpl<int, IntegerLiteral>
 {
 public:
 	template<typename _Ty>
 	IntegerLiteral(_Ty&& value)
-		: Literal{ std::forward<_Ty>(value) }
+		: LiteralImpl{ std::forward<_Ty>(value) }
 	{
 	}
 };
 
-class FloatingLiteral : public Literal<double, FloatingLiteral>
+class FloatingLiteral : public LiteralImpl<double, FloatingLiteral>
 {
 public:
 	template<typename _Ty>
 	FloatingLiteral(_Ty&& value)
-		: Literal{ std::forward<_Ty>(value) }
+		: LiteralImpl{ std::forward<_Ty>(value) }
 	{
 	}
 };
@@ -707,10 +723,9 @@ public:
 	{
 	}
 
-	template<typename _TySpec>
-	Decl(const std::string& name, _TySpec specifier)
-		: Returnable{ specifier }
-		, m_identifier{ name }
+	Decl(const std::string& name, std::shared_ptr<Typedef::TypedefBase>& specifier)
+		: m_identifier{ name }
+		, Returnable{ AST::TypeFacade{ specifier } }
 	{
 	}
 
@@ -773,7 +788,7 @@ public:
 	{
 	}
 
-	ParamDecl(std::shared_ptr<Typedef::TypedefBase> type)
+	ParamDecl(std::shared_ptr<Typedef::TypedefBase>& type)
 		: Decl{ "", type }
 	{
 	}
@@ -1229,6 +1244,11 @@ public:
 	void Resolve(const std::shared_ptr<ASTNode>& ref)
 	{
 		m_ref = std::dynamic_pointer_cast<Decl>(ref);
+	}
+
+	bool HasReturnType() override
+	{
+		return IsResolved();
 	}
 
 	AST::TypeFacade ReturnType() const override

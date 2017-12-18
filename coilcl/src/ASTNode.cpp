@@ -4,6 +4,7 @@
 
 // Implement abstract class dtor
 Operator::~Operator() {}
+Literal::~Literal() {}
 Decl::~Decl() {}
 Expr::~Expr() {}
 Stmt::~Stmt() {}

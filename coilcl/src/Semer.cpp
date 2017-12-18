@@ -292,7 +292,9 @@ void CoilCl::Semer::BindPrototype()
 		}
 	});
 }
-#include <iostream>
+
+// Determine and set the return types and signatures for expressions,
+// operators and functions based on connected nodes
 void CoilCl::Semer::DeduceTypes()
 {
 	// Set signature in function definition
@@ -303,7 +305,7 @@ void CoilCl::Semer::DeduceTypes()
 		std::vector<AST::TypeFacade> paramTypeList;
 
 		auto func = std::dynamic_pointer_cast<FunctionDecl>(itr.shared_ptr());
-		if (func->ParameterStatement() == nullptr) {
+		if (func->ParameterStatement() == nullptr || func->HasSignature()) {
 			return;
 		}
 
@@ -327,38 +329,45 @@ void CoilCl::Semer::DeduceTypes()
 	OnMatch(m_ast.begin(), m_ast.end(), eqCall, [](AST::AST::iterator itr)
 	{
 		auto call = std::dynamic_pointer_cast<CallExpr>(itr.shared_ptr());
-		auto func = std::dynamic_pointer_cast<FunctionDecl>(call->FuncDeclRef()->Reference());
 		assert(call->FuncDeclRef()->IsResolved());
 
-		call->SetReturnType(func->ReturnType());
+		//TODO: has return type?
+
+		call->SetReturnType(call->FuncDeclRef()->Reference()->ReturnType());
 	});
 
-	// Set return type on operators
+	// Set return type on operators and delegate type down the tree. The operator type
+	// is deducted from the first expression with an return type
 	AST::Compare::Derived<Operator> drvOp;
 	OnMatch(m_ast.begin(), m_ast.end(), drvOp, [](AST::AST::iterator itr)
 	{
 		auto opr = std::dynamic_pointer_cast<Operator>(itr.shared_ptr());
 
 		AST::AST delegate{ opr };
-		AST::Compare::Derived<Expr> baseNodeOp;
+		AST::Compare::Derived<Returnable> baseNodeOp;
 		OnMatch(delegate.begin(), delegate.end(), baseNodeOp, [&opr](AST::AST::iterator del_itr)
 		{
-			auto type = std::dynamic_pointer_cast<Expr>(del_itr.shared_ptr())->ReturnType();
-			opr->SetReturnType(type);
-			return;
+			auto retType = std::dynamic_pointer_cast<Returnable>(del_itr.shared_ptr());
+			if (retType->HasReturnType() && !opr->HasReturnType()) {
+				opr->SetReturnType(retType->ReturnType());
+			}
 		});
 
-		AST::Compare::MultiDerive<Operator, IntegerLiteral> drvOp2;
+		assert(opr->HasReturnType());
+
+		AST::Compare::Derived<Returnable> drvOp2;
 		OnMatch(delegate.begin(), delegate.end(), drvOp2, [&opr](AST::AST::iterator del_itr)
 		{
-			/*auto node = del_itr.shared_ptr();
-			if (!node->HasReturnType()) {
-				node->SetReturnType(opr->ReturnType());
-			}*/
+			auto retType = std::dynamic_pointer_cast<Returnable>(del_itr.shared_ptr());
+			if (!retType->HasReturnType()) {
+				retType->SetReturnType(opr->ReturnType());
+			}
 		});
 	});
 }
 
+// Check if all datatypes are convertible and inject type conversions in the tree
+// when two types can be casted
 void CoilCl::Semer::CheckDataType()
 {
 	AST::Compare::Equal<FunctionDecl> eqFuncOp;
@@ -372,12 +381,12 @@ void CoilCl::Semer::CheckDataType()
 			return;
 		}
 
-		// Return type must match
+		// Return type must match on function definition and prototype
 		if (func->PrototypeDefinition()->ReturnType() != func->ReturnType()) {
 			throw SemanticException{ "conflicting types for 'x'", 0, 0 };
 		}
 
-		// Function signature must match
+		// Function signature must match on definition and prototype
 		if (func->PrototypeDefinition()->Signature() != func->Signature()) {
 			throw SemanticException{ "conflicting types for 'x'", 0, 0 };
 		}
