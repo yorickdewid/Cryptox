@@ -5,7 +5,9 @@
 
 #define PTR_NATIVE(p) (*(p).get())
 
-//XXX: for now
+// Global definitions occupy index 0 in the definitions list
+#define GLOBAL_DEFS	0
+
 template<typename _InputIt, typename _UnaryPredicate, typename _UnaryCallback>
 void OnMatch(_InputIt first, _InputIt last, _UnaryPredicate p, _UnaryCallback c)
 {
@@ -97,6 +99,7 @@ CoilCl::Semer::Semer(std::shared_ptr<CoilCl::Profile>& profile, AST::AST&& ast)
 
 CoilCl::Semer& CoilCl::Semer::CheckCompatibility()
 {
+	//TODO
 	return (*this);
 }
 
@@ -118,6 +121,7 @@ std::shared_ptr<_Ty> Closest(std::shared_ptr<ASTNode>& node)
 template<size_t _Idx = 0, typename _ConvTy, typename _ParentTy, typename _ChildTy>
 void IsConversionRequired(std::shared_ptr<_ParentTy> parent, std::shared_ptr<_ChildTy> child, _ConvTy baseType)
 {
+	// Skip if an converter is already in place
 	if (std::dynamic_pointer_cast<ImplicitConvertionExpr>(child) != nullptr) {
 		return;
 	}
@@ -149,7 +153,7 @@ CoilCl::Semer& CoilCl::Semer::StaticResolve()
 
 			// If expression, evaluate outcome
 			if (builtinExpr->Expression()) {
-				throw NotImplementedException{ "Expression" };
+				throw NotImplementedException{ "Expression" }; //TODO
 			}
 			// No expression, use typename
 			else {
@@ -189,6 +193,7 @@ CoilCl::Semer& CoilCl::Semer::PreliminaryAssert()
 	DeduceTypes();
 	CheckDataType();
 
+	//TODO:
 	//ASSERTION_PASSED
 
 	return (*this);
@@ -208,18 +213,18 @@ void CoilCl::Semer::FuncToSymbol(std::function<void(const std::string, const std
 	});
 }
 
-//#include <iostream>
 // Extract identifiers from declarations and stash them per scoped block.
 // All declaration nodes have an identifier, which could be empty.
 void CoilCl::Semer::NamedDeclaration()
 {
 	AST::Compare::Equal<TranslationUnitDecl> traunOp;
 	AST::Compare::Derived<Decl> drivdOp;
-
 	OnMatch(m_ast.begin(), m_ast.end(), drivdOp, [&traunOp, this](AST::AST::iterator itr)
 	{
 		auto node = itr.shared_ptr();
 		auto decl = std::dynamic_pointer_cast<Decl>(node);
+
+		// Ignore translation unit declaration
 		if (traunOp(PTR_NATIVE(decl))) {
 			return;
 		}
@@ -229,11 +234,11 @@ void CoilCl::Semer::NamedDeclaration()
 			if (func == nullptr) {
 				auto block = Closest<CompoundStmt>(node);
 				if (block == nullptr) {
-					this->m_resolveList[0][decl->Identifier()] = node;
+					this->m_resolveList[GLOBAL_DEFS][decl->Identifier()] = node;
 					//std::cout << "Global declaration [0]: " << decl->Identifier() << std::endl;
 				}
 				else {
-					throw std::exception{};//TODO
+					throw SemanticException{ "illegal compound outside function scope", 0, 0 };
 				}
 			}
 			else {
@@ -247,7 +252,6 @@ void CoilCl::Semer::NamedDeclaration()
 void CoilCl::Semer::ResolveIdentifier()
 {
 	AST::Compare::Equal<DeclRefExpr> eqOp;
-
 	OnMatch(m_ast.begin(), m_ast.end(), eqOp, [=](AST::AST::iterator itr)
 	{
 		auto node = itr.shared_ptr();
@@ -257,8 +261,8 @@ void CoilCl::Semer::ResolveIdentifier()
 			if (func == nullptr) {
 				auto block = Closest<CompoundStmt>(node);
 				if (block == nullptr) {
-					auto binder = this->m_resolveList[0].find(decl->Identifier());
-					if (binder == this->m_resolveList[0].end()) {
+					auto binder = this->m_resolveList[GLOBAL_DEFS].find(decl->Identifier());
+					if (binder == this->m_resolveList[GLOBAL_DEFS].end()) {
 						throw SemanticException{ "use of undeclared identifier'x'", 0, 0 };
 					}
 
@@ -272,8 +276,8 @@ void CoilCl::Semer::ResolveIdentifier()
 			else {
 				auto binder = this->m_resolveList[func->Id()].find(decl->Identifier());
 				if (binder == this->m_resolveList[func->Id()].end()) {
-					binder = this->m_resolveList[0].find(decl->Identifier());
-					if (binder == this->m_resolveList[0].end()) {
+					binder = this->m_resolveList[GLOBAL_DEFS].find(decl->Identifier());
+					if (binder == this->m_resolveList[GLOBAL_DEFS].end()) {
 						throw SemanticException{ "use of undeclared identifier'x'", 0, 0 };
 					}
 				}
@@ -333,7 +337,7 @@ void CoilCl::Semer::DeduceTypes()
 				if (eqVaria(PTR_NATIVE(child)) && it != parameters.end() - 1) {
 					throw SemanticException{ "no argument expected after '...'", 0, 0 };
 				}
-				paramTypeList.push_back(std::dynamic_pointer_cast<Decl>(child)->ReturnType());
+				paramTypeList.push_back(std::dynamic_pointer_cast<Returnable>(child)->ReturnType());
 			}
 		}
 

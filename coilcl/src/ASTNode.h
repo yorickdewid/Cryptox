@@ -615,7 +615,7 @@ public:
 	virtual ~Literal() = 0;
 
 	Literal() = default;
-	
+
 	template<typename... _VariaTy>
 	Literal(_VariaTy&&... args)
 		: Returnable{ std::forward<_VariaTy>(args)... }
@@ -1266,7 +1266,7 @@ public:
 			std::string _node{ RemoveClassFromName(typeid(DeclRefExpr).name()) };
 			_node += " {" + std::to_string(m_state.Alteration()) + "}";
 			_node += " <line:" + std::to_string(line) + ",col:" + std::to_string(col) + "> ";
-			_node += "linked '" + m_ref.lock()->Identifier() + "'";
+			_node += "linked '" + m_ref.lock()->Identifier() + "' ";
 
 			if (Reference()->ReturnType().HasValue()) {
 				_node += "'" + Reference()->ReturnType().TypeName() + "' ";
@@ -1430,7 +1430,7 @@ public:
 			_node += ReturnType()->StorageClassName();
 		}
 
-		_node += Conv::Cast::PrintTag(m_convOp);
+		_node += "[" + Conv::Cast::PrintTag(m_convOp) + "]";
 
 		return _node;
 	}
