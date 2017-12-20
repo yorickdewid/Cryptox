@@ -99,6 +99,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 # Project consists of multiple subprojects
 add_subdirectory(cmncore)
 add_subdirectory(ui)
+add_subdirectory(coilcex)
 add_subdirectory(coilcl)
 add_subdirectory(crycli)
 add_subdirectory(pfbase)
