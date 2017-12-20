@@ -387,6 +387,35 @@ void CoilCl::Semer::DeduceTypes()
 			}
 		});
 	});
+
+	AST::Compare::Derived<EnumConstantDecl> enumOp;
+	OnMatch(m_ast.begin(), m_ast.end(), enumOp, [](AST::AST::iterator itr)
+	{
+		auto enumDecl = std::dynamic_pointer_cast<EnumConstantDecl>(itr.shared_ptr());
+		if (!enumDecl->Children().empty() && !enumDecl->HasReturnType()) {
+			auto decl = enumDecl->Children().front().lock();
+			if (!decl) {
+				return;
+			}
+
+			auto rdecl = std::dynamic_pointer_cast<Returnable>(decl);
+			if (!rdecl->HasReturnType()) {
+				throw SemanticException{ "initializer must be integer constant expression", 0, 0 };
+			}
+
+			// Enum initializer must be type of integer
+			if (!rdecl->ReturnType()->Equals(Util::MakeBuiltinType(Typedef::BuiltinType::Specifier::INT).get())
+				&& !rdecl->ReturnType()->Equals(Util::MakeBuiltinType(Typedef::BuiltinType::Specifier::CHAR).get())) {
+				throw SemanticException{ "initializer must be integer constant expression", 0, 0 };
+			}
+
+			enumDecl->SetReturnType(rdecl->ReturnType());
+		}
+		else {
+			auto integer = std::dynamic_pointer_cast<Typedef::TypedefBase>(Util::MakeBuiltinType(Typedef::BuiltinType::Specifier::INT));
+			enumDecl->SetReturnType(AST::TypeFacade{ integer });
+		}
+	});
 }
 
 // Check if all datatypes are convertible and inject type conversions in the tree

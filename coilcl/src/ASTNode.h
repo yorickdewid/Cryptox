@@ -104,7 +104,7 @@ public:
 	{
 	}
 
-	virtual bool HasReturnType() { return m_returnType.HasValue(); }
+	virtual bool HasReturnType() const { return m_returnType.HasValue(); }
 	virtual void SetReturnType(AST::TypeFacade type) { m_returnType = type; }
 	virtual AST::TypeFacade ReturnType() const { return m_returnType; }
 };
@@ -975,7 +975,17 @@ public:
 
 	const std::string NodeName() const
 	{
-		return std::string{ RemoveClassFromName(typeid(EnumConstantDecl).name()) } +" {" + std::to_string(m_state.Alteration()) + "}" + " <line:" + std::to_string(line) + ",col:" + std::to_string(col) + "> " + m_identifier;
+		std::string _node{ RemoveClassFromName(typeid(EnumConstantDecl).name()) };
+		_node += " {" + std::to_string(m_state.Alteration()) + "}";
+		_node += " <line:" + std::to_string(line) + ",col:" + std::to_string(col) + "> ";
+		_node += m_identifier;
+
+		if (HasReturnType()) {
+			_node += " '" + ReturnType().TypeName() + "' ";
+			_node += ReturnType()->StorageClassName();
+		}
+
+		return _node;
 	}
 
 private:
@@ -1246,7 +1256,7 @@ public:
 		m_ref = std::dynamic_pointer_cast<Decl>(ref);
 	}
 
-	bool HasReturnType() override
+	bool HasReturnType() const override
 	{
 		return IsResolved();
 	}

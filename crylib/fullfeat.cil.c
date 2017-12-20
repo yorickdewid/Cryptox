@@ -168,7 +168,7 @@ void funcx() {
 }
 #endif
 
-void func4() {
+void func5() {
     int x;
     auto int y;
 }
