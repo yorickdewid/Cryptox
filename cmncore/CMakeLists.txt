@@ -6,6 +6,8 @@ message(STATUS "Configure ${PROJECT_NAME}")
 set(${PROJECT_NAME}_VERSION_MINOR 12)
 set(${PROJECT_NAME}_VERSION ${Cryptox_VERSION_MAJOR}.${${PROJECT_NAME}_VERSION_MINOR})
 
+configure_file(config.h.in config.h @ONLY)
+
 # Fetch sources
 file(GLOB ${PROJECT_NAME}_h *.h)
 

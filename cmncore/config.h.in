@@ -1,0 +1,47 @@
+// Copyright (c) 2017 Quenza Inc. All rights reserved.
+//
+// This file is part of the Cryptox project.
+//
+// Use of this source code is governed by a private license
+// that can be found in the LICENSE file. Content can not be 
+// copied and/or distributed without the express of the author.
+
+//
+// These values are automatically set according to their variables.
+//
+
+#ifndef CONFIG_H_
+#define CONFIG_H_
+
+#if defined(_MSC_VER)
+#pragma once
+#endif
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+// Product version
+#define PRODUCT_VERSION_MAJOR @PRODUCT_VERSION_MAJOR@
+#define PRODUCT_VERSION_MINOR @PRODUCT_VERSION_MINOR@
+#define PRODUCT_VERSION_PATCH @PRODUCT_VERSION_PATCH@
+#define PRODUCT_VERSION_EXT "@PRODUCT_VERSION_EXT@"
+#define PRODUCT_VERSION "@PRODUCT_VERSION@"
+
+// Compile time
+#define PRODUCT_COMPILE_TIMESTAMP "@PRODUCT_COMPILE_TIMESTAMP@"
+
+// Product release
+#define PRODUCT_IS_CE @PRODUCT_IS_CE@
+
+// Product branding
+#define PRODUCT_BRAND_NAME "@PRODUCT_BRAND_NAME@"
+#define PRODUCT_BRAND_NAME_FULL "@PRODUCT_BRAND_NAME_FULL@"
+#define PRODUCT_BRAND_AUTHOR "@PRODUCT_BRAND_AUTHOR@"
+#define PRODUCT_COPYRIGHT "@PRODUCT_COPYRIGHT@"
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif // CONFIG_H_

@@ -13,6 +13,7 @@ add_library(${PROJECT_NAME} SHARED
 # Define output directories
 set_target_properties(${PROJECT_NAME}
     PROPERTIES
+	OUTPUT_NAME "plgex"
 	PROJECT_LABEL "Plugin Extension"
     ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
     LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
