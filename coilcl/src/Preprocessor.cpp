@@ -14,21 +14,21 @@ Preprocessor::Preprocessor(std::shared_ptr<CoilCl::Profile>& profile)
 	: Stage{ this }
 	, m_profile{ profile }
 {
-	m_keywords["include"] = [=](std::string expr)
+	m_keywords["include"] = [=](std::shared_ptr<SubscriptionEvent>& op, std::string expr)
 	{
 		if (BITSET(PARSE_INCLUDE)) {
 			this->ImportSource(expr);
 		}
 	};
 
-	m_keywords["define"] = [=](std::string expr)
+	m_keywords["define"] = [=](std::shared_ptr<SubscriptionEvent>& op, std::string expr)
 	{
 		if (BITSET(PARSE_DEFINE)) {
-			this->Definition(expr);
+			this->Definition(op, expr);
 		}
 	};
 
-	m_keywords["undef"] = [=](std::string expr)
+	m_keywords["undef"] = [=](std::shared_ptr<SubscriptionEvent>& op, std::string expr)
 	{
 		if (BITSET(PARSE_DEFINE)) {
 			this->DefinitionUntag(expr);
@@ -43,7 +43,7 @@ Preprocessor::Preprocessor(std::shared_ptr<CoilCl::Profile>& profile)
 	m_keywords["endif"] = std::bind(&Preprocessor::ConditionalStatement, this);*/
 	/*m_keywords["pragma"] = [=] {};*/
 
-	m_keywords["pragma"] = [=](std::string expr)
+	m_keywords["pragma"] = [=](std::shared_ptr<SubscriptionEvent>& op, std::string expr)
 	{
 		auto initToken = expr.substr(0, expr.find(' '));
 		auto args = expr.substr(expr.find(' ') + 1);
@@ -64,7 +64,7 @@ Preprocessor::Preprocessor(std::shared_ptr<CoilCl::Profile>& profile)
 		*/
 	};
 
-	m_keywords["error"] = [=](std::string expr)
+	m_keywords["error"] = [=](std::shared_ptr<SubscriptionEvent>& op, std::string expr)
 	{
 		throw StageBase::StageException{ Name(), expr };
 	};
@@ -89,7 +89,7 @@ void Preprocessor::ImportSource(std::string source)
 }
 
 // Definition and expansion
-void Preprocessor::Definition(std::string args)
+void Preprocessor::Definition(const std::shared_ptr<SubscriptionEvent>& op, std::string args)
 {
 	auto definition = args.substr(0, args.find(' '));
 	auto value = args.substr(args.find(' ') + 1);
@@ -98,8 +98,7 @@ void Preprocessor::Definition(std::string args)
 	}
 
 	m_definitionList[definition] = value;
-
-	//std::cout << "replacement '" << definition << "' -> '" << value << "'" << std::endl;
+	//op->Subscribe(std::bind(&Preprocessor::ReplaceTokenDefinition, this), StatementOperation::Subscription::ON_EVERY_LINE);
 }
 
 // Definition and expansion
@@ -108,8 +107,6 @@ void Preprocessor::DefinitionUntag(std::string args)
 	auto definition = args.substr(0, args.find(' '));
 
 	m_definitionList.erase(definition);
-
-	//std::cout << "remove '" << definition << "'" << std::endl;
 }
 
 // Conditional compilation
@@ -118,18 +115,18 @@ void Preprocessor::ConditionalStatement()
 
 }
 
-void Preprocessor::ProcessStatement(const std::string& str)
+std::shared_ptr<SubscriptionEvent> Preprocessor::ProcessStatement(const std::string& str)
 {
-	auto rs = std::make_shared<StatementOperation>();
-
 	size_t endkw = str.find_first_of(' ');
 	if (m_keywords[str.substr(0, endkw)] != nullptr) {
+		auto statOp = std::make_shared<SubscriptionEvent>();
 		auto value = boost::algorithm::trim_copy(str.substr(endkw + 1));
 
-		m_keywords[str.substr(0, endkw)](value);
+		m_keywords[str.substr(0, endkw)](statOp, value);
+		return statOp;
 	}
 
-	//return rs;
+	throw StageBase::StageException{ Name(), "invalid preprocessing directive" };
 }
 
 bool Preprocessor::SkipWhitespace(char c)
@@ -141,6 +138,11 @@ bool Preprocessor::SkipWhitespace(char c)
 		|| c == '\r';
 }
 
+void Preprocessor::ReplaceTokenDefinition()
+{
+
+}
+
 //TODO: Check for __LINE__,__FILE__ last
 //TODO: Allow linebreak -> '\'
 void Preprocessor::Transform(std::string& output)
@@ -150,6 +152,8 @@ void Preprocessor::Transform(std::string& output)
 		return;
 	}
 
+	int startlineOffset = 0;
+
 	auto dirty = false;
 	for (size_t i = 0; i < input.size(); ++i) {
 		if (input[i] == PREPROC_TOKEN && !dirty) {
@@ -158,18 +162,29 @@ void Preprocessor::Transform(std::string& output)
 			const auto _i = startoffset;
 
 			for (; SkipWhitespace(input[i]); ++i);
-			auto& args = input.substr(i, endoffset - (i - _i));
-			ProcessStatement(args);
-			//i += (endoffset - (i - _i));
-
-			//std::make_pair(startoffset, endoffset)
-
-			input.erase(startoffset - 1, endoffset);
+			const auto& args = input.substr(i, endoffset - (i - _i));
+			const auto& op = ProcessStatement(args);
+#if 0
+			if (op->TokenResult == StatementOperation::TokenDesignator::TOKEN_ERASE) {
+				input.erase(startoffset - 1, endoffset);
+			}
+			else {
+				//TODO
+				//i += (endoffset - (i - _i));
+			}
+#endif
 		}
 
 		// Found a newline
 		if (input[i] == '\n') {
 			dirty = false;
+			const auto& line = input.substr(startlineOffset, (i + 1) - startlineOffset);
+			std::cout << "KAAS: " << line << std::endl;
+
+			//TrapSubscription(StatementOperation::Subscription::ON_EVERY_LINE);
+
+			//TODO: trap line subscriptions
+			startlineOffset = i + 1;
 			continue;
 		}
 		// Skip all whitespace
@@ -177,6 +192,7 @@ void Preprocessor::Transform(std::string& output)
 			continue;
 		}
 
+		//TODO: trap token
 		dirty = true;
 	}
 
