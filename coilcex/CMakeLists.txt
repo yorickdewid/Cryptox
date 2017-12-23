@@ -32,7 +32,7 @@ source_group("Project Related Files" FILES ${${PROJECT_NAME}_rel})
 set_target_properties(${PROJECT_NAME}
     PROPERTIES
 	OUTPUT_NAME "coilcex"
-	PROJECT_LABEL "${Cryptox_ID} Executable Format"
+	PROJECT_LABEL "${Cryptox_ID} Executable"
     ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
     LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
     RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
@@ -42,6 +42,12 @@ set_target_properties(${PROJECT_NAME}
 # subprojects through cache variable
 set(${PROJECT_NAME}_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/${${PROJECT_NAME}_INCLUDE}
     CACHE INTERNAL "${PROJECT_NAME}: Include Directories" FORCE)
+
+target_link_libraries(${PROJECT_NAME}
+	${Boost_FILESYSTEM_LIBRARY}
+	${Boost_SYSTEM_LIBRARY}
+	${Boost_LIBRARIES}
+)
 
 install(TARGETS ${PROJECT_NAME}
     LIBRARY DESTINATION lib

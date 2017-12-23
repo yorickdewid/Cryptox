@@ -6,17 +6,23 @@
 // that can be found in the LICENSE file. Content can not be 
 // copied and/or distributed without the express of the author.
 
-#include "Executable.h"
+#include "Image.h"
 
-#include <iostream>
+#include <string>
 
-void someFunc()
+namespace CryExe
 {
-	CryExe::Executable exe{ "testfile.cex" };
-	
-	if (exe.IsOpen()) {
-		std::cout << "File is open" << std::endl;
+
+class Executable : public Image
+{
+public:
+	Executable(const std::string& path, FileMode fm = FileMode::FM_OPEN)
+		: Image{ path, fm }
+	{
 	}
 
-	exe.Close();
-}
+private:
+	void ValidateImageFormat();
+};
+
+} // namespace CryExecutable

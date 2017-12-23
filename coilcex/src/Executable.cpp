@@ -8,15 +8,7 @@
 
 #include "Executable.h"
 
-#include <iostream>
-
-void someFunc()
+void CryExe::Executable::ValidateImageFormat()
 {
-	CryExe::Executable exe{ "testfile.cex" };
-	
-	if (exe.IsOpen()) {
-		std::cout << "File is open" << std::endl;
-	}
-
-	exe.Close();
+	//
 }
