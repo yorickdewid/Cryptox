@@ -21,7 +21,7 @@ include_directories(${${PROJECT_NAME}_INCLUDE})
 add_library(${PROJECT_NAME} SHARED
 	${${PROJECT_NAME}_src}
 	${${PROJECT_NAME}_h}
-    ${${PROJECT_NAME}_rel}
+	${${PROJECT_NAME}_rel}
 )
 
 # File groups
@@ -30,12 +30,12 @@ source_group("Project Related Files" FILES ${${PROJECT_NAME}_rel})
 
 # Define output directories
 set_target_properties(${PROJECT_NAME}
-    PROPERTIES
+	PROPERTIES
 	OUTPUT_NAME "coilcex"
-	PROJECT_LABEL "${Cryptox_ID} Executable"
-    ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
-    LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
-    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
+	PROJECT_LABEL "${Cryptox_ID} Executable Format"
+	ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
+	LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
+	RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
 )
 
 # Expose public includes to other
@@ -50,6 +50,7 @@ target_link_libraries(${PROJECT_NAME}
 )
 
 install(TARGETS ${PROJECT_NAME}
-    LIBRARY DESTINATION lib
-    ARCHIVE DESTINATION lib
+	RUNTIME DESTINATION bin
+	LIBRARY DESTINATION lib
+	ARCHIVE DESTINATION lib
 )

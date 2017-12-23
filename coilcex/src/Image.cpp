@@ -18,6 +18,8 @@ std::string CryExe::Image::GetBasenameFromPath(const std::string& path)
 void CryExe::Image::Open()
 {
 	if (IsOpen()) { return; }
+
+	//TODO
 }
 
 void CryExe::Image::Close()

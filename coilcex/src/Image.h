@@ -6,6 +6,8 @@
 // that can be found in the LICENSE file. Content can not be 
 // copied and/or distributed without the express of the author.
 
+#include "cex.h"
+
 #include <string>
 
 namespace CryExe
@@ -18,7 +20,7 @@ enum class FileMode
 	FM_OPEN_COMMIT,	// Open if the file exists and otherwise create a new file
 };
 
-class Image
+class COILCEXAPI Image
 {
 	const std::string& m_filename;
 
@@ -28,7 +30,6 @@ public:
 	Image(const std::string& filename, FileMode fm = FileMode::FM_OPEN)
 		: m_filename{ GetBasenameFromPath(filename) }
 	{
-		OpenWithMode(fm);
 	}
 
 	inline bool IsOpen() const { return false; } //TODO
@@ -36,7 +37,7 @@ public:
 	void Open();
 	void Close();
 
-private:
+protected:
 	void OpenWithMode(FileMode fm);
 };
 
