@@ -2,19 +2,26 @@ project(CEXDump CXX)
 
 message(STATUS "Configure ${PROJECT_NAME}")
 
-# Set VERSION
-set(${PROJECT_NAME}_VERSION_MINOR 12)
-set(${PROJECT_NAME}_VERSION ${Cryptox_VERSION_MAJOR}.${${PROJECT_NAME}_VERSION_MINOR})
+# Set project info
+set(${PROJECT_NAME}_VERSION_LOCAL 12)
+set(${PROJECT_NAME}_DESCRIPTION "CEX Image Dump")
+
+string(TOLOWER ${PROJECT_NAME} PRODUCT_ORIGINAL_NAME)
+set(PRODUCT_VERSION_LOCAL ${${PROJECT_NAME}_VERSION_LOCAL})
+set(PRODUCT_DESCRIPTION ${${PROJECT_NAME}_DESCRIPTION})
 
 # Project directories
 set(${PROJECT_NAME}_SRC src)
 set(${PROJECT_NAME}_INCLUDE include)
 set(${PROJECT_NAME}_RESOURCE res)
 
+configure_file(${${PROJECT_NAME}_RESOURCE}/cexdump.rc.in ${CMAKE_CURRENT_BINARY_DIR}/cexdump.rc @ONLY)
+
 # Fetch sources
 file(GLOB ${PROJECT_NAME}_src ${${PROJECT_NAME}_SRC}/*.cpp ${${PROJECT_NAME}_SRC}/*.h)
 file(GLOB ${PROJECT_NAME}_h ${${PROJECT_NAME}_INCLUDE}/*.h)
-file(GLOB ${PROJECT_NAME}_rel ${${PROJECT_NAME}_RESOURCE}/*.rc)
+file(GLOB ${PROJECT_NAME}_rel ${${PROJECT_NAME}_RESOURCE}/*.in)
+file(GLOB ${PROJECT_NAME}_res ${CMAKE_CURRENT_BINARY_DIR}/*.rc)
 
 include_directories(${CoilCl_INCLUDE_DIRS})
 
@@ -28,6 +35,7 @@ add_executable(${PROJECT_NAME}
 	${${PROJECT_NAME}_src}
 	${${PROJECT_NAME}_h}
 	${${PROJECT_NAME}_rel}
+	${${PROJECT_NAME}_res}
 )
 
 # File groups
