@@ -1,4 +1,11 @@
-# Check the OS type.
+# Copyright (c) 2017 Quenza Inc. All rights reserved.
+# Copyright (c) 2018 Blub Corp. All rights reserved.
+#
+# This file is part of the Cryptox project.
+#
+# Use of this source code is governed by a private license
+# that can be found in the LICENSE file. Content can not be 
+# copied and/or distributed without the express of the author.
 
 # CMake does not distinguish Linux from other Unices.
 string(REGEX MATCH "Linux" PROJECT_OS_LINUX ${CMAKE_SYSTEM_NAME})

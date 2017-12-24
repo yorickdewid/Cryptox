@@ -22,6 +22,7 @@ endif()
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/")
 
 # Find the host operating system and architecture
+include(Util)
 include(FindOS)
 include(CheckCXXCompilerFlag)
 
