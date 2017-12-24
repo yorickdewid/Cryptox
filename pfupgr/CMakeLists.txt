@@ -19,6 +19,9 @@ include(ProjectPrep)
 # Generate resource file
 configure_file(${${PROJECT_NAME}_RESOURCE}/pfupgr.rc.in ${CMAKE_CURRENT_BINARY_DIR}/pfupgr.rc @ONLY)
 
+# Ignore security checks
+enable_unsecure_crt()
+
 include_directories(${PfBase_INCLUDE_DIRS})
 
 add_executable(${PROJECT_NAME}

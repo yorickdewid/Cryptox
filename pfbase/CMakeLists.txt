@@ -1,32 +1,33 @@
+# Copyright (c) 2017 Quenza Inc. All rights reserved.
+# Copyright (c) 2018 Blub Corp. All rights reserved.
+#
+# This file is part of the Cryptox project.
+#
+# Use of this source code is governed by a private license
+# that can be found in the LICENSE file. Content can not be 
+# copied and/or distributed without the express of the author.
+
 project(PfBase CXX)
 
-message(STATUS "Configure ${PROJECT_NAME}")
+# Set project info
+project_version(${PROJECT_NAME} 1)
+project_description(${PROJECT_NAME} "Project File Base")
 
-# Set VERSION
-set(${PROJECT_NAME}_VERSION_MINOR 3)
-set(${PROJECT_NAME}_VERSION ${Cryptox_VERSION_MAJOR}.${${PROJECT_NAME}_VERSION_MINOR})
+# Load project defaults
+include(ProjectPrep)
 
-# Project directories
-set(${PROJECT_NAME}_SRC src)
-set(${PROJECT_NAME}_INCLUDE include)
-set(${PROJECT_NAME}_RESOURCE res)
-
-# Fetch sources
-file(GLOB ${PROJECT_NAME}_src ${${PROJECT_NAME}_SRC}/*.cpp ${${PROJECT_NAME}_SRC}/*.h)
-file(GLOB ${PROJECT_NAME}_h ${${PROJECT_NAME}_INCLUDE}/*.h)
-file(GLOB ${PROJECT_NAME}_rel ${${PROJECT_NAME}_RESOURCE}/*.rc)
-
-include_directories(${${PROJECT_NAME}_INCLUDE})
+# Ignore security checks
+enable_unsecure_crt()
 
 add_library(${PROJECT_NAME} SHARED
 	${${PROJECT_NAME}_src}
 	${${PROJECT_NAME}_h}
 	${${PROJECT_NAME}_rel}
+	${${PROJECT_NAME}_res}
 )
 
-# File groups
-source_group("External Header Files" FILES ${${PROJECT_NAME}_h})
-source_group("Project Related Files" FILES ${${PROJECT_NAME}_rel})
+# Set project options
+include(ProjectFin)
 
 # Define output directories
 set_target_properties(${PROJECT_NAME}
@@ -42,15 +43,4 @@ set_target_properties(${PROJECT_NAME}
 target_link_libraries(${PROJECT_NAME}
 	${Boost_FILESYSTEM_LIBRARY}
 	${Boost_LIBRARIES}
-)
-
-# Expose public includes to other
-# subprojects through cache variable
-set(${PROJECT_NAME}_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/${${PROJECT_NAME}_INCLUDE}
-    CACHE INTERNAL "${PROJECT_NAME}: Include Directories" FORCE)
-
-install(TARGETS ${PROJECT_NAME}
-	RUNTIME DESTINATION bin
-	LIBRARY DESTINATION lib
-	ARCHIVE DESTINATION lib
 )
