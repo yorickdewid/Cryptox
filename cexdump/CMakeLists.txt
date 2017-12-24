@@ -10,15 +10,14 @@
 project(CEXDump CXX)
 
 # Set project info
-project_version(${PROJECT_NAME} 12)
+project_version(${PROJECT_NAME} 2)
 project_description(${PROJECT_NAME} "CEX Image Dump")
 
 # Load project defaults
 include(ProjectPrep)
 
+# Generate resource file
 configure_file(${${PROJECT_NAME}_RESOURCE}/cexdump.rc.in ${CMAKE_CURRENT_BINARY_DIR}/cexdump.rc @ONLY)
-
-include_directories(${CoilCl_INCLUDE_DIRS})
 
 # Ignore security checks
 enable_unsecure_crt()

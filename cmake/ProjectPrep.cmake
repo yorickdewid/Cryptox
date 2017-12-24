@@ -33,4 +33,6 @@ if(WIN32)
 	file(GLOB ${PROJECT_NAME}_res ${CMAKE_CURRENT_BINARY_DIR}/*.rc)
 endif()
 
+include_directories(${${PROJECT_NAME}_INCLUDE})
+
 message(STATUS "Configure ${PROJECT_NAME} rel. ${PRODUCT_VERSION_LOCAL}")
