@@ -6,14 +6,20 @@
 // that can be found in the LICENSE file. Content can not be 
 // copied and/or distributed without the express of the author.
 
+#include <cry/config.h>
+
 #include <boost/program_options.hpp>
 #include <boost/algorithm/string.hpp>
 
 #include <iostream>
 
-#define PROGRAM_DESC "Cryptox CEX dump\nDisplay information about the contents of CEX format files\n"
-#define PROGRAM_COPY "Copyright (C) 2017 Quenza Inc. All rights reserved.\n"
-#define PROGRAM_VERSION "1.1"
+#define PROGRAM_DESC PRODUCT_BRAND_NAME " " PROGRAM_DESCRIPTION "\n"
+
+#if WIN32
+#define COMMAND_LINE_DELIMITER "/"
+#else
+#define COMMAND_LINE_DELIMITER "-"
+#endif // WIN32
 
 namespace po = boost::program_options;
 
@@ -21,43 +27,13 @@ int main(int argc, const char *argv[])
 {
 	try {
 		// Generic options
-		po::options_description desc{ PROGRAM_DESC PROGRAM_COPY "\nProjectTest: [OPTIONS] FILE ...\n\nOptions" };
+		po::options_description desc{ PROGRAM_DESC PRODUCT_COPYRIGHT "\n\n" PROGRAM_ORIGINAL_NAME ": [OPTIONS] FILE ...\n\nOptions" };
 		desc.add_options()
 			("help", "Show help")
-			("print-search-dirs", "Display the directories in the compiler's search path")
-			("print-std-list", "Display supported language standards")
-			("print-targets", "Display output target")
-			("v", "Compiler version information");
-
-		// Compiler options
-		po::options_description codegen{ "\nCompiler options" };
-		codegen.add_options()
-			("o", po::value<std::string>()->value_name("<file>"), "Object output file")
-			("g", "Compile with debug support")
-			("E", "Preprocess only; do not compile")
-			("T", po::value<std::string>()->value_name("<target>")->default_value("RPTS"), "Set output target")
-			("B", po::value<std::string>()->value_name("<directory>"), "Add directory to the compiler's search paths")
-			("x", po::value<std::string>()->value_name("<lang>")->default_value("cil"), "Specify the language of the input files")
-			("std", po::value<std::string>()->value_name("<standard>")->default_value("c99"), "CIL language standard")
-			("pedantic", "Pedantic language compliance")
-			("Wall", "Report all warnings")
-			("Werror", "Threat warnings as errors");
-
-		// Optimizer options
-		po::options_description optim{ "\nOptimizer options" };
-		optim.add_options()
-			("O", "Optimize basics (default)")
-			("O0", "No optimization (not recommended)")
-			("O1", "Full optimization basics (not recommended)");
-
-		// Debug / tracking options
-		po::options_description debug{ "\nDebug options" };
-		debug.add_options()
-			("skip-compact", "Skip compatibility stage verification (not recommended)")
-			("trace", "Trace compiler stage")
-			("dump-input", "Dump token stream")
-			("dump-tree", "Dump AST tree")
-			("dump-ast-mod", "Write all ast modifications to file");
+			("a", "Print all sections")
+			("r", "Show platform runner algoritm")
+			("h", "Display the CEX image header")
+			("s", "Display the sections' header");
 
 		// Positional arguments
 		po::options_description hidden;
@@ -67,11 +43,9 @@ int main(int argc, const char *argv[])
 		// Combine all options
 		po::options_description all_ops;
 		all_ops.add(desc);
-		all_ops.add(codegen);
-		all_ops.add(optim);
-		all_ops.add(debug);
 		all_ops.add(hidden);
 
+		// Take positional arguments
 		po::positional_options_description p;
 		p.add("file", -1);
 
@@ -79,21 +53,33 @@ int main(int argc, const char *argv[])
 		po::store(po::command_line_parser(argc, argv)
 				  .options(all_ops)
 				  .positional(p)
-				  .style(po::command_line_style::default_style | po::command_line_style::allow_long_disguise)
+				  .style(po::command_line_style::default_style
+				  | po::command_line_style::case_insensitive
+				  | po::command_line_style::allow_slash_for_short
+				  | po::command_line_style::allow_long_disguise)
 				  .run(), vm, true);
 
+		// Print usage whenever there is an error or the help option is requested. The help
+		// shows all sections except for the positional arugments. Based on the system defaults
+		// the commandline arguments are displayed in system style.
 		auto usage = [=]
 		{
 			std::stringstream ss;
 			ss << desc;
-			ss << codegen;
-			ss << optim;
-			ss << debug;
 
 			std::string helpMsg = ss.str();
-			boost::algorithm::replace_all(helpMsg, "--", "-");
+			boost::algorithm::replace_all(helpMsg, "--", COMMAND_LINE_DELIMITER);
 			std::cout << helpMsg << std::endl;
 		};
+
+		if (vm.count("file")) {
+			std::cout << "open " << vm["file"].as<std::string>() << std::endl;
+		}
+		// No other option was touched, show help and exit with error code
+		else {
+			usage();
+			return 1;
+		}
 	}
 	catch (const std::exception& e) {
 		std::cerr << e.what() << std::endl;

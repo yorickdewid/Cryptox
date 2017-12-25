@@ -1,0 +1,73 @@
+// Copyright (c) 2017 Quenza Inc. All rights reserved.
+//
+// This file is part of the Cryptox project.
+//
+// Use of this source code is governed by a private license
+// that can be found in the LICENSE file. Content can not be 
+// copied and/or distributed without the express of the author.
+
+//
+// These values are automatically set according to their variables.
+//
+
+#ifndef CONFIG_H_
+#define CONFIG_H_
+
+#if defined(_MSC_VER)
+#pragma once
+#endif
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+// Product version
+#define PRODUCT_VERSION_MAJOR @PRODUCT_VERSION_MAJOR@
+#define PRODUCT_VERSION_MINOR @PRODUCT_VERSION_MINOR@
+#define PRODUCT_VERSION_PATCH @PRODUCT_VERSION_PATCH@
+#define PRODUCT_VERSION_LOCAL @PRODUCT_VERSION_LOCAL@
+#define PRODUCT_VERSION_EXT "@PRODUCT_VERSION_EXT@"
+#define PRODUCT_VERSION "@PRODUCT_VERSION@"
+
+// Product release
+#define PRODUCT_IS_CE @PRODUCT_IS_CE@
+
+// Product branding
+#define PRODUCT_BRAND_NAME "@PRODUCT_BRAND_NAME@"
+#define PRODUCT_BRAND_NAME_FULL "@PRODUCT_BRAND_NAME_FULL@"
+#define PRODUCT_BRAND_AUTHOR "@PRODUCT_BRAND_AUTHOR@"
+#define PRODUCT_COPYRIGHT "@PRODUCT_COPYRIGHT@"
+
+// Compile time
+#define PRODUCT_COMPILE_TIMESTAMP "@PRODUCT_COMPILE_TIMESTAMP@"
+
+// Program
+#define PROGRAM_NAME "@PROJECT_NAME@"
+#define PROGRAM_FORMAL_NAME "@PRODUCT_FORMAL_NAME@"
+#define PROGRAM_ORIGINAL_NAME "@PRODUCT_ORIGINAL_NAME@"
+#define PROGRAM_DESCRIPTION "@PRODUCT_DESCRIPTION@"
+#define PROGRAM_VERSION PRODUCT_VERSION "." PRODUCT_VERSION_LOCAL
+
+// Directories
+#define BINARY_DIR "@CMAKE_BINARY_DIR@"
+#define SOURCE_DIR "@CMAKE_SOURCE_DIR@"
+#define CURRENT_BINARY_DIR "@CMAKE_CURRENT_BINARY_DIR@"
+#define CURRENT_SOURCE_DIR "@CMAKE_CURRENT_SOURCE_DIR@"
+
+// Environment
+#define HOST_SYSTEM "@CMAKE_HOST_SYSTEM@"
+#define HOST_SYSTEM_NAME "@CMAKE_HOST_SYSTEM_NAME@"
+#define HOST_SYSTEM_PROCESSOR "@CMAKE_HOST_SYSTEM_PROCESSOR@"
+#define HOST_SYSTEM_VERSION "@CMAKE_HOST_SYSTEM_VERSION@"
+
+// Build system
+#define C_COMPILER "@CMAKE_C_COMPILER_ID@"
+#define CXX_COMPILER "@CMAKE_CXX_COMPILER_ID@"
+#define C_FLAGS "@CMAKE_C_FLAGS@"
+#define CXX_FLAGS "@CMAKE_CXX_FLAGS@"
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif // CONFIG_H_

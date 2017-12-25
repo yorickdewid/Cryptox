@@ -16,8 +16,12 @@ if (${${PROJECT_NAME}_DESCRIPTION} STREQUAL "")
 endif()
 
 string(TOLOWER ${PROJECT_NAME} PRODUCT_ORIGINAL_NAME)
+string(TOUPPER ${PROJECT_NAME} PRODUCT_FORMAL_NAME)
 set(PRODUCT_VERSION_LOCAL ${${PROJECT_NAME}_VERSION_LOCAL})
 set(PRODUCT_DESCRIPTION ${${PROJECT_NAME}_DESCRIPTION})
+
+# Generated CMake files
+configure_file(${CMAKE_SOURCE_DIR}/common/config.h.in ${CMAKE_CURRENT_BINARY_DIR}/include/cry/config.h @ONLY)
 
 # Project directories
 set(${PROJECT_NAME}_SRC src)
@@ -25,8 +29,8 @@ set(${PROJECT_NAME}_INCLUDE include)
 set(${PROJECT_NAME}_RESOURCE res)
 
 # Fetch sources
-file(GLOB ${PROJECT_NAME}_src ${${PROJECT_NAME}_SRC}/*.cpp ${${PROJECT_NAME}_SRC}/*.h)
-file(GLOB ${PROJECT_NAME}_h ${${PROJECT_NAME}_INCLUDE}/*.h)
+file(GLOB ${PROJECT_NAME}_src  ${${PROJECT_NAME}_SRC}/*.cpp ${${PROJECT_NAME}_SRC}/*.h)
+file(GLOB_RECURSE ${PROJECT_NAME}_h ${${PROJECT_NAME}_INCLUDE}/*.h)
 file(GLOB ${PROJECT_NAME}_rel ${${PROJECT_NAME}_RESOURCE}/*.in ${${PROJECT_NAME}_RESOURCE}/*.rc ${${PROJECT_NAME}_RESOURCE}/*.txt)
 
 if(WIN32)
@@ -34,5 +38,6 @@ if(WIN32)
 endif()
 
 include_directories(${${PROJECT_NAME}_INCLUDE})
+include_directories(${CMAKE_CURRENT_BINARY_DIR}/include)
 
 message(STATUS "Configure ${PROJECT_NAME} rel. ${PRODUCT_VERSION_LOCAL}")

@@ -16,11 +16,14 @@ project_description(${PROJECT_NAME} "CEX Image Dump")
 # Load project defaults
 include(ProjectPrep)
 
-# Generate resource file
+# Generated CMake files
 configure_file(${${PROJECT_NAME}_RESOURCE}/cexdump.rc.in ${CMAKE_CURRENT_BINARY_DIR}/cexdump.rc @ONLY)
 
 # Ignore security checks
 enable_unsecure_crt()
+
+include_directories(${CoilCEX_INCLUDE_DIRS})
+include_directories(${CommonCore_INCLUDE_DIRS})
 
 add_executable(${PROJECT_NAME}
 	${${PROJECT_NAME}_src}

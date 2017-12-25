@@ -1,8 +1,5 @@
 project(BUTest CXX)
 
-# Specific for this target
-enable_testing()
-
 message(STATUS "Configure ${PROJECT_NAME}")
 
 # Set VERSION
@@ -20,6 +17,9 @@ file(GLOB ${PROJECT_NAME}_h ${${PROJECT_NAME}_INCLUDE}/*.h)
 file(GLOB ${PROJECT_NAME}_rel ${${PROJECT_NAME}_RESOURCE}/*.rc)
 
 include_directories(${PfBase_INCLUDE_DIRS})
+
+# Specific for this target
+enable_testing()
 
 add_executable(${PROJECT_NAME}
 	${${PROJECT_NAME}_src}

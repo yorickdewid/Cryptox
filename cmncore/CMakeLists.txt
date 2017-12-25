@@ -1,22 +1,22 @@
+# Copyright (c) 2017 Quenza Inc. All rights reserved.
+# Copyright (c) 2018 Blub Corp. All rights reserved.
+#
+# This file is part of the Cryptox project.
+#
+# Use of this source code is governed by a private license
+# that can be found in the LICENSE file. Content can not be 
+# copied and/or distributed without the express of the author.
+
 project(CommonCore CXX)
+
+# Set project info
+project_version(${PROJECT_NAME} 1)
+project_description(${PROJECT_NAME} "Common Core Headers")
 
 message(STATUS "Configure ${PROJECT_NAME}")
 
-# Set VERSION
-set(${PROJECT_NAME}_VERSION_MINOR 12)
-set(${PROJECT_NAME}_VERSION ${Cryptox_VERSION_MAJOR}.${${PROJECT_NAME}_VERSION_MINOR})
-
-configure_file(config.h.in config.h @ONLY)
-
-# Project directories
-set(${PROJECT_NAME}_SRC src)
-set(${PROJECT_NAME}_INCLUDE include)
-set(${PROJECT_NAME}_RESOURCE res)
-
-# Fetch sources
-file(GLOB ${PROJECT_NAME}_src ${${PROJECT_NAME}_SRC}/*.cpp ${${PROJECT_NAME}_SRC}/*.h)
-file(GLOB ${PROJECT_NAME}_h ${${PROJECT_NAME}_INCLUDE}/*.h)
-file(GLOB ${PROJECT_NAME}_rel ${${PROJECT_NAME}_RESOURCE}/*.rc)
+# Load project defaults
+include(ProjectPrep)
 
 # Public header
 source_group("External Header Files" FILES ${${PROJECT_NAME}_h})
@@ -24,6 +24,11 @@ source_group("External Header Files" FILES ${${PROJECT_NAME}_h})
 add_custom_target(${PROJECT_NAME}
 	SOURCES ${${PROJECT_NAME}_h}
 )
+
+# Expose public includes to other
+# subprojects through cache variable
+set(${PROJECT_NAME}_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/${${PROJECT_NAME}_INCLUDE}
+    CACHE INTERNAL "${PROJECT_NAME}: Include Directories" FORCE)
 
 # File groups
 source_group("External Header Files" FILES ${${PROJECT_NAME}_h})
@@ -33,9 +38,7 @@ source_group("Project Related Files" FILES ${${PROJECT_NAME}_rel})
 set_target_properties(${PROJECT_NAME}
 	PROPERTIES
 	PROJECT_LABEL "Common Core Headers"
+	ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
+	LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
+	RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
 )
-
-# Expose public includes to other
-# subprojects through cache variable
-set(${PROJECT_NAME}_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/${${PROJECT_NAME}_h}
-    CACHE INTERNAL "${PROJECT_NAME}: Include Directories" FORCE)

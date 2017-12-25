@@ -7,7 +7,8 @@
 # that can be found in the LICENSE file. Content can not be 
 # copied and/or distributed without the express of the author.
 
-cmake_minimum_required(VERSION 3.1)
+# At least this version of CMake but newer is better
+cmake_minimum_required(VERSION 3.2 FATAL_ERROR)
 project(Cryptox)
 
 # Define helper keywords
