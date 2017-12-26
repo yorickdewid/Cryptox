@@ -7,23 +7,20 @@
 # that can be found in the LICENSE file. Content can not be 
 # copied and/or distributed without the express of the author.
 
-project(CommonCore CXX)
-
 # Set project info
+project(CommonCore CXX)
 project_version(${PROJECT_NAME} 1)
 project_description(${PROJECT_NAME} "Common Core Headers")
-
-message(STATUS "Configure ${PROJECT_NAME}")
 
 # Load project defaults
 include(ProjectPrep)
 
-# Public header
-source_group("External Header Files" FILES ${${PROJECT_NAME}_h})
-
 add_custom_target(${PROJECT_NAME}
 	SOURCES ${${PROJECT_NAME}_h}
 )
+
+# Public header
+source_group("External Header Files" FILES ${${PROJECT_NAME}_h})
 
 # Expose public includes to other
 # subprojects through cache variable

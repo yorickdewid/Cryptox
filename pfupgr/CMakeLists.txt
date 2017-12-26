@@ -7,21 +7,18 @@
 # that can be found in the LICENSE file. Content can not be 
 # copied and/or distributed without the express of the author.
 
-project(PfUpgr CXX)
-
 # Set project info
+project(PfUpgr CXX)
 project_version(${PROJECT_NAME} 1)
 project_description(${PROJECT_NAME} "Project Upgrade")
 
 # Load project defaults
 include(ProjectPrep)
 
-# Generate resource file
-configure_file(${${PROJECT_NAME}_RESOURCE}/pfupgr.rc.in ${CMAKE_CURRENT_BINARY_DIR}/pfupgr.rc @ONLY)
-
 # Ignore security checks
 enable_unsecure_crt()
 
+# External includes
 include_directories(${PfBase_INCLUDE_DIRS})
 
 add_executable(${PROJECT_NAME}
@@ -30,9 +27,6 @@ add_executable(${PROJECT_NAME}
 	${${PROJECT_NAME}_rel}
 	${${PROJECT_NAME}_res}
 )
-
-# Set project options
-include(ProjectFin)
 
 # Define output directories
 set_target_properties(${PROJECT_NAME}
@@ -47,3 +41,6 @@ set_target_properties(${PROJECT_NAME}
 target_link_libraries(${PROJECT_NAME}
 	PfBase
 )
+
+# Set project options
+include(ProjectFin)

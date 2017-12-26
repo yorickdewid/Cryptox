@@ -16,6 +16,21 @@ set(${PROJECT_NAME}_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/${${PROJECT_NAME}_I
 source_group("External Header Files" FILES ${${PROJECT_NAME}_h})
 source_group("Project Related Files" FILES ${${PROJECT_NAME}_rel})
 
+# Figure out the target type
+get_target_property(PROJECT_TARGET_TYPE ${PROJECT_NAME} TYPE)
+if (PROJECT_TARGET_TYPE STREQUAL SHARED_LIBRARY)
+	message(STATUS "Target compiling as shared library")
+	target_compile_definitions(${PROJECT_NAME} PRIVATE TARGET_SHARED_LIBRARY)
+elseif(PROJECT_TARGET_TYPE STREQUAL EXECUTABLE)
+	message(STATUS "Target compiling as executable")
+	target_compile_definitions(${PROJECT_NAME} PRIVATE TARGET_EXECUTABLE)
+elseif(PROJECT_TARGET_TYPE STREQUAL STATIC_LIBRARY)
+	message(STATUS "Target compiling as static library")
+	target_compile_definitions(${PROJECT_NAME} PRIVATE TARGET_STATIC_LIBRARY)
+else()
+	message(FATAL_ERROR "Unknown target ${PROJECT_TARGET_TYPE}")
+endif()
+
 install(TARGETS ${PROJECT_NAME}
 	RUNTIME DESTINATION bin
 	LIBRARY DESTINATION lib

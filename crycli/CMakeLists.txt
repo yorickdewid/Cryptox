@@ -7,22 +7,19 @@
 # that can be found in the LICENSE file. Content can not be 
 # copied and/or distributed without the express of the author.
 
-project(Crycli CXX)
-
 # Set project info
+project(Crycli CXX)
 project_version(${PROJECT_NAME} 9)
 project_description(${PROJECT_NAME} "Compiler CLI Interface")
 
 # Load project defaults
 include(ProjectPrep)
 
-# Generate resource file
-configure_file(${${PROJECT_NAME}_RESOURCE}/crycli.rc.in ${CMAKE_CURRENT_BINARY_DIR}/crycli.rc @ONLY)
-
-include_directories(${CoilCl_INCLUDE_DIRS})
-
 # Ignore security checks
 enable_unsecure_crt()
+
+# External includes
+include_directories(${CoilCl_INCLUDE_DIRS})
 
 add_executable(${PROJECT_NAME}
 	${${PROJECT_NAME}_src}
@@ -30,9 +27,6 @@ add_executable(${PROJECT_NAME}
 	${${PROJECT_NAME}_rel}
 	${${PROJECT_NAME}_res}
 )
-
-# Set project options
-include(ProjectFin)
 
 # Define output directories
 set_target_properties(${PROJECT_NAME}
@@ -51,3 +45,6 @@ target_link_libraries(${PROJECT_NAME}
 	${Boost_SYSTEM_LIBRARY}
 	${Boost_LIBRARIES}
 )
+
+# Set project options
+include(ProjectFin)

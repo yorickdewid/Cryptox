@@ -7,9 +7,8 @@
 # that can be found in the LICENSE file. Content can not be 
 # copied and/or distributed without the express of the author.
 
-project(PfBase CXX)
-
 # Set project info
+project(PfBase CXX)
 project_version(${PROJECT_NAME} 1)
 project_description(${PROJECT_NAME} "Project File Base")
 
@@ -26,9 +25,6 @@ add_library(${PROJECT_NAME} SHARED
 	${${PROJECT_NAME}_res}
 )
 
-# Set project options
-include(ProjectFin)
-
 # Define output directories
 set_target_properties(${PROJECT_NAME}
     PROPERTIES
@@ -44,3 +40,6 @@ target_link_libraries(${PROJECT_NAME}
 	${Boost_FILESYSTEM_LIBRARY}
 	${Boost_LIBRARIES}
 )
+
+# Set project options
+include(ProjectFin)

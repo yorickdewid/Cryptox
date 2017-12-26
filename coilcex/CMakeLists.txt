@@ -7,9 +7,8 @@
 # that can be found in the LICENSE file. Content can not be 
 # copied and/or distributed without the express of the author.
 
-project(CoilCEX CXX)
-
 # Set project info
+project(CoilCEX CXX)
 project_version(${PROJECT_NAME} 3)
 project_description(${PROJECT_NAME} "Executable Format")
 
@@ -22,9 +21,6 @@ add_library(${PROJECT_NAME} SHARED
 	${${PROJECT_NAME}_rel}
 	${${PROJECT_NAME}_res}
 )
-
-# Set project options
-include(ProjectFin)
 
 # Define output directories
 set_target_properties(${PROJECT_NAME}
@@ -41,3 +37,6 @@ target_link_libraries(${PROJECT_NAME}
 	${Boost_SYSTEM_LIBRARY}
 	${Boost_LIBRARIES}
 )
+
+# Set project options
+include(ProjectFin)

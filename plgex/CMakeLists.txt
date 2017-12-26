@@ -7,9 +7,8 @@
 # that can be found in the LICENSE file. Content can not be 
 # copied and/or distributed without the express of the author.
 
-project(PlGex CXX)
-
 # Set project info
+project(PlGex CXX)
 project_version(${PROJECT_NAME} 4)
 project_description(${PROJECT_NAME} "Plugin Extension")
 
@@ -23,9 +22,6 @@ add_library(${PROJECT_NAME} SHARED
 	${${PROJECT_NAME}_res}
 )
 
-# Set project options
-include(ProjectFin)
-
 # Define output directories
 set_target_properties(${PROJECT_NAME}
     PROPERTIES
@@ -35,3 +31,6 @@ set_target_properties(${PROJECT_NAME}
     LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
     RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
 )
+
+# Set project options
+include(ProjectFin)

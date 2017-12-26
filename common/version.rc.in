@@ -1,0 +1,105 @@
+// Copyright (c) 2017 Quenza Inc. All rights reserved.
+//
+// This file is part of the Cryptox project.
+//
+// Use of this source code is governed by a private license
+// that can be found in the LICENSE file. Content can not be 
+// copied and/or distributed without the express of the author.
+//
+
+// File flags							Debug build, patched build, pre-release, private build or special build
+// OS									Suitable for Win16, Win32, WinNT/2000 or Win32s 
+// File type							Executable, DLL, device driver, font, VXD or static library
+// File sub-type (depending on type)	Raster font, vector font, TrueType font, serial driver, network driver, printer driver etc etc
+
+#define VS_ZERO				0x00000000L
+
+#define VS_FILEFLAGSMASK	0x0000003fL
+#define VS_FILEOS			VOS_NT_WINDOWS32
+#define VS_FILESUBTYPE		VS_ZERO
+
+#if defined(TARGET_SHARED_LIBRARY)
+#define VS_FILETYPE			VFT_DLL
+#elif defined(TARGET_STATIC_LIBRARY)
+#define VS_FILETYPE			VFT_STATIC_LIB
+#else
+#define VS_FILETYPE			VFT_APP
+#endif
+
+#ifdef _DEBUG
+#define VS_FILEFLAGS		VS_FF_DEBUG
+#else
+#define VS_FILEFLAGS		VS_ZERO
+#endif
+
+#define VS_LANG_EN_US		0x0409
+#define VS_LANG_EN_UK		0x0809
+#define VS_CHARSET_ASCII	0
+#define VS_CHARSET_UNICODE	1200
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE resource.
+//
+#define APSTUDIO_READONLY_SYMBOLS
+#include "winres.h"
+#undef APSTUDIO_READONLY_SYMBOLS
+
+/////////////////////////////////////////////////////////////////////////////
+// English (United States) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEXTINCLUDE
+//
+
+#ifdef APSTUDIO_INVOKED
+
+1 TEXTINCLUDE 
+BEGIN
+	"#include ""winres.h""\r\n"
+	"\0"
+END
+
+#endif // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Version
+//
+
+VS_VERSION_INFO VERSIONINFO
+	FILEVERSION	@PRODUCT_VERSION_MAJOR@,@PRODUCT_VERSION_MINOR@,@PRODUCT_VERSION_PATCH@,@PRODUCT_VERSION_LOCAL@
+	PRODUCTVERSION	@PRODUCT_VERSION_MAJOR@,@PRODUCT_VERSION_MINOR@,@PRODUCT_VERSION_PATCH@,@PRODUCT_VERSION_LOCAL@
+	FILEFLAGSMASK	VS_FILEFLAGSMASK
+	FILEFLAGS		VS_FILEFLAGS
+	FILEOS			VS_FILEOS
+	FILETYPE		VS_FILETYPE
+	FILESUBTYPE	VS_FILESUBTYPE
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "040904b0"
+        BEGIN
+            VALUE "CompanyName",		"@PRODUCT_BRAND_AUTHOR@"
+            VALUE "FileDescription",	"@PRODUCT_BRAND_NAME@ @PRODUCT_DESCRIPTION@"
+            VALUE "FileVersion",		"@PRODUCT_VERSION_MAJOR@.@PRODUCT_VERSION_MINOR@.@PRODUCT_VERSION_PATCH@.@PRODUCT_VERSION_LOCAL@"
+            VALUE "InternalName",		"@PRODUCT_ORIGINAL_NAME@.exe"
+            VALUE "LegalCopyright",		"@PRODUCT_COPYRIGHT@"
+            VALUE "OriginalFilename",	"@PRODUCT_ORIGINAL_NAME@.exe"
+            VALUE "ProductName",		"@PRODUCT_BRAND_NAME@"
+            VALUE "ProductVersion",		"@PRODUCT_VERSION_MAJOR@.@PRODUCT_VERSION_MINOR@.@PRODUCT_VERSION_PATCH@.@PRODUCT_VERSION_LOCAL@"
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", VS_LANG_EN_US, VS_CHARSET_UNICODE
+    END
+END
+
+#endif
+/////////////////////////////////////////////////////////////////////////////
