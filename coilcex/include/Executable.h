@@ -6,6 +6,9 @@
 // that can be found in the LICENSE file. Content can not be 
 // copied and/or distributed without the express of the author.
 
+#pragma once
+
+#include "Exportable.h"
 #include "Image.h"
 
 #include <string>
@@ -13,7 +16,7 @@
 namespace CryExe
 {
 
-class InvalidCexFormat : public std::runtime_error
+class COILCEXAPI InvalidCexFormat
 {
 };
 

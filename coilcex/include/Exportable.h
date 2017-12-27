@@ -6,17 +6,14 @@
 // that can be found in the LICENSE file. Content can not be 
 // copied and/or distributed without the express of the author.
 
-#include "Executable.h"
+#pragma once
 
-#include <iostream>
-
-void someFunc()
-{
-	CryExe::Executable exe{ "testfile.cex" };
-	
-	if (exe.IsOpen()) {
-		std::cout << "File is open" << std::endl;
-	}
-
-	exe.Close();
-}
+#ifdef _WIN32
+# if defined(COILCEX_EXPORTS) || defined(CoilCEX_EXPORTS)
+#  define COILCEXAPI   __declspec(dllexport)
+# else
+#  define COILCEXAPI   __declspec(dllimport)
+# endif
+#else
+# define COILCEXAPI
+#endif

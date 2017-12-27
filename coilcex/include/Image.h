@@ -6,14 +6,16 @@
 // that can be found in the LICENSE file. Content can not be 
 // copied and/or distributed without the express of the author.
 
-#include "cex.h"
+#pragma once
+
+#include "Exportable.h"
 
 #include <string>
 
 namespace CryExe
 {
 
-enum class FileMode
+enum class COILCEXAPI FileMode
 {
 	FM_OPEN,		// Open the image file if it exits, otherwise throw
 	FM_OPEN_RO,		// Open in readonly mode and only if the file exists

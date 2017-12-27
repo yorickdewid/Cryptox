@@ -9,27 +9,12 @@
 #ifndef COILCEX_H_
 #define COILCEX_H_
 
-#if defined(_MSC_VER)
 #pragma once
-#endif
-
-#ifdef _WIN32
-# if defined(COILCEX_EXPORTS) || defined(CoilCEX_EXPORTS)
-#  define COILCEXAPI   __declspec(dllexport)
-# else
-#  define COILCEXAPI   __declspec(dllimport)
-# endif
-#else
-# define COILCEXAPI
-#endif
 
 #define COILCEXAPIVER	090
 
-namespace CryExe
-{
-
-class COILCEXAPI Executable;
-
-} // namespace CryExe
+// Include class definitions
+#include "Image.h"
+#include "Executable.h"
 
 #endif // COILCEX_H_
