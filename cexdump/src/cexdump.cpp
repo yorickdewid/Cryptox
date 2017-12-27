@@ -7,6 +7,7 @@
 // copied and/or distributed without the express of the author.
 
 #include <cry/config.h>
+#include <cry/ProgramOptions.h>
 
 #include <boost/program_options.hpp>
 #include <boost/algorithm/string.hpp>
@@ -15,12 +16,6 @@
 
 #include "cex.h"
 #include "HeaderDump.h"
-
-#if WIN32
-#define COMMAND_LINE_DELIMITER "/"
-#else
-#define COMMAND_LINE_DELIMITER "-"
-#endif // WIN32
 
 namespace po = boost::program_options;
 
@@ -68,10 +63,7 @@ int main(int argc, const char *argv[])
 		po::store(po::command_line_parser(argc, argv)
 				  .options(all_ops)
 				  .positional(p)
-				  .style(po::command_line_style::default_style
-				  | po::command_line_style::case_insensitive
-				  | po::command_line_style::allow_slash_for_short
-				  | po::command_line_style::allow_long_disguise)
+				  .CRY_PROGOPT_STYLE(po)
 				  .run(), vm, true);
 
 		// Print usage whenever there is an error or the help option is requested. The help
@@ -83,7 +75,7 @@ int main(int argc, const char *argv[])
 			ss << desc;
 
 			std::string helpMsg = ss.str();
-			boost::algorithm::replace_all(helpMsg, "--", COMMAND_LINE_DELIMITER);
+			boost::algorithm::replace_all(helpMsg, "--", CRY_CLI_DELIMITER);
 			std::cout << helpMsg << std::endl;
 		};
 

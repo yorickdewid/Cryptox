@@ -34,6 +34,9 @@ file(GLOB ${PROJECT_NAME}_rel ${CMAKE_CURRENT_SOURCE_DIR}/*.rc ${CMAKE_CURRENT_S
 include_directories(${${PROJECT_NAME}_INCLUDE})
 include_directories(${CMAKE_CURRENT_BINARY_DIR}/include)
 
+# Include common headers in every project
+include_directories(${CommonCore_INCLUDE_DIRS})
+
 # On Windows include self generated resource files
 if(WIN32)
 	file(GLOB ${PROJECT_NAME}_res ${CMAKE_CURRENT_BINARY_DIR}/res/*.rc)
