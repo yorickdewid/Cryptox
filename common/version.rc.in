@@ -26,10 +26,10 @@
 #define VS_FILETYPE			VFT_APP
 #endif
 
-#ifdef _DEBUG
-#define VS_FILEFLAGS		VS_FF_DEBUG
-#else
+#ifdef NDEBUG
 #define VS_FILEFLAGS		VS_ZERO
+#else
+#define VS_FILEFLAGS		VS_FF_DEBUG
 #endif
 
 #define VS_LANG_EN_US		0x0409
