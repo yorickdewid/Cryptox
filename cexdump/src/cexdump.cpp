@@ -16,8 +16,6 @@
 #include "cex.h"
 #include "HeaderDump.h"
 
-#define PROGRAM_DESC PRODUCT_BRAND_NAME " " PROGRAM_DESCRIPTION "\n"
-
 #if WIN32
 #define COMMAND_LINE_DELIMITER "/"
 #else
@@ -35,13 +33,20 @@ int main(int argc, const char *argv[])
 {
 	try {
 		// Generic options
-		po::options_description desc{ PROGRAM_DESC PRODUCT_COPYRIGHT "\n\n" PROGRAM_ORIGINAL_NAME ": [OPTIONS] FILE ...\n\nOptions" };
+		po::options_description desc{ PROGRAM_UTIL_HEADER "\n\n" PROGRAM_ORIGINAL_NAME ": [OPTIONS] FILE ...\n\nOptions" };
 		desc.add_options()
 			("help", "Show help")
 			("r", "Platform execution order")
 			("h", "Display the CEX image header")
+			("p", "Display the program header")
 			("s", "Display the sections' header")
-			("m", "Display the program symbol table");
+			("v", "Print version information and exit");
+		//("m", "Display the symbol table")
+		//("n", "Display the core notes (if present)")
+		//("t", "Display the abstract source tree")
+		//("o", "Display protection directory")
+		//("e", "Export resources (if present)")
+		//("x", "Dump native code segments as bytes")
 
 		// Positional arguments
 		po::options_description hidden;
@@ -58,6 +63,7 @@ int main(int argc, const char *argv[])
 		po::positional_options_description p;
 		p.add("file", -1);
 
+		// Set options for argument parser
 		po::variables_map vm;
 		po::store(po::command_line_parser(argc, argv)
 				  .options(all_ops)
@@ -81,12 +87,22 @@ int main(int argc, const char *argv[])
 			std::cout << helpMsg << std::endl;
 		};
 
+		// Ouput program and project version
+		if (vm.count("v")) {
+			std::cout << PROGRAM_UTIL_HEADER << std::endl;
+			return 0;
+		}
+
 		// Must have one and only one input file
 		if (vm.count("file")) {
 			CryExe::Executable exec = ProcessInput(vm["file"].as<std::string>());
 
 			if (vm.count("h")) {
-				std::cout << "dump headers" << std::endl;
+				std::cout << "dump image headers" << std::endl;
+				HeaderDump::Parse(exec);
+			}
+			if (vm.count("p")) {
+				std::cout << "dump program headers" << std::endl;
 				HeaderDump::Parse(exec);
 			}
 			else if (vm.count("s")) {
@@ -96,9 +112,6 @@ int main(int argc, const char *argv[])
 			else if (vm.count("r")) {
 				std::cout << "run dry mode" << std::endl;
 				//RunnerDriver::Run(exec).DumpPlan();
-			}
-			else if (vm.count("m")) {
-				//TODO
 			}
 			// Select one option for the input file
 			else {
