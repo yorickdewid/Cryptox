@@ -10,7 +10,7 @@
 
 #include <memory>
 
-namespace CmnCore
+namespace Cry
 {
 
 template<typename _ToTy, typename _FromTy>
@@ -25,4 +25,4 @@ constexpr _Ty1& side_cast(_Ty2 *_opaquePtr) noexcept
 	return static_cast<_Ty1&>(*static_cast<_Ty1 *>(const_cast<typename std::remove_const<_Ty2>::type*>(_opaquePtr)));
 }
 
-} // namespace CmnCore
+} // namespace Cry

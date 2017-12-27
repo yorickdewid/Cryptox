@@ -8,7 +8,7 @@
 
 #pragma once
 
-namespace CmnCore
+namespace Cry
 {
 
 struct NonCopyable
@@ -20,4 +20,4 @@ struct NonCopyable
 	NonCopyable& operator=(NonCopyable&&) = delete;
 };
 
-} // namespace CmnCore
+} // namespace Cry

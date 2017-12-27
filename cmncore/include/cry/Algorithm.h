@@ -8,7 +8,7 @@
 
 #pragma once
 
-namespace CmnCore
+namespace Cry
 {
 namespace Algorithm
 {
@@ -24,4 +24,4 @@ void OnMatch(_InputIt first, _InputIt last, _UnaryPredicate p, _UnaryCallback c)
 }
 
 } // namespace Except
-} // namespace CmnCore
+} // namespace Cry

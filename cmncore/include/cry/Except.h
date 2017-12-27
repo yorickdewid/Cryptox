@@ -10,7 +10,7 @@
 
 #include <stdexcept>
 
-namespace CmnCore
+namespace Cry
 {
 namespace Except
 {
@@ -73,4 +73,4 @@ public:
 };
 
 } // namespace Except
-} // namespace CmnCore
+} // namespace Cry
