@@ -1,12 +1,27 @@
+// Copyright (c) 2017 Quenza Inc. All rights reserved.
+//
+// This file is part of the Cryptox project.
+//
+// Use of this source code is governed by a private license
+// that can be found in the LICENSE file. Content can not be 
+// copied and/or distributed without the express of the author.
+
 #include "pfbase.h"
+
+#include <cry/config.h>
 
 #include <boost/filesystem.hpp>
 #include <boost/program_options.hpp>
 
 #include <iostream>
 
-#define PROGRAM_DESC "Cryptox Project Controller and Upgrader\n"
-#define PROGRAM_COPY "Copyright (C) 2017 Quenza Inc. All rights reserved.\n"
+#define PROGRAM_DESC PRODUCT_BRAND_NAME " " PROGRAM_DESCRIPTION "\n"
+
+#if WIN32
+#define COMMAND_LINE_DELIMITER "/"
+#else
+#define COMMAND_LINE_DELIMITER "-"
+#endif // WIN32
 
 namespace pb = ProjectBase;
 
@@ -69,7 +84,7 @@ int main(int argc, const char *argv[])
 
 	try
 	{
-		po::options_description desc{ PROGRAM_DESC PROGRAM_COPY "\nProjectTest: [FILE]\n\nOptions" };
+		po::options_description desc{ PROGRAM_DESC PRODUCT_COPYRIGHT "\n\n" PROGRAM_ORIGINAL_NAME ": [OPTIONS] FILE ...\n\nOptions" };
 		desc.add_options()
 			("help", "Help screen")
 			("upgrade", po::value<int>(), "Upgrade project to version")
@@ -81,10 +96,27 @@ int main(int argc, const char *argv[])
 		po::command_line_parser parser{ argc, argv };
 		parser.options(desc)
 			.positional(pd)
+			.style(po::command_line_style::default_style
+				   | po::command_line_style::case_insensitive
+				   | po::command_line_style::allow_slash_for_short
+				   | po::command_line_style::allow_long_disguise)
 			.allow_unregistered();
 
 		po::variables_map vm;
 		po::store(parser.run(), vm);
+
+		// Print usage whenever there is an error or the help option is requested. The help
+		// shows all sections except for the positional arugments. Based on the system defaults
+		// the commandline arguments are displayed in system style.
+		auto usage = [=]
+		{
+			std::stringstream ss;
+			ss << desc;
+
+			std::string helpMsg = ss.str();
+			boost::algorithm::replace_all(helpMsg, "--", COMMAND_LINE_DELIMITER);
+			std::cout << helpMsg << std::endl;
+		};
 
 		if (vm.count("help")) {
 			std::cout << desc << std::endl;
@@ -101,12 +133,14 @@ int main(int argc, const char *argv[])
 			PrintInfo(vm["input-file"].as<std::string>());
 		}
 		else {
-			std::cout << desc << std::endl;
+			usage();
+			return 1;
 		}
 	}
-	catch (const boost::program_options::error &ex)
+	catch (const boost::program_options::error &e)
 	{
-		std::cerr << ex.what() << '\n';
+		std::cerr << e.what() << std::endl;
+		return 1;
 	}
 
 	return 0;

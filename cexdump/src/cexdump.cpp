@@ -13,6 +13,9 @@
 
 #include <iostream>
 
+#include "cex.h"
+#include "HeaderDump.h"
+
 #define PROGRAM_DESC PRODUCT_BRAND_NAME " " PROGRAM_DESCRIPTION "\n"
 
 #if WIN32
@@ -23,6 +26,11 @@
 
 namespace po = boost::program_options;
 
+CryExe::Executable ProcessInput(const std::string& name)
+{
+	return CryExe::Executable{ name, CryExe::FileMode::FM_OPEN };
+}
+
 int main(int argc, const char *argv[])
 {
 	try {
@@ -30,14 +38,15 @@ int main(int argc, const char *argv[])
 		po::options_description desc{ PROGRAM_DESC PRODUCT_COPYRIGHT "\n\n" PROGRAM_ORIGINAL_NAME ": [OPTIONS] FILE ...\n\nOptions" };
 		desc.add_options()
 			("help", "Show help")
-			("a", "Print all sections")
-			("r", "Show platform runner algoritm")
+			("r", "Platform execution order")
 			("h", "Display the CEX image header")
-			("s", "Display the sections' header");
+			("s", "Display the sections' header")
+			("m", "Display the program symbol table");
 
 		// Positional arguments
 		po::options_description hidden;
 		hidden.add_options()
+			("?", "Show help")
 			("file", po::value<std::string>()->required(), "Source files");
 
 		// Combine all options
@@ -72,8 +81,30 @@ int main(int argc, const char *argv[])
 			std::cout << helpMsg << std::endl;
 		};
 
+		// Must have one and only one input file
 		if (vm.count("file")) {
-			std::cout << "open " << vm["file"].as<std::string>() << std::endl;
+			CryExe::Executable exec = ProcessInput(vm["file"].as<std::string>());
+
+			if (vm.count("h")) {
+				std::cout << "dump headers" << std::endl;
+				HeaderDump::Parse(exec);
+			}
+			else if (vm.count("s")) {
+				std::cout << "dump sections" << std::endl;
+				//SectionDump::Parse(exec);
+			}
+			else if (vm.count("r")) {
+				std::cout << "run dry mode" << std::endl;
+				//RunnerDriver::Run(exec).DumpPlan();
+			}
+			else if (vm.count("m")) {
+				//TODO
+			}
+			// Select one option for the input file
+			else {
+				usage();
+				return 1;
+			}
 		}
 		// No other option was touched, show help and exit with error code
 		else {

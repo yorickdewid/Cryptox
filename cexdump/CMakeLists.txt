@@ -20,7 +20,6 @@ enable_unsecure_crt()
 
 # External includes
 include_directories(${CoilCEX_INCLUDE_DIRS})
-include_directories(${CommonCore_INCLUDE_DIRS})
 
 add_executable(${PROJECT_NAME}
 	${${PROJECT_NAME}_src}
