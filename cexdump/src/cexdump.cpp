@@ -19,6 +19,8 @@
 
 namespace po = boost::program_options;
 
+// Process input string as executable file, if the input file does not
+// parse as a valid CEX image, an excetion is thrown
 CryExe::Executable ProcessInput(const std::string& name)
 {
 	return CryExe::Executable{ name, CryExe::FileMode::FM_OPEN };

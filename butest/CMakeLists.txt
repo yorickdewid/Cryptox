@@ -17,9 +17,13 @@ include(ProjectPrep)
 
 # External includes
 include_directories(${PfBase_INCLUDE_DIRS})
+include_directories(${CoilCEX_INCLUDE_DIRS})
 
 # Allow testing on this target
 enable_testing()
+
+# Add it to test execution TODO
+add_test("Cryptox Test" "boost-test")
 
 add_executable(${PROJECT_NAME}
 	${${PROJECT_NAME}_src}

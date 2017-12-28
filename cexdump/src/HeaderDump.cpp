@@ -18,7 +18,7 @@ void HeaderDump::ParseImageHeader(CryExe::Executable& exec)
 		<< "  Type:                      CET_EXECUTABLE (Executable file)" << '\n'
 		<< "  Start of program headers:  X (bytes into file)" << '\n'
 		<< "  Flags:                     0x01" << '\n'
-		<< "  Size of this header:       X (bytes)"
+		<< "  Size of this header:       " << 0 << " (bytes)"
 		<< std::endl;
 }
 

@@ -1,9 +1,17 @@
-#include "pfbase.h"
+// Copyright (c) 2017 Quenza Inc. All rights reserved.
+//
+// This file is part of the Cryptox project.
+//
+// Use of this source code is governed by a private license
+// that can be found in the LICENSE file. Content can not be 
+// copied and/or distributed without the express of the author.
 
-#define BOOST_TEST_MODULE Project
+#include "pfbase.h"
 
 #include <boost/test/unit_test.hpp>
 #include <boost/filesystem.hpp>
+
+BOOST_AUTO_TEST_SUITE(Project)
 
 // Custom deleter in order to remove file after
 // project has gone out of scope
@@ -125,3 +133,4 @@ BOOST_AUTO_TEST_CASE(AddKeysToStore)
 	BOOST_REQUIRE(p->GetStore<ProjectBase::MaterialStore>("mat2")->Size() == 0);
 }
 
+BOOST_AUTO_TEST_SUITE_END()
