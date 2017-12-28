@@ -90,19 +90,14 @@ int main(int argc, const char *argv[])
 			CryExe::Executable exec = ProcessInput(vm["file"].as<std::string>());
 
 			if (vm.count("h")) {
-				std::cout << "dump image headers" << std::endl;
-				HeaderDump::Parse(exec);
-			}
-			if (vm.count("p")) {
-				std::cout << "dump program headers" << std::endl;
-				HeaderDump::Parse(exec);
+				HeaderDump::ParseImageHeader(exec);
+			} else if (vm.count("p")) {
+				HeaderDump::ParseProgramHeader(exec);
 			}
 			else if (vm.count("s")) {
-				std::cout << "dump sections" << std::endl;
 				//SectionDump::Parse(exec);
 			}
 			else if (vm.count("r")) {
-				std::cout << "run dry mode" << std::endl;
 				//RunnerDriver::Run(exec).DumpPlan();
 			}
 			// Select one option for the input file
@@ -117,6 +112,7 @@ int main(int argc, const char *argv[])
 			return 1;
 		}
 	}
+	// Commandline parse whoops, report back to user
 	catch (const std::exception& e) {
 		std::cerr << e.what() << std::endl;
 		return 1;

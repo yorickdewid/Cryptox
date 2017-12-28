@@ -13,6 +13,7 @@
 namespace HeaderDump
 {
 
-void Parse(CryExe::Executable& exec);
+void ParseImageHeader(CryExe::Executable& exec);
+void ParseProgramHeader(CryExe::Executable& exec);
 
 } // namespace HeaderDump

@@ -102,6 +102,9 @@ struct CexProgramHeader
 	// reproducibility flag is set the image header the timestamp must be zero.
 	uint64_t timestampDate;
 
+	uint8_t subsystemVersion;
+	uint8_t subsystemTarget;
+
 	uint32_t sizeOfCode;
 	uint32_t sizeOfStack;
 
@@ -110,9 +113,6 @@ struct CexProgramHeader
 
 	uint32_t offsetToSectionTable;
 	uint32_t offsetToDirectoryTable;
-
-	uint8_t subsystemVersion;
-	uint8_t subsystemTarget;
 
 	ProgramCharacteristic characteristics;
 
