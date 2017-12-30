@@ -15,19 +15,18 @@ std::string CryExe::Image::GetBasenameFromPath(const std::string& path)
 	return boost::filesystem::path{ path }.filename().string();
 }
 
-void CryExe::Image::Open()
+CryExe::FileModeRaw CryExe::Image::OpenWithMode(CryExe::FileMode fm)
 {
-	if (IsOpen()) { return; }
+	switch (fm) {
+	case CryExe::FileMode::FM_OPEN:
+		return "r+b";
+	case CryExe::FileMode::FM_OPEN_RO:
+		return "rb";
+	case CryExe::FileMode::FM_NEW:
+		return "wb";
+	default:
+		break;
+	}
 
-	//TODO
-}
-
-void CryExe::Image::Close()
-{
-
-}
-
-void CryExe::Image::OpenWithMode(CryExe::FileMode fm)
-{
-
+	return "rb";
 }

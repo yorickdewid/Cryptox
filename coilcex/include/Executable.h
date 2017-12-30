@@ -25,6 +25,8 @@ class COILCEXAPI Executable : public Image
 public:
 	Executable(const std::string& path, FileMode fm = FileMode::FM_OPEN);
 
+	virtual void Open(FileMode mode) override;
+
 private:
 	void ValidateImageFormat();
 	void CreateNewImage();

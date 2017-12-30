@@ -20,29 +20,48 @@ enum class COILCEXAPI FileMode
 {
 	FM_OPEN,		// Open the image file if it exits, otherwise throw
 	FM_OPEN_RO,		// Open in readonly mode and only if the file exists
-	FM_OPEN_COMMIT,	// Open if the file exists and otherwise create a new file
+	FM_NEW,			// Open new file, discard any old files with the same name
 };
+
+using FileModeRaw = char *;
 
 class COILCEXAPI Image
 {
-	const std::string& m_filename;
-	OSAdapter m_fp;
+	const std::string m_filename;
 
 	static std::string GetBasenameFromPath(const std::string& path);
 
+protected:
+	OSAdapter m_file;
+
 public:
-	Image(const std::string& filename, FileMode fm = FileMode::FM_OPEN)
+	Image(const std::string& filename)
 		: m_filename{ GetBasenameFromPath(filename) }
 	{
 	}
 
-	inline bool IsOpen() const { return m_fp.IsOpen(); } //TODO
-	
-	void Open();
-	void Close();
+	// Return filename
+	inline std::string Name() const { return m_filename; }
+
+	// Check if the file is open
+	virtual bool IsOpen() const { return m_file.IsOpen(); }
+
+	// Open file, the internals will take care of already open files
+	virtual void Open(FileMode mode)
+	{
+		if (IsOpen()) { return; }
+
+		m_file.Open(m_filename, OpenWithMode(mode));
+	};
+
+	// Close file without explicit flush
+	virtual void Close() { m_file.Close(); }
+
+	// Flush buffer contents to disk
+	virtual void Flush() { m_file.Flush(); }
 
 protected:
-	void OpenWithMode(FileMode fm);
+	static FileModeRaw OpenWithMode(FileMode fm);
 };
 
 } // namespace CryExecutable

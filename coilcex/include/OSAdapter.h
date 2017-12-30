@@ -17,15 +17,32 @@ namespace CryExe
 
 class COILCEXAPI OSAdapter
 {
+	std::FILE *m_fpImage = nullptr;
+
 public:
-	OSAdapter()
+	OSAdapter() = default;
+	~OSAdapter();
+
+	bool IsOpen() const { return m_fpImage; }
+	void Open(const std::string& file, const char mode[]);
+	void Close();
+	void Flush();
+
+	template<typename _Ty>
+	inline void Read(_Ty buffer, size_t size = sizeof(_Ty), size_t count = 1)
 	{
+		ReadRaw(static_cast<void *>(std::addressof(buffer)), size, count);
 	}
 
-	virtual bool IsOpen() const { return true; }
+	template<typename _Ty>
+	inline void Write(_Ty buffer, size_t size = sizeof(_Ty), size_t count = 1)
+	{
+		WriteRaw(static_cast<const void *>(std::addressof(buffer)), size, count);
+	}
 
-protected:
-	//void OpenWithMode(FileMode fm);
+private:
+	void ReadRaw(void *buffer, size_t size, size_t count);
+	void WriteRaw(const void *buffer, size_t size, size_t count);
 };
 
 } // namespace CryExecutable

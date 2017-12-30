@@ -16,25 +16,39 @@
 #define SETSTRUCTSZ(s,f) \
 	s.structSize = sizeof(f);
 
+#define MEMZERO(b,s) \
+	memset(static_cast<void*>(&b), '\0', s);
+
+#ifdef _WIN32
+# define MEMASSIGN(d,u,s) \
+	memcpy_s(d, sizeof(d), u, s);
+#else
+# define MEMASSIGN(d,u,s) \
+	memcpy(d, u, s);
+#endif
+
 std::chrono::milliseconds ChronoTimestamp()
 {
 	using namespace std::chrono;
-	
+
 	return duration_cast<milliseconds>(system_clock::now().time_since_epoch());
 }
 
 CryExe::Executable::Executable(const std::string& path, FileMode fm)
-	: Image{ path, fm }
+	: Image{ path }
 {
-	// Open if required
-	OpenWithMode(fm);
+	this->Open(fm);
+}
 
-	//If image was opened with previous action, validate CEX structure
-	if (IsOpen()) {
-		ValidateImageFormat();
+void CryExe::Executable::Open(FileMode mode)
+{
+	Image::Open(mode);
+
+	if (mode == FileMode::FM_NEW) {
+		CreateNewImage();
 	}
 	else {
-		CreateNewImage();
+		ValidateImageFormat();
 	}
 }
 
@@ -45,15 +59,14 @@ void CryExe::Executable::ValidateImageFormat()
 
 void CryExe::Executable::CreateNewImage()
 {
-	FILE *fpImage = nullptr;
-
-	fopen_s(&fpImage, "kaas.cex", "w+b");
-	assert(fpImage);
-
 	Structure::CexFileFormat imageFile;
-	std::memset(static_cast<void*>(&imageFile), '\0', sizeof(Structure::CexFileFormat));
-	memcpy_s(imageFile.imageHeader.identArray, sizeof(imageFile.imageHeader.identArray), Structure::identity, sizeof(Structure::identity));
-	
+
+	assert(m_file.IsOpen());
+
+	MEMZERO(imageFile, sizeof(Structure::CexFileFormat));
+
+	MEMASSIGN(imageFile.imageHeader.identArray, Structure::identity, sizeof(Structure::identity));
+
 	// Default image header
 	imageFile.imageHeader.versionMajor = IMAGE_VERSION_MAJOR;
 	imageFile.imageHeader.versionMajor = IMAGE_VERSION_MINOR;
@@ -61,7 +74,7 @@ void CryExe::Executable::CreateNewImage()
 	imageFile.imageHeader.flagsOptional = Structure::ImageFlags::CCH_NONE;
 	imageFile.imageHeader.offsetToProgram = 0;
 	SETSTRUCTSZ(imageFile.imageHeader, Structure::CexImageHeader);
-	
+
 	// Default program header
 	imageFile.programHeader.magic = PROGRAM_MAGIC;
 	imageFile.programHeader.timestampDate = ChronoTimestamp().count();
@@ -75,9 +88,10 @@ void CryExe::Executable::CreateNewImage()
 	imageFile.programHeader.offsetToDirectoryTable = 0;
 	imageFile.programHeader.characteristics = Structure::ProgramCharacteristic::PC_NONE;
 	SETSTRUCTSZ(imageFile.programHeader, Structure::CexProgramHeader);
-	
+
 	// Commit to disk
-	std::fwrite(static_cast<const void*>(&imageFile), sizeof(Structure::CexFileFormat), 1, fpImage);
+	//std::fwrite(static_cast<const void*>(&imageFile), sizeof(Structure::CexFileFormat), 1, fpImage);
+	m_file.Write(imageFile);
 
 #if 0
 	Structure::CexNoteSection node;
@@ -89,5 +103,6 @@ void CryExe::Executable::CreateNewImage()
 	std::fwrite(static_cast<const void*>(&node), sizeof(Structure::CexNoteSection), 1, fpImage);
 #endif
 
-	std::fclose(fpImage);
+	//std::fclose(fpImage);
+	m_file.Close();
 }
