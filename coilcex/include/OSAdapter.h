@@ -8,4 +8,24 @@
 
 #pragma once
 
-#define COILCEXAPI
+#include "Exportable.h"
+
+#include <string>
+
+namespace CryExe
+{
+
+class COILCEXAPI OSAdapter
+{
+public:
+	OSAdapter()
+	{
+	}
+
+	virtual bool IsOpen() const { return true; }
+
+protected:
+	//void OpenWithMode(FileMode fm);
+};
+
+} // namespace CryExecutable

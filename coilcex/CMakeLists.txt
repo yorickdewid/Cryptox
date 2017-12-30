@@ -15,7 +15,7 @@ project_description(${PROJECT_NAME} "Executable Format")
 # Load project defaults
 include(ProjectPrep)
 
-add_library(${PROJECT_NAME} SHARED
+add_library(${PROJECT_NAME} STATIC
 	${${PROJECT_NAME}_src}
 	${${PROJECT_NAME}_h}
 	${${PROJECT_NAME}_rel}

@@ -9,6 +9,7 @@
 #pragma once
 
 #include "Exportable.h"
+#include "OSAdapter.h"
 
 #include <string>
 
@@ -25,7 +26,7 @@ enum class COILCEXAPI FileMode
 class COILCEXAPI Image
 {
 	const std::string& m_filename;
-	FILE *m_fpImage = nullptr;
+	OSAdapter m_fp;
 
 	static std::string GetBasenameFromPath(const std::string& path);
 
@@ -35,7 +36,7 @@ public:
 	{
 	}
 
-	inline bool IsOpen() const { return m_fpImage; } //TODO
+	inline bool IsOpen() const { return m_fp.IsOpen(); } //TODO
 	
 	void Open();
 	void Close();
