@@ -31,8 +31,30 @@ BOOST_FIXTURE_TEST_SUITE(CEX, CEXEnvironment)
 
 BOOST_AUTO_TEST_CASE(WriteToCexFile)
 {
-	CryExe::Executable exec{ cexTestFileName , CryExe::FileMode::FM_OPEN_COMMIT };
-	//BOOST_CHECK(exec.IsOpen());
+	CryExe::Executable exec{ cexTestFileName , CryExe::FileMode::FM_NEW };
+	BOOST_CHECK(exec.IsOpen());
+
+	// Flush to disk, FWIW
+	exec.Flush();
+
+	// Check on readonly sealed image
+	const CryExe::Executable& execSeal = CryExe::Executable::Seal(exec);
+	BOOST_REQUIRE(execSeal.Size() > 0);
+	BOOST_REQUIRE_EQUAL(execSeal.Name(), cexTestFileName);
+}
+
+BOOST_AUTO_TEST_CASE(ReadToCexFile)
+{
+	{
+		CryExe::Executable exec{ cexTestFileName , CryExe::FileMode::FM_NEW };
+	}
+
+	{
+		CryExe::Executable exec{ cexTestFileName , CryExe::FileMode::FM_OPEN };
+
+		BOOST_REQUIRE_EQUAL(CryExe::Meta::ImageVersion(exec), "");
+		BOOST_REQUIRE_EQUAL(CryExe::Meta::ProgramVersion(exec), "");
+	}
 }
 
 BOOST_AUTO_TEST_SUITE_END()

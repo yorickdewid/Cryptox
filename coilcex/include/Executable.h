@@ -28,6 +28,7 @@ public:
 	Executable(const std::string& path, FileMode fm = FileMode::FM_OPEN);
 	~Executable();
 
+	// Check if the image is sealed and thus readonly
 	bool IsSealed() const;
 
 	void Open(FileMode mode) override;
@@ -48,6 +49,7 @@ private:
 	void ValidateImageFormat();
 	void CreateNewImage();
 	void CalculateInternalOffsets();
+	void CalculateImageSize();
 };
 
 } // namespace CryExecutable

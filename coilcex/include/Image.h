@@ -42,6 +42,9 @@ public:
 
 	// Return filename
 	inline std::string Name() const { return m_filename; }
+	
+	// Return file size
+	size_t Size() const;
 
 	// Check if the file is open
 	virtual bool IsOpen() const { return m_file.IsOpen(); }
