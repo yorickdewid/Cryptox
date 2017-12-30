@@ -6,15 +6,23 @@
 // that can be found in the LICENSE file. Content can not be 
 // copied and/or distributed without the express of the author.
 
-#ifndef COILCEX_H_
-#define COILCEX_H_
-
 #pragma once
 
-#define COILCEXAPIVER	090
-
-// Include class definitions
+#include "Exportable.h"
 #include "Executable.h"
-#include "Meta.h"
 
-#endif // COILCEX_H_
+#include <string>
+
+namespace CryExe
+{
+namespace Meta
+{
+
+// Return the image version as string
+std::string ImageVersion(Executable& exec);
+
+// Return the program version as string
+std::string ProgramVersion(Executable& exec);
+
+} // namespace Meta
+} // namespace CryExe

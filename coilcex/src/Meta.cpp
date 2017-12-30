@@ -6,15 +6,14 @@
 // that can be found in the LICENSE file. Content can not be 
 // copied and/or distributed without the express of the author.
 
-#ifndef COILCEX_H_
-#define COILCEX_H_
-
-#pragma once
-
-#define COILCEXAPIVER	090
-
-// Include class definitions
-#include "Executable.h"
 #include "Meta.h"
 
-#endif // COILCEX_H_
+std::string CryExe::Meta::ImageVersion(Executable& exec)
+{
+	return "";
+}
+
+std::string CryExe::Meta::ProgramVersion(Executable& exec)
+{
+	return "";
+}
