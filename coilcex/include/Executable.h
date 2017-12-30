@@ -23,20 +23,11 @@ class COILCEXAPI InvalidCexFormat
 class COILCEXAPI Executable : public Image
 {
 public:
-	Executable(const std::string& path, FileMode fm = FileMode::FM_OPEN)
-		: Image{ path, fm }
-	{
-		// Open if required
-		OpenWithMode(fm);
-
-		// If image was opened with previous action, validate CEX structure
-		if (IsOpen()) {
-			ValidateImageFormat();
-		}
-	}
+	Executable(const std::string& path, FileMode fm = FileMode::FM_OPEN);
 
 private:
 	void ValidateImageFormat();
+	void CreateNewImage();
 };
 
 } // namespace CryExecutable

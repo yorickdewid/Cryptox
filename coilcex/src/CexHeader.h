@@ -10,10 +10,15 @@
 
 #pragma pack(push, 1)
 
+#define IMAGE_VERSION_MAJOR	0x0
+#define IMAGE_VERSION_MINOR	0x3
+
 #define PROGRAM_MAGIC		0xdead0007
 #define PROGRAM_SUBSYSTEM	0x4
 
 #define PROGRAM_SUBSYS_VERSION	0x40
+
+#define PROGRAM_DEFAULT_STACK_SZ	(1 << 20)
 
 #define PROGRAM_SUBSYS_TARGET_INDEP	0x00
 #define PROGRAM_SUBSYS_TARGET_WIN32	0x01
@@ -23,9 +28,14 @@
 #define PROGRAM_SUBSYS_TARGET_FBSD	0x10
 #define PROGRAM_SUBSYS_TARGET_SOLAR	0x20
 
+namespace CryExe
+{
+namespace Structure
+{
+
 constexpr const unsigned char identity[8] = { 'C','R','Y','E','X','0','3','\0' };
 
-enum class CexExecutableType : uint8_t
+enum class ExecutableType : uint8_t
 {
 	CET_NONE,
 	CET_RELOCATABLE,
@@ -34,7 +44,7 @@ enum class CexExecutableType : uint8_t
 	CET_STATIC,
 };
 
-enum class CexImageFlags : uint16_t
+enum class ImageFlags : uint16_t
 {
 	CCH_NONE = 1 << 0,
 	CCH_READ_ONLY = 1 << 1,
@@ -59,18 +69,18 @@ struct CexImageHeader
 	// The executable type what type of data this object contains.
 	// Based on the executable type specific headers or object sections
 	// may or may not be available.
-	CexExecutableType executableType;
+	ExecutableType executableType;
 
-	CexImageFlags flagsOptional;
+	ImageFlags flagsOptional;
 
 	uint32_t offsetToProgram;
-	
+
 	// Reserved fields are used to increase the change of natural page alignment
 	// without compiler extensions required. Reserved fields may be used later
 	// to extend the structure and therefore allow future options to be backwards
 	// compatible with known structure sizes.
-	uint8_t reserved;
-	uint8_t reserved;
+	uint8_t reserved_1;
+	uint8_t reserve_2d;
 
 	// Size of the current structure must be set to find altered versions in
 	// the future. The called must set the size via the sizeof() expression.
@@ -120,9 +130,9 @@ struct CexProgramHeader
 	// without compiler extensions required. Reserved fields may be used later
 	// to extend the structure and therefore allow future options to be backwards
 	// compatible with known structure sizes.
-	uint8_t reserved;
-	uint8_t reserved;
-	uint8_t reserved;
+	uint8_t reserved_1;
+	uint8_t reserved_2;
+	uint8_t reserved_3;
 
 	// Size of the current structure must be set to find altered versions in
 	// the future. The called must set the size via the sizeof() expression.
@@ -166,7 +176,7 @@ struct CexSection
 	// without compiler extensions required. Reserved fields may be used later
 	// to extend the structure and therefore allow future options to be backwards
 	// compatible with known structure sizes.
-	uint8_t reserved;
+	uint8_t reserved_1;
 
 	// Size of the current structure must be set to find altered versions in
 	// the future. The called must set the size via the sizeof() expression.
@@ -193,5 +203,8 @@ struct CexFileFormat
 
 static_assert(sizeof(CexImageHeader) == 20, "CexImageHeader must have constant number of bytes");
 static_assert(sizeof(CexProgramHeader) == 40, "CexProgramHeader must have constant number of bytes");
+
+} // namespace Structure
+} // namespace CryExe
 
 #pragma pack(pop)

@@ -25,6 +25,7 @@ enum class COILCEXAPI FileMode
 class COILCEXAPI Image
 {
 	const std::string& m_filename;
+	FILE *m_fpImage = nullptr;
 
 	static std::string GetBasenameFromPath(const std::string& path);
 
@@ -34,7 +35,7 @@ public:
 	{
 	}
 
-	inline bool IsOpen() const { return false; } //TODO
+	inline bool IsOpen() const { return m_fpImage; } //TODO
 	
 	void Open();
 	void Close();

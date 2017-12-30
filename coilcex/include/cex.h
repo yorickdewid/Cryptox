@@ -14,7 +14,7 @@
 #define COILCEXAPIVER	090
 
 // Include class definitions
-#include "Image.h"
-#include "Executable.h"
+#include <Image.h>
+#include <Executable.h>
 
 #endif // COILCEX_H_

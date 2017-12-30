@@ -44,6 +44,7 @@ set_target_properties(${PROJECT_NAME}
 
 target_link_libraries(${PROJECT_NAME}
 	PfBase
+	CoilCEX
 	${Boost_UNIT_TEST_FRAMEWORK_LIBRARY}
 	${Boost_LIBRARIES}
 )

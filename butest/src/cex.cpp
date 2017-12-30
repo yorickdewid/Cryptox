@@ -31,7 +31,8 @@ BOOST_FIXTURE_TEST_SUITE(CEX, CEXEnvironment)
 
 BOOST_AUTO_TEST_CASE(WriteToCexFile)
 {
-	//CryExe::Executable exec{ cexTestFileName , CryExe::FileMode::FM_OPEN_COMMIT };
+	CryExe::Executable exec{ cexTestFileName , CryExe::FileMode::FM_OPEN_COMMIT };
+	//BOOST_CHECK(exec.IsOpen());
 }
 
 BOOST_AUTO_TEST_SUITE_END()
