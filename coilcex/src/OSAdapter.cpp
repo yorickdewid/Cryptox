@@ -39,6 +39,11 @@ void CryExe::OSAdapter::Flush()
 	assert(std::fflush(m_fpImage) == 0);
 }
 
+void CryExe::OSAdapter::Rewind()
+{
+	std::rewind(m_fpImage);
+}
+
 void CryExe::OSAdapter::ReadRaw(void *buffer, size_t size, size_t count)
 {
 	if (!m_fpImage) { return; }

@@ -27,6 +27,7 @@ public:
 	void Open(const std::string& file, const char mode[]);
 	void Close();
 	void Flush();
+	void Rewind();
 
 	template<typename _Ty>
 	inline void Read(_Ty& buffer, size_t size = sizeof(_Ty), size_t count = 1)

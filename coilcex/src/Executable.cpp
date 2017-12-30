@@ -20,14 +20,16 @@
 	memset(static_cast<void*>(&b), '\0', s);
 
 #ifdef _WIN32
-# define MEMASSIGN(d,u,s) \
-	memcpy_s(d, sizeof(d), u, s);
+# define MEMASSIGN(d,i,u,s) \
+	memcpy_s(d, i, u, s);
 #else
-# define MEMASSIGN(d,u,s) \
+# define MEMASSIGN(d,i,u,s) \
 	memcpy(d, u, s);
 #endif
 
-std::chrono::milliseconds ChronoTimestamp()
+#define EXCEPT_INVAL_CEX "invalid CEX format"
+
+const std::chrono::milliseconds ChronoTimestamp()
 {
 	using namespace std::chrono;
 
@@ -40,16 +42,49 @@ CryExe::Executable::Executable(const std::string& path, FileMode fm)
 	this->Open(fm);
 }
 
+CryExe::Executable::~Executable()
+{
+	this->Close();
+
+	if (m_interalImageStructure) {
+		delete m_interalImageStructure;
+	}
+}
+
 void CryExe::Executable::Open(FileMode mode)
 {
+	// Let parent open the image
 	Image::Open(mode);
 
+	// Either create new image or open an existing one
 	if (mode == FileMode::FM_NEW) {
 		CreateNewImage();
 	}
 	else {
 		ValidateImageFormat();
 	}
+}
+
+void CryExe::Executable::Close()
+{
+
+	// Let parent close the image
+	Image::Close();
+}
+
+void CryExe::Executable::AddDirectory()
+{
+	//IsAllowedOnce();
+}
+
+void CryExe::Executable::AddSection()
+{
+	//IsAllowedOnce();
+}
+
+bool CryExe::Executable::IsSealed() const
+{
+	return false;
 }
 
 void CryExe::Executable::ValidateImageFormat()
@@ -65,8 +100,6 @@ void CryExe::Executable::ValidateImageFormat()
 	MEMZERO(tmpImageHeader, sizeof(Structure::CexImageHeader));
 	m_file.Read(tmpImageHeader);
 
-#define EXCEPT_INVAL_CEX "invalid CEX format"
-	
 	// If any of the preliminary checks fail, abort right away
 	if (memcmp(tmpImageHeader.identArray, Structure::identity, sizeof(Structure::identity))) {
 		throw std::runtime_error{ EXCEPT_INVAL_CEX };
@@ -79,12 +112,11 @@ void CryExe::Executable::ValidateImageFormat()
 	}
 
 	// Looks like this file contains a CEX image, read the whole thing at once
+	m_file.Rewind();
 	m_file.Read(imageFile);
 	if (imageFile.programHeader.magic != PROGRAM_MAGIC) {
 		throw std::runtime_error{ EXCEPT_INVAL_CEX };
 	}
-
-#undef EXCEPT_INVAL_CEX
 }
 
 void CryExe::Executable::CreateNewImage()
@@ -93,8 +125,6 @@ void CryExe::Executable::CreateNewImage()
 	MEMZERO(imageFile, sizeof(Structure::CexFileFormat));
 
 	assert(m_file.IsOpen());
-
-	MEMASSIGN(imageFile.imageHeader.identArray, Structure::identity, sizeof(Structure::identity));
 
 	// Default image header
 	imageFile.imageHeader.versionMajor = IMAGE_VERSION_MAJOR;
@@ -130,4 +160,33 @@ void CryExe::Executable::CreateNewImage()
 	// Commit to disk
 	std::fwrite(static_cast<const void*>(&node), sizeof(Structure::CexNoteSection), 1, fpImage);
 #endif
+
+	// Write file header opaque to memory
+	m_interalImageStructure = new Structure::CexFileFormat;
+	MEMASSIGN(m_interalImageStructure, sizeof(Structure::CexFileFormat), &imageFile, sizeof(Structure::CexFileFormat));
 }
+
+void CryExe::Executable::CalculateInternalOffsets()
+{
+	auto imageFile = reinterpret_cast<Structure::CexFileFormat*>(m_interalImageStructure);
+	assert(imageFile);
+}
+
+const CryExe::Executable& CryExe::Executable::Seal(CryExe::Executable& exec)
+{
+	Structure::CexFileFormat& imageFile = static_cast<Structure::CexFileFormat&>(*reinterpret_cast<Structure::CexFileFormat*>(exec.m_interalImageStructure));
+
+	// Set identity string
+	MEMASSIGN(imageFile.imageHeader.identArray, sizeof(imageFile.imageHeader.identArray), Structure::identity, sizeof(Structure::identity));
+
+	// Calculate structure offsets and update the image and program headers
+	exec.CalculateInternalOffsets();
+
+	// Set file descriptor at beginning of file and write the identifier string	
+	exec.m_file.Rewind();
+	exec.m_file.Write(imageFile);
+
+	return exec;
+}
+
+#undef EXCEPT_INVAL_CEX

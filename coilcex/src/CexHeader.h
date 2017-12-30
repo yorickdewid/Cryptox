@@ -99,7 +99,7 @@ enum class ProgramCharacteristic : uint16_t
 	PC_ALLOW_AUTO_FALLBACK = 1 << 5,
 };
 
-// 40
+// Size: 40 bytes aligned
 struct CexProgramHeader
 {
 	// Magic value must always have the same value. The value is used to exclude any
@@ -112,6 +112,7 @@ struct CexProgramHeader
 	// reproducibility flag is set the image header the timestamp must be zero.
 	uint64_t timestampDate;
 
+	// 
 	uint8_t subsystemVersion;
 	uint8_t subsystemTarget;
 
@@ -151,10 +152,16 @@ enum class SectionCharacteristic : uint16_t
 	SC_COMPRESSED = 1 << 1,
 	SC_PACKED = 1 << 2,
 	SC_LARGE_PAYLOAD = 1 << 3,
+	SC_ALLOW_ONCE = 1 << 4,
 };
 
 struct CexSection
 {
+	// Each section has an identifier which denotes the section type.
+	// The identifier is used to cast the generic section to the specific
+	// CEX section in order to access data. Some sections can appear multiple
+	// times in a single image. When a section is only allowed to be used 
+	// once, the first is read in and the rest is skipped.
 	enum SectionIdentifier : uint16_t
 	{
 		DOT_TEXT,	// .text
@@ -170,7 +177,9 @@ struct CexSection
 
 	SectionCharacteristic flags;
 
-	uint8_t alignment;
+	// Size in bytes to the next section. If there is no next section this value
+	// is supposted to be zero. The offset is used to jump from section to section.
+	uint32_t offsetToSection;
 
 	// Reserved fields are used to increase the change of natural page alignment
 	// without compiler extensions required. Reserved fields may be used later
@@ -185,15 +194,33 @@ struct CexSection
 	uint8_t structSize;
 };
 
-struct CexTextSection : public CexSection {};
+struct CexTextSection : public CexSection
+{
+	// The size of byte array following this section.
+	uint32_t sizeOfArray;
+};
+
 struct CexResourceSection : public CexSection {};
-struct CexDataSection : public CexSection {};
-struct CexReadonlyDataSection : public CexSection {};
+struct CexDataSection : public CexSection
+{
+	// The size of byte array following this section.
+	uint32_t sizeOfArray;
+};
+struct CexReadonlyDataSection : public CexSection
+{
+	// The size of byte array following this section.
+	uint32_t sizeOfArray;
+};
 struct CexImportDataSection : public CexSection {};
 struct CexExportDataSection : public CexSection {};
 struct CexDebugSection : public CexSection {};
 struct CexSourceSection : public CexSection {};
-struct CexNoteSection : public CexSection {};
+
+struct CexNoteSection : public CexSection
+{
+	// The size of byte array following this section.
+	uint32_t sizeOfArray;
+};
 
 struct CexFileFormat
 {
@@ -203,6 +230,7 @@ struct CexFileFormat
 
 static_assert(sizeof(CexImageHeader) == 20, "CexImageHeader must have constant number of bytes");
 static_assert(sizeof(CexProgramHeader) == 40, "CexProgramHeader must have constant number of bytes");
+static_assert(sizeof(CexSection) == 10, "CexProgramHeader must have constant number of bytes");
 
 } // namespace Structure
 } // namespace CryExe
