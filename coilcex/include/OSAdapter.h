@@ -29,13 +29,13 @@ public:
 	void Flush();
 
 	template<typename _Ty>
-	inline void Read(_Ty buffer, size_t size = sizeof(_Ty), size_t count = 1)
+	inline void Read(_Ty& buffer, size_t size = sizeof(_Ty), size_t count = 1)
 	{
 		ReadRaw(static_cast<void *>(std::addressof(buffer)), size, count);
 	}
 
 	template<typename _Ty>
-	inline void Write(_Ty buffer, size_t size = sizeof(_Ty), size_t count = 1)
+	inline void Write(_Ty& buffer, size_t size = sizeof(_Ty), size_t count = 1)
 	{
 		WriteRaw(static_cast<const void *>(std::addressof(buffer)), size, count);
 	}

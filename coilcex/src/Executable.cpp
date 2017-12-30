@@ -54,22 +54,51 @@ void CryExe::Executable::Open(FileMode mode)
 
 void CryExe::Executable::ValidateImageFormat()
 {
-	//
+	assert(m_file.IsOpen());
+
+	Structure::CexFileFormat imageFile;
+	MEMZERO(imageFile, sizeof(Structure::CexFileFormat));
+
+	// Read image header from disk. Since the image header should never
+	// change we can verifiy if the structure contains a valid CEX format
+	Structure::CexImageHeader tmpImageHeader;
+	MEMZERO(tmpImageHeader, sizeof(Structure::CexImageHeader));
+	m_file.Read(tmpImageHeader);
+
+#define EXCEPT_INVAL_CEX "invalid CEX format"
+	
+	// If any of the preliminary checks fail, abort right away
+	if (memcmp(tmpImageHeader.identArray, Structure::identity, sizeof(Structure::identity))) {
+		throw std::runtime_error{ EXCEPT_INVAL_CEX };
+	}
+	if (tmpImageHeader.versionMajor != IMAGE_VERSION_MAJOR || tmpImageHeader.versionMinor != IMAGE_VERSION_MINOR) {
+		throw std::runtime_error{ EXCEPT_INVAL_CEX };
+	}
+	if (tmpImageHeader.structSize != sizeof(Structure::CexImageHeader)) {
+		throw std::runtime_error{ EXCEPT_INVAL_CEX };
+	}
+
+	// Looks like this file contains a CEX image, read the whole thing at once
+	m_file.Read(imageFile);
+	if (imageFile.programHeader.magic != PROGRAM_MAGIC) {
+		throw std::runtime_error{ EXCEPT_INVAL_CEX };
+	}
+
+#undef EXCEPT_INVAL_CEX
 }
 
 void CryExe::Executable::CreateNewImage()
 {
 	Structure::CexFileFormat imageFile;
+	MEMZERO(imageFile, sizeof(Structure::CexFileFormat));
 
 	assert(m_file.IsOpen());
-
-	MEMZERO(imageFile, sizeof(Structure::CexFileFormat));
 
 	MEMASSIGN(imageFile.imageHeader.identArray, Structure::identity, sizeof(Structure::identity));
 
 	// Default image header
 	imageFile.imageHeader.versionMajor = IMAGE_VERSION_MAJOR;
-	imageFile.imageHeader.versionMajor = IMAGE_VERSION_MINOR;
+	imageFile.imageHeader.versionMinor = IMAGE_VERSION_MINOR;
 	imageFile.imageHeader.executableType = Structure::ExecutableType::CET_NONE;
 	imageFile.imageHeader.flagsOptional = Structure::ImageFlags::CCH_NONE;
 	imageFile.imageHeader.offsetToProgram = 0;
@@ -90,7 +119,6 @@ void CryExe::Executable::CreateNewImage()
 	SETSTRUCTSZ(imageFile.programHeader, Structure::CexProgramHeader);
 
 	// Commit to disk
-	//std::fwrite(static_cast<const void*>(&imageFile), sizeof(Structure::CexFileFormat), 1, fpImage);
 	m_file.Write(imageFile);
 
 #if 0
@@ -102,7 +130,4 @@ void CryExe::Executable::CreateNewImage()
 	// Commit to disk
 	std::fwrite(static_cast<const void*>(&node), sizeof(Structure::CexNoteSection), 1, fpImage);
 #endif
-
-	//std::fclose(fpImage);
-	m_file.Close();
 }
