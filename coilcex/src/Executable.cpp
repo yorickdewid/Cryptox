@@ -90,12 +90,26 @@ void CryExe::Executable::AddDirectory()
 void CryExe::Executable::AddSection(Section *section)
 {
 	assert(section);
+
+	auto datablock = section->Data();
 	if (IsSealed()) {
 		throw std::runtime_error{ "sealed images cannot amend contents" };
 	}
 	if (!section->IsAllowedOnce()) {
 		throw std::runtime_error{ "section allowed only once per image" };
 	}
+
+	Structure::CexSection rawSection;
+	MEMZERO(rawSection, sizeof(Structure::CexSection));
+	rawSection.identifier = Structure::CexSection::SectionIdentifier::DOT_TEXT;
+	rawSection.flags = Structure::SectionCharacteristic::SC_ALLOW_ONCE;
+	rawSection.offsetToSection = 0;
+	rawSection.sizeOfArray = datablock.size();
+	SETSTRUCTSZ(rawSection, Structure::CexSection);
+
+	// Commit to disk
+	m_file.Write(rawSection);
+	m_file.Write((*datablock.data()), datablock.size());
 }
 
 bool CryExe::Executable::IsSealed() const
@@ -177,16 +191,10 @@ void CryExe::Executable::CreateNewImage()
 
 	// Commit to disk
 	m_file.Write(imageFile);
-
-#if 0
-	Structure::CexNoteSection node;
-	std::memset(static_cast<void*>(&node), '\0', sizeof(Structure::CexNoteSection));
-	node.identifier = Structure::CexSection::SectionIdentifier::DOT_NOTE;
-	SETSTRUCTSZ(node, Structure::CexNoteSection);
-
-	// Commit to disk
-	std::fwrite(static_cast<const void*>(&node), sizeof(Structure::CexNoteSection), 1, fpImage);
-#endif
+	
+	// End of header marker
+	std::uint16_t marker = 0xfefe;
+	m_file.Write(marker);
 
 	// Write file header opaque to memory
 	m_interalImageStructure = new Structure::CexFileFormat;
