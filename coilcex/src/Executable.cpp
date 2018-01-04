@@ -87,9 +87,15 @@ void CryExe::Executable::AddDirectory()
 	//IsAllowedOnce();
 }
 
-void CryExe::Executable::AddSection()
+void CryExe::Executable::AddSection(Section *section)
 {
-	//IsAllowedOnce();
+	assert(section);
+	if (IsSealed()) {
+		throw std::runtime_error{ "sealed images cannot amend contents" };
+	}
+	if (!section->IsAllowedOnce()) {
+		throw std::runtime_error{ "section allowed only once per image" };
+	}
 }
 
 bool CryExe::Executable::IsSealed() const

@@ -10,6 +10,7 @@
 
 #include "Exportable.h"
 #include "Image.h"
+#include "Section.h"
 
 #include <string>
 
@@ -38,7 +39,7 @@ public:
 	void AddDirectory();
 
 	// Add new section to CEX image
-	void AddSection();
+	void AddSection(Section *);
 
 	// Seal the executable in order to generate a valid CEX image. The sealing
 	// process guantees a valid CEX is generated and the object cannot be 

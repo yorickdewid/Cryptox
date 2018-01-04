@@ -6,16 +6,30 @@
 // that can be found in the LICENSE file. Content can not be 
 // copied and/or distributed without the express of the author.
 
-#ifndef COILCEX_H_
-#define COILCEX_H_
-
 #pragma once
 
-#define COILCEXAPIVER	090
-
-// Include class definitions
+//#include "Exportable.h"
 #include "Executable.h"
-#include "Meta.h"
-#include "Section.h"
 
-#endif // COILCEX_H_
+//#include <string>
+
+namespace CryExe
+{
+
+class COILCEXAPI Section
+{
+public:
+	Section()
+	{
+		////
+	}
+
+	void PushContent()
+	{
+
+	}
+
+	inline bool IsAllowedOnce() const { return true; }
+};
+
+} // namespace CryExe
