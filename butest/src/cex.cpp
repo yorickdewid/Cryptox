@@ -63,14 +63,14 @@ BOOST_AUTO_TEST_CASE(CreateCexWithSectionFile)
 
 	// Create .text section
 	std::unique_ptr<CryExe::Section> textSection = std::make_unique<CryExe::Section>();
-	textSection->PushContent({ 0x2e, 0x21, 0xb6, 0x45, 0x09 });
+	textSection->Emplace({ 0x2e, 0x21, 0xb6, 0x45, 0x09 });
 
 	// Add a text section
 	exec.AddSection(textSection.release());
 
 	// Create .note section
 	std::unique_ptr<CryExe::Section> noteSection = std::make_unique<CryExe::Section>();
-	noteSection->PushContent("test note");
+	noteSection->Emplace("test note");
 
 	// Add a note section
 	exec.AddSection(noteSection.release());
