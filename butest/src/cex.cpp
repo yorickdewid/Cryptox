@@ -52,7 +52,7 @@ BOOST_AUTO_TEST_CASE(ReadToCexFile)
 	{
 		CryExe::Executable exec{ cexTestFileName , CryExe::FileMode::FM_OPEN };
 
-		BOOST_REQUIRE(CryExe::Meta::ImageVersion(exec) == (std::make_pair<short,short>(0, 3)));
+		BOOST_REQUIRE(CryExe::Meta::ImageVersion(exec) == (std::make_pair<short, short>(0, 3)));
 		BOOST_REQUIRE_EQUAL(CryExe::Meta::ProgramVersion(exec), "");
 	}
 }
@@ -61,15 +61,15 @@ BOOST_AUTO_TEST_CASE(CreateCexWithSectionFile)
 {
 	CryExe::Executable exec{ cexTestFileName , CryExe::FileMode::FM_NEW };
 
-	// Create .text section
-	std::unique_ptr<CryExe::Section> textSection = std::make_unique<CryExe::Section>();
+	// Create native section
+	std::unique_ptr<CryExe::Section> textSection = std::make_unique<CryExe::Section>(CryExe::Section::SectionType::NATIVE);
 	textSection->Emplace({ 0x2e, 0x21, 0xb6, 0x45, 0x09 });
 
-	// Add a text section
+	// Add a native section
 	exec.AddSection(textSection.get());
 
-	// Create .note section
-	std::unique_ptr<CryExe::Section> noteSection = std::make_unique<CryExe::Section>();
+	// Create note section
+	std::unique_ptr<CryExe::Section> noteSection = std::make_unique<CryExe::Section>(CryExe::Section::SectionType::NOTE);
 	noteSection->Emplace("note test");
 
 	// Add a note section
@@ -83,17 +83,34 @@ BOOST_AUTO_TEST_CASE(OpenCexWithSectionFile)
 	{
 		CryExe::Executable exec{ cexTestFileName , CryExe::FileMode::FM_NEW };
 
-		// Create .note section
-		CryExe::Section *noteSection = new CryExe::Section;
-		noteSection->Emplace("test note");
-		(*noteSection) << "add";
-		(*noteSection) << "testing";
-		(*noteSection) << "appended string";
-		BOOST_CHECK(noteSection);
+		{
+			// Create note section
+			CryExe::Section *noteSection = new CryExe::Section(CryExe::Section::SectionType::NOTE);
+			noteSection->Emplace("test note");
+			(*noteSection) << "add";
+			(*noteSection) << "testing";
+			(*noteSection) << "appended string";
+			(*noteSection) += " and last";
+			BOOST_CHECK(noteSection);
 
-		// Add a note section
-		exec.AddSection(noteSection);
-		delete noteSection;
+			// Add a note section
+			exec.AddSection(noteSection);
+			delete noteSection;
+		}
+
+		{
+			// Create resource section
+			CryExe::Section *resSection = new CryExe::Section(CryExe::Section::SectionType::RESOURCE);
+
+			CryExe::ByteArray bArray = { 0x12, 0xef, 0x88, 0x56, 0x16 };
+			resSection->Emplace(std::move(bArray));
+			(*resSection) << 0x87;
+			BOOST_CHECK(resSection);
+
+			// Add a resource section
+			exec.AddSection(resSection);
+			delete resSection;
+		}
 	}
 
 	{

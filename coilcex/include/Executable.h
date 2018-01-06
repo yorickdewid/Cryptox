@@ -40,7 +40,7 @@ public:
 	bool IsSealed() const;
 
 	// Open executable with file mode
-	void Open(FileMode mode);
+	void Open(FileMode);
 	
 	// Close image handler
 	void Close();
@@ -61,6 +61,9 @@ public:
 	// process guantees a valid CEX is generated and the object cannot be 
 	// altered when commited to disk.
 	static const Executable& Seal(Executable&);
+
+private:
+	static int CryExe::Executable::ResolveSectionType(Section::SectionType);
 
 private:
 	void ValidateImageFormat();

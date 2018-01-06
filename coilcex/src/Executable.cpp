@@ -82,6 +82,28 @@ void CryExe::Executable::Close()
 	Image::Close();
 }
 
+int CryExe::Executable::ResolveSectionType(Section::SectionType inType)
+{
+	switch (inType) {
+	case CryExe::Section::NATIVE:
+		return Structure::CexSection::SectionIdentifier::DOT_TEXT;
+	case CryExe::Section::RESOURCE:
+		return Structure::CexSection::SectionIdentifier::DOT_RSRC;
+	case CryExe::Section::DATA:
+		return Structure::CexSection::SectionIdentifier::DOT_DATA;
+	case CryExe::Section::DEBUG:
+		return Structure::CexSection::SectionIdentifier::DOT_DEBUG;
+	case CryExe::Section::SOURCE:
+		return Structure::CexSection::SectionIdentifier::DOT_SRC;
+	case CryExe::Section::NOTE:
+		return Structure::CexSection::SectionIdentifier::DOT_NOTE;
+	default:
+		break;
+	}
+
+	return 0;
+}
+
 void CryExe::Executable::AddDirectory()
 {
 	//IsAllowedOnce();
@@ -101,9 +123,9 @@ void CryExe::Executable::AddSection(Section *section)
 
 	Structure::CexSection rawSection;
 	MEMZERO(rawSection, sizeof(Structure::CexSection));
-	rawSection.identifier = Structure::CexSection::SectionIdentifier::DOT_TEXT;
+	rawSection.identifier = static_cast<Structure::CexSection::SectionIdentifier>(ResolveSectionType(section->Type()));
 	rawSection.flags = Structure::SectionCharacteristic::SC_ALLOW_ONCE;
-	rawSection.offsetToSection = 0; //TODO
+	rawSection.offsetToSection = UNASSIGNED; //TODO
 	rawSection.sizeOfArray = datablock.size();
 	SETSTRUCTSZ(rawSection, Structure::CexSection);
 
