@@ -19,7 +19,7 @@ namespace Meta
 {
 
 // Return the image version as string
-std::string ImageVersion(Executable& exec);
+std::pair<short, short> ImageVersion(Executable& exec);
 
 // Return the program version as string
 std::string ProgramVersion(Executable& exec);

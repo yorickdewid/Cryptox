@@ -21,9 +21,16 @@ class COILCEXAPI InvalidCexFormat
 {
 };
 
+enum class COILCEXAPI InternalImageVersion
+{
+	IMAGE_STRUCT_FORMAT_INVAL = 0,
+	IMAGE_STRUCT_FORMAT_03 = 3,
+};
+
 class COILCEXAPI Executable : public Image
 {
 	void *m_interalImageStructure = nullptr;
+	InternalImageVersion m_interalImageVersion = InternalImageVersion::IMAGE_STRUCT_FORMAT_INVAL;
 
 public:
 	Executable(const std::string& path, FileMode fm = FileMode::FM_OPEN);
@@ -32,7 +39,10 @@ public:
 	// Check if the image is sealed and thus readonly
 	bool IsSealed() const;
 
+	// Open executable with file mode
 	void Open(FileMode mode) override;
+	
+	// Close image handler
 	void Close() override;
 
 	// Add new directory to CEX image
@@ -40,6 +50,11 @@ public:
 
 	// Add new section to CEX image
 	void AddSection(Section *);
+
+	short ImageVersion() const;
+
+	inline InternalImageVersion GetInternalImageVersion() const { return m_interalImageVersion; }
+	inline int GetInternalProgramVersion() const { return 0; }
 
 	// Seal the executable in order to generate a valid CEX image. The sealing
 	// process guantees a valid CEX is generated and the object cannot be 

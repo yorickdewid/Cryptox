@@ -116,12 +116,15 @@ struct CexProgramHeader
 	std::uint8_t subsystemVersion;
 	std::uint8_t subsystemTarget;
 
+	//
 	std::uint32_t sizeOfCode;
 	std::uint32_t sizeOfStack;
 
+	//
 	std::uint16_t numberOfSections;
 	std::uint16_t numberOfDirectories;
 
+	//
 	std::uint32_t offsetToSectionTable;
 	std::uint32_t offsetToDirectoryTable;
 
@@ -196,16 +199,6 @@ struct CexSection
 	// and continue on to the image.
 	std::uint8_t structSize;
 };
-
-struct CexTextSection : public CexSection {};
-struct CexResourceSection : public CexSection {};
-struct CexDataSection : public CexSection {};
-struct CexReadonlyDataSection : public CexSection {};
-struct CexImportDataSection : public CexSection {};
-struct CexExportDataSection : public CexSection {};
-struct CexDebugSection : public CexSection {};
-struct CexSourceSection : public CexSection {};
-struct CexNoteSection : public CexSection {};
 
 struct CexFileFormat
 {

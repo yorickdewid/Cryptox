@@ -112,6 +112,17 @@ void CryExe::Executable::AddSection(Section *section)
 	m_file.Write((*datablock.data()), datablock.size());
 }
 
+short CryExe::Executable::ImageVersion() const
+{
+	PULL_INTSTRCT(imageFile);
+
+	std::uint16_t version;
+	version = (imageFile->imageHeader.versionMajor << 8) & 0xff00;
+	version |= imageFile->imageHeader.versionMinor;
+
+	return version;
+}
+
 bool CryExe::Executable::IsSealed() const
 {
 	PULL_INTSTRCT(imageFile);
@@ -137,15 +148,21 @@ void CryExe::Executable::ValidateImageFormat()
 	MEMZERO(tmpImageHeader, sizeof(Structure::CexImageHeader));
 	m_file.Read(tmpImageHeader);
 
-	// If any of the preliminary checks fail, abort right away
-	if (memcmp(tmpImageHeader.identArray, Structure::identity, sizeof(Structure::identity))) {
-		throw std::runtime_error{ EXCEPT_INVAL_CEX };
-	}
-	if (tmpImageHeader.versionMajor != IMAGE_VERSION_MAJOR || tmpImageHeader.versionMinor != IMAGE_VERSION_MINOR) {
-		throw std::runtime_error{ EXCEPT_INVAL_CEX };
-	}
-	if (tmpImageHeader.structSize != sizeof(Structure::CexImageHeader)) {
-		throw std::runtime_error{ EXCEPT_INVAL_CEX };
+	{
+		// If any of the preliminary checks fail, abort right away
+		if (!memcmp(tmpImageHeader.identArray, Structure::identity, sizeof(Structure::identity))) {
+			m_interalImageVersion = InternalImageVersion::IMAGE_STRUCT_FORMAT_03;
+		}
+		if (tmpImageHeader.versionMajor != IMAGE_VERSION_MAJOR || tmpImageHeader.versionMinor != IMAGE_VERSION_MINOR) {
+			throw std::runtime_error{ EXCEPT_INVAL_CEX };
+		}
+		if (tmpImageHeader.structSize != sizeof(Structure::CexImageHeader)) {
+			throw std::runtime_error{ EXCEPT_INVAL_CEX };
+		}
+
+		if (m_interalImageVersion == InternalImageVersion::IMAGE_STRUCT_FORMAT_INVAL) {
+			throw std::runtime_error{ EXCEPT_INVAL_CEX };
+		}
 	}
 
 	// Looks like this file contains a CEX image, read the whole thing at once

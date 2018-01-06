@@ -52,7 +52,7 @@ BOOST_AUTO_TEST_CASE(ReadToCexFile)
 	{
 		CryExe::Executable exec{ cexTestFileName , CryExe::FileMode::FM_OPEN };
 
-		BOOST_REQUIRE_EQUAL(CryExe::Meta::ImageVersion(exec), "");
+		BOOST_REQUIRE(CryExe::Meta::ImageVersion(exec) == (std::make_pair<short,short>(0, 3)));
 		BOOST_REQUIRE_EQUAL(CryExe::Meta::ProgramVersion(exec), "");
 	}
 }
@@ -76,6 +76,29 @@ BOOST_AUTO_TEST_CASE(CreateCexWithSectionFile)
 	exec.AddSection(noteSection.release());
 
 	CryExe::Executable::Seal(exec);
+}
+
+BOOST_AUTO_TEST_CASE(OpenCexWithSectionFile)
+{
+	{
+		CryExe::Executable exec{ cexTestFileName , CryExe::FileMode::FM_NEW };
+
+		// Create .note section
+		CryExe::Section *noteSection = new CryExe::Section();
+		noteSection->Emplace("test note");
+		(*noteSection) << "add";
+		(*noteSection) << "testing";
+		(*noteSection) << "appended string";
+		BOOST_CHECK(noteSection);
+
+		// Add a note section
+		exec.AddSection(noteSection);
+		delete noteSection;
+	}
+
+	{
+		CryExe::Executable exec{ cexTestFileName , CryExe::FileMode::FM_OPEN };
+	}
 }
 
 BOOST_AUTO_TEST_SUITE_END()
