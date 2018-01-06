@@ -47,10 +47,10 @@ public:
 	size_t Size() const;
 
 	// Check if the file is open
-	virtual bool IsOpen() const { return m_file.IsOpen(); }
+	bool IsOpen() const { return m_file.IsOpen(); }
 
 	// Open file, the internals will take care of already open files
-	virtual void Open(FileMode mode)
+	void Open(FileMode mode)
 	{
 		if (IsOpen()) { return; }
 
@@ -58,10 +58,10 @@ public:
 	};
 
 	// Close file without explicit flush
-	virtual void Close() { m_file.Close(); }
+	void Close() { m_file.Close(); }
 
 	// Flush buffer contents to disk
-	virtual void Flush() { m_file.Flush(); }
+	void Flush() { m_file.Flush(); }
 
 protected:
 	static FileModeRaw OpenWithMode(FileMode fm);

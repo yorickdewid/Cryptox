@@ -136,7 +136,7 @@ if(${${PROJECT_NAME}_ID}_BUILD_WALL)
 		set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -Wall -Wextra")
 	endif()
 	if(MSVC)
-		set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} /W4")
+		set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} /W4 /sdl")
 	endif()
 endif()
 

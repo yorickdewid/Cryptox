@@ -19,6 +19,9 @@ include(ProjectPrep)
 include_directories(${PfBase_INCLUDE_DIRS})
 include_directories(${CoilCEX_INCLUDE_DIRS})
 
+# Ignore security checks
+enable_unsecure_crt()
+
 # Allow testing on this target
 enable_testing()
 

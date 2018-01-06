@@ -16,7 +16,8 @@ void CryExe::OSAdapter::Open(const std::string& file, const char mode[])
 	if (m_fpImage) { return; }
 
 #ifdef _WIN32
-	assert(fopen_s(&m_fpImage, file.c_str(), mode) == 0);
+	errno_t ret = fopen_s(&m_fpImage, file.c_str(), mode);
+	assert(ret == 0);
 #else
 	m_fpImage = std::fopen(file.c_str(), mode);
 #endif
@@ -28,7 +29,8 @@ void CryExe::OSAdapter::Close()
 {
 	if (!m_fpImage) { return; }
 
-	assert(std::fclose(m_fpImage) == 0);
+	int ret = std::fclose(m_fpImage);
+	assert(ret == 0);
 	m_fpImage = nullptr;
 }
 
@@ -36,7 +38,8 @@ void CryExe::OSAdapter::Flush()
 {
 	if (!m_fpImage) { return; }
 
-	assert(std::fflush(m_fpImage) == 0);
+	int ret = std::fflush(m_fpImage);
+	assert(ret == 0);
 }
 
 void CryExe::OSAdapter::Rewind()

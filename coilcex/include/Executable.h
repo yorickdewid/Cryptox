@@ -40,10 +40,10 @@ public:
 	bool IsSealed() const;
 
 	// Open executable with file mode
-	void Open(FileMode mode) override;
+	void Open(FileMode mode);
 	
 	// Close image handler
-	void Close() override;
+	void Close();
 
 	// Add new directory to CEX image
 	void AddDirectory();
