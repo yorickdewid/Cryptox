@@ -65,6 +65,7 @@ public:
 private:
 	void ValidateImageFormat();
 	void CreateNewImage();
+	void AlignBounds();
 	void CalculateInternalOffsets();
 	void CalculateImageSize();
 	void CalculateSectionOffsets();

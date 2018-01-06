@@ -208,7 +208,7 @@ void CryExe::Executable::CreateNewImage()
 
 	// Commit to disk
 	m_file.Write(imageFile);
-	
+
 	// End of header marker
 	std::uint16_t marker = 0xfefe;
 	m_file.Write(marker);
@@ -251,9 +251,26 @@ void CryExe::Executable::CalculateDirectoryOffsets()
 	PULL_INTSTRCT(imageFile);
 }
 
+// Align image on 32 bytes bounds
+void CryExe::Executable::AlignBounds()
+{
+	int offset = 108;
+	if (offset % (5 << 1) > 0) {
+		size_t left = offset % (5 << 1);
+		uint8_t *align = new uint8_t[left];
+		MEMZERO((*align), left);
+		assert(left < (5 << 1));
+
+		m_file.Write((*align), left);
+		delete[] align;
+	}
+}
+
 const CryExe::Executable& CryExe::Executable::Seal(CryExe::Executable& exec)
 {
 	Structure::CexFileFormat& imageFile = static_cast<Structure::CexFileFormat&>(*reinterpret_cast<Structure::CexFileFormat*>(exec.m_interalImageStructure));
+
+	assert(exec.m_file.IsOpen());
 
 	// Set identity string
 	MEMASSIGN(imageFile.imageHeader.identArray, sizeof(imageFile.imageHeader.identArray), Structure::identity, sizeof(Structure::identity));
@@ -263,6 +280,9 @@ const CryExe::Executable& CryExe::Executable::Seal(CryExe::Executable& exec)
 	exec.CalculateImageSize();
 	exec.CalculateSectionOffsets();
 	exec.CalculateDirectoryOffsets();
+
+	// Make sure the image is bounds aligned
+	exec.AlignBounds();
 
 	// Set file descriptor at beginning of file and write the image file to disk
 	exec.m_file.Rewind();
