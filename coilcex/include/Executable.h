@@ -13,6 +13,7 @@
 #include "Section.h"
 
 #include <string>
+#include <deque>
 
 namespace CryExe
 {
@@ -31,6 +32,8 @@ class COILCEXAPI Executable : public Image
 {
 	void *m_interalImageStructure = nullptr;
 	InternalImageVersion m_interalImageVersion = InternalImageVersion::IMAGE_STRUCT_FORMAT_INVAL;
+	std::deque<size_t> m_offsetStackSection;
+	std::deque<size_t> m_offsetStackDirectory;
 
 public:
 	Executable(const std::string& path, FileMode fm = FileMode::FM_OPEN);

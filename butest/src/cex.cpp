@@ -52,6 +52,7 @@ BOOST_AUTO_TEST_CASE(ReadToCexFile)
 	{
 		CryExe::Executable exec{ cexTestFileName , CryExe::FileMode::FM_OPEN };
 
+		// Request meta info
 		BOOST_REQUIRE(CryExe::Meta::ImageVersion(exec) == (std::make_pair<short, short>(0, 3)));
 		BOOST_REQUIRE_EQUAL(CryExe::Meta::ProgramVersion(exec), "");
 	}

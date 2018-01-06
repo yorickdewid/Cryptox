@@ -129,6 +129,8 @@ void CryExe::Executable::AddSection(Section *section)
 	rawSection.sizeOfArray = datablock.size();
 	SETSTRUCTSZ(rawSection, Structure::CexSection);
 
+	m_offsetStackSection.push_back(m_file.Offset());
+	
 	// Commit to disk
 	m_file.Write(rawSection);
 	m_file.Write((*datablock.data()), datablock.size());
@@ -247,9 +249,13 @@ void CryExe::Executable::CalculateInternalOffsets()
 	// Program header follows directly behind image header
 	imageFile->imageHeader.offsetToProgram = sizeof(Structure::CexImageHeader);
 
-	//TODO: fetch offset from trace counter
-	imageFile->programHeader.offsetToSectionTable = 0;
-	imageFile->programHeader.offsetToDirectoryTable = 0;
+	// Fetch offset from offset deques
+	if (!m_offsetStackSection.empty()) {
+		imageFile->programHeader.offsetToSectionTable = m_offsetStackSection.front();
+	}
+	if (!m_offsetStackDirectory.empty()) {
+		imageFile->programHeader.offsetToDirectoryTable = m_offsetStackDirectory.front();
+	}
 }
 
 void CryExe::Executable::CalculateImageSize()
@@ -262,8 +268,12 @@ void CryExe::Executable::CalculateImageSize()
 void CryExe::Executable::CalculateSectionOffsets()
 {
 	PULL_INTSTRCT(imageFile);
-	//TOOD: imageFile.programHeader.numberOfSections++;
-	//TOOD:
+	
+	imageFile->programHeader.numberOfSections = m_offsetStackSection.size();
+	for (const auto& offset : m_offsetStackSection) {
+
+	}
+
 	// for each section
 	// Structure::CexSection::offsetToSection
 }
@@ -271,21 +281,28 @@ void CryExe::Executable::CalculateSectionOffsets()
 void CryExe::Executable::CalculateDirectoryOffsets()
 {
 	PULL_INTSTRCT(imageFile);
+
+	imageFile->programHeader.numberOfDirectories = m_offsetStackDirectory.size();
 }
 
-// Align image on 32 bytes bounds
+// Align image on 32 bytes boundry
 void CryExe::Executable::AlignBounds()
 {
-	int offset = 108;
-	if (offset % (5 << 1) > 0) {
-		size_t left = offset % (5 << 1);
+#define ALIGNMENT (5 << 1)
+
+	size_t offset = m_file.Offset();
+	assert(offset > 0);
+	if (offset % ALIGNMENT > 0) {
+		size_t left = offset % ALIGNMENT;
 		uint8_t *align = new uint8_t[left];
 		MEMZERO((*align), left);
-		assert(left < (5 << 1));
+		assert(left < ALIGNMENT);
 
 		m_file.Write((*align), left);
 		delete[] align;
 	}
+
+#undef ALIGNMENT
 }
 
 const CryExe::Executable& CryExe::Executable::Seal(CryExe::Executable& exec)

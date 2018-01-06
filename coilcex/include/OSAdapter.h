@@ -18,6 +18,7 @@ namespace CryExe
 class COILCEXAPI OSAdapter
 {
 	std::FILE *m_fpImage = nullptr;
+	std::fpos_t m_fpOffset = 0;
 
 public:
 	OSAdapter() = default;
@@ -28,6 +29,10 @@ public:
 	void Close();
 	void Flush();
 	void Rewind();
+	void Forward();
+	void Position(std::fpos_t);
+
+	inline std::fpos_t Offset() const { return m_fpOffset ; }
 
 	template<typename _Ty>
 	inline void Read(_Ty& buffer, size_t size = sizeof(_Ty), size_t count = 1)
