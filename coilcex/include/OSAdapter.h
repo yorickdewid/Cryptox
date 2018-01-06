@@ -46,6 +46,14 @@ public:
 		WriteRaw(static_cast<const void *>(std::addressof(buffer)), size, count);
 	}
 
+	template<typename _Ty>
+	inline void Rewrite(_Ty& buffer, size_t size = sizeof(_Ty), size_t count = 1)
+	{
+		auto curPos = m_fpOffset;
+		WriteRaw(static_cast<const void *>(std::addressof(buffer)), size, count);
+		m_fpOffset = curPos;
+	}
+
 private:
 	void ReadRaw(void *buffer, size_t size, size_t count);
 	void WriteRaw(const void *buffer, size_t size, size_t count);

@@ -155,7 +155,6 @@ enum class SectionCharacteristic : std::uint16_t
 	SC_COMPRESSED = 1 << 1,
 	SC_PACKED = 1 << 2,
 	SC_LARGE_PAYLOAD = 1 << 3,
-	SC_ALLOW_ONCE = 1 << 4,
 };
 
 struct CexSection

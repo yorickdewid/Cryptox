@@ -124,13 +124,13 @@ void CryExe::Executable::AddSection(Section *section)
 	Structure::CexSection rawSection;
 	MEMZERO(rawSection, sizeof(Structure::CexSection));
 	rawSection.identifier = static_cast<Structure::CexSection::SectionIdentifier>(ResolveSectionType(section->Type()));
-	rawSection.flags = Structure::SectionCharacteristic::SC_ALLOW_ONCE;
-	rawSection.offsetToSection = UNASSIGNED; //TODO
+	rawSection.flags = Structure::SectionCharacteristic::SC_NONE;
+	rawSection.offsetToSection = UNASSIGNED;
 	rawSection.sizeOfArray = datablock.size();
 	SETSTRUCTSZ(rawSection, Structure::CexSection);
 
-	m_offsetStackSection.push_back(m_file.Offset());
-	
+	m_offsetStackSection.push_back(static_cast<size_t>(m_file.Offset()));
+
 	// Commit to disk
 	m_file.Write(rawSection);
 	m_file.Write((*datablock.data()), datablock.size());
@@ -251,10 +251,14 @@ void CryExe::Executable::CalculateInternalOffsets()
 
 	// Fetch offset from offset deques
 	if (!m_offsetStackSection.empty()) {
+		imageFile->programHeader.numberOfSections = static_cast<std::uint16_t>(m_offsetStackSection.size());
 		imageFile->programHeader.offsetToSectionTable = m_offsetStackSection.front();
+		m_offsetStackSection.pop_front();
 	}
 	if (!m_offsetStackDirectory.empty()) {
+		imageFile->programHeader.numberOfDirectories = static_cast<std::uint16_t>(m_offsetStackDirectory.size());
 		imageFile->programHeader.offsetToDirectoryTable = m_offsetStackDirectory.front();
+		m_offsetStackDirectory.pop_front();
 	}
 }
 
@@ -262,35 +266,45 @@ void CryExe::Executable::CalculateImageSize()
 {
 	PULL_INTSTRCT(imageFile);
 
-	imageFile->programHeader.sizeOfCode = sizeof(Structure::CexFileFormat);
+	// Size of the code is everything of value that was added to the image.
+	// The actual size of the file on disk is most certainly different from this
+	// number as the image is padded at the end.
+	imageFile->programHeader.sizeOfCode = static_cast<std::uint32_t>(m_file.Offset());
 }
 
 void CryExe::Executable::CalculateSectionOffsets()
 {
 	PULL_INTSTRCT(imageFile);
-	
-	imageFile->programHeader.numberOfSections = m_offsetStackSection.size();
-	for (const auto& offset : m_offsetStackSection) {
 
+	size_t sectionOffset = imageFile->programHeader.offsetToSectionTable;
+	while (sectionOffset) {
+		sectionOffset += offsetof(Structure::CexSection, offsetToSection);
+		decltype(Structure::CexSection::offsetToSection) memberOffset = 0;
+
+		// Last section does not point to anything
+		if (!m_offsetStackSection.empty()) {
+			memberOffset = static_cast<decltype(Structure::CexSection::offsetToSection)>(m_offsetStackSection.front());
+			m_offsetStackSection.pop_front();
+		}
+
+		m_file.Position(sectionOffset);
+		m_file.Rewrite(memberOffset);
+		sectionOffset = memberOffset;
 	}
-
-	// for each section
-	// Structure::CexSection::offsetToSection
 }
 
 void CryExe::Executable::CalculateDirectoryOffsets()
 {
 	PULL_INTSTRCT(imageFile);
 
-	imageFile->programHeader.numberOfDirectories = m_offsetStackDirectory.size();
+	//imageFile->programHeader.numberOfDirectories = static_cast<std::uint16_t>(m_offsetStackDirectory.size());
 }
 
 // Align image on 32 bytes boundry
 void CryExe::Executable::AlignBounds()
 {
-#define ALIGNMENT (5 << 1)
-
-	size_t offset = m_file.Offset();
+#define ALIGNMENT (1 << 5)
+	std::fpos_t offset = m_file.Offset();
 	assert(offset > 0);
 	if (offset % ALIGNMENT > 0) {
 		size_t left = offset % ALIGNMENT;
@@ -298,10 +312,10 @@ void CryExe::Executable::AlignBounds()
 		MEMZERO((*align), left);
 		assert(left < ALIGNMENT);
 
+		m_file.Forward();
 		m_file.Write((*align), left);
 		delete[] align;
 	}
-
 #undef ALIGNMENT
 }
 
@@ -325,7 +339,7 @@ const CryExe::Executable& CryExe::Executable::Seal(CryExe::Executable& exec)
 
 	// Set file descriptor at beginning of file and write the image file to disk
 	exec.m_file.Rewind();
-	exec.m_file.Write(imageFile);
+	exec.m_file.Rewrite(imageFile);
 
 	return exec;
 }
