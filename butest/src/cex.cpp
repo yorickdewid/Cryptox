@@ -66,14 +66,14 @@ BOOST_AUTO_TEST_CASE(CreateCexWithSectionFile)
 	textSection->Emplace({ 0x2e, 0x21, 0xb6, 0x45, 0x09 });
 
 	// Add a text section
-	exec.AddSection(textSection.release());
+	exec.AddSection(textSection.get());
 
 	// Create .note section
 	std::unique_ptr<CryExe::Section> noteSection = std::make_unique<CryExe::Section>();
-	noteSection->Emplace("test note");
+	noteSection->Emplace("note test");
 
 	// Add a note section
-	exec.AddSection(noteSection.release());
+	exec.AddSection(noteSection.get());
 
 	CryExe::Executable::Seal(exec);
 }
@@ -84,7 +84,7 @@ BOOST_AUTO_TEST_CASE(OpenCexWithSectionFile)
 		CryExe::Executable exec{ cexTestFileName , CryExe::FileMode::FM_NEW };
 
 		// Create .note section
-		CryExe::Section *noteSection = new CryExe::Section();
+		CryExe::Section *noteSection = new CryExe::Section;
 		noteSection->Emplace("test note");
 		(*noteSection) << "add";
 		(*noteSection) << "testing";
@@ -98,6 +98,7 @@ BOOST_AUTO_TEST_CASE(OpenCexWithSectionFile)
 
 	{
 		CryExe::Executable exec{ cexTestFileName , CryExe::FileMode::FM_OPEN };
+		BOOST_CHECK(exec.IsSealed());
 	}
 }
 

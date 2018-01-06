@@ -53,6 +53,7 @@ public:
 
 	short ImageVersion() const;
 
+	//TODO: friend?
 	inline InternalImageVersion GetInternalImageVersion() const { return m_interalImageVersion; }
 	inline int GetInternalProgramVersion() const { return 0; }
 
@@ -66,6 +67,8 @@ private:
 	void CreateNewImage();
 	void CalculateInternalOffsets();
 	void CalculateImageSize();
+	void CalculateSectionOffsets();
+	void CalculateDirectoryOffsets();
 };
 
 } // namespace CryExecutable

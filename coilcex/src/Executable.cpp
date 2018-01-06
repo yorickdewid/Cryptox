@@ -91,7 +91,7 @@ void CryExe::Executable::AddSection(Section *section)
 {
 	assert(section);
 
-	auto datablock = section->Data();
+	const auto datablock = section->Data();
 	if (IsSealed()) {
 		throw std::runtime_error{ "sealed images cannot amend contents" };
 	}
@@ -103,7 +103,7 @@ void CryExe::Executable::AddSection(Section *section)
 	MEMZERO(rawSection, sizeof(Structure::CexSection));
 	rawSection.identifier = Structure::CexSection::SectionIdentifier::DOT_TEXT;
 	rawSection.flags = Structure::SectionCharacteristic::SC_ALLOW_ONCE;
-	rawSection.offsetToSection = 0;
+	rawSection.offsetToSection = 0; //TODO
 	rawSection.sizeOfArray = datablock.size();
 	SETSTRUCTSZ(rawSection, Structure::CexSection);
 
@@ -225,7 +225,7 @@ void CryExe::Executable::CalculateInternalOffsets()
 	// Program header follows directly behind image header
 	imageFile->imageHeader.offsetToProgram = sizeof(Structure::CexImageHeader);
 
-	//TODO:
+	//TODO: fetch offset from trace counter
 	imageFile->programHeader.offsetToSectionTable = 0;
 	imageFile->programHeader.offsetToDirectoryTable = 0;
 }
@@ -235,6 +235,20 @@ void CryExe::Executable::CalculateImageSize()
 	PULL_INTSTRCT(imageFile);
 
 	imageFile->programHeader.sizeOfCode = sizeof(Structure::CexFileFormat);
+}
+
+void CryExe::Executable::CalculateSectionOffsets()
+{
+	PULL_INTSTRCT(imageFile);
+	//TOOD: imageFile.programHeader.numberOfSections++;
+	//TOOD:
+	// for each section
+	// Structure::CexSection::offsetToSection
+}
+
+void CryExe::Executable::CalculateDirectoryOffsets()
+{
+	PULL_INTSTRCT(imageFile);
 }
 
 const CryExe::Executable& CryExe::Executable::Seal(CryExe::Executable& exec)
@@ -247,6 +261,8 @@ const CryExe::Executable& CryExe::Executable::Seal(CryExe::Executable& exec)
 	// Calculate structure offsets and update the image and program headers
 	exec.CalculateInternalOffsets();
 	exec.CalculateImageSize();
+	exec.CalculateSectionOffsets();
+	exec.CalculateDirectoryOffsets();
 
 	// Set file descriptor at beginning of file and write the image file to disk
 	exec.m_file.Rewind();
