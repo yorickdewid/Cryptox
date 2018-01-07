@@ -16,17 +16,18 @@ std::pair<short, short> CryExe::Meta::ImageVersion(Executable& exec)
 	case CryExe::InternalImageVersion::IMAGE_STRUCT_FORMAT_03:
 	{
 		const short version = exec.ImageVersion();
-		return { (version >> 8) & 0xff, version & 0xff };
+		return { static_cast<short>((version >> 8) & 0xff), static_cast<short>(version & 0xff) };
 	}
 	default:
 		break;
 	}
 
-	return { 0, 0 };
+	return std::make_pair<short, short>(0, 0);
 }
 
 std::string CryExe::Meta::ProgramVersion(Executable& exec)
 {
+	((void)exec);
 	/*switch (exec.GetInternalProgramVersion()) {
 	default:
 		break;

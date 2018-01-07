@@ -14,6 +14,7 @@
 
 #include <string>
 #include <deque>
+#include <bitset>
 
 namespace CryExe
 {
@@ -34,6 +35,7 @@ class COILCEXAPI Executable : public Image
 	InternalImageVersion m_interalImageVersion = InternalImageVersion::IMAGE_STRUCT_FORMAT_INVAL;
 	std::deque<size_t> m_offsetStackSection;
 	std::deque<size_t> m_offsetStackDirectory;
+	std::bitset<UINT16_MAX> m_allocSections = 0;
 
 public:
 	Executable(const std::string& path, FileMode fm = FileMode::FM_OPEN);
@@ -66,7 +68,7 @@ public:
 	static const Executable& Seal(Executable&);
 
 private:
-	static int CryExe::Executable::ResolveSectionType(Section::SectionType);
+	static std::pair<int, bool> CryExe::Executable::ResolveSectionType(Section::SectionType);
 
 private:
 	void ValidateImageFormat();

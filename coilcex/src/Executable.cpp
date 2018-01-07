@@ -54,6 +54,7 @@ CryExe::Executable::~Executable()
 
 	if (m_interalImageStructure) {
 		delete m_interalImageStructure;
+		m_interalImageStructure = nullptr;
 	}
 }
 
@@ -82,26 +83,32 @@ void CryExe::Executable::Close()
 	Image::Close();
 }
 
-int CryExe::Executable::ResolveSectionType(Section::SectionType inType)
+std::pair<int, bool> CryExe::Executable::ResolveSectionType(Section::SectionType inType)
 {
+#define ALLOW_ONCE true
+#define ALLOW_MULTI false
+
 	switch (inType) {
 	case CryExe::Section::NATIVE:
-		return Structure::CexSection::SectionIdentifier::DOT_TEXT;
+		return { Structure::CexSection::SectionIdentifier::DOT_TEXT, ALLOW_MULTI };
 	case CryExe::Section::RESOURCE:
-		return Structure::CexSection::SectionIdentifier::DOT_RSRC;
+		return { Structure::CexSection::SectionIdentifier::DOT_RSRC, ALLOW_ONCE };
 	case CryExe::Section::DATA:
-		return Structure::CexSection::SectionIdentifier::DOT_DATA;
+		return { Structure::CexSection::SectionIdentifier::DOT_DATA, ALLOW_MULTI };
 	case CryExe::Section::DEBUG:
-		return Structure::CexSection::SectionIdentifier::DOT_DEBUG;
+		return { Structure::CexSection::SectionIdentifier::DOT_DEBUG, ALLOW_MULTI };
 	case CryExe::Section::SOURCE:
-		return Structure::CexSection::SectionIdentifier::DOT_SRC;
+		return { Structure::CexSection::SectionIdentifier::DOT_SRC, ALLOW_ONCE };
 	case CryExe::Section::NOTE:
-		return Structure::CexSection::SectionIdentifier::DOT_NOTE;
+		return { Structure::CexSection::SectionIdentifier::DOT_NOTE, ALLOW_MULTI };
 	default:
 		break;
 	}
 
-	return 0;
+	return { Structure::CexSection::SectionIdentifier::_INVAL, 0 };
+
+#undef ALLOW_ONCE
+#undef ALLOW_MULTI
 }
 
 void CryExe::Executable::AddDirectory()
@@ -113,17 +120,25 @@ void CryExe::Executable::AddSection(Section *section)
 {
 	assert(section);
 
-	const auto datablock = section->Data();
+	const auto& datablock = section->Data();
 	if (IsSealed()) {
 		throw std::runtime_error{ "sealed images cannot amend contents" };
 	}
-	if (!section->IsAllowedOnce()) {
-		throw std::runtime_error{ "section allowed only once per image" };
+
+	auto typePair = ResolveSectionType(section->Type());
+	assert(typePair.first != Structure::CexSection::SectionIdentifier::_INVAL);
+
+	// Test if section was used before
+	if (typePair.second) {
+		if (m_allocSections.test(typePair.first)) {
+			throw std::runtime_error{ "section allowed only once per image" };
+		}
+		m_allocSections.set(typePair.first);
 	}
 
 	Structure::CexSection rawSection;
 	MEMZERO(rawSection, sizeof(Structure::CexSection));
-	rawSection.identifier = static_cast<Structure::CexSection::SectionIdentifier>(ResolveSectionType(section->Type()));
+	rawSection.identifier = static_cast<Structure::CexSection::SectionIdentifier>(typePair.first);
 	rawSection.flags = Structure::SectionCharacteristic::SC_NONE;
 	rawSection.offsetToSection = UNASSIGNED;
 	rawSection.sizeOfArray = datablock.size();
@@ -302,16 +317,16 @@ void CryExe::Executable::CalculateDirectoryOffsets()
 {
 	PULL_INTSTRCT(imageFile);
 
-	//imageFile->programHeader.numberOfDirectories = static_cast<std::uint16_t>(m_offsetStackDirectory.size());
+	//TODO
 }
 
-// Align image on 1 << 5 bytes boundary
 void CryExe::Executable::AlignBounds()
 {
 #define ALIGNMENT (1 << 5)
 	std::fpos_t offset = m_file.Offset();
 	assert(offset > 0);
 
+	// Align image on 1 << 5 bytes boundary
 	if (offset % ALIGNMENT > 0) {
 		size_t left = offset % ALIGNMENT;
 		uint8_t *align = new uint8_t[left];

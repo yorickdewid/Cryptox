@@ -107,6 +107,10 @@ BOOST_AUTO_TEST_CASE(OpenCexWithSectionFile)
 
 			// Add a resource section
 			exec.AddSection(&resSection);
+
+			// Section can only be used once
+			CryExe::Section resSection2{ CryExe::Section::SectionType::RESOURCE };
+			BOOST_CHECK_THROW(exec.AddSection(&resSection2), std::runtime_error);
 		}
 	}
 

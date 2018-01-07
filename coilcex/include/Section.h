@@ -70,7 +70,7 @@ public:
 
 	// Return data object
 	inline SectionType Type() const { return type; }
-	inline ByteArray Data() const { return data; }
+	inline const ByteArray& Data() const { return data; }
 
 	// Iterator types
 	inline const_iterator begin() const { return data.begin(); }
@@ -100,9 +100,6 @@ public:
 	{
 		data.insert(this->cend(), str.begin(), str.end());
 	}
-
-	//TODO:
-	inline bool IsAllowedOnce() const { return true; }
 };
 
 } // namespace CryExe

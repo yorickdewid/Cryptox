@@ -52,7 +52,7 @@ enum class ImageFlags : std::uint16_t
 };
 
 // Size: 20 bytes aligned
-struct CexImageHeader
+struct CexImageHeader final
 {
 	// The first and constant header must always be identifiable by its
 	// characteristic name and version. The identifier is human readable
@@ -100,7 +100,7 @@ enum class ProgramCharacteristic : std::uint16_t
 };
 
 // Size: 40 bytes aligned
-struct CexProgramHeader
+struct CexProgramHeader final
 {
 	// Magic value must always have the same value. The value is used to exclude any
 	// parser mistakes or data corruption. When the magic values does not match the 
@@ -157,7 +157,7 @@ enum class SectionCharacteristic : std::uint16_t
 	SC_LARGE_PAYLOAD = 1 << 3,
 };
 
-struct CexSection
+struct CexSection final
 {
 	// Each section has an identifier which denotes the section type.
 	// The identifier is used to cast the generic section to the specific
@@ -166,6 +166,7 @@ struct CexSection
 	// once, the first is read in and the rest is skipped.
 	enum SectionIdentifier : std::uint16_t
 	{
+		_INVAL = 0,
 		DOT_TEXT,	// .text
 		DOT_RSRC,	// .rsrc
 		DOT_DATA,	// .data
