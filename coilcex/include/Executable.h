@@ -29,6 +29,12 @@ enum class COILCEXAPI InternalImageVersion
 	IMAGE_STRUCT_FORMAT_03 = 3,
 };
 
+enum class COILCEXAPI ExecType
+{
+	TYPE_EXECUTABLE,
+	TYPE_LIBRARY_DYNAMIC,
+};
+
 class COILCEXAPI Executable : public Image
 {
 	void *m_interalImageStructure = nullptr;
@@ -36,6 +42,7 @@ class COILCEXAPI Executable : public Image
 	std::deque<size_t> m_offsetStackSection;
 	std::deque<size_t> m_offsetStackDirectory;
 	std::bitset<UINT16_MAX> m_allocSections = 0;
+	int m_execType;
 
 public:
 	enum class COILCEXAPI Option
@@ -55,7 +62,7 @@ public:
 	}
 
 public:
-	Executable(const std::string& path, FileMode fm = FileMode::FM_OPEN);
+	Executable(const std::string& path, FileMode fm = FileMode::FM_OPEN, ExecType type = ExecType::TYPE_EXECUTABLE);
 	~Executable();
 
 	// Check if the image is sealed and thus readonly
@@ -99,4 +106,14 @@ private:
 	void CalculateDirectoryOffsets();
 };
 
-} // namespace CryExecutable
+class COILCEXAPI DynamicLibrary : public Executable
+{
+public:
+	template<typename... _TyArgs>
+	DynamicLibrary(_TyArgs&&... args)
+		: Executable{ std::forward<_TyArgs>(args)..., ExecType::TYPE_LIBRARY_DYNAMIC }
+	{
+	}
+};
+
+} // namespace CryExe

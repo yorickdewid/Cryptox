@@ -42,10 +42,19 @@ const std::chrono::milliseconds ChronoTimestamp()
 	return duration_cast<milliseconds>(system_clock::now().time_since_epoch());
 }
 
-CryExe::Executable::Executable(const std::string& path, FileMode fm)
+CryExe::Executable::Executable(const std::string& path, FileMode fm, ExecType type)
 	: Image{ path }
 {
 	this->Open(fm);
+
+	switch (type) {
+	case CryExe::ExecType::TYPE_EXECUTABLE:
+		m_execType = static_cast<int>(Structure::ExecutableType::CET_EXECUTABLE);
+		break;
+	case CryExe::ExecType::TYPE_LIBRARY_DYNAMIC:
+		m_execType = static_cast<int>(Structure::ExecutableType::CET_DYNAMIC);
+		break;
+	}
 }
 
 CryExe::Executable::~Executable()
@@ -244,7 +253,7 @@ void CryExe::Executable::CreateNewImage()
 	// Default image header
 	imageFile.imageHeader.versionMajor = IMAGE_VERSION_MAJOR;
 	imageFile.imageHeader.versionMinor = IMAGE_VERSION_MINOR;
-	imageFile.imageHeader.executableType = Structure::ExecutableType::CET_NONE;
+	imageFile.imageHeader.executableType = static_cast<Structure::ExecutableType>(m_execType);
 	imageFile.imageHeader.flagsOptional = Structure::ImageFlags::CCH_NONE;
 	imageFile.imageHeader.offsetToProgram = UNASSIGNED;
 	SETSTRUCTSZ(imageFile.imageHeader, Structure::CexImageHeader);

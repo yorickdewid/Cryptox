@@ -58,6 +58,10 @@ BOOST_AUTO_TEST_CASE(ReadToCexFile)
 		BOOST_REQUIRE(CryExe::Meta::ImageVersion(exec) == (std::make_pair<short, short>(0, 3)));
 		BOOST_REQUIRE_EQUAL(CryExe::Meta::ProgramVersion(exec), "");
 	}
+
+	{
+		CryExe::DynamicLibrary dll{ cexTestFileName, CryExe::FileMode::FM_NEW };
+	}
 }
 
 BOOST_AUTO_TEST_CASE(CreateCexWithSectionFile)
