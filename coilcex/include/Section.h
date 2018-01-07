@@ -71,13 +71,17 @@ public:
 	// Return data object
 	inline SectionType Type() const { return type; }
 	inline ByteArray Data() const { return data; }
-	inline ByteArray::size_type Size() const { return data.size(); }
 
 	// Iterator types
 	inline const_iterator begin() const { return data.begin(); }
 	inline const_iterator end() const { return data.end(); }
 	inline const_iterator cbegin() const { return data.begin(); }
 	inline const_iterator cend() const { return data.end(); }
+
+	// Capacity operations
+	inline void Clear() { data.clear(); }
+	inline void Empty() { data.empty(); }
+	inline ByteArray::size_type Size() const { return data.size(); }
 
 	// 
 	void operator<<(ByteArray::value_type value)

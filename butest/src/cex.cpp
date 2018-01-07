@@ -86,31 +86,27 @@ BOOST_AUTO_TEST_CASE(OpenCexWithSectionFile)
 
 		{
 			// Create note section
-			CryExe::Section *noteSection = new CryExe::Section(CryExe::Section::SectionType::NOTE);
-			noteSection->Emplace("test note");
-			(*noteSection) << "add";
-			(*noteSection) << "testing";
-			(*noteSection) << "appended string";
-			(*noteSection) += " and last";
-			BOOST_CHECK(noteSection);
+			CryExe::Section noteSection{ CryExe::Section::SectionType::NOTE };
+			noteSection.Emplace("test note");
+			noteSection << "add";
+			noteSection << "testing";
+			noteSection << "appended string";
+			noteSection += " and last";
 
 			// Add a note section
-			exec.AddSection(noteSection);
-			delete noteSection;
+			exec.AddSection(&noteSection);
 		}
 
 		{
 			// Create resource section
-			CryExe::Section *resSection = new CryExe::Section(CryExe::Section::SectionType::RESOURCE);
+			CryExe::Section resSection{ CryExe::Section::SectionType::RESOURCE };
 
 			CryExe::ByteArray bArray = { 0x12, 0xef, 0x88, 0x56, 0x16 };
-			resSection->Emplace(std::move(bArray));
-			(*resSection) << 0x87;
-			BOOST_CHECK(resSection);
+			resSection.Emplace(std::move(bArray));
+			resSection << 0x87;
 
 			// Add a resource section
-			exec.AddSection(resSection);
-			delete resSection;
+			exec.AddSection(&resSection);
 		}
 	}
 

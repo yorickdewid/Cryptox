@@ -129,11 +129,13 @@ void CryExe::Executable::AddSection(Section *section)
 	rawSection.sizeOfArray = datablock.size();
 	SETSTRUCTSZ(rawSection, Structure::CexSection);
 
+	// Save current image offset to stack
 	m_offsetStackSection.push_back(static_cast<size_t>(m_file.Offset()));
 
 	// Commit to disk
 	m_file.Write(rawSection);
 	m_file.Write((*datablock.data()), datablock.size());
+	section->Clear();
 }
 
 short CryExe::Executable::ImageVersion() const
@@ -266,6 +268,9 @@ void CryExe::Executable::CalculateImageSize()
 {
 	PULL_INTSTRCT(imageFile);
 
+	// Move to end of image
+	m_file.Forward();
+
 	// Size of the code is everything of value that was added to the image.
 	// The actual size of the file on disk is most certainly different from this
 	// number as the image is padded at the end.
@@ -300,18 +305,20 @@ void CryExe::Executable::CalculateDirectoryOffsets()
 	//imageFile->programHeader.numberOfDirectories = static_cast<std::uint16_t>(m_offsetStackDirectory.size());
 }
 
-// Align image on 32 bytes boundry
+// Align image on 1 << 5 bytes boundary
 void CryExe::Executable::AlignBounds()
 {
 #define ALIGNMENT (1 << 5)
 	std::fpos_t offset = m_file.Offset();
 	assert(offset > 0);
+
 	if (offset % ALIGNMENT > 0) {
 		size_t left = offset % ALIGNMENT;
 		uint8_t *align = new uint8_t[left];
 		MEMZERO((*align), left);
 		assert(left < ALIGNMENT);
 
+		// Move to end of image and write padding
 		m_file.Forward();
 		m_file.Write((*align), left);
 		delete[] align;

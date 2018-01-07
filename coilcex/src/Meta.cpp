@@ -27,10 +27,10 @@ std::pair<short, short> CryExe::Meta::ImageVersion(Executable& exec)
 
 std::string CryExe::Meta::ProgramVersion(Executable& exec)
 {
-	switch (exec.GetInternalProgramVersion()) {
+	/*switch (exec.GetInternalProgramVersion()) {
 	default:
 		break;
-	}
+	}*/
 
 	return "";
 }
