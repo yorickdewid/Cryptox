@@ -58,6 +58,22 @@ CryExe::Executable::~Executable()
 	}
 }
 
+void CryExe::Executable::SetOption(Option options)
+{
+	PULL_INTSTRCT(imageFile);
+
+	unsigned short flags = static_cast<unsigned short>(imageFile->imageHeader.flagsOptional);
+
+	if (options & Option::OPT_READONLY) {
+		flags |= static_cast<unsigned short>(CryExe::Structure::ImageFlags::CCH_READ_ONLY);
+	}
+	if (options & Option::OPT_BINREP) {
+		flags |= static_cast<unsigned short>(CryExe::Structure::ImageFlags::CCH_BIN_REPRODUCE);
+	}
+
+	imageFile->imageHeader.flagsOptional = static_cast<CryExe::Structure::ImageFlags>(flags);
+}
+
 void CryExe::Executable::Open(FileMode mode)
 {
 	// Let parent open the image

@@ -38,6 +38,23 @@ class COILCEXAPI Executable : public Image
 	std::bitset<UINT16_MAX> m_allocSections = 0;
 
 public:
+	enum class COILCEXAPI Option
+	{
+		OPT_BINREP = 1 << 1,
+		OPT_READONLY = 1 << 2,
+	};
+
+	friend Option operator|(Option opt1, Option opt2)
+	{
+		return static_cast<Option>(static_cast<int>(opt1) | static_cast<int>(opt2));
+	}
+
+	friend int operator&(Option opt1, Option opt2)
+	{
+		return static_cast<int>(opt1) & static_cast<int>(opt2);
+	}
+
+public:
 	Executable(const std::string& path, FileMode fm = FileMode::FM_OPEN);
 	~Executable();
 
@@ -46,7 +63,7 @@ public:
 
 	// Open executable with file mode
 	void Open(FileMode);
-	
+
 	// Close image handler
 	void Close();
 
@@ -61,6 +78,8 @@ public:
 	//TODO: friend?
 	inline InternalImageVersion GetInternalImageVersion() const { return m_interalImageVersion; }
 	inline int GetInternalProgramVersion() const { return 0; }
+
+	void SetOption(Option);
 
 	// Seal the executable in order to generate a valid CEX image. The sealing
 	// process guantees a valid CEX is generated and the object cannot be 

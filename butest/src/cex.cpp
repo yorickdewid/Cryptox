@@ -31,8 +31,10 @@ BOOST_FIXTURE_TEST_SUITE(CEX, CEXEnvironment)
 
 BOOST_AUTO_TEST_CASE(WriteToCexFile)
 {
-	CryExe::Executable exec{ cexTestFileName , CryExe::FileMode::FM_NEW };
+	CryExe::Executable exec{ cexTestFileName, CryExe::FileMode::FM_NEW };
 	BOOST_CHECK(exec.IsOpen());
+	exec.SetOption(CryExe::Executable::Option::OPT_BINREP
+				   | CryExe::Executable::Option::OPT_READONLY);
 
 	// Flush to disk, FWIW
 	exec.Flush();
@@ -46,7 +48,7 @@ BOOST_AUTO_TEST_CASE(WriteToCexFile)
 BOOST_AUTO_TEST_CASE(ReadToCexFile)
 {
 	{
-		CryExe::Executable exec{ cexTestFileName , CryExe::FileMode::FM_NEW };
+		CryExe::Executable exec{ cexTestFileName, CryExe::FileMode::FM_NEW };
 	}
 
 	{
@@ -60,7 +62,7 @@ BOOST_AUTO_TEST_CASE(ReadToCexFile)
 
 BOOST_AUTO_TEST_CASE(CreateCexWithSectionFile)
 {
-	CryExe::Executable exec{ cexTestFileName , CryExe::FileMode::FM_NEW };
+	CryExe::Executable exec{ cexTestFileName, CryExe::FileMode::FM_NEW };
 
 	// Create native section
 	std::unique_ptr<CryExe::Section> textSection = std::make_unique<CryExe::Section>(CryExe::Section::SectionType::NATIVE);
@@ -82,7 +84,7 @@ BOOST_AUTO_TEST_CASE(CreateCexWithSectionFile)
 BOOST_AUTO_TEST_CASE(OpenCexWithSectionFile)
 {
 	{
-		CryExe::Executable exec{ cexTestFileName , CryExe::FileMode::FM_NEW };
+		CryExe::Executable exec{ cexTestFileName, CryExe::FileMode::FM_NEW };
 
 		{
 			// Create note section
@@ -115,7 +117,7 @@ BOOST_AUTO_TEST_CASE(OpenCexWithSectionFile)
 	}
 
 	{
-		CryExe::Executable exec{ cexTestFileName , CryExe::FileMode::FM_OPEN };
+		CryExe::Executable exec{ cexTestFileName, CryExe::FileMode::FM_OPEN };
 		BOOST_CHECK(exec.IsSealed());
 	}
 }
