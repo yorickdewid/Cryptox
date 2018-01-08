@@ -16,6 +16,8 @@
 #include <deque>
 #include <bitset>
 
+#include <algorithm>
+
 namespace CryExe
 {
 
@@ -83,6 +85,14 @@ public:
 
 	inline std::vector<CryExe::Section> Sections() const { return m_foundSectionList; }
 
+	std::vector<CryExe::Section>::iterator FindSection(CryExe::Section::SectionType type)
+	{
+		return std::find_if(m_foundSectionList.begin(), m_foundSectionList.end(), [&type](const CryExe::Section& section)
+		{
+			return section.Type() == type;
+		});
+	}
+
 	// Fill structure
 	void GetSectionDataFromImage(Section&);
 
@@ -95,10 +105,8 @@ public:
 	// Set executable flags
 	void SetOption(Option);
 
-	// Check if image is an executable
+	// Check image executable type
 	bool IsExecutable() const;
-
-	// Check if image is a library
 	bool IsDynamicLibrary() const;
 
 	// Seal the executable in order to generate a valid CEX image. The sealing

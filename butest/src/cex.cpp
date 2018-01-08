@@ -10,6 +10,7 @@
 
 #include <boost/test/unit_test.hpp>
 #include <boost/filesystem.hpp>
+#include <boost/algorithm/string.hpp>
 
 constexpr const char cexTestFileName[] = "_testfile.cex";
 
@@ -152,6 +153,18 @@ BOOST_AUTO_TEST_CASE(OpenCexWithSectionFile)
 		BOOST_REQUIRE(std::equal(it->Data().cbegin(), it->Data().cend(), bArray.cbegin()));
 		it->Clear();
 		BOOST_CHECK(it->Empty());
+	}
+
+	{
+		CryExe::Executable exec{ cexTestFileName, CryExe::FileMode::FM_OPEN };
+		auto it = exec.FindSection(CryExe::Section::SectionType::NOTE);
+
+		exec.GetSectionDataFromImage((*it));
+		CryExe::ByteArray sArray = it->Data();
+		std::string str{ sArray.cbegin(), sArray.cend() };
+
+		BOOST_REQUIRE(boost::algorithm::ends_with(str, "and last"));
+		it->Clear();
 	}
 }
 

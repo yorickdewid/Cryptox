@@ -91,7 +91,7 @@ public:
 	inline std::fpos_t InternalDataOffset() const { return m_dataPosition.internalImageDataOffset; }
 	inline size_t InternalDataSize() const { return m_dataPosition.internalImageDataSize; }
 
-	// Iterator types
+	// Iterator actions
 	inline const_iterator begin() const { return data.begin(); }
 	inline const_iterator end() const { return data.end(); }
 	inline const_iterator cbegin() const { return data.begin(); }
@@ -102,23 +102,10 @@ public:
 	inline bool Empty() const { return data.empty(); }
 	inline ByteArray::size_type Size() const { return data.size(); }
 
-	// 
-	void operator<<(ByteArray::value_type value)
-	{
-		data.push_back(value);
-	}
-
-	//
-	void operator<<(const std::string& str)
-	{
-		data.insert(this->cend(), str.begin(), str.end());
-	}
-
-	//
-	void operator+=(const std::string& str)
-	{
-		data.insert(this->cend(), str.begin(), str.end());
-	}
+	// Append operators
+	void operator<<(ByteArray::value_type value) { data.push_back(value); }
+	void operator<<(const std::string& str) { data.insert(this->cend(), str.begin(), str.end()); }
+	void operator+=(const std::string& str) { data.insert(this->cend(), str.begin(), str.end()); }
 };
 
 } // namespace CryExe

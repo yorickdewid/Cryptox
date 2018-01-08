@@ -24,8 +24,6 @@ CryExe::FileModeRaw CryExe::Image::OpenWithMode(CryExe::FileMode fm)
 {
 	switch (fm) {
 	case CryExe::FileMode::FM_OPEN:
-		return "r+b";
-	case CryExe::FileMode::FM_OPEN_RO:
 		return "rb";
 	case CryExe::FileMode::FM_NEW:
 		return "wb";

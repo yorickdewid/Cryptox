@@ -19,7 +19,6 @@ namespace CryExe
 enum class COILCEXAPI FileMode
 {
 	FM_OPEN,		// Open the image file if it exits, otherwise throw
-	FM_OPEN_RO,		// Open in readonly mode and only if the file exists
 	FM_NEW,			// Open new file, discard any old files with the same name
 };
 
