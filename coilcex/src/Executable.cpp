@@ -94,7 +94,22 @@ void CryExe::Executable::Open(FileMode mode)
 	}
 	else {
 		ValidateImageFormat();
+
+		// Get all headers from sections and directories into memory
+		// in order to speedup initial search
+		ConveySectionsFromDisk();
+		ConveyDirectoriesFromDisk();
 	}
+}
+
+void CryExe::Executable::ConveySectionsFromDisk()
+{
+	//
+}
+
+void CryExe::Executable::ConveyDirectoriesFromDisk()
+{
+	//
 }
 
 void CryExe::Executable::Close()
@@ -264,6 +279,13 @@ void CryExe::Executable::ValidateImageFormat()
 	// Write file header opaque to memory
 	m_interalImageStructure = new Structure::CexFileFormat;
 	MEMASSIGN(m_interalImageStructure, sizeof(Structure::CexFileFormat), &imageFile, sizeof(Structure::CexFileFormat));
+
+	// Consume end of header marker
+	std::uint16_t marker;
+	m_file.Read(marker);
+	if (marker != 0xfefe) {
+		throw std::runtime_error{ EXCEPT_INVAL_CEX };
+	}
 }
 
 void CryExe::Executable::CreateNewImage()

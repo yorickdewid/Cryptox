@@ -102,6 +102,8 @@ private:
 	static std::pair<int, bool> CryExe::Executable::ResolveSectionType(Section::SectionType);
 
 private:
+	void ConveySectionsFromDisk();
+	void ConveyDirectoriesFromDisk();
 	void ValidateImageFormat();
 	void CreateNewImage();
 	void AlignBounds();
