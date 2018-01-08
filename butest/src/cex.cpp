@@ -15,11 +15,6 @@ constexpr const char cexTestFileName[] = "_testfile.cex";
 
 struct CEXEnvironment
 {
-	CEXEnvironment()
-	{
-		//
-	}
-
 	~CEXEnvironment()
 	{
 		// Cleanup any left over test files
@@ -59,8 +54,18 @@ BOOST_AUTO_TEST_CASE(ReadToCexFile)
 		BOOST_REQUIRE_EQUAL(CryExe::Meta::ProgramVersion(exec), "");
 	}
 
+
+}
+
+BOOST_AUTO_TEST_CASE(ReadDynamicLibraryImage)
+{
 	{
 		CryExe::DynamicLibrary dll{ cexTestFileName, CryExe::FileMode::FM_NEW };
+	}
+
+	{
+		CryExe::DynamicLibrary dll{ cexTestFileName, CryExe::FileMode::FM_OPEN };
+		BOOST_REQUIRE(dll.IsDynamicLibrary());
 	}
 }
 
@@ -87,6 +92,8 @@ BOOST_AUTO_TEST_CASE(CreateCexWithSectionFile)
 
 BOOST_AUTO_TEST_CASE(OpenCexWithSectionFile)
 {
+#define OpenCexWithSectionFile_BYTEARRAY { 0x12, 0xef, 0x88, 0x56, 0x16 }
+
 	{
 		CryExe::Executable exec{ cexTestFileName, CryExe::FileMode::FM_NEW };
 
@@ -107,13 +114,15 @@ BOOST_AUTO_TEST_CASE(OpenCexWithSectionFile)
 			// Create resource section
 			CryExe::Section resSection{ CryExe::Section::SectionType::RESOURCE };
 
-			CryExe::ByteArray bArray = { 0x12, 0xef, 0x88, 0x56, 0x16 };
+			const CryExe::ByteArray bArray = OpenCexWithSectionFile_BYTEARRAY;
 			resSection.Emplace(std::move(bArray));
 			resSection << 0x87;
 
 			// Add a resource section
 			exec.AddSection(&resSection);
+		}
 
+		{
 			// Section can only be used once
 			CryExe::Section resSection2{ CryExe::Section::SectionType::RESOURCE };
 			BOOST_CHECK_THROW(exec.AddSection(&resSection2), std::runtime_error);
@@ -129,18 +138,20 @@ BOOST_AUTO_TEST_CASE(OpenCexWithSectionFile)
 		{
 			return section.Type() == CryExe::Section::SectionType::RESOURCE;
 		});
-		//BOOST_REQUIRE(it != sections.cend());
+		BOOST_REQUIRE(it != sections.cend());
 
 		// Found our section, should be empty
-		//BOOST_REQUIRE(it->Empty());
+		BOOST_REQUIRE(it->Empty());
 
 		// Retrieve data from image into section
-		/*
 		exec.GetSectionDataFromImage((*it));
-		BOOST_CHECK(!it->Empty());
-		it->Clear()
-		*/
-
+		BOOST_REQUIRE(!it->Empty());
+		
+		CryExe::ByteArray bArray = OpenCexWithSectionFile_BYTEARRAY;
+		bArray.push_back(0x87);
+		BOOST_REQUIRE(std::equal(it->Data().cbegin(), it->Data().cend(), bArray.cbegin()));
+		it->Clear();
+		BOOST_CHECK(it->Empty());
 	}
 }
 

@@ -42,11 +42,61 @@ const std::chrono::milliseconds ChronoTimestamp()
 	return duration_cast<milliseconds>(system_clock::now().time_since_epoch());
 }
 
+#define ALLOW_ONCE true
+#define ALLOW_MULTI false
+
+std::pair<CryExe::Structure::CexSection::SectionIdentifier, bool> ResolveSectionTypeToIdentifier(CryExe::Section::SectionType inType)
+{
+	switch (inType) {
+	case CryExe::Section::SectionType::NATIVE:
+		return { CryExe::Structure::CexSection::SectionIdentifier::DOT_TEXT, ALLOW_MULTI };
+	case CryExe::Section::SectionType::RESOURCE:
+		return { CryExe::Structure::CexSection::SectionIdentifier::DOT_RSRC, ALLOW_ONCE };
+	case CryExe::Section::SectionType::DATA:
+		return { CryExe::Structure::CexSection::SectionIdentifier::DOT_DATA, ALLOW_MULTI };
+	case CryExe::Section::SectionType::DEBUG:
+		return { CryExe::Structure::CexSection::SectionIdentifier::DOT_DEBUG, ALLOW_MULTI };
+	case CryExe::Section::SectionType::SOURCE:
+		return { CryExe::Structure::CexSection::SectionIdentifier::DOT_SRC, ALLOW_ONCE };
+	case CryExe::Section::SectionType::NOTE:
+		return { CryExe::Structure::CexSection::SectionIdentifier::DOT_NOTE, ALLOW_MULTI };
+	default:
+		break;
+	}
+
+	return { CryExe::Structure::CexSection::SectionIdentifier::_INVAL, 0 };
+}
+
+CryExe::Section::SectionType ResolveIdentifierToSectionType(CryExe::Structure::CexSection::SectionIdentifier inId)
+{
+	switch (inId) {
+	case CryExe::Structure::CexSection::DOT_TEXT:
+		return CryExe::Section::SectionType::NATIVE;
+	case CryExe::Structure::CexSection::DOT_RSRC:
+		return CryExe::Section::SectionType::RESOURCE;
+	case CryExe::Structure::CexSection::DOT_DATA:
+		return CryExe::Section::SectionType::DATA;
+	case CryExe::Structure::CexSection::DOT_DEBUG:
+		return CryExe::Section::SectionType::DEBUG;
+	case CryExe::Structure::CexSection::DOT_SRC:
+		return CryExe::Section::SectionType::SOURCE;
+	case CryExe::Structure::CexSection::DOT_NOTE:
+		return CryExe::Section::SectionType::NOTE;
+	default:
+		break;
+	}
+
+	//TODO
+	return CryExe::Section::SectionType::NOTE;
+}
+
+#undef ALLOW_ONCE
+#undef ALLOW_MULTI
+
 CryExe::Executable::Executable(const std::string& path, FileMode fm, ExecType type)
 	: Image{ path }
 {
-	this->Open(fm);
-
+	// Register type
 	switch (type) {
 	case CryExe::ExecType::TYPE_EXECUTABLE:
 		m_execType = static_cast<int>(Structure::ExecutableType::CET_EXECUTABLE);
@@ -55,6 +105,8 @@ CryExe::Executable::Executable(const std::string& path, FileMode fm, ExecType ty
 		m_execType = static_cast<int>(Structure::ExecutableType::CET_DYNAMIC);
 		break;
 	}
+
+	this->Open(fm);
 }
 
 CryExe::Executable::~Executable()
@@ -65,6 +117,18 @@ CryExe::Executable::~Executable()
 		delete m_interalImageStructure;
 		m_interalImageStructure = nullptr;
 	}
+}
+
+bool CryExe::Executable::IsExecutable() const
+{
+	PULL_INTSTRCT(imageFile);
+	return imageFile->imageHeader.executableType == Structure::ExecutableType::CET_EXECUTABLE;
+}
+
+bool CryExe::Executable::IsDynamicLibrary() const
+{
+	PULL_INTSTRCT(imageFile);
+	return imageFile->imageHeader.executableType == Structure::ExecutableType::CET_DYNAMIC;
 }
 
 void CryExe::Executable::SetOption(Option options)
@@ -117,7 +181,7 @@ void CryExe::Executable::ConveySectionsFromDisk()
 		MEMZERO(rawSection, sizeof(Structure::CexSection));
 		m_file.Position(offset);
 		m_file.Read(rawSection);
-		//m_foundSectionList.push_back(Section{});
+		m_foundSectionList.push_back(Section{ ResolveIdentifierToSectionType(rawSection.identifier), offset + sizeof(Structure::CexSection), rawSection.sizeOfArray });
 		offset = rawSection.offsetToSection;
 	}
 }
@@ -138,34 +202,6 @@ void CryExe::Executable::Close()
 	Image::Close();
 }
 
-std::pair<int, bool> CryExe::Executable::ResolveSectionType(Section::SectionType inType)
-{
-#define ALLOW_ONCE true
-#define ALLOW_MULTI false
-
-	switch (inType) {
-	case CryExe::Section::NATIVE:
-		return { Structure::CexSection::SectionIdentifier::DOT_TEXT, ALLOW_MULTI };
-	case CryExe::Section::RESOURCE:
-		return { Structure::CexSection::SectionIdentifier::DOT_RSRC, ALLOW_ONCE };
-	case CryExe::Section::DATA:
-		return { Structure::CexSection::SectionIdentifier::DOT_DATA, ALLOW_MULTI };
-	case CryExe::Section::DEBUG:
-		return { Structure::CexSection::SectionIdentifier::DOT_DEBUG, ALLOW_MULTI };
-	case CryExe::Section::SOURCE:
-		return { Structure::CexSection::SectionIdentifier::DOT_SRC, ALLOW_ONCE };
-	case CryExe::Section::NOTE:
-		return { Structure::CexSection::SectionIdentifier::DOT_NOTE, ALLOW_MULTI };
-	default:
-		break;
-	}
-
-	return { Structure::CexSection::SectionIdentifier::_INVAL, 0 };
-
-#undef ALLOW_ONCE
-#undef ALLOW_MULTI
-}
-
 void CryExe::Executable::AddDirectory()
 {
 	//IsAllowedOnce();
@@ -180,7 +216,7 @@ void CryExe::Executable::AddSection(Section *section)
 		throw std::runtime_error{ "sealed images cannot amend contents" };
 	}
 
-	auto typePair = ResolveSectionType(section->Type());
+	auto typePair = ResolveSectionTypeToIdentifier(section->Type());
 	assert(typePair.first != Structure::CexSection::SectionIdentifier::_INVAL);
 
 	// Test if section was used before
@@ -205,7 +241,7 @@ void CryExe::Executable::AddSection(Section *section)
 	// Commit to disk
 	m_file.Write(rawSection);
 	m_file.Write((*datablock.data()), datablock.size());
-	//section->Clear();
+	section->Clear();
 }
 
 void CryExe::Executable::GetSectionDataFromImage(Section& section)
@@ -219,8 +255,8 @@ void CryExe::Executable::GetSectionDataFromImage(Section& section)
 
 	ByteArray bArray;
 	bArray.resize(section.InternalDataSize());
-	MEMZERO(bArray, section.InternalDataSize());
-	m_file.Read(bArray, section.InternalDataSize());
+	MEMZERO((*bArray.data()), section.InternalDataSize());
+	m_file.Read((*bArray.data()), section.InternalDataSize());
 
 	// Move data array into section
 	section.Emplace(std::move(bArray));

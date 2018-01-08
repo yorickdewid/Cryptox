@@ -23,7 +23,7 @@ using ByteArray = std::vector<std::uint8_t>;
 class COILCEXAPI Section
 {
 public:
-	enum COILCEXAPI SectionType
+	enum class COILCEXAPI SectionType
 	{
 		NATIVE,
 		RESOURCE,
@@ -45,6 +45,13 @@ public:
 private:
 	struct COILCEXAPI DataPosition
 	{
+		DataPosition() = default;
+		DataPosition(std::fpos_t offset, size_t size)
+			: internalImageDataOffset{ offset }
+			, internalImageDataSize{ size }
+		{
+		}
+
 		std::fpos_t internalImageDataOffset = ILLEGAL_OFFSET;
 		size_t internalImageDataSize = 0;
 	} m_dataPosition;
@@ -52,6 +59,12 @@ private:
 public:
 	Section(SectionType _type)
 		: type{ _type }
+	{
+	}
+
+	Section(SectionType _type, std::fpos_t offset, size_t size)
+		: m_dataPosition{ offset, size }
+		, type{ _type }
 	{
 	}
 
@@ -73,7 +86,7 @@ public:
 	// Return data object
 	inline SectionType Type() const { return type; }
 	inline const ByteArray& Data() const { return data; }
-	
+
 	// Internal offsets required to retrieve data from image
 	inline std::fpos_t InternalDataOffset() const { return m_dataPosition.internalImageDataOffset; }
 	inline size_t InternalDataSize() const { return m_dataPosition.internalImageDataSize; }

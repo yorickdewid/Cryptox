@@ -92,15 +92,19 @@ public:
 	inline InternalImageVersion GetInternalImageVersion() const { return m_interalImageVersion; }
 	inline int GetInternalProgramVersion() const { return 0; }
 
+	// Set executable flags
 	void SetOption(Option);
+
+	// Check if image is an executable
+	bool IsExecutable() const;
+
+	// Check if image is a library
+	bool IsDynamicLibrary() const;
 
 	// Seal the executable in order to generate a valid CEX image. The sealing
 	// process guantees a valid CEX is generated and the object cannot be 
 	// altered when commited to disk.
 	static const Executable& Seal(Executable&);
-
-private:
-	static std::pair<int, bool> CryExe::Executable::ResolveSectionType(Section::SectionType);
 
 private:
 	void ConveySectionsFromDisk();
