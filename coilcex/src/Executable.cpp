@@ -104,12 +104,27 @@ void CryExe::Executable::Open(FileMode mode)
 
 void CryExe::Executable::ConveySectionsFromDisk()
 {
-	//
+	PULL_INTSTRCT(imageFile);
+
+	if (imageFile->programHeader.numberOfSections == 0) { return; }
+	m_foundSectionList.reserve(imageFile->programHeader.numberOfSections);
+
+	assert(imageFile->programHeader.offsetToSectionTable);
+	std::fpos_t offset = imageFile->programHeader.offsetToSectionTable;
+
+	Structure::CexSection rawSection;
+	while (offset) {
+		MEMZERO(rawSection, sizeof(Structure::CexSection));
+		m_file.Position(offset);
+		m_file.Read(rawSection);
+		//m_foundSectionList.push_back(Section{});
+		offset = rawSection.offsetToSection;
+	}
 }
 
 void CryExe::Executable::ConveyDirectoriesFromDisk()
 {
-	//
+	PULL_INTSTRCT(imageFile);
 }
 
 void CryExe::Executable::Close()
@@ -191,11 +206,6 @@ void CryExe::Executable::AddSection(Section *section)
 	m_file.Write(rawSection);
 	m_file.Write((*datablock.data()), datablock.size());
 	//section->Clear();
-}
-
-std::vector<CryExe::Section> CryExe::Executable::Sections()
-{
-	return { CryExe::Section{ CryExe::Section::SectionType::RESOURCE } };
 }
 
 void CryExe::Executable::GetSectionDataFromImage(Section& section)

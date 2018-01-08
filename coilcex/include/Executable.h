@@ -42,6 +42,7 @@ class COILCEXAPI Executable : public Image
 	std::deque<size_t> m_offsetStackSection;
 	std::deque<size_t> m_offsetStackDirectory;
 	std::bitset<UINT16_MAX> m_allocSections = 0;
+	std::vector<CryExe::Section> m_foundSectionList;
 	int m_execType;
 
 public:
@@ -79,8 +80,8 @@ public:
 
 	// Add new section to CEX image
 	void AddSection(Section *);
-	
-	std::vector<CryExe::Section> Sections();
+
+	inline std::vector<CryExe::Section> Sections() const { return m_foundSectionList; }
 
 	// Fill structure
 	void GetSectionDataFromImage(Section&);
