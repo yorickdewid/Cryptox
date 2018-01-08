@@ -8,11 +8,12 @@
 
 #pragma once
 
-//#include "Exportable.h"
 #include "Executable.h"
 
 #include <string>
 #include <vector>
+
+#define ILLEGAL_OFFSET -1
 
 namespace CryExe
 {
@@ -22,7 +23,7 @@ using ByteArray = std::vector<std::uint8_t>;
 class COILCEXAPI Section
 {
 public:
-	enum SectionType
+	enum COILCEXAPI SectionType
 	{
 		NATIVE,
 		RESOURCE,
@@ -41,25 +42,22 @@ public:
 	using size_type = ByteArray::size_type;
 	using const_iterator = ByteArray::const_iterator;
 
+private:
+	struct COILCEXAPI DataPosition
+	{
+		std::fpos_t internalImageDataOffset = ILLEGAL_OFFSET;
+		size_t internalImageDataSize = 0;
+	} m_dataPosition;
+
 public:
 	Section(SectionType _type)
 		: type{ _type }
 	{
 	}
 
-	void Emplace(const ByteArray& bstream)
-	{
-		data = bstream;
-	}
-
-	void Emplace(ByteArray&& bstream)
-	{
-		data = std::move(bstream);
-	}
-
-	// Add one element to the buffer
-	void PusbBack(ByteArray::value_type& value) { data.push_back(value); }
-	void PusbBack(ByteArray::value_type&& value) { data.push_back(std::move(value)); }
+	// Insert data into section
+	void Emplace(const ByteArray& bstream) { data = bstream; }
+	void Emplace(ByteArray&& bstream) { data = std::move(bstream); }
 
 	// Convert string to byte array
 	inline void Emplace(const std::string& sstream)
@@ -68,9 +66,17 @@ public:
 		this->Emplace(std::move(vec));
 	}
 
+	// Add one element to the buffer
+	void PusbBack(ByteArray::value_type& value) { data.push_back(value); }
+	void PusbBack(ByteArray::value_type&& value) { data.push_back(std::move(value)); }
+
 	// Return data object
 	inline SectionType Type() const { return type; }
 	inline const ByteArray& Data() const { return data; }
+	
+	// Internal offsets required to retrieve data from image
+	inline std::fpos_t InternalDataOffset() const { return m_dataPosition.internalImageDataOffset; }
+	inline size_t InternalDataSize() const { return m_dataPosition.internalImageDataSize; }
 
 	// Iterator types
 	inline const_iterator begin() const { return data.begin(); }
@@ -80,7 +86,7 @@ public:
 
 	// Capacity operations
 	inline void Clear() { data.clear(); }
-	inline void Empty() { data.empty(); }
+	inline bool Empty() const { return data.empty(); }
 	inline ByteArray::size_type Size() const { return data.size(); }
 
 	// 

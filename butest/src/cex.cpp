@@ -123,6 +123,21 @@ BOOST_AUTO_TEST_CASE(OpenCexWithSectionFile)
 	{
 		CryExe::Executable exec{ cexTestFileName, CryExe::FileMode::FM_OPEN };
 		BOOST_CHECK(exec.IsSealed());
+
+		auto sections = exec.Sections();
+		auto it = std::find_if(sections.begin(), sections.end(), [](const CryExe::Section& section)
+		{
+			return section.Type() == CryExe::Section::SectionType::RESOURCE;
+		});
+		BOOST_REQUIRE(it != sections.cend());
+
+		// Found our section, should be empty
+		BOOST_REQUIRE(it->Empty());
+
+		// Retrieve data from image into section
+		/*exec.GetSectionDataFromImage((*it));
+		BOOST_CHECK(!it->Empty());*/
+
 	}
 }
 

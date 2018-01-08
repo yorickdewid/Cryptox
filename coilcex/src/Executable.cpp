@@ -175,7 +175,30 @@ void CryExe::Executable::AddSection(Section *section)
 	// Commit to disk
 	m_file.Write(rawSection);
 	m_file.Write((*datablock.data()), datablock.size());
-	section->Clear();
+	//section->Clear();
+}
+
+std::vector<CryExe::Section> CryExe::Executable::Sections()
+{
+	return { CryExe::Section{ CryExe::Section::SectionType::RESOURCE } };
+}
+
+void CryExe::Executable::GetSectionDataFromImage(Section& section)
+{
+	assert(section.InternalDataOffset() != ILLEGAL_OFFSET);
+	if (!section.Empty()) { return; }
+	if (section.InternalDataSize() == 0) { return; }
+
+	// Move file to the offset image position
+	m_file.Position(section.InternalDataOffset());
+
+	ByteArray bArray;
+	bArray.resize(section.InternalDataSize());
+	MEMZERO(bArray, section.InternalDataSize());
+	m_file.Read(bArray, section.InternalDataSize());
+
+	// Move data array into section
+	section.Emplace(std::move(bArray));
 }
 
 short CryExe::Executable::ImageVersion() const

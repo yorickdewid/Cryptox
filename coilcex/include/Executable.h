@@ -79,6 +79,11 @@ public:
 
 	// Add new section to CEX image
 	void AddSection(Section *);
+	
+	std::vector<CryExe::Section> Sections();
+
+	// Fill structure
+	void GetSectionDataFromImage(Section&);
 
 	short ImageVersion() const;
 
