@@ -7,6 +7,7 @@
 // copied and/or distributed without the express of the author.
 
 #include "Executable.h"
+#include "Convert.h"
 #include "CexHeader.h"
 
 #include <cassert>
@@ -181,7 +182,12 @@ void CryExe::Executable::ConveySectionsFromDisk()
 		MEMZERO(rawSection, sizeof(Structure::CexSection));
 		m_file.Position(offset);
 		m_file.Read(rawSection);
-		m_foundSectionList.push_back(Section{ ResolveIdentifierToSectionType(rawSection.identifier), offset + sizeof(Structure::CexSection), rawSection.sizeOfArray });
+
+		Section section{ ResolveIdentifierToSectionType(rawSection.identifier) };
+		section.m_dataPosition.internalImageDataOffset = offset + sizeof(Structure::CexSection);
+		section.m_dataPosition.internalImageDataSize = rawSection.sizeOfArray;
+
+		m_foundSectionList.push_back(std::move(section));
 		offset = rawSection.offsetToSection;
 	}
 }
@@ -211,7 +217,6 @@ void CryExe::Executable::AddSection(Section *section)
 {
 	assert(section);
 
-	const auto& datablock = section->Data();
 	if (IsSealed()) {
 		throw std::runtime_error{ "sealed images cannot amend contents" };
 	}
@@ -227,12 +232,28 @@ void CryExe::Executable::AddSection(Section *section)
 		m_allocSections.set(typePair.first);
 	}
 
+	/*Converter::Operations ops = Converter::Operations::CO_NONE;
+	switch (section->StorageOptions()) {
+	case SO_ENCRYPT:
+		ops = Converter::Operations::CO_ENCRYPT;
+		break;
+	case SO_COMPRESS:
+		ops = Converter::Operations::CO_COMPRESS;
+		break;
+	default:
+		break;
+	}*/
+
+	// Perform data processing operations in-place
+	ConvertToPersistent{ section->data }.Convert();
+
+	// Prepare section structure to be written to disk
 	Structure::CexSection rawSection;
 	MEMZERO(rawSection, sizeof(Structure::CexSection));
 	rawSection.identifier = static_cast<Structure::CexSection::SectionIdentifier>(typePair.first);
 	rawSection.flags = Structure::SectionCharacteristic::SC_NONE;
 	rawSection.offsetToSection = UNASSIGNED;
-	rawSection.sizeOfArray = datablock.size();
+	rawSection.sizeOfArray = section->Size();
 	SETSTRUCTSZ(rawSection, Structure::CexSection);
 
 	// Save current image offset to stack
@@ -240,7 +261,7 @@ void CryExe::Executable::AddSection(Section *section)
 
 	// Commit to disk
 	m_file.Write(rawSection);
-	m_file.Write((*datablock.data()), datablock.size());
+	m_file.Write((*section->Data().data()), section->Size());
 	section->Clear();
 }
 

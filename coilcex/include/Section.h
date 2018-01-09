@@ -22,6 +22,8 @@ using ByteArray = std::vector<std::uint8_t>;
 
 class COILCEXAPI Section
 {
+	friend class Executable;
+
 public:
 	enum class COILCEXAPI SectionType
 	{
@@ -59,12 +61,6 @@ private:
 public:
 	Section(SectionType _type)
 		: type{ _type }
-	{
-	}
-
-	Section(SectionType _type, std::fpos_t offset, size_t size)
-		: m_dataPosition{ offset, size }
-		, type{ _type }
 	{
 	}
 
