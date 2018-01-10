@@ -12,8 +12,12 @@
 
 #include <string>
 #include <vector>
+#include <bitset>
 
 #define ILLEGAL_OFFSET -1
+
+#define STORAGE_OPTION_ENCRYPTION 0
+#define STORAGE_OPTION_COMPRESSION 1
 
 namespace CryExe
 {
@@ -38,6 +42,7 @@ public:
 private:
 	ByteArray data;
 	SectionType type;
+	std::bitset<2> storageOptionFlags;
 
 public:
 	using value_type = ByteArray::value_type;
@@ -83,6 +88,11 @@ public:
 	inline SectionType Type() const { return type; }
 	inline const ByteArray& Data() const { return data; }
 
+	// Section storage options
+	inline void SetStorageOptionEncryption() { storageOptionFlags.set(STORAGE_OPTION_ENCRYPTION); }
+	inline void SetStorageOptionCompression() { storageOptionFlags.set(STORAGE_OPTION_COMPRESSION); }
+
+	//TODO
 	// Internal offsets required to retrieve data from image
 	inline std::fpos_t InternalDataOffset() const { return m_dataPosition.internalImageDataOffset; }
 	inline size_t InternalDataSize() const { return m_dataPosition.internalImageDataSize; }

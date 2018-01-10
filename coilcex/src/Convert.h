@@ -11,23 +11,23 @@
 namespace CryExe
 {
 
-struct Converter
+class Convert
 {
-	enum Operations
+public:
+	enum class Operations
 	{
 		CO_NONE = 1 << 0,
 		CO_ENCRYPT = 1 << 1,
 		CO_COMPRESS = 1 << 2,
 	};
 
-	virtual void SetProcessOptions() = 0;
-	virtual void Convert() = 0;
-};
+	friend Operations operator|=(Operations op1, Operations op2)
+	{
+		return static_cast<Operations>(static_cast<int>(op1) | static_cast<int>(op2));
+	}
 
-class ConvertToPersistent : public Converter
-{
 public:
-	ConvertToPersistent(const std::vector<uint8_t>& inData)
+	Convert(const std::vector<uint8_t>& inData, Operations operations)
 	{
 	}
 
@@ -36,25 +36,12 @@ public:
 		//
 	}
 
-	void Convert()
-	{
-		//
-	}
-};
-
-class ConvertFromPersistent : public Converter
-{
-public:
-	ConvertFromPersistent(const std::vector<uint8_t>& inData)
-	{
-	}
-
-	void SetProcessOptions()
+	void ToImage()
 	{
 		//
 	}
 
-	void Convert()
+	void FromImage()
 	{
 		//
 	}

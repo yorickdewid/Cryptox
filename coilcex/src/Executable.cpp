@@ -232,20 +232,16 @@ void CryExe::Executable::AddSection(Section *section)
 		m_allocSections.set(typePair.first);
 	}
 
-	/*Converter::Operations ops = Converter::Operations::CO_NONE;
-	switch (section->StorageOptions()) {
-	case SO_ENCRYPT:
-		ops = Converter::Operations::CO_ENCRYPT;
-		break;
-	case SO_COMPRESS:
-		ops = Converter::Operations::CO_COMPRESS;
-		break;
-	default:
-		break;
-	}*/
+	Convert::Operations ops = Convert::Operations::CO_NONE;
+	if (section->storageOptionFlags.test(STORAGE_OPTION_ENCRYPTION)) {
+		ops |= Convert::Operations::CO_ENCRYPT;
+	}
+	if (section->storageOptionFlags.test(STORAGE_OPTION_COMPRESSION)) {
+		ops |= Convert::Operations::CO_COMPRESS;
+	}
 
 	// Perform data processing operations in-place
-	ConvertToPersistent{ section->data }.Convert();
+	Convert{ section->data, ops }.ToImage();
 
 	// Prepare section structure to be written to disk
 	Structure::CexSection rawSection;
@@ -278,6 +274,17 @@ void CryExe::Executable::GetSectionDataFromImage(Section& section)
 	bArray.resize(section.InternalDataSize());
 	MEMZERO((*bArray.data()), section.InternalDataSize());
 	m_file.Read((*bArray.data()), section.InternalDataSize());
+
+	Convert::Operations ops = Convert::Operations::CO_NONE;
+	if (section.storageOptionFlags.test(STORAGE_OPTION_ENCRYPTION)) {
+		ops |= Convert::Operations::CO_ENCRYPT;
+	}
+	if (section.storageOptionFlags.test(STORAGE_OPTION_COMPRESSION)) {
+		ops |= Convert::Operations::CO_COMPRESS;
+	}
+
+	// Perform data processing operations in-place
+	Convert{ bArray, ops }.FromImage();
 
 	// Move data array into section
 	section.Emplace(std::move(bArray));
