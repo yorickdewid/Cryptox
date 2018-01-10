@@ -8,3 +8,22 @@
 
 #include "Convert.h"
 
+CryExe::Convert::Convert(const std::vector<uint8_t>& inData, Operations operations)
+{
+
+}
+
+void CryExe::Convert::ReorderOperations()
+{
+
+}
+
+void CryExe::Convert::ToImage()
+{
+	ReorderOperations();
+}
+
+void CryExe::Convert::FromImage()
+{
+	ReorderOperations();
+}

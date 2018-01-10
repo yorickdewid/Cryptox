@@ -26,25 +26,13 @@ public:
 		return static_cast<Operations>(static_cast<int>(op1) | static_cast<int>(op2));
 	}
 
+	void ReorderOperations();
+
 public:
-	Convert(const std::vector<uint8_t>& inData, Operations operations)
-	{
-	}
+	Convert(const std::vector<uint8_t>& inData, Operations operations);
 
-	void SetProcessOptions()
-	{
-		//
-	}
-
-	void ToImage()
-	{
-		//
-	}
-
-	void FromImage()
-	{
-		//
-	}
+	void ToImage();
+	void FromImage();
 };
 
 } // namespace CryExe
