@@ -232,7 +232,7 @@ void CryExe::Executable::AddSection(Section *section)
 		m_allocSections.set(typePair.first);
 	}
 
-	Convert::Operations ops = Convert::Operations::CO_NONE;
+	Convert::operations_type ops = 0;
 	if (section->storageOptionFlags.test(STORAGE_OPTION_ENCRYPTION)) {
 		ops |= Convert::Operations::CO_ENCRYPT;
 	}
@@ -275,7 +275,7 @@ void CryExe::Executable::GetSectionDataFromImage(Section& section)
 	MEMZERO((*bArray.data()), section.InternalDataSize());
 	m_file.Read((*bArray.data()), section.InternalDataSize());
 
-	Convert::Operations ops = Convert::Operations::CO_NONE;
+	Convert::operations_type ops = 0;
 	if (section.storageOptionFlags.test(STORAGE_OPTION_ENCRYPTION)) {
 		ops |= Convert::Operations::CO_ENCRYPT;
 	}
