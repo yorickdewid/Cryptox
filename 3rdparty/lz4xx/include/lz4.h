@@ -304,27 +304,6 @@ int LZ4_decompress_fast_usingDict (const char* source, char* dest, int originalS
 /**************************************
 *  Obsolete Functions
 **************************************/
-/* Deprecate Warnings */
-/* Should these warnings messages be a problem,
-   it is generally possible to disable them,
-   with -Wno-deprecated-declarations for gcc
-   or _CRT_SECURE_NO_WARNINGS in Visual for example.
-   You can also define LZ4_DEPRECATE_WARNING_DEFBLOCK. */
-#ifndef LZ4_DEPRECATE_WARNING_DEFBLOCK
-#  define LZ4_DEPRECATE_WARNING_DEFBLOCK
-#  define LZ4_GCC_VERSION (__GNUC__ * 100 + __GNUC_MINOR__)
-#  if (LZ4_GCC_VERSION >= 405) || defined(__clang__)
-#    define LZ4_DEPRECATED(message) __attribute__((deprecated(message)))
-#  elif (LZ4_GCC_VERSION >= 301)
-#    define LZ4_DEPRECATED(message) __attribute__((deprecated))
-#  elif defined(_MSC_VER)
-#    define LZ4_DEPRECATED(message) __declspec(deprecated(message))
-#  else
-#    pragma message("WARNING: You need to implement LZ4_DEPRECATED for this compiler")
-#    define LZ4_DEPRECATED(message)
-#  endif
-#endif /* LZ4_DEPRECATE_WARNING_DEFBLOCK */
-
 /* Obsolete compression functions */
 /* These functions are planned to start generate warnings by r131 approximately */
 int LZ4_compress               (const char* source, char* dest, int sourceSize);
@@ -333,27 +312,6 @@ int LZ4_compress_withState               (void* state, const char* source, char*
 int LZ4_compress_limitedOutput_withState (void* state, const char* source, char* dest, int inputSize, int maxOutputSize);
 int LZ4_compress_continue                (LZ4_stream_t* LZ4_streamPtr, const char* source, char* dest, int inputSize);
 int LZ4_compress_limitedOutput_continue  (LZ4_stream_t* LZ4_streamPtr, const char* source, char* dest, int inputSize, int maxOutputSize);
-
-/* Obsolete decompression functions */
-/* These function names are completely deprecated and must no longer be used.
-   They are only provided here for compatibility with older programs.
-    - LZ4_uncompress is the same as LZ4_decompress_fast
-    - LZ4_uncompress_unknownOutputSize is the same as LZ4_decompress_safe
-   These function prototypes are now disabled; uncomment them only if you really need them.
-   It is highly recommended to stop using these prototypes and migrate to maintained ones */
-/* int LZ4_uncompress (const char* source, char* dest, int outputSize); */
-/* int LZ4_uncompress_unknownOutputSize (const char* source, char* dest, int isize, int maxOutputSize); */
-
-/* Obsolete streaming functions; use new streaming interface whenever possible */
-LZ4_DEPRECATED("use LZ4_createStream() instead") void* LZ4_create (char* inputBuffer);
-LZ4_DEPRECATED("use LZ4_createStream() instead") int   LZ4_sizeofStreamState(void);
-LZ4_DEPRECATED("use LZ4_resetStream() instead")  int   LZ4_resetStreamState(void* state, char* inputBuffer);
-LZ4_DEPRECATED("use LZ4_saveDict() instead")     char* LZ4_slideInputBuffer (void* state);
-
-/* Obsolete streaming decoding functions */
-LZ4_DEPRECATED("use LZ4_decompress_safe_usingDict() instead") int LZ4_decompress_safe_withPrefix64k (const char* src, char* dst, int compressedSize, int maxDstSize);
-LZ4_DEPRECATED("use LZ4_decompress_fast_usingDict() instead") int LZ4_decompress_fast_withPrefix64k (const char* src, char* dst, int originalSize);
-
 
 #if defined (__cplusplus)
 }
