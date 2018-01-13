@@ -14,16 +14,20 @@
 #include <functional>
 #include <cassert>
 
+#define CONVERTER(c,o) { \
+	c conv; \
+	std::shared_ptr<AbstractConv> call = std::make_shared<CallableConv<decltype(conv)>>(GetPrioByConverterType(o), conv); \
+	m_converters.push_back(std::move(call)); \
+}
+
 CryExe::Convert::Convert(std::vector<uint8_t>& inData, operations_type operations)
 	: m_data{ inData }
 {
-	/*if (operations & Operations::CO_ENCRYPT) {
-		m_converters.push_back(CallableConv<>{ GetPrioByConverterType(Operations::CO_ENCRYPT) });
-	}*/
+	if (operations & Operations::CO_ENCRYPT) {
+		// TODO
+	}
 	if (operations & Operations::CO_COMPRESS) {
-		CompressConv conv;
-		std::shared_ptr<AbstractConv> call = std::make_shared<CallableConv<CompressConv>>(GetPrioByConverterType(Operations::CO_ENCRYPT), conv);
-		m_converters.push_back(std::move(call));
+		CONVERTER(CompressConv, Operations::CO_ENCRYPT);
 	}
 }
 
@@ -44,18 +48,10 @@ int CryExe::Convert::GetPrioByConverterType(Operations operation)
 
 void CryExe::Convert::ToImage()
 {
-	while (!m_converters.empty()) {
-		auto conv = NextConverter<std::greater>();
-		conv->Call(m_data);
-		m_converters.pop_front();
-	}
+	ConvertInvoke<std::greater>();
 }
 
 void CryExe::Convert::FromImage()
 {
-	while (!m_converters.empty()) {
-		auto conv = NextConverter<std::less>();
-		conv->Call(m_data);
-		m_converters.pop_front();
-	}
+	ConvertInvoke<std::less>();
 }

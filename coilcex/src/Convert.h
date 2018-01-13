@@ -77,10 +77,14 @@ private:
 
 private:
 	template<template<typename> typename _Predicate, typename _EvalTy = std::shared_ptr<AbstractConv>>
-	_EvalTy NextConverter()
+	void ConvertInvoke()
 	{
 		std::sort(m_converters.begin(), m_converters.end(), _Predicate<_EvalTy>());
-		return m_converters.front();
+		while (!m_converters.empty()) {
+			auto conv = m_converters.front();
+			conv->Call(m_data);
+			m_converters.pop_front();
+		}
 	}
 
 public:
