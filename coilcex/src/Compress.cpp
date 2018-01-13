@@ -7,3 +7,10 @@
 // copied and/or distributed without the express of the author.
 
 #include "Compress.h"
+
+using namespace CryExe;
+
+void CompressConv::operator()(std::vector<uint8_t>& data)
+{
+	data.size();
+}

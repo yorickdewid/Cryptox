@@ -10,20 +10,12 @@
 
 #include <vector>
 
-#include "ConverterInterface.h"
-
 namespace CryExe
 {
 
-class CompressConv : private ConverterInterface
+class ConverterInterface
 {
-public:
-	CompressConv()
-	{
-
-	}
-
-	void operator()(std::vector<uint8_t>& data);
+	virtual void operator()(std::vector<uint8_t>&) = 0;
 };
 
 } // namespace CryExe
