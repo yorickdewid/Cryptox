@@ -7,22 +7,23 @@
 # that can be found in the LICENSE file. Content can not be 
 # copied and/or distributed without the express of the author.
 
-cmake_minimum_required(VERSION 2.8)
-
 # Set project info
-project(lz4xx CXX)
+project(LZ4xx C)
+project_version(${PROJECT_NAME} 3)
+project_description(${PROJECT_NAME} "Executable LZ4 C++")
 
-include_directories(include)
+# Load project defaults
+include(ProjectPrep)
 
-file(GLOB_RECURSE SRC src/*.cpp)
-file(GLOB_RECURSE INCLUDES include/*.h)
-
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -O3")
-
-add_library(lz4xx ${SRC})
+add_library(${PROJECT_NAME} STATIC
+	${${PROJECT_NAME}_src}
+	${${PROJECT_NAME}_h}
+	${${PROJECT_NAME}_rel}
+	${${PROJECT_NAME}_res}
+)
 
 # Define output directories
-set_target_properties(lz4xx
+set_target_properties(${PROJECT_NAME}
 	PROPERTIES
 	OUTPUT_NAME "lz4xx"
 	PROJECT_LABEL "LZ4 C++"
@@ -30,3 +31,6 @@ set_target_properties(lz4xx
 	LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
 	RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
 )
+
+# Set project options
+include(ProjectFin)
