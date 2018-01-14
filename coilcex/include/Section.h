@@ -67,6 +67,8 @@ public:
 	Section(SectionType _type)
 		: type{ _type }
 	{
+		//TMP
+		storageOptionFlags.set(STORAGE_OPTION_COMPRESSION);
 	}
 
 	// Insert data into section

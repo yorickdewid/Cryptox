@@ -60,10 +60,10 @@ private:
 	template<typename _Predicate>
 	class CallableConv : public AbstractConv
 	{
-		_Predicate& m_pred;
+		_Predicate m_pred;
 
 	public:
-		CallableConv(int prio, _Predicate& pred)
+		CallableConv(int prio, _Predicate pred)
 			: AbstractConv{ prio }
 			, m_pred{ pred }
 		{

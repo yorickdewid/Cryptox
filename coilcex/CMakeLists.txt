@@ -15,6 +15,9 @@ project_description(${PROJECT_NAME} "Executable Format")
 # Load project defaults
 include(ProjectPrep)
 
+# External includes
+include_directories(${LZ4xx_INCLUDE_DIRS})
+
 add_library(${PROJECT_NAME} STATIC
 	${${PROJECT_NAME}_src}
 	${${PROJECT_NAME}_h}
@@ -30,6 +33,10 @@ set_target_properties(${PROJECT_NAME}
 	ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
 	LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
 	RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
+)
+
+target_link_libraries(${PROJECT_NAME}
+	LZ4xx
 )
 
 # Set project options
