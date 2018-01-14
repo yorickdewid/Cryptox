@@ -90,4 +90,6 @@ void CompressConv::operator()(std::vector<uint8_t>& data)
 	if (data.size() < LOWER_LIMIT) {
 		return;
 	}
+
+	//TOOD: compress when data is large enough
 }

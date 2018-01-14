@@ -6,18 +6,25 @@
 // that can be found in the LICENSE file. Content can not be 
 // copied and/or distributed without the express of the author.
 
-#ifndef COILCEX_H_
-#define COILCEX_H_
-
 #pragma once
 
-#define COILCEXAPIVER	090
-
-// Include class definitions
-#include "Executable.h"
-#include "Meta.h"
 #include "Section.h"
-#include "NoteSection.h"
-#include "ResourceSection.h"
 
-#endif // COILCEX_H_
+namespace CryExe
+{
+
+class ResourceSection : public Section
+{
+public:
+	ResourceSection()
+		: Section{ Section::SectionType::RESOURCE }
+	{
+	}
+
+	//~ResourceSection();
+
+private:
+
+};
+
+} // namespace CryExe

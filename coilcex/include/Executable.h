@@ -15,6 +15,7 @@
 #include <string>
 #include <deque>
 #include <bitset>
+#include <vector>
 
 #include <algorithm>
 
