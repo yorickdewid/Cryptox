@@ -165,7 +165,22 @@ BOOST_AUTO_TEST_CASE(OpenCexWithSectionFile)
 
 		BOOST_REQUIRE(boost::algorithm::ends_with(str, "and last"));
 		it->Clear();
+		BOOST_CHECK(it->Empty());
 	}
+}
+
+BOOST_AUTO_TEST_CASE(WriteToSubSectionCexFile)
+{
+	CryExe::DynamicLibrary dll{ cexTestFileName, CryExe::FileMode::FM_NEW };
+
+	CryExe::NoteSection noteSection{ "subsec", "Subsection comment" };
+	noteSection << "Main contents of the .note section\n";
+	noteSection << "Add another line of text content";
+
+	// Add a note section
+	dll.AddSection(&noteSection);
+
+	CryExe::Executable::Seal(dll);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

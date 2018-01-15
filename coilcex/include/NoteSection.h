@@ -22,27 +22,11 @@ class COILCEXAPI NoteSection : public Section
 	Section::SectionType m_sectionLink;
 
 public:
-	NoteSection()
-		: Section{ Section::SectionType::NOTE }
-	{
-	}
+	NoteSection();
+	NoteSection(const std::string& name, const std::string& description);
 
-	NoteSection(const std::string& name, const std::string& description)
-		: Section{ Section::SectionType::NOTE }
-		, m_name{ name }
-		, m_description{ description }
-	{
-	}
-
-	/*NoteSection()
-		: Section{ Section{ Section::SectionType::NOTE } }
-	{
-	}*/
-
-	inline const ByteArray& Data() const
-	{
-		return Section::Data();
-	}
+	virtual void DataSwap();
+	virtual void Clear();
 
 	// Request meta info for note section
 	inline std::string Name() const { return m_name; }

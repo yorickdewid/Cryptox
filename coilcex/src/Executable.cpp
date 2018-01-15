@@ -240,6 +240,9 @@ void CryExe::Executable::AddSection(Section *section)
 		ops |= Convert::Operations::CO_COMPRESS;
 	}
 
+	// Allow derived objects to swap data into section
+	section->DataSwap();
+
 	// Perform data processing operations in-place
 	Convert{ section->data, ops }.ToImage();
 
