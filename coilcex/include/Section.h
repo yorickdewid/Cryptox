@@ -63,6 +63,9 @@ private:
 		size_t internalImageDataSize = 0;
 	} m_dataPosition;
 
+protected:
+	virtual void DataSwap() {}
+
 public:
 	Section(SectionType _type)
 		: type{ _type }
@@ -104,9 +107,9 @@ public:
 	inline const_iterator cend() const { return data.end(); }
 
 	// Capacity operations
-	inline void Clear() { data.clear(); }
-	inline bool Empty() const { return data.empty(); }
-	inline ByteArray::size_type Size() const { return data.size(); }
+	virtual inline void Clear() { data.clear(); }
+	virtual inline bool Empty() const { return data.empty(); }
+	virtual inline ByteArray::size_type Size() const { return data.size(); }
 
 	// Append operators
 	void operator<<(ByteArray::value_type value) { data.push_back(value); }
