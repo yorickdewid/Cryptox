@@ -12,6 +12,7 @@
 
 #include <cassert>
 #include <cstdio>
+#include <cstring>
 #include <chrono>
 
 #define SETSTRUCTSZ(s,f) \
@@ -105,6 +106,22 @@ CryExe::Executable::Executable(const std::string& path, FileMode fm, ExecType ty
 	case CryExe::ExecType::TYPE_LIBRARY_DYNAMIC:
 		m_execType = static_cast<int>(Structure::ExecutableType::CET_DYNAMIC);
 		break;
+	}
+
+	this->Open(fm);
+}
+
+CryExe::Executable::Executable(const CryExe::Executable& exe, FileMode fm)
+	: Image{ exe.Name() }
+{
+	if (fm == FileMode::FM_OPEN) {
+		m_foundSectionList = std::move(exe.m_foundSectionList);
+		m_offsetStackSection = std::move(exe.m_offsetStackSection);
+		m_offsetStackDirectory = std::move(exe.m_offsetStackSection);
+		m_interalImageStructure = std::move(exe.m_interalImageStructure);
+		m_interalImageVersion = exe.m_interalImageVersion;
+		m_execType = exe.m_execType;
+		m_allocSections = exe.m_allocSections;
 	}
 
 	this->Open(fm);
