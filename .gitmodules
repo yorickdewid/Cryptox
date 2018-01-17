@@ -1,0 +1,3 @@
+[submodule "3rdparty/QUID"]
+	path = 3rdparty/QUID
+	url = https://github.com/yorickdewid/QUID
