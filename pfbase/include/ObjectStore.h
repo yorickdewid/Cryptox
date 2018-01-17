@@ -10,7 +10,8 @@ namespace ProjectBase
 
 struct Store
 {
-	enum FactoryObjectType {
+	enum FactoryObjectType
+	{
 		ObjectTypeMaterialStore = 1,
 		ObjectTypeDiagramStore = 2,
 		ObjectTypeOtherStore = 3,
@@ -65,6 +66,11 @@ protected:
 	void AddNode(T& node)
 	{
 		nodeList.push_back(node);
+	}
+
+	void AddNode(T&& node)
+	{
+		nodeList.push_back(std::move(node));
 	}
 
 	T& GetNode(const char node[])

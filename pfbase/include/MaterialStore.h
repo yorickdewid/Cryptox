@@ -28,6 +28,11 @@ public:
 		AddNode(pair);
 	}
 
+	void AddKeypair(Keypair&& pair)
+	{
+		AddNode(std::move(pair));
+	}
+
 	Keypair& GetKeypair(const char name[])
 	{
 		return GetNode(name);
