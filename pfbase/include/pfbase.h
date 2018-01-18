@@ -6,7 +6,7 @@
 #define PFBASE_H_
 
 #if defined(_MSC_VER)
-#pragma once
+# pragma once
 #endif
 
 #ifdef _WIN32
@@ -15,7 +15,7 @@
 # else
 #  define PFBASEAPI   __declspec(dllimport)
 # endif
-#elif
+#else
 # define PFBASEAPI
 #endif
 

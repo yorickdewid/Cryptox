@@ -30,6 +30,11 @@ public:
 		AddNode(file);
 	}
 
+	void AddFile(File&& file)
+	{
+		AddNode(std::move(file));
+	}
+
 	File& GetFile(const char file[])
 	{
 		return GetNode(file);

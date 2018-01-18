@@ -34,7 +34,7 @@ public:
 
 	void Parse(const std::string content)
 	{
-		//
+		((void)content);
 	}
 
 };

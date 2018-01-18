@@ -45,6 +45,8 @@ set_target_properties(${PROJECT_NAME}
     RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
 )
 
+ADD_DEFINITIONS(-DBOOST_TEST_DYN_LINK) 
+
 target_link_libraries(${PROJECT_NAME}
 	PfBase
 	CoilCEX

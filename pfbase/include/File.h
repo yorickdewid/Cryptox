@@ -2,8 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file. See the AUTHORS file for names of contributors.
 
-#ifndef FILE_H_
-#define FILE_H_
+#pragma once
 
 #include <string>
 #include <vector>
@@ -81,11 +80,9 @@ public:
 	}
 
 protected:
-	size_t m_size;
 	std::string origName;
+	size_t m_size;
 	std::basic_string<char> m_content;
 };
 
-}
-
-#endif  // FILE_H_
+} // namespace ProjectBase

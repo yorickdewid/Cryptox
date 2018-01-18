@@ -2,8 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file. See the AUTHORS file for names of contributors.
 
-#ifndef PROJECT_H_
-#define PROJECT_H_
+#pragma once
 
 #include "pfbase.h"
 
@@ -148,15 +147,13 @@ private:
 	PFBASEAPI void ReadFromDisk();
 
 private:
-	bool m_canCreate = true;
 	time_t created = 0;
 	time_t updated = 0;
 	std::string m_name;
 	std::map<std::string, std::shared_ptr<Store>> m_objectStores;
 	std::unique_ptr<MetaData> m_metaPtr = nullptr;
+	bool m_canCreate = true;
 
 };
 
-}
-
-#endif  // PROJECT_H_
+} // namespace ProjectBase

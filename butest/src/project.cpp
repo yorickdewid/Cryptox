@@ -96,7 +96,7 @@ BOOST_AUTO_TEST_CASE(AddFilesToStore)
 	p->GetStore<ProjectBase::DiagramStore>("diag")->AddFile(ProjectBase::File("file1") << "some content");
 	p->GetStore<ProjectBase::DiagramStore>("diag")->AddFile(ProjectBase::File("file2") << "extra content");
 	p->GetStore<ProjectBase::DiagramStore>("diag")->AddFile(ProjectBase::File("file3") << "fill content");
-	p->GetStore<ProjectBase::DiagramStore>("diag")->AddFile(ProjectBase::File{ "file.dia", "<?xml version=\"1.0\" ?>" });
+	p->GetStore<ProjectBase::DiagramStore>("diag")->AddFile(ProjectBase::File{ "file.dia", R"(<?xml version="1.0" ?>)" });
 
 	BOOST_REQUIRE(p->StoreCount() == 2);
 	BOOST_REQUIRE(p->GetStore<ProjectBase::DiagramStore>("diag")->Size() == 4);

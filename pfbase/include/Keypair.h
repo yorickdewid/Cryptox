@@ -1,3 +1,7 @@
+// Copyright (c) 2017 Quenza Inc. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file. See the AUTHORS file for names of contributors.
+
 #pragma once
 
 #include "Blob.h"
@@ -40,7 +44,24 @@ public:
 	{
 	}
 
+	explicit Keypair(const char name[], std::pair<const char*, const char*>&& pair)
+		: Blob{ name }
+		, privKey{ pair.first }
+		, pubKey{ pair.second }
+		, type{ KeyType::KeyTypePair }
+	{
+	}
+
 	explicit Keypair(const char name[], const char algo[], std::pair<const char*, const char*>& pair)
+		: Blob{ name }
+		, algName{ algo }
+		, privKey{ pair.first }
+		, pubKey{ pair.second }
+		, type{ KeyType::KeyTypePair }
+	{
+	}
+
+	explicit Keypair(const char name[], const char algo[], std::pair<const char*, const char*>&& pair)
 		: Blob{ name }
 		, algName{ algo }
 		, privKey{ pair.first }
@@ -57,7 +78,7 @@ public:
 	{
 	}
 
-	std::string& Algorithm()
+	std::string Algorithm() const
 	{
 		return algName;
 	}
@@ -98,11 +119,11 @@ public:
 	}
 
 private:
-	KeyType type;
 	std::string algName;
 	std::string privKey;
 	std::string pubKey;
 	std::string secret;
+	KeyType type;
 };
 
-}
+} // namespace ProjectBase

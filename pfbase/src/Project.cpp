@@ -1,3 +1,13 @@
+// Copyright (c) 2017 Quenza Inc. All rights reserved.
+//
+// This file is part of the Cryptox project.
+//
+// Use of this source code is governed by a private license
+// that can be found in the LICENSE file. Content can not be 
+// copied and/or distributed without the express of the author.
+
+#include <Cry/Indep.h>
+
 #include "Project.h"
 
 #include <boost/filesystem.hpp>
@@ -26,7 +36,7 @@ struct StoreList
 		: nameSize{ _name.size() }
 		, type{ _type }
 	{
-		::strcpy_s(name, 64, _name.c_str());
+		CRY_STRCPY(name, 64, _name.c_str());
 	}
 };
 
@@ -67,7 +77,7 @@ void Project::CommitToDisk()
 	for (auto& objstore : m_objectStores) {
 		std::stringstream ss;
 		StoreList sl{ objstore.first.size(), static_cast<unsigned int>(objstore.second->Type()) };
-		::strcpy_s(sl.name, 64, objstore.first.c_str());
+		CRY_STRCPY(sl.name, 64, objstore.first.c_str());
 
 		ss << *objstore.second;
 		sl.contentSize = ss.str().size();
@@ -115,4 +125,4 @@ void Project::ReadFromDisk()
 	}
 }
 
-}
+} // namespace ProjectBase

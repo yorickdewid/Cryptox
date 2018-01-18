@@ -2,8 +2,9 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file. See the AUTHORS file for names of contributors.
 
-#ifndef STORE_H_
-#define STORE_H_
+#pragma once
+
+#include <Cry/Indep.h>
 
 #include "StoreConfig.h"
 
@@ -60,13 +61,13 @@ struct StoreFormat
 	bool hasMeta = false;
 
 	StoreFormat()
-		: projopt{ StoreOptPlain }
-		, version{ Config::version }
+		: version{ Config::version }
+		, projopt{ StoreOptPlain }
 		, seqNum{ 0 }
 		, createdAt{ time(nullptr) }
 		, updatedAt{ time(nullptr) }
 	{
-		memcpy_s(magic, 16, Config::BANNER, sizeof(Config::BANNER));
+		CRY_MEMCPY(magic, 16, Config::BANNER, sizeof(Config::BANNER));
 		hdrsz = sizeof(this);
 	}
 
@@ -75,7 +76,7 @@ struct StoreFormat
 		projopt = static_cast<enum StoreFormatOptions>(0);
 		version = 0;
 		seqNum = 0;
-		memset(magic, '\0', 16);
+		CRY_MEMSET(magic, '\0', 16);
 	}
 
 	void Validate()
@@ -91,5 +92,3 @@ struct StoreFormat
 };
 
 } // namespace ProjectBase
-
-#endif // STORE_H_
