@@ -8,9 +8,15 @@
 
 #pragma once
 
+#include "Cry.h"
+
 namespace Cry
 {
 
+// Prevent classes from implicit or explicit copy. The
+// abstract class should be inherited in the derived
+// class in order to take effect. This abstract class
+// will block assignment operations as well.
 struct NonCopyable
 {
 	NonCopyable() = default;

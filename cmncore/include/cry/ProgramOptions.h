@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include "Cry.h"
+
 #if WIN32
 #define CRY_CLI_DELIMITER "/"
 #else

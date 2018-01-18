@@ -10,65 +10,67 @@
 
 #include <stdexcept>
 
+#include "Cry.h"
+
 namespace Cry
 {
 namespace Except
 {
 
-class UnsupportedOperationException : public std::runtime_error
+class UnsupportedOperationException : public CSTD runtime_error
 {
 public:
-	UnsupportedOperationException(const std::string& message) noexcept
-		: std::runtime_error{ message }
+	UnsupportedOperationException(const CSTD string& message) noexcept
+		: CSTD runtime_error{ message }
 	{
 	}
 
 	explicit UnsupportedOperationException(char const* const message) noexcept
-		: std::runtime_error{ message }
+		: CSTD runtime_error{ message }
 	{
 	}
 
 	virtual const char *what() const noexcept
 	{
-		return std::runtime_error::what();
+		return CSTD runtime_error::what();
 	}
 };
 
-class IncompatibleException : public std::runtime_error
+class IncompatibleException : public CSTD runtime_error
 {
 public:
-	IncompatibleException(const std::string& message) noexcept
-		: std::runtime_error{ message }
+	IncompatibleException(const CSTD string& message) noexcept
+		: CSTD runtime_error{ message }
 	{
 	}
 
 	explicit IncompatibleException(char const* const message) noexcept
-		: std::runtime_error{ message }
+		: CSTD runtime_error{ message }
 	{
 	}
 
 	virtual const char *what() const noexcept
 	{
-		return std::runtime_error::what();
+		return CSTD runtime_error::what();
 	}
 };
 
-class NotImplementedException : public std::runtime_error
+class NotImplementedException : public CSTD runtime_error
 {
 public:
-	NotImplementedException(const std::string& message) noexcept
-		: std::runtime_error{ message }
+	NotImplementedException(const CSTD string& message) noexcept
+		: CSTD runtime_error{ message }
 	{
 	}
 
 	explicit NotImplementedException(char const* const message) noexcept
-		: std::runtime_error{ message }
+		: CSTD runtime_error{ message }
 	{
 	}
 
 	virtual const char *what() const noexcept
 	{
-		return std::runtime_error::what();
+		return CSTD runtime_error::what();
 	}
 };
 
