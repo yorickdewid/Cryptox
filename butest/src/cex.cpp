@@ -167,8 +167,6 @@ BOOST_AUTO_TEST_CASE(OpenCexWithSectionFile)
 	}
 }
 
-#if 0
-
 BOOST_AUTO_TEST_CASE(WriteToSubSectionCexFile)
 {
 	using namespace CryExe;
@@ -182,16 +180,10 @@ BOOST_AUTO_TEST_CASE(WriteToSubSectionCexFile)
 	// Add a note section
 	dll.AddSection(&noteSection);
 
-	Executable dllUnseal{ Executable::Seal(dll), FileMode::FM_OPEN };
+	Executable dllCopy{ dll, FileMode::FM_OPEN };
 
-	SectionList::iterator it = dllUnseal.FindSection(CryExe::Section::SectionType::NOTE);
-
-	dllUnseal.GetSectionDataFromImage((*it));
-
-	//NoteSection noteSection2;
-	//dllSeal.GetSection(&noteSection2);
+	NoteSection noteSection2;
+	dllCopy.GetSection(&noteSection2);
 }
-
-#endif
 
 BOOST_AUTO_TEST_SUITE_END()

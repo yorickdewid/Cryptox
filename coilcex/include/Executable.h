@@ -79,7 +79,7 @@ public:
 
 public:
 	Executable(const std::string& path, FileMode fm = FileMode::FM_OPEN, ExecType type = ExecType::TYPE_EXECUTABLE);
-	Executable(const Executable& exe, FileMode fm = FileMode::FM_OPEN);
+	Executable(Executable& exe, FileMode fm = FileMode::FM_OPEN);
 	~Executable();
 
 	// Check if the image is sealed and thus readonly
@@ -96,10 +96,11 @@ public:
 
 	// Add new section to CEX image
 	void AddSection(Section *);
-	void GetSection(Section *) {}
+	void GetSection(Section *);
 
-	inline SectionList Sections() const { return m_foundSectionList; }
+	inline const SectionList& Sections() const { return m_foundSectionList; }
 
+	//TODO: move
 	SectionList::iterator FindSection(CryExe::Section::SectionType type)
 	{
 		return std::find_if(m_foundSectionList.begin(), m_foundSectionList.end(), [&type](const CryExe::Section& section)

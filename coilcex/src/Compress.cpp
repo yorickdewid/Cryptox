@@ -6,13 +6,19 @@
 // that can be found in the LICENSE file. Content can not be 
 // copied and/or distributed without the express of the author.
 
+#if 0
+
 #include <lz4xx.h>
+
+#endif
 
 #include "Compress.h"
 
 #define LOWER_LIMIT 1 << 6
 
 using namespace CryExe;
+
+#if 0
 
 namespace LZ4
 {
@@ -83,6 +89,8 @@ private:
 };
 
 } // namespace LZ4
+
+#endif
 
 void CompressConv::operator()(std::vector<uint8_t>& data)
 {

@@ -100,13 +100,18 @@ CryExe::Executable::Executable(const std::string& path, FileMode fm, ExecType ty
 	this->Open(fm);
 }
 
-CryExe::Executable::Executable(const CryExe::Executable& exe, FileMode fm)
+CryExe::Executable::Executable(CryExe::Executable& exe, FileMode fm)
 	: Image{ exe.Name() }
 {
 	if (fm == FileMode::FM_OPEN) {
-		m_interalImageStructure = std::unique_ptr<Structure::CexFileFormat>{ exe.m_interalImageStructure.get() };
 		m_interalImageVersion = exe.m_interalImageVersion;
 		m_execType = exe.m_execType;
+
+		// If the image on disk was still open, close it
+		// to prevent locking issues on certain platforms.
+		if (exe.m_file.IsOpen()) {
+			exe.Close();
+		}
 	}
 
 	this->Open(fm);
@@ -194,7 +199,7 @@ void CryExe::Executable::ConveySectionsFromDisk()
 void CryExe::Executable::ConveyDirectoriesFromDisk()
 {
 	assert(m_interalImageStructure);
-	
+
 	// TODO
 }
 
@@ -272,7 +277,21 @@ void CryExe::Executable::AddSection(Section *section)
 	section->Clear();
 }
 
-void CryExe::Executable::GetSectionDataFromImage(Section& section)
+void CryExe::Executable::GetSection(Section *section)
+{
+	assert(section);
+
+	auto it = FindSection(section->type);
+	if (it == Sections().cend()) {
+		throw std::exception{};
+	}
+
+	GetSectionDataFromImage((*it));
+
+	ByteArray sArray = it->Data();
+}
+
+void CryExe::Executable::GetSectionDataFromImage(Section& section) //TODO: throw when not found
 {
 	assert(section.InternalDataOffset() != ILLEGAL_OFFSET);
 	if (!section.Empty()) { return; }
