@@ -45,7 +45,9 @@ set_target_properties(${PROJECT_NAME}
     RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
 )
 
-ADD_DEFINITIONS(-DBOOST_TEST_DYN_LINK) 
+if (UNIX)
+	add_definitions(-DBOOST_TEST_DYN_LINK) 
+endif()
 
 target_link_libraries(${PROJECT_NAME}
 	PfBase

@@ -24,6 +24,13 @@
 #  define CRY_STRCPY(dst,sz,src) strcpy(dst, src)
 #endif // _MSC_VER || _WIN32
 
+//TODO: per platform memory zero function
+#define CRY_MEMZERO(dst,sz) CRY_MEMSET(static_cast<void*>(&dst), '\0', sz);
+
+#define UNASSIGNED 0
+
+#define CRY_UNUSED(p) ((void)p)
+
 #ifdef _MSC_VER // Visual Studio
 #  define INTERSUB
 #else

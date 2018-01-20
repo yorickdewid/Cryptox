@@ -10,8 +10,3 @@
 
 #define CSTD std::
 #define CNOEXCEPT noexcept
-
-namespace Cry 
-{
-
-} // namespace Cry
