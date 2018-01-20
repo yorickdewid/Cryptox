@@ -28,6 +28,11 @@ class OSFilePositionImpl;
 
 using OSFilePosition = OSFilePositionImpl<>;
 
+namespace Structure
+{
+struct CexFileFormat;
+} // namespace Structure
+
 class COILCEXAPI InvalidCexFormat
 {
 };
@@ -48,8 +53,8 @@ using SectionList = std::vector<CryExe::Section>;
 
 class COILCEXAPI Executable : public Image
 {
-	void *m_interalImageStructure = nullptr;
 	InternalImageVersion m_interalImageVersion = InternalImageVersion::IMAGE_STRUCT_FORMAT_INVAL;
+	std::unique_ptr<Structure::CexFileFormat> m_interalImageStructure;
 	std::unique_ptr<std::array<std::deque<OSFilePosition>, 2>> m_offsetStack;
 	std::bitset<UINT16_MAX> m_allocSections = 0;
 	SectionList m_foundSectionList;
