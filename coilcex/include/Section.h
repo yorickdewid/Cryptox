@@ -8,6 +8,7 @@
 
 #pragma once
 
+#include "OSAdapter.h"
 #include "Executable.h"
 
 #include <string>
@@ -53,13 +54,13 @@ private:
 	struct COILCEXAPI DataPosition
 	{
 		DataPosition() = default;
-		DataPosition(std::fpos_t offset, size_t size)
+		DataPosition(OSFilePosition offset, size_t size)
 			: internalImageDataOffset{ offset }
 			, internalImageDataSize{ size }
 		{
 		}
 
-		std::fpos_t internalImageDataOffset = ILLEGAL_OFFSET;
+		OSFilePosition internalImageDataOffset = ILLEGAL_OFFSET;
 		size_t internalImageDataSize = 0;
 	} m_dataPosition;
 
@@ -97,7 +98,7 @@ public:
 
 	//TODO
 	// Internal offsets required to retrieve data from image
-	inline std::fpos_t InternalDataOffset() const { return m_dataPosition.internalImageDataOffset; }
+	inline OSFilePosition InternalDataOffset() const { return m_dataPosition.internalImageDataOffset; }
 	inline size_t InternalDataSize() const { return m_dataPosition.internalImageDataSize; }
 
 	// Iterator actions

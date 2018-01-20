@@ -6,6 +6,8 @@
 // that can be found in the LICENSE file. Content can not be 
 // copied and/or distributed without the express of the author.
 
+#include <Cry/Indep.h>
+
 #include "Executable.h"
 #include "Convert.h"
 #include "CexHeader.h"
@@ -18,22 +20,9 @@
 #define SETSTRUCTSZ(s,f) \
 	s.structSize = sizeof(f);
 
-#define MEMZERO(b,s) \
-	memset(static_cast<void*>(&b), '\0', s);
-
 #define PULL_INTSTRCT(n) \
 	Structure::CexFileFormat *n = reinterpret_cast<Structure::CexFileFormat*>(m_interalImageStructure); \
 	assert(n);
-
-#ifdef _WIN32
-# define MEMASSIGN(d,i,u,s) \
-	memcpy_s(d, i, u, s);
-#else
-# define MEMASSIGN(d,i,u,s) \
-	memcpy(d, u, s);
-#endif
-
-#define UNASSIGNED 0
 
 #define EXCEPT_INVAL_CEX "invalid CEX format"
 
@@ -44,10 +33,15 @@ const std::chrono::milliseconds ChronoTimestamp()
 	return duration_cast<milliseconds>(system_clock::now().time_since_epoch());
 }
 
+constexpr static const size_t StackSectionPosition = 0;
+constexpr static const size_t StackDirectoryPosition = 1;
+
 #define ALLOW_ONCE true
 #define ALLOW_MULTI false
 
-std::pair<CryExe::Structure::CexSection::SectionIdentifier, bool> ResolveSectionTypeToIdentifier(CryExe::Section::SectionType inType)
+using SectionNativePair = std::pair<CryExe::Structure::CexSection::SectionIdentifier, bool>;
+
+SectionNativePair ResolveSectionTypeToIdentifier(CryExe::Section::SectionType inType)
 {
 	switch (inType) {
 	case CryExe::Section::SectionType::NATIVE:
@@ -66,7 +60,7 @@ std::pair<CryExe::Structure::CexSection::SectionIdentifier, bool> ResolveSection
 		break;
 	}
 
-	return { CryExe::Structure::CexSection::SectionIdentifier::_INVAL, 0 };
+	throw std::exception{};
 }
 
 CryExe::Section::SectionType ResolveIdentifierToSectionType(CryExe::Structure::CexSection::SectionIdentifier inId)
@@ -88,8 +82,7 @@ CryExe::Section::SectionType ResolveIdentifierToSectionType(CryExe::Structure::C
 		break;
 	}
 
-	//TODO
-	return CryExe::Section::SectionType::NOTE;
+	throw std::runtime_error{ EXCEPT_INVAL_CEX };
 }
 
 #undef ALLOW_ONCE
@@ -116,12 +109,11 @@ CryExe::Executable::Executable(const CryExe::Executable& exe, FileMode fm)
 {
 	if (fm == FileMode::FM_OPEN) {
 		m_foundSectionList = std::move(exe.m_foundSectionList);
-		m_offsetStackSection = std::move(exe.m_offsetStackSection);
-		m_offsetStackDirectory = std::move(exe.m_offsetStackSection);
 		m_interalImageStructure = std::move(exe.m_interalImageStructure);
 		m_interalImageVersion = exe.m_interalImageVersion;
 		m_execType = exe.m_execType;
 		m_allocSections = exe.m_allocSections;
+		m_offsetStack = std::unique_ptr<std::array<std::deque<OSFilePosition>, 2>>{ new std::array<std::deque<OSFilePosition>, 2>{ *exe.m_offsetStack } };
 	}
 
 	this->Open(fm);
@@ -132,7 +124,7 @@ CryExe::Executable::~Executable()
 	this->Close();
 
 	if (m_interalImageStructure) {
-		delete m_interalImageStructure;
+		delete static_cast<Structure::CexFileFormat*>(m_interalImageStructure);
 		m_interalImageStructure = nullptr;
 	}
 }
@@ -188,15 +180,17 @@ void CryExe::Executable::ConveySectionsFromDisk()
 {
 	PULL_INTSTRCT(imageFile);
 
+	// Skip if there are no sections in this image, otherwise
+	// reserve the items on the section list.
 	if (imageFile->programHeader.numberOfSections == 0) { return; }
 	m_foundSectionList.reserve(imageFile->programHeader.numberOfSections);
 
 	assert(imageFile->programHeader.offsetToSectionTable);
-	std::fpos_t offset = imageFile->programHeader.offsetToSectionTable;
+	OSFilePosition offset = imageFile->programHeader.offsetToSectionTable;
 
 	Structure::CexSection rawSection;
 	while (offset) {
-		MEMZERO(rawSection, sizeof(Structure::CexSection));
+		CRY_MEMZERO(rawSection, sizeof(Structure::CexSection));
 		m_file.Position(offset);
 		m_file.Read(rawSection);
 
@@ -212,6 +206,8 @@ void CryExe::Executable::ConveySectionsFromDisk()
 void CryExe::Executable::ConveyDirectoriesFromDisk()
 {
 	PULL_INTSTRCT(imageFile);
+
+	// TODO
 }
 
 void CryExe::Executable::Close()
@@ -227,7 +223,11 @@ void CryExe::Executable::Close()
 
 void CryExe::Executable::AddDirectory()
 {
-	//IsAllowedOnce();
+	if (!m_offsetStack) {
+		m_offsetStack = std::make_unique<std::array<std::deque<OSFilePosition>, 2>>();
+	}
+	
+	//TODO
 }
 
 void CryExe::Executable::AddSection(Section *section)
@@ -238,7 +238,7 @@ void CryExe::Executable::AddSection(Section *section)
 		throw std::runtime_error{ "sealed images cannot amend contents" };
 	}
 
-	auto typePair = ResolveSectionTypeToIdentifier(section->Type());
+	SectionNativePair typePair = ResolveSectionTypeToIdentifier(section->Type());
 	assert(typePair.first != Structure::CexSection::SectionIdentifier::_INVAL);
 
 	// Test if section was used before
@@ -265,7 +265,7 @@ void CryExe::Executable::AddSection(Section *section)
 
 	// Prepare section structure to be written to disk
 	Structure::CexSection rawSection;
-	MEMZERO(rawSection, sizeof(Structure::CexSection));
+	CRY_MEMZERO(rawSection, sizeof(Structure::CexSection));
 	rawSection.identifier = static_cast<Structure::CexSection::SectionIdentifier>(typePair.first);
 	rawSection.flags = Structure::SectionCharacteristic::SC_NONE;
 	rawSection.offsetToSection = UNASSIGNED;
@@ -273,7 +273,10 @@ void CryExe::Executable::AddSection(Section *section)
 	SETSTRUCTSZ(rawSection, Structure::CexSection);
 
 	// Save current image offset to stack
-	m_offsetStackSection.push_back(static_cast<size_t>(m_file.Offset()));
+	if (!m_offsetStack) {
+		m_offsetStack = std::make_unique<std::array<std::deque<OSFilePosition>, 2>>();
+	}
+	m_offsetStack->at(StackSectionPosition).push_back(m_file.Offset());
 
 	// Commit to disk
 	m_file.Write(rawSection);
@@ -292,7 +295,7 @@ void CryExe::Executable::GetSectionDataFromImage(Section& section)
 
 	ByteArray bArray;
 	bArray.resize(section.InternalDataSize());
-	MEMZERO((*bArray.data()), section.InternalDataSize());
+	CRY_MEMZERO((*bArray.data()), section.InternalDataSize());
 	m_file.Read((*bArray.data()), section.InternalDataSize());
 
 	Convert::operations_type ops = 0;
@@ -336,14 +339,14 @@ bool CryExe::Executable::IsSealed() const
 void CryExe::Executable::ValidateImageFormat()
 {
 	Structure::CexFileFormat imageFile;
-	MEMZERO(imageFile, sizeof(Structure::CexFileFormat));
+	CRY_MEMZERO(imageFile, sizeof(Structure::CexFileFormat));
 
 	assert(m_file.IsOpen());
 
 	// Read image header from disk. Since the image header should never
 	// change we can verifiy if the structure contains a valid CEX format
 	Structure::CexImageHeader tmpImageHeader;
-	MEMZERO(tmpImageHeader, sizeof(Structure::CexImageHeader));
+	CRY_MEMZERO(tmpImageHeader, sizeof(Structure::CexImageHeader));
 	m_file.Read(tmpImageHeader);
 
 	{
@@ -372,7 +375,7 @@ void CryExe::Executable::ValidateImageFormat()
 
 	// Write file header opaque to memory
 	m_interalImageStructure = new Structure::CexFileFormat;
-	MEMASSIGN(m_interalImageStructure, sizeof(Structure::CexFileFormat), &imageFile, sizeof(Structure::CexFileFormat));
+	CRY_MEMCPY(m_interalImageStructure, sizeof(Structure::CexFileFormat), &imageFile, sizeof(Structure::CexFileFormat));
 
 	// Consume end of header marker
 	std::uint16_t marker;
@@ -385,7 +388,7 @@ void CryExe::Executable::ValidateImageFormat()
 void CryExe::Executable::CreateNewImage()
 {
 	Structure::CexFileFormat imageFile;
-	MEMZERO(imageFile, sizeof(Structure::CexFileFormat));
+	CRY_MEMZERO(imageFile, sizeof(Structure::CexFileFormat));
 
 	assert(m_file.IsOpen());
 
@@ -420,7 +423,7 @@ void CryExe::Executable::CreateNewImage()
 
 	// Write file header opaque to memory
 	m_interalImageStructure = new Structure::CexFileFormat;
-	MEMASSIGN(m_interalImageStructure, sizeof(Structure::CexFileFormat), &imageFile, sizeof(Structure::CexFileFormat));
+	CRY_MEMCPY(m_interalImageStructure, sizeof(Structure::CexFileFormat), &imageFile, sizeof(Structure::CexFileFormat));
 }
 
 void CryExe::Executable::CalculateInternalOffsets()
@@ -431,15 +434,15 @@ void CryExe::Executable::CalculateInternalOffsets()
 	imageFile->imageHeader.offsetToProgram = sizeof(Structure::CexImageHeader);
 
 	// Fetch offset from offset deques
-	if (!m_offsetStackSection.empty()) {
-		imageFile->programHeader.numberOfSections = static_cast<std::uint16_t>(m_offsetStackSection.size());
-		imageFile->programHeader.offsetToSectionTable = m_offsetStackSection.front();
-		m_offsetStackSection.pop_front();
+	if (m_offsetStack && !m_offsetStack->at(StackSectionPosition).empty()) {
+		imageFile->programHeader.numberOfSections = static_cast<std::uint16_t>(m_offsetStack->at(StackSectionPosition).size());
+		imageFile->programHeader.offsetToSectionTable = m_offsetStack->at(StackSectionPosition).front().Position<decltype(imageFile->programHeader.offsetToSectionTable)>();
+		m_offsetStack->at(StackSectionPosition).pop_front();
 	}
-	if (!m_offsetStackDirectory.empty()) {
-		imageFile->programHeader.numberOfDirectories = static_cast<std::uint16_t>(m_offsetStackDirectory.size());
-		imageFile->programHeader.offsetToDirectoryTable = m_offsetStackDirectory.front();
-		m_offsetStackDirectory.pop_front();
+	if (m_offsetStack && !m_offsetStack->at(StackDirectoryPosition).empty()) {
+		imageFile->programHeader.numberOfDirectories = static_cast<std::uint16_t>(m_offsetStack->at(StackDirectoryPosition).size());
+		imageFile->programHeader.offsetToDirectoryTable = m_offsetStack->at(StackDirectoryPosition).front().Position<decltype(imageFile->programHeader.offsetToDirectoryTable)>();
+		m_offsetStack->at(StackDirectoryPosition).pop_front();
 	}
 }
 
@@ -466,9 +469,9 @@ void CryExe::Executable::CalculateSectionOffsets()
 		decltype(Structure::CexSection::offsetToSection) memberOffset = 0;
 
 		// Last section does not point to anything
-		if (!m_offsetStackSection.empty()) {
-			memberOffset = static_cast<decltype(Structure::CexSection::offsetToSection)>(m_offsetStackSection.front());
-			m_offsetStackSection.pop_front();
+		if (m_offsetStack && !m_offsetStack->at(StackSectionPosition).empty()) {
+			memberOffset = m_offsetStack->at(StackSectionPosition).front().Position<decltype(Structure::CexSection::offsetToSection)>();
+			m_offsetStack->at(StackSectionPosition).pop_front();
 		}
 
 		m_file.Position(sectionOffset);
@@ -487,17 +490,21 @@ void CryExe::Executable::CalculateDirectoryOffsets()
 void CryExe::Executable::AlignBounds()
 {
 #define ALIGNMENT (1 << 5)
-	std::fpos_t offset = m_file.Offset();
+	auto offset = m_file.Offset().NativePosition();
 	assert(offset > 0);
 
-	// Align image on 1 << 5 bytes boundary
+	// Align image on ALIGNMENT boundary. This ensures
+	// all images are of the same size which can increase
+	// the performance as blocks of data can be read at once.
 	if (offset % ALIGNMENT > 0) {
 		size_t left = offset % ALIGNMENT;
 		uint8_t *align = new uint8_t[left];
-		MEMZERO((*align), left);
+		CRY_MEMZERO((*align), left);
 		assert(left < ALIGNMENT);
 
-		// Move to end of image and write padding
+		// Move to end of image and write padding as bytes
+		// of zero. The padding byes must always be zero since
+		// this will guarantee binary reproducibility.
 		m_file.Forward();
 		m_file.Write((*align), left);
 		delete[] align;
@@ -512,7 +519,7 @@ const CryExe::Executable& CryExe::Executable::Seal(CryExe::Executable& exec)
 	assert(exec.m_file.IsOpen());
 
 	// Set identity string
-	MEMASSIGN(imageFile.imageHeader.identArray, sizeof(imageFile.imageHeader.identArray), Structure::identity, sizeof(Structure::identity));
+	CRY_MEMCPY(imageFile.imageHeader.identArray, sizeof(imageFile.imageHeader.identArray), Structure::identity, sizeof(Structure::identity));
 
 	// Calculate structure offsets and update the image and program headers
 	exec.CalculateInternalOffsets();

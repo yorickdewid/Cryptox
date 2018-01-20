@@ -16,11 +16,17 @@
 #include <deque>
 #include <bitset>
 #include <vector>
-
 #include <algorithm>
+#include <memory>
+#include <array>
 
 namespace CryExe
 {
+
+template<typename _Ty>
+class OSFilePositionImpl;
+
+using OSFilePosition = OSFilePositionImpl<>;
 
 class COILCEXAPI InvalidCexFormat
 {
@@ -38,14 +44,15 @@ enum class COILCEXAPI ExecType
 	TYPE_LIBRARY_DYNAMIC,
 };
 
+using SectionList = std::vector<CryExe::Section>;
+
 class COILCEXAPI Executable : public Image
 {
 	void *m_interalImageStructure = nullptr;
 	InternalImageVersion m_interalImageVersion = InternalImageVersion::IMAGE_STRUCT_FORMAT_INVAL;
-	std::deque<size_t> m_offsetStackSection;
-	std::deque<size_t> m_offsetStackDirectory;
+	std::unique_ptr<std::array<std::deque<OSFilePosition>, 2>> m_offsetStack;
 	std::bitset<UINT16_MAX> m_allocSections = 0;
-	std::vector<CryExe::Section> m_foundSectionList;
+	SectionList m_foundSectionList;
 	int m_execType;
 
 public:
@@ -67,6 +74,7 @@ public:
 
 public:
 	Executable(const std::string& path, FileMode fm = FileMode::FM_OPEN, ExecType type = ExecType::TYPE_EXECUTABLE);
+	Executable(const Executable& exe, FileMode fm = FileMode::FM_OPEN);
 	~Executable();
 
 	// Check if the image is sealed and thus readonly
@@ -83,10 +91,11 @@ public:
 
 	// Add new section to CEX image
 	void AddSection(Section *);
+	void GetSection(Section *) {}
 
-	inline std::vector<CryExe::Section> Sections() const { return m_foundSectionList; }
+	inline SectionList Sections() const { return m_foundSectionList; }
 
-	std::vector<CryExe::Section>::iterator FindSection(CryExe::Section::SectionType type)
+	SectionList::iterator FindSection(CryExe::Section::SectionType type)
 	{
 		return std::find_if(m_foundSectionList.begin(), m_foundSectionList.end(), [&type](const CryExe::Section& section)
 		{

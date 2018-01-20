@@ -22,7 +22,7 @@ enum class COILCEXAPI FileMode
 	FM_NEW,			// Open new file, discard any old files with the same name
 };
 
-using FileModeRaw = char *;
+using FileModeRaw = const char *;
 
 class COILCEXAPI Image
 {
@@ -41,7 +41,7 @@ public:
 
 	// Return filename
 	inline std::string Name() const { return m_filename; }
-	
+
 	// Return file size
 	size_t Size() const;
 
@@ -67,3 +67,4 @@ protected:
 };
 
 } // namespace CryExecutable
+

@@ -3,7 +3,7 @@
 // This file is part of the Cryptox project.
 //
 // Use of this source code is governed by a private license
-// that can be found in the LICENSE file. Content can not be 
+// that can be found in the LICENSE file. Content can not be
 // copied and/or distributed without the express of the author.
 
 #include "OSAdapter.h"
@@ -54,21 +54,28 @@ void CryExe::OSAdapter::Forward()
 
 	int ret = std::fseek(m_fpImage, 0, SEEK_END);
 	assert(ret == 0);
-	ret = std::fgetpos(m_fpImage, &m_fpOffset);
-	assert(ret == 0);
-	assert(m_fpOffset > 0);
+	long int pos = std::ftell(m_fpImage);
+	assert(pos >= 0);
+	assert(m_fpOffset > OSFilePosition{ 0 });
+	m_fpOffset = pos;
+
+	//TODO:
+	//ret = std::fgetpos(m_fpImage, &_pos);
 }
 
-void CryExe::OSAdapter::Position(std::fpos_t pos)
+void CryExe::OSAdapter::Position(const OSFilePosition& pos)
 {
 	if (!m_fpImage) { return; }
-	
-	if (pos == 0) {
+
+	if (pos == OSFilePosition{ 0 }) {
 		this->Rewind();
 	}
 	else {
-		int ret = std::fsetpos(m_fpImage, &pos);
+		int ret = std::fseek(m_fpImage, pos.Position<long int>(), SEEK_SET);
 		assert(ret == 0);
+
+		//TODO:
+		//int ret = std::fsetpos(m_fpImage, &pos);
 	}
 }
 
@@ -77,7 +84,7 @@ void CryExe::OSAdapter::ReadRaw(void *buffer, size_t size, size_t count)
 	if (!m_fpImage) { return; }
 
 	size_t sz = std::fread(buffer, size, count, m_fpImage);
-	assert(sz == count);
+	assert(sz == count); //TODO: read again
 }
 
 void CryExe::OSAdapter::WriteRaw(const void *buffer, size_t size, size_t count)
@@ -85,7 +92,7 @@ void CryExe::OSAdapter::WriteRaw(const void *buffer, size_t size, size_t count)
 	if (!m_fpImage) { return; }
 
 	size_t sz = std::fwrite(buffer, size, count, m_fpImage);
-	assert(sz == count);
+	assert(sz == count); //TODO: write again
 	m_fpOffset += (size * count);
 }
 

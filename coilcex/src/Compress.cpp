@@ -65,13 +65,13 @@ public:
 
 	void Run(const char *source, size_t size)
 	{
-		size_t origSze = (source[0] << 24) & 0xff
-			| (source[1] << 16) & 0xff
-			| (source[2] << 8) & 0xff
-			| source[3] & 0xff;
+		size_t origSze = ((source[0] << 24) & 0xff)
+			| ((source[1] << 16) & 0xff)
+			| ((source[2] << 8) & 0xff)
+			| (source[3] & 0xff);
 
 		char *dest = new char[origSze];
-		int outBlockSize = LZ4_decompress_safe(source + 4, dest, size - 4, origSze);
+		LZ4_decompress_safe(source + 4, dest, size - 4, origSze);
 
 		*m_dest = dest;
 		*m_destSize = origSze;

@@ -11,6 +11,7 @@
 #include <vector>
 #include <deque>
 #include <memory>
+#include <algorithm>
 
 namespace CryExe
 {
@@ -71,7 +72,9 @@ private:
 
 		void Call(std::vector<uint8_t>& data)
 		{
-			std::invoke(m_pred, data);
+			//TODO: Change for C++17
+			// std::invoke(m_pred, data);
+			m_pred(data);
 		}
 	};
 

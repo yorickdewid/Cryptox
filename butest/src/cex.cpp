@@ -54,8 +54,6 @@ BOOST_AUTO_TEST_CASE(ReadToCexFile)
 		BOOST_REQUIRE(CryExe::Meta::ImageVersion(exec) == (std::make_pair<short, short>(0, 3)));
 		BOOST_REQUIRE_EQUAL(CryExe::Meta::ProgramVersion(exec), "");
 	}
-
-
 }
 
 BOOST_AUTO_TEST_CASE(ReadDynamicLibraryImage)
@@ -76,7 +74,7 @@ BOOST_AUTO_TEST_CASE(CreateCexWithSectionFile)
 
 	// Create native section
 	std::unique_ptr<CryExe::Section> textSection = std::make_unique<CryExe::Section>(CryExe::Section::SectionType::NATIVE);
-	textSection->Emplace({ 0x2e, 0x21, 0xb6, 0x45, 0x09 });
+	textSection->Emplace(CryExe::ByteArray{ 0x2e, 0x21, 0xb6, 0x45, 0x09 });
 
 	// Add a native section
 	exec.AddSection(textSection.get());
@@ -125,8 +123,8 @@ BOOST_AUTO_TEST_CASE(OpenCexWithSectionFile)
 
 		{
 			// Section can only be used once
-			CryExe::Section resSection2{ CryExe::Section::SectionType::RESOURCE };
-			BOOST_CHECK_THROW(exec.AddSection(&resSection2), std::runtime_error);
+			CryExe::Section resSection{ CryExe::Section::SectionType::RESOURCE };
+			BOOST_CHECK_THROW(exec.AddSection(&resSection), std::runtime_error);
 		}
 	}
 
@@ -169,18 +167,31 @@ BOOST_AUTO_TEST_CASE(OpenCexWithSectionFile)
 	}
 }
 
+#if 0
+
 BOOST_AUTO_TEST_CASE(WriteToSubSectionCexFile)
 {
-	CryExe::DynamicLibrary dll{ cexTestFileName, CryExe::FileMode::FM_NEW };
+	using namespace CryExe;
+	
+	DynamicLibrary dll{ cexTestFileName, FileMode::FM_NEW };
 
-	CryExe::NoteSection noteSection{ "subsec", "Subsection comment" };
+	NoteSection noteSection{ "subsec", "Subsection comment" };
 	noteSection << "Main contents of the .note section\n";
 	noteSection << "Add another line of text content";
 
 	// Add a note section
 	dll.AddSection(&noteSection);
 
-	CryExe::Executable::Seal(dll);
+	Executable dllUnseal{ Executable::Seal(dll), FileMode::FM_OPEN };
+
+	SectionList::iterator it = dllUnseal.FindSection(CryExe::Section::SectionType::NOTE);
+
+	dllUnseal.GetSectionDataFromImage((*it));
+
+	//NoteSection noteSection2;
+	//dllSeal.GetSection(&noteSection2);
 }
+
+#endif
 
 BOOST_AUTO_TEST_SUITE_END()
