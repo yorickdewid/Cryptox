@@ -19,7 +19,7 @@ class COILCEXAPI NoteSection : public Section
 	std::string m_description;
 
 	std::string m_context;
-	Section::SectionType m_sectionLink;
+	Section::SectionType m_sectionLink; //TODO
 
 public:
 	NoteSection();

@@ -134,6 +134,14 @@ bool CryExe::Executable::IsDynamicLibrary() const
 	return m_interalImageStructure->imageHeader.executableType == Structure::ExecutableType::CET_DYNAMIC;
 }
 
+CryExe::SectionList::iterator CryExe::Executable::FindSection(CryExe::Section::SectionType type)
+{
+	return std::find_if(m_foundSectionList.begin(), m_foundSectionList.end(), [&type](const CryExe::Section& section)
+	{
+		return section.Type() == type;
+	});
+}
+
 void CryExe::Executable::SetOption(Option options)
 {
 	assert(m_interalImageStructure);

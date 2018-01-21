@@ -100,14 +100,8 @@ public:
 
 	inline const SectionList& Sections() const { return m_foundSectionList; }
 
-	//TODO: move
-	SectionList::iterator FindSection(CryExe::Section::SectionType type)
-	{
-		return std::find_if(m_foundSectionList.begin(), m_foundSectionList.end(), [&type](const CryExe::Section& section)
-		{
-			return section.Type() == type;
-		});
-	}
+	// Return iterator on requested sections, if any
+	SectionList::iterator FindSection(CryExe::Section::SectionType type);
 
 	// Fill structure
 	void GetSectionDataFromImage(Section&);
