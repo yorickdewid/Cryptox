@@ -145,10 +145,11 @@ BOOST_AUTO_TEST_CASE(OpenCexWithSectionFile)
 		// Retrieve data from image into section
 		exec.GetSectionDataFromImage((*it));
 		BOOST_REQUIRE(!it->Empty());
-		
+
 		CryExe::ByteArray bArray = OpenCexWithSectionFile_BYTEARRAY;
 		bArray.push_back(0x87);
-		BOOST_REQUIRE(std::equal(it->Data().cbegin(), it->Data().cend(), bArray.cbegin()));
+		const CryExe::ByteArray& datablock = it->Data();
+		BOOST_REQUIRE(std::equal(datablock.cbegin(), datablock.cend(), bArray.cbegin()));
 		it->Clear();
 		BOOST_CHECK(it->Empty());
 	}
@@ -170,20 +171,28 @@ BOOST_AUTO_TEST_CASE(OpenCexWithSectionFile)
 BOOST_AUTO_TEST_CASE(WriteToSubSectionCexFile)
 {
 	using namespace CryExe;
-	
+
+	const std::string line1 = "Main contents of the .note section\n";
+	const std::string line2 = "Add another line of text content";
+
 	DynamicLibrary dll{ cexTestFileName, FileMode::FM_NEW };
 
 	NoteSection noteSection{ "subsec", "Subsection comment" };
-	noteSection << "Main contents of the .note section\n";
-	noteSection << "Add another line of text content";
+	noteSection << line1;
+	noteSection << line2;
 
 	// Add a note section
 	dll.AddSection(&noteSection);
 
+	// Copy the executable, this essentially reopens the image
 	Executable dllCopy{ dll, FileMode::FM_OPEN };
 
 	NoteSection noteSection2;
 	dllCopy.GetSection(&noteSection2);
+
+	BOOST_REQUIRE_EQUAL(noteSection.Name(), noteSection2.Name());
+	BOOST_REQUIRE_EQUAL(noteSection.Description(), noteSection2.Description());
+	BOOST_REQUIRE_EQUAL(line1 + line2, noteSection2.Context());
 }
 
 BOOST_AUTO_TEST_SUITE_END()

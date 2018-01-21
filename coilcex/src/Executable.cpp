@@ -251,7 +251,7 @@ void CryExe::Executable::AddSection(Section *section)
 	}
 
 	// Allow derived objects to swap data into section
-	section->DataSwap();
+	section->DataSwap(Section::DataSwapDirection::DATA_SWAP_OUT);
 
 	// Perform data processing operations in-place
 	Convert{ section->data, ops }.ToImage();
@@ -280,15 +280,22 @@ void CryExe::Executable::AddSection(Section *section)
 void CryExe::Executable::GetSection(Section *section)
 {
 	assert(section);
+	if (Sections().empty()) { return; }
 
 	auto it = FindSection(section->type);
 	if (it == Sections().cend()) {
 		throw std::exception{};
 	}
 
-	GetSectionDataFromImage((*it));
+	Section& foundSection = (*it);
+	GetSectionDataFromImage(foundSection);
 
-	ByteArray sArray = it->Data();
+	// Copy data into section and clear data from section list
+	(*section) = foundSection;
+	foundSection.Clear();
+
+	// Notify derived section data is ready
+	section->DataSwap(Section::DataSwapDirection::DATA_SWAP_IN);
 }
 
 void CryExe::Executable::GetSectionDataFromImage(Section& section) //TODO: throw when not found

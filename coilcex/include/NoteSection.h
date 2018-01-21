@@ -15,8 +15,8 @@ namespace CryExe
 
 class COILCEXAPI NoteSection : public Section
 {
-	const std::string m_name;
-	const std::string m_description;
+	std::string m_name;
+	std::string m_description;
 
 	std::string m_context;
 	Section::SectionType m_sectionLink;
@@ -25,8 +25,8 @@ public:
 	NoteSection();
 	NoteSection(const std::string& name, const std::string& description);
 
-	virtual void DataSwap();
-	virtual void Clear();
+	virtual void DataSwap(DataSwapDirection) override;
+	virtual void Clear() override;
 
 	// Request meta info for note section
 	inline std::string Name() const { return m_name; }
@@ -35,6 +35,9 @@ public:
 	// Set note context directly
 	void SetContext(const std::string& context) { m_context = context; }
 	void SetContext(std::string&& context) { m_context = std::move(context); }
+
+	// Get context back
+	std::string Context() const { return m_context; }
 
 	// Append operators
 	void operator<<(const std::string& str) { m_context.append(str); }

@@ -33,22 +33,28 @@ struct NodeSerializer : private std::basic_stringstream<_CharTy>
 	using _BaseTy = std::basic_stringstream<_CharTy>;
 
 public:
-	struct EOIMark {};
+	NodeSerializer() = default;
 
-public:
+	template<typename _Ty>
+	NodeSerializer(_Ty&& context)
+	{
+		std::copy(context.begin(), context.end(), std::ostream_iterator<_CharTy>(*this));
+	}
+
 	NodeSerializer& operator<<(const std::string& content)
 	{
 		auto size = content.size();
 		_BaseTy::write(static_cast<_CharTy*>(static_cast<void*>(&size)), sizeof(std::uint32_t));
-		_BaseTy::write(content.c_str(), content.size());
+		_BaseTy::write(content.data(), content.size());
 		return (*this);
 	}
 
-	NodeSerializer& operator<<(EOIMark k)
+	NodeSerializer& operator>>(std::string& content)
 	{
-		((void)k);
-
-		_BaseTy::put(0x0);
+		size_t size = 0;
+		_BaseTy::read(static_cast<_CharTy*>(static_cast<void*>(&size)), sizeof(std::uint32_t));
+		content.resize(size);
+		_BaseTy::read(&content[0], size);
 		return (*this);
 	}
 
@@ -67,8 +73,6 @@ public:
 using NodeStringSerializer = NodeSerializer<char>;
 using NodeWstringSerializer = NodeSerializer<wchar_t>;
 
-#define EOI EOIMark{}
-
 NoteSection::NoteSection()
 	: Section{ Section::SectionType::NOTE }
 {
@@ -81,16 +85,29 @@ NoteSection::NoteSection(const std::string& name, const std::string& description
 {
 }
 
-void NoteSection::DataSwap()
+void NoteSection::DataSwap(DataSwapDirection direction)
 {
-	if (!Empty() || m_context.empty()) { return; }
+	// Requested to move the data from local object into parent
+	if (direction == DataSwapDirection::DATA_SWAP_OUT) {
+		if (!Empty() || m_context.empty()) { return; }
 
-	NodeStringSerializer serialize;
-	serialize << m_name << NodeStringSerializer::EOI;
-	serialize << m_description << NodeStringSerializer::EOI;
-	serialize << m_context << NodeStringSerializer::EOI;
+		NodeStringSerializer serialize;
+		serialize << m_name;
+		serialize << m_description;
+		serialize << m_context;
 
-	Emplace(std::move(serialize.Dump<ByteArray>()));
+		// Data handover to base
+		Emplace(std::move(serialize.Dump<ByteArray>()));
+	}
+	else {
+		if (Empty()) { return; }
+
+		// Data reap from base
+		NodeStringSerializer deserialize{ std::move(Data()) };
+		deserialize >> m_name;
+		deserialize >> m_description;
+		deserialize >> m_context;
+	}
 }
 
 void NoteSection::Clear()

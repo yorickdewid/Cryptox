@@ -65,7 +65,8 @@ private:
 	} m_dataPosition;
 
 protected:
-	virtual void DataSwap() {}
+	enum class DataSwapDirection { DATA_SWAP_IN, DATA_SWAP_OUT };
+	virtual void DataSwap(DataSwapDirection) {}
 
 public:
 	Section(SectionType _type)
@@ -91,6 +92,7 @@ public:
 	// Return data object
 	inline SectionType Type() const { return type; }
 	inline const ByteArray& Data() const { return data; }
+	inline ByteArray Data() { return data; }
 
 	// Section storage options
 	inline void SetStorageOptionEncryption() { storageOptionFlags.set(STORAGE_OPTION_ENCRYPTION); }
