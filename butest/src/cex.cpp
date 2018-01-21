@@ -185,7 +185,7 @@ BOOST_AUTO_TEST_CASE(WriteToSubSectionCexFile)
 	dll.AddSection(&noteSection);
 
 	// Copy the executable, this essentially reopens the image
-	Executable dllCopy{ dll, FileMode::FM_OPEN };
+	Executable dllCopy{ dll, FileMode::FM_OPEN }; //TOOD: DynamicLibrary
 
 	NoteSection noteSection2;
 	dllCopy.GetSection(&noteSection2);

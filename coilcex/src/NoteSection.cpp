@@ -9,7 +9,6 @@
 #include "Executable.h"
 #include "NoteSection.h"
 
-#include <cassert>
 #include <sstream>
 
 using namespace CryExe;
