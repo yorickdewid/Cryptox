@@ -222,13 +222,26 @@ void CryExe::Executable::Close()
 	Image::Close();
 }
 
-void CryExe::Executable::AddDirectory()
+void CryExe::Executable::AddDirectory(Directory* directory)
 {
+	assert(directory);
+
+	if (IsSealed()) {
+		throw std::runtime_error{ "sealed images cannot amend contents" };
+	}
+
+	// Prepare directory structure to be written to disk
+	Structure::CexDirectory rawDirectory;
+	CRY_MEMZERO(rawDirectory, sizeof(Structure::CexDirectory));
+	SETSTRUCTSZ(rawDirectory, Structure::CexDirectory);
+
 	if (!m_offsetStack) {
 		m_offsetStack = std::make_unique<std::array<std::deque<OSFilePosition>, 2>>();
 	}
-
-	//TODO
+	m_offsetStack->at(StackDirectoryPosition).push_back(m_file.Offset());
+	
+	// Commit to disk
+	m_file.Write(rawDirectory);
 }
 
 void CryExe::Executable::AddSection(Section *section)

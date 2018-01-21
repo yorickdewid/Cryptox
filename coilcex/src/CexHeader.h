@@ -145,9 +145,14 @@ struct CexProgramHeader final
 	std::uint8_t structSize;
 };
 
-struct CexDirectory {};
-struct CexSymbolTable : public CexDirectory {};
-struct CexProtectionTable : public CexDirectory {};
+struct CexDirectory final
+{
+	// Size of the current structure must be set to find altered versions in
+	// the future. The called must set the size via the sizeof() expression.
+	// If the structure ever changes the parser is able to skip over the structure
+	// and continue on to the image.
+	std::uint8_t structSize;
+};
 
 enum class SectionCharacteristic : std::uint16_t
 {

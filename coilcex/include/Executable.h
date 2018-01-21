@@ -11,6 +11,7 @@
 #include "Exportable.h"
 #include "Image.h"
 #include "Section.h"
+#include "Directory.h"
 
 #include <string>
 #include <deque>
@@ -94,7 +95,7 @@ public:
 	void Close();
 
 	// Add new directory to CEX image
-	void AddDirectory();
+	void AddDirectory(Directory *);
 
 	// Add new section to CEX image
 	void AddSection(Section *);
