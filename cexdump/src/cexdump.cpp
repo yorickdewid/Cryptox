@@ -25,6 +25,7 @@ namespace fs = boost::filesystem;
 // parse as a valid CEX image, an excetion is thrown
 CryExe::Executable ProcessInput(const std::string& name)
 {
+	// Check if file exist
 	if (!fs::exists(name)) {
 		throw std::system_error{ ENOENT, std::system_category() };
 	}
@@ -36,8 +37,8 @@ int main(int argc, const char *argv[])
 {
 	try {
 		// Generic options
-		po::options_description desc{ PROGRAM_UTIL_HEADER "\n\n" PROGRAM_ORIGINAL_NAME ": [OPTIONS] FILE ...\n\nOptions" };
-		desc.add_options()
+		po::options_description description{ PROGRAM_UTIL_HEADER "\n\n" PROGRAM_ORIGINAL_NAME ": [OPTIONS] FILE ...\n\nOptions" };
+		description.add_options()
 			("help", "Show help")
 			("r", "Platform execution order")
 			("h", "Display the CEX image header")
@@ -57,22 +58,18 @@ int main(int argc, const char *argv[])
 			("?", "Show help")
 			("file", po::value<std::string>()->required(), "Source files");
 
-		// Combine all options
-		po::options_description all_ops;
-		all_ops.add(desc);
-		all_ops.add(hidden);
-
 		// Take positional arguments
-		po::positional_options_description p;
-		p.add("file", -1);
+		po::positional_options_description positional;
+		positional.add("file", -1);
 
 		// Set options for argument parser
 		po::variables_map vm;
-		po::store(po::command_line_parser(argc, argv)
-				  .options(all_ops)
-				  .positional(p)
-				  .CRY_PROGOPT_STYLE(po)
-				  .run(), vm, true);
+		Cry::OptionParser parser{ argc, argv };
+		parser.Options()
+			(description)
+			(hidden)
+			(positional);
+		parser.Run(vm);
 
 		// Print usage whenever there is an error or the help option is requested. The help
 		// shows all sections except for the positional arugments. Based on the system defaults
@@ -80,7 +77,7 @@ int main(int argc, const char *argv[])
 		auto usage = [=]
 		{
 			std::stringstream ss;
-			ss << desc;
+			ss << description;
 
 			std::string helpMsg = ss.str();
 			boost::algorithm::replace_all(helpMsg, "--", CRY_CLI_DELIMITER);
