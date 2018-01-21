@@ -10,7 +10,7 @@
 
 #include <boost/lexical_cast.hpp>
 
-std::pair<short, short> CryExe::Meta::ImageVersion(Executable& exec)
+CryExe::Meta::ImageVersionCompound CryExe::Meta::ImageVersion(const Executable& exec)
 {
 	switch (exec.GetInternalImageVersion()) {
 	case CryExe::InternalImageVersion::IMAGE_STRUCT_FORMAT_03:
@@ -25,7 +25,7 @@ std::pair<short, short> CryExe::Meta::ImageVersion(Executable& exec)
 	return std::make_pair<short, short>(0, 0);
 }
 
-std::string CryExe::Meta::ProgramVersion(Executable& exec)
+std::string CryExe::Meta::ProgramVersion(const Executable& exec)
 {
 	((void)exec);
 	/*switch (exec.GetInternalProgramVersion()) {

@@ -10,12 +10,14 @@
 
 #include <iostream>
 
-void HeaderDump::ParseImageHeader(CryExe::Executable& exec)
+using namespace CryExe;
+
+void HeaderDump::ParseImageHeader(const CryExe::Executable& exec)
 {
-	((void)exec);
-	
+	const Meta::ImageVersionCompound& imageVersion = Meta::ImageVersion(exec);
+
 	std::cout << "Image Header:" << '\n'
-		<< "  Version:                   X.Y (current)" << '\n'
+		<< "  Version:                   " << imageVersion.first << "." << imageVersion.second << " (current)" << '\n'
 		<< "  Identification:            CRYEX03 (checked)" << '\n'
 		<< "  Type:                      CET_EXECUTABLE (Executable file)" << '\n'
 		<< "  Start of program headers:  X (bytes into file)" << '\n'
@@ -24,10 +26,10 @@ void HeaderDump::ParseImageHeader(CryExe::Executable& exec)
 		<< std::endl;
 }
 
-void HeaderDump::ParseProgramHeader(CryExe::Executable& exec)
+void HeaderDump::ParseProgramHeader(const CryExe::Executable& exec)
 {
-	((void)exec);
-	
+	const std::string programVersion = Meta::ProgramVersion(exec);
+
 	std::cout << "Program Header:" << '\n'
 		<< "  Magic:                  7f 45 4c 46" << '\n'
 		<< "  Timestamp:              YYYY-MM-DD HH:II:SS" << '\n'

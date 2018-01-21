@@ -18,11 +18,13 @@ namespace CryExe
 namespace Meta
 {
 
+using ImageVersionCompound = std::pair<short, short>;
+
 // Return the image version as string
-std::pair<short, short> ImageVersion(Executable& exec);
+ImageVersionCompound ImageVersion(const Executable& exec);
 
 // Return the program version as string
-std::string ProgramVersion(Executable& exec);
+std::string ProgramVersion(const Executable& exec);
 
 } // namespace Meta
 } // namespace CryExe
