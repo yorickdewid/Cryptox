@@ -26,8 +26,10 @@ using FileModeRaw = const char *;
 
 class COILCEXAPI Image
 {
+	// Image file name on disk
 	const std::string m_filename;
-
+	
+	// Extract the base file name from the path
 	static std::string GetBasenameFromPath(const std::string& path);
 
 protected:

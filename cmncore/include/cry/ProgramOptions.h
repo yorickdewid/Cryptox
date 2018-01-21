@@ -20,4 +20,4 @@
 	style(prog::command_line_style::default_style \
 	| prog::command_line_style::case_insensitive \
 	| prog::command_line_style::allow_slash_for_short \
-	| prog::command_line_style::allow_long_disguise) \
+	| prog::command_line_style::allow_long_disguise)

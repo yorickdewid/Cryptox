@@ -84,7 +84,9 @@ public:
 
 public:
 	Executable(const std::string& path, FileMode fm = FileMode::FM_OPEN, ExecType type = ExecType::TYPE_EXECUTABLE);
-	Executable(Executable& exe, FileMode fm = FileMode::FM_OPEN);
+	explicit Executable(Executable& exe, FileMode fm);
+	Executable(const Executable&) = default;
+	Executable(Executable&&);
 	~Executable();
 
 	// Check if the image is sealed and thus readonly

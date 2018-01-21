@@ -12,6 +12,8 @@
 
 void HeaderDump::ParseImageHeader(CryExe::Executable& exec)
 {
+	((void)exec);
+	
 	std::cout << "Image Header:" << '\n'
 		<< "  Version:                   X.Y (current)" << '\n'
 		<< "  Identification:            CRYEX03 (checked)" << '\n'
@@ -24,6 +26,8 @@ void HeaderDump::ParseImageHeader(CryExe::Executable& exec)
 
 void HeaderDump::ParseProgramHeader(CryExe::Executable& exec)
 {
+	((void)exec);
+	
 	std::cout << "Program Header:" << '\n'
 		<< "  Magic:                  7f 45 4c 46" << '\n'
 		<< "  Timestamp:              YYYY-MM-DD HH:II:SS" << '\n'

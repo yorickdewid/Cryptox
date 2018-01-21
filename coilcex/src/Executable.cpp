@@ -20,7 +20,7 @@
 #define SETSTRUCTSZ(s,f) \
 	s.structSize = sizeof(f);
 
-#define EXCEPT_INVAL_CEX "invalid CEX format"
+#define EXCEPT_INVAL_CEX "Invalid CEX format"
 
 const std::chrono::milliseconds ChronoTimestamp()
 {
@@ -115,6 +115,18 @@ CryExe::Executable::Executable(CryExe::Executable& exe, FileMode fm)
 	}
 
 	this->Open(fm);
+}
+
+CryExe::Executable::Executable(Executable&& exe)
+	: Image{ exe }
+{
+	m_interalImageVersion = exe.m_interalImageVersion;
+	m_interalImageStructure = std::move(exe.m_interalImageStructure);
+	m_offsetStack = std::move(exe.m_offsetStack);
+	m_allocSections = std::move(m_allocSections);
+	std::swap(m_foundSectionList, exe.m_foundSectionList);
+	std::swap(m_foundDirectoryList, exe.m_foundDirectoryList);
+	m_execType = exe.m_execType;
 }
 
 CryExe::Executable::~Executable()
@@ -260,7 +272,7 @@ void CryExe::Executable::AddDirectory(Directory* directory)
 		m_offsetStack = std::make_unique<std::array<std::deque<OSFilePosition>, 2>>();
 	}
 	m_offsetStack->at(StackDirectoryPosition).push_back(m_file.Offset());
-	
+
 	// Commit to disk
 	m_file.Write(rawDirectory);
 }

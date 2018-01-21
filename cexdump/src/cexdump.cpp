@@ -6,9 +6,10 @@
 // that can be found in the LICENSE file. Content can not be 
 // copied and/or distributed without the express of the author.
 
-#include <cry/config.h>
-#include <cry/ProgramOptions.h>
+#include <Cry/config.h>
+#include <Cry/ProgramOptions.h>
 
+#include <boost/filesystem.hpp>
 #include <boost/program_options.hpp>
 #include <boost/algorithm/string.hpp>
 
@@ -18,11 +19,16 @@
 #include "HeaderDump.h"
 
 namespace po = boost::program_options;
+namespace fs = boost::filesystem;
 
 // Process input string as executable file, if the input file does not
 // parse as a valid CEX image, an excetion is thrown
 CryExe::Executable ProcessInput(const std::string& name)
 {
+	if (!fs::exists(name)) {
+		throw std::system_error{ ENOENT, std::system_category() };
+	}
+
 	return CryExe::Executable{ name, CryExe::FileMode::FM_OPEN };
 }
 
@@ -93,7 +99,8 @@ int main(int argc, const char *argv[])
 
 			if (vm.count("h")) {
 				HeaderDump::ParseImageHeader(exec);
-			} else if (vm.count("p")) {
+			}
+			else if (vm.count("p")) {
 				HeaderDump::ParseProgramHeader(exec);
 			}
 			else if (vm.count("s")) {
