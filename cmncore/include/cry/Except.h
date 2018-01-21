@@ -74,5 +74,24 @@ public:
 	}
 };
 
+class KeyNotFoundException : public CSTD runtime_error
+{
+public:
+	KeyNotFoundException(const CSTD string& message) noexcept
+		: CSTD runtime_error{ message }
+	{
+	}
+
+	explicit KeyNotFoundException(char const* const message) noexcept
+		: CSTD runtime_error{ message }
+	{
+	}
+
+	virtual const char *what() const noexcept
+	{
+		return CSTD runtime_error::what();
+	}
+};
+
 } // namespace Except
 } // namespace Cry

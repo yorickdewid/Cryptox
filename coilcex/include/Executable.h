@@ -30,7 +30,9 @@ using OSFilePosition = OSFilePositionImpl<>;
 
 namespace Structure
 {
+
 struct CexFileFormat;
+
 } // namespace Structure
 
 class COILCEXAPI InvalidCexFormat

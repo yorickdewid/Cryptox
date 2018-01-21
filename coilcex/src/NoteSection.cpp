@@ -9,9 +9,13 @@
 #include "Executable.h"
 #include "NoteSection.h"
 
+#include <boost/endian/buffers.hpp>
+
 #include <sstream>
+#include <iterator>
 
 using namespace CryExe;
+using namespace boost::endian;
 
 #ifdef CXX_17
 
@@ -20,8 +24,7 @@ struct is_container : std::false_type {};
 
 template<typename _Ty>
 struct is_container<_Ty
-	, std::void_t<decltype(std::declval<_Ty>().data())
-	, decltype(std::declval<_Ty>().size())>>
+	, std::void_t<decltype(std::declval<_Ty>().data()), decltype(std::declval<_Ty>().size())>>
 	: std::true_type {};
 
 #endif
@@ -37,23 +40,23 @@ public:
 	template<typename _Ty>
 	NodeSerializer(_Ty&& context)
 	{
-		std::copy(context.begin(), context.end(), std::ostream_iterator<_CharTy>(*this));
+		std::move(context.begin(), context.end(), std::ostream_iterator<_CharTy>(*this));
 	}
 
 	NodeSerializer& operator<<(const std::string& content)
 	{
-		auto size = content.size();
-		_BaseTy::write(static_cast<_CharTy*>(static_cast<void*>(&size)), sizeof(std::uint32_t));
+		big_uint32_buf_t size = big_uint32_buf_t{ static_cast<std::uint32_t>(content.size()) };
+		_BaseTy::write(static_cast<_CharTy*>(static_cast<void*>(&size)), sizeof(big_uint32_buf_t));
 		_BaseTy::write(content.data(), content.size());
 		return (*this);
 	}
 
 	NodeSerializer& operator>>(std::string& content)
 	{
-		size_t size = 0;
-		_BaseTy::read(static_cast<_CharTy*>(static_cast<void*>(&size)), sizeof(std::uint32_t));
-		content.resize(size);
-		_BaseTy::read(&content[0], size);
+		big_uint32_buf_t size = big_uint32_buf_t{ 0 };
+		_BaseTy::read(static_cast<_CharTy*>(static_cast<void*>(&size)), sizeof(big_uint32_buf_t));
+		content.resize(size.value());
+		_BaseTy::read(&content[0], size.value());
 		return (*this);
 	}
 
