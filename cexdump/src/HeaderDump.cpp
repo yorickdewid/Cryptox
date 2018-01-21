@@ -8,18 +8,67 @@
 
 #include "HeaderDump.h"
 
+#include <sstream>
 #include <iostream>
 
 using namespace CryExe;
 
-void HeaderDump::ParseImageHeader(const CryExe::Executable& exec)
+namespace Detail
+{
+
+std::string ImageVersion(const CryExe::Executable& exec)
 {
 	const Meta::ImageVersionCompound& imageVersion = Meta::ImageVersion(exec);
 
+	std::stringstream ss;
+	ss << imageVersion.first << "." << imageVersion.second;
+
+	if (Meta::IsLatestImageVersion(exec)) {
+		ss << " (current)";
+	}
+
+	return ss.str();
+}
+
+std::string ImageIdentifier(const CryExe::Executable& exec)
+{
+	std::stringstream ss;
+	ss << Meta::StructureIdentity();
+	ss << " (checked)";
+
+	return ss.str();
+}
+
+std::string ImageType(const CryExe::Executable& exec)
+{
+	ExecType type = Meta::ImageType(exec);
+
+	std::stringstream ss;
+
+	switch (type) {
+	case ExecType::TYPE_EXECUTABLE:
+		ss << "TYPE_EXECUTABLE";
+		ss << " (Executable file)";
+		break;
+	case ExecType::TYPE_LIBRARY_DYNAMIC:
+		ss << "TYPE_LIBRARY_DYNAMIC";
+		ss << " (Dynamic library)";
+		break;
+	default:
+		ss << "[UNKNOWN]";
+	}
+
+	return ss.str();
+}
+
+} // namespace Detail
+
+void HeaderDump::ParseImageHeader(const CryExe::Executable& exec)
+{
 	std::cout << "Image Header:" << '\n'
-		<< "  Version:                   " << imageVersion.first << "." << imageVersion.second << " (current)" << '\n'
-		<< "  Identification:            CRYEX03 (checked)" << '\n'
-		<< "  Type:                      CET_EXECUTABLE (Executable file)" << '\n'
+		<< "  Version:                   " << Detail::ImageVersion(exec) << '\n'
+		<< "  Identification:            " << Detail::ImageIdentifier(exec) << '\n'
+		<< "  Type:                      " << Detail::ImageType(exec) << '\n'
 		<< "  Start of program headers:  X (bytes into file)" << '\n'
 		<< "  Flags:                     0x01" << '\n'
 		<< "  Size of this header:       " << 0 << " (bytes)"

@@ -19,5 +19,6 @@
 #include "Section.h"
 #include "NoteSection.h"
 #include "ResourceSection.h"
+#include "SourceSection.h"
 
 #endif // COILCEX_H_

@@ -44,6 +44,7 @@ enum class COILCEXAPI InternalImageVersion
 {
 	IMAGE_STRUCT_FORMAT_INVAL = 0,
 	IMAGE_STRUCT_FORMAT_03 = 3,
+	IMAGE_STRUCT_FOMART_LAST = IMAGE_STRUCT_FORMAT_03,
 };
 
 enum class COILCEXAPI ExecType
@@ -57,6 +58,8 @@ using DirectoryList = std::vector<CryExe::Directory>;
 
 class COILCEXAPI Executable : public Image
 {
+	friend struct Meta;
+
 	InternalImageVersion m_interalImageVersion = InternalImageVersion::IMAGE_STRUCT_FORMAT_INVAL;
 	std::unique_ptr<Structure::CexFileFormat> m_interalImageStructure;
 	std::unique_ptr<std::array<std::deque<OSFilePosition>, 2>> m_offsetStack;
@@ -85,8 +88,10 @@ public:
 public:
 	Executable(const std::string& path, FileMode fm = FileMode::FM_OPEN, ExecType type = ExecType::TYPE_EXECUTABLE);
 	explicit Executable(Executable& exe, FileMode fm);
+	
 	Executable(const Executable&) = default;
 	Executable(Executable&&);
+	
 	~Executable();
 
 	// Check if the image is sealed and thus readonly
@@ -113,11 +118,8 @@ public:
 	// Fill structure
 	void GetSectionDataFromImage(Section&);
 
+	// Get image version as integer
 	short ImageVersion() const;
-
-	//TODO: friend?
-	inline InternalImageVersion GetInternalImageVersion() const { return m_interalImageVersion; }
-	inline int GetInternalProgramVersion() const { return 0; }
 
 	// Set executable flags
 	void SetOption(Option);

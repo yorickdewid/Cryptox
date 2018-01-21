@@ -7,13 +7,16 @@
 // copied and/or distributed without the express of the author.
 
 #include "Meta.h"
+#include "CexHeader.h"
 
 #include <boost/lexical_cast.hpp>
 
-CryExe::Meta::ImageVersionCompound CryExe::Meta::ImageVersion(const Executable& exec)
+using namespace CryExe;
+
+Meta::ImageVersionCompound Meta::ImageVersion(const Executable& exec)
 {
-	switch (exec.GetInternalImageVersion()) {
-	case CryExe::InternalImageVersion::IMAGE_STRUCT_FORMAT_03:
+	switch (exec.m_interalImageVersion) {
+	case InternalImageVersion::IMAGE_STRUCT_FORMAT_03:
 	{
 		const short version = exec.ImageVersion();
 		return { static_cast<short>((version >> 8) & 0xff), static_cast<short>(version & 0xff) };
@@ -25,13 +28,26 @@ CryExe::Meta::ImageVersionCompound CryExe::Meta::ImageVersion(const Executable& 
 	return std::make_pair<short, short>(0, 0);
 }
 
-std::string CryExe::Meta::ProgramVersion(const Executable& exec)
+std::string Meta::ProgramVersion(const Executable& exec)
 {
 	((void)exec);
-	/*switch (exec.GetInternalProgramVersion()) {
-	default:
-		break;
-	}*/
+
+	// TODO
 
 	return "";
+}
+
+bool Meta::IsLatestImageVersion(const Executable& exec)
+{
+	return exec.m_interalImageVersion == InternalImageVersion::IMAGE_STRUCT_FOMART_LAST;
+}
+
+std::string Meta::StructureIdentity()
+{
+	return { std::begin(Structure::identity), std::end(Structure::identity) };
+}
+
+ExecType Meta::ImageType(const Executable& exec)
+{
+	return static_cast<ExecType>(exec.m_execType);
 }

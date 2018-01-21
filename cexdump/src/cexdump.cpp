@@ -40,10 +40,11 @@ int main(int argc, const char *argv[])
 		po::options_description description{ PROGRAM_UTIL_HEADER "\n\n" PROGRAM_ORIGINAL_NAME ": [OPTIONS] FILE ...\n\nOptions" };
 		description.add_options()
 			("help", "Show help")
-			("r", "Platform execution order")
 			("h", "Display the CEX image header")
 			("p", "Display the program header")
 			("s", "Display the sections' header")
+			("r", "Platform execution order")
+			("a", "Display all image information")
 			("v", "Print version information and exit");
 		//("m", "Display the symbol table")
 		//("n", "Display the core notes (if present)")
@@ -94,13 +95,17 @@ int main(int argc, const char *argv[])
 		if (vm.count("file")) {
 			CryExe::Executable exec = ProcessInput(vm["file"].as<std::string>());
 
-			if (vm.count("h")) {
+			bool touchAll = false;
+			if (vm.count("a")) {
+				touchAll = true;
+			}
+			else if (vm.count("h") || touchAll) {
 				HeaderDump::ParseImageHeader(exec);
 			}
-			else if (vm.count("p")) {
+			else if (vm.count("p") || touchAll) {
 				HeaderDump::ParseProgramHeader(exec);
 			}
-			else if (vm.count("s")) {
+			else if (vm.count("s") || touchAll) {
 				//SectionDump::Parse(exec);
 			}
 			else if (vm.count("r")) {

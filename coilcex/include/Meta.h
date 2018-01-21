@@ -15,16 +15,23 @@
 
 namespace CryExe
 {
-namespace Meta
+
+struct COILCEXAPI Meta final
 {
+	using ImageVersionCompound = std::pair<short, short>;
 
-using ImageVersionCompound = std::pair<short, short>;
+	// Return the image version
+	static ImageVersionCompound ImageVersion(const Executable&);
 
-// Return the image version as string
-ImageVersionCompound ImageVersion(const Executable& exec);
+	// Test if the this image version is the lastest
+	static bool IsLatestImageVersion(const Executable&);
 
-// Return the program version as string
-std::string ProgramVersion(const Executable& exec);
+	// Return the program version as string
+	static std::string ProgramVersion(const Executable&);
 
-} // namespace Meta
+	static std::string StructureIdentity();
+
+	static ExecType ImageType(const Executable&);
+};
+
 } // namespace CryExe
