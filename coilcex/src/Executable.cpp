@@ -208,7 +208,28 @@ void CryExe::Executable::ConveyDirectoriesFromDisk()
 {
 	assert(m_interalImageStructure);
 
-	// TODO
+	// Skip if there are no directories in this image, otherwise
+	// reserve the items on the directory list.
+	if (m_interalImageStructure->programHeader.numberOfDirectories == 0) { return; }
+	m_foundDirectoryList.reserve(m_interalImageStructure->programHeader.numberOfDirectories);
+
+	assert(m_interalImageStructure->programHeader.offsetToDirectoryTable);
+	OSFilePosition offset = m_interalImageStructure->programHeader.offsetToDirectoryTable;
+
+	Structure::CexDirectory rawDirectory;
+	//while (offset) {
+	{
+		CRY_MEMZERO(rawDirectory, sizeof(Structure::CexDirectory));
+		m_file.Position(offset);
+		m_file.Read(rawDirectory);
+
+		Directory directory;
+		directory.m_dataPosition.internalImageDataOffset = offset + sizeof(Structure::CexDirectory);
+		directory.m_dataPosition.internalImageDataSize = 0; //TODO
+
+		m_foundDirectoryList.push_back(std::move(directory));
+		//offset = rawDirectory.offsetToSection;
+	}
 }
 
 void CryExe::Executable::Close()

@@ -53,6 +53,7 @@ enum class COILCEXAPI ExecType
 };
 
 using SectionList = std::vector<CryExe::Section>;
+using DirectoryList = std::vector<CryExe::Directory>;
 
 class COILCEXAPI Executable : public Image
 {
@@ -61,6 +62,7 @@ class COILCEXAPI Executable : public Image
 	std::unique_ptr<std::array<std::deque<OSFilePosition>, 2>> m_offsetStack;
 	std::bitset<UINT16_MAX> m_allocSections = 0;
 	SectionList m_foundSectionList;
+	DirectoryList m_foundDirectoryList;
 	int m_execType;
 
 public:
