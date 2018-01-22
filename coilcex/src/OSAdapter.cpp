@@ -17,9 +17,10 @@ void CryExe::OSAdapter::Open(const std::string& file, const char mode[])
 
 #ifdef _WIN32
 	errno_t ret = fopen_s(&m_fpImage, file.c_str(), mode);
-	assert(ret == 0);
+	if (ret) { throw std::system_error{ ret, std::system_category() }; }
 #else
 	m_fpImage = std::fopen(file.c_str(), mode);
+	if (!m_fpImage) { throw std::system_error{ errno, std::system_category() }; }
 #endif
 
 	assert(m_fpImage);

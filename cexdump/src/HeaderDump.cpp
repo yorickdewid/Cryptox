@@ -33,7 +33,7 @@ std::string ImageVersion(const CryExe::Executable& exec)
 std::string ImageIdentifier(const CryExe::Executable& exec)
 {
 	std::stringstream ss;
-	ss << Meta::StructureIdentity();
+	ss << Meta::StructureIdentity(); //TODO
 	ss << " (checked)";
 
 	return ss.str();
@@ -41,24 +41,44 @@ std::string ImageIdentifier(const CryExe::Executable& exec)
 
 std::string ImageType(const CryExe::Executable& exec)
 {
-	ExecType type = Meta::ImageType(exec);
+	try {
+		ExecType type = Meta::ImageType(exec);
+		
+		std::stringstream ss;
+		
+		switch (type) {
+		case ExecType::TYPE_EXECUTABLE:
+			ss << "TYPE_EXECUTABLE";
+			ss << " (Executable file)";
+			break;
+		case ExecType::TYPE_LIBRARY_DYNAMIC:
+			ss << "TYPE_LIBRARY_DYNAMIC";
+			ss << " (Dynamic library)";
+			break;
+		default:
+			throw std::bad_cast{};
+		}
 
-	std::stringstream ss;
-
-	switch (type) {
-	case ExecType::TYPE_EXECUTABLE:
-		ss << "TYPE_EXECUTABLE";
-		ss << " (Executable file)";
-		break;
-	case ExecType::TYPE_LIBRARY_DYNAMIC:
-		ss << "TYPE_LIBRARY_DYNAMIC";
-		ss << " (Dynamic library)";
-		break;
-	default:
-		ss << "[UNKNOWN]";
+		return ss.str();
 	}
+	catch (std::bad_cast&) {
+		return "[UNKNOWN]";
+	}
+}
 
-	return ss.str();
+std::string ImageProgramOffset(const CryExe::Executable& exec)
+{
+	return "X (bytes into file)";
+}
+
+std::string ImageFlags(const CryExe::Executable& exec)
+{
+	return "0x01";
+}
+
+std::string ImageStructureSize(const CryExe::Executable& exec)
+{
+	return "0";
 }
 
 } // namespace Detail
@@ -69,10 +89,10 @@ void HeaderDump::ParseImageHeader(const CryExe::Executable& exec)
 		<< "  Version:                   " << Detail::ImageVersion(exec) << '\n'
 		<< "  Identification:            " << Detail::ImageIdentifier(exec) << '\n'
 		<< "  Type:                      " << Detail::ImageType(exec) << '\n'
-		<< "  Start of program headers:  X (bytes into file)" << '\n'
-		<< "  Flags:                     0x01" << '\n'
-		<< "  Size of this header:       " << 0 << " (bytes)"
-		<< std::endl;
+		<< "  Start of program headers:  " << Detail::ImageProgramOffset(exec) << '\n'
+		<< "  Flags:                     " << Detail::ImageFlags(exec) << '\n'
+		<< "  Size of this header:       " << Detail::ImageStructureSize(exec) << '\n'
+		<< std::flush;
 }
 
 void HeaderDump::ParseProgramHeader(const CryExe::Executable& exec)

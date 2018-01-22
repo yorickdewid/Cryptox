@@ -37,12 +37,12 @@ protected:
 
 public:
 	Image(const std::string& filename)
-		: m_filename{ GetBasenameFromPath(filename) }
+		: m_filename{ filename }
 	{
 	}
 
 	// Return filename
-	inline std::string Name() const { return m_filename; }
+	inline std::string Name() const { return GetBasenameFromPath(m_filename); }
 
 	// Return file size
 	size_t Size() const;
