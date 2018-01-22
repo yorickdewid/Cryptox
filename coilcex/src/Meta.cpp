@@ -11,7 +11,10 @@
 
 #include <boost/lexical_cast.hpp>
 
-#define INTERNAL_IMAGE(e) e.m_interalImageStructure
+//#define INTERNAL_IMAGE(e) e.m_interalImageStructure
+
+#define INTERNAL_IMAGE(e,s) e.m_interalImageStructure->imageHeader.s
+#define INTERNAL_PROGRAM(e,s) e.m_interalImageStructure->programHeader.s
 
 using namespace CryExe;
 
@@ -68,7 +71,7 @@ ExecType Meta::ImageType(const Executable& exec)
 
 long long Meta::ImageProgramOffset(const Executable& exec)
 {
-	return INTERNAL_IMAGE(exec)->imageHeader.offsetToProgram;
+	return INTERNAL_IMAGE(exec, offsetToProgram);
 }
 
 std::string Meta::ImageFlags(const Executable& exec)
@@ -76,7 +79,7 @@ std::string Meta::ImageFlags(const Executable& exec)
 	using IntergerCast = unsigned short;
 	std::string outputFlags;
 	
-	IntergerCast flags = static_cast<IntergerCast>(INTERNAL_IMAGE(exec)->imageHeader.flagsOptional);
+	IntergerCast flags = static_cast<IntergerCast>(INTERNAL_IMAGE(exec, flagsOptional));
 	if (flags & static_cast<IntergerCast>(Structure::ImageFlags::CCH_READ_ONLY)) {
 		if (outputFlags.size()) { outputFlags.push_back(','); }
 		outputFlags.append("RO");
@@ -93,7 +96,7 @@ std::string Meta::ImageFlags(const Executable& exec)
 
 long long Meta::ImageStructureSize(const Executable& exec)
 {
-	return INTERNAL_IMAGE(exec)->imageHeader.structSize;
+	return INTERNAL_IMAGE(exec, structSize);
 }
 
 int Meta::StructureMagic()
@@ -105,50 +108,50 @@ Meta::ProgramTimestampClock Meta::ProgramTimestamp(const Executable& exec)
 {
 	using namespace std::chrono;
 
-	return ProgramTimestampClock{ milliseconds{ INTERNAL_IMAGE(exec)->programHeader.timestampDate } };
+	return ProgramTimestampClock{ milliseconds{ INTERNAL_PROGRAM(exec, timestampDate) } };
 }
 
 short Meta::ProgramSubsystemTarget(const Executable& exec)
 {
-	return INTERNAL_IMAGE(exec)->programHeader.subsystemTarget;
+	return INTERNAL_PROGRAM(exec, subsystemTarget);
 }
 
 short Meta::ProgramSubsystemVersion(const Executable& exec)
 {
-	return INTERNAL_IMAGE(exec)->programHeader.subsystemVersion;
+	return INTERNAL_PROGRAM(exec, subsystemVersion);
 }
 
 long long Meta::ProgramCodeSize(const Executable& exec)
 {
-	return INTERNAL_IMAGE(exec)->programHeader.sizeOfCode;
+	return INTERNAL_PROGRAM(exec, sizeOfCode);
 }
 
 long long Meta::ProgramStackSize(const Executable& exec)
 {
-	return INTERNAL_IMAGE(exec)->programHeader.sizeOfStack;
+	return INTERNAL_PROGRAM(exec, sizeOfStack);
 }
 
 int Meta::ProgramSectionCount(const Executable& exec)
 {
-	return INTERNAL_IMAGE(exec)->programHeader.numberOfSections;
+	return INTERNAL_PROGRAM(exec, numberOfSections);
 }
 
 int Meta::ProgramDirectoryCount(const Executable& exec)
 {
-	return INTERNAL_IMAGE(exec)->programHeader.numberOfDirectories;
+	return INTERNAL_PROGRAM(exec, numberOfDirectories);
 }
 
 long long Meta::ProgramSectionOffset(const Executable& exec)
 {
-	return INTERNAL_IMAGE(exec)->programHeader.offsetToSectionTable;
+	return INTERNAL_PROGRAM(exec, offsetToSectionTable);
 }
 
 long long Meta::ProgramDirectoryOffset(const Executable& exec)
 {
-	return INTERNAL_IMAGE(exec)->programHeader.offsetToDirectoryTable;
+	return INTERNAL_PROGRAM(exec, offsetToDirectoryTable);
 }
 
 long long Meta::ProgramStructureSize(const Executable& exec)
 {
-	return INTERNAL_IMAGE(exec)->programHeader.structSize;
+	return INTERNAL_PROGRAM(exec, structSize);
 }

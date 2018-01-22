@@ -97,12 +97,16 @@ std::string ProgramMagic()
 std::string ProgramTimestamp(const CryExe::Executable& exec)
 {
 	Meta::ProgramTimestampClock ts = Meta::ProgramTimestamp(exec);
-	
-	std::time_t t = std::chrono::system_clock::to_time_t(ts);
-	std::string timestring{ std::ctime(&t) };
-	timestring.pop_back();
-	
-	return timestring;
+	std::time_t timestamp = std::chrono::system_clock::to_time_t(ts);
+
+	// Timestmap may be zero
+	if (timestamp > 0) {
+		std::string timestring{ std::ctime(&timestamp) };
+		timestring.pop_back();
+		return timestring;
+	}
+
+	return "0";
 }
 
 std::string ProgramSubsystemTarget(const CryExe::Executable& exec)
