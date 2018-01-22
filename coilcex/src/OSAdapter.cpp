@@ -10,6 +10,7 @@
 
 #include <cassert>
 #include <functional>
+#include <system_error>
 
 void CryExe::OSAdapter::Open(const std::string& file, const char mode[])
 {
