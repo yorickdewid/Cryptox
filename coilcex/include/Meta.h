@@ -18,6 +18,7 @@ namespace CryExe
 
 struct COILCEXAPI Meta final
 {
+	// Image version pair respectively major and minor part
 	using ImageVersionCompound = std::pair<short, short>;
 
 	// Return the image version
@@ -32,6 +33,12 @@ struct COILCEXAPI Meta final
 	static std::string StructureIdentity();
 
 	static ExecType ImageType(const Executable&);
+
+	static long long ImageProgramOffset(const Executable&);
+
+	static std::string ImageFlags(const Executable&);
+
+	static long long ImageStructureSize(const Executable&);
 };
 
 } // namespace CryExe

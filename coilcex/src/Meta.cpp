@@ -11,6 +11,8 @@
 
 #include <boost/lexical_cast.hpp>
 
+#define INTERNAL_IMAGE(e) e.m_interalImageStructure
+
 using namespace CryExe;
 
 Meta::ImageVersionCompound Meta::ImageVersion(const Executable& exec)
@@ -49,5 +51,47 @@ std::string Meta::StructureIdentity()
 
 ExecType Meta::ImageType(const Executable& exec)
 {
-	return static_cast<ExecType>(exec.m_execType);
+	switch (static_cast<Structure::ExecutableType>(exec.m_execType)) {
+	case Structure::ExecutableType::CET_EXECUTABLE:
+		return ExecType::TYPE_EXECUTABLE;
+	case Structure::ExecutableType::CET_DYNAMIC:
+		return ExecType::TYPE_LIBRARY_DYNAMIC;
+	case Structure::ExecutableType::CET_NONE:
+	case Structure::ExecutableType::CET_RELOCATABLE:
+	case Structure::ExecutableType::CET_STATIC:
+	default:
+		break;
+	}
+	
+	throw std::bad_cast{};
+}
+
+long long Meta::ImageProgramOffset(const Executable& exec)
+{
+	return INTERNAL_IMAGE(exec)->imageHeader.offsetToProgram;
+}
+
+std::string Meta::ImageFlags(const Executable& exec)
+{
+	using IntergerCast = unsigned short;
+	std::string outputFlags;
+	
+	IntergerCast flags = static_cast<IntergerCast>(INTERNAL_IMAGE(exec)->imageHeader.flagsOptional);
+	if (flags & static_cast<IntergerCast>(Structure::ImageFlags::CCH_READ_ONLY)) {
+		if (outputFlags.size()) { outputFlags.push_back(','); }
+		outputFlags.append("RO");
+	}
+	if (flags & static_cast<IntergerCast>(Structure::ImageFlags::CCH_BIN_REPRODUCE)) {
+		if (outputFlags.size()) { outputFlags.push_back(','); }
+		outputFlags.append("BINREP");
+	}
+
+	if (outputFlags.empty()) { outputFlags.push_back('-'); }
+
+	return outputFlags;
+}
+
+long long Meta::ImageStructureSize(const Executable& exec)
+{
+	return INTERNAL_IMAGE(exec)->imageHeader.structSize;
 }

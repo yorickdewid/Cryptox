@@ -68,17 +68,17 @@ std::string ImageType(const CryExe::Executable& exec)
 
 std::string ImageProgramOffset(const CryExe::Executable& exec)
 {
-	return "X (bytes into file)";
+	return std::to_string(Meta::ImageProgramOffset(exec)) + " (bytes into file)";
 }
 
 std::string ImageFlags(const CryExe::Executable& exec)
 {
-	return "0x01";
+	return Meta::ImageFlags(exec);
 }
 
 std::string ImageStructureSize(const CryExe::Executable& exec)
 {
-	return "0";
+	return std::to_string(Meta::ImageStructureSize(exec));
 }
 
 } // namespace Detail
@@ -111,6 +111,6 @@ void HeaderDump::ParseProgramHeader(const CryExe::Executable& exec)
 		<< "  Number of Directories:  X" << '\n'
 		<< "  Start of Sections:      64 (bytes into file)" << '\n'
 		<< "  Start of Directories:   6232 (bytes into file)" << '\n'
-		<< "  Size of this header:    X (bytes)"
-		<< std::endl;
+		<< "  Size of this header:    X (bytes)" << '\n'
+		<< std::flush;
 }
