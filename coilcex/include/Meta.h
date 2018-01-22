@@ -39,6 +39,12 @@ struct COILCEXAPI Meta final
 	static std::string ImageFlags(const Executable&);
 
 	static long long ImageStructureSize(const Executable&);
+
+	static long long ProgramStackSize(const Executable&);
+
+	static int ProgramSectionCount(const Executable&);
+
+	static int ProgramDirectoryCount(const Executable&);
 };
 
 } // namespace CryExe

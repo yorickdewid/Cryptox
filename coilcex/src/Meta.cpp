@@ -95,3 +95,18 @@ long long Meta::ImageStructureSize(const Executable& exec)
 {
 	return INTERNAL_IMAGE(exec)->imageHeader.structSize;
 }
+
+long long Meta::ProgramStackSize(const Executable& exec)
+{
+	return INTERNAL_IMAGE(exec)->programHeader.sizeOfStack;
+}
+
+int Meta::ProgramSectionCount(const Executable& exec)
+{
+	return INTERNAL_IMAGE(exec)->programHeader.numberOfSections;
+}
+
+int Meta::ProgramDirectoryCount(const Executable& exec)
+{
+	return INTERNAL_IMAGE(exec)->programHeader.numberOfDirectories;
+}
