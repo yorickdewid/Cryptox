@@ -108,6 +108,16 @@ Meta::ProgramTimestampClock Meta::ProgramTimestamp(const Executable& exec)
 	return ProgramTimestampClock{ milliseconds{ INTERNAL_IMAGE(exec)->programHeader.timestampDate } };
 }
 
+short Meta::ProgramSubsystemTarget(const Executable& exec)
+{
+	return INTERNAL_IMAGE(exec)->programHeader.subsystemTarget;
+}
+
+short Meta::ProgramSubsystemVersion(const Executable& exec)
+{
+	return INTERNAL_IMAGE(exec)->programHeader.subsystemVersion;
+}
+
 long long Meta::ProgramCodeSize(const Executable& exec)
 {
 	return INTERNAL_IMAGE(exec)->programHeader.sizeOfCode;

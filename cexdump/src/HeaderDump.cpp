@@ -18,6 +18,7 @@ using namespace CryExe;
 namespace Detail
 {
 
+// User defined literal for sizes in kilobyte
 constexpr unsigned long long operator "" _KB(unsigned long long)
 {
 	return 1024;
@@ -106,12 +107,20 @@ std::string ProgramTimestamp(const CryExe::Executable& exec)
 
 std::string ProgramSubsystemTarget(const CryExe::Executable& exec)
 {
-	return "Advanced Micro Devices x86_64";
+	std::stringstream ss;
+
+	ss << "0x" << std::hex << Meta::ProgramSubsystemTarget(exec);
+
+	return ss.str();
 }
 
 std::string ProgramSubsystemVersion(const CryExe::Executable& exec)
 {
-	return "0x1";
+	std::stringstream ss;
+
+	ss << "0x" << std::hex << Meta::ProgramSubsystemVersion(exec);
+
+	return ss.str();
 }
 
 std::string ProgramCodeSize(const CryExe::Executable& exec)
