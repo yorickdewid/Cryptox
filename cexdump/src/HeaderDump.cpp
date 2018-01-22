@@ -10,6 +10,8 @@
 
 #include <sstream>
 #include <iostream>
+#include <iomanip>
+#include <ctime>
 
 using namespace CryExe;
 
@@ -35,22 +37,18 @@ std::string ImageVersion(const CryExe::Executable& exec)
 	return ss.str();
 }
 
-std::string ImageIdentifier(const CryExe::Executable& exec)
+std::string ImageIdentifier()
 {
-	std::stringstream ss;
-	ss << Meta::StructureIdentity(); //TODO
-	ss << " (checked)";
-
-	return ss.str();
+	return Meta::StructureIdentity();
 }
 
 std::string ImageType(const CryExe::Executable& exec)
 {
 	try {
 		ExecType type = Meta::ImageType(exec);
-		
+
 		std::stringstream ss;
-		
+
 		switch (type) {
 		case ExecType::TYPE_EXECUTABLE:
 			ss << "TYPE_EXECUTABLE";
@@ -86,9 +84,39 @@ std::string ImageStructureSize(const CryExe::Executable& exec)
 	return std::to_string(Meta::ImageStructureSize(exec)) + " (bytes)";
 }
 
+std::string ProgramMagic()
+{
+	std::stringstream ss;
+
+	ss << std::hex << Meta::StructureMagic();
+
+	return ss.str();
+}
+
 std::string ProgramTimestamp(const CryExe::Executable& exec)
 {
-	return "YYYY-MM-DD HH:II:SS";
+	Meta::ProgramTimestampClock ts = Meta::ProgramTimestamp(exec);
+	
+	std::time_t t = std::chrono::system_clock::to_time_t(ts);
+	std::string timestring{ std::ctime(&t) };
+	timestring.pop_back();
+	
+	return timestring;
+}
+
+std::string ProgramSubsystemTarget(const CryExe::Executable& exec)
+{
+	return "Advanced Micro Devices x86_64";
+}
+
+std::string ProgramSubsystemVersion(const CryExe::Executable& exec)
+{
+	return "0x1";
+}
+
+std::string ProgramCodeSize(const CryExe::Executable& exec)
+{
+	return std::to_string(Meta::ProgramCodeSize(exec)) + " (bytes)";
 }
 
 std::string ProgramStackSize(const CryExe::Executable& exec)
@@ -109,17 +137,17 @@ std::string ProgramDirectoryCount(const CryExe::Executable& exec)
 
 std::string ProgramSectionOffset(const CryExe::Executable& exec)
 {
-	return std::to_string(0) + " (bytes into file)";
+	return std::to_string(Meta::ProgramSectionOffset(exec)) + " (bytes into file)";
 }
 
 std::string ProgramDirectoryOffset(const CryExe::Executable& exec)
 {
-	return std::to_string(0) + " (bytes into file)";
+	return std::to_string(Meta::ProgramDirectoryOffset(exec)) + " (bytes into file)";
 }
 
 std::string ProgramStructureSize(const CryExe::Executable& exec)
 {
-	return std::to_string(0) + " (bytes)";
+	return std::to_string(Meta::ProgramStructureSize(exec)) + " (bytes)";
 }
 
 } // namespace Detail
@@ -128,7 +156,7 @@ void HeaderDump::ParseImageHeader(const CryExe::Executable& exec)
 {
 	std::cout << "Image Header:" << '\n'
 		<< "  Version:                   " << Detail::ImageVersion(exec) << '\n'
-		<< "  Identification:            " << Detail::ImageIdentifier(exec) << '\n'
+		<< "  Identification:            " << Detail::ImageIdentifier() << '\n'
 		<< "  Type:                      " << Detail::ImageType(exec) << '\n'
 		<< "  Start of program headers:  " << Detail::ImageProgramOffset(exec) << '\n'
 		<< "  Flags:                     " << Detail::ImageFlags(exec) << '\n'
@@ -141,17 +169,16 @@ void HeaderDump::ParseProgramHeader(const CryExe::Executable& exec)
 	const std::string programVersion = Meta::ProgramVersion(exec);
 
 	std::cout << "Program Header:" << '\n'
-		<< "  Magic:                  7f 45 4c 46" << '\n'
-		<< "  Timestamp:              " << Detail::ProgramTimestamp(exec) << '\n'
-		<< "  Subsystem Target:       Advanced Micro Devices x86_64" << '\n'
-		<< "  Subsystem Version:      0x1" << '\n'
-		<< "  Platform Runner:        Native" << '\n'
-		<< "  Size of Code Segment:   X (bytes)" << '\n'
-		<< "  Size of Stack:          " << Detail::ProgramStackSize(exec) << '\n'
-		<< "  Number of Sections:     " << Detail::ProgramSectionCount(exec) << '\n'
-		<< "  Number of Directories:  " << Detail::ProgramDirectoryCount(exec) << '\n'
-		<< "  Start of Sections:      " << Detail::ProgramSectionOffset(exec) << '\n'
-		<< "  Start of Directories:   " << Detail::ProgramDirectoryOffset(exec) << '\n'
-		<< "  Size of this header:    " << Detail::ProgramStructureSize(exec) << '\n'
+		<< "  Magic:                     " << Detail::ProgramMagic() << '\n'
+		<< "  Timestamp:                 " << Detail::ProgramTimestamp(exec) << '\n'
+		<< "  Subsystem Target:          " << Detail::ProgramSubsystemTarget(exec) << '\n'
+		<< "  Subsystem Version:         " << Detail::ProgramSubsystemVersion(exec) << '\n'
+		<< "  Size of Code Segment:      " << Detail::ProgramCodeSize(exec) << '\n'
+		<< "  Size of Stack:             " << Detail::ProgramStackSize(exec) << '\n'
+		<< "  Number of Sections:        " << Detail::ProgramSectionCount(exec) << '\n'
+		<< "  Number of Directories:     " << Detail::ProgramDirectoryCount(exec) << '\n'
+		<< "  Start of Sections:         " << Detail::ProgramSectionOffset(exec) << '\n'
+		<< "  Start of Directories:      " << Detail::ProgramDirectoryOffset(exec) << '\n'
+		<< "  Size of this header:       " << Detail::ProgramStructureSize(exec) << '\n'
 		<< std::flush;
 }

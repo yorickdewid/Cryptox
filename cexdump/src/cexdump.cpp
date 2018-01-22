@@ -17,6 +17,8 @@
 
 #include "cex.h"
 #include "HeaderDump.h"
+#include "SectionTable.h"
+#include "Notes.h"
 
 namespace po = boost::program_options;
 namespace fs = boost::filesystem;
@@ -45,9 +47,9 @@ int main(int argc, const char *argv[])
 			("s", "Display the sections' header")
 			("r", "Platform execution order")
 			("a", "Display all image information")
-			("v", "Print version information and exit");
+			("v", "Print version information and exit")
+			("n", "Display the core notes (if present)");
 		//("m", "Display the symbol table")
-		//("n", "Display the core notes (if present)")
 		//("t", "Display the abstract source tree")
 		//("o", "Display protection directory")
 		//("e", "Export resources (if present)")
@@ -95,24 +97,52 @@ int main(int argc, const char *argv[])
 		if (vm.count("file")) {
 			CryExe::Executable exec = ProcessInput(vm["file"].as<std::string>());
 
+			bool touchAny = false;
 			bool touchAll = false;
+
+			// Print everything
 			if (vm.count("a")) {
 				touchAll = true;
 			}
-			else if (vm.count("h") || touchAll) {
+
+			// Print image header
+			if (vm.count("h") || touchAll) {
 				HeaderDump::ParseImageHeader(exec);
+				touchAny = true;
 			}
-			else if (vm.count("p") || touchAll) {
+
+			// Print program header
+			if (vm.count("p") || touchAll) {
 				HeaderDump::ParseProgramHeader(exec);
+				touchAny = true;
 			}
-			else if (vm.count("s") || touchAll) {
-				//SectionDump::Parse(exec);
+			
+			// Print section table
+			if (vm.count("s") || touchAll) {
+				SectionTable::ParseTable(exec);
+				touchAny = true;
 			}
-			else if (vm.count("r")) {
-				//RunnerDriver::Run(exec).DumpPlan();
+
+			// Print symbol table
+			/*if (vm.count("m")) {
+				RunnerDriver::Run(exec).DumpPlan();
+				touchAny = true;
+			}*/
+
+			// Print notes
+			if (vm.count("n") || touchAll) {
+				Notes{ exec };
+				touchAny = true;
 			}
+
+			// Print execution plan
+			/*if (vm.count("r")) {
+				RunnerDriver::Run(exec).DumpPlan();
+				touchAny = true;
+			}*/
+
 			// Select one option for the input file
-			else {
+			if (!touchAny) {
 				usage();
 				return 1;
 			}

@@ -96,6 +96,23 @@ long long Meta::ImageStructureSize(const Executable& exec)
 	return INTERNAL_IMAGE(exec)->imageHeader.structSize;
 }
 
+int Meta::StructureMagic()
+{
+	return PROGRAM_MAGIC;
+}
+
+Meta::ProgramTimestampClock Meta::ProgramTimestamp(const Executable& exec)
+{
+	using namespace std::chrono;
+
+	return ProgramTimestampClock{ milliseconds{ INTERNAL_IMAGE(exec)->programHeader.timestampDate } };
+}
+
+long long Meta::ProgramCodeSize(const Executable& exec)
+{
+	return INTERNAL_IMAGE(exec)->programHeader.sizeOfCode;
+}
+
 long long Meta::ProgramStackSize(const Executable& exec)
 {
 	return INTERNAL_IMAGE(exec)->programHeader.sizeOfStack;
@@ -109,4 +126,19 @@ int Meta::ProgramSectionCount(const Executable& exec)
 int Meta::ProgramDirectoryCount(const Executable& exec)
 {
 	return INTERNAL_IMAGE(exec)->programHeader.numberOfDirectories;
+}
+
+long long Meta::ProgramSectionOffset(const Executable& exec)
+{
+	return INTERNAL_IMAGE(exec)->programHeader.offsetToSectionTable;
+}
+
+long long Meta::ProgramDirectoryOffset(const Executable& exec)
+{
+	return INTERNAL_IMAGE(exec)->programHeader.offsetToDirectoryTable;
+}
+
+long long Meta::ProgramStructureSize(const Executable& exec)
+{
+	return INTERNAL_IMAGE(exec)->programHeader.structSize;
 }

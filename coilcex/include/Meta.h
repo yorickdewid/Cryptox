@@ -12,6 +12,7 @@
 #include "Executable.h"
 
 #include <string>
+#include <chrono>
 
 namespace CryExe
 {
@@ -20,6 +21,7 @@ struct COILCEXAPI Meta final
 {
 	// Image version pair respectively major and minor part
 	using ImageVersionCompound = std::pair<short, short>;
+	using ProgramTimestampClock = std::chrono::time_point<std::chrono::system_clock>;
 
 	// Return the image version
 	static ImageVersionCompound ImageVersion(const Executable&);
@@ -32,6 +34,8 @@ struct COILCEXAPI Meta final
 
 	static std::string StructureIdentity();
 
+	static int Meta::StructureMagic();
+
 	static ExecType ImageType(const Executable&);
 
 	static long long ImageProgramOffset(const Executable&);
@@ -40,11 +44,21 @@ struct COILCEXAPI Meta final
 
 	static long long ImageStructureSize(const Executable&);
 
+	static ProgramTimestampClock ProgramTimestamp(const Executable&);
+
+	static long long ProgramCodeSize(const Executable&);
+
 	static long long ProgramStackSize(const Executable&);
 
 	static int ProgramSectionCount(const Executable&);
 
 	static int ProgramDirectoryCount(const Executable&);
+
+	static long long ProgramSectionOffset(const Executable&);
+
+	static long long ProgramDirectoryOffset(const Executable&);
+
+	static long long ProgramStructureSize(const Executable&);
 };
 
 } // namespace CryExe
