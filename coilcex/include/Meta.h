@@ -43,9 +43,6 @@ struct COILCEXAPI Meta final
 	// Test if the this image version is the lastest
 	static bool IsLatestImageVersion(const Executable&);
 
-	// Program version as string
-	static std::string ProgramVersion(const Executable&);
-
 	// Type of executable format
 	static ExecType ImageType(const Executable&);
 
@@ -87,6 +84,12 @@ struct COILCEXAPI Meta final
 
 	// Total size of program structure
 	static long long ProgramStructureSize(const Executable&);
+
+	struct SectionIntric
+	{
+		static size_t ImageDataSize(const Section&);
+		static long long ImageOffset(const Section&);
+	};
 };
 
 } // namespace CryExe

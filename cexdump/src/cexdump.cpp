@@ -45,7 +45,6 @@ int main(int argc, const char *argv[])
 			("h", "Display the CEX image header")
 			("p", "Display the program header")
 			("s", "Display the sections' header")
-			("r", "Platform execution order")
 			("a", "Display all image information")
 			("v", "Print version information and exit")
 			("n", "Display the core notes (if present)");
@@ -134,12 +133,6 @@ int main(int argc, const char *argv[])
 				Notes{ exec };
 				touchAny = true;
 			}
-
-			// Print execution plan
-			/*if (vm.count("r")) {
-				RunnerDriver::Run(exec).DumpPlan();
-				touchAny = true;
-			}*/
 
 			// Select one option for the input file
 			if (!touchAny) {

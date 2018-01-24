@@ -8,14 +8,37 @@
 
 #pragma once
 
-#include "cex.h"
+#include <functional>
 
 class SectionTable
 {
-	std::string SectionRow(int);
+	struct MetaSection;
+	using SectionCallback = std::function<void(MetaSection&)>;
 
+private:
+	const CryExe::Executable& m_exec;
+
+private:
+	struct MetaSection
+	{
+		std::string name;
+		std::string type;
+		long long offset;
+		size_t size;
+		char flags[16];
+	};
+	
+	std::string SectionRow(MetaSection, int);
+
+	void ForEach(SectionCallback func);
+
+	bool HasSections() const;
+
+private:
 	static std::string TableLegend();
 
 public:
+	SectionTable(const CryExe::Executable&);
+
 	static void ParseTable(const CryExe::Executable& exec);
 };

@@ -20,7 +20,7 @@ std::string Notes::ParseNote()
 	ss << "Displaying notes found at file offset 0x00000254 with length 0x00000020:\n";
 	ss << "  Owner                Data size       Description\n";
 	ss << "  CRY                  0x00000010      NTELF_CRY_ABI_TAG\n";
-	ss << "     OS : Linux, ABI : 2.6.32\n";
+	ss << "     OS : Windows\n";
 
 	ss << "Displaying notes found at file offset 0x00000274 with length 0x00000024:\n";
 	ss << "  Owner                Data size       Description\n";

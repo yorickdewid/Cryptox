@@ -28,6 +28,7 @@ using ByteArray = std::vector<std::uint8_t>;
 class COILCEXAPI Section
 {
 	friend class Executable;
+	friend struct Meta;
 
 public:
 	enum class COILCEXAPI SectionType

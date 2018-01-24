@@ -6,6 +6,7 @@
 // that can be found in the LICENSE file. Content can not be 
 // copied and/or distributed without the express of the author.
 
+#include "cex.h"
 #include "HeaderDump.h"
 
 #include <sstream>
@@ -179,8 +180,6 @@ void HeaderDump::ParseImageHeader(const CryExe::Executable& exec)
 
 void HeaderDump::ParseProgramHeader(const CryExe::Executable& exec)
 {
-	const std::string programVersion = Meta::ProgramVersion(exec);
-
 	std::cout << "Program Header:" << '\n'
 		<< "  Magic:                     " << Detail::ProgramMagic() << '\n'
 		<< "  Timestamp:                 " << Detail::ProgramTimestamp(exec) << '\n'

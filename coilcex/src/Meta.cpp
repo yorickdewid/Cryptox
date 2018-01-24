@@ -33,15 +33,6 @@ Meta::ImageVersionCompound Meta::ImageVersion(const Executable& exec)
 	return std::make_pair<short, short>(0, 0);
 }
 
-std::string Meta::ProgramVersion(const Executable& exec)
-{
-	((void)exec);
-
-	// TODO
-
-	return "";
-}
-
 bool Meta::IsLatestImageVersion(const Executable& exec)
 {
 	return exec.m_interalImageVersion == InternalImageVersion::IMAGE_STRUCT_FOMART_LAST;
@@ -154,4 +145,14 @@ long long Meta::ProgramDirectoryOffset(const Executable& exec)
 long long Meta::ProgramStructureSize(const Executable& exec)
 {
 	return INTERNAL_PROGRAM(exec, structSize);
+}
+
+size_t Meta::SectionIntric::ImageDataSize(const Section& section)
+{
+	return section.m_dataPosition.internalImageDataSize;
+}
+
+long long Meta::SectionIntric::ImageOffset(const Section& section)
+{
+	return section.m_dataPosition.internalImageDataOffset.NativePosition();
 }
