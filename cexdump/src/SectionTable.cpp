@@ -77,10 +77,8 @@ std::string SectionTable::SectionRow(MetaSection section, int number)
 std::string SectionTable::TableLegend()
 {
 	return "Key to Flags:\n"
-		"  W(write), A(alloc), X(execute), M(merge), S(strings), I(info),\n"
-		"  L(link order), O(extra OS processing required), G(group), T(TLS),\n"
-		"  C(compressed), x(unknown), o(OS specific), E(exclude),\n"
-		"  l(large), p(processor specific)\n";
+		"  E(encrypt)"
+		"  C(compress)\n";
 }
 
 SectionTable::SectionTable(const CryExe::Executable& exec)
@@ -103,8 +101,7 @@ void SectionTable::ForEach(SectionCallback cb)
 		meta.offset = Meta::SectionIntric::ImageOffset(listItem);
 		meta.size = Meta::SectionIntric::ImageDataSize(listItem);
 
-		CRY_MEMSET(&meta.flags, '\0', 16);
-		CRY_MEMCPY(&meta.flags, 16, "ABC", 3);
+		CRY_MEMSET(&meta.flags, '\0', sizeof(meta.flags));
 
 		cb(meta);
 	}
