@@ -15,7 +15,7 @@ class Notes
 	const CryExe::Executable& m_exe;
 
 private:
-	std::string ParseNote();
+	std::string ParseNote(CryExe::NoteSection&);
 
 public:
 	Notes(const CryExe::Executable&);

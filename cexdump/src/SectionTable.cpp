@@ -100,7 +100,6 @@ void SectionTable::ForEach(SectionCallback cb)
 		meta.type = SectionTypeConv(listItem.Type());
 		meta.offset = Meta::SectionIntric::ImageOffset(listItem);
 		meta.size = Meta::SectionIntric::ImageDataSize(listItem);
-
 		CRY_MEMSET(&meta.flags, '\0', sizeof(meta.flags));
 
 		cb(meta);
