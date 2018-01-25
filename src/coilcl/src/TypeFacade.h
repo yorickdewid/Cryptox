@@ -25,7 +25,8 @@ class TypeFacade
 
 public:
 	TypeFacade() = default;
-	TypeFacade(std::shared_ptr<Typedef::TypedefBase>& type)
+	
+	TypeFacade(const std::shared_ptr<Typedef::TypedefBase>& type)
 		: m_type{ type }
 	{
 	}

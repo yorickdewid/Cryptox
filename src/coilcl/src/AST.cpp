@@ -6,8 +6,6 @@
 // that can be found in the LICENSE file. Content can not be 
 // copied and/or distributed without the express of the author.
 
-#pragma once
-
 #include "AST.h"
 
 void CoilCl::AST::ForwardItemTree::ForwardInternalTree(std::shared_ptr<ASTNode>& node)

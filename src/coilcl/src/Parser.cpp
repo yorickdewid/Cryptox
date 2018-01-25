@@ -1073,7 +1073,7 @@ void Parser::PostfixExpression()
 
 void Parser::UnaryExpression()
 {
-	auto startSz = m_identifierStack.size();
+	//auto startSz = m_identifierStack.size();
 
 	switch (CURRENT_TOKEN()) {
 	case TK_INC_OP:

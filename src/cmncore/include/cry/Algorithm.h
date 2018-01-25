@@ -20,7 +20,7 @@ namespace Algorithm
 // predicate check and callback in one which is also possible with individual
 // std algorithms.
 template<typename _InputIt, typename _UnaryPredicate, typename _UnaryCallback>
-void match_if(_InputIt first, _InputIt last, _UnaryPredicate p, _UnaryCallback c)
+void MatchIf(_InputIt first, _InputIt last, _UnaryPredicate p, _UnaryCallback c)
 {
 	for (; first != last; ++first) {
 		if (p(*first)) {

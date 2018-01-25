@@ -6,20 +6,16 @@
 // that can be found in the LICENSE file. Content can not be 
 // copied and/or distributed without the express of the author.
 
-#include <Cry/config.h>
+#include <Cry/Config.h>
 #include <Cry/ProgramOptions.h>
 
 #include <boost/program_options.hpp>
 #include <boost/algorithm/string.hpp>
 
-#include <iostream>
-
 #include "Env.h"
 #include "Runstrap.h"
 
-//#define PROGRAM_DESC "Cryptox CIL Compiler\n"
-//#define PROGRAM_COPY "Copyright (C) 2017 Quenza Inc. All rights reserved.\n"
-//#define PROGRAM_VERSION "1.1"
+#include <iostream>
 
 namespace po = boost::program_options;
 

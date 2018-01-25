@@ -73,10 +73,10 @@ size_t BuiltinType::UnboxedSize() const
 	case Specifier::FLOAT:		return sizeof(float);
 	case Specifier::DOUBLE:		return sizeof(double);
 	case Specifier::BOOL:		return sizeof(bool);
-	default:					throw std::exception{};//TODO
+	default:					break;
 	}
 
-	return 0;
+	throw std::exception{};//TODO
 }
 
 } // namespace Typedef

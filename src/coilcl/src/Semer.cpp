@@ -1,3 +1,13 @@
+// Copyright (c) 2017 Quenza Inc. All rights reserved.
+//
+// This file is part of the Cryptox project.
+//
+// Use of this source code is governed by a private license
+// that can be found in the LICENSE file. Content can not be 
+// copied and/or distributed without the express of the author.
+
+#include <Cry/Algorithm.h>
+
 #include "AST.h"
 #include "ASTNode.h"
 #include "Semer.h"
@@ -8,15 +18,9 @@
 // Global definitions occupy index 0 in the definitions list
 #define GLOBAL_DEFS	0
 
-template<typename _InputIt, typename _UnaryPredicate, typename _UnaryCallback>
-void OnMatch(_InputIt first, _InputIt last, _UnaryPredicate p, _UnaryCallback c)
-{
-	for (; first != last; ++first) {
-		if (p(*first)) {
-			c(first);
-		}
-	}
-}
+using namespace Cry::Algorithm;
+
+class SemanticException;
 
 template<size_t _Idx = 0, typename _ConvTy, typename _ParentTy, typename _ChildTy>
 void InjectConverter(std::shared_ptr<_ParentTy> parent, std::shared_ptr<_ChildTy> child, _ConvTy baseType, _ConvTy initType)
@@ -144,7 +148,7 @@ CoilCl::Semer& CoilCl::Semer::StaticResolve()
 	const std::array<std::string, 1> staticLookup{ "sizeof" };
 
 	AST::Compare::Equal<BuiltinExpr> eqOp;
-	OnMatch(m_ast.begin(), m_ast.end(), eqOp, [&staticLookup](AST::AST::iterator itr)
+	MatchIf(m_ast.begin(), m_ast.end(), eqOp, [&staticLookup](AST::AST::iterator itr)
 	{
 		auto builtinExpr = std::dynamic_pointer_cast<BuiltinExpr>(itr.shared_ptr());
 		auto declRefName = builtinExpr->FuncDeclRef()->Identifier();
@@ -202,7 +206,7 @@ CoilCl::Semer& CoilCl::Semer::PreliminaryAssert()
 void CoilCl::Semer::FuncToSymbol(std::function<void(const std::string, const std::shared_ptr<ASTNode>& node)> insert)
 {
 	AST::Compare::Equal<FunctionDecl> eqOp;
-	OnMatch(m_ast.begin(), m_ast.end(), eqOp, [&insert](AST::AST::iterator itr)
+	MatchIf(m_ast.begin(), m_ast.end(), eqOp, [&insert](AST::AST::iterator itr)
 	{
 		auto func = std::dynamic_pointer_cast<FunctionDecl>(itr.shared_ptr());
 		if (func->ReturnType()->IsInline() || func->IsPrototypeDefinition()) {
@@ -219,7 +223,7 @@ void CoilCl::Semer::NamedDeclaration()
 {
 	AST::Compare::Equal<TranslationUnitDecl> traunOp;
 	AST::Compare::Derived<Decl> drivdOp;
-	OnMatch(m_ast.begin(), m_ast.end(), drivdOp, [&traunOp, this](AST::AST::iterator itr)
+	MatchIf(m_ast.begin(), m_ast.end(), drivdOp, [&traunOp, this](AST::AST::iterator itr)
 	{
 		auto node = itr.shared_ptr();
 		auto decl = std::dynamic_pointer_cast<Decl>(node);
@@ -252,7 +256,7 @@ void CoilCl::Semer::NamedDeclaration()
 void CoilCl::Semer::ResolveIdentifier()
 {
 	AST::Compare::Equal<DeclRefExpr> eqOp;
-	OnMatch(m_ast.begin(), m_ast.end(), eqOp, [=](AST::AST::iterator itr)
+	MatchIf(m_ast.begin(), m_ast.end(), eqOp, [=](AST::AST::iterator itr)
 	{
 		auto node = itr.shared_ptr();
 		auto decl = std::dynamic_pointer_cast<DeclRefExpr>(node);
@@ -294,7 +298,7 @@ void CoilCl::Semer::BindPrototype()
 	AST::Compare::Equal<FunctionDecl> eqOp;
 	Stash<ASTNode> m_resolFuncProto;
 
-	OnMatch(m_ast.begin(), m_ast.end(), eqOp, [&m_resolFuncProto](AST::AST::iterator itr)
+	MatchIf(m_ast.begin(), m_ast.end(), eqOp, [&m_resolFuncProto](AST::AST::iterator itr)
 	{
 		auto func = std::dynamic_pointer_cast<FunctionDecl>(itr.shared_ptr());
 		if (func->IsPrototypeDefinition()) {
@@ -322,7 +326,7 @@ void CoilCl::Semer::DeduceTypes()
 	// Set signature in function definition
 	AST::Compare::Equal<FunctionDecl> eqOp;
 	AST::Compare::Equal<VariadicDecl> eqVaria;
-	OnMatch(m_ast.begin(), m_ast.end(), eqOp, [&eqVaria](AST::AST::iterator itr)
+	MatchIf(m_ast.begin(), m_ast.end(), eqOp, [&eqVaria](AST::AST::iterator itr)
 	{
 		std::vector<AST::TypeFacade> paramTypeList;
 
@@ -348,7 +352,7 @@ void CoilCl::Semer::DeduceTypes()
 
 	// Set return type on call expression
 	AST::Compare::Equal<CallExpr> eqCall;
-	OnMatch(m_ast.begin(), m_ast.end(), eqCall, [](AST::AST::iterator itr)
+	MatchIf(m_ast.begin(), m_ast.end(), eqCall, [](AST::AST::iterator itr)
 	{
 		auto call = std::dynamic_pointer_cast<CallExpr>(itr.shared_ptr());
 		assert(call->FuncDeclRef()->IsResolved());
@@ -362,13 +366,13 @@ void CoilCl::Semer::DeduceTypes()
 	// Set return type on operators and delegate type down the tree. The operator type
 	// is deducted from the first expression with an return type
 	AST::Compare::Derived<Operator> drvOp;
-	OnMatch(m_ast.begin(), m_ast.end(), drvOp, [](AST::AST::iterator itr)
+	MatchIf(m_ast.begin(), m_ast.end(), drvOp, [](AST::AST::iterator itr)
 	{
 		auto opr = std::dynamic_pointer_cast<Operator>(itr.shared_ptr());
 
 		AST::AST delegate{ opr };
 		AST::Compare::Derived<Returnable> baseNodeOp;
-		OnMatch(delegate.begin(), delegate.end(), baseNodeOp, [&opr](AST::AST::iterator del_itr)
+		MatchIf(delegate.begin(), delegate.end(), baseNodeOp, [&opr](AST::AST::iterator del_itr)
 		{
 			auto retType = std::dynamic_pointer_cast<Returnable>(del_itr.shared_ptr());
 			if (retType->HasReturnType() && !opr->HasReturnType()) {
@@ -379,7 +383,7 @@ void CoilCl::Semer::DeduceTypes()
 		assert(opr->HasReturnType());
 
 		AST::Compare::Derived<Returnable> drvOp2;
-		OnMatch(delegate.begin(), delegate.end(), drvOp2, [&opr](AST::AST::iterator del_itr)
+		MatchIf(delegate.begin(), delegate.end(), drvOp2, [&opr](AST::AST::iterator del_itr)
 		{
 			auto retType = std::dynamic_pointer_cast<Returnable>(del_itr.shared_ptr());
 			if (!retType->HasReturnType()) {
@@ -389,7 +393,7 @@ void CoilCl::Semer::DeduceTypes()
 	});
 
 	AST::Compare::Derived<EnumConstantDecl> enumOp;
-	OnMatch(m_ast.begin(), m_ast.end(), enumOp, [](AST::AST::iterator itr)
+	MatchIf(m_ast.begin(), m_ast.end(), enumOp, [](AST::AST::iterator itr)
 	{
 		auto enumDecl = std::dynamic_pointer_cast<EnumConstantDecl>(itr.shared_ptr());
 		if (!enumDecl->Children().empty() && !enumDecl->HasReturnType()) {
@@ -426,7 +430,7 @@ void CoilCl::Semer::CheckDataType()
 	AST::Compare::Equal<CallExpr> eqCallOp;
 
 	// Compare function with its prototype, if exist
-	OnMatch(m_ast.begin(), m_ast.end(), eqFuncOp, [](AST::AST::iterator itr)
+	MatchIf(m_ast.begin(), m_ast.end(), eqFuncOp, [](AST::AST::iterator itr)
 	{
 		auto func = std::dynamic_pointer_cast<FunctionDecl>(itr.shared_ptr());
 		if (func->IsPrototypeDefinition() || !func->HasPrototypeDefinition()) {
@@ -445,7 +449,7 @@ void CoilCl::Semer::CheckDataType()
 	});
 
 	// Match function signature with caller
-	OnMatch(m_ast.begin(), m_ast.end(), eqCallOp, [](AST::AST::iterator itr)
+	MatchIf(m_ast.begin(), m_ast.end(), eqCallOp, [](AST::AST::iterator itr)
 	{
 		auto call = std::dynamic_pointer_cast<CallExpr>(itr.shared_ptr());
 		auto func = std::dynamic_pointer_cast<FunctionDecl>(call->FuncDeclRef()->Reference());
@@ -470,7 +474,7 @@ void CoilCl::Semer::CheckDataType()
 
 	// Inject type converter in vardecl
 	AST::Compare::Equal<VarDecl> eqVar;
-	OnMatch(m_ast.begin(), m_ast.end(), eqVar, [](AST::AST::iterator itr)
+	MatchIf(m_ast.begin(), m_ast.end(), eqVar, [](AST::AST::iterator itr)
 	{
 		auto decl = std::dynamic_pointer_cast<VarDecl>(itr.shared_ptr());
 		AST::TypeFacade baseType = decl->ReturnType();
@@ -484,7 +488,7 @@ void CoilCl::Semer::CheckDataType()
 
 	// Inject type converter in operator
 	AST::Compare::Derived<Operator> eqOp;
-	OnMatch(m_ast.begin(), m_ast.end(), eqOp, [](AST::AST::iterator itr)
+	MatchIf(m_ast.begin(), m_ast.end(), eqOp, [](AST::AST::iterator itr)
 	{
 		enum
 		{
@@ -508,7 +512,7 @@ void CoilCl::Semer::CheckDataType()
 
 	// Check function return type
 	AST::Compare::Equal<ReturnStmt> eqRet;
-	OnMatch(m_ast.begin(), m_ast.end(), eqRet, [&eqFuncOp](AST::AST::iterator itr)
+	MatchIf(m_ast.begin(), m_ast.end(), eqRet, [&eqFuncOp](AST::AST::iterator itr)
 	{
 		auto node = itr.shared_ptr();
 		auto stmt = std::dynamic_pointer_cast<ReturnStmt>(node);

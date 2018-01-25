@@ -504,7 +504,7 @@ int Lexer::LexScalar()
 	else {
 		// At this point we know the temporary buffer contains an integer.
 		ScalarType = INT;
-		_longstr.push_back((int)firstchar);
+		_longstr.push_back(static_cast<char>(const_cast<int&>(firstchar)));
 		while (m_currentChar == '.' || std::isdigit(m_currentChar) || isexponent(m_currentChar)) {
 			if (m_currentChar == '.' || isexponent(m_currentChar)) {
 				ScalarType = DOUBLE;

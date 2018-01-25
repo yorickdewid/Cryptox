@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include <Cry/Indep.h>
+
 #include "Typedef.h" //TODO: remove ?
 #include "Valuedef.h" //TODO: remove ?
 #include "TypeFacade.h"
@@ -29,7 +31,7 @@
 
 #define POLY_IMPL() \
 	std::shared_ptr<ASTNode> PolySelf() { \
-		return std::dynamic_pointer_cast<ASTNode>(GetSharedSelf()); \
+		return std::dynamic_pointer_cast<ASTNode>(this->GetSharedSelf()); \
 	}
 
 #define BUMP_STATE() \
@@ -59,7 +61,7 @@ class SelfReference : public std::enable_shared_from_this<_Ty>
 protected:
 	std::shared_ptr<_Base> GetSharedSelf()
 	{
-		return shared_from_this();
+		return this->shared_from_this();
 	}
 };
 
@@ -140,11 +142,14 @@ public:
 	}
 
 	inline size_t ChildrenCount() const { return children.size(); }
-	size_t ModifierCount() const { return m_state.Alteration(); }
+	inline size_t ModifierCount() const { return m_state.Alteration(); }
 
 	[[noreturn]]
 	virtual void Emplace(size_t idx, const std::shared_ptr<ASTNode>&& node)
 	{
+		CRY_UNUSED(idx);
+		CRY_UNUSED(node);
+
 		throw UnsupportedOperationException{ "Emplace" };
 	}
 
@@ -723,7 +728,7 @@ public:
 	{
 	}
 
-	Decl(const std::string& name, std::shared_ptr<Typedef::TypedefBase>& specifier)
+	Decl(const std::string& name, const std::shared_ptr<Typedef::TypedefBase>& specifier)
 		: m_identifier{ name }
 		, Returnable{ AST::TypeFacade{ specifier } }
 	{
@@ -788,7 +793,7 @@ public:
 	{
 	}
 
-	ParamDecl(std::shared_ptr<Typedef::TypedefBase>& type)
+	ParamDecl(const std::shared_ptr<Typedef::TypedefBase>& type)
 		: Decl{ "", type }
 	{
 	}
@@ -1393,7 +1398,7 @@ class CastExpr
 	std::shared_ptr<ASTNode> rtype;
 
 public:
-	CastExpr(std::shared_ptr<ASTNode>& node, bool implicit = false)
+	CastExpr(std::shared_ptr<ASTNode>& node)
 		: Expr{}
 	{
 		ASTNode::AppendChild(node);

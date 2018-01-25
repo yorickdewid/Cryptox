@@ -8,7 +8,9 @@
 
 #pragma once
 
-#include "UnsupportedOperationException.h"
+#include "UnsupportedOperationException.h" //TODO: replace
+
+#include <Cry/Indep.h>
 
 #include <cassert>
 #include <string>
@@ -227,6 +229,8 @@ public:
 
 	void Consolidate(std::shared_ptr<TypedefBase>& type)
 	{
+		CRY_UNUSED(type);
+		
 		throw UnsupportedOperationException{ "TypedefType::Consolidate" };
 	}
 
@@ -268,6 +272,8 @@ public:
 
 	void Consolidate(std::shared_ptr<TypedefBase>& type)
 	{
+		CRY_UNUSED(type);
+
 		throw UnsupportedOperationException{ "TypedefType::Consolidate" };
 	}
 };
@@ -286,6 +292,8 @@ public:
 
 	void Consolidate(std::shared_ptr<TypedefBase>& type)
 	{
+		CRY_UNUSED(type);
+		
 		throw UnsupportedOperationException{ "VariadicType::Consolidate" };
 	}
 };
