@@ -1,3 +1,3 @@
-[submodule "3rdparty/QUID"]
-	path = 3rdparty/QUID
+[submodule "third_party/QUID"]
+	path = third_party/QUID
 	url = https://github.com/yorickdewid/QUID
