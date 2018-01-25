@@ -87,7 +87,10 @@ struct COILCEXAPI Meta final
 
 	struct SectionIntric
 	{
+		// Section data size
 		static size_t ImageDataSize(const Section&);
+
+		// Section image offset
 		static long long ImageOffset(const Section&);
 	};
 };

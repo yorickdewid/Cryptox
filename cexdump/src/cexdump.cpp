@@ -107,18 +107,21 @@ int main(int argc, const char *argv[])
 			// Print image header
 			if (vm.count("h") || touchAll) {
 				HeaderDump::ParseImageHeader(exec);
+				std::cout << std::endl;
 				touchAny = true;
 			}
 
 			// Print program header
 			if (vm.count("p") || touchAll) {
 				HeaderDump::ParseProgramHeader(exec);
+				std::cout << std::endl;
 				touchAny = true;
 			}
 			
 			// Print section table
 			if (vm.count("s") || touchAll) {
 				SectionTable::ParseTable(exec);
+				std::cout << std::endl;
 				touchAny = true;
 			}
 
@@ -131,6 +134,7 @@ int main(int argc, const char *argv[])
 			// Print notes
 			if (vm.count("n") || touchAll) {
 				Notes{ exec };
+				std::cout << std::endl;
 				touchAny = true;
 			}
 

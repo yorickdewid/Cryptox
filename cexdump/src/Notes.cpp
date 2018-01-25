@@ -21,14 +21,14 @@ std::string Notes::ParseNote(NoteSection& section)
 {
 	std::stringstream ss;
 
-	boost::format format = boost::format{ "  %-20s  %016.d   %s" }
+	const boost::format format = boost::format{ "  %-20s  %016.d   %s" }
 		% section.Name()
-		% 12
+		% Meta::SectionIntric::ImageDataSize(section)
 		% section.Description();
 
-	ss << "Displaying notes found at file offset 00000076 with length 00000020:\n";
+	ss << "Displaying notes found at image offset " << boost::format{ "%08.d" } % Meta::SectionIntric::ImageOffset(section) << ":\n";
 	ss << "  Owner                 Data size          Description\n";
-	ss << boost::format{ format } << "\n";
+	ss << format << "\n";
 	ss << "     " << section.Context() << "\n";
 
 	return ss.str();
@@ -37,13 +37,15 @@ std::string Notes::ParseNote(NoteSection& section)
 Notes::Notes(const CryExe::Executable& exec)
 	: m_exe{ exec }
 {
+	NoteSection note;
+
 	// Skip if sections are empty
 	if (m_exe.Sections().empty()) { return; }
 
 	// Must have at least one note section
 	if (const_cast<CryExe::Executable&>(m_exe).FindSection(_section) == m_exe.Sections().end()) { return; }
 
-	NoteSection note;
+	//TODO: iterator multiple note sections
 	const_cast<CryExe::Executable&>(m_exe).GetSection(&note);
 
 	std::cout << ParseNote(note) << std::flush;
