@@ -41,7 +41,6 @@ int main(int argc, const char *argv[])
 		// Positional arguments
 		po::options_description hidden;
 		hidden.add_options()
-			("?", "Show help")
 			("file", po::value<std::string>()->required(), "Source files");
 
 		// Take positional arguments
@@ -53,20 +52,20 @@ int main(int argc, const char *argv[])
 		Cry::OptionParser parser{ argc, argv };
 		parser.Options()
 			(description)
-			(hidden)
+			(hidden, false)
 			(positional);
 		parser.Run(vm);
 
 		// Print usage whenever there is an error or the help option is requested. The help
 		// shows all sections except for the positional arugments. Based on the system defaults
 		// the commandline arguments are displayed in system style.
-		auto usage = [=]
+		auto usage = [&parser]
 		{
-			std::cout << description << std::endl;
+			std::cout << parser << std::endl;
 		};
 
 		// Ouput program and project version
-		if (vm.count("v")) {
+		if (parser.Version(vm)) {
 			std::cout << PROGRAM_UTIL_HEADER << std::endl;
 			return 0;
 		}

@@ -13,19 +13,11 @@
 #include <boost/program_options.hpp>
 #include <boost/algorithm/string.hpp>
 
-//TODO: remove
 #ifdef WIN32
 #define CRY_CLI_DELIMITER "/"
 #else
 #define CRY_CLI_DELIMITER "-"
 #endif // WIN32
-
-//TODO: remove
-#define CRY_PROGOPT_STYLE(prog) \
-	style(prog::command_line_style::default_style \
-	| prog::command_line_style::case_insensitive \
-	| prog::command_line_style::allow_slash_for_short \
-	| prog::command_line_style::allow_long_disguise)
 
 #define VERSION_OPTION_LONG "version"
 #define VERSION_OPTION_SHORT "v"
@@ -81,7 +73,8 @@ class OptionParser
 	// Shape helper output for current platform
 	std::string& PlatformHelperStyle(std::string&& str) const
 	{
-		boost::algorithm::trim_left_if(str, boost::is_any_of("\n"));
+		if (str.size() > 0 && str[0] == '\n') { str.erase(0, 1); }
+		str.pop_back();
 		boost::algorithm::replace_all(str, "--", CRY_CLI_DELIMITER);
 		return str;
 	}
@@ -127,7 +120,7 @@ public:
 	{
 		options.add(desc);
 
-		if (show) { helpText << options; }
+		if (show) { helpText << desc; }
 
 		return (*this);
 	}
@@ -148,3 +141,5 @@ public:
 };
 
 } // namespace Cry
+
+#undef CRY_CLI_DELIMITER

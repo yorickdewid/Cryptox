@@ -6,17 +6,20 @@
 // that can be found in the LICENSE file. Content can not be 
 // copied and/or distributed without the express of the author.
 
-#include "Env.h"
-#include "Runstrap.h"
+#include <Cry/config.h>
+#include <Cry/ProgramOptions.h>
 
 #include <boost/program_options.hpp>
 #include <boost/algorithm/string.hpp>
 
 #include <iostream>
 
-#define PROGRAM_DESC "Cryptox CIL Compiler\n"
-#define PROGRAM_COPY "Copyright (C) 2017 Quenza Inc. All rights reserved.\n"
-#define PROGRAM_VERSION "1.1"
+#include "Env.h"
+#include "Runstrap.h"
+
+//#define PROGRAM_DESC "Cryptox CIL Compiler\n"
+//#define PROGRAM_COPY "Copyright (C) 2017 Quenza Inc. All rights reserved.\n"
+//#define PROGRAM_VERSION "1.1"
 
 namespace po = boost::program_options;
 
@@ -24,9 +27,8 @@ int main(int argc, const char *argv[])
 {
 	try {
 		// Generic options
-		po::options_description desc{ PROGRAM_DESC PROGRAM_COPY "\nProjectTest: [OPTIONS] FILE ...\n\nOptions" };
-		desc.add_options()
-			("help", "Show help")
+		po::options_description description{ PROGRAM_UTIL_HEADER "\n\n" PROGRAM_ORIGINAL_NAME ": [OPTIONS] FILE ...\n\nOptions" };
+		description.add_options()
 			("print-search-dirs", "Display the directories in the compiler's search path")
 			("print-std-list", "Display supported language standards")
 			("print-targets", "Display output target")
@@ -67,35 +69,25 @@ int main(int argc, const char *argv[])
 		hidden.add_options()
 			("file", po::value<std::string>()->required(), "Source files");
 
-		// Combine all options
-		po::options_description all_ops;
-		all_ops.add(desc);
-		all_ops.add(codegen);
-		all_ops.add(optim);
-		all_ops.add(debug);
-		all_ops.add(hidden);
+		// Take positional arguments
+		po::positional_options_description positional;
+		positional.add("file", -1);
 
-		po::positional_options_description p;
-		p.add("file", -1);
-
+		// Set options for argument parser
 		po::variables_map vm;
-		po::store(po::command_line_parser(argc, argv)
-				  .options(all_ops)
-				  .positional(p)
-				  .style(po::command_line_style::default_style | po::command_line_style::allow_long_disguise)
-				  .run(), vm, true);
+		Cry::OptionParser parser{ argc, argv };
+		parser.Options()
+			(description)
+			(codegen)
+			(optim)
+			(debug)
+			(hidden, false)
+			(positional);
+		parser.Run(vm);
 
-		auto usage = [=]
+		auto usage = [&parser]
 		{
-			std::stringstream ss;
-			ss << desc;
-			ss << codegen;
-			ss << optim;
-			ss << debug;
-
-			std::string helpMsg = ss.str();
-			boost::algorithm::replace_all(helpMsg, "--", "-");
-			std::cout << helpMsg << std::endl;
+			std::cout << parser << std::endl;
 		};
 
 		// Initialize compiler environment
@@ -106,14 +98,8 @@ int main(int argc, const char *argv[])
 			env.SetDebug(true);
 		}
 
-		// Termination options, either of these 
-		// routines will return after execution
-		if (vm.count("help")) {
-			usage();
-			return 1;
-		}
 		// Parse input file as source
-		else if (vm.count("file")) {
+		if (vm.count("file")) {
 			RunSourceFile(env, vm["file"].as<std::string>());
 		}
 		// Print search directories
@@ -136,9 +122,8 @@ int main(int argc, const char *argv[])
 				<< std::endl;
 		}
 		// Print version and exit
-		else if (vm.count("v")) {
-			std::cout << PROGRAM_DESC
-				<< PROGRAM_COPY
+		else if (parser.Version(vm)) {
+			std::cout
 				<< "Version: " PROGRAM_VERSION "\n"
 				<< "Compiler: 1.1\n"
 				<< "Virtual machine: 0.3\n"
@@ -151,6 +136,7 @@ int main(int argc, const char *argv[])
 			return 1;
 		}
 	}
+	// Commandline parse whoops, report back to user
 	catch (const std::exception& e) {
 		std::cerr << e.what() << std::endl;
 		return 1;

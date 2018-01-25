@@ -9,6 +9,7 @@
 #include "pfbase.h"
 
 #include <cry/config.h>
+#include <Cry/ProgramOptions.h>
 
 #include <boost/filesystem.hpp>
 #include <boost/program_options.hpp>
@@ -84,44 +85,37 @@ int main(int argc, const char *argv[])
 
 	try
 	{
-		po::options_description desc{ PROGRAM_DESC PRODUCT_COPYRIGHT "\n\n" PROGRAM_ORIGINAL_NAME ": [OPTIONS] FILE ...\n\nOptions" };
-		desc.add_options()
-			("help", "Help screen")
-			("upgrade", po::value<int>(), "Upgrade project to version")
-			("input-file", po::value<std::string>(), "Input file");
+		po::options_description description{ PROGRAM_UTIL_HEADER "\n\n" PROGRAM_ORIGINAL_NAME ": [OPTIONS] FILE ...\n\nOptions" };
+		description.add_options()
+			("u", po::value<int>(), "Upgrade project to version");
 
-		po::positional_options_description pd;
-		pd.add("input-file", -1);
+		// Take positional arguments
+		po::positional_options_description positional;
+		positional.add("file", -1);
 
-		po::command_line_parser parser{ argc, argv };
-		parser.options(desc)
-			.positional(pd)
-			.style(po::command_line_style::default_style
-				   | po::command_line_style::case_insensitive
-				   | po::command_line_style::allow_slash_for_short
-				   | po::command_line_style::allow_long_disguise)
-			.allow_unregistered();
-
+		// Set options for argument parser
 		po::variables_map vm;
-		po::store(parser.run(), vm);
+		Cry::OptionParser parser{ argc, argv };
+		parser.Options()
+			(description)
+			(positional);
+		parser.Run(vm);
 
 		// Print usage whenever there is an error or the help option is requested. The help
 		// shows all sections except for the positional arugments. Based on the system defaults
 		// the commandline arguments are displayed in system style.
-		auto usage = [=]
+		auto usage = [&parser]
 		{
-			std::stringstream ss;
-			ss << desc;
-
-			std::string helpMsg = ss.str();
-			boost::algorithm::replace_all(helpMsg, "--", COMMAND_LINE_DELIMITER);
-			std::cout << helpMsg << std::endl;
+			std::cout << parser << std::endl;
 		};
 
-		if (vm.count("help")) {
-			std::cout << desc << std::endl;
+		// Ouput program and project version
+		if (parser.Version(vm)) {
+			std::cout << PROGRAM_UTIL_HEADER << std::endl;
+			return 0;
 		}
-		else if (vm.count("upgrade")) {
+
+		if (vm.count("upgrade")) {
 			std::cout << "Upgrade project to : " << vm["upgrade"].as<int>() << std::endl;
 		}
 		else if (vm.count("input-file")) {
@@ -132,11 +126,13 @@ int main(int argc, const char *argv[])
 
 			PrintInfo(vm["input-file"].as<std::string>());
 		}
+		// No other option was touched, show help and exit with error code
 		else {
 			usage();
 			return 1;
 		}
 	}
+	// Commandline parse whoops, report back to user
 	catch (const boost::program_options::error &e)
 	{
 		std::cerr << e.what() << std::endl;
