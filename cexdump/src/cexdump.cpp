@@ -41,12 +41,10 @@ int main(int argc, const char *argv[])
 		// Generic options
 		po::options_description description{ PROGRAM_UTIL_HEADER "\n\n" PROGRAM_ORIGINAL_NAME ": [OPTIONS] FILE ...\n\nOptions" };
 		description.add_options()
-			("help", "Show help")
 			("h", "Display the CEX image header")
 			("p", "Display the program header")
 			("s", "Display the sections' header")
 			("a", "Display all image information")
-			("v", "Print version information and exit")
 			("n", "Display the core notes (if present)");
 		//("m", "Display the symbol table")
 		//("t", "Display the abstract source tree")
@@ -57,7 +55,6 @@ int main(int argc, const char *argv[])
 		// Positional arguments
 		po::options_description hidden;
 		hidden.add_options()
-			("?", "Show help")
 			("file", po::value<std::string>()->required(), "Source files");
 
 		// Take positional arguments
@@ -69,25 +66,20 @@ int main(int argc, const char *argv[])
 		Cry::OptionParser parser{ argc, argv };
 		parser.Options()
 			(description)
-			(hidden)
+			(hidden, false)
 			(positional);
 		parser.Run(vm);
 
 		// Print usage whenever there is an error or the help option is requested. The help
 		// shows all sections except for the positional arugments. Based on the system defaults
 		// the commandline arguments are displayed in system style.
-		auto usage = [=]
+		auto usage = [&parser]
 		{
-			std::stringstream ss;
-			ss << description;
-
-			std::string helpMsg = ss.str();
-			boost::algorithm::replace_all(helpMsg, "--", CRY_CLI_DELIMITER);
-			std::cout << helpMsg << std::endl;
+			std::cout << parser << std::endl;
 		};
 
 		// Ouput program and project version
-		if (vm.count("v")) {
+		if (parser.Version(vm)){
 			std::cout << PROGRAM_UTIL_HEADER << std::endl;
 			return 0;
 		}
@@ -117,7 +109,7 @@ int main(int argc, const char *argv[])
 				std::cout << std::endl;
 				touchAny = true;
 			}
-			
+
 			// Print section table
 			if (vm.count("s") || touchAll) {
 				SectionTable::ParseTable(exec);

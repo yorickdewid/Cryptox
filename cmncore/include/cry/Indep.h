@@ -10,6 +10,8 @@
 
 #include "Cry.h"
 
+#include <cstring>
+
 // Abstract native C std calls to provide a platform
 // independent operation. Some platforms support
 // secure alternatives to the stdlib memory and string

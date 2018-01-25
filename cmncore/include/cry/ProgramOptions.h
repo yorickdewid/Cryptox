@@ -11,6 +11,7 @@
 #include "Cry.h"
 
 #include <boost/program_options.hpp>
+#include <boost/algorithm/string.hpp>
 
 //TODO: remove
 #ifdef WIN32
@@ -26,6 +27,9 @@
 	| prog::command_line_style::allow_slash_for_short \
 	| prog::command_line_style::allow_long_disguise)
 
+#define VERSION_OPTION_LONG "version"
+#define VERSION_OPTION_SHORT "v"
+
 namespace Cry
 {
 
@@ -36,6 +40,7 @@ class OptionParser
 	command_line_parser parser;
 	options_description options;
 	positional_options_description positional;
+	std::stringstream helpText;
 
 	// Windows commandline style
 	constexpr static int WindowsStyle = (command_line_style::allow_short
@@ -60,7 +65,8 @@ class OptionParser
 									  | command_line_style::long_allow_next
 									  | command_line_style::allow_sticky
 									  | command_line_style::allow_guessing
-									  | command_line_style::allow_dash_for_short);
+									  | command_line_style::allow_dash_for_short
+									  | command_line_style::allow_long_disguise);
 
 	// Fetch commandline options style per platform
 	inline int GetStyle() const
@@ -72,6 +78,24 @@ class OptionParser
 #endif
 	}
 
+	// Shape helper output for current platform
+	std::string& PlatformHelperStyle(std::string&& str) const
+	{
+		boost::algorithm::trim_left_if(str, boost::is_any_of("\n"));
+		boost::algorithm::replace_all(str, "--", CRY_CLI_DELIMITER);
+		return str;
+	}
+
+	// Add default options
+	void AppendDefaultOptions()
+	{
+#ifdef _WIN32
+		options.add_options()("?", "");
+#endif
+		options.add_options()("help", "");
+		options.add_options()(VERSION_OPTION_LONG "," VERSION_OPTION_SHORT, "Print version information and exit");
+	}
+
 public:
 	OptionParser(int argc, const char *argv[])
 		: parser{ argc, argv }
@@ -81,7 +105,10 @@ public:
 	// Run the commmandline parser
 	void Run(variables_map& vm)
 	{
-		const auto& parsedOptions = parser.options(options)
+		AppendDefaultOptions();
+
+		const auto& parsedOptions = parser
+			.options(options)
 			.positional(positional)
 			.style(GetStyle())
 			.run();
@@ -89,18 +116,34 @@ public:
 		store(parsedOptions, vm, true);
 	}
 
+	// This helper
 	inline OptionParser& Options() { return (*this); }
 
-	inline OptionParser& operator()(options_description& desc)
+	// Check if vesion is requested
+	inline bool Version(variables_map& vm) { return vm.count(VERSION_OPTION_LONG); }
+
+	// Add parameters
+	OptionParser& operator()(options_description& desc, bool show = true)
 	{
 		options.add(desc);
+
+		if (show) { helpText << options; }
+
 		return (*this);
 	}
 
-	inline OptionParser& operator()(positional_options_description& pos)
+	// Add positional parameters
+	OptionParser& operator()(positional_options_description& pos)
 	{
 		positional = pos;
 		return (*this);
+	}
+
+	// Print the help text
+	friend std::ostream& operator<<(std::ostream& os, const OptionParser& other)
+	{
+		os << other.PlatformHelperStyle(other.helpText.str());
+		return os;
 	}
 };
 
