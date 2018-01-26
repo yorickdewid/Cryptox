@@ -25,15 +25,38 @@ namespace CoilCl
 class Program final
 {
 public:
-	enum Condition
+	class ConditionTracker
 	{
-		CANONICAL = 1,
-		FUNDAMENTAL,
-		STATIC_RESOLVED,
-		ASSERTION_PASSED,
-		COMPLANT,
-		OPTIMIZED,
-		STRIPPED,
+		//TODO: Shiftable enum
+		enum
+		{
+			_INVAL = 0,
+			CANONICAL,
+			FUNDAMENTAL,
+			STATIC_RESOLVED,
+			ASSERTION_PASSED,
+			COMPLANT,
+			OPTIMIZED,
+			STRIPPED,
+			_MAX = STRIPPED,
+		} m_treeCondition = _INVAL;
+
+	public:
+		// Check program status
+		inline auto IsRunnable() const { return m_treeCondition >= ASSERTION_PASSED; }
+		inline auto IsLanguage() const { return m_treeCondition >= COMPLANT; }
+		inline auto IsOptimized() const { return m_treeCondition >= OPTIMIZED; }
+
+		void Advance()
+		{
+			// TODO
+		}
+
+		ConditionTracker& operator++()
+		{
+			Advance();
+			return (*this);
+		}
 	};
 
 public:
@@ -62,13 +85,11 @@ public:
 	inline bool HasSymbol(const std::string& name) const { return m_symbols.find(name) != m_symbols.end(); }
 	auto& FillSymbols() { return m_symbols; } //TODO: friend?
 
-	// Check program status
-	inline auto IsRunnable() const { return m_treeCondition >= Condition::ASSERTION_PASSED; }
-	inline auto IsLanguage() const { return m_treeCondition >= Condition::COMPLANT; }
-	inline auto IsOptimized() const { return m_treeCondition >= Condition::OPTIMIZED; }
+	// Retieve program condition
+	inline const ConditionTracker& Condition() const { return m_treeCondition; }
 
 private:
-	Condition m_treeCondition;
+	ConditionTracker m_treeCondition;
 	StageType m_lastStage;
 
 private:

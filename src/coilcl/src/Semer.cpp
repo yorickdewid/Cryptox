@@ -142,7 +142,7 @@ void IsConversionRequired(std::shared_ptr<_ParentTy> parent, std::shared_ptr<_Ch
 }
 
 // Resolve all static expresions such as native type size calculations
-// and inject the expression result back into the tree
+// and inject the expression result back into the copied tree
 CoilCl::Semer& CoilCl::Semer::StaticResolve()
 {
 	const std::array<std::string, 1> staticLookup{ "sizeof" };

@@ -94,6 +94,10 @@ protected:
 	static void ForwardInternalTree(std::shared_ptr<ASTNode>& node);
 };
 
+// The AST class provides a wrapper around the tree and the tree
+// node operations. All interfaces interacting with the tree from
+// a public accessor should use this single interface to modify the
+// tree internals.
 class AST
 {
 	using _MyTy = AST;
@@ -101,9 +105,9 @@ class AST
 
 public: // Member types
 	using value_type = _ValTy;
-	using reference = value_type&;
+	using reference = value_type & ;
 	using const_reference = const value_type&;
-	using pointer = value_type*;
+	using pointer = value_type * ;
 	using const_pointer = const value_type*;
 	using size_type = std::size_t;
 	using difference_type = std::ptrdiff_t;
@@ -118,8 +122,8 @@ public:
 
 	public:
 		using value_type = _ValTy;
-		using reference = value_type&;
-		using pointer = value_type*;
+		using reference = value_type & ;
+		using pointer = value_type * ;
 		using difference_type = std::ptrdiff_t;
 		using iterator_category = std::forward_iterator_tag;
 
@@ -167,8 +171,8 @@ public:
 
 	public:
 		using value_type = _ValTy;
-		using reference = value_type&;
-		using pointer = value_type*;
+		using reference = value_type & ;
+		using pointer = value_type * ;
 		using difference_type = std::ptrdiff_t;
 		using iterator_category = std::forward_iterator_tag;
 
@@ -213,11 +217,14 @@ public:
 
 	AST(std::shared_ptr<ASTNode>&& tree)
 		: m_tree{ std::move(tree) }
+		, treeLink{ ++interfaceCounter }
 	{
 	}
 
+	// Link new AST object to internal tree
 	AST(std::shared_ptr<ASTNode>& tree)
 		: m_tree{ tree }
+		, treeLink{ ++interfaceCounter }
 	{
 	}
 
@@ -237,19 +244,26 @@ public:
 	size_type size() { return std::distance(this->begin(), this->end()); }
 	bool empty() { return std::distance(this->begin(), this->end()) == 0; }
 
-	ASTNode *operator->() const
-	{
-		return m_tree.get();
-	}
+	// Direct tree access
+	inline ASTNode *operator->() const { return m_tree.get(); }
 
+	// Copy self with new reference to tree
 	AST tree_ref()
 	{
 		AST tmp{ m_tree };
 		return tmp;
 	}
 
+	// AST tree reference operations
+	int TreeLinkId() const { return treeLink; }
+	int TreeLinkCount() const { return interfaceCounter; }
+
 private:
 	std::shared_ptr<ASTNode> m_tree;
+	const int treeLink;
+
+private:
+	static int interfaceCounter;
 };
 
 template<typename _Ty, typename... _Args>

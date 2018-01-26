@@ -8,6 +8,8 @@
 
 #include "AST.h"
 
+int CoilCl::AST::AST::interfaceCounter = 0;
+
 void CoilCl::AST::ForwardItemTree::ForwardInternalTree(std::shared_ptr<ASTNode>& node)
 {
 	// No children in this node, work upwards and sideways

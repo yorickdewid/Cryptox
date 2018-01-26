@@ -123,6 +123,7 @@ public:
 		backreferencePointer = static_cast<void*>(ptr);
 	}
 
+	// Run all stages and build the program, the program is returned if no exceptions occur
 	static ProgramPtr Dispatch(std::shared_ptr<Compiler>&& compiler)
 	{
 		// Convert compiler object to profile interface in order to limit access for components
@@ -199,7 +200,6 @@ public:
 				.DumpAST();
 
 			// Compose definitive program structure
-			// std::move(*(p.release()))
 			program = std::make_unique<CoilCl::Program>(DYNAMIC_FORWARD(program), std::move(ast));
 
 			// For now dump contents to screen
@@ -263,7 +263,8 @@ _Ty CaptureChunk(const datachunk_t *dataPtrStrct)
 template<typename _Ty>
 std::shared_ptr<_Ty> WrapMeta(_Ty *metaPtr)
 {
-	return std::shared_ptr<_Ty> {metaPtr};
+	static_assert(std::is_pod<_Ty>::value, "");
+	return std::shared_ptr<_Ty>{ metaPtr };
 }
 
 } // namespace InterOpHelper
@@ -308,7 +309,7 @@ COILCLAPI void Compile(compiler_info_t *cl_info) NOTHROW
 
 	// Start compiler
 	auto program = Compiler::Dispatch(std::move(coilcl));
-	if (!program->IsRunnable()) {
-		std::cout << "resulting program not runnable" << std::endl;
+	if (!program->Condition().IsRunnable()) {
+		std::cout << "Consensus: resulting program not runnable" << std::endl;
 	}
 }
