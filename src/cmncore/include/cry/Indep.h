@@ -16,6 +16,9 @@
 // independent operation. Some platforms support
 // secure alternatives to the stdlib memory and string
 // operations, which is used when possible.
+#ifdef __cplusplus
+extern "C" {
+#endif
 #if defined(_MSC_VER) || defined(_WIN32) // Windows
 #  define CRY_MEMCPY(d,i,u,s) memcpy_s(d, i, u, s)
 #  define CRY_MEMSET(d,u,s) memset(d, u, s)
@@ -25,12 +28,24 @@
 #  define CRY_MEMSET(d,u,s) memset(d, u, s)
 #  define CRY_STRCPY(dst,sz,src) strcpy(dst, src)
 #endif // _MSC_VER || _WIN32
+#ifdef __cplusplus
+}
+#endif
 
 //TODO: per platform memory zero function
-#define CRY_MEMZERO(dst,sz) CRY_MEMSET(static_cast<void*>(&dst), '\0', sz);
+#ifdef __cplusplus
+#  define CRY_MEMZERO(dst,sz) CRY_MEMSET(static_cast<void*>(&dst), '\0', sz);
+#else
+#  define CRY_MEMZERO(dst, sz) CRY_MEMSET((void*)&dst, '\0', sz);
+#endif
 
+//TODO: remove
 #define UNASSIGNED 0
 
+// Default for zero values
+#define CRY_UNASSIGNED 0
+
+// Unused argument protector
 #define CRY_UNUSED(p) ((void)p)
 
 #ifdef _MSC_VER // Visual Studio

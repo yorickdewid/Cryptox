@@ -46,6 +46,7 @@ public:
 		, m_treeCondition{ other.m_treeCondition }
 		, m_lastStage{ other.m_lastStage }
 	{
+		delete &other;
 	}
 
 	// Do not assign

@@ -105,16 +105,16 @@ int main(int argc, const char *argv[])
 		// Display all language standards
 		else if (vm.count("print-std-list")) {
 			std::cout << "Supported standards:\n"
-				<< " C89\n"
-				<< " C99\n"
-				<< " C11"
+				<< "  1) C89\n"
+				<< "  2) C99\n"
+				<< "  3) C11"
 				<< std::endl;
 		}
 		// Display all language standards
 		else if (vm.count("print-targets")) {
 			std::cout << "Compiler targets:\n"
-				<< " CASM\tCryptox Assamble\n"
-				<< " RPTS\tRunnable Program Tree Structure"
+				<< "  1) CASM\tCryptox Assamble\n"
+				<< "  2) RPTS\tRunnable Program Tree Structure"
 				<< std::endl;
 		}
 		// Print version and exit

@@ -58,42 +58,26 @@ class Compiler final
 		}
 	};
 
-protected:
+private:
 	using ProgramPtr = std::unique_ptr<CoilCl::Program>;
 
-protected:
+private:
 	StageOptions<codegen> stageOne;
 
-public:
-	Compiler() = default;
-	Compiler(Compiler&&) = default;
-
-	SET_HANDLER(Reader, readHandler);
-	SET_HANDLER(Include, includeHandler);
-	SET_HANDLER(Meta, metaHandler);
-	SET_HANDLER(Error, errorHandler);
-
-	std::shared_ptr<Compiler> GetObject()
-	{
-		return shared_from_this();
-	}
-
-	template<typename _Ty>
-	void CaptureBackRefPtr(_Ty ptr)
-	{
-		backreferencePointer = static_cast<void*>(ptr);
-	}
-
+private:
+	// Read new input from source provider
 	virtual std::string ReadInput()
 	{
 		return readHandler();
 	}
 
+	// Ask for include soruce
 	virtual bool Include(const std::string& source)
 	{
 		return includeHandler(source);
 	}
 
+	// Request meta data from provider
 	virtual std::shared_ptr<metainfo_t> MetaInfo()
 	{
 		return metaHandler();
@@ -115,6 +99,28 @@ public:
 	virtual inline void Error(const std::string& message, bool isFatal)
 	{
 		errorHandler(message, isFatal);
+	}
+
+public:
+	Compiler() = default;
+	Compiler(Compiler&&) = default;
+
+	SET_HANDLER(Reader, readHandler);
+	SET_HANDLER(Include, includeHandler);
+	SET_HANDLER(Meta, metaHandler);
+	SET_HANDLER(Error, errorHandler);
+
+	std::shared_ptr<Compiler> GetObject()
+	{
+		return shared_from_this();
+	}
+
+	template<typename _Ty>
+	void CaptureBackRefPtr(_Ty ptr)
+	{
+		static_assert(std::is_pointer<_Ty>::value
+					  && std::is_pod<_Ty>::value, "Backref must be pointer to POD");
+		backreferencePointer = static_cast<void*>(ptr);
 	}
 
 	static ProgramPtr Dispatch(std::shared_ptr<Compiler>&& compiler)
@@ -193,6 +199,7 @@ public:
 				.DumpAST();
 
 			// Compose definitive program structure
+			// std::move(*(p.release()))
 			program = std::make_unique<CoilCl::Program>(DYNAMIC_FORWARD(program), std::move(ast));
 
 			// For now dump contents to screen
@@ -266,6 +273,7 @@ std::shared_ptr<_Ty> WrapMeta(_Ty *metaPtr)
 
 #define USER_DATA(u) u->user_data
 
+// API compiler interface
 COILCLAPI void Compile(compiler_info_t *cl_info) NOTHROW
 {
 	using Compiler::Compiler;
