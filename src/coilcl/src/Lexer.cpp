@@ -18,8 +18,8 @@ constexpr char EndOfUnit = '\0';
 
 void Lexer::Error(const std::string& errormsg)
 {
-	if (m_errHandler) {
-		m_errHandler(errormsg, m_currentChar, m_lastTokenLine, m_currentColumn);
+	if (errHandlerFunc) {
+		errHandlerFunc(errormsg, m_currentChar, m_lastTokenLine, m_currentColumn);
 	}
 
 	m_isEof = true;
@@ -419,19 +419,15 @@ int Lexer::ReadString(int ndelim)
 
 	int len = _longstr.size();
 	if (ndelim == '\'') {
-		if (len == 0) {
-			Error("empty constant");
-		}
-		if (len > 1) {
-			Error("constant too long");
-		}
+		if (len == 0) { Error("empty constant"); }
+		if (len > 1) { Error("constant too long"); }
 
 		auto _cvalue = _longstr[0];
 		m_data = CoilCl::Util::MakeValueObject<decltype(_cvalue)>(CoilCl::Typedef::BuiltinType::Specifier::CHAR, _cvalue);
 		return Token::TK_CONSTANT;
 	}
 
-	auto _svalue = _longstr;
+	std::string _svalue = _longstr;
 	m_data = CoilCl::Util::MakeValueObject<decltype(_svalue)>(CoilCl::Typedef::BuiltinType::Specifier::CHAR, _svalue);
 	return Token::TK_CONSTANT;
 }

@@ -9,7 +9,7 @@
 #include "coilcl.h"
 #include "Profile.h"
 #include "Program.h"
-#include "Preprocessor.h"
+#include "Preprocessor2.h"
 #include "Parser.h"
 #include "Semer.h"
 #include "UnsupportedOperationException.h"
@@ -58,7 +58,7 @@ class Compiler final
 		}
 	};
 
-private:
+public:
 	using ProgramPtr = std::unique_ptr<CoilCl::Program>;
 
 private:
@@ -110,7 +110,7 @@ public:
 	SET_HANDLER(Meta, metaHandler);
 	SET_HANDLER(Error, errorHandler);
 
-	std::shared_ptr<Compiler> GetObject()
+	std::shared_ptr<Compiler> Object()
 	{
 		return shared_from_this();
 	}
@@ -133,16 +133,16 @@ public:
 		ProgramPtr program = std::make_unique<CoilCl::Program>();
 
 		try {
-#if 0
-			auto preproc = std::make_unique<CoilCl::Preprocessor>(profile);
+#if 1
+			/*auto preproc = std::make_unique<CoilCl::Preprocessor>(profile);
 			preproc->MoveStage()
 				.Options(CoilCl::Preprocessor::Option::PARSE_DEFINE
 						 | CoilCl::Preprocessor::Option::PARSE_INCLUDE
 						 | CoilCl::Preprocessor::Option::PARSE_MACRO
 						 | CoilCl::Preprocessor::Option::PARSE_PRAGMA)
-				.CheckCompatibility();
+				.CheckCompatibility();*/
 
-			class CompilerPatch final : public Profile
+			/*class CompilerPatch final : public Profile
 			{
 				std::unique_ptr<CoilCl::Preprocessor> m_processor;
 				std::shared_ptr<Profile> m_parent;
@@ -173,27 +173,21 @@ public:
 				{
 					m_parent->Error(message, isFatal);
 				}
-			};
+			};*/
 
 			// Replace chunk reader function so that read requests
 			// can be forwarded to the preprocessor
-			CompilerPatch profilePatch{ std::move(preproc), profile };
+			//CompilerPatch profilePatch{ std::move(preproc), profile };
 
-			for (;;) {
-				const std::string input = profilePatch.ReadInput();
-				if (input.empty()) {
-					break;
-				}
-
-				std::cout << input;
-			}
-
-			std::cout << std::endl;
-			return;
+			TokenizerPtr tokenizer = Preprocessor2{ profile }
+				.MoveStage()
+				.CheckCompatibility()
+				.Process()
+				.DumpTokenizer();
 #endif
 
 			// Syntax analysis
-			std::shared_ptr<TranslationUnitDecl> ast = Parser{ profile }
+			auto ast = Parser{ profile, tokenizer }
 				.MoveStage()
 				.CheckCompatibility()
 				.Execute()
@@ -201,6 +195,7 @@ public:
 
 			// Compose definitive program structure
 			program = std::make_unique<CoilCl::Program>(DYNAMIC_FORWARD(program), std::move(ast));
+			//TODO: CoilCl::Program::Bind(program, ast);
 
 			// For now dump contents to screen
 			program->AstPassthrough()->Print<ASTNode::Traverse::STAGE_FIRST>();
@@ -302,13 +297,13 @@ COILCLAPI void Compile(compiler_info_t *cl_info) NOTHROW
 	}).SetErrorHandler([&cl_info](const std::string& message, bool isFatal)
 	{
 		cl_info->errorHandler(USER_DATA(cl_info), message.c_str(), isFatal);
-	}).GetObject();
+	}).Object();
 
 	// Store pointer to original object
 	coilcl->CaptureBackRefPtr(cl_info);
 
 	// Start compiler
-	auto program = Compiler::Dispatch(std::move(coilcl));
+	Compiler::ProgramPtr program = Compiler::Dispatch(std::move(coilcl));
 	if (!program->Condition().IsRunnable()) {
 		std::cout << "Consensus: resulting program not runnable" << std::endl;
 	}

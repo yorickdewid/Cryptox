@@ -9,6 +9,7 @@
 #pragma once
 
 #include "Profile.h"
+#include "Tokenizer.h"
 #include "Valuedef.h"
 
 #include <string>
@@ -137,7 +138,7 @@ struct Keyword
 	}
 
 	// Only the lexer is allowed to access the token keyword
-	friend class Lexer;
+	friend class Lexer; //TODO: needed?
 
 	std::string Print();
 
@@ -145,42 +146,24 @@ private:
 	Token m_token;
 };
 
-class Lexer
+class Lexer : public CoilCl::Tokenizer
 {
 public:
 	Lexer(std::shared_ptr<CoilCl::Profile>&);
 
-	inline void ErrorHandler(const std::function<void(const std::string& msg, char token, int line, int column)> errHandler)
-	{
-		m_errHandler = errHandler;
-	}
+	// Check if EOF is reached
+	virtual bool IsDone() const { return m_isEof; }
 
-	bool HasData() const
-	{
-		return !!m_data;
-	}
+	// Implementing interface
+	virtual bool HasData() const { return !!m_data; }
+	virtual void *Data() { return static_cast<void*>(m_data.release()); }
 
-	inline bool IsDone() const
-	{
-		return m_isEof;
-	}
+	// Source location methods
+	virtual int TokenLine() const { return m_currentLine; }
+	virtual int TokenColumn() const { return m_currentColumn; }
 
-	std::unique_ptr<CoilCl::Valuedef::Value>& Data()
-	{
-		return m_data;
-	}
-
-	inline int TokenLine() const
-	{
-		return m_currentLine;
-	}
-
-	inline int TokenColumn() const
-	{
-		return m_currentColumn;
-	}
-
-	int Lex();
+	// Push machine state forward
+	virtual int Lex();
 
 private:
 	void Next();
@@ -214,7 +197,6 @@ protected:
 
 private:
 	std::unordered_map<std::string, Keyword> m_keywords;
-	std::function<void(const std::string& msg, char token, int line, int column)> m_errHandler;
 	std::unique_ptr<CoilCl::Valuedef::Value> m_data = nullptr;
 	char m_currentChar;
 	bool m_isEof = false;

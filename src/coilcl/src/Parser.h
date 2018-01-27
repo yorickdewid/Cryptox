@@ -9,6 +9,7 @@
 #pragma once
 
 #include "Profile.h"
+#include "Tokenizer.h"
 #include "Lexer.h"
 #include "ASTNode.h"
 #include "Stage.h"
@@ -56,9 +57,9 @@ public:
 	{
 	}
 
-	TokenState(int currentToken, std::shared_ptr<Value>& currentData, std::pair<int, int>&& location)
+	TokenState(int currentToken, std::shared_ptr<Value>&& currentData, std::pair<int, int>&& location)
 		: m_currentToken{ static_cast<Token>(currentToken) }
-		, m_currentData{ currentData }
+		, m_currentData{ std::move(currentData) }
 		, m_line{ location.first }
 		, m_column{ location.second }
 	{
@@ -192,16 +193,17 @@ struct CompareStringPair
 	}
 };
 
-class Parser : public CoilCl::Stage<Parser>
+class Parser : public Stage<Parser>
 {
 public:
-	Parser(std::shared_ptr<CoilCl::Profile>& profile);
+	Parser(std::shared_ptr<CoilCl::Profile>& profile, TokenizerPtr tokenizer);
 
 	std::string Name() const { return "Parser"; }
 
 	Parser& Execute();
 	Parser& CheckCompatibility();
 
+	// Dump AST to program structure
 	std::shared_ptr<TranslationUnitDecl> DumpAST() const
 	{
 		if (m_ast == nullptr) {
@@ -216,13 +218,20 @@ protected:
 	void ExpectToken(Token token);
 	void ExpectIdentifier();
 
+	// Process next token
 	void NextToken()
 	{
 		if (m_comm.IsIndexHead()) {
-			auto itok = lex.Lex();
-			auto location = std::make_pair(lex.TokenLine(), lex.TokenColumn());
-			auto val = lex.HasData() ? std::shared_ptr<Value>(std::move(lex.Data())) : nullptr;
-			m_comm.Push(TokenState(itok, val, std::move(location)));
+			int itok = lex->Lex(); //TODO: return token
+			auto location = std::make_pair(lex->TokenLine(), lex->TokenColumn());
+
+			std::shared_ptr<Value> value;
+			if (lex->HasData()) {
+				auto ptr = static_cast<Value*>(lex->Data());
+				value.reset(ptr);
+			}
+
+			m_comm.Push(TokenState(itok, std::move(value), std::move(location)));
 		}
 		else {
 			m_comm.ShiftForward();
@@ -294,7 +303,7 @@ private:
 	void TranslationUnit();
 
 private:
-	Lexer lex;
+	TokenizerPtr lex;
 	std::shared_ptr<TranslationUnitDecl> m_ast;
 	StateContainer<TokenState> m_comm;
 	std::shared_ptr<CoilCl::Profile> m_profile;

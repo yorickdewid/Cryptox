@@ -145,12 +145,12 @@ private:
 	int m_column;
 };
 
-Parser::Parser(std::shared_ptr<CoilCl::Profile>& profile)
+Parser::Parser(std::shared_ptr<CoilCl::Profile>& profile, TokenizerPtr tokenizer)
 	: Stage{ this }
 	, m_profile{ profile }
-	, lex{ profile }
+	, lex{ tokenizer }
 {
-	lex.ErrorHandler([](const std::string& err, char token, int line, int column)
+	lex->RegisterErrorHandler([](const std::string& err, char token, int line, int column)
 	{
 		throw SyntaxException(err.c_str(), token, line, column);
 	});
@@ -360,7 +360,7 @@ bool Parser::DeclarationSpecifiers()
 	if (tmpSCP != TypedefBase::StorageClassSpecifier::NONE) {
 		baseType->SetStorageClass(tmpSCP);
 	}
-	
+
 	// Append all stacked qualifiers onto the value object
 	for (const auto& tq : tmpTQ) {
 		baseType->SetQualifier(tq);
@@ -2479,7 +2479,7 @@ void Parser::TranslationUnit()
 		ClearStack(m_typeStack);
 		ClearStack(m_identifierStack);
 		m_comm.TryClear();
-	} while (!lex.IsDone());
+	} while (!lex->IsDone());
 }
 
 // Run the parser. If the translation unit is done after
@@ -2489,7 +2489,7 @@ void Parser::TranslationUnit()
 Parser& Parser::Execute()
 {
 	NextToken();
-	if (!lex.IsDone()) {
+	if (!lex->IsDone()) {
 		TranslationUnit();
 	}
 
