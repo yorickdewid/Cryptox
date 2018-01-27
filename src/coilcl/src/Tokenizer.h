@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include <functional>
+
 namespace CoilCl
 {
 
@@ -19,10 +21,13 @@ struct Tokenizer
 	using ErrorHandler = std::function<void(const std::string& msg, char token, int line, int column)>;
 	
 	// Register error handler
-	virtual void ErrorHandler(const ErrorHandler errHandler) { errHandlerFunc = errHandler; }
+	inline void RegisterErrorHandler(const ErrorHandler errHandler) { errHandlerFunc = errHandler; }
 
 	// Return whether or not the current state yields data
 	virtual bool HasData() const = 0;
+
+	// Retrieve data, data must be freed by caller
+	virtual void *Data()  = 0;
 
 	// Return if tokenizer is done
 	virtual bool IsDone() const = 0;

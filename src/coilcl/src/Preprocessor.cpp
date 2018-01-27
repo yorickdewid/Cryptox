@@ -147,14 +147,14 @@ void Preprocessor::ReplaceTokenDefinition()
 //TODO: Allow linebreak -> '\'
 void Preprocessor::Transform(std::string& output)
 {
-	auto input = m_profile->ReadInput();
+	std::string input = m_profile->ReadInput();
 	if (input.empty()) {
 		return;
 	}
 
 	int startlineOffset = 0;
 
-	auto dirty = false;
+	bool dirty = false;
 	for (size_t i = 0; i < input.size(); ++i) {
 		if (input[i] == PREPROC_TOKEN && !dirty) {
 			const auto endoffset = input.substr(i).find_first_of("\r\n");

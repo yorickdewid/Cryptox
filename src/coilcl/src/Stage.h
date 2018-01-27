@@ -39,7 +39,7 @@ struct StageType
 	}
 };
 
-template<typename _Ty>
+template<typename _Ty, typename = typename std::enable_if<std::is_class<_Ty>::value>::type>
 struct Stage
 {
 	using StageBase = Stage<_Ty>;
@@ -69,6 +69,7 @@ struct Stage
 
 	_Ty& MoveStage() const
 	{
+		//TODO
 		return (*m_derived);
 	}
 

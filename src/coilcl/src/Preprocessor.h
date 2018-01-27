@@ -121,7 +121,7 @@ public:
 public:
 	Preprocessor(std::shared_ptr<CoilCl::Profile>&);
 
-	std::string Name() const { return "Preprocessor"; }
+	virtual std::string Name() const { return "Preprocessor"; }
 
 	Preprocessor& Options(int optionSet)
 	{
