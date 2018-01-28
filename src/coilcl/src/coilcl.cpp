@@ -30,9 +30,6 @@
 		return (*this); \
 	}
 
-#define DYNAMIC_FORWARD(p) \
-	std::move(*(p.release()))
-
 namespace Compiler //TODO: change namespace to CoilCl::
 {
 
@@ -179,6 +176,8 @@ public:
 			// can be forwarded to the preprocessor
 			//CompilerPatch profilePatch{ std::move(preproc), profile };
 
+			// The tokenizer will not perform any substitutions, but instead
+			// return the tokenizer required for the requested language
 			TokenizerPtr tokenizer = Preprocessor2{ profile }
 				.MoveStage()
 				.CheckCompatibility()
@@ -194,8 +193,7 @@ public:
 				.DumpAST();
 
 			// Compose definitive program structure
-			program = std::make_unique<CoilCl::Program>(DYNAMIC_FORWARD(program), std::move(ast));
-			//TODO: CoilCl::Program::Bind(program, ast);
+			CoilCl::Program::Bind(std::move(program), std::move(ast));
 
 			// For now dump contents to screen
 			program->AstPassthrough()->Print<ASTNode::Traverse::STAGE_FIRST>();

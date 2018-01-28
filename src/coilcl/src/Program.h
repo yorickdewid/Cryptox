@@ -47,10 +47,7 @@ public:
 		inline auto IsLanguage() const { return m_treeCondition >= COMPLANT; }
 		inline auto IsOptimized() const { return m_treeCondition >= OPTIMIZED; }
 
-		void Advance()
-		{
-			// TODO
-		}
+		void Advance();
 
 		ConditionTracker& operator++()
 		{
@@ -87,6 +84,12 @@ public:
 
 	// Retieve program condition
 	inline const ConditionTracker& Condition() const { return m_treeCondition; }
+
+	template<typename... _ArgsTy>
+	static void Bind(std::unique_ptr<CoilCl::Program>&& program, _ArgsTy&&... args)
+	{
+		program = std::make_unique<CoilCl::Program>(std::move(*(program.release())), std::forward<_ArgsTy>(args)...);
+	}
 
 private:
 	ConditionTracker m_treeCondition;
