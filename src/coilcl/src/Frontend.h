@@ -15,19 +15,19 @@
 namespace CoilCl
 {
 
-class Preprocessor2 : public Stage<Preprocessor2>
+// Based on the input and meta provided by the profile, the
+// frontend will select the necessary stages. Incompatible options
+// should be detected right away and reported back to the user
+class Frontend : public Stage<Frontend>
 {
 public:
-	Preprocessor2(std::shared_ptr<CoilCl::Profile>&);
+	Frontend(std::shared_ptr<CoilCl::Profile>&);
 
-	virtual std::string Name() const { return "Preprocessor2"; }
+	// Implement interface
+	virtual std::string Name() const { return "Frontend"; }
 
-	Preprocessor2& CheckCompatibility();
-	Preprocessor2& Process();
-	TokenizerPtr DumpTokenizer();
-
-	//private:
-	//	void ImportSource(std::string);
+	Frontend& CheckCompatibility();
+	TokenizerPtr SelectTokenizer();
 
 private:
 	std::shared_ptr<CoilCl::Profile> m_profile;

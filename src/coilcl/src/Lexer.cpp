@@ -29,43 +29,43 @@ void Lexer::Error(const std::string& errormsg)
 
 void Lexer::InitKeywords()
 {
-	m_keywords.insert(std::make_pair("auto", Keyword(TK_AUTO)));
-	m_keywords.insert(std::make_pair("_Bool", Keyword(TK_BOOL)));
-	m_keywords.insert(std::make_pair("break", Keyword(TK_BREAK)));
-	m_keywords.insert(std::make_pair("case", Keyword(TK_CASE)));
-	m_keywords.insert(std::make_pair("char", Keyword(TK_CHAR)));
-	m_keywords.insert(std::make_pair("_Complex", Keyword(TK_COMPLEX)));
-	m_keywords.insert(std::make_pair("const", Keyword(TK_CONST)));
-	m_keywords.insert(std::make_pair("continue", Keyword(TK_CONTINUE)));
-	m_keywords.insert(std::make_pair("default", Keyword(TK_DEFAULT)));
-	m_keywords.insert(std::make_pair("do", Keyword(TK_DO)));
-	m_keywords.insert(std::make_pair("double", Keyword(TK_DOUBLE)));
-	m_keywords.insert(std::make_pair("else", Keyword(TK_ELSE)));
-	m_keywords.insert(std::make_pair("enum", Keyword(TK_ENUM)));
-	m_keywords.insert(std::make_pair("extern", Keyword(TK_EXTERN)));
-	m_keywords.insert(std::make_pair("float", Keyword(TK_FLOAT)));
-	m_keywords.insert(std::make_pair("for", Keyword(TK_FOR)));
-	m_keywords.insert(std::make_pair("goto", Keyword(TK_GOTO)));
-	m_keywords.insert(std::make_pair("if", Keyword(TK_IF)));
-	m_keywords.insert(std::make_pair("_Imaginary", Keyword(TK_IMAGINARY)));
-	m_keywords.insert(std::make_pair("inline", Keyword(TK_INLINE)));
-	m_keywords.insert(std::make_pair("int", Keyword(TK_INT)));
-	m_keywords.insert(std::make_pair("long", Keyword(TK_LONG)));
-	m_keywords.insert(std::make_pair("register", Keyword(TK_REGISTER)));
-	m_keywords.insert(std::make_pair("restrict", Keyword(TK_RESTRICT)));
-	m_keywords.insert(std::make_pair("return", Keyword(TK_RETURN)));
-	m_keywords.insert(std::make_pair("short", Keyword(TK_SHORT)));
-	m_keywords.insert(std::make_pair("signed", Keyword(TK_SIGNED)));
-	m_keywords.insert(std::make_pair("sizeof", Keyword(TK_SIZEOF)));
-	m_keywords.insert(std::make_pair("static", Keyword(TK_STATIC)));
-	m_keywords.insert(std::make_pair("struct", Keyword(TK_STRUCT)));
-	m_keywords.insert(std::make_pair("switch", Keyword(TK_SWITCH)));
-	m_keywords.insert(std::make_pair("typedef", Keyword(TK_TYPEDEF)));
-	m_keywords.insert(std::make_pair("union", Keyword(TK_UNION)));
-	m_keywords.insert(std::make_pair("unsigned", Keyword(TK_UNSIGNED)));
-	m_keywords.insert(std::make_pair("void", Keyword(TK_VOID)));
-	m_keywords.insert(std::make_pair("volatile", Keyword(TK_VOLATILE)));
-	m_keywords.insert(std::make_pair("while", Keyword(TK_WHILE)));
+	AddKeyword("auto", TK_AUTO);
+	AddKeyword("_Bool", TK_BOOL);
+	AddKeyword("break", TK_BREAK);
+	AddKeyword("case", TK_CASE);
+	AddKeyword("char", TK_CHAR);
+	AddKeyword("_Complex", TK_COMPLEX);
+	AddKeyword("const", TK_CONST);
+	AddKeyword("continue", TK_CONTINUE);
+	AddKeyword("default", TK_DEFAULT);
+	AddKeyword("do", TK_DO);
+	AddKeyword("double", TK_DOUBLE);
+	AddKeyword("else", TK_ELSE);
+	AddKeyword("enum", TK_ENUM);
+	AddKeyword("extern", TK_EXTERN);
+	AddKeyword("float", TK_FLOAT);
+	AddKeyword("for", TK_FOR);
+	AddKeyword("goto", TK_GOTO);
+	AddKeyword("if", TK_IF);
+	AddKeyword("_Imaginary", TK_IMAGINARY);
+	AddKeyword("inline", TK_INLINE);
+	AddKeyword("int", TK_INT);
+	AddKeyword("long", TK_LONG);
+	AddKeyword("register", TK_REGISTER);
+	AddKeyword("restrict", TK_RESTRICT);
+	AddKeyword("return", TK_RETURN);
+	AddKeyword("short", TK_SHORT);
+	AddKeyword("signed", TK_SIGNED);
+	AddKeyword("sizeof", TK_SIZEOF);
+	AddKeyword("static", TK_STATIC);
+	AddKeyword("struct", TK_STRUCT);
+	AddKeyword("switch", TK_SWITCH);
+	AddKeyword("typedef", TK_TYPEDEF);
+	AddKeyword("union", TK_UNION);
+	AddKeyword("unsigned", TK_UNSIGNED);
+	AddKeyword("void", TK_VOID);
+	AddKeyword("volatile", TK_VOLATILE);
+	AddKeyword("while", TK_WHILE);
 }
 
 // Retrieve Next character from content and store it 
@@ -101,270 +101,280 @@ void Lexer::VNext()
 	m_currentColumn = 1;
 }
 
+int Lexer::DefaultLexSet(char lexChar)
+{
+	switch (lexChar) {
+
+		//TODO: \f
+		//TODO: \v
+
+	case '\t':
+	case '\r':
+	case ' ':
+		// Ignore all whitespaces and continue with the Next character
+		Next();
+		return CONTINUE_NEXT_TOKEN;
+
+	case '\n':
+		// Move onto the next line and keep track of where we are in the source
+		VNext();
+		return CONTINUE_NEXT_TOKEN;
+
+	case '/':
+		Next();
+		switch (m_currentChar) {
+		case '*':
+			Next(); //TODO: remove?
+			LexBlockComment();
+			return CONTINUE_NEXT_TOKEN;
+		case '/':
+			LexLineComment();
+			return CONTINUE_NEXT_TOKEN;
+		case '=':
+			Next();
+			return AssembleToken(TK_DIV_ASSIGN);
+		default:
+			return AssembleToken(TK_SLASH);
+		}
+
+	case '=':
+		Next();
+		if (m_currentChar != '=') {
+			return AssembleToken(TK_ASSIGN);
+		}
+		else {
+			Next();
+			return AssembleToken(TK_EQ_OP);
+		}
+
+	case '<':
+		Next();
+		switch (m_currentChar) {
+		case '=':
+			Next();
+			return AssembleToken(TK_LE_OP);
+			break;
+		case '<':
+			Next();
+			if (m_currentChar == '=') {
+				Next();
+				return AssembleToken(TK_LEFT_ASSIGN);
+			}
+			else {
+				return AssembleToken(TK_LEFT_OP);
+			}
+		}
+		return AssembleToken(TK_LESS_THAN);
+
+	case '>':
+		Next();
+		if (m_currentChar == '=') {
+			Next();
+			return AssembleToken(TK_GE_OP);
+		}
+		else if (m_currentChar == '>') {
+			Next();
+			if (m_currentChar == '=') {
+				Next();
+				return AssembleToken(TK_RIGHT_ASSIGN);
+			}
+			else {
+				return AssembleToken(TK_RIGHT_OP);
+			}
+		}
+		else {
+			return AssembleToken(TK_GREATER_THAN);
+		}
+
+	case '!':
+		Next();
+		if (m_currentChar != '=') {
+			return AssembleToken(TK_NOT);
+		}
+		else {
+			Next();
+			return AssembleToken(TK_NE_OP);
+		}
+
+	case '"':
+	case '\'':
+	{
+		int stype;
+		if ((stype = ReadString(m_currentChar)) != -1) {
+			return AssembleToken(stype);
+		}
+		Error("error parsing string");
+	}
+
+	case '{':
+		Next();
+		return AssembleToken(TK_BRACE_OPEN);
+	case '}':
+		Next();
+		return AssembleToken(TK_BRACE_CLOSE);
+	case '(':
+		Next();
+		return AssembleToken(TK_PARENTHESE_OPEN);
+	case ')':
+		Next();
+		return AssembleToken(TK_PARENTHESE_CLOSE);
+	case '[':
+		Next();
+		return AssembleToken(TK_BRACKET_OPEN);
+	case ']':
+		Next();
+		return AssembleToken(TK_BRACKET_CLOSE);
+	case ';':
+		Next();
+		return AssembleToken(TK_COMMIT);
+	case ',':
+		Next();
+		return AssembleToken(TK_COMMA);
+	case '?':
+		Next();
+		return AssembleToken(TK_QUESTION_MARK);
+	case '~':
+		Next();
+		return AssembleToken(TK_TILDE);
+	case ':':
+		Next();
+		return AssembleToken(TK_COLON);
+
+	case '^':
+		Next();
+		if (m_currentChar == '=') {
+			Next();
+			return AssembleToken(TK_XOR_ASSIGN);
+		}
+		else {
+			return AssembleToken(TK_CARET);
+		}
+
+	case '.':
+		Next();
+		if (m_currentChar != '.') {
+			return AssembleToken(TK_DOT);
+		}
+		Next();
+		if (m_currentChar != '.') {
+			Error("invalid token '..'");
+		}
+		Next();
+		return AssembleToken(TK_ELLIPSIS);
+
+	case '&':
+		Next();
+		if (m_currentChar != '&') {
+			return AssembleToken(TK_AMPERSAND);
+		}
+		else if (m_currentChar == '=') {
+			Next();
+			return AssembleToken(TK_AND_ASSIGN);
+		}
+		else {
+			Next();
+			return AssembleToken(TK_AND_OP);
+		}
+
+	case '|':
+		Next();
+		if (m_currentChar != '|') {
+			return AssembleToken(TK_VERTIAL_BAR);
+		}
+		else if (m_currentChar == '=') {
+			Next();
+			return AssembleToken(TK_OR_ASSIGN);
+		}
+		else {
+			Next();
+			return AssembleToken(TK_OR_OP);
+		}
+
+	case '*':
+		Next();
+		if (m_currentChar == '=') {
+			Next();
+			return AssembleToken(TK_MUL_ASSIGN);
+		}
+		else {
+			return AssembleToken(TK_ASTERISK);
+		}
+
+	case '%':
+		Next();
+		if (m_currentChar == '=') {
+			Next();
+			return AssembleToken(TK_MOD_ASSIGN);
+		}
+		else {
+			return AssembleToken(TK_PERCENT);
+		}
+
+	case '-':
+		Next();
+		if (m_currentChar == '=') {
+			Next();
+			return AssembleToken(TK_SUB_ASSIGN);
+		}
+		else if (m_currentChar == '-') {
+			Next();
+			return AssembleToken(TK_DEC_OP);
+		}
+		else if (m_currentChar == '>') {
+			Next();
+			return AssembleToken(TK_PTR_OP);
+		}
+		else {
+			return AssembleToken(TK_MINUS);
+		}
+
+	case '+':
+		Next();
+		if (m_currentChar == '=') {
+			Next();
+			return AssembleToken(TK_ADD_ASSIGN);
+		}
+		else if (m_currentChar == '+') {
+			Next();
+			return AssembleToken(TK_INC_OP);
+		}
+		else {
+			return AssembleToken(TK_PLUS);
+		}
+
+	case EndOfUnit:
+		// Reached end of input, so long ...
+		return TK_HALT;
+
+	default:
+		// No token sequence matched so we either deal with scalars, ids or 
+		// control carachters. If the first character is a digit, try to
+		// parse the entire token as number.
+		if (std::isdigit(m_currentChar)) {
+			return AssembleToken(LexScalar());
+		}
+		else if (std::isalpha(m_currentChar) || m_currentChar == '_') {
+			return AssembleToken(ReadID());
+		}
+		else {
+			Error("stray '" + std::string{ m_currentChar } +"' in program");
+		}
+	}
+
+	return TK_HALT;
+}
+
 int Lexer::Lex()
 {
 	m_data.reset();
 	m_lastTokenLine = m_currentLine;
 	while (m_currentChar != EndOfUnit) {
-		switch (m_currentChar) {
-
-			//TODO: \f
-			//TODO: \v
-
-		case '\t':
-		case '\r':
-		case ' ':
-			// Ignore all whitespaces and continue with the Next character
-			Next();
-			continue;
-
-		case '\n':
-			// Move onto the next line and keep track of where we are in the source
-			VNext();
-			continue;
-
-		case '/':
-			Next();
-			switch (m_currentChar) {
-			case '*':
-				Next();
-				LexBlockComment();
-				continue;
-			case '/':
-				LexLineComment();
-				continue;
-			case '=':
-				Next();
-				return ReturnToken(TK_DIV_ASSIGN);
-			default:
-				return ReturnToken(TK_SLASH);
-			}
-
-		case '=':
-			Next();
-			if (m_currentChar != '=') {
-				return ReturnToken(TK_ASSIGN);
-			}
-			else {
-				Next();
-				return ReturnToken(TK_EQ_OP);
-			}
-
-		case '<':
-			Next();
-			switch (m_currentChar) {
-			case '=':
-				Next();
-				return ReturnToken(TK_LE_OP);
-				break;
-			case '<':
-				Next();
-				if (m_currentChar == '=') {
-					Next();
-					return ReturnToken(TK_LEFT_ASSIGN);
-				}
-				else {
-					return ReturnToken(TK_LEFT_OP);
-				}
-			}
-			return ReturnToken(TK_LESS_THAN);
-
-		case '>':
-			Next();
-			if (m_currentChar == '=') {
-				Next();
-				return ReturnToken(TK_GE_OP);
-			}
-			else if (m_currentChar == '>') {
-				Next();
-				if (m_currentChar == '=') {
-					Next();
-					return ReturnToken(TK_RIGHT_ASSIGN);
-				}
-				else {
-					return ReturnToken(TK_RIGHT_OP);
-				}
-			}
-			else {
-				return ReturnToken(TK_GREATER_THAN);
-			}
-
-		case '!':
-			Next();
-			if (m_currentChar != '=') {
-				return ReturnToken(TK_NOT);
-			}
-			else {
-				Next();
-				return ReturnToken(TK_NE_OP);
-			}
-
-		case '"':
-		case '\'':
-		{
-			int stype;
-			if ((stype = ReadString(m_currentChar)) != -1) {
-				return ReturnToken(stype);
-			}
-			Error("error parsing string");
-		}
-
-		case '{':
-			Next();
-			return ReturnToken(TK_BRACE_OPEN);
-		case '}':
-			Next();
-			return ReturnToken(TK_BRACE_CLOSE);
-		case '(':
-			Next();
-			return ReturnToken(TK_PARENTHESE_OPEN);
-		case ')':
-			Next();
-			return ReturnToken(TK_PARENTHESE_CLOSE);
-		case '[':
-			Next();
-			return ReturnToken(TK_BRACKET_OPEN);
-		case ']':
-			Next();
-			return ReturnToken(TK_BRACKET_CLOSE);
-		case ';':
-			Next();
-			return ReturnToken(TK_COMMIT);
-		case ',':
-			Next();
-			return ReturnToken(TK_COMMA);
-		case '?':
-			Next();
-			return ReturnToken(TK_QUESTION_MARK);
-		case '~':
-			Next();
-			return ReturnToken(TK_TILDE);
-		case ':':
-			Next();
-			return ReturnToken(TK_COLON);
-
-		case '^':
-			Next();
-			if (m_currentChar == '=') {
-				Next();
-				return ReturnToken(TK_XOR_ASSIGN);
-			}
-			else {
-				return ReturnToken(TK_CARET);
-			}
-
-		case '.':
-			Next();
-			if (m_currentChar != '.') {
-				return ReturnToken(TK_DOT);
-			}
-			Next();
-			if (m_currentChar != '.') {
-				Error("invalid token '..'");
-			}
-			Next();
-			return ReturnToken(TK_ELLIPSIS);
-
-		case '&':
-			Next();
-			if (m_currentChar != '&') {
-				return ReturnToken(TK_AMPERSAND);
-			}
-			else if (m_currentChar == '=') {
-				Next();
-				return ReturnToken(TK_AND_ASSIGN);
-			}
-			else {
-				Next();
-				return ReturnToken(TK_AND_OP);
-			}
-
-		case '|':
-			Next();
-			if (m_currentChar != '|') {
-				return ReturnToken(TK_VERTIAL_BAR);
-			}
-			else if (m_currentChar == '=') {
-				Next();
-				return ReturnToken(TK_OR_ASSIGN);
-			}
-			else {
-				Next();
-				return ReturnToken(TK_OR_OP);
-			}
-
-		case '*':
-			Next();
-			if (m_currentChar == '=') {
-				Next();
-				return ReturnToken(TK_MUL_ASSIGN);
-			}
-			else {
-				return ReturnToken(TK_ASTERISK);
-			}
-
-		case '%':
-			Next();
-			if (m_currentChar == '=') {
-				Next();
-				return ReturnToken(TK_MOD_ASSIGN);
-			}
-			else {
-				return ReturnToken(TK_PERCENT);
-			}
-
-		case '-':
-			Next();
-			if (m_currentChar == '=') {
-				Next();
-				return ReturnToken(TK_SUB_ASSIGN);
-			}
-			else if (m_currentChar == '-') {
-				Next();
-				return ReturnToken(TK_DEC_OP);
-			}
-			else if (m_currentChar == '>') {
-				Next();
-				return ReturnToken(TK_PTR_OP);
-			}
-			else {
-				return ReturnToken(TK_MINUS);
-			}
-
-		case '+':
-			Next();
-			if (m_currentChar == '=') {
-				Next();
-				return ReturnToken(TK_ADD_ASSIGN);
-			}
-			else if (m_currentChar == '+') {
-				Next();
-				return ReturnToken(TK_INC_OP);
-			}
-			else {
-				return ReturnToken(TK_PLUS);
-			}
-
-		case EndOfUnit:
-			// Reached end of input, so long ...
-			return TK_HALT;
-
-		default:
-			// No token sequence matched so we either deal with scalars, ids or 
-			// control carachters. If the first character is a digit, try to
-			// parse the entire token as number.
-			if (std::isdigit(m_currentChar)) {
-				return ReturnToken(LexScalar());
-			}
-			else if (std::isalpha(m_currentChar) || m_currentChar == '_') {
-				return ReturnToken(ReadID());
-			}
-			else {
-				Error("stray '" + std::string{ m_currentChar } +"' in program");
-			}
-		}
+		int token = DefaultLexSet(m_currentChar);
+		if (token == CONTINUE_NEXT_TOKEN) { continue; }
+		return token;
 	}
 
+	// Halt if enf of unit is reached
 	return TK_HALT;
 }
 

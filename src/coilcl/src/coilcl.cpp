@@ -9,7 +9,7 @@
 #include "coilcl.h"
 #include "Profile.h"
 #include "Program.h"
-#include "Preprocessor2.h"
+#include "Frontend.h"
 #include "Parser.h"
 #include "Semer.h"
 #include "UnsupportedOperationException.h"
@@ -130,60 +130,12 @@ public:
 		ProgramPtr program = std::make_unique<CoilCl::Program>();
 
 		try {
-#if 1
-			/*auto preproc = std::make_unique<CoilCl::Preprocessor>(profile);
-			preproc->MoveStage()
-				.Options(CoilCl::Preprocessor::Option::PARSE_DEFINE
-						 | CoilCl::Preprocessor::Option::PARSE_INCLUDE
-						 | CoilCl::Preprocessor::Option::PARSE_MACRO
-						 | CoilCl::Preprocessor::Option::PARSE_PRAGMA)
-				.CheckCompatibility();*/
-
-			/*class CompilerPatch final : public Profile
-			{
-				std::unique_ptr<CoilCl::Preprocessor> m_processor;
-				std::shared_ptr<Profile> m_parent;
-
-			public:
-				CompilerPatch(std::unique_ptr<CoilCl::Preprocessor>&& proc, std::shared_ptr<Profile>& parent)
-					: m_processor{ std::move(proc) }
-					, m_parent{ parent }
-				{
-				}
-
-				virtual std::string ReadInput()
-				{
-					return m_processor->DumpTranslationUnitChunk();
-				}
-
-				virtual bool Include(const std::string&)
-				{
-					throw UnsupportedOperationException{ "include" };
-				}
-
-				virtual std::shared_ptr<metainfo_t> MetaInfo()
-				{
-					return m_parent->MetaInfo();
-				}
-
-				virtual inline void Error(const std::string& message, bool isFatal)
-				{
-					m_parent->Error(message, isFatal);
-				}
-			};*/
-
-			// Replace chunk reader function so that read requests
-			// can be forwarded to the preprocessor
-			//CompilerPatch profilePatch{ std::move(preproc), profile };
-
-			// The tokenizer will not perform any substitutions, but instead
+			// The frontend will not perform any substitutions, but instead
 			// return the tokenizer required for the requested language
-			TokenizerPtr tokenizer = Preprocessor2{ profile }
+			TokenizerPtr tokenizer = Frontend{ profile }
 				.MoveStage()
 				.CheckCompatibility()
-				.Process()
-				.DumpTokenizer();
-#endif
+				.SelectTokenizer();
 
 			// Syntax analysis
 			auto ast = Parser{ profile, tokenizer }

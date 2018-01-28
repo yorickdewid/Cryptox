@@ -17,15 +17,14 @@
 #include <functional>
 #include <unordered_map>
 
+#define CONTINUE_NEXT_TOKEN -1
+
 class Parser;
 
 enum Token
 {
 	// Program halt
 	TK_HALT = 0,
-
-	//TODO: add preprocessor token
-	// - TK_PREPROCESS = 35,    // #
 
 	// Constant value
 	TK_CONSTANT = 20,
@@ -119,10 +118,6 @@ enum Token
 	TK_CARET = 243,           // ^
 	TK_VERTIAL_BAR = 244,     // |
 	TK_QUESTION_MARK = 245,   // ?
-
-	// Compiler translation
-	TK___LINE__ = 390,
-	TK___FILE__ = 391,
 };
 
 struct Keyword
@@ -166,9 +161,6 @@ public:
 	virtual int Lex();
 
 private:
-	void Next();
-	void VNext();
-	void Error(const std::string& errormsg);
 	void InitKeywords();
 	int LexScalar();
 	int ReadID();
@@ -182,24 +174,35 @@ private:
 		m_offset = 0;
 	}
 
+protected:
+	void Next();
+	void VNext();
+	void Error(const std::string& errormsg);
+	int DefaultLexSet(char lexChar);
+
+	void AddKeyword(const std::string& keyword, Keyword token)
+	{
+		m_keywords.insert(std::make_pair(keyword, Keyword(token)));
+	}
+
 	template<typename _Ty>
-	int ReturnToken(_Ty token)
+	int AssembleToken(_Ty token)
 	{
 		m_prevToken = m_currentToken;
 		m_currentToken = static_cast<int>(token);
 		return m_currentToken;
 	}
 
-protected:
+private:
+	std::unordered_map<std::string, Keyword> m_keywords;
 	std::shared_ptr<CoilCl::Profile>& m_profile;
 	std::string m_content;
 	size_t m_offset = 0;
+	bool m_isEof = false;
 
-private:
-	std::unordered_map<std::string, Keyword> m_keywords;
+protected:
 	std::unique_ptr<CoilCl::Valuedef::Value> m_data = nullptr;
 	char m_currentChar;
-	bool m_isEof = false;
 	int m_currentColumn = 0;
 	int m_currentToken;
 	int m_prevToken = -1;
