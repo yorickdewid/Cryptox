@@ -217,26 +217,7 @@ protected:
 	void Error(const char *err, Token token);
 	void ExpectToken(Token token);
 	void ExpectIdentifier();
-
-	// Process next token
-	void NextToken()
-	{
-		if (m_comm.IsIndexHead()) {
-			int itok = lex->Lex(); //TODO: return token
-			auto location = std::make_pair(lex->TokenLine(), lex->TokenColumn());
-
-			std::shared_ptr<Value> value;
-			if (lex->HasData()) {
-				auto ptr = static_cast<Value*>(lex->Data());
-				value.reset(ptr);
-			}
-
-			m_comm.Push(TokenState(itok, std::move(value), std::move(location)));
-		}
-		else {
-			m_comm.ShiftForward();
-		}
-	}
+	void NextToken();
 
 private:
 	auto StorageClassSpecifier();

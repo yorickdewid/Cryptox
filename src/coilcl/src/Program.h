@@ -66,7 +66,6 @@ public:
 		, m_treeCondition{ other.m_treeCondition }
 		, m_lastStage{ other.m_lastStage }
 	{
-		delete &other;
 	}
 
 	// Do not assign
@@ -88,7 +87,9 @@ public:
 	template<typename... _ArgsTy>
 	static void Bind(std::unique_ptr<CoilCl::Program>&& program, _ArgsTy&&... args)
 	{
-		program = std::make_unique<CoilCl::Program>(std::move(*(program.release())), std::forward<_ArgsTy>(args)...);
+		auto ptr = program.release();
+		program = std::make_unique<CoilCl::Program>(std::move(*(ptr)), std::forward<_ArgsTy>(args)...);
+		delete ptr;
 	}
 
 private:

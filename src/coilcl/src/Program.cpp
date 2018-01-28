@@ -21,8 +21,3 @@ void CoilCl::Program::PrintSymbols()
 		std::cout << "Symbol: " << node.first << std::endl;
 	}
 }
-
-//void CoilCl::Program::Bind(std::unique_ptr<CoilCl::Program>&& program, std::shared_ptr<AST::AST>&& ast)
-//{
-//	program = std::make_unique<CoilCl::Program>(std::move(*(program.release())), std::move(ast));
-//}

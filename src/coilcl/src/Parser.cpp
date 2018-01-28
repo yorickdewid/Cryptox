@@ -167,6 +167,25 @@ void Parser::Error(const char* err, Token token)
 	throw UnexpectedTokenException{ err, m_comm.Current().FetchLine(), m_comm.Current().FetchColumn(), token };
 }
 
+// Request next token from the tokenizer
+void Parser::NextToken()
+{
+	if (m_comm.IsIndexHead()) {
+		int itok = lex->Lex(); //TODO: return token
+		auto location = std::make_pair(lex->TokenLine(), lex->TokenColumn());
+
+		std::shared_ptr<Value> value;
+		if (lex->HasData()) {
+			value.reset(static_cast<Value*>(lex->Data()));
+		}
+
+		m_comm.Push(TokenState(itok, std::move(value), std::move(location)));
+	}
+	else {
+		m_comm.ShiftForward();
+	}
+}
+
 // Expect next token to be provided token, if so
 // move lexer forward. If not report error and bail.
 void Parser::ExpectToken(Token token)
