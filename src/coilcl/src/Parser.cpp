@@ -171,7 +171,7 @@ void Parser::Error(const char* err, Token token)
 void Parser::NextToken()
 {
 	if (m_comm.IsIndexHead()) {
-		int itok = lex->Lex(); //TODO: return token
+		int itok = lex->Lex();
 		auto location = std::make_pair(lex->TokenLine(), lex->TokenColumn());
 
 		std::shared_ptr<Value> value;

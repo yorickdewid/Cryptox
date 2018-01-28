@@ -10,6 +10,23 @@
 
 constexpr char EndOfUnit = '\0';
 
+using namespace CoilCl;
+
+template<typename _Ty>
+PreprocessorAdapter<_Ty>::PreprocessorAdapter(std::shared_ptr<Profile>& profile)
+	: preprocessor{ profile }
+{
+}
+
+template<typename _Ty>
+int PreprocessorAdapter<_Ty>::BackendInterface(int token)
+{
+	if (token == TK_PREPROCESS) {
+
+	}
+	return token;
+}
+
 int DirectiveScanner::PreprocessLexSet(char lexChar)
 {
 	switch (lexChar) {
@@ -25,21 +42,17 @@ int DirectiveScanner::PreprocessLexSet(char lexChar)
 	return CONTINUE_NEXT_TOKEN;
 }
 
-void DirectiveScanner::LexLineDirective()
-{
-	do {
-		Next();
-	} while (m_currentChar != '\n' && m_currentChar != '\\' && m_currentChar != EndOfUnit);
-}
-
-int DirectiveScanner::Lex()
+int DirectiveScanner::LexWrapper()
 {
 	m_data.reset();
 	m_lastTokenLine = m_currentLine;
 	while (m_currentChar != EndOfUnit) {
 		int token = PreprocessLexSet(m_currentChar);
-		token = Lexer::DefaultLexSet(m_currentChar);
-		if (token == CONTINUE_NEXT_TOKEN) { continue; }
+		if (token == CONTINUE_NEXT_TOKEN) {
+			token = Lexer::DefaultLexSet(m_currentChar);
+			if (token == CONTINUE_NEXT_TOKEN) { continue; }
+		}
+
 		return token;
 	}
 
@@ -47,8 +60,14 @@ int DirectiveScanner::Lex()
 	return TK_HALT;
 }
 
-DirectiveScanner::DirectiveScanner(std::shared_ptr<CoilCl::Profile>& profile)
+int DirectiveScanner::Lex()
+{
+	return m_adapter(LexWrapper());
+}
+
+DirectiveScanner::DirectiveScanner(std::shared_ptr<Profile>& profile)
 	: Lexer{ profile }
+	, m_adapter{ profile }
 {
 	AddKeyword("include", TK_PP_INCLUDE);
 	AddKeyword("include", TK_PP_INCLUDE);
@@ -61,5 +80,6 @@ DirectiveScanner::DirectiveScanner(std::shared_ptr<CoilCl::Profile>& profile)
 	AddKeyword("elif", TK_PP_ELIF);
 	AddKeyword("endif", TK_PP_ENDIF);
 	AddKeyword("pragma", TK_PP_PRAGMA);
+	AddKeyword("line", TK_PP_LINE);
 	AddKeyword("error", TK_PP_ERROR);
 }

@@ -195,12 +195,12 @@ protected:
 
 private:
 	std::unordered_map<std::string, Keyword> m_keywords;
-	std::shared_ptr<CoilCl::Profile>& m_profile;
 	std::string m_content;
 	size_t m_offset = 0;
 	bool m_isEof = false;
 
 protected:
+	std::shared_ptr<CoilCl::Profile>& m_profile;
 	std::unique_ptr<CoilCl::Valuedef::Value> m_data = nullptr;
 	char m_currentChar;
 	int m_currentColumn = 0;

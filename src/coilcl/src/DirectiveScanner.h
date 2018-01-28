@@ -9,6 +9,10 @@
 #pragma once
 
 #include "Lexer.h"
+#include "Preprocessor.h"
+
+namespace CoilCl
+{
 
 enum PreprocessorToken
 {
@@ -27,28 +31,48 @@ enum PreprocessorToken
 	TK_PP_ELIF = 107,    // elif
 	TK_PP_ENDIF = 108,   // endif
 	TK_PP_PRAGMA = 109,  // pragma
-	TK_PP_ERROR = 110,   // error
+	TK_PP_LINE = 110,    // line
+	TK_PP_ERROR = 111,   // error
 
 	// Compiler translation
 	TK___LINE__ = 390,
 	TK___FILE__ = 391,
 };
 
+template<typename _Ty>
+class PreprocessorAdapter
+{
+	_Ty preprocessor;
+
+	// Connection between scanner and preprocessor
+	int BackendInterface(int token);
+
+public:
+	PreprocessorAdapter(std::shared_ptr<Profile>&);
+
+	// Natural syntax operator for adapter, pass
+	// data directly to actual interface
+	inline int operator()(int token)
+	{
+		return BackendInterface(token);
+	}
+};
+
 // The directive scanner is an extension on the default lexer
 // and adds tokens and opertions to allow macro expansions
 class DirectiveScanner : public Lexer
 {
-public:
-	DirectiveScanner(std::shared_ptr<CoilCl::Profile>&);
+	PreprocessorAdapter<Preprocessor> m_adapter;
 
-	// Source location methods
-	inline int TokenLine() const { return 0; }
-	inline int TokenColumn() const { return 0; }
+public:
+	DirectiveScanner(std::shared_ptr<Profile>&);
 
 	// Push machine state forward
 	virtual int Lex();
 
 private:
-	void LexLineDirective();
+	int LexWrapper();
 	int PreprocessLexSet(char lexChar);
 };
+
+} // namespace CoilCl
