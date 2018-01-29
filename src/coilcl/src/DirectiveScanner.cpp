@@ -13,17 +13,46 @@ constexpr char EndOfUnit = '\0';
 using namespace CoilCl;
 
 template<typename _Ty>
-PreprocessorAdapter<_Ty>::PreprocessorAdapter(std::shared_ptr<Profile>& profile)
+PreprocessorProxy<_Ty>::PreprocessorProxy(std::shared_ptr<Profile>& profile)
 	: preprocessor{ profile }
 {
 }
 
 template<typename _Ty>
-int PreprocessorAdapter<_Ty>::BackendInterface(int token)
+int PreprocessorProxy<_Ty>::operator()(std::function<int(void)> backendCall)
 {
-	if (token == TK_PREPROCESS) {
+	int token = -1;
+	bool skipNewline = false;
+	bool onPreprocLine = false;
 
-	}
+	do {
+		token = backendCall();
+		switch (token) {
+		case TK_PREPROCESS:
+			onPreprocLine = true;
+			skipNewline = false;
+			continue;
+
+		case TK_LINE_CONT:
+			skipNewline = skipNewline ? false : true;
+			continue;
+
+		case TK_LINE_NEW:
+			if (!skipNewline && onPreprocLine) {
+				onPreprocLine = false;
+			}
+			continue;
+		}
+
+		skipNewline = false;
+
+		// Exit for all non preprocessor tokens
+		if (!onPreprocLine) { break;}
+		
+		//preprocessor.ProcessStatement("kaas");
+		puts("fire");
+	} while (true);
+
 	return token;
 }
 
@@ -37,6 +66,10 @@ int DirectiveScanner::PreprocessLexSet(char lexChar)
 	case '\\':
 		Next();
 		return AssembleToken(TK_LINE_CONT);
+
+	case '\n':
+		Next();
+		return AssembleToken(TK_LINE_NEW);
 	}
 
 	return CONTINUE_NEXT_TOKEN;
@@ -62,12 +95,15 @@ int DirectiveScanner::LexWrapper()
 
 int DirectiveScanner::Lex()
 {
-	return m_adapter(LexWrapper());
+	return m_proxy([this]()
+	{
+		return this->LexWrapper();
+	});
 }
 
 DirectiveScanner::DirectiveScanner(std::shared_ptr<Profile>& profile)
 	: Lexer{ profile }
-	, m_adapter{ profile }
+	, m_proxy{ profile }
 {
 	AddKeyword("include", TK_PP_INCLUDE);
 	AddKeyword("include", TK_PP_INCLUDE);

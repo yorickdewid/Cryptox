@@ -18,7 +18,8 @@ enum PreprocessorToken
 {
 	//TODO: add preprocessor token
 	TK_PREPROCESS = 35, // #
-	TK_LINE_CONT = 36,  // \
+	TK_LINE_CONT = 36,  // \/
+	TK_LINE_NEW = 37,   // \n
 
 	// Keywords
 	TK_PP_INCLUDE = 100, // include
@@ -40,29 +41,22 @@ enum PreprocessorToken
 };
 
 template<typename _Ty>
-class PreprocessorAdapter
+class PreprocessorProxy
 {
 	_Ty preprocessor;
 
-	// Connection between scanner and preprocessor
-	int BackendInterface(int token);
-
 public:
-	PreprocessorAdapter(std::shared_ptr<Profile>&);
+	PreprocessorProxy(std::shared_ptr<Profile>&);
 
-	// Natural syntax operator for adapter, pass
-	// data directly to actual interface
-	inline int operator()(int token)
-	{
-		return BackendInterface(token);
-	}
+	// Connection between scanner and preprocessor
+	int operator()(std::function<int(void)>);
 };
 
 // The directive scanner is an extension on the default lexer
 // and adds tokens and opertions to allow macro expansions
 class DirectiveScanner : public Lexer
 {
-	PreprocessorAdapter<Preprocessor> m_adapter;
+	PreprocessorProxy<Preprocessor> m_proxy;
 
 public:
 	DirectiveScanner(std::shared_ptr<Profile>&);
