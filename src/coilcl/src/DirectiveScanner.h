@@ -49,7 +49,9 @@ public:
 	PreprocessorProxy(std::shared_ptr<Profile>&);
 
 	// Connection between scanner and preprocessor
-	int operator()(std::function<int(void)>);
+	int operator()(std::function<int(void)>,
+				   std::function<bool(void)>,
+				   std::function<void*(void)>);
 };
 
 // The directive scanner is an extension on the default lexer
@@ -66,6 +68,8 @@ public:
 
 private:
 	int LexWrapper();
+	void *DataWrapper();
+
 	int PreprocessLexSet(char lexChar);
 };
 

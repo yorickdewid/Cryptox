@@ -19,38 +19,45 @@ PreprocessorProxy<_Ty>::PreprocessorProxy(std::shared_ptr<Profile>& profile)
 }
 
 template<typename _Ty>
-int PreprocessorProxy<_Ty>::operator()(std::function<int(void)> backendCall)
+int PreprocessorProxy<_Ty>::operator()(std::function<int(void)> lexerLexCall,
+									   std::function<bool(void)> lexerHasDataCall,
+									   std::function<void*(void)> lexerDataCall)
 {
 	int token = -1;
 	bool skipNewline = false;
 	bool onPreprocLine = false;
 
 	do {
-		token = backendCall();
+		token = lexerLexCall();
 		switch (token) {
 		case TK_PREPROCESS:
+		{
 			onPreprocLine = true;
 			skipNewline = false;
 			continue;
+		}
 
 		case TK_LINE_CONT:
+		{
 			skipNewline = skipNewline ? false : true;
 			continue;
+		}
 
 		case TK_LINE_NEW:
+		{
 			if (!skipNewline && onPreprocLine) {
 				onPreprocLine = false;
 			}
 			continue;
 		}
+		}
 
 		skipNewline = false;
 
 		// Exit for all non preprocessor tokens
-		if (!onPreprocLine) { break;}
-		
-		//preprocessor.ProcessStatement("kaas");
-		puts("fire");
+		if (!onPreprocLine) { break; }
+
+		preprocessor.Dispatch(token, lexerHasDataCall() ? lexerDataCall() : nullptr);
 	} while (true);
 
 	return token;
@@ -93,12 +100,16 @@ int DirectiveScanner::LexWrapper()
 	return TK_HALT;
 }
 
+void *DirectiveScanner::DataWrapper()
+{
+	return static_cast<void *>(m_data.get());
+}
+
 int DirectiveScanner::Lex()
 {
-	return m_proxy([this]()
-	{
-		return this->LexWrapper();
-	});
+	return m_proxy([this]() { return this->LexWrapper(); },
+				   [this]() { return this->HasData(); },
+				   [this]() { return this->DataWrapper(); });
 }
 
 DirectiveScanner::DirectiveScanner(std::shared_ptr<Profile>& profile)
