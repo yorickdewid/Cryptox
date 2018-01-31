@@ -37,6 +37,7 @@ public:
 	Preprocessor& CheckCompatibility();
 
 	void Dispatch(int token, void *data);
+	void EndOfLine();
 
 	std::string DumpTranslationUnitChunk()
 	{

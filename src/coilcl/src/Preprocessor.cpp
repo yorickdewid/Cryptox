@@ -33,14 +33,38 @@ void Preprocessor::ExpectToken(int token)
 // External sources
 void Preprocessor::ImportSource(int token, void *data)
 {
-	//
+	static std::string header;
+	static bool hasBegin = false;
+
+	//std::cout << token << std::endl;
+
+	switch (token) {
+	case TK_LESS_THAN: // Global includes begin
+		hasBegin = true;
+		break;
+	case TK_GREATER_THAN: // Global includes end
+		if (!hasBegin) throw;
+		break;
+	case TK_CONSTANT: // Local include
+		if (!data) throw;
+		std::cout << "Local include '" << static_cast<Valuedef::Value*>(data)->As<std::string>() << "'" << std::endl;
+		break;
+	default:
+		if (hasBegin) {
+			if (!data) throw;
+			auto part = static_cast<Valuedef::Value*>(data)->As<std::string>();
+			header.append(part);
+			break;
+		}
+		throw StageBase::StageException{ Name(), "expected constant or '<' after 'include'" };
+	}
 }
 
 // Definition and expansion
 void Preprocessor::DefinitionTag(int token, void *data)
 {
 	if (token != TK_IDENTIFIER) {
-		//TODO: Get mad
+		throw StageBase::StageException{ Name(), "expected identifier after 'define'" };
 	}
 
 	//m_definitionList.insert()
@@ -70,6 +94,10 @@ void Preprocessor::FixLocation(int token, void *data)
 // Report linquistic error 
 void Preprocessor::LinguisticError(int token, void *data)
 {
+	if (token != TK_CONSTANT) {
+		throw StageBase::StageException{ Name(), "expected constant after 'error'" };
+	}
+	
 	auto message = static_cast<Valuedef::Value*>(data)->As<std::string>();
 	throw StageBase::StageException{ Name(), message };
 }
@@ -131,4 +159,10 @@ void Preprocessor::Dispatch(int token, void *data)
 	else {
 		MethodFactory(token);
 	}
+}
+
+void Preprocessor::EndOfLine()
+{
+	// Remove continuation for next preprocessor line
+	m_continuation = nullptr;
 }

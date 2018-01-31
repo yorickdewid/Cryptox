@@ -46,6 +46,7 @@ int PreprocessorProxy<_Ty>::operator()(std::function<int(void)> lexerLexCall,
 		case TK_LINE_NEW:
 		{
 			if (!skipNewline && onPreprocLine) {
+				preprocessor.EndOfLine();
 				onPreprocLine = false;
 			}
 			continue;
