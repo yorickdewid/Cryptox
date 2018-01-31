@@ -102,6 +102,7 @@ int DirectiveScanner::LexWrapper()
 
 void *DirectiveScanner::DataWrapper()
 {
+	// Steal the poiner from unque pointer
 	return static_cast<void *>(m_data.get());
 }
 

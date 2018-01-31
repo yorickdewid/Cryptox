@@ -21,6 +21,15 @@ Preprocessor& Preprocessor::CheckCompatibility()
 	return (*this);
 }
 
+void Preprocessor::ExpectToken(int token)
+{
+	//if (NOT_TOKEN(token)) {
+		//Error("expected expression", token);
+	//}
+
+	//NextToken();
+}
+
 // External sources
 void Preprocessor::ImportSource(int token, void *data)
 {
@@ -30,8 +39,14 @@ void Preprocessor::ImportSource(int token, void *data)
 // Definition and expansion
 void Preprocessor::DefinitionTag(int token, void *data)
 {
+	if (token != TK_IDENTIFIER) {
+		//TODO: Get mad
+	}
+
+	//m_definitionList.insert()
+
 	// Expect identifier
-	std::cout << token << std::endl;
+	std::cout << token << "  " << static_cast<Valuedef::Value*>(data)->As<std::string>() << std::endl;
 }
 
 // Definition and expansion
@@ -55,7 +70,8 @@ void Preprocessor::FixLocation(int token, void *data)
 // Report linquistic error 
 void Preprocessor::LinguisticError(int token, void *data)
 {
-	//
+	auto message = static_cast<Valuedef::Value*>(data)->As<std::string>();
+	throw StageBase::StageException{ Name(), message };
 }
 
 void Preprocessor::MethodFactory(int token)

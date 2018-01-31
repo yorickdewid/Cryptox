@@ -51,6 +51,8 @@ private:
 	void ConditionalStatement(int token, void *data);
 	void FixLocation(int token, void *data);
 	void LinguisticError(int token, void *data);
+
+	void ExpectToken(int token);
 	void MethodFactory(int token);
 
 private:
