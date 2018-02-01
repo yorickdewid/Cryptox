@@ -46,6 +46,9 @@ class PreprocessorProxy
 {
 	_Ty preprocessor;
 
+protected:
+	std::vector<int> m_subscribedTokens;
+
 public:
 	PreprocessorProxy(std::shared_ptr<Profile>&);
 
@@ -53,6 +56,8 @@ public:
 	int operator()(std::function<int(void)>,
 				   std::function<bool(void)>,
 				   std::function<void*(void)>);
+
+	static_assert(std::is_base_of<Stage<_Ty>, _Ty>::value, "");
 };
 
 // The directive scanner is an extension on the default lexer

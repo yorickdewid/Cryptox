@@ -208,7 +208,7 @@ auto MakeMethod(_ArgsTy... args) -> std::shared_ptr<_Ty>
 
 void Preprocessor::MethodFactory(int token)
 {
-	using namespace LocalMethod;
+	using namespace ::LocalMethod;
 
 	switch (token) {
 	case TK_PP_INCLUDE:
@@ -264,8 +264,7 @@ void Preprocessor::Dispatch(int token, void *data)
 {
 	// Call the method factory and store the next method as continuation
 	if (!m_method) {
-		MethodFactory(token);
-		return;
+		return MethodFactory(token);
 	}
 
 	// If continuation is set, continue on
