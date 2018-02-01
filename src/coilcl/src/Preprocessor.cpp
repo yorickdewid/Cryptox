@@ -3,9 +3,7 @@
 
 #include <iostream>
 
-//#include <boost/algorithm/string.hpp>
-
-#define BITSET(b) (m_bitset & b)
+//#define BITSET(b) (m_bitset & b)
 
 using namespace CoilCl;
 
@@ -21,44 +19,108 @@ Preprocessor& Preprocessor::CheckCompatibility()
 	return (*this);
 }
 
-void Preprocessor::ExpectToken(int token)
+namespace CoilCl
 {
-	//if (NOT_TOKEN(token)) {
-		//Error("expected expression", token);
-	//}
-
-	//NextToken();
-}
-
-// External sources
-void Preprocessor::ImportSource(int token, void *data)
+namespace LocalMethod
 {
-	static std::string header;
-	static bool hasBegin = false;
 
-	//std::cout << token << std::endl;
+class AbstractDirective
+{
+public:
+	AbstractDirective() = default;
+	virtual void Dispence(int token, void *data) = 0;
 
-	switch (token) {
-	case TK_LESS_THAN: // Global includes begin
-		hasBegin = true;
-		break;
-	case TK_GREATER_THAN: // Global includes end
-		if (!hasBegin) throw;
-		break;
-	case TK_CONSTANT: // Local include
-		if (!data) throw;
-		std::cout << "Local include '" << static_cast<Valuedef::Value*>(data)->As<std::string>() << "'" << std::endl;
-		break;
-	default:
-		if (hasBegin) {
-			if (!data) throw;
-			auto part = static_cast<Valuedef::Value*>(data)->As<std::string>();
-			header.append(part);
-			break;
+protected:
+	class DirectiveException : public std::runtime_error
+	{
+	public:
+		DirectiveException(const std::string& message) noexcept
+			: std::runtime_error{ message.c_str() }
+		{
 		}
-		throw StageBase::StageException{ Name(), "expected constant or '<' after 'include'" };
+
+		explicit DirectiveException(const std::string& directive, const std::string& message) noexcept
+			: std::runtime_error{ (directive + ": " + message).c_str() }
+		{
+		}
+	};
+
+	class UnexpectedTokenException : public DirectiveException
+	{
+	public:
+		//TODO ...
+	};
+
+	void RequireData(void *data)
+	{
+		// Data was expected, throw if not found
+		if (!data) { throw DirectiveException{ "expected constant" }; }
 	}
-}
+};
+
+class ImportSource : public AbstractDirective
+{
+	bool hasBegin = false;
+	std::string tempSource;
+
+	// Request input source push from the frontend
+	void Import(const std::string& source)
+	{
+		std::cout << "import " << source << std::endl;
+	}
+
+public:
+	void Dispence(int token, void *data)
+	{
+		switch (token) {
+		case TK_LESS_THAN: // Global includes begin
+			hasBegin = true;
+			break;
+		case TK_GREATER_THAN: // Global includes end
+			if (!hasBegin) throw;
+			Import(tempSource);
+			break;
+		case TK_CONSTANT: // Local include
+			RequireData(data);
+			Import(static_cast<Valuedef::Value*>(data)->As<std::string>());
+			break;
+		default:
+			if (hasBegin) {
+				RequireData(data);
+				auto part = static_cast<Valuedef::Value*>(data)->As<std::string>();
+				tempSource.append(part);
+				break;
+			}
+			throw DirectiveException{ "include", "expected constant or '<' after 'include'" };
+		}
+	}
+};
+
+class DefinitionTag : public AbstractDirective
+{
+public:
+	void Dispence(int token, void *data)
+	{
+
+	}
+};
+
+class LinguisticError : public AbstractDirective
+{
+public:
+	void Dispence(int token, void *data)
+	{
+		/*if (token != TK_CONSTANT) {
+			throw StageBase::StageException{ Name(), "expected constant after 'error'" };
+		}*/
+
+		auto message = static_cast<Valuedef::Value*>(data)->As<std::string>();
+		throw DirectiveException{ message };
+	}
+};
+
+} // namespace LocalMethod
+} // namespace CoilCl
 
 // Definition and expansion
 void Preprocessor::DefinitionTag(int token, void *data)
@@ -97,21 +159,23 @@ void Preprocessor::LinguisticError(int token, void *data)
 	if (token != TK_CONSTANT) {
 		throw StageBase::StageException{ Name(), "expected constant after 'error'" };
 	}
-	
+
 	auto message = static_cast<Valuedef::Value*>(data)->As<std::string>();
 	throw StageBase::StageException{ Name(), message };
 }
 
 void Preprocessor::MethodFactory(int token)
 {
+	//using namespace LocalMethod;
+
 	switch (token) {
 	case TK_PP_INCLUDE:
 		std::cout << "TK_PP_INCLUDE" << std::endl;
-		m_continuation = &Preprocessor::ImportSource;
+		m_method = std::make_unique<LocalMethod::ImportSource>();
 		break;
 	case TK_PP_DEFINE:
 		std::cout << "TK_PP_DEFINE" << std::endl;
-		m_continuation = &Preprocessor::DefinitionTag;
+		m_method = std::make_unique<LocalMethod::DefinitionTag>();
 		break;
 	case TK_PP_UNDEF:
 		std::cout << "TK_PP_UNDEF" << std::endl;
@@ -135,6 +199,7 @@ void Preprocessor::MethodFactory(int token)
 		break;
 		case TK_PP_PRAGMA:
 		std::cout << "TK_PP_PRAGMA" << std::endl;
+		m_method = std::make_unique<LocalMethod::CILExtension>();
 		break;*/
 	case TK_PP_LINE:
 		std::cout << "TK_PP_LINE" << std::endl;
@@ -142,7 +207,7 @@ void Preprocessor::MethodFactory(int token)
 		break;
 	case TK_PP_ERROR:
 		std::cout << "TK_PP_ERROR" << std::endl;
-		m_continuation = &Preprocessor::LinguisticError;
+		m_method = std::make_unique<LocalMethod::LinguisticError>();
 		break;
 	default:
 		throw StageBase::StageException{ Name(), "invalid preprocessing directive" };
@@ -152,8 +217,8 @@ void Preprocessor::MethodFactory(int token)
 void Preprocessor::Dispatch(int token, void *data)
 {
 	// If continuation is set, continue on
-	if (m_continuation) {
-		(this->*(Preprocessor::m_continuation))(token, data);
+	if (m_method) {
+		m_method->Dispence(token, data);
 	}
 	// Call the method factory and store the next method as continuation
 	else {
@@ -165,4 +230,5 @@ void Preprocessor::EndOfLine()
 {
 	// Remove continuation for next preprocessor line
 	m_continuation = nullptr;
+	m_method.reset();
 }

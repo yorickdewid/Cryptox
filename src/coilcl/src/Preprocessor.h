@@ -9,12 +9,19 @@
 namespace CoilCl
 {
 
+namespace LocalMethod
+{
+
+class AbstractDirective;
+
+} // namespace LocalMethod
+
 class Preprocessor : public Stage<Preprocessor>
 {
 public:
-	using location = std::pair<size_t, size_t>;
+	//using location = std::pair<size_t, size_t>;
 
-	enum Option
+	/*enum Option
 	{
 		PARSE_INCLUDE = 0x1,
 		PARSE_DEFINE = 0x2,
@@ -27,7 +34,7 @@ public:
 	{
 		TOKEN_ERASE,
 		TOKEN_REPLACE,
-	};
+	};*/
 
 public:
 	Preprocessor(std::shared_ptr<CoilCl::Profile>&);
@@ -39,29 +46,22 @@ public:
 	void Dispatch(int token, void *data);
 	void EndOfLine();
 
-	std::string DumpTranslationUnitChunk()
-	{
-		std::string tmp;
-		return tmp;
-	}
-
 private:
-	void ImportSource(int token, void *data);
 	void DefinitionTag(int token, void *data);
 	void DefinitionUntag(int token, void *data);
 	void ConditionalStatement(int token, void *data);
 	void FixLocation(int token, void *data);
 	void LinguisticError(int token, void *data);
 
-	void ExpectToken(int token);
 	void MethodFactory(int token);
 
 private:
 	std::map<std::string, std::string> m_definitionList;
 	void (Preprocessor::*m_continuation)(int, void *) = nullptr;
+	std::shared_ptr<LocalMethod::AbstractDirective> m_method = nullptr;
 
 private:
-	std::shared_ptr<CoilCl::Profile> m_profile;
+	std::shared_ptr<Profile> m_profile;
 };
 
 } // namespace CoilCl
