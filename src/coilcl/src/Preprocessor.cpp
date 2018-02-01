@@ -11,7 +11,6 @@ Preprocessor::Preprocessor(std::shared_ptr<CoilCl::Profile>& profile)
 	: Stage{ this }
 	, m_profile{ profile }
 {
-	//
 }
 
 Preprocessor& Preprocessor::CheckCompatibility()
@@ -67,6 +66,8 @@ class ImportSource : public AbstractDirective
 	void Import(const std::string& source)
 	{
 		std::cout << "import " << source << std::endl;
+
+		//TODO: call push import sources
 	}
 
 public:
@@ -87,8 +88,10 @@ public:
 		default:
 			if (hasBegin) {
 				RequireData(data);
-				auto part = static_cast<Valuedef::Value*>(data)->As<std::string>();
-				tempSource.append(part);
+
+				//TODO: stringify tokens
+
+				tempSource.append(static_cast<Valuedef::Value*>(data)->As<std::string>());
 				break;
 			}
 			throw DirectiveException{ "include", "expected constant or '<' after 'include'" };
@@ -96,15 +99,40 @@ public:
 	}
 };
 
+// Definition and expansion
 class DefinitionTag : public AbstractDirective
 {
+	static std::map<std::string, std::string> s_definitionList;
+
+	std::string m_definitionName;
+
 public:
 	void Dispence(int token, void *data)
 	{
+		if (m_definitionName.empty()) {
+			RequireData(data);
+			m_definitionName = static_cast<Valuedef::Value*>(data)->As<std::string>();
+			return;
+		}
 
+		//TODO: add shit
+	}
+
+	~DefinitionTag()
+	{
+		auto result = s_definitionList.insert({ m_definitionName, "kaas" });
+		if (!result.second) {
+			std::cout << "def " << m_definitionName << " already exists " << std::endl;
+		}
+		else {
+			std::cout << "created def " << m_definitionName << std::endl;
+		}
 	}
 };
 
+std::map<std::string, std::string> DefinitionTag::s_definitionList = {};
+
+// Report linquistic error
 class LinguisticError : public AbstractDirective
 {
 public:
@@ -122,7 +150,6 @@ public:
 } // namespace LocalMethod
 } // namespace CoilCl
 
-// Definition and expansion
 void Preprocessor::DefinitionTag(int token, void *data)
 {
 	if (token != TK_IDENTIFIER) {
@@ -133,12 +160,6 @@ void Preprocessor::DefinitionTag(int token, void *data)
 
 	// Expect identifier
 	std::cout << token << "  " << static_cast<Valuedef::Value*>(data)->As<std::string>() << std::endl;
-}
-
-// Definition and expansion
-void Preprocessor::DefinitionUntag(int token, void *data)
-{
-	//
 }
 
 // Conditional compilation
@@ -153,7 +174,7 @@ void Preprocessor::FixLocation(int token, void *data)
 	//
 }
 
-// Report linquistic error 
+
 void Preprocessor::LinguisticError(int token, void *data)
 {
 	if (token != TK_CONSTANT) {
@@ -179,11 +200,9 @@ void Preprocessor::MethodFactory(int token)
 		break;
 	case TK_PP_UNDEF:
 		std::cout << "TK_PP_UNDEF" << std::endl;
-		m_continuation = &Preprocessor::DefinitionUntag;
 		break;
 	case TK_PP_IF:
 		std::cout << "TK_PP_IF" << std::endl;
-		m_continuation = &Preprocessor::ConditionalStatement;
 		break;
 		/*case TK_PP_IFDEF:
 		std::cout << "TK_PP_IFDEF" << std::endl;
@@ -203,7 +222,6 @@ void Preprocessor::MethodFactory(int token)
 		break;*/
 	case TK_PP_LINE:
 		std::cout << "TK_PP_LINE" << std::endl;
-		m_continuation = &Preprocessor::FixLocation;
 		break;
 	case TK_PP_ERROR:
 		std::cout << "TK_PP_ERROR" << std::endl;
@@ -216,19 +234,18 @@ void Preprocessor::MethodFactory(int token)
 
 void Preprocessor::Dispatch(int token, void *data)
 {
-	// If continuation is set, continue on
-	if (m_method) {
-		m_method->Dispence(token, data);
-	}
 	// Call the method factory and store the next method as continuation
-	else {
+	if (!m_method) {
 		MethodFactory(token);
+		return;
 	}
+
+	// If continuation is set, continue on
+	m_method->Dispence(token, data);
 }
 
 void Preprocessor::EndOfLine()
 {
-	// Remove continuation for next preprocessor line
-	m_continuation = nullptr;
+	// Reste directive method for next preprocessor line
 	m_method.reset();
 }

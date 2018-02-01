@@ -48,7 +48,6 @@ public:
 
 private:
 	void DefinitionTag(int token, void *data);
-	void DefinitionUntag(int token, void *data);
 	void ConditionalStatement(int token, void *data);
 	void FixLocation(int token, void *data);
 	void LinguisticError(int token, void *data);
@@ -57,7 +56,6 @@ private:
 
 private:
 	std::map<std::string, std::string> m_definitionList;
-	void (Preprocessor::*m_continuation)(int, void *) = nullptr;
 	std::shared_ptr<LocalMethod::AbstractDirective> m_method = nullptr;
 
 private:
