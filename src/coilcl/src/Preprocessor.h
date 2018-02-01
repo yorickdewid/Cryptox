@@ -47,9 +47,6 @@ public:
 	void EndOfLine();
 
 private:
-	void ConditionalStatement(int token, void *data);
-	void FixLocation(int token, void *data);
-
 	void MethodFactory(int token);
 
 private:

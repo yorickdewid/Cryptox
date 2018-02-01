@@ -130,5 +130,6 @@ DirectiveScanner::DirectiveScanner(std::shared_ptr<Profile>& profile)
 	AddKeyword("endif", TK_PP_ENDIF);
 	AddKeyword("pragma", TK_PP_PRAGMA);
 	AddKeyword("line", TK_PP_LINE);
+	AddKeyword("warning", TK_PP_WARNING);
 	AddKeyword("error", TK_PP_ERROR);
 }

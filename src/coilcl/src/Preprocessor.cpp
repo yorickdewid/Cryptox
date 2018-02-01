@@ -8,7 +8,7 @@
 
 using namespace CoilCl;
 
-std::map<std::string, std::string> g_definitionList;
+static std::map<std::string, std::string> g_definitionList;
 
 Preprocessor::Preprocessor(std::shared_ptr<CoilCl::Profile>& profile)
 	: Stage{ this }
@@ -154,55 +154,78 @@ public:
 	}
 };
 
+// Conditional compilation
+class ConditionalStatement : public AbstractDirective
+{
+public:
+	void Dispence(int token, void *data)
+	{
+		//
+	}
+};
+
+// Set source location to fixed line,col pair
+class FixLocation : public AbstractDirective
+{
+public:
+	void Dispence(int token, void *data)
+	{
+		//
+	}
+};
 
 // Report linquistic error
 class LinguisticError : public AbstractDirective
 {
+	const bool m_isFatal;
+
 public:
+	LinguisticError(bool fatal = true)
+		: m_isFatal{ fatal }
+	{
+	}
+
 	void Dispence(int token, void *data)
 	{
 		if (token != TK_CONSTANT) {
 			throw DirectiveException{ "error", "expected constant after 'error'" };
 		}
 
-		throw DirectiveException{ ConvertDataAs<std::string>(data) };
+		if (m_isFatal) {
+			throw DirectiveException{ ConvertDataAs<std::string>(data) };
+		}
 	}
 };
 
 } // namespace LocalMethod
 } // namespace CoilCl
 
-// Conditional compilation
-void Preprocessor::ConditionalStatement(int token, void *data)
+template<typename _Ty, typename... _ArgsTy>
+auto MakeMethod(_ArgsTy... args) -> std::shared_ptr<_Ty>
 {
-	//
-}
-
-// Set location on fixed line
-void Preprocessor::FixLocation(int token, void *data)
-{
-	//
+	return std::make_shared<_Ty>(std::forward<_ArgsTy>(args)...);
 }
 
 void Preprocessor::MethodFactory(int token)
 {
-	//using namespace LocalMethod;
+	using namespace LocalMethod;
 
 	switch (token) {
 	case TK_PP_INCLUDE:
 		std::cout << "TK_PP_INCLUDE" << std::endl;
-		m_method = std::make_unique<LocalMethod::ImportSource>();
+		m_method = MakeMethod<ImportSource>();
 		break;
 	case TK_PP_DEFINE:
 		std::cout << "TK_PP_DEFINE" << std::endl;
-		m_method = std::make_unique<LocalMethod::DefinitionTag>();
+		m_method = MakeMethod<DefinitionTag>();
 		break;
 	case TK_PP_UNDEF:
 		std::cout << "TK_PP_UNDEF" << std::endl;
-		m_method = std::make_unique<LocalMethod::DefinitionUntag>();
+		m_method = MakeMethod<DefinitionUntag>();
 		break;
 	case TK_PP_IF:
 		std::cout << "TK_PP_IF" << std::endl;
+		m_method = MakeMethod<ConditionalStatement>();
 		break;
 		/*case TK_PP_IFDEF:
 		std::cout << "TK_PP_IFDEF" << std::endl;
@@ -222,10 +245,15 @@ void Preprocessor::MethodFactory(int token)
 		break;*/
 	case TK_PP_LINE:
 		std::cout << "TK_PP_LINE" << std::endl;
+		m_method = MakeMethod<FixLocation>();
+		break;
+	case TK_PP_WARNING:
+		std::cout << "TK_PP_WARNING" << std::endl;
+		m_method = MakeMethod<LinguisticError>(false);
 		break;
 	case TK_PP_ERROR:
 		std::cout << "TK_PP_ERROR" << std::endl;
-		m_method = std::make_unique<LocalMethod::LinguisticError>();
+		m_method = MakeMethod<LinguisticError>();
 		break;
 	default:
 		throw StageBase::StageException{ Name(), "invalid preprocessing directive" };

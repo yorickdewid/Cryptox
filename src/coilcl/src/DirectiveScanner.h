@@ -18,7 +18,7 @@ enum PreprocessorToken
 {
 	//TODO: add preprocessor token
 	TK_PREPROCESS = 35, // #
-	TK_LINE_CONT = 36,  // \/
+	TK_LINE_CONT = 36,  // \.
 	TK_LINE_NEW = 37,   // \n
 
 	// Keywords
@@ -33,7 +33,8 @@ enum PreprocessorToken
 	TK_PP_ENDIF = 108,   // endif
 	TK_PP_PRAGMA = 109,  // pragma
 	TK_PP_LINE = 110,    // line
-	TK_PP_ERROR = 111,   // error
+	TK_PP_WARNING = 111, // warning
+	TK_PP_ERROR = 112,   // error
 
 	// Compiler translation
 	TK___LINE__ = 390,
