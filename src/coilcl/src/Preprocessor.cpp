@@ -1,11 +1,14 @@
 #include "Preprocessor.h"
 #include "DirectiveScanner.h"
 
+#include <cassert>
 #include <iostream>
 
 //#define BITSET(b) (m_bitset & b)
 
 using namespace CoilCl;
+
+std::map<std::string, std::string> g_definitionList;
 
 Preprocessor::Preprocessor(std::shared_ptr<CoilCl::Profile>& profile)
 	: Stage{ this }
@@ -50,6 +53,13 @@ protected:
 		//TODO ...
 	};
 
+	template<typename _Ty>
+	inline _Ty ConvertDataAs(void *data)
+	{
+		assert(data);
+		return static_cast<Valuedef::Value*>(data)->As<_Ty>();
+	}
+
 	void RequireData(void *data)
 	{
 		// Data was expected, throw if not found
@@ -83,7 +93,7 @@ public:
 			break;
 		case TK_CONSTANT: // Local include
 			RequireData(data);
-			Import(static_cast<Valuedef::Value*>(data)->As<std::string>());
+			Import(ConvertDataAs<std::string>(data));
 			break;
 		default:
 			if (hasBegin) {
@@ -91,7 +101,7 @@ public:
 
 				//TODO: stringify tokens
 
-				tempSource.append(static_cast<Valuedef::Value*>(data)->As<std::string>());
+				tempSource.append(ConvertDataAs<std::string>(data));
 				break;
 			}
 			throw DirectiveException{ "include", "expected constant or '<' after 'include'" };
@@ -102,8 +112,6 @@ public:
 // Definition and expansion
 class DefinitionTag : public AbstractDirective
 {
-	static std::map<std::string, std::string> s_definitionList;
-
 	std::string m_definitionName;
 
 public:
@@ -111,7 +119,7 @@ public:
 	{
 		if (m_definitionName.empty()) {
 			RequireData(data);
-			m_definitionName = static_cast<Valuedef::Value*>(data)->As<std::string>();
+			m_definitionName = ConvertDataAs<std::string>(data);
 			return;
 		}
 
@@ -120,7 +128,7 @@ public:
 
 	~DefinitionTag()
 	{
-		auto result = s_definitionList.insert({ m_definitionName, "kaas" });
+		auto result = g_definitionList.insert({ m_definitionName, "kaas" });
 		if (!result.second) {
 			std::cout << "def " << m_definitionName << " already exists " << std::endl;
 		}
@@ -130,7 +138,22 @@ public:
 	}
 };
 
-std::map<std::string, std::string> DefinitionTag::s_definitionList = {};
+// Remove definition from list
+class DefinitionUntag : public AbstractDirective
+{
+public:
+	void Dispence(int token, void *data)
+	{
+		RequireData(data);
+		auto it = g_definitionList.find(ConvertDataAs<std::string>(data));
+		if (it == g_definitionList.end()) {
+			//TODO: Ouch?
+			return;
+		}
+		g_definitionList.erase(it);
+	}
+};
+
 
 // Report linquistic error
 class LinguisticError : public AbstractDirective
@@ -138,29 +161,16 @@ class LinguisticError : public AbstractDirective
 public:
 	void Dispence(int token, void *data)
 	{
-		/*if (token != TK_CONSTANT) {
-			throw StageBase::StageException{ Name(), "expected constant after 'error'" };
-		}*/
+		if (token != TK_CONSTANT) {
+			throw DirectiveException{ "error", "expected constant after 'error'" };
+		}
 
-		auto message = static_cast<Valuedef::Value*>(data)->As<std::string>();
-		throw DirectiveException{ message };
+		throw DirectiveException{ ConvertDataAs<std::string>(data) };
 	}
 };
 
 } // namespace LocalMethod
 } // namespace CoilCl
-
-void Preprocessor::DefinitionTag(int token, void *data)
-{
-	if (token != TK_IDENTIFIER) {
-		throw StageBase::StageException{ Name(), "expected identifier after 'define'" };
-	}
-
-	//m_definitionList.insert()
-
-	// Expect identifier
-	std::cout << token << "  " << static_cast<Valuedef::Value*>(data)->As<std::string>() << std::endl;
-}
 
 // Conditional compilation
 void Preprocessor::ConditionalStatement(int token, void *data)
@@ -172,17 +182,6 @@ void Preprocessor::ConditionalStatement(int token, void *data)
 void Preprocessor::FixLocation(int token, void *data)
 {
 	//
-}
-
-
-void Preprocessor::LinguisticError(int token, void *data)
-{
-	if (token != TK_CONSTANT) {
-		throw StageBase::StageException{ Name(), "expected constant after 'error'" };
-	}
-
-	auto message = static_cast<Valuedef::Value*>(data)->As<std::string>();
-	throw StageBase::StageException{ Name(), message };
 }
 
 void Preprocessor::MethodFactory(int token)
@@ -200,6 +199,7 @@ void Preprocessor::MethodFactory(int token)
 		break;
 	case TK_PP_UNDEF:
 		std::cout << "TK_PP_UNDEF" << std::endl;
+		m_method = std::make_unique<LocalMethod::DefinitionUntag>();
 		break;
 	case TK_PP_IF:
 		std::cout << "TK_PP_IF" << std::endl;

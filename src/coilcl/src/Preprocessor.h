@@ -47,10 +47,8 @@ public:
 	void EndOfLine();
 
 private:
-	void DefinitionTag(int token, void *data);
 	void ConditionalStatement(int token, void *data);
 	void FixLocation(int token, void *data);
-	void LinguisticError(int token, void *data);
 
 	void MethodFactory(int token);
 
