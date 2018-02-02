@@ -53,6 +53,19 @@ protected:
 		//TODO ...
 	};
 
+	void SubscribeOnToken(int token)
+	{
+		//
+	}
+
+	/*template<typename _Ty>
+	void SubscribeOnToken(_Ty token)
+	{
+		for (int tok : token) {
+			SubscribeOnToken(tok);
+		}
+	}*/
+
 	template<typename _Ty>
 	inline _Ty ConvertDataAs(void *data)
 	{
@@ -131,10 +144,17 @@ public:
 		auto result = g_definitionList.insert({ m_definitionName, "kaas" });
 		if (!result.second) {
 			std::cout << "def " << m_definitionName << " already exists " << std::endl;
+			return;
 		}
-		else {
-			std::cout << "created def " << m_definitionName << std::endl;
-		}
+
+		std::cout << "created def " << m_definitionName << std::endl;
+		
+		// Subscribe on all identifier tokens apart from the define tag. This indicates
+		// we can do work on 'normal' tokens that would otherwise flow directly through to
+		// the caller frontend. In this case we register identifier to examine, and on match
+		// replace with the corresponding value. This essentially allows for find and replace
+		// semantics on the provided input file before any other stage has seen the token stream.
+		SubscribeOnToken(TK_IDENTIFIER);
 	}
 };
 

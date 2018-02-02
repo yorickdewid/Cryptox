@@ -12,11 +12,13 @@ constexpr char EndOfUnit = '\0';
 
 using namespace CoilCl;
 
-namespace std
+namespace Cry
+{
+namespace Algorithm
 {
 
 template<typename _Ty, _Ty _Val>
-struct match_static
+struct MatchStatic
 {
 	constexpr bool operator()(const _Ty& _Match) const
 	{
@@ -25,21 +27,22 @@ struct match_static
 };
 
 template<typename _Ty>
-struct match_on
+struct MatchOn
 {
-	const _Ty& _Init;
+	const _Ty& m_val;
 
-	constexpr match_on(_Ty _Initial)
-		: _Init{ _Initial }
+	constexpr MatchOn(_Ty val)
+		: m_val{ val }
 	{
 	}
 
-	constexpr bool operator()(const _Ty& _Match) const
+	constexpr bool operator()(const _Ty& val) const
 	{
-		return (_Match == _Init);
+		return (val == m_val);
 	}
 };
 
+} // namespace Algorithm
 } // namespace std
 
 template<typename _Ty>
@@ -86,17 +89,10 @@ int PreprocessorProxy<_Ty>::operator()(std::function<int(void)> lexerLexCall,
 		skipNewline = false;
 
 		// Exit for all non preprocessor and non subscribed tokens
-		std::match_on<decltype(token)> pred{ token };
+		Cry::Algorithm::MatchOn<decltype(token)> pred{ token };
 		if (!onPreprocLine && !std::any_of(m_subscribedTokens.cbegin(), m_subscribedTokens.cend(), pred)) {
 			break;
 		}
-		
-		/*if (!onPreprocLine && !std::any_of(m_subscribedTokens.cbegin(), m_subscribedTokens.cend(), [&token](int i)
-		{
-			return i == token;
-		})) {
-			break;
-		}*/
 
 		// Call preprocessor if any of the token conditions was met
 		preprocessor.Dispatch(token, lexerHasDataCall() ? lexerDataCall() : nullptr);
