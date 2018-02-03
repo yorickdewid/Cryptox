@@ -8,6 +8,8 @@
  * permission of the author.
  */
 
+#pragma once
+
 struct info {
     int version;
     int counter;
