@@ -4,11 +4,29 @@
 #include <cassert>
 #include <iostream>
 
-//#define BITSET(b) (m_bitset & b)
-
 using namespace CoilCl;
 
 static std::map<std::string, std::string> g_definitionList;
+
+static class TokenSubscription
+{
+	std::multimap<int, void(*)(void**)> m_sbscriptionSet;
+
+public:
+	void SubscribeOnToken(int token, void(*cb)(void**))
+	{
+		m_sbscriptionSet.emplace(token, cb);
+	}
+
+	void CallAnyOf(int token, void **data)
+	{
+		auto range = m_sbscriptionSet.equal_range(token);
+		for (auto& it = range.first; it != range.second; ++it) {
+			std::cout << "Call " << it->first << std::endl;
+			(it->second)(data);
+		}
+	}
+} g_tokenSubscription;
 
 Preprocessor::Preprocessor(std::shared_ptr<CoilCl::Profile>& profile)
 	: Stage{ this }
@@ -30,7 +48,7 @@ class AbstractDirective
 {
 public:
 	AbstractDirective() = default;
-	virtual void Dispence(int token, void *data) = 0;
+	virtual void Dispence(int token, const void *data) = 0;
 
 protected:
 	class DirectiveException : public std::runtime_error
@@ -50,30 +68,25 @@ protected:
 	class UnexpectedTokenException : public DirectiveException
 	{
 	public:
-		//TODO ...
+		UnexpectedTokenException(const std::string& message) noexcept
+			: DirectiveException{ message }
+		{
+		}
 	};
 
-	void SubscribeOnToken(int token)
-	{
-		//
-	}
-
-	/*template<typename _Ty>
-	void SubscribeOnToken(_Ty token)
-	{
-		for (int tok : token) {
-			SubscribeOnToken(tok);
-		}
-	}*/
-
 	template<typename _Ty>
-	inline _Ty ConvertDataAs(void *data)
+	inline _Ty ConvertDataAs(const void *data)
 	{
 		assert(data);
-		return static_cast<Valuedef::Value*>(data)->As<_Ty>();
+		return static_cast<const Valuedef::Value*>(data)->As<_Ty>();
 	}
 
-	void RequireData(void *data)
+	void RequireToken(int expectedToken, int token)
+	{
+		if (expectedToken != token) { throw UnexpectedTokenException{ "expected token" }; }
+	}
+
+	void RequireData(const void *data)
 	{
 		// Data was expected, throw if not found
 		if (!data) { throw DirectiveException{ "expected constant" }; }
@@ -94,7 +107,7 @@ class ImportSource : public AbstractDirective
 	}
 
 public:
-	void Dispence(int token, void *data)
+	void Dispence(int token, const void *data)
 	{
 		switch (token) {
 		case TK_LESS_THAN: // Global includes begin
@@ -128,7 +141,7 @@ class DefinitionTag : public AbstractDirective
 	std::string m_definitionName;
 
 public:
-	void Dispence(int token, void *data)
+	void Dispence(int token, const void *data)
 	{
 		if (m_definitionName.empty()) {
 			RequireData(data);
@@ -137,6 +150,20 @@ public:
 		}
 
 		//TODO: add shit
+	}
+
+	static void OnPropagateCallback(void **data)
+	{
+		using namespace Valuedef;
+		using namespace Typedef;
+
+		auto value = static_cast<Valuedef::Value*>(*data);
+		auto it = g_definitionList.find(value->As<std::string>());
+		if (it == g_definitionList.end()) { return; }
+
+		// Create new value and swap data pointers
+		void *_data = new ValueObject<std::string>{ BuiltinType::Specifier::CHAR, it->second };
+		std::swap(*data, _data);
 	}
 
 	~DefinitionTag()
@@ -148,13 +175,13 @@ public:
 		}
 
 		std::cout << "created def " << m_definitionName << std::endl;
-		
+
 		// Subscribe on all identifier tokens apart from the define tag. This indicates
 		// we can do work on 'normal' tokens that would otherwise flow directly through to
 		// the caller frontend. In this case we register identifier to examine, and on match
 		// replace with the corresponding value. This essentially allows for find and replace
 		// semantics on the provided input file before any other stage has seen the token stream.
-		SubscribeOnToken(TK_IDENTIFIER);
+		g_tokenSubscription.SubscribeOnToken(TK_IDENTIFIER, &DefinitionTag::OnPropagateCallback);
 	}
 };
 
@@ -162,7 +189,7 @@ public:
 class DefinitionUntag : public AbstractDirective
 {
 public:
-	void Dispence(int token, void *data)
+	void Dispence(int token, const void *data)
 	{
 		RequireData(data);
 		auto it = g_definitionList.find(ConvertDataAs<std::string>(data));
@@ -178,7 +205,17 @@ public:
 class ConditionalStatement : public AbstractDirective
 {
 public:
-	void Dispence(int token, void *data)
+	void Dispence(int token, const void *data)
+	{
+		//
+	}
+};
+
+// Parse compiler pragmas
+class CompilerDialect : public AbstractDirective
+{
+public:
+	void Dispence(int token, const void *data)
 	{
 		//
 	}
@@ -188,7 +225,7 @@ public:
 class FixLocation : public AbstractDirective
 {
 public:
-	void Dispence(int token, void *data)
+	void Dispence(int token, const void *data)
 	{
 		//
 	}
@@ -205,7 +242,7 @@ public:
 	{
 	}
 
-	void Dispence(int token, void *data)
+	void Dispence(int token, const void *data)
 	{
 		if (token != TK_CONSTANT) {
 			throw DirectiveException{ "error", "expected constant after 'error'" };
@@ -247,22 +284,23 @@ void Preprocessor::MethodFactory(int token)
 		std::cout << "TK_PP_IF" << std::endl;
 		m_method = MakeMethod<ConditionalStatement>();
 		break;
-		/*case TK_PP_IFDEF:
+	case TK_PP_IFDEF:
 		std::cout << "TK_PP_IFDEF" << std::endl;
+		m_method = MakeMethod<ConditionalStatement>();
 		break;
-		case TK_PP_ELSE:
+	case TK_PP_ELSE:
 		std::cout << "TK_PP_ELSE" << std::endl;
 		break;
-		case TK_PP_ELIF:
+	case TK_PP_ELIF:
 		std::cout << "TK_PP_ELIF" << std::endl;
 		break;
-		case TK_PP_ENDIF:
+	case TK_PP_ENDIF:
 		std::cout << "TK_PP_ENDIF" << std::endl;
 		break;
-		case TK_PP_PRAGMA:
+	case TK_PP_PRAGMA:
 		std::cout << "TK_PP_PRAGMA" << std::endl;
-		m_method = std::make_unique<LocalMethod::CILExtension>();
-		break;*/
+		m_method = std::make_unique<CompilerDialect>();
+		break;
 	case TK_PP_LINE:
 		std::cout << "TK_PP_LINE" << std::endl;
 		m_method = MakeMethod<FixLocation>();
@@ -280,7 +318,12 @@ void Preprocessor::MethodFactory(int token)
 	}
 }
 
-void Preprocessor::Dispatch(int token, void *data)
+void Preprocessor::Propagate(int token, void **data)
+{
+	g_tokenSubscription.CallAnyOf(token, data);
+}
+
+void Preprocessor::Dispatch(int token, const void *data)
 {
 	// Call the method factory and store the next method as continuation
 	if (!m_method) {

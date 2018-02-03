@@ -54,7 +54,7 @@ PreprocessorProxy<_Ty>::PreprocessorProxy(std::shared_ptr<Profile>& profile)
 template<typename _Ty>
 int PreprocessorProxy<_Ty>::operator()(std::function<int(void)> lexerLexCall,
 									   std::function<bool(void)> lexerHasDataCall,
-									   std::function<void*(void)> lexerDataCall)
+									   std::function<void*(void*)> lexerDataCall)
 {
 	int token = -1;
 	bool skipNewline = false;
@@ -91,20 +91,22 @@ int PreprocessorProxy<_Ty>::operator()(std::function<int(void)> lexerLexCall,
 		// Break for all non preprocessor and non subscribed tokens. Before returning back to
 		// the frontend caller process present the token and data to the preprocessor. Since
 		// preprocessors can hook onto any token or contained data they are allowed to change
-		// the token and/or data before returning back.
+		// the token and/or data before returning back. If the original data pointer differs
+		// from the returning pointer, feed the pointer back. The callback operation will
+		// swap the pointer wrapper in-place.
 		Cry::Algorithm::MatchOn<decltype(token)> pred{ token };
 		if (!onPreprocLine && (m_subscribedTokens.empty() || !std::any_of(m_subscribedTokens.cbegin(), m_subscribedTokens.cend(), pred))) {
-			auto data = lexerHasDataCall() ? lexerDataCall() : nullptr;
-			const void *_data = &data;
+			void *data = lexerHasDataCall() ? lexerDataCall(nullptr) : nullptr;
+			const void *_origData = data;
 			preprocessor.Propagate(token, &data);
-			if (&data != _data) {
-				puts("changed");
+			if (data != _origData) {
+				lexerDataCall(data);
 			}
 			break;
 		}
 
 		// Call preprocessor if any of the token conditions was met
-		preprocessor.Dispatch(token, lexerHasDataCall() ? lexerDataCall() : nullptr);
+		preprocessor.Dispatch(token, lexerHasDataCall() ? lexerDataCall(nullptr) : nullptr);
 	} while (true);
 
 	return token;
@@ -147,9 +149,14 @@ int DirectiveScanner::LexWrapper()
 	return TK_HALT;
 }
 
-void *DirectiveScanner::DataWrapper()
+void *DirectiveScanner::DataWrapper(void *data)
 {
-	// Steal the poiner from unque pointer
+	// If data pointer was provided, swap the internal data structure
+	if (data) {
+		m_data.reset(static_cast<Valuedef::Value*>(data));
+	}
+
+	// Steal the poiner from unique pointer
 	return static_cast<void *>(m_data.get());
 }
 
@@ -157,7 +164,7 @@ int DirectiveScanner::Lex()
 {
 	return m_proxy([this]() { return this->LexWrapper(); },
 				   [this]() { return this->HasData(); },
-				   [this]() { return this->DataWrapper(); });
+				   [this](void *data) { return this->DataWrapper(data); });
 }
 
 DirectiveScanner::DirectiveScanner(std::shared_ptr<Profile>& profile)

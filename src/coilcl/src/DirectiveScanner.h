@@ -57,7 +57,7 @@ public:
 	// Connection between scanner and preprocessor
 	int operator()(std::function<int(void)>,
 				   std::function<bool(void)>,
-				   std::function<void*(void)>);
+				   std::function<void*(void*)>);
 
 	static_assert(std::is_base_of<Stage<_Ty>, _Ty>::value, "");
 	static_assert(std::is_base_of<TokenProcessor, _Ty>::value, "");
@@ -73,11 +73,11 @@ public:
 	DirectiveScanner(std::shared_ptr<Profile>&);
 
 	// Push machine state forward
-	virtual int Lex();
+	virtual int Lex() override;
 
 private:
 	int LexWrapper();
-	void *DataWrapper();
+	void *DataWrapper(void *data);
 
 	int PreprocessLexSet(char lexChar);
 };

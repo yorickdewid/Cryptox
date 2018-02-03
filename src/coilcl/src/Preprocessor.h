@@ -26,12 +26,17 @@ struct TokenProcessor
 	// and allows hooks to alter the token and data.
 	// Preprocessors may override this method to
 	// receive tokens.
-	virtual void Propagate(int token, void *data) {}
+	virtual void Propagate(int token, void **data) {}
 
 	// At the heart of the processor is the dispatch
 	// method. Called on preprocessor directive and
 	// can therefore not be ignored.
-	virtual void Dispatch(int token, void *data) = 0;
+	virtual void Dispatch(int token, const void *data) = 0;
+
+	// When end of preprocessor directive line is
+	// reached, this method is called to signal end
+	// of line. Preprocessors may ignore this operation.
+	virtual void EndOfLine() {};
 };
 
 class Preprocessor :
@@ -63,8 +68,9 @@ public:
 
 	Preprocessor& CheckCompatibility();
 
-	void Dispatch(int token, void *data);
-	void EndOfLine();
+	virtual void Propagate(int token, void **data) override;
+	virtual void Dispatch(int token, const void *data);
+	virtual void EndOfLine() override;
 
 private:
 	void MethodFactory(int token);
