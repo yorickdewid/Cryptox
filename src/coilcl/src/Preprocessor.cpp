@@ -83,6 +83,7 @@ protected:
 
 	void RequireToken(int expectedToken, int token)
 	{
+		//TODO:
 		if (expectedToken != token) { throw UnexpectedTokenException{ "expected token" }; }
 	}
 
@@ -123,11 +124,15 @@ public:
 			break;
 		default:
 			if (hasBegin) {
-				RequireData(data);
+				std::string partialSource;
+				if (!data) {
+					partialSource = "1";//Tokenizer::Stringify(token);//TODO
+				}
+				else {
+					partialSource = ConvertDataAs<std::string>(data);
+				}
 
-				//TODO: stringify tokens
-
-				tempSource.append(ConvertDataAs<std::string>(data));
+				tempSource.append(partialSource);
 				break;
 			}
 			throw DirectiveException{ "include", "expected constant or '<' after 'include'" };
@@ -149,7 +154,7 @@ public:
 			return;
 		}
 
-		//TODO: add shit
+		//TODO: add replacement tokens as secondary parameter
 	}
 
 	static void OnPropagateCallback(void **data)
@@ -193,10 +198,7 @@ public:
 	{
 		RequireData(data);
 		auto it = g_definitionList.find(ConvertDataAs<std::string>(data));
-		if (it == g_definitionList.end()) {
-			//TODO: Ouch?
-			return;
-		}
+		if (it == g_definitionList.end()) { return; }
 		g_definitionList.erase(it);
 	}
 };
@@ -227,7 +229,7 @@ class FixLocation : public AbstractDirective
 public:
 	void Dispence(int token, const void *data)
 	{
-		//
+		//TODO: We have no clue what to do with #line
 	}
 };
 

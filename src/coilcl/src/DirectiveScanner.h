@@ -43,6 +43,27 @@ enum PreprocessorToken
 	TK___FILE__ = 391,
 };
 
+struct DirectiveKeyword
+{
+	friend class Lexer;
+
+	DirectiveKeyword(PreprocessorToken token)
+		: m_token{ token }
+	{
+	}
+
+	DirectiveKeyword(int token)
+		: m_token{ static_cast<PreprocessorToken>(token) }
+	{
+	}
+
+	// Return token as string
+	std::string Print();
+
+private:
+	PreprocessorToken m_token;
+};
+
 template<typename _Ty>
 class PreprocessorProxy
 {

@@ -1,4 +1,4 @@
-#include "Lexer.h"
+#include "DirectiveScanner.h"
 
 std::string Keyword::Print()
 {
@@ -92,9 +92,35 @@ std::string Keyword::Print()
 	case TK_CARET:			return std::string{ "CARET" };
 	case TK_VERTIAL_BAR:	return std::string{ "VERTIAL_BAR" };
 	case TK_QUESTION_MARK:	return std::string{ "QUESTION_MARK" };
-	
-	//case TK___LINE__:		return std::string{ "TK___LINE__" };
-	//case TK___FILE__:		return std::string{ "TK___FILE__" };
 	default:				return std::string{ "<UNKNOWN>" };
+	}
+}
+
+std::string CoilCl::DirectiveKeyword::Print()
+{
+	switch (m_token) {
+	case CoilCl::TK_PREPROCESS:	return std::string{ "TK_PREPROCESS" };
+		
+	case CoilCl::TK_LINE_CONT:	return std::string{ "TK_LINE_CONT" };
+	case CoilCl::TK_LINE_NEW:	return std::string{ "TK_LINE_NEW" };
+	
+	case CoilCl::TK_PP_INCLUDE:	return std::string{ "TK_PP_INCLUDE" };
+	case CoilCl::TK_PP_DEFINE:	return std::string{ "TK_PP_DEFINE" };
+	case CoilCl::TK_PP_UNDEF:	return std::string{ "TK_PP_UNDEF" };
+	case CoilCl::TK_PP_IF:		return std::string{ "TK_PP_IF" };
+	case CoilCl::TK_PP_IFDEF:	return std::string{ "TK_PP_IFDEF" };
+	case CoilCl::TK_PP_IFNDEF:	return std::string{ "TK_PP_IFNDEF" };
+	case CoilCl::TK_PP_ELSE:	return std::string{ "TK_PP_ELSE" };
+	case CoilCl::TK_PP_ELIF:	return std::string{ "TK_PP_ELIF" };
+	case CoilCl::TK_PP_ENDIF:	return std::string{ "TK_PP_ENDIF" };
+	case CoilCl::TK_PP_PRAGMA:	return std::string{ "TK_PP_PRAGMA" };
+	case CoilCl::TK_PP_LINE:	return std::string{ "TK_PP_LINE" };
+	case CoilCl::TK_PP_WARNING:	return std::string{ "TK_PP_WARNING" };
+	case CoilCl::TK_PP_ERROR:	return std::string{ "TK_PP_ERROR" };
+	
+	case CoilCl::TK___LINE__:	return std::string{ "TK___LINE__" };
+	case CoilCl::TK___FILE__:	return std::string{ "TK___FILE__" };
+
+	default:					return std::string{ "<UNKNOWN>" };
 	}
 }

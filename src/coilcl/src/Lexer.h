@@ -122,6 +122,8 @@ enum Token
 
 struct Keyword
 {
+	friend class Lexer;
+	
 	Keyword(Token token)
 		: m_token{ token }
 	{
@@ -132,9 +134,7 @@ struct Keyword
 	{
 	}
 
-	// Only the lexer is allowed to access the token keyword
-	friend class Lexer; //TODO: needed?
-
+	// Return token as string
 	std::string Print();
 
 private:
@@ -180,9 +180,10 @@ protected:
 	void Error(const std::string& errormsg);
 	int DefaultLexSet(char lexChar);
 
+	//TODO: Keyword is not inherited downwards
 	void AddKeyword(const std::string& keyword, Keyword token)
 	{
-		m_keywords.insert(std::make_pair(keyword, Keyword(token)));
+		m_keywords.insert(std::make_pair(keyword, Keyword{ token }));
 	}
 
 	template<typename _Ty>
