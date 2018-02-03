@@ -418,6 +418,7 @@ int Lexer::ReadString(int ndelim)
 	std::string _longstr;
 
 	Next();
+	//TODO:
 	/*if (IS_EOB()) {
 		return -1;
 	}*/

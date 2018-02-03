@@ -133,7 +133,8 @@ public:
 		default:
 			if (hasBegin) {
 				if (!data) {
-					//TODO: feed token back to generator
+					//TODO: Feed token back to generator
+					//TODO: This list is my no means complete
 					switch (token) {
 					case TK_DOT:
 						tempSource.push_back('.');
@@ -187,8 +188,7 @@ public:
 	{
 		auto result = g_definitionList.insert({ m_definitionName, "kaas" });
 		if (!result.second) {
-			std::cout << "def " << m_definitionName << " already exists " << std::endl;
-			return;
+			throw DirectiveException{ "define", "'" + m_definitionName + "' already defined" };
 		}
 
 		std::cout << "created def " << m_definitionName << std::endl;
@@ -211,6 +211,8 @@ public:
 		RequireData(data);
 		auto it = g_definitionList.find(ConvertDataAs<std::string>(data));
 		if (it == g_definitionList.end()) { return; }
+		
+		// Remove definition from global define list
 		g_definitionList.erase(it);
 	}
 };
@@ -220,6 +222,16 @@ class ConditionalStatement : public AbstractDirective
 {
 public:
 	void Dispence(int token, const void *data)
+	{
+		//
+	}
+
+	static void EncounterElse()
+	{
+		//
+	}
+
+	static void EncounterEndif()
 	{
 		//
 	}
@@ -262,6 +274,7 @@ public:
 			throw DirectiveException{ "error", "expected constant after 'error'" };
 		}
 
+		// Throw if message was fatal, this wil halt all operations
 		if (m_isFatal) {
 			throw DirectiveException{ ConvertDataAs<std::string>(data) };
 		}
@@ -304,12 +317,15 @@ void Preprocessor::MethodFactory(int token)
 		break;
 	case TK_PP_ELSE:
 		std::cout << "TK_PP_ELSE" << std::endl;
+		ConditionalStatement::EncounterElse();
 		break;
 	case TK_PP_ELIF:
 		std::cout << "TK_PP_ELIF" << std::endl;
+		m_method = MakeMethod<ConditionalStatement>();
 		break;
 	case TK_PP_ENDIF:
 		std::cout << "TK_PP_ENDIF" << std::endl;
+		ConditionalStatement::EncounterEndif();
 		break;
 	case TK_PP_PRAGMA:
 		std::cout << "TK_PP_PRAGMA" << std::endl;
