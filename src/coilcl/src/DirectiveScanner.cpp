@@ -93,8 +93,13 @@ int PreprocessorProxy<_Ty>::operator()(std::function<int(void)> lexerLexCall,
 		// preprocessors can hook onto any token or contained data they are allowed to change
 		// the token and/or data before returning back.
 		Cry::Algorithm::MatchOn<decltype(token)> pred{ token };
-		if (!onPreprocLine && !std::any_of(m_subscribedTokens.cbegin(), m_subscribedTokens.cend(), pred)) {
-			preprocessor.Propagate(token, lexerHasDataCall() ? lexerDataCall() : nullptr);
+		if (!onPreprocLine && (m_subscribedTokens.empty() || !std::any_of(m_subscribedTokens.cbegin(), m_subscribedTokens.cend(), pred))) {
+			auto data = lexerHasDataCall() ? lexerDataCall() : nullptr;
+			const void *_data = &data;
+			preprocessor.Propagate(token, &data);
+			if (&data != _data) {
+				puts("changed");
+			}
 			break;
 		}
 

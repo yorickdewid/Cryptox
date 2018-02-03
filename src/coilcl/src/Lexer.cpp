@@ -14,6 +14,8 @@
 #include <string>
 #include <iostream>
 
+using namespace CoilCl;
+
 constexpr char EndOfUnit = '\0';
 
 void Lexer::Error(const std::string& errormsg)
@@ -433,12 +435,12 @@ int Lexer::ReadString(int ndelim)
 		if (len > 1) { Error("constant too long"); }
 
 		auto _cvalue = _longstr[0];
-		m_data = CoilCl::Util::MakeValueObject<decltype(_cvalue)>(CoilCl::Typedef::BuiltinType::Specifier::CHAR, _cvalue);
+		m_data = Util::MakeValueObject<decltype(_cvalue)>(Typedef::BuiltinType::Specifier::CHAR, _cvalue);
 		return Token::TK_CONSTANT;
 	}
 
 	std::string _svalue = _longstr;
-	m_data = CoilCl::Util::MakeValueObject<decltype(_svalue)>(CoilCl::Typedef::BuiltinType::Specifier::CHAR, _svalue);
+	m_data = Util::MakeValueObject<decltype(_svalue)>(Typedef::BuiltinType::Specifier::CHAR, _svalue);
 	return Token::TK_CONSTANT;
 }
 
@@ -459,7 +461,7 @@ int Lexer::ReadID()
 
 	// Save string as identifier
 	auto _svalue = _longstr;
-	m_data = CoilCl::Util::MakeValueObject<decltype(_svalue)>(CoilCl::Typedef::BuiltinType::Specifier::CHAR, _svalue);
+	m_data = Util::MakeValueObject<decltype(_svalue)>(Typedef::BuiltinType::Specifier::CHAR, _svalue);
 	return Token::TK_IDENTIFIER;
 }
 
@@ -542,20 +544,20 @@ int Lexer::LexScalar()
 	case DOUBLE:
 	{
 		auto _fvalue = boost::lexical_cast<double>(_longstr);
-		m_data = CoilCl::Util::MakeValueObject<decltype(_fvalue)>(CoilCl::Typedef::BuiltinType::Specifier::DOUBLE, _fvalue);
+		m_data = Util::MakeValueObject<decltype(_fvalue)>(Typedef::BuiltinType::Specifier::DOUBLE, _fvalue);
 		return TK_CONSTANT;
 	}
 	case OCTAL:
 	case INT:
 	{
 		auto _nvalue = boost::lexical_cast<int>(_longstr);
-		m_data = CoilCl::Util::MakeValueObject<decltype(_nvalue)>(CoilCl::Typedef::BuiltinType::Specifier::INT, _nvalue);
+		m_data = Util::MakeValueObject<decltype(_nvalue)>(Typedef::BuiltinType::Specifier::INT, _nvalue);
 		return TK_CONSTANT;
 	}
 	case HEX:
 	{
 		int _nvalue = std::stoul(_longstr, nullptr, 16);
-		m_data = CoilCl::Util::MakeValueObject<decltype(_nvalue)>(CoilCl::Typedef::BuiltinType::Specifier::INT, _nvalue);
+		m_data = Util::MakeValueObject<decltype(_nvalue)>(Typedef::BuiltinType::Specifier::INT, _nvalue);
 		return TK_CONSTANT;
 	}
 	}
@@ -563,7 +565,7 @@ int Lexer::LexScalar()
 	return TK_HALT;
 }
 
-Lexer::Lexer(std::shared_ptr<CoilCl::Profile>& profile)
+Lexer::Lexer(std::shared_ptr<Profile>& profile)
 	: m_profile{ profile }
 {
 	// Register all tokenized keywords

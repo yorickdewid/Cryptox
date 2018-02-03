@@ -11,6 +11,8 @@
 #include "Lexer.h"
 #include "Preprocessor.h"
 
+#include <set>
+
 namespace CoilCl
 {
 
@@ -47,7 +49,7 @@ class PreprocessorProxy
 	_Ty preprocessor;
 
 protected:
-	std::vector<int> m_subscribedTokens;
+	std::set<int> m_subscribedTokens;
 
 public:
 	PreprocessorProxy(std::shared_ptr<Profile>&);
