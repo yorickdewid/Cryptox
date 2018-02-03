@@ -58,6 +58,7 @@ public:
 				   std::function<void*(void)>);
 
 	static_assert(std::is_base_of<Stage<_Ty>, _Ty>::value, "");
+	static_assert(std::is_base_of<TokenProcessor, _Ty>::value, "");
 };
 
 // The directive scanner is an extension on the default lexer

@@ -88,9 +88,13 @@ int PreprocessorProxy<_Ty>::operator()(std::function<int(void)> lexerLexCall,
 
 		skipNewline = false;
 
-		// Exit for all non preprocessor and non subscribed tokens
+		// Break for all non preprocessor and non subscribed tokens. Before returning back to
+		// the frontend caller process present the token and data to the preprocessor. Since
+		// preprocessors can hook onto any token or contained data they are allowed to change
+		// the token and/or data before returning back.
 		Cry::Algorithm::MatchOn<decltype(token)> pred{ token };
 		if (!onPreprocLine && !std::any_of(m_subscribedTokens.cbegin(), m_subscribedTokens.cend(), pred)) {
+			preprocessor.Propagate(token, lexerHasDataCall() ? lexerDataCall() : nullptr);
 			break;
 		}
 

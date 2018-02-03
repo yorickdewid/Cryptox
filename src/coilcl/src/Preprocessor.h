@@ -16,7 +16,27 @@ class AbstractDirective;
 
 } // namespace LocalMethod
 
-class Preprocessor : public Stage<Preprocessor>
+// TokenProcessor interface is an interface which all 
+// preprocessors must implement. The calling proxies
+// assume any preprocessor to have this interface, even
+// if the methods are a no-op.
+struct TokenProcessor
+{
+	// This method is called is called for every token
+	// and allows hooks to alter the token and data.
+	// Preprocessors may override this method to
+	// receive tokens.
+	virtual void Propagate(int token, void *data) {}
+
+	// At the heart of the processor is the dispatch
+	// method. Called on preprocessor directive and
+	// can therefore not be ignored.
+	virtual void Dispatch(int token, void *data) = 0;
+};
+
+class Preprocessor :
+	public Stage<Preprocessor>,
+	public TokenProcessor
 {
 public:
 	//using location = std::pair<size_t, size_t>;
