@@ -1,3 +1,11 @@
+// Copyright (c) 2017 Quenza Inc. All rights reserved.
+//
+// This file is part of the Cryptox project.
+//
+// Use of this source code is governed by a private license
+// that can be found in the LICENSE file. Content can not be
+// copied and/or distributed without the express of the author.
+
 #include "Preprocessor.h"
 #include "DirectiveScanner.h"
 
@@ -124,15 +132,19 @@ public:
 			break;
 		default:
 			if (hasBegin) {
-				std::string partialSource;
 				if (!data) {
-					partialSource = "1";//Tokenizer::Stringify(token);//TODO
-				}
-				else {
-					partialSource = ConvertDataAs<std::string>(data);
+					//TODO: feed token back to generator
+					switch (token) {
+					case TK_DOT:
+						tempSource.push_back('.');
+						break;
+					case TK_COMMA:
+						tempSource.push_back(',');
+					}
+					break;
 				}
 
-				tempSource.append(partialSource);
+				tempSource.append(ConvertDataAs<std::string>(data));
 				break;
 			}
 			throw DirectiveException{ "include", "expected constant or '<' after 'include'" };

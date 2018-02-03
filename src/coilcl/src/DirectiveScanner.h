@@ -45,8 +45,6 @@ enum PreprocessorToken
 
 struct DirectiveKeyword
 {
-	friend class Lexer;
-
 	DirectiveKeyword(PreprocessorToken token)
 		: m_token{ token }
 	{
@@ -80,6 +78,7 @@ public:
 				   std::function<bool(void)>,
 				   std::function<void*(void*)>);
 
+	// Preprocessor must follow certain conditions
 	static_assert(std::is_base_of<Stage<_Ty>, _Ty>::value, "");
 	static_assert(std::is_base_of<TokenProcessor, _Ty>::value, "");
 };
