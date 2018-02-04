@@ -88,14 +88,12 @@ int PreprocessorProxy<_Ty>::operator()(std::function<int(void)> lexerLexCall,
 
 		skipNewline = false;
 
-		// Break for all non preprocessor and non subscribed tokens. Before returning back to
-		// the frontend caller process present the token and data to the preprocessor. Since
-		// preprocessors can hook onto any token or contained data they are allowed to change
-		// the token and/or data before returning back. If the original data pointer differs
-		// from the returning pointer, feed the pointer back. The callback operation will
-		// swap the pointer wrapper in-place.
-		Cry::Algorithm::MatchOn<decltype(token)> pred{ token };
-		if (!onPreprocLine && (m_subscribedTokens.empty() || !std::any_of(m_subscribedTokens.cbegin(), m_subscribedTokens.cend(), pred))) {
+		// Before returning back to the frontend caller process or preprocessor token dispatched
+		// present the token and data to the hooked methods. Since preprocessors can hook onto
+		// any token or data they are allowed to change the token and/or data before continuing
+		// downwards. If the hooked methods reset the token, we skip all further operations and
+		// continue on with a new token.
+		{
 			void *data = lexerHasDataCall() ? lexerDataCall(nullptr) : nullptr;
 			TokenProcessor::DefaultTokenDataPair preprocPair{ token, data };
 			preprocessor.Propagate(preprocPair);
@@ -108,7 +106,11 @@ int PreprocessorProxy<_Ty>::operator()(std::function<int(void)> lexerLexCall,
 			if (preprocPair.HasData() && preprocPair.HasDataChanged()) {
 				lexerDataCall(data);
 			}
+		}
 
+		// Break for all non preprocessor and non subscribed tokens.
+		Cry::Algorithm::MatchOn<decltype(token)> pred{ token };
+		if (!onPreprocLine && (m_subscribedTokens.empty() || !std::any_of(m_subscribedTokens.cbegin(), m_subscribedTokens.cend(), pred))) {
 			break;
 		}
 

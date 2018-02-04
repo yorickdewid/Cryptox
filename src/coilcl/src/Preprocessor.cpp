@@ -54,7 +54,7 @@ public:
 		}
 
 		// Invoke any callback function that was registered for all tokens
-		std::for_each(m_subscriptionSet.cbegin(), m_subscriptionSet.cend(), [&tokenData](CallbackFunc cb)
+		std::for_each(m_subscriptionSet.begin(), m_subscriptionSet.end(), [&tokenData](CallbackFunc cb)
 		{
 			(cb)(tokenData);
 		});
@@ -260,8 +260,9 @@ private:
 	// throw an exception.
 	bool Eval(int expression)
 	{
-		//TODO: defined(<definition>)
+		//TODO: defined(<definition>), defined
 		//TODO: &&, ||
+		//TODO: >, <, ==, >=, <=, !=, <>, !
 		return false;
 	}
 
@@ -279,6 +280,12 @@ public:
 
 	static void OnPropagateCallback(Preprocessor::DefaultTokenDataPair& dataPair)
 	{
+		// If this token happens to be a conditional statement token, redirect
+		switch (dataPair.Token()) {
+		case TK_ELSE: { EncounterElse(); return; };
+		case TK_PP_ENDIF: { EncounterEndif(); return; }
+		}
+
 		if (evaluationResult.empty() || evaluationResult.top()) { return; }
 
 		// Resetting the token indicates the proxy must skip the token
@@ -301,9 +308,10 @@ public:
 		if (evaluationResult.empty()) {
 			throw 1; //TODO: or something else
 		}
-		
+
 		evaluationResult.pop();
 		if (evaluationResult.empty()) {
+			//TODO: causes SIGSEGV
 			g_tokenSubscription.UnsubscribeOnAll(&ConditionalStatement::OnPropagateCallback);
 		}
 	}
@@ -393,17 +401,9 @@ void Preprocessor::MethodFactory(int token)
 		std::cout << "TK_PP_IFNDEF" << std::endl;
 		m_method = MakeMethod<ConditionalStatement>();
 		break;
-	case TK_ELSE:
-		std::cout << "TK_ELSE" << std::endl;
-		ConditionalStatement::EncounterElse();
-		break;
 	case TK_PP_ELIF:
 		std::cout << "TK_PP_ELIF" << std::endl;
 		m_method = MakeMethod<ConditionalStatement>();
-		break;
-	case TK_PP_ENDIF:
-		std::cout << "TK_PP_ENDIF" << std::endl;
-		ConditionalStatement::EncounterEndif();
 		break;
 	case TK_PP_PRAGMA:
 		std::cout << "TK_PP_PRAGMA" << std::endl;
