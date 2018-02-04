@@ -256,10 +256,12 @@ private:
 	int tmpStash;
 
 	// Evaluate expression and return either true for positive
-	// results, or false for negative. An evaluation error will
+	// result, or false for negative. An evaluation error will
 	// throw an exception.
 	bool Eval(int expression)
 	{
+		//TODO: defined(<definition>)
+		//TODO: &&, ||
 		return false;
 	}
 
@@ -385,6 +387,10 @@ void Preprocessor::MethodFactory(int token)
 		break;
 	case TK_PP_IFDEF:
 		std::cout << "TK_PP_IFDEF" << std::endl;
+		m_method = MakeMethod<ConditionalStatement>();
+		break;
+	case TK_PP_IFNDEF:
+		std::cout << "TK_PP_IFNDEF" << std::endl;
 		m_method = MakeMethod<ConditionalStatement>();
 		break;
 	case TK_ELSE:

@@ -107,10 +107,8 @@ std::string CoilCl::DirectiveKeyword::Print()
 	case CoilCl::TK_PP_INCLUDE:	return std::string{ "TK_PP_INCLUDE" };
 	case CoilCl::TK_PP_DEFINE:	return std::string{ "TK_PP_DEFINE" };
 	case CoilCl::TK_PP_UNDEF:	return std::string{ "TK_PP_UNDEF" };
-	//case CoilCl::TK_PP_IF:		return std::string{ "TK_PP_IF" };
 	case CoilCl::TK_PP_IFDEF:	return std::string{ "TK_PP_IFDEF" };
 	case CoilCl::TK_PP_IFNDEF:	return std::string{ "TK_PP_IFNDEF" };
-	//case CoilCl::TK_PP_ELSE:	return std::string{ "TK_PP_ELSE" };
 	case CoilCl::TK_PP_ELIF:	return std::string{ "TK_PP_ELIF" };
 	case CoilCl::TK_PP_ENDIF:	return std::string{ "TK_PP_ENDIF" };
 	case CoilCl::TK_PP_PRAGMA:	return std::string{ "TK_PP_PRAGMA" };
