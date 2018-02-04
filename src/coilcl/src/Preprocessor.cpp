@@ -9,6 +9,7 @@
 #include "Preprocessor.h"
 #include "DirectiveScanner.h"
 
+#include <stack>
 #include <cassert>
 #include <iostream>
 
@@ -27,10 +28,21 @@ public:
 		m_subscriptionTokenSet.emplace(token, cb);
 	}
 
+	void UnsubscribeOnToken(int token, CallbackFunc cb)
+	{
+		//TODO
+	}
+
 	// Register any calls that trigger on each token
 	void SubscribeOnAll(CallbackFunc cb)
 	{
 		m_subscriptionSet.emplace(cb);
+	}
+
+	// Find the callback, and erase from set
+	void UnsubscribeOnAll(CallbackFunc cb)
+	{
+		m_subscriptionSet.erase(cb);
 	}
 
 	// Invoke all callbacks for this token
@@ -238,6 +250,9 @@ public:
 // Conditional compilation
 class ConditionalStatement : public AbstractDirective
 {
+	static std::stack<bool> evaluationResult;
+
+private:
 	int tmpStash;
 
 	// Evaluate expression and return either true for positive
@@ -256,26 +271,43 @@ public:
 
 	~ConditionalStatement()
 	{
-		if (!Eval(tmpStash)) {
-			g_tokenSubscription.SubscribeOnAll(&ConditionalStatement::OnPropagateCallback);
-		}
+		g_tokenSubscription.SubscribeOnAll(&ConditionalStatement::OnPropagateCallback);
+		evaluationResult.push(Eval(tmpStash));
 	}
 
 	static void OnPropagateCallback(Preprocessor::DefaultTokenDataPair& dataPair)
 	{
-		int t = dataPair.Token();
+		if (evaluationResult.empty() || evaluationResult.top()) { return; }
+
+		// Resetting the token indicates the proxy must skip the token
+		dataPair.ResetToken();
 	}
 
 	static void EncounterElse()
 	{
-		//
+		if (evaluationResult.empty()) {
+			throw 1; //TODO: or something else
+		}
+
+		// Inverse top most element
+		auto& top = evaluationResult.top();
+		top = !top;
 	}
 
 	static void EncounterEndif()
 	{
-		//
+		if (evaluationResult.empty()) {
+			throw 1; //TODO: or something else
+		}
+		
+		evaluationResult.pop();
+		if (evaluationResult.empty()) {
+			g_tokenSubscription.UnsubscribeOnAll(&ConditionalStatement::OnPropagateCallback);
+		}
 	}
 };
+
+std::stack<bool> ConditionalStatement::evaluationResult;
 
 // Parse compiler pragmas
 class CompilerDialect : public AbstractDirective
