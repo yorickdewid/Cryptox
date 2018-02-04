@@ -16,6 +16,7 @@
 using namespace CoilCl;
 
 static std::map<std::string, std::string> g_definitionList;
+static std::set<std::string> g_sourceGuardList;
 
 static class TokenSubscription
 {
@@ -199,6 +200,7 @@ public:
 		//TODO: add replacement tokens as secondary parameter
 	}
 
+	//TODO: replace token, instead of resolv expression, use constant, or whatever floats the boat
 	static void OnPropagateCallback(Preprocessor::DefaultTokenDataPair& dataPair)
 	{
 		using namespace Valuedef;
@@ -208,10 +210,9 @@ public:
 		auto it = g_definitionList.find(value->As<std::string>());
 		if (it == g_definitionList.end()) { return; }
 
-		// Create new value and swap data pointers
-		void *_data = new ValueObject<std::string>{ BuiltinType::Specifier::CHAR, it->second };
-		//std::swap(*data, _data);
-		dataPair.AssignData(_data);
+		// Create new value and assign new datapointer
+		void *newDataObject = new ValueObject<std::string>{ BuiltinType::Specifier::CHAR, it->second };
+		dataPair.AssignData(newDataObject);
 	}
 
 	~DefinitionTag()
@@ -322,10 +323,35 @@ std::stack<bool> ConditionalStatement::evaluationResult;
 // Parse compiler pragmas
 class CompilerDialect : public AbstractDirective
 {
+	const std::array<std::string, 1> trivialToken = { "once" };
+
+	bool HandleTrivialCase(const std::string& identifier)
+	{
+		if (!std::any_of(trivialToken.cbegin(), trivialToken.cend(), [&identifier](const std::string& tok)
+		{
+			return tok == identifier;
+		})) {
+			return false;
+		}
+
+		// In case of 'once' fetch the source name and add to source
+		// guard list. If the source was already on the guard list, return
+		// imediatly and skip this source.
+		if (identifier == trivialToken[0]) {
+			auto result = g_sourceGuardList.emplace("somefile.c");
+			if (result.second) {
+				//TODO: bail by exception
+			}
+		}
+
+		return true;
+	}
+
 public:
 	void Dispence(int token, const void *data)
 	{
-		//TODO: Catch any libs or onces
+		RequireToken(TK_IDENTIFIER, token);
+		if (HandleTrivialCase(ConvertDataAs<std::string>(data))) { return; }
 	}
 };
 
