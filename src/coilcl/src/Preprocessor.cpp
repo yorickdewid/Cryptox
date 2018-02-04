@@ -6,6 +6,8 @@
 // that can be found in the LICENSE file. Content can not be
 // copied and/or distributed without the express of the author.
 
+//TODO: Macro expansion
+
 #include "Preprocessor.h"
 #include "DirectiveScanner.h"
 
@@ -18,6 +20,23 @@ using namespace CoilCl;
 static std::map<std::string, std::string> g_definitionList;
 static std::set<std::string> g_sourceGuardList;
 
+namespace Cry
+{
+namespace Algorithm
+{
+
+template<typename _Ty, typename _KeyTy, class _Predicate>
+void ForEachRangeEqual(_Ty& set, _KeyTy& key, _Predicate p)
+{
+	auto& range = set.equal_range(key);
+	for (auto it = range.first; it != range.second; ++it) {//TODO: still an issue
+		p(it);
+	}
+}
+
+} // namespace Algorithm
+} // namespace Cry
+
 static class TokenSubscription
 {
 public:
@@ -29,9 +48,16 @@ public:
 		m_subscriptionTokenSet.emplace(token, cb);
 	}
 
+	// Find token and callback, then erase from set
 	void UnsubscribeOnToken(int token, CallbackFunc cb)
 	{
-		//TODO
+		Cry::Algorithm::ForEachRangeEqual(m_subscriptionTokenSet, token,
+										  [&cb, this](decltype(m_subscriptionTokenSet)::iterator it)
+		{
+			if (it->second == cb) {
+				m_subscriptionTokenSet.erase(it);
+			}
+		});
 	}
 
 	// Register any calls that trigger on each token
