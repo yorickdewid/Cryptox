@@ -18,22 +18,39 @@ static std::map<std::string, std::string> g_definitionList;
 
 static class TokenSubscription
 {
-	std::multimap<int, void(*)(void**)> m_sbscriptionSet;
+public:
+	using CallbackFunc = void(*)(Preprocessor::DefaultTokenDataPair&);
 
 public:
-	void SubscribeOnToken(int token, void(*cb)(void**))
+	void SubscribeOnToken(int token, CallbackFunc cb)
 	{
-		m_sbscriptionSet.emplace(token, cb);
+		m_subscriptionTokenSet.emplace(token, cb);
 	}
 
-	void CallAnyOf(int token, void **data)
+	// Register any calls that trigger on each token
+	void SubscribeOnAll(CallbackFunc cb)
 	{
-		auto range = m_sbscriptionSet.equal_range(token);
-		for (auto& it = range.first; it != range.second; ++it) {
-			std::cout << "Call " << it->first << std::endl;
-			(it->second)(data);
-		}
+		m_subscriptionSet.emplace(cb);
 	}
+
+	// Invoke all callbacks for this token
+	void CallAnyOf(Preprocessor::DefaultTokenDataPair& tokenData)
+	{
+		auto range = m_subscriptionTokenSet.equal_range(tokenData.Token());
+		for (auto& it = range.first; it != range.second; ++it) {
+			(it->second)(tokenData);
+		}
+
+		// Invoke any callback function that was registered for all tokens
+		std::for_each(m_subscriptionSet.cbegin(), m_subscriptionSet.cend(), [&tokenData](CallbackFunc cb)
+		{
+			(cb)(tokenData);
+		});
+	}
+
+private:
+	std::multimap<int, CallbackFunc> m_subscriptionTokenSet;
+	std::set<CallbackFunc> m_subscriptionSet;
 } g_tokenSubscription;
 
 Preprocessor::Preprocessor(std::shared_ptr<CoilCl::Profile>& profile)
@@ -170,18 +187,19 @@ public:
 		//TODO: add replacement tokens as secondary parameter
 	}
 
-	static void OnPropagateCallback(void **data)
+	static void OnPropagateCallback(Preprocessor::DefaultTokenDataPair& dataPair)
 	{
 		using namespace Valuedef;
 		using namespace Typedef;
 
-		auto value = static_cast<Valuedef::Value*>(*data);
+		auto value = static_cast<Valuedef::Value*>(dataPair.Data());
 		auto it = g_definitionList.find(value->As<std::string>());
 		if (it == g_definitionList.end()) { return; }
 
 		// Create new value and swap data pointers
 		void *_data = new ValueObject<std::string>{ BuiltinType::Specifier::CHAR, it->second };
-		std::swap(*data, _data);
+		//std::swap(*data, _data);
+		dataPair.AssignData(_data);
 	}
 
 	~DefinitionTag()
@@ -211,7 +229,7 @@ public:
 		RequireData(data);
 		auto it = g_definitionList.find(ConvertDataAs<std::string>(data));
 		if (it == g_definitionList.end()) { return; }
-		
+
 		// Remove definition from global define list
 		g_definitionList.erase(it);
 	}
@@ -220,10 +238,32 @@ public:
 // Conditional compilation
 class ConditionalStatement : public AbstractDirective
 {
+	int tmpStash;
+
+	// Evaluate expression and return either true for positive
+	// results, or false for negative. An evaluation error will
+	// throw an exception.
+	bool Eval(int expression)
+	{
+		return false;
+	}
+
 public:
 	void Dispence(int token, const void *data)
 	{
-		//
+		//TODO: Collect all tokens in the stash
+	}
+
+	~ConditionalStatement()
+	{
+		if (!Eval(tmpStash)) {
+			g_tokenSubscription.SubscribeOnAll(&ConditionalStatement::OnPropagateCallback);
+		}
+	}
+
+	static void OnPropagateCallback(Preprocessor::DefaultTokenDataPair& dataPair)
+	{
+		int t = dataPair.Token();
 	}
 
 	static void EncounterElse()
@@ -243,7 +283,7 @@ class CompilerDialect : public AbstractDirective
 public:
 	void Dispence(int token, const void *data)
 	{
-		//
+		//TODO: Catch any libs or onces
 	}
 };
 
@@ -307,16 +347,16 @@ void Preprocessor::MethodFactory(int token)
 		std::cout << "TK_PP_UNDEF" << std::endl;
 		m_method = MakeMethod<DefinitionUntag>();
 		break;
-	case TK_PP_IF:
-		std::cout << "TK_PP_IF" << std::endl;
+	case TK_IF:
+		std::cout << "TK_IF" << std::endl;
 		m_method = MakeMethod<ConditionalStatement>();
 		break;
 	case TK_PP_IFDEF:
 		std::cout << "TK_PP_IFDEF" << std::endl;
 		m_method = MakeMethod<ConditionalStatement>();
 		break;
-	case TK_PP_ELSE:
-		std::cout << "TK_PP_ELSE" << std::endl;
+	case TK_ELSE:
+		std::cout << "TK_ELSE" << std::endl;
 		ConditionalStatement::EncounterElse();
 		break;
 	case TK_PP_ELIF:
@@ -348,9 +388,11 @@ void Preprocessor::MethodFactory(int token)
 	}
 }
 
-void Preprocessor::Propagate(int token, void **data)
+void Preprocessor::Propagate(DefaultTokenDataPair& tokenData)
 {
-	g_tokenSubscription.CallAnyOf(token, data);
+	assert(tokenData.HasToken() && tokenData.HasData());
+
+	g_tokenSubscription.CallAnyOf(tokenData);
 }
 
 void Preprocessor::Dispatch(int token, const void *data)

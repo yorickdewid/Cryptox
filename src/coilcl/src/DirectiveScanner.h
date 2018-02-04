@@ -27,10 +27,10 @@ enum PreprocessorToken
 	TK_PP_INCLUDE = 100, // include
 	TK_PP_DEFINE = 101,  // define
 	TK_PP_UNDEF = 102,   // undef
-	TK_PP_IF = 103,      // if
+	//TK_PP_IF = 103,      // if
 	TK_PP_IFDEF = 104,   // ifdef
 	TK_PP_IFNDEF = 105,  // ifndef
-	TK_PP_ELSE = 106,    // else
+	//TK_PP_ELSE = 106,    // else
 	TK_PP_ELIF = 107,    // elif
 	TK_PP_ENDIF = 108,   // endif
 	TK_PP_PRAGMA = 109,  // pragma

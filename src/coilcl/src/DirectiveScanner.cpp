@@ -97,11 +97,18 @@ int PreprocessorProxy<_Ty>::operator()(std::function<int(void)> lexerLexCall,
 		Cry::Algorithm::MatchOn<decltype(token)> pred{ token };
 		if (!onPreprocLine && (m_subscribedTokens.empty() || !std::any_of(m_subscribedTokens.cbegin(), m_subscribedTokens.cend(), pred))) {
 			void *data = lexerHasDataCall() ? lexerDataCall(nullptr) : nullptr;
-			const void *_origData = data;
-			preprocessor.Propagate(token, &data);
-			if (data != _origData) {
+			TokenProcessor::DefaultTokenDataPair preprocPair{ token, data };
+			preprocessor.Propagate(preprocPair);
+
+			// If the preprocessor cleared the token, we must not return and request
+			// next token instead. This allows the preprocessor to skip over tokens.
+			if (!preprocPair.HasToken()) { continue; }
+
+			// If the token contains data, and the data pointer was changed, swap data
+			if (preprocPair.HasData() && preprocPair.HasDataChanged()) {
 				lexerDataCall(data);
 			}
+
 			break;
 		}
 
@@ -175,10 +182,10 @@ DirectiveScanner::DirectiveScanner(std::shared_ptr<Profile>& profile)
 	AddKeyword("include", TK_PP_INCLUDE);
 	AddKeyword("define", TK_PP_DEFINE);
 	AddKeyword("undef", TK_PP_UNDEF);
-	AddKeyword("if", TK_PP_IF);
+	//AddKeyword("if", TK_PP_IF);
 	AddKeyword("ifdef", TK_PP_IFDEF);
 	AddKeyword("ifndef", TK_PP_IFNDEF);
-	AddKeyword("else", TK_PP_ELSE);
+	//AddKeyword("else", TK_PP_ELSE);
 	AddKeyword("elif", TK_PP_ELIF);
 	AddKeyword("endif", TK_PP_ENDIF);
 	AddKeyword("pragma", TK_PP_PRAGMA);

@@ -14,6 +14,8 @@
 #include <map>
 #include <functional>
 
+#include <boost/optional.hpp>
+
 namespace CoilCl
 {
 
@@ -30,11 +32,47 @@ class AbstractDirective;
 // if the methods are a no-op.
 struct TokenProcessor
 {
+	template<typename _TokenTy, typename _DataTy>
+	struct TokenDataPair
+	{
+		using token_type = _TokenTy;
+		using data_type = _DataTy;
+
+		constexpr TokenDataPair(_TokenTy token, _DataTy data)
+			: m_token{ token }
+			, m_data{ data }
+		{
+		}
+
+		inline bool HasToken() const { return m_token.is_initialized(); }
+		inline bool HasData() const { return m_data.is_initialized(); }
+		inline int HasDataChanged() const { return changeCounter; }
+
+		inline void ResetToken() { m_token = boost::optional<_TokenTy>{}; }
+		inline void ResetData() { m_data = boost::optional<_DataTy>{}; }
+
+		void AssignData(data_type& data)
+		{
+			m_data = data;
+			++changeCounter;
+		}
+
+		const token_type& Token() const { return m_token.get(); }
+		const data_type& Data() const { return m_data.get(); }
+
+	private:
+		int changeCounter = 0;
+		boost::optional<_TokenTy> m_token;
+		boost::optional<_DataTy> m_data;
+	};
+
+	using DefaultTokenDataPair = TokenDataPair<int, void*>;
+
 	// This method is called is called for every token
 	// and allows hooks to alter the token and data.
 	// Preprocessors may override this method to
 	// receive tokens.
-	virtual void Propagate(int token, void **data) {}
+	virtual void Propagate(DefaultTokenDataPair&) {}
 
 	// At the heart of the processor is the dispatch
 	// method. Called on preprocessor directive and
@@ -47,28 +85,10 @@ struct TokenProcessor
 	virtual void EndOfLine() {};
 };
 
-class Preprocessor :
-	public Stage<Preprocessor>,
-	public TokenProcessor
+class Preprocessor
+	: public Stage<Preprocessor>
+	, public TokenProcessor
 {
-public:
-	//using location = std::pair<size_t, size_t>;
-
-	/*enum Option
-	{
-		PARSE_INCLUDE = 0x1,
-		PARSE_DEFINE = 0x2,
-		PARSE_MACRO = 0x4,
-		PARSE_PRAGMA = 0x8,
-		PARSE_ALL = 0xff,
-	};
-
-	enum class TokenDesignator
-	{
-		TOKEN_ERASE,
-		TOKEN_REPLACE,
-	};*/
-
 public:
 	Preprocessor(std::shared_ptr<CoilCl::Profile>&);
 
@@ -76,7 +96,7 @@ public:
 
 	Preprocessor& CheckCompatibility();
 
-	virtual void Propagate(int token, void **data) override;
+	virtual void Propagate(DefaultTokenDataPair& tokeData) override;
 	virtual void Dispatch(int token, const void *data);
 	virtual void EndOfLine() override;
 
