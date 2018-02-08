@@ -19,25 +19,31 @@ template<typename _Ty, typename _Dx = std::default_delete<_Ty>>
 class IntrusiveScopedPtr
 {
 	std::unique_ptr<_Ty, _Dx> m_ptr;
-	int copiesFromThis = 0;
 
-	//static int totalRoamingObjects;
+#if (defined _DEBUG || defined DEBUG)
+	int copiesFromThis = 0;
+#endif
 
 	using element_type = _Ty;
 	using deleter_type = _Dx;
 	using _Myty = IntrusiveScopedPtr<_Ty, _Dx>;
+
+	template<typename _GTy>
+	using _CtorGuard = std::enable_if<!std::is_reference<_GTy>::value && std::is_copy_constructible<_GTy>::value>;
 
 public:
 	constexpr IntrusiveScopedPtr() noexcept = default;
 	constexpr IntrusiveScopedPtr(nullptr_t) noexcept {};
 
 	// Default initializer
+	template<typename = typename _CtorGuard<_Ty>::type>
 	IntrusiveScopedPtr(_Ty *ptr)
 		: m_ptr{ ptr }
 	{
 	}
 
 	// Only allow special operator function move
+	template<typename = typename _CtorGuard<_Ty>::type>
 	IntrusiveScopedPtr(const IntrusiveScopedPtr&) = delete;
 	IntrusiveScopedPtr(IntrusiveScopedPtr&& other)
 	{
@@ -81,16 +87,16 @@ public:
 	{
 		++copiesFromThis;
 
-		_Ty *_ptr = m_ptr.get();
-
-		return _Myty( _Ty(), _Dx );
+		return _Myty{ new _Ty{ *m_ptr } };
 	}
 
 	void reset(_Ty ptr = _Ty()) noexcept { m_ptr.reset(ptr); }
 
-	// Deep copy counters
+#if (defined _DEBUG || defined DEBUG)
+	// Deep copy counters, debug only
 	bool has_copies() const noexcept { return copiesFromThis > 0; }
 	int count_copies() const noexcept { return copiesFromThis; }
+#endif
 };
 
 namespace Cry
