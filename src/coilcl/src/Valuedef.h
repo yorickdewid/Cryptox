@@ -62,7 +62,7 @@ public:
 	{
 	}
 
-	// Value class is abstract
+	// Value class is abstract and must be explicity defined
 	virtual ~Value() = default;
 
 	// Type specifier inputs
@@ -90,7 +90,7 @@ private:
 	std::shared_ptr<Typedef::TypedefBase> m_objectType;
 };
 
-// If string was required, try cast any to vector and string
+// If string was required, try cast 'boosst any' to vector and string
 template<>
 inline auto Value::As() const -> std::string
 {
@@ -139,7 +139,7 @@ class ValueObject<_Ty,
 	using _Myty = ValueObject<_Ty>;
 
 public:
-	explicit ValueObject(Typedef::BuiltinType&& type, _Ty value)
+	ValueObject(Typedef::BuiltinType&& type, _Ty value)
 		: Value{ std::make_shared<Typedef::BuiltinType>(type) }
 	{
 		using container_type = typename std::remove_reference<decltype(value[0])>::type;
@@ -199,10 +199,19 @@ public:
 namespace Util
 {
 
+using namespace ::CoilCl;
+
 template<typename _NativTy, typename _ValTy>
 inline auto MakeValueObject(Typedef::BuiltinType&& type, _ValTy value)
 {
-	return std::make_unique<CoilCl::Valuedef::ValueObject<_NativTy>>(std::move(type), value);
+	return std::make_unique<Valuedef::ValueObject<_NativTy>>(std::move(type), value);
+}
+
+inline auto CopyValueObject(const Valuedef::Value *object)
+{
+	assert(object);
+
+	return nullptr;
 }
 
 } // namespace Util

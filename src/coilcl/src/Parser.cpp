@@ -2504,7 +2504,7 @@ void Parser::TranslationUnit()
 // Run the parser. If the translation unit is done after
 // the first token, we either processed an empty file or
 // a source file with only comments and zero tokens. When this
-// occurs, return without any ast root tree
+// occurs, return without any ast root tree.
 Parser& Parser::Execute()
 {
 	NextToken();

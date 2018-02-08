@@ -10,6 +10,7 @@
 
 #include "Preprocessor.h"
 #include "DirectiveScanner.h"
+#include "IntrusiveScopedPtr.h"
 
 #include <stack>
 #include <cassert>
@@ -213,17 +214,30 @@ public:
 class DefinitionTag : public AbstractDirective
 {
 	std::string m_definitionName;
+	std::vector<Preprocessor::TokenDataPair<int, const void*>> m_definitionBody;
 
 public:
 	void Dispence(int token, const void *data)
 	{
+		// First item must be the definition name
 		if (m_definitionName.empty()) {
 			RequireData(data);
 			m_definitionName = ConvertDataAs<std::string>(data);
 			return;
 		}
 
-		//TODO: add replacement tokens as secondary parameter
+		auto ptr = Cry::MakeIntrusiveScoped<int>();
+		auto ptr2 = ptr.deep_copy();
+		//myInt.get();
+
+		//TODO: Add replacement tokens as secondary parameter
+		//TODO: Make data intrusive scoped pointer
+		auto origValue = static_cast<const Valuedef::Value*>(data);
+
+		//auto val = new Valuedef::ValueObject{ *origVal };
+		//auto val = Util::CopyValueObject(origValue);
+		
+		//m_definitionBody.push_back(Preprocessor::TokenDataPair<int, const void*>{token, origValue});
 	}
 
 	//TODO: replace token, instead of resolv expression, use constant, or whatever floats the boat
@@ -243,8 +257,15 @@ public:
 
 	~DefinitionTag()
 	{
-		auto result = g_definitionList.insert({ m_definitionName, "kaas" });
+		// Definitions without body are acceptable, in that case push ...
+		if (m_definitionBody.empty()) {
+			//TODO: Do something ...
+		}
+		
+		//TODO: Move m_definitionBody into global list
+		const auto& result = g_definitionList.insert({ m_definitionName, "kaas" });
 		if (!result.second) {
+			//TODO: May not be a great move to throw in dtor
 			throw DirectiveException{ "define", "'" + m_definitionName + "' already defined" };
 		}
 

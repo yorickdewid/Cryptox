@@ -28,15 +28,16 @@ template<typename _Ty, typename _Alloc>
 struct is_stack<std::stack<_Ty, _Alloc>> : public std::true_type {};
 
 template<typename _Ty, class = typename std::enable_if<is_stack<_Ty>::value>::type>
-void ClearStack(_Ty& c)
+inline void ClearStack(_Ty& c)
 {
 	while (!c.empty()) { c.pop(); }
 }
 
+//TODO: replace token & value with tokenDataPair
 class TokenState
 {
 	Token m_currentToken;
-	std::shared_ptr<Value> m_currentData = nullptr;
+	std::shared_ptr<Value> m_currentData;
 	int m_line;
 	int m_column;
 
@@ -68,8 +69,10 @@ public:
 	TokenState(const TokenState& other) = default;
 	TokenState(TokenState&& other) = default;
 
-	inline bool HasData() const { return !!m_currentData; }
+	// Test if current token state contains data
+	inline bool HasData() const { return (!!m_currentData); }
 
+	// Fetch data from current token state
 	inline const std::shared_ptr<Value>& FetchData() { return m_currentData; }
 
 	// Fetch token from current token state
@@ -81,6 +84,7 @@ public:
 	// Fetch source column from current token state
 	inline auto FetchColumn() const { return m_column; }
 
+	// Fetch source location as pair
 	inline auto FetchLocation() const { return std::make_pair(m_line, m_column); }
 };
 

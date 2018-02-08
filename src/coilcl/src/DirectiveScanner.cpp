@@ -161,9 +161,8 @@ int DirectiveScanner::LexWrapper()
 void *DirectiveScanner::DataWrapper(void *data)
 {
 	// If data pointer was provided, swap the internal data structure
-	if (data) {
-		m_data.reset(static_cast<Valuedef::Value*>(data));
-	}
+	// this will free the last pointer and reassign a new object.
+	if (data) { m_data.reset(static_cast<Valuedef::Value*>(data)); }
 
 	// Steal the poiner from unique pointer
 	return static_cast<void *>(m_data.get());
@@ -184,10 +183,8 @@ DirectiveScanner::DirectiveScanner(std::shared_ptr<Profile>& profile)
 	AddKeyword("include", TK_PP_INCLUDE);
 	AddKeyword("define", TK_PP_DEFINE);
 	AddKeyword("undef", TK_PP_UNDEF);
-	//AddKeyword("if", TK_PP_IF);
 	AddKeyword("ifdef", TK_PP_IFDEF);
 	AddKeyword("ifndef", TK_PP_IFNDEF);
-	//AddKeyword("else", TK_PP_ELSE);
 	AddKeyword("elif", TK_PP_ELIF);
 	AddKeyword("endif", TK_PP_ENDIF);
 	AddKeyword("pragma", TK_PP_PRAGMA);
