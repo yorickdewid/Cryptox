@@ -10,6 +10,9 @@
 
 #include <memory>
 
+namespace CoilCl
+{
+
 // The instrusive scoped pointer holds an unique pointer to the
 // object. The instrusive scoped pointer cannot be copied, but
 // the object it points to can. This deep copy will call the 
@@ -31,6 +34,11 @@ class IntrusiveScopedPtr
 	template<typename _GTy>
 	using _CtorGuard = std::enable_if<!std::is_reference<_GTy>::value && std::is_copy_constructible<_GTy>::value>;
 
+	_Ty *ExplicitCopy()
+	{
+		return new _Ty{ *m_ptr };
+	}
+
 public:
 	constexpr IntrusiveScopedPtr() noexcept = default;
 	constexpr IntrusiveScopedPtr(nullptr_t) noexcept {};
@@ -50,6 +58,13 @@ public:
 		m_ptr = std::move(other.m_ptr);
 	}
 
+	//
+	template<typename _OrigTy, typename = typename _CtorGuard<_Ty>::type>
+	IntrusiveScopedPtr(std::unique_ptr<_OrigTy>&& ptr)
+		: m_ptr{ ptr.release() }
+	{
+	}
+
 	// Forward default pointer operations
 	auto get() const noexcept { return m_ptr.get(); }
 	auto release() const noexcept { return m_ptr.release(); }
@@ -64,7 +79,7 @@ public:
 		return (*this);
 	}
 
-	IntrusiveScopedPtr& operator=(const IntrusiveScopedPtr&) = delete;
+	IntrusiveScopedPtr& operator=(const IntrusiveScopedPtr&) noexcept = delete;
 	IntrusiveScopedPtr& operator=(IntrusiveScopedPtr&& other) noexcept
 	{
 		if (this != std::addressof(other)) {
@@ -76,7 +91,7 @@ public:
 
 	explicit operator bool() const noexcept
 	{
-		return m_ptr.operator bool();
+		return m_ptr.(operator bool());
 	}
 
 	// Deep copy will copy the original data object and return a
@@ -87,7 +102,12 @@ public:
 	{
 		++copiesFromThis;
 
-		return _Myty{ new _Ty{ *m_ptr } };
+		return _Myty{ ExplicitCopy() };
+	}
+
+	std::unique_ptr<_Ty> get_unique()
+	{
+		return std::make_unique<_Ty>(ExplicitCopy());
 	}
 
 	void reset(_Ty ptr = _Ty()) noexcept { m_ptr.reset(ptr); }
@@ -99,10 +119,14 @@ public:
 #endif
 };
 
+} // namespace CoilCl
+
 namespace Cry
 {
 
-template<typename _Ty, typename... _ArgsTy>
+using namespace CoilCl;
+
+template<typename _Ty, typename... _ArgsTy, typename = typename std::enable_if<!std::is_array<_Ty>::value>::type>
 inline IntrusiveScopedPtr<_Ty> MakeIntrusiveScoped(_ArgsTy&&... _Args)
 {
 	return (IntrusiveScopedPtr<_Ty>(new _Ty{ std::forward<_ArgsTy>(_Args)... }));
