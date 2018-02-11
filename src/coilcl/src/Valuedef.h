@@ -9,6 +9,7 @@
 #pragma once
 
 #include "Typedef.h"
+#include "Cry/PolyConstructTrait.h"
 
 #include <boost/any.hpp>
 #include <boost/lexical_cast.hpp>
@@ -20,7 +21,7 @@ namespace CoilCl
 namespace Valuedef
 {
 
-class Value
+class Value : public Cry::PolyConstruct
 {
 public:
 	using variant_type = boost::any;
@@ -63,7 +64,7 @@ public:
 	}
 
 	// Value class is abstract and must be explicity defined
-	virtual ~Value() = default;
+	virtual ~Value() = default; // = 0;
 
 	// Type specifier inputs
 	inline void SetInline() { m_isInline = true; }
@@ -117,6 +118,15 @@ public:
 	{
 	}
 
+	// Should never happen, but must implement contract
+	_Myty *Construct() const { return nullptr; }
+
+	// Copy self into new value object
+	_Myty *Copy() const
+	{
+		return new _Myty{ (*this) };
+	}
+
 	virtual const std::string Print() const override
 	{
 		return boost::lexical_cast<std::string>(boost::any_cast<_Ty>(m_value));
@@ -157,6 +167,15 @@ public:
 		m_array._0terminator = true;
 	}
 
+	// Should never happen, but must implement contract
+	_Myty *Construct() const { return nullptr; }
+
+	// Copy self into new value object
+	_Myty *Copy() const
+	{
+		return new _Myty{ (*this) };
+	}
+
 	virtual const std::string Print() const override
 	{
 		return Value::As<std::string>();
@@ -180,6 +199,15 @@ public:
 		: Value{ Util::MakeBuiltinType(Specifier::VOID) }
 	{
 		m_isVoid = true;
+	}
+
+	// Should never happen, but must implement contract
+	_Myty *Construct() const { return nullptr; }
+
+	// Copy self into new value object
+	_Myty *Copy() const
+	{
+		return new _Myty{ (*this) };
 	}
 
 	virtual const std::string Print() const override
