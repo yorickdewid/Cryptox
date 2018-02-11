@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include "Cry/PolyConstructTrait.h"
+
 #include <memory>
 
 namespace CoilCl
@@ -23,6 +25,8 @@ class IntrusiveScopedPtr
 {
 	std::unique_ptr<_Ty, _Dx> m_ptr;
 
+	using pointer_type = std::unique_ptr<_Ty, _Dx>;
+
 #if (defined _DEBUG || defined DEBUG)
 	int copiesFromThis = 0;
 #endif
@@ -32,35 +36,70 @@ class IntrusiveScopedPtr
 	using _Myty = IntrusiveScopedPtr<_Ty, _Dx>;
 
 	template<typename _GTy>
-	using _CtorGuard = std::enable_if<!std::is_reference<_GTy>::value && std::is_copy_constructible<_GTy>::value>;
+	using _CtorCpyGuard = std::enable_if<!std::is_reference<_GTy>::value
+		&& (std::is_copy_constructible<_Ty>::value || Cry::IsPolyconstructable<_Ty>::value)>;
 
+	template<typename _GTy>
+	using _CtorNCpyGuard = std::enable_if<!std::is_reference<_GTy>::value
+		&& (!std::is_copy_constructible<_GTy>::value && !Cry::IsPolyconstructable<_Ty>::value)>;
+
+	template<bool b>
+	struct CopySelector
+	{
+		// Default object copy
+		static _Ty *Impl(pointer_type& ptr)
+		{
+			if (!ptr) { return nullptr; }
+			return new _Ty{ (*ptr) };
+
+			static_assert(std::is_copy_constructible<_Ty>::value, "");
+		}
+	};
+
+	template<>
+	struct CopySelector<true>
+	{
+		// Copy via poly constructor contract
+		static _Ty *Impl(pointer_type& ptr)
+		{
+			return dynamic_cast<_Ty*>(ptr->Copy());
+		}
+	};
+
+	// Trait algorithm selector
 	_Ty *ExplicitCopy()
 	{
-		return new _Ty{ *m_ptr };
+		return CopySelector<Cry::IsPolyconstructable<_Ty>::value>::Impl(m_ptr);
 	}
 
 public:
 	constexpr IntrusiveScopedPtr() noexcept = default;
 	constexpr IntrusiveScopedPtr(nullptr_t) noexcept {};
 
-	// Default initializer
-	template<typename = typename _CtorGuard<_Ty>::type>
+	// Default initializer, passed pointer is freed upon scope exit
+	template<typename = typename _CtorCpyGuard<_Ty>::type>
 	IntrusiveScopedPtr(_Ty *ptr)
 		: m_ptr{ ptr }
 	{
 	}
 
 	// Only allow special operator function move
-	template<typename = typename _CtorGuard<_Ty>::type>
 	IntrusiveScopedPtr(const IntrusiveScopedPtr&) = delete;
 	IntrusiveScopedPtr(IntrusiveScopedPtr&& other)
 	{
 		m_ptr = std::move(other.m_ptr);
 	}
 
-	//
-	template<typename _OrigTy, typename = typename _CtorGuard<_Ty>::type>
+	// Qualified unique pointers that can be copied are eligible
+	template<typename _OrigTy, typename = typename _CtorCpyGuard<_Ty>::type>
 	IntrusiveScopedPtr(std::unique_ptr<_OrigTy>&& ptr)
+		: m_ptr{ ptr.release() }
+	{
+	}
+
+	// Qualified unique pointers that cannot be copied supply a copy predicate
+	template<typename _OrigTy, typename _CpyPredTy, typename = typename _CtorNCpyGuard<_Ty>::type>
+	IntrusiveScopedPtr(std::unique_ptr<_OrigTy>&& ptr, _CpyPredTy pred)
 		: m_ptr{ ptr.release() }
 	{
 	}
@@ -100,9 +139,11 @@ public:
 	// copied, the instrusive scoped pointers share no object lifetime.
 	_Myty deep_copy()
 	{
+#if (defined _DEBUG || defined DEBUG)
 		++copiesFromThis;
+#endif
 
-		return _Myty{ ExplicitCopy() };
+		return _Myty(ExplicitCopy());
 	}
 
 	std::unique_ptr<_Ty> get_unique()
@@ -110,7 +151,7 @@ public:
 		return std::make_unique<_Ty>(ExplicitCopy());
 	}
 
-	void reset(_Ty ptr = _Ty()) noexcept { m_ptr.reset(ptr); }
+	void reset(_Ty* ptr) noexcept { m_ptr.reset(ptr); }
 
 #if (defined _DEBUG || defined DEBUG)
 	// Deep copy counters, debug only

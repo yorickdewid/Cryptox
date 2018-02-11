@@ -202,7 +202,7 @@ private:
 
 protected:
 	std::shared_ptr<CoilCl::Profile>& m_profile;
-	std::unique_ptr<CoilCl::Valuedef::Value> m_data = nullptr;
+	std::unique_ptr<CoilCl::Valuedef::Value> m_data;
 	char m_currentChar;
 	int m_currentColumn = 0;
 	int m_currentToken;
