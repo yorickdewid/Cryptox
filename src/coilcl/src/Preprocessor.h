@@ -32,6 +32,9 @@ class AbstractDirective;
 // if the methods are a no-op.
 struct TokenProcessor
 {
+	using TokenType = int;
+	using DataType = void *;
+
 	template<typename _TokenTy, typename _DataTy>
 	struct TokenDataPair
 	{
@@ -46,7 +49,7 @@ struct TokenProcessor
 
 		inline bool HasToken() const { return m_token.is_initialized(); }
 		inline bool HasData() const { return m_data.is_initialized(); }
-		inline bool HasDataChanged() const { return changeCounter; }
+		inline bool HasDataChanged() const noexcept { return changeCounter; }
 
 		inline void ResetToken() { m_token = boost::optional<_TokenTy>{}; }
 		inline void ResetData() { m_data = boost::optional<_DataTy>{}; }
@@ -68,7 +71,7 @@ struct TokenProcessor
 		boost::optional<_DataTy> m_data;
 	};
 
-	using DefaultTokenDataPair = TokenDataPair<int, void*>;
+	using DefaultTokenDataPair = TokenDataPair<TokenType, DataType>;
 
 	// This method is called is called for every token
 	// and allows hooks to alter the token and data.
@@ -79,7 +82,7 @@ struct TokenProcessor
 	// At the heart of the processor is the dispatch
 	// method. Called on preprocessor directive and
 	// can therefore not be ignored.
-	virtual void Dispatch(int token, const void *data) = 0;
+	virtual void Dispatch(TokenType token, const DataType data) = 0;
 
 	// When end of preprocessor directive line is
 	// reached, this method is called to signal end
@@ -87,6 +90,8 @@ struct TokenProcessor
 	virtual void EndOfLine() {};
 };
 
+// The preprocessor is a separate stage and must therefore
+// inherit from the stage base.
 class Preprocessor
 	: public Stage<Preprocessor>
 	, public TokenProcessor
@@ -99,15 +104,15 @@ public:
 	Preprocessor& CheckCompatibility();
 
 	virtual void Propagate(DefaultTokenDataPair& tokeData) override;
-	virtual void Dispatch(int token, const void *data);
+	virtual void Dispatch(TokenType token, const DataType data);
 	virtual void EndOfLine() override;
 
 private:
-	void MethodFactory(int token);
+	void MethodFactory(TokenType);
 
 private:
 	std::map<std::string, std::string> m_definitionList;
-	std::shared_ptr<LocalMethod::AbstractDirective> m_method = nullptr;
+	std::shared_ptr<LocalMethod::AbstractDirective> m_method;
 
 private:
 	std::shared_ptr<Profile> m_profile;

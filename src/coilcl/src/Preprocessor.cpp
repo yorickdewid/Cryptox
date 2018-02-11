@@ -214,7 +214,7 @@ public:
 class DefinitionTag : public AbstractDirective
 {
 	std::string m_definitionName;
-	std::vector<Preprocessor::TokenDataPair<int, const void*>> m_definitionBody;
+	std::vector<Preprocessor::TokenDataPair<int, const Valuedef::Value*>> m_definitionBody;
 
 public:
 	void Dispence(int token, const void *data)
@@ -230,10 +230,7 @@ public:
 		//TODO: Make data intrusive scoped pointer
 		auto origValue = static_cast<const Valuedef::Value*>(data);
 
-		//auto val = new Valuedef::ValueObject{ *origVal };
-		//auto val = Util::CopyValueObject(origValue);
-
-		//m_definitionBody.push_back(Preprocessor::TokenDataPair<int, const void*>{token, origValue});
+		m_definitionBody.push_back(Preprocessor::TokenDataPair<int, const Valuedef::Value*>{token, origValue});
 	}
 
 	//TODO: replace token, instead of resolv expression, use constant, or whatever floats the boat
@@ -441,7 +438,7 @@ auto MakeMethod(_ArgsTy... args) -> std::shared_ptr<_Ty>
 	return std::make_shared<_Ty>(std::forward<_ArgsTy>(args)...);
 }
 
-void Preprocessor::MethodFactory(int token)
+void Preprocessor::MethodFactory(TokenType token)
 {
 	using namespace ::LocalMethod;
 
@@ -502,7 +499,7 @@ void Preprocessor::Propagate(DefaultTokenDataPair& tokenData)
 	g_tokenSubscription.CallAnyOf(tokenData);
 }
 
-void Preprocessor::Dispatch(int token, const void *data)
+void Preprocessor::Dispatch(TokenType token, const DataType data)
 {
 	// Call the method factory and store the next method as continuation
 	if (!m_method) {
