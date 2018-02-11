@@ -174,6 +174,9 @@ void Parser::NextToken()
 		int itok = lex->Lex();
 		auto location = std::make_pair(lex->TokenLine(), lex->TokenColumn());
 
+		// Tokenizer will return a pointer to the value data block and the parser
+		// must take care of the freeing processing once the data is done with.
+		// Wrap the data pointer in a shared ptr to handle object lifetime.
 		std::shared_ptr<Value> value;
 		if (lex->HasData()) {
 			value.reset(static_cast<Value*>(lex->Data()));

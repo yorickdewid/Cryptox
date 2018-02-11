@@ -106,7 +106,7 @@ public:
 
 	// Forward default pointer operations
 	auto get() const noexcept { return m_ptr.get(); }
-	auto release() const noexcept { return m_ptr.release(); }
+	auto release() noexcept { return m_ptr.release(); }
 
 	// Forward default access operators
 	auto operator->() { return (*m_ptr); }
@@ -146,9 +146,10 @@ public:
 		return _Myty(ExplicitCopy());
 	}
 
+	// Return copy as unique pointer
 	std::unique_ptr<_Ty> get_unique()
 	{
-		return std::make_unique<_Ty>(ExplicitCopy());
+		return std::unique_ptr<_Ty>{ ExplicitCopy() };
 	}
 
 	void reset(_Ty* ptr) noexcept { m_ptr.reset(ptr); }

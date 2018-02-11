@@ -95,7 +95,7 @@ public:
 
 private:
 	int LexWrapper();
-	void *DataWrapper(void *data);
+	void *DataWrapper(void *data = nullptr);
 
 	int PreprocessLexSet(char lexChar);
 };

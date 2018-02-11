@@ -26,14 +26,14 @@ namespace Cry
 namespace Algorithm
 {
 
-template<typename _Ty, typename _KeyTy, class _Predicate>
-void ForEachRangeEqual(_Ty& set, _KeyTy& key, _Predicate p)
-{
-	auto& range = set.equal_range(key);
-	for (auto it = range.first; it != range.second; ++it) {//TODO: still an issue
-		p(it);
-	}
-}
+//template<typename _Ty, typename _KeyTy, class _Predicate>
+//void ForEachRangeEqual(_Ty& set, _KeyTy& key, _Predicate p)
+//{
+//	auto& range = set.equal_range(key);
+//	for (auto it = range.first; it != range.second; ++it) {//TODO: still an issue
+//		p(it);
+//	}
+//}
 
 } // namespace Algorithm
 } // namespace Cry
@@ -52,13 +52,13 @@ public:
 	// Find token and callback, then erase from set
 	void UnsubscribeOnToken(int token, CallbackFunc cb)
 	{
-		Cry::Algorithm::ForEachRangeEqual(m_subscriptionTokenSet, token,
+		/*Cry::Algorithm::ForEachRangeEqual(m_subscriptionTokenSet, token,
 										  [&cb, this](decltype(m_subscriptionTokenSet)::iterator it)
 		{
 			if (it->second == cb) {
 				m_subscriptionTokenSet.erase(it);
 			}
-		});
+		});*/
 	}
 
 	// Register any calls that trigger on each token
@@ -209,7 +209,7 @@ public:
 		}
 	}
 };
-
+#include "Cry/PolyConstructTrait.h"
 // Definition and expansion
 class DefinitionTag : public AbstractDirective
 {
@@ -226,17 +226,13 @@ public:
 			return;
 		}
 
-		auto ptr = Cry::MakeIntrusiveScoped<int>();
-		auto ptr2 = ptr.deep_copy();
-		//myInt.get();
-
 		//TODO: Add replacement tokens as secondary parameter
 		//TODO: Make data intrusive scoped pointer
 		auto origValue = static_cast<const Valuedef::Value*>(data);
 
 		//auto val = new Valuedef::ValueObject{ *origVal };
 		//auto val = Util::CopyValueObject(origValue);
-		
+
 		//m_definitionBody.push_back(Preprocessor::TokenDataPair<int, const void*>{token, origValue});
 	}
 
@@ -261,7 +257,7 @@ public:
 		if (m_definitionBody.empty()) {
 			//TODO: Do something ...
 		}
-		
+
 		//TODO: Move m_definitionBody into global list
 		const auto& result = g_definitionList.insert({ m_definitionName, "kaas" });
 		if (!result.second) {

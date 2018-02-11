@@ -88,13 +88,15 @@ int PreprocessorProxy<_Ty>::operator()(std::function<int(void)> lexerLexCall,
 
 		skipNewline = false;
 
+		// If token contains data, get it
+		void *data = lexerHasDataCall() ? lexerDataCall(nullptr) : nullptr;
+
 		// Before returning back to the frontend caller process or preprocessor token dispatched
 		// present the token and data to the hooked methods. Since preprocessors can hook onto
 		// any token or data they are allowed to change the token and/or data before continuing
 		// downwards. If the hooked methods reset the token, we skip all further operations and
 		// continue on with a new token.
 		{
-			void *data = lexerHasDataCall() ? lexerDataCall(nullptr) : nullptr;
 			TokenProcessor::DefaultTokenDataPair preprocPair{ token, data };
 			preprocessor.Propagate(preprocPair);
 
@@ -115,7 +117,10 @@ int PreprocessorProxy<_Ty>::operator()(std::function<int(void)> lexerLexCall,
 		}
 
 		// Call preprocessor if any of the token conditions was met
-		preprocessor.Dispatch(token, lexerHasDataCall() ? lexerDataCall(nullptr) : nullptr);
+		preprocessor.Dispatch(token, data);
+
+		// Clear data
+		if (data) { delete data; data = nullptr; }
 	} while (true);
 
 	return token;
@@ -157,22 +162,28 @@ int DirectiveScanner::LexWrapper()
 	// Halt if enf of unit is reached
 	return TK_HALT;
 }
-
+#include "IntrusiveScopedPtr.h"
 void *DirectiveScanner::DataWrapper(void *data)
 {
 	// If data pointer was provided, swap the internal data structure
 	// this will free the last pointer and reassign a new object.
 	if (data) { m_data.reset(static_cast<Valuedef::Value*>(data)); }
 
-	// Steal the poiner from unique pointer
-	return static_cast<void *>(m_data.get());
+	// Consume data pointer
+	CoilCl::IntrusiveScopedPtr<Valuedef::Value> intrusiveDataPtr{ std::move(m_data) };
+
+	// Reassign data pointer with copy
+	m_data = intrusiveDataPtr.get_unique();
+
+	// Release internal pointer to proxy backend
+	return intrusiveDataPtr.release();
 }
 
 int DirectiveScanner::Lex()
 {
 	return m_proxy([this]() { return this->LexWrapper(); },
 				   [this]() { return this->HasData(); },
-				   [this](void *data) { return this->DataWrapper(data); });
+				   [this](void *data = nullptr) { return this->DataWrapper(data); });
 }
 
 DirectiveScanner::DirectiveScanner(std::shared_ptr<Profile>& profile)
