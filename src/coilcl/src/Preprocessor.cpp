@@ -6,7 +6,7 @@
 // that can be found in the LICENSE file. Content can not be
 // copied and/or distributed without the express of the author.
 
-//TODO:
+//FUTURE:
 // - Macro expansion
 
 #include "Preprocessor.h"
@@ -145,20 +145,23 @@ protected:
 	template<typename _Ty>
 	static inline _Ty ConvertDataAs(const TokenProcessor::DataType& data)
 	{
-		//assert(data);
 		return data->As<_Ty>();
 	}
 
 	void RequireToken(int expectedToken, int token)
 	{
 		//TODO:
-		if (expectedToken != token) { throw UnexpectedTokenException{ "expected token" }; }
+		if (expectedToken != token) {
+			throw UnexpectedTokenException{ "expected token" };
+		}
 	}
 
 	void RequireData(const TokenProcessor::DataType& data)
 	{
 		// Data was expected, throw if not found
-		if (!data) { throw DirectiveException{ "expected constant" }; }
+		if (!data) {
+			throw DirectiveException{ "expected constant" };
+		}
 	}
 };
 
@@ -208,6 +211,8 @@ public:
 				tempSource.append(ConvertDataAs<std::string>(data));
 				break;
 			}
+
+			// Did not match the parsing pattern, throw
 			throw DirectiveException{ "include", "expected constant or '<' after 'include'" };
 		}
 	}
@@ -225,7 +230,12 @@ public:
 		// First item must be the definition name
 		if (m_definitionName.empty()) {
 			RequireData(data);
-			m_definitionName = ConvertDataAs<std::string>(data);
+			const auto definitionName = ConvertDataAs<std::string>(data);
+			if (g_definitionList.find(definitionName) != g_definitionList.end()) {
+				throw DirectiveException{ "define", "'" + definitionName + "' already defined" };
+			}
+
+			m_definitionName = definitionName;
 			return;
 		}
 
@@ -233,7 +243,7 @@ public:
 		m_definitionBody.push_back({ token, data });
 	}
 
-	//TODO: replace token, instead of resolv expression, use constant, or whatever floats the boat
+	// If the data matches a definition in the global definition list, replace it
 	static void OnPropagateCallback(Preprocessor::DefaultTokenDataPair& dataPair)
 	{
 		using namespace Valuedef;
@@ -242,29 +252,23 @@ public:
 		auto it = g_definitionList.find(ConvertDataAs<std::string>(dataPair.Data()));
 		if (it == g_definitionList.end()) { return; }
 
-		// Create new value and assign new datapointer
-		//void *newDataObject = new ValueObject<std::string>{ BuiltinType::Specifier::CHAR, it->second };
-		
-		//FIXME:
+		//FIXME: Walk every item of the vector
 		dataPair.AssignToken(it->second.at(0).Token());
 		dataPair.AssignData(it->second.at(0).Data());
 	}
 
 	~DefinitionTag()
 	{
+		if (m_definitionName.empty()) { return; }
+
 		// Definitions without body are acceptable, in that case push ...
 		if (m_definitionBody.empty()) {
 			//TODO: Do something ...
 		}
 
-		//TODO: Move m_definitionBody into global list
+		// Insert definition body into global definition list
 		const auto& result = g_definitionList.insert({ m_definitionName, std::move(m_definitionBody) });
-		if (!result.second) {
-			//TODO: May not be a great move to throw in dtor
-			throw DirectiveException{ "define", "'" + m_definitionName + "' already defined" };
-		}
-
-		std::cout << "created def " << m_definitionName << std::endl;
+		assert(result.second);
 
 		// Subscribe on all identifier tokens apart from the define tag. This indicates
 		// we can do work on 'normal' tokens that would otherwise flow directly through to

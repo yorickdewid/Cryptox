@@ -71,12 +71,14 @@ int TokenProcessorProxy<_Ty>::operator()(std::function<int()> lexerLexCall,
 			continue;
 		}
 
+		// 
 		case TK_LINE_CONT:
 		{
 			skipNewline = skipNewline ? false : true;
 			continue;
 		}
 
+		//
 		case TK_LINE_NEW:
 		{
 			if (!skipNewline && onPreprocLine) {
@@ -93,10 +95,11 @@ int TokenProcessorProxy<_Ty>::operator()(std::function<int()> lexerLexCall,
 		Tokenizer::ValuePointer dataPtr = lexerHasDataCall() ? std::move(lexerDataCall()) : nullptr;
 
 		// Before returning back to the frontend caller process present the token and data to the
-		// hooked methods. Since token processors can hook onto any token (or data) they are allowed
+		// hooked methods. Since token processors can hook onto most tokens they are allowed
 		// to change the token and/or data before continuing downwards. If the hooked methods reset
-		// the token, we skip all further operations and continue on with a new token.
-		{
+		// the token, we skip all further operations and continue on with a new token. If the current
+		// line denotes a directive line, skip the token processor propagation.
+		if (!onPreprocLine) {
 			TokenProcessor::DefaultTokenDataPair preprocPair{ token, dataPtr };
 			tokenProcessor.Propagate(preprocPair);
 
