@@ -10,6 +10,7 @@
 
 #include "Profile.h"
 #include "Stage.h"
+#include "Tokenizer.h"
 
 #include <map>
 #include <functional>
@@ -33,7 +34,7 @@ class AbstractDirective;
 struct TokenProcessor
 {
 	using TokenType = int;
-	using DataType = void *;
+	using DataType = Tokenizer::ValuePointer;
 
 	template<typename _TokenTy, typename _DataTy>
 	struct TokenDataPair
@@ -71,6 +72,7 @@ struct TokenProcessor
 		boost::optional<_DataTy> m_data;
 	};
 
+	// Default token and data pair for most methods.
 	using DefaultTokenDataPair = TokenDataPair<TokenType, DataType>;
 
 	// This method is called is called for every token
@@ -91,7 +93,10 @@ struct TokenProcessor
 };
 
 // The preprocessor is a separate stage and must therefore
-// inherit from the stage base.
+// inherit from the stage base. All preprocessors are bound
+// by a token processor contract and must implement certain
+// methods. The preprocessor will fan any of the directives
+// towards specialized structures via a factory.
 class Preprocessor
 	: public Stage<Preprocessor>
 	, public TokenProcessor
@@ -99,8 +104,10 @@ class Preprocessor
 public:
 	Preprocessor(std::shared_ptr<CoilCl::Profile>&);
 
+	// Implement stage interface
 	virtual std::string Name() const { return "Preprocessor"; }
 
+	// Implement stage interface
 	Preprocessor& CheckCompatibility();
 
 	virtual void Propagate(DefaultTokenDataPair& tokeData) override;

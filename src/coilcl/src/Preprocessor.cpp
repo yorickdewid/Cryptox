@@ -6,12 +6,14 @@
 // that can be found in the LICENSE file. Content can not be
 // copied and/or distributed without the express of the author.
 
-//TODO: Macro expansion
+//TODO:
+// - Macro expansion
 
 #include "Preprocessor.h"
-#include "DirectiveScanner.h"
+#include "DirectiveScanner.h" //TODO: remove, only used for tokens
 #include "IntrusiveScopedPtr.h"
 
+#include <set>
 #include <stack>
 #include <cassert>
 #include <iostream>
@@ -52,6 +54,7 @@ public:
 	// Find token and callback, then erase from set
 	void UnsubscribeOnToken(int token, CallbackFunc cb)
 	{
+		//TODO:
 		/*Cry::Algorithm::ForEachRangeEqual(m_subscriptionTokenSet, token,
 										  [&cb, this](decltype(m_subscriptionTokenSet)::iterator it)
 		{
@@ -113,7 +116,7 @@ class AbstractDirective
 {
 public:
 	AbstractDirective() = default;
-	virtual void Dispence(int token, const void *data) = 0;
+	virtual void Dispence(TokenProcessor::TokenType token, const TokenProcessor::DataType data) = 0;
 
 protected:
 	class DirectiveException : public std::runtime_error
@@ -140,10 +143,10 @@ protected:
 	};
 
 	template<typename _Ty>
-	inline _Ty ConvertDataAs(const void *data)
+	static inline _Ty ConvertDataAs(const TokenProcessor::DataType& data)
 	{
-		assert(data);
-		return static_cast<const Valuedef::Value*>(data)->As<_Ty>();
+		//assert(data);
+		return data->As<_Ty>();
 	}
 
 	void RequireToken(int expectedToken, int token)
@@ -152,7 +155,7 @@ protected:
 		if (expectedToken != token) { throw UnexpectedTokenException{ "expected token" }; }
 	}
 
-	void RequireData(const void *data)
+	void RequireData(const TokenProcessor::DataType& data)
 	{
 		// Data was expected, throw if not found
 		if (!data) { throw DirectiveException{ "expected constant" }; }
@@ -173,7 +176,7 @@ class ImportSource : public AbstractDirective
 	}
 
 public:
-	void Dispence(int token, const void *data)
+	void Dispence(TokenProcessor::TokenType token, const TokenProcessor::DataType data)
 	{
 		switch (token) {
 		case TK_LESS_THAN: // Global includes begin
@@ -209,7 +212,7 @@ public:
 		}
 	}
 };
-#include "Cry/PolyConstructTrait.h"
+
 // Definition and expansion
 class DefinitionTag : public AbstractDirective
 {
@@ -217,7 +220,7 @@ class DefinitionTag : public AbstractDirective
 	std::vector<Preprocessor::TokenDataPair<int, const Valuedef::Value*>> m_definitionBody;
 
 public:
-	void Dispence(int token, const void *data)
+	void Dispence(TokenProcessor::TokenType token, const TokenProcessor::DataType data)
 	{
 		// First item must be the definition name
 		if (m_definitionName.empty()) {
@@ -228,9 +231,9 @@ public:
 
 		//TODO: Add replacement tokens as secondary parameter
 		//TODO: Make data intrusive scoped pointer
-		auto origValue = static_cast<const Valuedef::Value*>(data);
+		//auto origValue = static_cast<const Valuedef::Value*>(data);
 
-		m_definitionBody.push_back(Preprocessor::TokenDataPair<int, const Valuedef::Value*>{token, origValue});
+		//m_definitionBody.push_back(Preprocessor::TokenDataPair<int, const Valuedef::Value*>{token, origValue});
 	}
 
 	//TODO: replace token, instead of resolv expression, use constant, or whatever floats the boat
@@ -239,13 +242,13 @@ public:
 		using namespace Valuedef;
 		using namespace Typedef;
 
-		auto value = static_cast<Valuedef::Value*>(dataPair.Data());
-		auto it = g_definitionList.find(value->As<std::string>());
+		//auto value = static_cast<Valuedef::Value*>(dataPair.Data());
+		auto it = g_definitionList.find(ConvertDataAs<std::string>(dataPair.Data())  /*value->As<std::string>()*/);
 		if (it == g_definitionList.end()) { return; }
 
 		// Create new value and assign new datapointer
-		void *newDataObject = new ValueObject<std::string>{ BuiltinType::Specifier::CHAR, it->second };
-		dataPair.AssignData(newDataObject);
+		//void *newDataObject = new ValueObject<std::string>{ BuiltinType::Specifier::CHAR, it->second };
+		//dataPair.AssignData(newDataObject);
 	}
 
 	~DefinitionTag()
@@ -277,7 +280,7 @@ public:
 class DefinitionUntag : public AbstractDirective
 {
 public:
-	void Dispence(int token, const void *data)
+	void Dispence(TokenProcessor::TokenType token, const TokenProcessor::DataType data)
 	{
 		RequireData(data);
 		auto it = g_definitionList.find(ConvertDataAs<std::string>(data));
@@ -308,7 +311,7 @@ private:
 	}
 
 public:
-	void Dispence(int token, const void *data)
+	void Dispence(TokenProcessor::TokenType token, const TokenProcessor::DataType data)
 	{
 		//TODO: Collect all tokens in the stash
 	}
@@ -388,7 +391,7 @@ class CompilerDialect : public AbstractDirective
 	}
 
 public:
-	void Dispence(int token, const void *data)
+	void Dispence(TokenProcessor::TokenType token, const TokenProcessor::DataType data)
 	{
 		RequireToken(TK_IDENTIFIER, token);
 		if (HandleTrivialCase(ConvertDataAs<std::string>(data))) { return; }
@@ -399,7 +402,7 @@ public:
 class FixLocation : public AbstractDirective
 {
 public:
-	void Dispence(int token, const void *data)
+	void Dispence(TokenProcessor::TokenType token, const TokenProcessor::DataType data)
 	{
 		//TODO: We have no clue what to do with #line
 	}
@@ -416,7 +419,7 @@ public:
 	{
 	}
 
-	void Dispence(int token, const void *data)
+	void Dispence(TokenProcessor::TokenType token, const TokenProcessor::DataType data)
 	{
 		if (token != TK_CONSTANT) {
 			throw DirectiveException{ "error", "expected constant after 'error'" };

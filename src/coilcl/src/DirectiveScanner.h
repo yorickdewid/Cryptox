@@ -10,12 +10,14 @@
 
 #include "Lexer.h"
 #include "Preprocessor.h"
+#include "IntrusiveScopedPtr.h"
 
 #include <set>
 
 namespace CoilCl
 {
 
+// TODO: move into header
 enum PreprocessorToken
 {
 	//TODO: add preprocessor token
@@ -60,24 +62,26 @@ private:
 	PreprocessorToken m_token;
 };
 
+//using DataValuePointer = IntrusiveScopedPtr<Valuedef::Value>;
+
 template<typename _Ty>
-class PreprocessorProxy
+class TokenProcessorProxy
 {
-	_Ty preprocessor;
+	_Ty tokenProcessor;
 
 protected:
 	std::set<int> m_subscribedTokens;
 
 public:
-	PreprocessorProxy(std::shared_ptr<Profile>&);
+	TokenProcessorProxy(std::shared_ptr<Profile>&);
 
-	// Connection between scanner and preprocessor
-	int operator()(std::function<int(void)>,
-				   std::function<bool(void)>,
-				   std::function<void*(void*)>);
+	// Connection between scanner and token processor.
+	int operator()(std::function<int()>,
+				   std::function<bool()>,
+				   std::function<Tokenizer::ValuePointer()>,
+				   std::function<void(Tokenizer::ValuePointer&)>);
 
-	// Preprocessor must follow certain conditions
-	static_assert(std::is_base_of<Stage<_Ty>, _Ty>::value, "");
+	// Token processor must accede token processor contract.
 	static_assert(std::is_base_of<TokenProcessor, _Ty>::value, "");
 };
 
@@ -85,7 +89,7 @@ public:
 // and adds tokens and opertions to allow macro expansions
 class DirectiveScanner : public Lexer
 {
-	PreprocessorProxy<Preprocessor> m_proxy;
+	TokenProcessorProxy<Preprocessor> m_proxy;
 
 public:
 	DirectiveScanner(std::shared_ptr<Profile>&);
@@ -95,7 +99,6 @@ public:
 
 private:
 	int LexWrapper();
-	void *DataWrapper(void *data = nullptr);
 
 	int PreprocessLexSet(char lexChar);
 };

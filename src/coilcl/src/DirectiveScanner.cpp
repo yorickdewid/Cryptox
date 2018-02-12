@@ -46,15 +46,16 @@ struct MatchOn
 } // namespace std
 
 template<typename _Ty>
-PreprocessorProxy<_Ty>::PreprocessorProxy(std::shared_ptr<Profile>& profile)
-	: preprocessor{ profile }
+TokenProcessorProxy<_Ty>::TokenProcessorProxy(std::shared_ptr<Profile>& profile)
+	: tokenProcessor{ profile }
 {
 }
 
 template<typename _Ty>
-int PreprocessorProxy<_Ty>::operator()(std::function<int(void)> lexerLexCall,
-									   std::function<bool(void)> lexerHasDataCall,
-									   std::function<void*(void*)> lexerDataCall)
+int TokenProcessorProxy<_Ty>::operator()(std::function<int()> lexerLexCall,
+										 std::function<bool()> lexerHasDataCall,
+										 std::function<Tokenizer::ValuePointer()> lexerDataCall,
+										 std::function<void(Tokenizer::ValuePointer&)> lexerSetDataCall)
 {
 	int token = -1;
 	bool skipNewline = false;
@@ -79,7 +80,7 @@ int PreprocessorProxy<_Ty>::operator()(std::function<int(void)> lexerLexCall,
 		case TK_LINE_NEW:
 		{
 			if (!skipNewline && onPreprocLine) {
-				preprocessor.EndOfLine();
+				tokenProcessor.EndOfLine();
 				onPreprocLine = false;
 			}
 			continue;
@@ -88,39 +89,35 @@ int PreprocessorProxy<_Ty>::operator()(std::function<int(void)> lexerLexCall,
 
 		skipNewline = false;
 
-		// If token contains data, get it
-		void *data = lexerHasDataCall() ? lexerDataCall(nullptr) : nullptr;
+		// If token contains data, get data pointer.
+		Tokenizer::ValuePointer dataPtr = lexerHasDataCall() ? std::move(lexerDataCall()) : nullptr;
 
-		// Before returning back to the frontend caller process or preprocessor token dispatched
-		// present the token and data to the hooked methods. Since preprocessors can hook onto
-		// any token or data they are allowed to change the token and/or data before continuing
-		// downwards. If the hooked methods reset the token, we skip all further operations and
-		// continue on with a new token.
+		// Before returning back to the frontend caller process present the token and data to the
+		// hooked methods. Since token processors can hook onto any token (or data) they are allowed
+		// to change the token and/or data before continuing downwards. If the hooked methods reset
+		// the token, we skip all further operations and continue on with a new token.
 		{
-			TokenProcessor::DefaultTokenDataPair preprocPair{ token, data };
-			preprocessor.Propagate(preprocPair);
+			TokenProcessor::DefaultTokenDataPair preprocPair{ token, dataPtr };
+			tokenProcessor.Propagate(preprocPair);
 
-			// If the preprocessor cleared the token, we must not return and request
-			// next token instead. This allows the preprocessor to skip over tokens.
+			// If the token processor cleared the token, we must not return and request
+			// next token instead. This allows the token processor to skip over tokens.
 			if (!preprocPair.HasToken()) { continue; }
 
-			// If the token contains data, and the data pointer was changed, swap data
+			// If the token contains data, and the data pointer was changed, swap data.
 			if (preprocPair.HasData() && preprocPair.HasDataChanged()) {
-				lexerDataCall(data);
+				lexerSetDataCall(dataPtr);
 			}
 		}
 
-		// Break for all non preprocessor and non subscribed tokens.
+		// Break for all non token processor items and non subscribed tokens.
 		Cry::Algorithm::MatchOn<decltype(token)> pred{ token };
 		if (!onPreprocLine && (m_subscribedTokens.empty() || !std::any_of(m_subscribedTokens.cbegin(), m_subscribedTokens.cend(), pred))) {
 			break;
 		}
 
-		// Call preprocessor if any of the token conditions was met
-		preprocessor.Dispatch(token, data);
-
-		// Clear data
-		if (data) { delete data; data = nullptr; }
+		// Call token processor if any of the token conditions was met.
+		tokenProcessor.Dispatch(token, dataPtr);
 	} while (true);
 
 	return token;
@@ -159,31 +156,20 @@ int DirectiveScanner::LexWrapper()
 		return token;
 	}
 
-	// Halt if enf of unit is reached
+	// Halt if end of unit is reached.
 	return TK_HALT;
-}
-#include "IntrusiveScopedPtr.h"
-void *DirectiveScanner::DataWrapper(void *data)
-{
-	// If data pointer was provided, swap the internal data structure
-	// this will free the last pointer and reassign a new object.
-	if (data) { m_data.reset(static_cast<Valuedef::Value*>(data)); }
-
-	// Consume data pointer
-	CoilCl::IntrusiveScopedPtr<Valuedef::Value> intrusiveDataPtr{ std::move(m_data) };
-
-	// Reassign data pointer with copy
-	m_data = intrusiveDataPtr.get_unique();
-
-	// Release internal pointer to proxy backend
-	return intrusiveDataPtr.release();
 }
 
 int DirectiveScanner::Lex()
 {
+	// Setup proxy between directive scanner and token processor.
 	return m_proxy([this]() { return this->LexWrapper(); },
 				   [this]() { return this->HasData(); },
-				   [this](void *data = nullptr) { return this->DataWrapper(data); });
+				   [this]() { return m_data; },
+				   [this](Tokenizer::ValuePointer& dataPtr)
+	{
+		m_data = Tokenizer::ValuePointer{ dataPtr };
+	});
 }
 
 DirectiveScanner::DirectiveScanner(std::shared_ptr<Profile>& profile)
