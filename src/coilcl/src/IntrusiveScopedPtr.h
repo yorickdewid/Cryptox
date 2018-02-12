@@ -130,7 +130,7 @@ public:
 
 	explicit operator bool() const noexcept
 	{
-		return m_ptr.(operator bool());
+		return m_ptr.operator bool();
 	}
 
 	// Deep copy will copy the original data object and return a

@@ -179,7 +179,7 @@ void Parser::NextToken()
 		// Wrap the data pointer in a shared ptr to handle object lifetime.
 		std::shared_ptr<Value> value;
 		if (lex->HasData()) {
-			value.reset(static_cast<Value*>(lex->Data()));
+			value = lex->Data();
 		}
 
 		m_comm.Push(TokenState(itok, std::move(value), std::move(location)));

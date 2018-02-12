@@ -151,7 +151,7 @@ public:
 
 	// Implementing interface
 	virtual bool HasData() const { return !!m_data; }
-	virtual void *Data() { return static_cast<void*>(m_data.release()); }
+	virtual ValuePointer Data() { return m_data; }
 
 	// Source location methods
 	virtual int TokenLine() const { return m_currentLine; }
@@ -202,7 +202,7 @@ private:
 
 protected:
 	std::shared_ptr<CoilCl::Profile>& m_profile;
-	std::unique_ptr<CoilCl::Valuedef::Value> m_data;
+	std::shared_ptr<CoilCl::Valuedef::Value> m_data;
 	char m_currentChar;
 	int m_currentColumn = 0;
 	int m_currentToken;

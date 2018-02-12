@@ -232,7 +232,7 @@ using namespace ::CoilCl;
 template<typename _NativTy, typename _ValTy>
 inline auto MakeValueObject(Typedef::BuiltinType&& type, _ValTy value)
 {
-	return std::make_unique<Valuedef::ValueObject<_NativTy>>(std::move(type), value);
+	return std::make_unique<Valuedef::ValueObject<_NativTy>>(std::move(type), value); //TODO: Make shared
 }
 
 inline auto CopyValueObject(const Valuedef::Value *object)
