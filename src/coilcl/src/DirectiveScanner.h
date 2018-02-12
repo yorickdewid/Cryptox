@@ -79,7 +79,7 @@ public:
 	int operator()(std::function<int()>,
 				   std::function<bool()>,
 				   std::function<Tokenizer::ValuePointer()>,
-				   std::function<void(Tokenizer::ValuePointer&)>);
+				   std::function<void(const Tokenizer::ValuePointer&)>);
 
 	// Token processor must accede token processor contract.
 	static_assert(std::is_base_of<TokenProcessor, _Ty>::value, "");

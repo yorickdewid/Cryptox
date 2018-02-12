@@ -50,24 +50,34 @@ struct TokenProcessor
 
 		inline bool HasToken() const { return m_token.is_initialized(); }
 		inline bool HasData() const { return m_data.is_initialized(); }
-		inline bool HasDataChanged() const noexcept { return changeCounter; }
+		
+		inline bool HasTokenChanged() const noexcept { return tokenChangeCounter; }
+		inline bool HasDataChanged() const noexcept { return dataChangeCounter; }
 
 		inline void ResetToken() { m_token = boost::optional<_TokenTy>{}; }
 		inline void ResetData() { m_data = boost::optional<_DataTy>{}; }
 
-		void AssignData(data_type& data)
+		void AssignToken(token_type token)
+		{
+			m_token = token;
+			++tokenChangeCounter;
+		}
+
+		void AssignData(const data_type& data)
 		{
 			m_data = data;
-			++changeCounter;
+			++dataChangeCounter;
 		}
 
 		const token_type& Token() const { return m_token.get(); }
 		const data_type& Data() const { return m_data.get(); }
 
-		inline int DataChanges() const { return changeCounter; }
+		inline int TokenChanges() const { return tokenChangeCounter; }
+		inline int DataChanges() const { return dataChangeCounter; }
 
 	private:
-		int changeCounter = 0;
+		int tokenChangeCounter = 0;
+		int dataChangeCounter = 0;
 		boost::optional<_TokenTy> m_token;
 		boost::optional<_DataTy> m_data;
 	};

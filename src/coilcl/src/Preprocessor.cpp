@@ -20,7 +20,7 @@
 
 using namespace CoilCl;
 
-static std::map<std::string, std::string> g_definitionList;
+static std::map<std::string, std::vector<Preprocessor::TokenDataPair<TokenProcessor::TokenType, const TokenProcessor::DataType>>> g_definitionList;
 static std::set<std::string> g_sourceGuardList;
 
 namespace Cry
@@ -217,7 +217,7 @@ public:
 class DefinitionTag : public AbstractDirective
 {
 	std::string m_definitionName;
-	std::vector<Preprocessor::TokenDataPair<int, const Valuedef::Value*>> m_definitionBody;
+	std::vector<Preprocessor::TokenDataPair<TokenProcessor::TokenType, const TokenProcessor::DataType>> m_definitionBody;
 
 public:
 	void Dispence(TokenProcessor::TokenType token, const TokenProcessor::DataType data)
@@ -229,11 +229,8 @@ public:
 			return;
 		}
 
-		//TODO: Add replacement tokens as secondary parameter
-		//TODO: Make data intrusive scoped pointer
-		//auto origValue = static_cast<const Valuedef::Value*>(data);
-
-		//m_definitionBody.push_back(Preprocessor::TokenDataPair<int, const Valuedef::Value*>{token, origValue});
+		// Save token with optional data on the vector
+		m_definitionBody.push_back({ token, data });
 	}
 
 	//TODO: replace token, instead of resolv expression, use constant, or whatever floats the boat
@@ -242,13 +239,15 @@ public:
 		using namespace Valuedef;
 		using namespace Typedef;
 
-		//auto value = static_cast<Valuedef::Value*>(dataPair.Data());
-		auto it = g_definitionList.find(ConvertDataAs<std::string>(dataPair.Data())  /*value->As<std::string>()*/);
+		auto it = g_definitionList.find(ConvertDataAs<std::string>(dataPair.Data()));
 		if (it == g_definitionList.end()) { return; }
 
 		// Create new value and assign new datapointer
 		//void *newDataObject = new ValueObject<std::string>{ BuiltinType::Specifier::CHAR, it->second };
-		//dataPair.AssignData(newDataObject);
+		
+		//FIXME:
+		dataPair.AssignToken(it->second.at(0).Token());
+		dataPair.AssignData(it->second.at(0).Data());
 	}
 
 	~DefinitionTag()
@@ -259,7 +258,7 @@ public:
 		}
 
 		//TODO: Move m_definitionBody into global list
-		const auto& result = g_definitionList.insert({ m_definitionName, "kaas" });
+		const auto& result = g_definitionList.insert({ m_definitionName, std::move(m_definitionBody) });
 		if (!result.second) {
 			//TODO: May not be a great move to throw in dtor
 			throw DirectiveException{ "define", "'" + m_definitionName + "' already defined" };
@@ -447,47 +446,36 @@ void Preprocessor::MethodFactory(TokenType token)
 
 	switch (token) {
 	case TK_PP_INCLUDE:
-		std::cout << "TK_PP_INCLUDE" << std::endl;
 		m_method = MakeMethod<ImportSource>();
 		break;
 	case TK_PP_DEFINE:
-		std::cout << "TK_PP_DEFINE" << std::endl;
 		m_method = MakeMethod<DefinitionTag>();
 		break;
 	case TK_PP_UNDEF:
-		std::cout << "TK_PP_UNDEF" << std::endl;
 		m_method = MakeMethod<DefinitionUntag>();
 		break;
 	case TK_IF:
-		std::cout << "TK_IF" << std::endl;
 		m_method = MakeMethod<ConditionalStatement>();
 		break;
 	case TK_PP_IFDEF:
-		std::cout << "TK_PP_IFDEF" << std::endl;
 		m_method = MakeMethod<ConditionalStatement>();
 		break;
 	case TK_PP_IFNDEF:
-		std::cout << "TK_PP_IFNDEF" << std::endl;
 		m_method = MakeMethod<ConditionalStatement>();
 		break;
 	case TK_PP_ELIF:
-		std::cout << "TK_PP_ELIF" << std::endl;
 		m_method = MakeMethod<ConditionalStatement>();
 		break;
 	case TK_PP_PRAGMA:
-		std::cout << "TK_PP_PRAGMA" << std::endl;
 		m_method = std::make_unique<CompilerDialect>();
 		break;
 	case TK_PP_LINE:
-		std::cout << "TK_PP_LINE" << std::endl;
 		m_method = MakeMethod<FixLocation>();
 		break;
 	case TK_PP_WARNING:
-		std::cout << "TK_PP_WARNING" << std::endl;
 		m_method = MakeMethod<LinguisticError>(false);
 		break;
 	case TK_PP_ERROR:
-		std::cout << "TK_PP_ERROR" << std::endl;
 		m_method = MakeMethod<LinguisticError>();
 		break;
 	default:

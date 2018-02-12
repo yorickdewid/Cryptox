@@ -55,7 +55,7 @@ template<typename _Ty>
 int TokenProcessorProxy<_Ty>::operator()(std::function<int()> lexerLexCall,
 										 std::function<bool()> lexerHasDataCall,
 										 std::function<Tokenizer::ValuePointer()> lexerDataCall,
-										 std::function<void(Tokenizer::ValuePointer&)> lexerSetDataCall)
+										 std::function<void(const Tokenizer::ValuePointer&)> lexerSetDataCall)
 {
 	int token = -1;
 	bool skipNewline = false;
@@ -104,9 +104,13 @@ int TokenProcessorProxy<_Ty>::operator()(std::function<int()> lexerLexCall,
 			// next token instead. This allows the token processor to skip over tokens.
 			if (!preprocPair.HasToken()) { continue; }
 
+			if (preprocPair.HasTokenChanged()) {
+				token = preprocPair.Token();
+			}
+
 			// If the token contains data, and the data pointer was changed, swap data.
 			if (preprocPair.HasData() && preprocPair.HasDataChanged()) {
-				lexerSetDataCall(dataPtr);
+				lexerSetDataCall(preprocPair.Data());
 			}
 		}
 
@@ -166,7 +170,7 @@ int DirectiveScanner::Lex()
 	return m_proxy([this]() { return this->LexWrapper(); },
 				   [this]() { return this->HasData(); },
 				   [this]() { return m_data; },
-				   [this](Tokenizer::ValuePointer& dataPtr)
+				   [this](const Tokenizer::ValuePointer& dataPtr)
 	{
 		m_data = Tokenizer::ValuePointer{ dataPtr };
 	});
