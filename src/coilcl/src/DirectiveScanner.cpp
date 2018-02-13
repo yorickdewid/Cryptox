@@ -95,26 +95,23 @@ int TokenProcessorProxy<_Ty>::operator()(std::function<int()> lexerLexCall,
 		Tokenizer::ValuePointer dataPtr = lexerHasDataCall() ? std::move(lexerDataCall()) : nullptr;
 
 		// Before returning back to the frontend caller process present the token and data to the
-		// hooked methods. Since token processors can hook onto most tokens they are allowed
+		// hooked methods. Since token processors can hook onto any token they are allowed
 		// to change the token and/or data before continuing downwards. If the hooked methods reset
-		// the token, we skip all further operations and continue on with a new token. If the current
-		// line denotes a directive line, skip the token processor propagation.
-		if (!onPreprocLine) {
-			TokenProcessor::DefaultTokenDataPair preprocPair{ token, dataPtr };
-			tokenProcessor.Propagate(preprocPair);
+		// the token, we skip all further operations and continue on with a new token.
+		TokenProcessor::DefaultTokenDataPair preprocPair{ token, dataPtr };
+		tokenProcessor.Propagate(onPreprocLine, preprocPair);
 
-			// If the token processor cleared the token, we must not return and request
-			// next token instead. This allows the token processor to skip over tokens.
-			if (!preprocPair.HasToken()) { continue; }
+		// If the token processor cleared the token, we must not return and request
+		// next token instead. This allows the token processor to skip over tokens.
+		if (!preprocPair.HasToken()) { continue; }
 
-			if (preprocPair.HasTokenChanged()) {
-				token = preprocPair.Token();
-			}
+		if (preprocPair.HasTokenChanged()) {
+			token = preprocPair.Token();
+		}
 
-			// If the token contains data, and the data pointer was changed, swap data.
-			if (preprocPair.HasData() && preprocPair.HasDataChanged()) {
-				lexerSetDataCall(preprocPair.Data());
-			}
+		// If the token contains data, and the data pointer was changed, swap data.
+		if (preprocPair.HasData() && preprocPair.HasDataChanged()) {
+			lexerSetDataCall(preprocPair.Data());
 		}
 
 		// Break for all non token processor items and non subscribed tokens.

@@ -9,6 +9,8 @@
 //FUTURE:
 // - Macro expansion
 
+#include "Cry/Indep.h"
+
 #include "Preprocessor.h"
 #include "DirectiveScanner.h" //TODO: remove, only used for tokens
 #include "IntrusiveScopedPtr.h"
@@ -28,14 +30,14 @@ namespace Cry
 namespace Algorithm
 {
 
-//template<typename _Ty, typename _KeyTy, class _Predicate>
-//void ForEachRangeEqual(_Ty& set, _KeyTy& key, _Predicate p)
-//{
-//	auto& range = set.equal_range(key);
-//	for (auto it = range.first; it != range.second; ++it) {//TODO: still an issue
-//		p(it);
-//	}
-//}
+template<typename _Ty, typename _KeyTy, class _Predicate>
+void ForEachRangeEqual(_Ty& set, _KeyTy& key, _Predicate p)
+{
+	auto& range = set.equal_range(key);
+	for (auto it = range.first; it != range.second; ++it) {//TODO: still an issue
+		p(it);
+	}
+}
 
 } // namespace Algorithm
 } // namespace Cry
@@ -43,17 +45,29 @@ namespace Algorithm
 static class TokenSubscription
 {
 public:
-	using CallbackFunc = void(*)(Preprocessor::DefaultTokenDataPair&);
+	using CallbackFunc = void(*)(bool, Preprocessor::DefaultTokenDataPair&);
 
 public:
+	// Register callback for token, but only if token callback pair does not exist
 	void SubscribeOnToken(int token, CallbackFunc cb)
 	{
+		const auto& range = m_subscriptionTokenSet.equal_range(token);
+		bool isRegistered = std::any_of(range.first, range.second, [&cb](std::multimap<int, CallbackFunc>::value_type pair)
+		{
+			return pair.second == cb;
+		});
+
+		if (isRegistered) { return; }
+
 		m_subscriptionTokenSet.emplace(token, cb);
 	}
 
 	// Find token and callback, then erase from set
 	void UnsubscribeOnToken(int token, CallbackFunc cb)
 	{
+		CRY_UNUSED(token);
+		CRY_UNUSED(cb);
+		
 		//TODO:
 		/*Cry::Algorithm::ForEachRangeEqual(m_subscriptionTokenSet, token,
 										  [&cb, this](decltype(m_subscriptionTokenSet)::iterator it)
@@ -77,17 +91,17 @@ public:
 	}
 
 	// Invoke all callbacks for this token
-	void CallAnyOf(Preprocessor::DefaultTokenDataPair& tokenData)
+	void CallAnyOf(bool isDirective, Preprocessor::DefaultTokenDataPair& tokenData)
 	{
 		auto range = m_subscriptionTokenSet.equal_range(tokenData.Token());
 		for (auto& it = range.first; it != range.second; ++it) {
-			(it->second)(tokenData);
+			(it->second)(isDirective, tokenData);
 		}
 
 		// Invoke any callback function that was registered for all tokens
-		std::for_each(m_subscriptionSet.begin(), m_subscriptionSet.end(), [&tokenData](CallbackFunc cb)
+		std::for_each(m_subscriptionSet.begin(), m_subscriptionSet.end(), [&isDirective, &tokenData](CallbackFunc cb)
 		{
-			(cb)(tokenData);
+			(cb)(isDirective, tokenData);
 		});
 	}
 
@@ -244,10 +258,13 @@ public:
 	}
 
 	// If the data matches a definition in the global definition list, replace it
-	static void OnPropagateCallback(Preprocessor::DefaultTokenDataPair& dataPair)
+	static void OnPropagateCallback(bool isDirective, Preprocessor::DefaultTokenDataPair& dataPair)
 	{
 		using namespace Valuedef;
 		using namespace Typedef;
+		
+		// Do not interfere with preprocessor lines
+		if (isDirective) { return; }
 
 		auto it = g_definitionList.find(ConvertDataAs<std::string>(dataPair.Data()));
 		if (it == g_definitionList.end()) { return; }
@@ -285,6 +302,8 @@ class DefinitionUntag : public AbstractDirective
 public:
 	void Dispence(TokenProcessor::TokenType token, const TokenProcessor::DataType data)
 	{
+		CRY_UNUSED(token);
+
 		RequireData(data);
 		auto it = g_definitionList.find(ConvertDataAs<std::string>(data));
 		if (it == g_definitionList.end()) { return; }
@@ -307,6 +326,8 @@ private:
 	// throw an exception.
 	bool Eval(int expression)
 	{
+		CRY_UNUSED(expression);
+
 		//TODO: defined(<definition>), defined
 		//TODO: &&, ||
 		//TODO: >, <, ==, >=, <=, !=, <>, !
@@ -316,6 +337,9 @@ private:
 public:
 	void Dispence(TokenProcessor::TokenType token, const TokenProcessor::DataType data)
 	{
+		CRY_UNUSED(token);
+		CRY_UNUSED(data);
+		
 		//TODO: Collect all tokens in the stash
 	}
 
@@ -325,8 +349,10 @@ public:
 		evaluationResult.push(Eval(tmpStash));
 	}
 
-	static void OnPropagateCallback(Preprocessor::DefaultTokenDataPair& dataPair)
+	static void OnPropagateCallback(bool isDirective, Preprocessor::DefaultTokenDataPair& dataPair)
 	{
+		CRY_UNUSED(isDirective);
+
 		// If this token happens to be a conditional statement token, redirect
 		switch (dataPair.Token()) {
 		case TK_ELSE: { EncounterElse(); return; };
@@ -407,6 +433,9 @@ class FixLocation : public AbstractDirective
 public:
 	void Dispence(TokenProcessor::TokenType token, const TokenProcessor::DataType data)
 	{
+		CRY_UNUSED(token);
+		CRY_UNUSED(data);
+		
 		//TODO: We have no clue what to do with #line
 	}
 };
@@ -487,11 +516,11 @@ void Preprocessor::MethodFactory(TokenType token)
 	}
 }
 
-void Preprocessor::Propagate(DefaultTokenDataPair& tokenData)
+void Preprocessor::Propagate(bool isDirective, DefaultTokenDataPair& tokenData)
 {
 	assert(tokenData.HasToken() && tokenData.HasData());
 
-	g_tokenSubscription.CallAnyOf(tokenData);
+	g_tokenSubscription.CallAnyOf(isDirective, tokenData);
 }
 
 void Preprocessor::Dispatch(TokenType token, const DataType data)

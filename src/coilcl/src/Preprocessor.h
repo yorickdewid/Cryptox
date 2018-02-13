@@ -89,7 +89,7 @@ struct TokenProcessor
 	// and allows hooks to alter the token and data.
 	// Preprocessors may override this method to
 	// receive tokens.
-	virtual void Propagate(DefaultTokenDataPair&) {}
+	virtual void Propagate(bool, DefaultTokenDataPair&) {}
 
 	// At the heart of the processor is the dispatch
 	// method. Called on preprocessor directive and
@@ -120,7 +120,7 @@ public:
 	// Implement stage interface
 	Preprocessor& CheckCompatibility();
 
-	virtual void Propagate(DefaultTokenDataPair& tokeData) override;
+	virtual void Propagate(bool isDirective, DefaultTokenDataPair& tokeData) override;
 	virtual void Dispatch(TokenType token, const DataType data);
 	virtual void EndOfLine() override;
 
