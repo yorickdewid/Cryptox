@@ -67,7 +67,7 @@ public:
 	{
 		CRY_UNUSED(token);
 		CRY_UNUSED(cb);
-		
+
 		//TODO:
 		/*Cry::Algorithm::ForEachRangeEqual(m_subscriptionTokenSet, token,
 										  [&cb, this](decltype(m_subscriptionTokenSet)::iterator it)
@@ -262,12 +262,19 @@ public:
 	{
 		using namespace Valuedef;
 		using namespace Typedef;
-		
+
 		// Do not interfere with preprocessor lines
 		if (isDirective) { return; }
 
 		auto it = g_definitionList.find(ConvertDataAs<std::string>(dataPair.Data()));
 		if (it == g_definitionList.end()) { return; }
+
+		// Definition without body, reset all
+		if (it->second.empty()) {
+			dataPair.ResetToken();
+			dataPair.ResetData();
+			return;
+		}
 
 		//FIXME: Walk every item of the vector
 		dataPair.AssignToken(it->second.at(0).Token());
@@ -277,11 +284,6 @@ public:
 	~DefinitionTag()
 	{
 		if (m_definitionName.empty()) { return; }
-
-		// Definitions without body are acceptable, in that case push ...
-		if (m_definitionBody.empty()) {
-			//TODO: Do something ...
-		}
 
 		// Insert definition body into global definition list
 		const auto& result = g_definitionList.insert({ m_definitionName, std::move(m_definitionBody) });
@@ -339,7 +341,7 @@ public:
 	{
 		CRY_UNUSED(token);
 		CRY_UNUSED(data);
-		
+
 		//TODO: Collect all tokens in the stash
 	}
 
@@ -435,7 +437,7 @@ public:
 	{
 		CRY_UNUSED(token);
 		CRY_UNUSED(data);
-		
+
 		//TODO: We have no clue what to do with #line
 	}
 };

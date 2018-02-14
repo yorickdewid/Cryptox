@@ -71,14 +71,14 @@ int TokenProcessorProxy<_Ty>::operator()(std::function<int()> lexerLexCall,
 			continue;
 		}
 
-		// 
+		// Line continuation will ignore newline
 		case TK_LINE_CONT:
 		{
 			skipNewline = skipNewline ? false : true;
 			continue;
 		}
 
-		//
+		// Newline is end of directive line, if no line continuations were found
 		case TK_LINE_NEW:
 		{
 			if (!skipNewline && onPreprocLine) {
