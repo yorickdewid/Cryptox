@@ -279,6 +279,7 @@ public:
 		dataPair.AssignToken(it->second.at(0).Token());
 		dataPair.AssignData(it->second.at(0).Data());
 
+		// When multiple tokens are registered for this definition, create a token queue
 		if (it->second.size() > 1) {
 			auto dequqPtr = std::make_unique<std::deque<decltype(g_definitionList)::mapped_type::value_type>>();
 			for (auto subit = it->second.begin() + 1; subit != it->second.end(); ++subit) {
@@ -327,36 +328,133 @@ public:
 class ConditionalStatement : public AbstractDirective
 {
 	static std::stack<bool> evaluationResult;
+	std::vector<Preprocessor::TokenDataPair<TokenProcessor::TokenType, const TokenProcessor::DataType>> m_statementBody;
 
-private:
-	int tmpStash;
+	class ConditionalStatementException : public std::runtime_error
+	{
+	public:
+		ConditionalStatementException(const std::string& message) noexcept
+			: std::runtime_error{ message.c_str() }
+		{
+		}
+	};
 
-	// Evaluate expression and return either true for positive
+	// Evaluate statemenet and return either true for positive
 	// result, or false for negative. An evaluation error will
 	// throw an exception.
-	bool Eval(int expression)
+	bool Eval(std::vector<Preprocessor::TokenDataPair<TokenProcessor::TokenType, const TokenProcessor::DataType>>&& statement)
 	{
-		CRY_UNUSED(expression);
+		bool consensus = false;
+
+		for (auto it = statement.begin(); it != statement.end(); ++it) {
+			switch (it->Token()) {
+			case TK_CONSTANT:
+			{
+				assert(it->HasData());
+
+				//TODO:
+				// - int:
+				//    - 0 = false
+				//    - other = true
+				// - string:
+				//    - match defined list
+				// - other:
+				//    - throw
+
+				//it->Data()->DataType()->
+
+				//consensus = ...;
+				continue;
+			}
+
+			// defined statement
+			case TK_PP_DEFINED:
+			{
+				++it;
+				if (it->Token() == TK_PARENTHESE_OPEN) {
+					++it;
+					if (it->Token() != TK_IDENTIFIER) {
+						throw ConditionalStatementException{ "expected identifier" };
+					}
+					++it;
+					if (it->Token() != TK_PARENTHESE_CLOSE) {
+						throw ConditionalStatementException{ "expected )" };
+					}
+
+					//consensus = ...;
+					continue;
+				}
+			}
+
+			// Logical operators
+			case TK_AND_OP:
+			{
+				++it;
+				continue;
+			}
+			case TK_OR_OP:
+			{
+				++it;
+				continue;
+			}
+			case TK_NOT:
+			{
+				++it;
+				continue;
+			}
+
+			// Comparison operators
+			case TK_GREATER_THAN:
+			{
+				++it;
+				continue;
+			}
+			case TK_LESS_THAN:
+			{
+				++it;
+				continue;
+			}
+			case TK_EQ_OP:
+			{
+				++it;
+				continue;
+			}
+			case TK_GE_OP:
+			{
+				++it;
+				continue;
+			}
+			case TK_LE_OP:
+			{
+				++it;
+				continue;
+			}
+			case TK_NE_OP:
+			{
+				++it;
+				continue;
+			}
+			}
+		}
+
 
 		//TODO: defined(<definition>), defined
-		//TODO: &&, ||
-		//TODO: >, <, ==, >=, <=, !=, <>, !
-		return false;
+		//TODO: &&, ||, !
+		//TODO: >, <, >=, <=, !=, ==
+		return consensus;
 	}
 
 public:
 	void Dispence(TokenProcessor::TokenType token, const TokenProcessor::DataType data)
 	{
-		CRY_UNUSED(token);
-		CRY_UNUSED(data);
-
-		//TODO: Collect all tokens in the stash
+		m_statementBody.push_back({ token, data });
 	}
 
 	~ConditionalStatement()
 	{
+		// Evaluate the statement and push the boolean result on the stack
+		evaluationResult.push(Eval(std::move(m_statementBody)));
 		g_tokenSubscription.SubscribeOnAll(&ConditionalStatement::OnPropagateCallback);
-		evaluationResult.push(Eval(tmpStash));
 	}
 
 	static void OnPropagateCallback(bool isDirective, Preprocessor::DefaultTokenDataPair& dataPair)
@@ -369,6 +467,7 @@ public:
 		case TK_PP_ENDIF: { EncounterEndif(); return; }
 		}
 
+		// If the evaluation stack is empty, or the top item is true, bail
 		if (evaluationResult.empty() || evaluationResult.top()) { return; }
 
 		// Resetting the token indicates the proxy must skip the token

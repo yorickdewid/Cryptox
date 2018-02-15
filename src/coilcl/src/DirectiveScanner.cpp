@@ -62,7 +62,7 @@ TokenProcessor::TokenDataPair<TokenProcessor::TokenType, const TokenProcessor::D
 	if (m_tokenBacklog->empty()) {
 		m_tokenBacklog.reset();
 	}
-	
+
 	return pair;
 }
 
@@ -209,6 +209,7 @@ DirectiveScanner::DirectiveScanner(std::shared_ptr<Profile>& profile)
 	AddKeyword("include", TK_PP_INCLUDE);
 	AddKeyword("include", TK_PP_INCLUDE);
 	AddKeyword("define", TK_PP_DEFINE);
+	AddKeyword("defined", TK_PP_DEFINED);
 	AddKeyword("undef", TK_PP_UNDEF);
 	AddKeyword("ifdef", TK_PP_IFDEF);
 	AddKeyword("ifndef", TK_PP_IFNDEF);

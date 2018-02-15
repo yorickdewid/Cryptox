@@ -28,15 +28,16 @@ enum PreprocessorToken
 	// Keywords
 	TK_PP_INCLUDE = 100, // include
 	TK_PP_DEFINE = 101,  // define
-	TK_PP_UNDEF = 102,   // undef
-	TK_PP_IFDEF = 103,   // ifdef
-	TK_PP_IFNDEF = 104,  // ifndef
-	TK_PP_ELIF = 105,    // elif
-	TK_PP_ENDIF = 106,   // endif
-	TK_PP_PRAGMA = 107,  // pragma
-	TK_PP_LINE = 108,    // line
-	TK_PP_WARNING = 109, // warning
-	TK_PP_ERROR = 110,   // error
+	TK_PP_DEFINED = 102, // defined
+	TK_PP_UNDEF = 103,   // undef
+	TK_PP_IFDEF = 104,   // ifdef
+	TK_PP_IFNDEF = 105,  // ifndef
+	TK_PP_ELIF = 106,    // elif
+	TK_PP_ENDIF = 107,   // endif
+	TK_PP_PRAGMA = 108,  // pragma
+	TK_PP_LINE = 109,    // line
+	TK_PP_WARNING = 110, // warning
+	TK_PP_ERROR = 111,   // error
 
 	// Compiler translation
 	TK___LINE__ = 390,
