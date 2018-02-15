@@ -276,9 +276,17 @@ public:
 			return;
 		}
 
-		//FIXME: Walk every item of the vector
 		dataPair.AssignToken(it->second.at(0).Token());
 		dataPair.AssignData(it->second.at(0).Data());
+
+		if (it->second.size() > 1) {
+			auto dequqPtr = std::make_unique<std::deque<decltype(g_definitionList)::mapped_type::value_type>>();
+			for (auto subit = it->second.begin() + 1; subit != it->second.end(); ++subit) {
+				dequqPtr->push_back(std::move((*subit)));
+			}
+
+			dataPair.EmplaceTokenQueue(std::move(dequqPtr));
+		}
 	}
 
 	~DefinitionTag()

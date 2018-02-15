@@ -62,15 +62,19 @@ private:
 	PreprocessorToken m_token;
 };
 
-//using DataValuePointer = IntrusiveScopedPtr<Valuedef::Value>;
-
 template<typename _Ty>
 class TokenProcessorProxy
 {
 	_Ty tokenProcessor;
 
+private:
+	std::unique_ptr<std::deque<TokenProcessor::TokenDataPair<TokenProcessor::TokenType, const TokenProcessor::DataType>>> m_tokenBacklog;
+
 protected:
 	std::set<int> m_subscribedTokens;
+
+protected:
+	TokenProcessor::TokenDataPair<TokenProcessor::TokenType, const TokenProcessor::DataType> ProcessBacklog();
 
 public:
 	TokenProcessorProxy(std::shared_ptr<Profile>&);

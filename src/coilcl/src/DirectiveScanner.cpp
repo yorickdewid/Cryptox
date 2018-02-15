@@ -52,6 +52,21 @@ TokenProcessorProxy<_Ty>::TokenProcessorProxy(std::shared_ptr<Profile>& profile)
 }
 
 template<typename _Ty>
+TokenProcessor::TokenDataPair<TokenProcessor::TokenType, const TokenProcessor::DataType> TokenProcessorProxy<_Ty>::ProcessBacklog()
+{
+	assert(m_tokenBacklog && !m_tokenBacklog->empty());
+
+	//FUTURE: Look at descending token queues
+	auto pair = std::move(m_tokenBacklog->front());
+	m_tokenBacklog->pop_front();
+	if (m_tokenBacklog->empty()) {
+		m_tokenBacklog.reset();
+	}
+	
+	return pair;
+}
+
+template<typename _Ty>
 int TokenProcessorProxy<_Ty>::operator()(std::function<int()> lexerLexCall,
 										 std::function<bool()> lexerHasDataCall,
 										 std::function<Tokenizer::ValuePointer()> lexerDataCall,
@@ -60,6 +75,12 @@ int TokenProcessorProxy<_Ty>::operator()(std::function<int()> lexerLexCall,
 	int token = -1;
 	bool skipNewline = false;
 	bool onPreprocLine = false;
+
+	if (m_tokenBacklog && !m_tokenBacklog->empty()) {
+		auto pair = ProcessBacklog();
+		lexerSetDataCall(pair.Data());
+		return pair.Token();
+	}
 
 	do {
 		token = lexerLexCall();
@@ -112,6 +133,11 @@ int TokenProcessorProxy<_Ty>::operator()(std::function<int()> lexerLexCall,
 		// If the token contains data, and the data pointer was changed, swap data.
 		if (preprocPair.HasData() && preprocPair.HasDataChanged()) {
 			lexerSetDataCall(preprocPair.Data());
+		}
+
+		// If the token processor wants to inject multiple tokens at this position, queue them in the backlog.
+		if (preprocPair.HasTokenQueue()) {
+			m_tokenBacklog = std::move(preprocPair.TokenQueue());
 		}
 
 		// Break for all non token processor items and non subscribed tokens.

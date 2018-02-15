@@ -13,6 +13,7 @@
 #include "Tokenizer.h"
 
 #include <map>
+#include <deque>
 #include <functional>
 
 #include <boost/optional.hpp>
@@ -50,23 +51,29 @@ struct TokenProcessor
 
 		inline bool HasToken() const { return m_token.is_initialized(); }
 		inline bool HasData() const { return m_data.is_initialized(); }
-		
+		inline bool HasTokenQueue() const { return m_tokenQueue.operator bool(); }
+
 		inline bool HasTokenChanged() const noexcept { return tokenChangeCounter; }
 		inline bool HasDataChanged() const noexcept { return dataChangeCounter; }
 
 		inline void ResetToken() { m_token = boost::optional<_TokenTy>{}; }
 		inline void ResetData() { m_data = boost::optional<_DataTy>{}; }
 
-		void AssignToken(token_type token)
+		void AssignToken(token_type token) noexcept
 		{
 			m_token = token;
 			++tokenChangeCounter;
 		}
 
-		void AssignData(const data_type& data)
+		void AssignData(const data_type& data) noexcept
 		{
 			m_data = data;
 			++dataChangeCounter;
+		}
+
+		inline void EmplaceTokenQueue(std::unique_ptr<std::deque<TokenDataPair<token_type, const data_type>>>&& queue) noexcept
+		{
+			m_tokenQueue = std::move(queue);
 		}
 
 		const token_type& Token() const { return m_token.get(); }
@@ -75,7 +82,13 @@ struct TokenProcessor
 		inline int TokenChanges() const { return tokenChangeCounter; }
 		inline int DataChanges() const { return dataChangeCounter; }
 
+		inline std::unique_ptr<std::deque<TokenDataPair<token_type, const data_type>>> TokenQueue()
+		{
+			return std::move(m_tokenQueue);
+		}
+
 	private:
+		std::unique_ptr<std::deque<TokenDataPair<token_type, const data_type>>> m_tokenQueue;
 		int tokenChangeCounter = 0;
 		int dataChangeCounter = 0;
 		boost::optional<_TokenTy> m_token;
