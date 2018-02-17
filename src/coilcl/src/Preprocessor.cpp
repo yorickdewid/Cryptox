@@ -397,17 +397,9 @@ class ConditionalStatement : public AbstractDirective
 
 		for (auto it = statement.begin(); it != statement.end(); ++it) {
 			switch (it->Token()) {
+			case TK_IDENTIFIER:
 			case TK_CONSTANT:
 			{
-				//TODO:
-				// - int:
-				//    - 0 = false
-				//    - other = true
-				// - string:
-				//    - match defined list
-				// - other:
-				//    - throw
-
 				assert(it->HasData());
 				switch (it->Data()->DataType<CoilCl::Typedef::BuiltinType>()->TypeSpecifier()) {
 				case CoilCl::Typedef::BuiltinType::Specifier::INT:
@@ -418,13 +410,14 @@ class ConditionalStatement : public AbstractDirective
 				}
 				case CoilCl::Typedef::BuiltinType::Specifier::CHAR:
 				{
-					//if (!it->Data()->IsArray()) { // I think
-					//	throw ConditionalStatementException{ "expected identifier" };
-					//}
+					const std::string definition = it->Data()->IsArray()
+						? it->Data()->As<std::string>()
+						: std::string{ it->Data()->As<char>() };
+					consensusAction.Consolidate(g_definitionList.find(definition) != g_definitionList.end());
 					break;
 				}
 				default:
-					throw ConditionalStatementException{ "..." };
+					throw ConditionalStatementException{ "invalid constant in preprocessor expression" };
 				}
 
 				continue;
@@ -439,6 +432,7 @@ class ConditionalStatement : public AbstractDirective
 					if (it->Token() != TK_IDENTIFIER) {
 						throw ConditionalStatementException{ "expected identifier" };
 					}
+					assert(it->HasData());
 					const std::string definition = it->Data()->As<std::string>();
 					++it;
 					if (it->Token() != TK_PARENTHESE_CLOSE) {
@@ -451,6 +445,7 @@ class ConditionalStatement : public AbstractDirective
 				if (it->Token() != TK_IDENTIFIER) {
 					throw ConditionalStatementException{ "expected identifier" };
 				}
+				assert(it->HasData());
 				const std::string definition = it->Data()->As<std::string>();
 				consensusAction.Consolidate(g_definitionList.find(definition) != g_definitionList.end());
 				continue;
