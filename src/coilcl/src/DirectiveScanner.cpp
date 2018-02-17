@@ -76,6 +76,7 @@ int TokenProcessorProxy<_Ty>::operator()(std::function<int()> lexerLexCall,
 	bool skipNewline = false;
 	bool onPreprocLine = false;
 
+	// Clear the token backlog first
 	if (m_tokenBacklog && !m_tokenBacklog->empty()) {
 		auto pair = ProcessBacklog();
 		lexerSetDataCall(pair.Data());

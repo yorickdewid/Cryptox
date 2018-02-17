@@ -355,6 +355,8 @@ class ConditionalStatement : public AbstractDirective
 			bool disjunction : 1;
 			bool negation : 1;
 
+			ChainAction() { Reset(); }
+
 			// Reset all actions
 			void Reset()
 			{
@@ -363,12 +365,14 @@ class ConditionalStatement : public AbstractDirective
 				negation = false;
 			}
 
+			// Return evaluated expression as boolean
 			inline bool Consensus() const noexcept
 			{
 				assert(!boost::logic::indeterminate(chainState));
 				return chainState;
 			}
 
+			// Boolean arithmetic
 			void Consolidate(bool b)
 			{
 				if (negation) { chainState = !b; }
@@ -380,6 +384,7 @@ class ConditionalStatement : public AbstractDirective
 					assert(!boost::logic::indeterminate(chainState));
 					chainState = chainState || b;
 				}
+				else { chainState = b; }
 
 				Reset();
 			}
@@ -394,8 +399,6 @@ class ConditionalStatement : public AbstractDirective
 			switch (it->Token()) {
 			case TK_CONSTANT:
 			{
-				assert(it->HasData());
-
 				//TODO:
 				// - int:
 				//    - 0 = false
@@ -405,9 +408,25 @@ class ConditionalStatement : public AbstractDirective
 				// - other:
 				//    - throw
 
-				//it->Data()->DataType()->
+				assert(it->HasData());
+				switch (it->Data()->DataType<CoilCl::Typedef::BuiltinType>()->TypeSpecifier()) {
+				case CoilCl::Typedef::BuiltinType::Specifier::INT:
+				{
+					int i = it->Data()->As<int>();
+					consensusAction.Consolidate(i);
+					break;
+				}
+				case CoilCl::Typedef::BuiltinType::Specifier::CHAR:
+				{
+					//if (!it->Data()->IsArray()) { // I think
+					//	throw ConditionalStatementException{ "expected identifier" };
+					//}
+					break;
+				}
+				default:
+					throw ConditionalStatementException{ "..." };
+				}
 
-				//consensus = ...;
 				continue;
 			}
 
