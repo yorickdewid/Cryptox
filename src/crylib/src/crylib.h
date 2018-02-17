@@ -906,6 +906,4 @@ extern int ttyslot (void) __THROW;
 # include <bits/stdlib-ldbl.h>
 #endif
 
-__END_DECLS
-
 #endif /* crylib.h  */

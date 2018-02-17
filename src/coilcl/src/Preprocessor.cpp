@@ -112,10 +112,32 @@ private:
 	std::set<CallbackFunc> m_subscriptionSet;
 } g_tokenSubscription;
 
+void RegisterStandardMacros()
+{
+	//TODO:
+
+	//TODO: __func__
+	//g_definitionList.insert({ "__FILE__", nullptr });
+	//g_definitionList.insert({ "__LINE__", nullptr });
+	//g_definitionList.insert({ "__DATE__", nullptr }); // "??? ?? ????"
+	//g_definitionList.insert({ "__TIME__", nullptr }); // "??:??:??"
+	//g_definitionList.insert({ "__STDC__", nullptr });
+	//g_definitionList.insert({ "__STDC_VERSION__", nullptr });
+	//g_definitionList.insert({ "__STDC_HOSTED__", nullptr });
+	//g_definitionList.insert({ "__STDC_HOSTED__", nullptr });
+}
+
+void RegisterCommonMacros()
+{
+	//TODO: __VERSION__
+}
+
 Preprocessor::Preprocessor(std::shared_ptr<CoilCl::Profile>& profile)
 	: Stage{ this }
 	, m_profile{ profile }
 {
+	RegisterStandardMacros();
+	RegisterCommonMacros();
 }
 
 Preprocessor& Preprocessor::CheckCompatibility()
@@ -390,6 +412,8 @@ class ConditionalStatement : public AbstractDirective
 			}
 		} consensusAction;
 
+		int stack[2];
+
 		//TODO: defined(<definition>), defined
 		//TODO: &&, ||, !
 		//TODO: >, <, >=, <=, !=, ==
@@ -404,8 +428,8 @@ class ConditionalStatement : public AbstractDirective
 				switch (it->Data()->DataType<CoilCl::Typedef::BuiltinType>()->TypeSpecifier()) {
 				case CoilCl::Typedef::BuiltinType::Specifier::INT:
 				{
-					int i = it->Data()->As<int>();
-					consensusAction.Consolidate(i);
+					stack[0] = it->Data()->As<int>();
+					consensusAction.Consolidate(stack[0]);
 					break;
 				}
 				case CoilCl::Typedef::BuiltinType::Specifier::CHAR:
@@ -423,7 +447,11 @@ class ConditionalStatement : public AbstractDirective
 				continue;
 			}
 
-			// defined statement
+			case TK_PARENTHESE_OPEN:
+			case TK_PARENTHESE_CLOSE:
+				continue;
+
+				// defined statement
 			case TK_PP_DEFINED:
 			{
 				++it;
@@ -468,37 +496,44 @@ class ConditionalStatement : public AbstractDirective
 				continue;
 			}
 
+#define COMPARE_OP(o) \
+			++it; \
+			if (it->Token() != TK_CONSTANT) {  throw ConditionalStatementException{ "expected constant" }; } \
+			assert(it->HasData()); \
+			stack[1] = it->Data()->As<int>(); \
+			consensusAction.Consolidate(stack[0] o stack[1]); \
+			continue;
+
 			// Comparison operators
 			case TK_GREATER_THAN:
 			{
-				//++it;
-				continue;
+				COMPARE_OP(> );
 			}
 			case TK_LESS_THAN:
 			{
-				//++it;
-				continue;
+				COMPARE_OP(< );
 			}
 			case TK_EQ_OP:
 			{
-				//++it;
-				continue;
+				COMPARE_OP(== );
 			}
 			case TK_GE_OP:
 			{
-				//++it;
+				COMPARE_OP(>= );
 				continue;
 			}
 			case TK_LE_OP:
 			{
-				//++it;
+				COMPARE_OP(<= );
 				continue;
 			}
 			case TK_NE_OP:
 			{
-				//++it;
+				COMPARE_OP(!= );
 				continue;
 			}
+			default:
+				throw ConditionalStatementException{ "invalid token in preprocessor directive" };
 			}
 		}
 
