@@ -10,41 +10,67 @@
 
 #include <bitset>
 
+#if 0
+
 namespace CoilCl
 {
 
 namespace Detail
 {
 
+//enum LogicalOp
+//{
+//	And,
+//	Or,
+//};
+
+//class BooleanAndOperator;
+//class BooleanOrOperator;
+
+struct OpAnd
+{
+};
+
+struct OpOr
+{
+	bool operator()(bool self, bool other)
+	{
+		return false;
+	}
+};
+
 struct BooleanOperator
+{
+};
+
+template<typename _OperatorFunc>
+struct BooleanOperatorImpl : public BooleanOperator
 {
 	using type = bool;
 
 	type value;
 
-	BooleanOperator() = default;
-	BooleanOperator(bool _value) : value{ _value } {}
-	BooleanOperator(int _value) : value{ static_cast<bool>(_value) } {}
-	~BooleanOperator() { Reset(); }
+	BooleanOperatorImpl(bool _value) : value{ _value } {}
+	BooleanOperatorImpl(int _value) : value{ static_cast<type>(_value) } {}
+	~BooleanOperatorImpl() { Reset(); }
 
-	operator bool() { return value; }
+	operator bool() { return Collapse(); }
 
 	void operator=(bool b) { value = b; }
-	void operator=(int b) { value = static_cast<bool>(b); }
+	void operator=(int b) { value = static_cast<type>(b); }
 
-	void operator&=(BooleanOperator&& other)
+	BooleanOperatorImpl<OpAnd>& operator&=(bool b) noexcept
 	{
-		Reset(new BooleanOperator{ std::move(other) });
+		auto *ptr = new BooleanOperatorImpl<OpAnd>(b);
+		Reset(ptr);
+		return (*ptr);
 	}
 
-	void operator|=(BooleanOperator&& other)
+	BooleanOperatorImpl<OpOr>& operator|=(bool b) noexcept
 	{
-		Reset(new BooleanOperator{ std::move(other) });
-	}
-
-	void operator-=(BooleanOperator&& other)
-	{
-		Reset(new BooleanOperator{ std::move(other) });
+		auto *ptr = new BooleanOperatorImpl<OpOr>(b);
+		Reset(ptr);
+		return (*ptr);
 	}
 
 private:
@@ -54,28 +80,84 @@ private:
 		rhs = _rhs;
 	}
 
+	type Evaluate(type parent)
+	{
+		type result = consolidate(parent, value);
+		if (rhs) {
+			rhs->result(result);
+		}
+
+		return result;
+	}
+
+	type Collapse()
+	{
+		if (rhs) {
+			return rhs->Evaluate(value));
+		}
+
+		return value;
+	}
+
 private:
 	BooleanOperator * rhs = nullptr;
+	_OperatorFunc consolidate;
 };
 
-} // namespace Detail
+//class BooleanOrOperator final : public BooleanOperator
+//{
+//	type Eval(type b)
+//	{
+//		return b || Collapse();
+//	}
+//
+//public:
+//	template<typename... _ArgsTy>
+//	BooleanOrOperator(_ArgsTy... Args)
+//		: BooleanOperator{ std::forward<_ArgsTy>(Args) }
+//	{
+//	}
+//};
+//
+//class BooleanAndOperator final : public BooleanOperator
+//{
+//	type Eval(type b)
+//	{
+//		return b && Collapse();
+//	}
+//
+//public:
+//	template<typename... _ArgsTy>
+//	BooleanAndOperator(_ArgsTy... Args)
+//		: BooleanOperator{ std::forward<_ArgsTy>(Args) }
+//	{
+//	}
+//};
 
+} // namespace Detail
+#if 0
 class BooleanArithmetic
 {
-	Detail::BooleanOperator m_truth;
+	Detail::BooleanOrOperator m_truth;
 
 public:
 	BooleanArithmetic()
 	{
-		m_truth = true;
+		/*Detail::BooleanOperator x{ false };
+		x |= true;*/
+
+		m_truth &= false;
+
+		//m_truth = true;
+
+		/*m_truth = true;
 
 		m_truth &= false;
 		m_truth |= false;
-		m_truth -= false;
 
 		if (m_truth) {
 
-		}
+		}*/
 	}
 
 	// Resolve truth equation
@@ -89,8 +171,10 @@ public:
 	// Add boolean
 	void operator+=(bool b)
 	{
-
 	}
 };
 
+#endif
 } // namespace CoilCl
+
+#endif

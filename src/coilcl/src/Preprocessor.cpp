@@ -15,6 +15,8 @@
 #include "DirectiveScanner.h" //TODO: remove, only used for tokens
 #include "IntrusiveScopedPtr.h"
 
+#include <boost/logic/tribool.hpp>
+
 #include <set>
 #include <stack>
 #include <cassert>
@@ -344,7 +346,11 @@ class ConditionalStatement : public AbstractDirective
 	// throw an exception.
 	bool Eval(std::vector<Preprocessor::TokenDataPair<TokenProcessor::TokenType, const TokenProcessor::DataType>>&& statement)
 	{
-		bool consensus = false;
+		boost::logic::tribool consensus{ boost::logic::indeterminate };
+
+		//TODO: defined(<definition>), defined
+		//TODO: &&, ||, !
+		//TODO: >, <, >=, <=, !=, ==
 
 		for (auto it = statement.begin(); it != statement.end(); ++it) {
 			switch (it->Token()) {
@@ -376,12 +382,13 @@ class ConditionalStatement : public AbstractDirective
 					if (it->Token() != TK_IDENTIFIER) {
 						throw ConditionalStatementException{ "expected identifier" };
 					}
+					const std::string definition = it->Data()->As<std::string>();
 					++it;
 					if (it->Token() != TK_PARENTHESE_CLOSE) {
 						throw ConditionalStatementException{ "expected )" };
 					}
 
-					//consensus = ...;
+					consensus = g_definitionList.find(definition) != g_definitionList.end();
 					continue;
 				}
 			}
@@ -437,10 +444,7 @@ class ConditionalStatement : public AbstractDirective
 			}
 		}
 
-
-		//TODO: defined(<definition>), defined
-		//TODO: &&, ||, !
-		//TODO: >, <, >=, <=, !=, ==
+		assert(!boost::logic::indeterminate(consensus));
 		return consensus;
 	}
 
