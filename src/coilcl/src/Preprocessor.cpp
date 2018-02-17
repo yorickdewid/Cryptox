@@ -318,6 +318,7 @@ public:
 	{
 		if (m_definitionName.empty()) { return; }
 
+		//FUTURE: OPTIMIZATION: Try intergral evaluation before move
 		// Insert definition body into global definition list
 		const auto& result = g_definitionList.insert({ m_definitionName, std::move(m_definitionBody) });
 		assert(result.second);
@@ -412,12 +413,8 @@ class ConditionalStatement : public AbstractDirective
 			}
 		} consensusAction;
 
-		int stack[2];
-
-		//TODO: defined(<definition>), defined
-		//TODO: &&, ||, !
-		//TODO: >, <, >=, <=, !=, ==
-		//TODO: ()
+		// Two value stack represents lhs and rhs
+		int stack[2] = { 0,0 };
 
 		for (auto it = statement.begin(); it != statement.end(); ++it) {
 			switch (it->Token()) {
@@ -437,7 +434,8 @@ class ConditionalStatement : public AbstractDirective
 					const std::string definition = it->Data()->IsArray()
 						? it->Data()->As<std::string>()
 						: std::string{ it->Data()->As<char>() };
-					consensusAction.Consolidate(g_definitionList.find(definition) != g_definitionList.end());
+					bool hasDefinition = g_definitionList.find(definition) != g_definitionList.end();
+					consensusAction.Consolidate(hasDefinition);
 					break;
 				}
 				default:
@@ -502,20 +500,23 @@ class ConditionalStatement : public AbstractDirective
 			assert(it->HasData()); \
 			stack[1] = it->Data()->As<int>(); \
 			consensusAction.Consolidate(stack[0] o stack[1]); \
-			continue;
+			stack[0] = 0; stack[1] = 0;
 
 			// Comparison operators
 			case TK_GREATER_THAN:
 			{
 				COMPARE_OP(> );
+				continue;
 			}
 			case TK_LESS_THAN:
 			{
 				COMPARE_OP(< );
+				continue;
 			}
 			case TK_EQ_OP:
 			{
 				COMPARE_OP(== );
+				continue;
 			}
 			case TK_GE_OP:
 			{
@@ -532,6 +533,35 @@ class ConditionalStatement : public AbstractDirective
 				COMPARE_OP(!= );
 				continue;
 			}
+
+#define ARITHMETIC_OP(o) \
+			++it; \
+			if (it->Token() != TK_CONSTANT) { throw ConditionalStatementException{ "expected constant" }; } \
+			assert(it->HasData()); \
+			stack[0] = stack[0] o it->Data()->As<int>();
+
+			// Integral arithmetic
+			case TK_PLUS:
+			{
+				ARITHMETIC_OP(+);
+				continue;
+			}
+			case TK_MINUS:
+			{
+				ARITHMETIC_OP(-);
+				continue;
+			}
+			case TK_ASTERISK:
+			{
+				ARITHMETIC_OP(*);
+				continue;
+			}
+			case TK_SLASH:
+			{
+				ARITHMETIC_OP(/ );
+				continue;
+			}
+
 			default:
 				throw ConditionalStatementException{ "invalid token in preprocessor directive" };
 			}
