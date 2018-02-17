@@ -346,11 +346,49 @@ class ConditionalStatement : public AbstractDirective
 	// throw an exception.
 	bool Eval(std::vector<Preprocessor::TokenDataPair<TokenProcessor::TokenType, const TokenProcessor::DataType>>&& statement)
 	{
-		boost::logic::tribool consensus{ boost::logic::indeterminate };
+		class ChainAction
+		{
+			boost::logic::tribool chainState{ boost::logic::indeterminate };
+
+		public:
+			bool conjunction : 1;
+			bool disjunction : 1;
+			bool negation : 1;
+
+			// Reset all actions
+			void Reset()
+			{
+				conjunction = false;
+				disjunction = false;
+				negation = false;
+			}
+
+			inline bool Consensus() const noexcept
+			{
+				assert(!boost::logic::indeterminate(chainState));
+				return chainState;
+			}
+
+			void Consolidate(bool b)
+			{
+				if (negation) { chainState = !b; }
+				else if (conjunction) {
+					assert(!boost::logic::indeterminate(chainState));
+					chainState = chainState && b;
+				}
+				else if (disjunction) {
+					assert(!boost::logic::indeterminate(chainState));
+					chainState = chainState || b;
+				}
+
+				Reset();
+			}
+		} consensusAction;
 
 		//TODO: defined(<definition>), defined
 		//TODO: &&, ||, !
 		//TODO: >, <, >=, <=, !=, ==
+		//TODO: ()
 
 		for (auto it = statement.begin(); it != statement.end(); ++it) {
 			switch (it->Token()) {
@@ -388,64 +426,69 @@ class ConditionalStatement : public AbstractDirective
 						throw ConditionalStatementException{ "expected )" };
 					}
 
-					consensus = g_definitionList.find(definition) != g_definitionList.end();
+					consensusAction.Consolidate(g_definitionList.find(definition) != g_definitionList.end());
 					continue;
 				}
+				if (it->Token() != TK_IDENTIFIER) {
+					throw ConditionalStatementException{ "expected identifier" };
+				}
+				const std::string definition = it->Data()->As<std::string>();
+				consensusAction.Consolidate(g_definitionList.find(definition) != g_definitionList.end());
+				continue;
 			}
 
 			// Logical operators
 			case TK_AND_OP:
 			{
-				++it;
+				consensusAction.conjunction = true;
 				continue;
 			}
 			case TK_OR_OP:
 			{
-				++it;
+				consensusAction.disjunction = true;
 				continue;
 			}
 			case TK_NOT:
 			{
-				++it;
+				consensusAction.negation = true;
 				continue;
 			}
 
 			// Comparison operators
 			case TK_GREATER_THAN:
 			{
-				++it;
+				//++it;
 				continue;
 			}
 			case TK_LESS_THAN:
 			{
-				++it;
+				//++it;
 				continue;
 			}
 			case TK_EQ_OP:
 			{
-				++it;
+				//++it;
 				continue;
 			}
 			case TK_GE_OP:
 			{
-				++it;
+				//++it;
 				continue;
 			}
 			case TK_LE_OP:
 			{
-				++it;
+				//++it;
 				continue;
 			}
 			case TK_NE_OP:
 			{
-				++it;
+				//++it;
 				continue;
 			}
 			}
 		}
 
-		assert(!boost::logic::indeterminate(consensus));
-		return consensus;
+		return consensusAction.Consensus();
 	}
 
 public:
