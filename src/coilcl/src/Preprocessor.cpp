@@ -398,8 +398,8 @@ class ConditionalStatement : public AbstractDirective
 			// Boolean arithmetic
 			void Consolidate(bool b)
 			{
-				if (negation) { chainState = !b; }
-				else if (conjunction) {
+				if (negation) { b = !b; }
+				if (conjunction) {
 					assert(!boost::logic::indeterminate(chainState));
 					chainState = chainState && b;
 				}
@@ -464,7 +464,6 @@ class ConditionalStatement : public AbstractDirective
 					if (it->Token() != TK_PARENTHESE_CLOSE) {
 						throw ConditionalStatementException{ "expected )" };
 					}
-
 					consensusAction.Consolidate(g_definitionList.find(definition) != g_definitionList.end());
 					continue;
 				}
@@ -562,6 +561,8 @@ class ConditionalStatement : public AbstractDirective
 				continue;
 			}
 
+			//FUTURE: %, ~, ^
+
 			default:
 				throw ConditionalStatementException{ "invalid token in preprocessor directive" };
 			}
@@ -571,6 +572,21 @@ class ConditionalStatement : public AbstractDirective
 	}
 
 public:
+	ConditionalStatement() = default;
+
+	template<typename _TokenTy>
+	ConditionalStatement(_TokenTy token)
+	{
+		m_statementBody.push_back({ token, nullptr });
+	}
+
+	template<typename _TokenTy, typename... _ArgsTy>
+	ConditionalStatement(_TokenTy token, _ArgsTy... args)
+		: ConditionalStatement{ args... }
+	{
+		m_statementBody.push_back({ token, nullptr });
+	}
+
 	void Dispence(TokenProcessor::TokenType token, const TokenProcessor::DataType data)
 	{
 		m_statementBody.push_back({ token, data });
@@ -600,6 +616,7 @@ public:
 		dataPair.ResetToken();
 	}
 
+	// Flip evaluation result
 	static void EncounterElse()
 	{
 		if (evaluationResult.empty()) {
@@ -611,6 +628,7 @@ public:
 		top = !top;
 	}
 
+	// End of if statement
 	static void EncounterEndif()
 	{
 		if (evaluationResult.empty()) {
@@ -726,10 +744,10 @@ void Preprocessor::MethodFactory(TokenType token)
 		m_method = MakeMethod<ConditionalStatement>();
 		break;
 	case TK_PP_IFDEF:
-		m_method = MakeMethod<ConditionalStatement>();
+		m_method = MakeMethod<ConditionalStatement>(TK_PP_DEFINED);
 		break;
 	case TK_PP_IFNDEF:
-		m_method = MakeMethod<ConditionalStatement>();
+		m_method = MakeMethod<ConditionalStatement>(TK_PP_DEFINED, TK_NOT);
 		break;
 	case TK_PP_ELIF:
 		m_method = MakeMethod<ConditionalStatement>();
