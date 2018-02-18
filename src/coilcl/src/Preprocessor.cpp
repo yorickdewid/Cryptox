@@ -101,10 +101,10 @@ public:
 		}
 
 		// Invoke any callback function that was registered for all tokens
-		std::for_each(m_subscriptionSet.begin(), m_subscriptionSet.end(), [&isDirective, &tokenData](CallbackFunc cb)
-		{
-			(cb)(isDirective, tokenData);
-		});
+		auto it = m_subscriptionSet.begin();
+		while (it != m_subscriptionSet.end()) {
+			(*it++)(isDirective, tokenData);
+		}
 	}
 
 private:
@@ -367,7 +367,7 @@ class ConditionalStatement : public AbstractDirective
 	// Evaluate statemenet and return either true for positive
 	// result, or false for negative. An evaluation error will
 	// throw an exception.
-	bool Eval(std::vector<Preprocessor::TokenDataPair<TokenProcessor::TokenType, const TokenProcessor::DataType>>&& statement)
+	static bool Eval(std::vector<Preprocessor::TokenDataPair<TokenProcessor::TokenType, const TokenProcessor::DataType>>&& statement)
 	{
 		class ChainAction
 		{
@@ -594,6 +594,11 @@ public:
 
 	~ConditionalStatement()
 	{
+		if (m_statementBody.empty()) {
+			//throw ConditionalStatementException{ "statement with no expression" };
+			// Ouch!
+		}
+
 		// Evaluate the statement and push the boolean result on the stack
 		evaluationResult.push(Eval(std::move(m_statementBody)));
 		g_tokenSubscription.SubscribeOnAll(&ConditionalStatement::OnPropagateCallback);
@@ -605,8 +610,10 @@ public:
 
 		// If this token happens to be a conditional statement token, redirect
 		switch (dataPair.Token()) {
-		case TK_ELSE: { EncounterElse(); return; };
-		case TK_PP_ENDIF: { EncounterEndif(); return; }
+		case TK_IF: { return; };
+		case TK_PP_ELIF: { EncounterElseIf(); return; };
+		case TK_ELSE: { EncounterElse(); dataPair.ResetToken(); return; };
+		case TK_PP_ENDIF: { EncounterEndif(); dataPair.ResetToken(); return; }
 		}
 
 		// If the evaluation stack is empty, or the top item is true, bail
@@ -614,6 +621,16 @@ public:
 
 		// Resetting the token indicates the proxy must skip the token
 		dataPair.ResetToken();
+	}
+
+	static void EncounterElseIf()
+	{
+		if (evaluationResult.empty()) {
+			throw 1; //TODO: or something else
+		}
+
+		evaluationResult.pop();
+		g_tokenSubscription.UnsubscribeOnAll(&ConditionalStatement::OnPropagateCallback);
 	}
 
 	// Flip evaluation result
@@ -635,9 +652,10 @@ public:
 			throw 1; //TODO: or something else
 		}
 
+		// Pop top item from evaluation stack. If this happens to be the 
+		// last item on the stack also unregister the callback subscription.
 		evaluationResult.pop();
 		if (evaluationResult.empty()) {
-			//TODO: causes SIGSEGV
 			g_tokenSubscription.UnsubscribeOnAll(&ConditionalStatement::OnPropagateCallback);
 		}
 	}
