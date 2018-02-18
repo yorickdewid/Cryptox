@@ -33,12 +33,16 @@ namespace Algorithm
 {
 
 template<typename _Ty, typename _KeyTy, class _Predicate>
-void ForEachRangeEqual(_Ty& set, _KeyTy& key, _Predicate p)
+auto ForEachRangeEqual(_Ty& set, _KeyTy& key, _Predicate p)
 {
-	auto& range = set.equal_range(key);
-	for (auto it = range.first; it != range.second; ++it) {//TODO: still an issue
-		p(it);
+	auto range = set.equal_range(key);
+	for (auto it = range.first; it != range.second; it++) {
+		if (p(it->second)) {
+			return it;
+		}
 	}
+
+	return set.end();
 }
 
 } // namespace Algorithm
@@ -67,17 +71,14 @@ public:
 	// Find token and callback, then erase from set
 	void UnsubscribeOnToken(int token, CallbackFunc cb)
 	{
-		CRY_UNUSED(token);
-		CRY_UNUSED(cb);
-
-		//TODO:
-		/*Cry::Algorithm::ForEachRangeEqual(m_subscriptionTokenSet, token,
-										  [&cb, this](decltype(m_subscriptionTokenSet)::iterator it)
+		auto it = Cry::Algorithm::ForEachRangeEqual(m_subscriptionTokenSet, token, [&cb](CallbackFunc& _cb)
 		{
-			if (it->second == cb) {
-				m_subscriptionTokenSet.erase(it);
-			}
-		});*/
+			return _cb == cb;
+		});
+
+		if (it != m_subscriptionTokenSet.end()) {
+			m_subscriptionTokenSet.erase(it);
+		}
 	}
 
 	// Register any calls that trigger on each token
@@ -626,7 +627,7 @@ public:
 	static void EncounterElseIf()
 	{
 		if (evaluationResult.empty()) {
-			throw 1; //TODO: or something else
+			throw ConditionalStatementException{ "unexpected elif" };
 		}
 
 		evaluationResult.pop();
@@ -637,7 +638,7 @@ public:
 	static void EncounterElse()
 	{
 		if (evaluationResult.empty()) {
-			throw 1; //TODO: or something else
+			throw ConditionalStatementException{ "unexpected else" };
 		}
 
 		// Inverse top most element
@@ -649,7 +650,7 @@ public:
 	static void EncounterEndif()
 	{
 		if (evaluationResult.empty()) {
-			throw 1; //TODO: or something else
+			throw ConditionalStatementException{ "unexpected endif" };
 		}
 
 		// Pop top item from evaluation stack. If this happens to be the 
@@ -807,6 +808,7 @@ void Preprocessor::Dispatch(TokenType token, const DataType data)
 
 void Preprocessor::EndOfLine()
 {
+	//TODO: call Yield() first
 	// Reste directive method for next preprocessor line
 	m_method.reset();
 }
