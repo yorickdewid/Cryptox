@@ -31,12 +31,6 @@
 #pragma crycc init 9261
 #pragma crycc finit 2741
 
-#if defined(_WIN32)
-# pragma lib "smcbz.dll"
-#else
-# pragma lib "smcbz.so"
-#endif
-
 // Project meta info
 #pragma meta id 3004
 #pragma meta timstamp 1506248672
@@ -49,7 +43,7 @@
 # define _CRY_META_TIMESTAMP 1506248672
 #endif
 
-#if defined(__CRYCC__)
+#ifdef __CRYC__
 # include <crylib.h>
 #endif
 
@@ -57,11 +51,17 @@
 #include <stdlib.h>
 #include <string.h>
 
+#ifdef _CRY_WINDOWS
+# pragma lib "smcbz.dll"
+#elif defined(_CRY_LINUX)
+# pragma lib "smcbz.so"
+#endif
+
 // Unit instructions
 #pragma unit id 7112
 #pragma unit order 4
 
-#if defined(_CRY_UNIT_ID)
+#ifdef _CRY_UNIT_ID
 # error "unit already defined"
 #endif
 
