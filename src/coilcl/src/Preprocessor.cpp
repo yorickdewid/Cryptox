@@ -155,6 +155,7 @@ class AbstractDirective
 {
 public:
 	AbstractDirective() = default;
+	virtual void Yield() {}
 	virtual void Dispence(TokenProcessor::TokenType token, const TokenProcessor::DataType data) = 0;
 
 protected:
@@ -315,7 +316,7 @@ public:
 		}
 	}
 
-	~DefinitionTag()
+	void Yield() override
 	{
 		if (m_definitionName.empty()) { return; }
 
@@ -593,11 +594,10 @@ public:
 		m_statementBody.push_back({ token, data });
 	}
 
-	~ConditionalStatement()
+	void Yield() override
 	{
 		if (m_statementBody.empty()) {
-			//throw ConditionalStatementException{ "statement with no expression" };
-			// Ouch!
+			throw ConditionalStatementException{ "statement with no expression" };
 		}
 
 		// Evaluate the statement and push the boolean result on the stack
@@ -808,7 +808,7 @@ void Preprocessor::Dispatch(TokenType token, const DataType data)
 
 void Preprocessor::EndOfLine()
 {
-	//TODO: call Yield() first
 	// Reste directive method for next preprocessor line
+	m_method->Yield();
 	m_method.reset();
 }
