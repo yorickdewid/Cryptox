@@ -155,8 +155,17 @@ public:
 				.PreliminaryAssert()
 				.StandardCompliance()
 				.PedanticCompliance()
-				.Optimize<CoilCl::LeanOptimzer>()
+				//.Optimize<CoilCl::LeanOptimzer>()
 				.ExtractSymbols(program->FillSymbols());
+
+#ifdef OPTIMIZER
+			// Optimizer
+			CoilCl::Optimizer{ profile, std::move(program->Ast()) }
+				.MoveStage()
+				.TrivialReduction()
+				.DeepInflation()
+				.Metrics(program->FillMetrics());
+#endif
 
 			// For now dump contents to screen
 			program->AstPassthrough()->Print<ASTNode::Traverse::STAGE_LAST>();
