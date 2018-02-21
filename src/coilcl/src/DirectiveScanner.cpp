@@ -111,6 +111,12 @@ int TokenProcessorProxy<_Ty>::operator()(std::function<int()> lexerLexCall,
 		}
 		}
 
+		// Stop processing when end of source is reached. This is excluded from the switch
+		// by desing since the operation needs to break out for the outer loop.
+		if (token == TK_HALT) {
+			break;
+		}
+
 		skipNewline = false;
 
 		// If token contains data, get data pointer.
