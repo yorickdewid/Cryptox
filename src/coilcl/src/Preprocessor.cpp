@@ -134,7 +134,7 @@ void RegisterCommonMacros()
 }
 
 Preprocessor::Preprocessor(std::shared_ptr<CoilCl::Profile>& profile)
-	: Stage{ this }
+	: Stage{ this, StageType::Type::TokenProcessor }
 	, m_profile{ profile }
 {
 	RegisterStandardMacros();

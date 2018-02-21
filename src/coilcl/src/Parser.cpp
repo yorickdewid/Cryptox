@@ -146,7 +146,7 @@ private:
 };
 
 Parser::Parser(std::shared_ptr<CoilCl::Profile>& profile, TokenizerPtr tokenizer)
-	: Stage{ this }
+	: Stage{ this, StageType::Type::SyntacticAnalysis }
 	, m_profile{ profile }
 	, lex{ tokenizer }
 {

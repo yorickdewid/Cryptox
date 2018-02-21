@@ -20,8 +20,8 @@ using namespace CoilCl;
 const char *StageType::Print(Type name) noexcept
 {
 	switch (name) {
-	case TokenProcessing:
-		return "TokenProcessing";
+	case TokenProcessor:
+		return "TokenProcessor";
 	case LexicalAnalysis:
 		return "LexicalAnalysis";
 	case SyntacticAnalysis:

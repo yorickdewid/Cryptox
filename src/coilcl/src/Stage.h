@@ -22,7 +22,7 @@ struct StageType
 	// and to track exception to their stage source.
 	enum Type
 	{
-		TokenProcessing,		// Preprocessor
+		TokenProcessor,			// Preprocessor
 		LexicalAnalysis,		// Lexer
 		SyntacticAnalysis,		// Parser
 		SemanticAnalysis,		// Semer
@@ -68,12 +68,6 @@ struct Stage
 			return std::runtime_error::what();
 		}
 	};
-
-	//TODO: remove
-	Stage(_Ty* derived)
-		: m_derived{ derived }
-	{
-	}
 
 	Stage(_Ty* derived, StageType stage)
 		: m_derived{ derived }
