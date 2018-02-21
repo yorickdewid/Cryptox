@@ -17,27 +17,24 @@ namespace CoilCl
 
 struct StageType
 {
+	// Each compiler stage is represented by an stage type.
+	// The stage type is used to identify the current stage
+	// and to track exception to their stage source.
 	enum Type
 	{
-		SyntacticAnalysis,
-		SemanticAnalysis,
-		Emitter,
+		TokenProcessing,		// Preprocessor
+		LexicalAnalysis,		// Lexer
+		SyntacticAnalysis,		// Parser
+		SemanticAnalysis,		// Semer
+		Optimizer,				// Optimizer
+		Emitter,				// Emitter
 	};
 
-	static const char *print(Type name)
-	{
-		switch (name) {
-		case SyntacticAnalysis:
-			return "SyntacticAnalysis";
-		case SemanticAnalysis:
-			return "SemanticAnalysis";
-		case Emitter:
-			return "Emitter";
-		}
-
-		return "<unknown>";
-	}
+	// Return stage name as string
+	static const char *Print(Type name) noexcept;
 };
+
+extern StageType::Type g_compilerStage;
 
 template<typename _Ty, typename = typename std::enable_if<std::is_class<_Ty>::value>::type>
 struct Stage
@@ -48,6 +45,7 @@ struct Stage
 	virtual std::string Name() const = 0;
 	virtual _Ty& CheckCompatibility() = 0;
 
+	// The stage exception can show details about current stage in which the exception occured
 	class StageException : public std::runtime_error
 	{
 	public:
@@ -62,19 +60,31 @@ struct Stage
 		}
 	};
 
+	//TODO: remove
 	Stage(_Ty* derived)
 		: m_derived{ derived }
 	{
 	}
 
-	_Ty& MoveStage() const
+	Stage(_Ty* derived, StageType stage)
+		: m_derived{ derived }
+		, m_stageType{ stage }
 	{
-		//TODO
+	}
+
+	// Move the current stage into the global compiler stage
+	_Ty& MoveStage() const noexcept
+	{
+		g_compilerStage = m_stageType;
 		return (*m_derived);
 	}
 
+	// Retrieve stage name
+	inline auto StageName() const noexcept { return StageType::Print(m_stageType); }
+
 private:
-	_Ty* m_derived;
+	_Ty * m_derived;
+	StageType::Type m_stageType;
 };
 
 } // namespace CoilCl
