@@ -354,7 +354,7 @@ public:
 // Conditional compilation
 class ConditionalStatement : public AbstractDirective
 {
-	static std::stack<bool> evaluationResult;
+	static std::stack<std::pair<bool, bool>> evaluationResult;
 	std::vector<Preprocessor::TokenDataPair<TokenProcessor::TokenType, const TokenProcessor::DataType>> m_statementBody;
 
 	class ConditionalStatementException : public std::runtime_error
@@ -601,7 +601,8 @@ public:
 		}
 
 		// Evaluate the statement and push the boolean result on the stack
-		evaluationResult.push(Eval(std::move(m_statementBody)));
+		auto evalResult = Eval(std::move(m_statementBody));
+		evaluationResult.push(std::make_pair(evalResult, evalResult));
 		g_tokenSubscription.SubscribeOnAll(&ConditionalStatement::OnPropagateCallback);
 	}
 
@@ -612,26 +613,34 @@ public:
 		// If this token happens to be a conditional statement token, redirect
 		switch (dataPair.Token()) {
 		case TK_IF: { return; };
-		case TK_PP_ELIF: { EncounterElseIf(); return; };
+		case TK_PP_ELIF: { if (EncounterElseIf()) { return; } break; };
 		case TK_ELSE: { EncounterElse(); dataPair.ResetToken(); return; };
 		case TK_PP_ENDIF: { EncounterEndif(); dataPair.ResetToken(); return; }
 		}
 
 		// If the evaluation stack is empty, or the top item is true, bail
-		if (evaluationResult.empty() || evaluationResult.top()) { return; }
+		if (evaluationResult.empty() || evaluationResult.top().first) { return; }
 
 		// Resetting the token indicates the proxy must skip the token
 		dataPair.ResetToken();
 	}
 
-	static void EncounterElseIf()
+	static bool EncounterElseIf()
 	{
 		if (evaluationResult.empty()) {
 			throw ConditionalStatementException{ "unexpected elif" };
 		}
 
+		// If true was ever encoutered, skip clause and set state to false
+		if (evaluationResult.top().second) {
+			auto& top = evaluationResult.top();
+			top.first = false;
+			return false;
+		}
+
 		evaluationResult.pop();
 		g_tokenSubscription.UnsubscribeOnAll(&ConditionalStatement::OnPropagateCallback);
+		return true;
 	}
 
 	// Flip evaluation result
@@ -641,9 +650,14 @@ public:
 			throw ConditionalStatementException{ "unexpected else" };
 		}
 
+		// State was already toggled once, ignore else clause
+		if (evaluationResult.top().first != evaluationResult.top().second) {
+			return;
+		}
+
 		// Inverse top most element
 		auto& top = evaluationResult.top();
-		top = !top;
+		top.first = !top.first;
 	}
 
 	// End of if statement
@@ -662,7 +676,7 @@ public:
 	}
 };
 
-std::stack<bool> ConditionalStatement::evaluationResult;
+std::stack<std::pair<bool, bool>> ConditionalStatement::evaluationResult;
 
 // Parse compiler pragmas
 class CompilerDialect : public AbstractDirective
@@ -809,6 +823,8 @@ void Preprocessor::Dispatch(TokenType token, const DataType data)
 void Preprocessor::EndOfLine()
 {
 	// Reste directive method for next preprocessor line
-	m_method->Yield();
-	m_method.reset();
+	if (m_method) {
+		m_method->Yield();
+		m_method.reset();
+	}
 }
