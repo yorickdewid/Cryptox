@@ -95,7 +95,7 @@ private:
 };
 
 CoilCl::Semer::Semer(std::shared_ptr<CoilCl::Profile>& profile, AST::AST&& ast)
-	: Stage{ this, StageType::SemanticAnalysis }
+	: Stage{ this, StageType::Type::SemanticAnalysis }
 	, m_profile{ profile }
 	, m_ast{ std::move(ast) }
 {

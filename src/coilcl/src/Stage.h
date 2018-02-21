@@ -22,6 +22,7 @@ struct StageType
 	// and to track exception to their stage source.
 	enum Type
 	{
+		Frontend,				// Frontend
 		TokenProcessor,			// Preprocessor
 		LexicalAnalysis,		// Lexer
 		SyntacticAnalysis,		// Parser
@@ -36,11 +37,13 @@ struct StageType
 
 extern StageType::Type g_compilerStage;
 
-template<typename _Ty, typename = typename std::enable_if<std::is_class<_Ty>::value>::type>
-struct Stage
+template<typename _Ty/*, typename = typename std::enable_if<std::is_class<_Ty>::value>::type*/>
+class Stage
 {
+protected:
 	using StageBase = Stage<_Ty>;
 
+public:
 	// Abstract methods for stage implementation
 	virtual std::string Name() const = 0;
 
@@ -69,7 +72,11 @@ struct Stage
 		}
 	};
 
-	Stage(_Ty* derived, StageType stage)
+	Stage() = delete;
+	Stage(const StageBase&) = delete;
+	Stage(StageBase&&) = delete;
+
+	explicit Stage(_Ty* derived, StageType::Type stage)
 		: m_derived{ derived }
 		, m_stageType{ stage }
 	{
@@ -93,7 +100,7 @@ protected:
 	inline auto StageName() const noexcept { return StageType::Print(m_stageType); }
 
 private:
-	_Ty * m_derived;
+	_Ty * m_derived = nullptr;
 	StageType::Type m_stageType;
 };
 

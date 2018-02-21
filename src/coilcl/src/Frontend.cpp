@@ -13,7 +13,7 @@
 using namespace CoilCl;
 
 Frontend::Frontend(std::shared_ptr<CoilCl::Profile>& profile)
-	: Stage{ this }
+	: Stage{ this, StageType::Type::Frontend }
 	, m_profile{ profile }
 {
 }
