@@ -134,13 +134,11 @@ public:
 			// return the tokenizer required for the requested language
 			TokenizerPtr tokenizer = Frontend{ profile }
 				.MoveStage()
-				.CheckCompatibility()
 				.SelectTokenizer();
 
 			// Syntax analysis
 			auto ast = Parser{ profile, tokenizer }
 				.MoveStage()
-				.CheckCompatibility()
 				.Execute()
 				.DumpAST();
 
@@ -153,7 +151,6 @@ public:
 			// Semantic analysis
 			CoilCl::Semer{ profile, std::move(program->Ast()) }
 				.MoveStage()
-				.CheckCompatibility()
 				.StaticResolve()
 				.PreliminaryAssert()
 				.StandardCompliance()
@@ -172,7 +169,6 @@ public:
 				.Syntax<decltype(oast)>(scheme.Ast())
 				.Sequence(CoilCl::Emiter::CASM)
 				.Sequence(CoilCl::Emiter::RPTS)
-				.CheckCompatibility()
 				.StreamSink<CoilCl::Stream::Console>();
 			*/
 #endif

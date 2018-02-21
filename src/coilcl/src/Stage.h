@@ -43,12 +43,21 @@ struct Stage
 
 	// Abstract methods for stage implementation
 	virtual std::string Name() const = 0;
+
+	// The check compatibility method allows the stage to check if the stage is executable
+	// with the given profile.
 	virtual _Ty& CheckCompatibility() = 0;
 
 	// The stage exception can show details about current stage in which the exception occured
 	class StageException : public std::runtime_error
 	{
 	public:
+		StageException(const std::string& message) noexcept
+			: std::runtime_error{ StageType::Print(g_compilerStage) + ": " + message }
+		{
+		}
+
+		//TODO: remove
 		StageException(const std::string& name, const std::string& message) noexcept
 			: std::runtime_error{ name + ": " + message }
 		{
@@ -76,9 +85,16 @@ struct Stage
 	_Ty& MoveStage() const noexcept
 	{
 		g_compilerStage = m_stageType;
-		return (*m_derived);
+		return m_derived->CheckCompatibility();
 	}
 
+protected:
+	void Incompatible(const std::string& message)
+	{
+		throw StageException{ message };
+	}
+
+protected:
 	// Retrieve stage name
 	inline auto StageName() const noexcept { return StageType::Print(m_stageType); }
 

@@ -18,10 +18,17 @@ namespace CoilCl
 
 struct Profile
 {
+	// Read the input from the frontend, this method will return chunks of data.
 	virtual std::string ReadInput() = 0;
+
+	// Ask the frontend to include a source file.
 	virtual bool Include(const std::string&) = 0;
+
+	// Request meta information about the current source file.
 	virtual std::shared_ptr<metainfo_t> MetaInfo() = 0;
+
+	// Call to report an error to the frontend. 
 	virtual void Error(const std::string& message, bool isFatal) = 0;
 };
 
-} // namespace Compiler
+} // namespace CoilCl
