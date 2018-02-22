@@ -18,35 +18,25 @@ namespace CoilCl
 namespace MacroHelper
 {
 
-static struct tm *LocalTime()
-{
-	time_t rawtime;
-
-	time(&rawtime);
-	assert(rawtime);
-
-	return localtime(&rawtime);
-}
-
 // Return the current local date
 std::string StaticDate()
 {
-	struct tm *timeinfo = LocalTime();
+	struct tm timeinfo;
+	CRY_LOCALTIME(&timeinfo);
 	char buffer[12];
 
-	assert(timeinfo);
-	strftime(buffer, sizeof(buffer), CIL_DATE_FORMAT, timeinfo);
+	strftime(buffer, sizeof(buffer), CIL_DATE_FORMAT, &timeinfo);
 	return buffer;
 }
 
 // Return the current local time
 std::string StaticTime()
 {
-	struct tm *timeinfo = LocalTime();
+	struct tm timeinfo;
+	CRY_LOCALTIME(&timeinfo);
 	char buffer[12];
 
-	assert(timeinfo);
-	strftime(buffer, sizeof(buffer), CIL_TIME_FORMAT, timeinfo);
+	strftime(buffer, sizeof(buffer), CIL_TIME_FORMAT, &timeinfo);
 	return buffer;
 }
 
