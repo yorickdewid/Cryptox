@@ -30,7 +30,7 @@
 		return (*this); \
 	}
 
-namespace Compiler //TODO: change namespace to CoilCl::
+namespace CoilCl
 {
 
 class Compiler final
@@ -227,7 +227,7 @@ std::shared_ptr<_Ty> WrapMeta(_Ty *metaPtr)
 // API compiler interface
 COILCLAPI void Compile(compiler_info_t *cl_info) NOTHROW
 {
-	using Compiler::Compiler;
+	using CoilCl::Compiler;
 
 	CHECK_API_VERSION(cl_info);
 

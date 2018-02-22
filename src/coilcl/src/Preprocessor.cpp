@@ -125,20 +125,11 @@ void RegisterStandardMacros()
 	//g_definitionList.insert({ "__STDC__", nullptr });
 	//g_definitionList.insert({ "__STDC_VERSION__", nullptr });
 	//g_definitionList.insert({ "__STDC_HOSTED__", nullptr });
-	//g_definitionList.insert({ "__STDC_HOSTED__", nullptr });
 }
 
 void RegisterCommonMacros()
 {
 	//TODO: __VERSION__
-}
-
-Preprocessor::Preprocessor(std::shared_ptr<CoilCl::Profile>& profile)
-	: Stage{ this, StageType::Type::TokenProcessor }
-	, m_profile{ profile }
-{
-	RegisterStandardMacros();
-	RegisterCommonMacros();
 }
 
 Preprocessor& Preprocessor::CheckCompatibility()
@@ -302,6 +293,7 @@ public:
 			return;
 		}
 
+		// Always assign first token and optional data
 		dataPair.AssignToken(it->second.at(0).Token());
 		dataPair.AssignData(it->second.at(0).Data());
 
@@ -320,17 +312,12 @@ public:
 	{
 		if (m_definitionName.empty()) { return; }
 
-		//FUTURE: OPTIMIZATION: Try intergral evaluation before move
+		// FUTURE: OPTIMIZATION: Try intergral evaluation before move. Since it is unknown of the
+		//         definition body consists of an arithmetic construction the operation has a good
+		//         change of throwing an exception.
 		// Insert definition body into global definition list
 		const auto& result = g_definitionList.insert({ m_definitionName, std::move(m_definitionBody) });
 		assert(result.second);
-
-		// Subscribe on all identifier tokens apart from the define tag. This indicates
-		// we can do work on 'normal' tokens that would otherwise flow directly through to
-		// the caller frontend. In this case we register identifier to examine, and on match
-		// replace with the corresponding value. This essentially allows for find and replace
-		// semantics on the provided input file before any other stage has seen the token stream.
-		g_tokenSubscription.SubscribeOnToken(TK_IDENTIFIER, &DefinitionTag::OnPropagateCallback);
 	}
 };
 
@@ -752,6 +739,23 @@ public:
 
 } // namespace LocalMethod
 } // namespace CoilCl
+
+Preprocessor::Preprocessor(std::shared_ptr<CoilCl::Profile>& profile)
+	: Stage{ this, StageType::Type::TokenProcessor }
+	, m_profile{ profile }
+{
+	RegisterStandardMacros();
+	RegisterCommonMacros();
+
+	// Subscribe on all identifier tokens apart from the define tag. This indicates
+	// we can do work on 'normal' tokens that would otherwise flow directly through to
+	// the caller frontend. In this case we register identifier to examine, and on match
+	// replace with the corresponding value. This essentially allows for find and replace
+	// semantics on the provided input before any other stage has perceived the token stream.
+	// Since standard and common definition can always be used, register the hook in the
+	// constructor and invoke the definition call on any identifier.
+	g_tokenSubscription.SubscribeOnToken(TK_IDENTIFIER, &CoilCl::LocalMethod::DefinitionTag::OnPropagateCallback);
+}
 
 template<typename _Ty, typename... _ArgsTy>
 auto MakeMethod(_ArgsTy... args) -> std::shared_ptr<_Ty>
