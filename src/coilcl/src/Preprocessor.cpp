@@ -41,8 +41,31 @@
 
 using namespace CoilCl;
 
-static std::map<std::string, std::vector<Preprocessor::TokenDataPair<TokenProcessor::TokenType, const TokenProcessor::DataType>>> g_definitionList;
+namespace CoilCl
+{
+namespace MacroHelper
+{
+
+TokenProcessor::DataType DynamicGlobalCounter();
+TokenProcessor::DataType DynamicSourceFile();
+TokenProcessor::DataType DynamicSourceLine();
+TokenProcessor::DataType DynamicDate();
+TokenProcessor::DataType DynamicTime();
+
+} // namespace MacroHelper
+} // namespace CoilCl
+
 static std::set<std::string> g_sourceGuardList;
+static std::map<std::string, std::vector<Preprocessor::TokenDataPair<TokenProcessor::TokenType, const TokenProcessor::DataType>>> g_definitionList;
+static std::map<std::string, std::function<TokenProcessor::DataType()>> g_macroList = {
+	{ "__func__", []() { return nullptr; } },
+	{ "__FILE__", CoilCl::MacroHelper::DynamicSourceFile },
+	{ "__LINE__", CoilCl::MacroHelper::DynamicSourceLine },
+	{ "__DATE__", CoilCl::MacroHelper::DynamicDate },
+	{ "__TIME__", CoilCl::MacroHelper::DynamicTime },
+	{ "__STDC__", []() { return nullptr; } },
+	{ "__COUNTER__", CoilCl::MacroHelper::DynamicGlobalCounter },
+};
 
 namespace Cry
 {
@@ -130,25 +153,20 @@ private:
 	std::set<CallbackFunc> m_subscriptionSet;
 } g_tokenSubscription;
 
-void RegisterStandardMacros()
+constexpr int ProgramCounterId()
 {
-	//TODO:
-
-	//TODO: __func__
-	//g_definitionList.insert({ "__FILE__", nullptr });
-	//g_definitionList.insert({ "__LINE__", nullptr });
-	//g_definitionList.insert({ "__DATE__", nullptr });
-	//g_definitionList.insert({ "__TIME__", nullptr });
-	//g_definitionList.insert({ "__STDC__", nullptr });
-	//g_definitionList.insert({ "__STDC_VERSION__", nullptr });
-	//g_definitionList.insert({ "__STDC_HOSTED__", nullptr });
+	return (PRODUCT_VERSION_MAJOR * 1000000)
+		+ (PRODUCT_VERSION_MINOR * 10000)
+		+ (PRODUCT_VERSION_PATCH * 100)
+		+ (PRODUCT_VERSION_LOCAL);
 }
 
-void RegisterCommonMacros()
+void RegisterMacros()
 {
-	DEFINE_MACRO_STR("__VERSION__", PRODUCT_VERSION);
+	DEFINE_MACRO_STR("__VERSION__", PROGRAM_VERSION);
 	DEFINE_MACRO_INT("__CRYC__", 1);
-	DEFINE_MACRO_INT("__CRYC_VERSION__", (PRODUCT_VERSION_MAJOR)(PRODUCT_VERSION_MINOR)(PRODUCT_VERSION_PATCH)(PRODUCT_VERSION_LOCAL));
+	DEFINE_MACRO_INT("__CRYC_VERSION__", ProgramCounterId());
+	DEFINE_MACRO_INT("__TIMESTAMP__", static_cast<int>(time(nullptr)));
 
 #ifdef _WIN32
 	DEFINE_MACRO_INT("_WIN32", 1);
@@ -184,9 +202,8 @@ void RegisterCommonMacros()
 	DEFINE_MACRO_INT("__unix__", 1);
 #endif
 
-#if SOURCE_DEBUG
-	DEFINE_MACRO_INT("_DEBUG", 1);
-#endif
+	//FUTURE:
+	//DEFINE_MACRO_INT("_DEBUG", 1);
 }
 
 Preprocessor& Preprocessor::CheckCompatibility()
@@ -339,6 +356,13 @@ public:
 
 		// Do not interfere with preprocessor lines
 		if (isDirective) { return; }
+
+		auto mit = g_macroList.find(ConvertDataAs<std::string>(dataPair.Data()));
+		if (mit != g_macroList.end()) {
+			dataPair.AssignToken(TK_CONSTANT);
+			dataPair.AssignData(mit->second());
+			return;
+		}
 
 		auto it = g_definitionList.find(ConvertDataAs<std::string>(dataPair.Data()));
 		if (it == g_definitionList.end()) { return; }
@@ -801,8 +825,7 @@ Preprocessor::Preprocessor(std::shared_ptr<CoilCl::Profile>& profile)
 	: Stage{ this, StageType::Type::TokenProcessor }
 	, m_profile{ profile }
 {
-	RegisterStandardMacros();
-	RegisterCommonMacros();
+	RegisterMacros();
 
 	// Subscribe on all identifier tokens apart from the define tag. This indicates
 	// we can do work on 'normal' tokens that would otherwise flow directly through to
