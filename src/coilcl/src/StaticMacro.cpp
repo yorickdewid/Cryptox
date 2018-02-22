@@ -13,10 +13,19 @@
 #define CIL_DATE_FORMAT "%b %d %Y"
 #define CIL_TIME_FORMAT "%R:%S"
 
+static long long g_staticTokenProcessorCounter = 0;
+
 namespace CoilCl
 {
 namespace MacroHelper
 {
+
+// Keep global counter throughout the entire code processing.
+// On each invokation the counter is incremented by one.
+long long StaticGlobalCounter()
+{
+	return g_staticTokenProcessorCounter++;
+}
 
 // Return the current local date
 std::string StaticDate()

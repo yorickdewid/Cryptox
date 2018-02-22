@@ -9,6 +9,7 @@
 //FUTURE:
 // - Macro expansion
 
+#include "Cry/Config.h"
 #include "Cry/Indep.h"
 
 #include "Preprocessor.h"
@@ -21,6 +22,22 @@
 #include <stack>
 #include <cassert>
 #include <iostream>
+
+#define DEFINE_MACRO_STR(k,v) \
+	{ \
+		TokenProcessor::DataType m_data = std::make_shared<Valuedef::ValueObject<std::string>>(std::move(Typedef::BuiltinType::Specifier::CHAR), v); \
+		std::vector<Preprocessor::TokenDataPair<TokenProcessor::TokenType, const TokenProcessor::DataType>> m_definitionBody; \
+		m_definitionBody.push_back({ 20, m_data }); \
+		g_definitionList.insert({ k,  std::move(m_definitionBody) }); \
+	}
+
+#define DEFINE_MACRO_INT(k,v) \
+	{ \
+		TokenProcessor::DataType m_data = std::make_shared<Valuedef::ValueObject<int>>(std::move(Typedef::BuiltinType::Specifier::INT), v); \
+		std::vector<Preprocessor::TokenDataPair<TokenProcessor::TokenType, const TokenProcessor::DataType>> m_definitionBody; \
+		m_definitionBody.push_back({ 20, m_data }); \
+		g_definitionList.insert({ k,  std::move(m_definitionBody) }); \
+	}
 
 using namespace CoilCl;
 
@@ -120,8 +137,8 @@ void RegisterStandardMacros()
 	//TODO: __func__
 	//g_definitionList.insert({ "__FILE__", nullptr });
 	//g_definitionList.insert({ "__LINE__", nullptr });
-	//g_definitionList.insert({ "__DATE__", nullptr }); // "??? ?? ????"
-	//g_definitionList.insert({ "__TIME__", nullptr }); // "??:??:??"
+	//g_definitionList.insert({ "__DATE__", nullptr });
+	//g_definitionList.insert({ "__TIME__", nullptr });
 	//g_definitionList.insert({ "__STDC__", nullptr });
 	//g_definitionList.insert({ "__STDC_VERSION__", nullptr });
 	//g_definitionList.insert({ "__STDC_HOSTED__", nullptr });
@@ -129,7 +146,47 @@ void RegisterStandardMacros()
 
 void RegisterCommonMacros()
 {
-	//TODO: __VERSION__
+	DEFINE_MACRO_STR("__VERSION__", PRODUCT_VERSION);
+	DEFINE_MACRO_INT("__CRYC__", 1);
+	DEFINE_MACRO_INT("__CRYC_VERSION__", (PRODUCT_VERSION_MAJOR)(PRODUCT_VERSION_MINOR)(PRODUCT_VERSION_PATCH)(PRODUCT_VERSION_LOCAL));
+
+#ifdef _WIN32
+	DEFINE_MACRO_INT("_WIN32", 1);
+#endif
+#ifdef _WIN64
+	DEFINE_MACRO_INT("_WIN64", 1);
+#endif
+#ifdef linux
+	DEFINE_MACRO_INT("linux", 1);
+#endif
+#ifdef __linux
+	DEFINE_MACRO_INT("__linux", 1);
+#endif
+#ifdef __linux__
+	DEFINE_MACRO_INT("__linux__", 1);
+#endif
+#ifdef __APPLE__
+	DEFINE_MACRO_INT("__APPLE__", 1);
+#endif
+#ifdef __MACH__
+	DEFINE_MACRO_INT("__MACH__", 1);
+#endif
+#ifdef __FreeBSD__
+	DEFINE_MACRO_INT("__FreeBSD__", 1);
+#endif
+#ifdef unix
+	DEFINE_MACRO_INT("unix", 1);
+#endif
+#ifdef __unix
+	DEFINE_MACRO_INT("__unix", 1);
+#endif
+#ifdef __unix__
+	DEFINE_MACRO_INT("__unix__", 1);
+#endif
+
+#if SOURCE_DEBUG
+	DEFINE_MACRO_INT("_DEBUG", 1);
+#endif
 }
 
 Preprocessor& Preprocessor::CheckCompatibility()
