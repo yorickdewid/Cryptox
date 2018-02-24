@@ -12,6 +12,7 @@
 #include "Convert.h"
 #include "CexHeader.h"
 
+#include <cstddef>
 #include <cassert>
 #include <cstdio>
 #include <cstring>

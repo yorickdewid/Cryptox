@@ -17,7 +17,7 @@ std::string CryExe::Image::GetBasenameFromPath(const std::string& path)
 
 size_t CryExe::Image::Size() const
 {
-	return boost::filesystem::path{ m_filename }.size();
+	return boost::filesystem::file_size(m_filename);
 }
 
 CryExe::FileModeRaw CryExe::Image::OpenWithMode(CryExe::FileMode fm)
