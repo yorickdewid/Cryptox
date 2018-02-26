@@ -28,7 +28,7 @@
 		TokenProcessor::DataType m_data = std::make_shared<Valuedef::ValueObject<std::string>>(std::move(Typedef::BuiltinType::Specifier::CHAR), v); \
 		std::vector<Preprocessor::TokenDataPair<TokenProcessor::TokenType, const TokenProcessor::DataType>> m_definitionBody; \
 		m_definitionBody.push_back({ 20, m_data }); \
-		g_definitionList.insert({ k,  std::move(m_definitionBody) }); \
+		g_definitionList.insert({ k, std::move(m_definitionBody) }); \
 	}
 
 #define DEFINE_MACRO_INT(k,v) \
@@ -36,7 +36,7 @@
 		TokenProcessor::DataType m_data = std::make_shared<Valuedef::ValueObject<int>>(std::move(Typedef::BuiltinType::Specifier::INT), v); \
 		std::vector<Preprocessor::TokenDataPair<TokenProcessor::TokenType, const TokenProcessor::DataType>> m_definitionBody; \
 		m_definitionBody.push_back({ 20, m_data }); \
-		g_definitionList.insert({ k,  std::move(m_definitionBody) }); \
+		g_definitionList.insert({ k, std::move(m_definitionBody) }); \
 	}
 
 using namespace CoilCl;
@@ -749,7 +749,7 @@ std::stack<std::pair<bool, bool>> ConditionalStatement::evaluationResult;
 // Parse compiler pragmas
 class CompilerDialect : public AbstractDirective
 {
-	const std::array<std::string, 1> trivialToken = { "once" };
+	const std::array<std::string, 1> trivialToken = std::array<std::string, 1>{ "once" };
 
 	bool HandleTrivialCase(const std::string& identifier)
 	{

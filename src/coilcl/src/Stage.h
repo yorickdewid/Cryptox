@@ -56,7 +56,7 @@ public:
 	{
 	public:
 		StageException(const std::string& message) noexcept
-			: std::runtime_error{ StageType::Print(g_compilerStage) + ": " + message }
+			: std::runtime_error{ StageType::Print(g_compilerStage) + std::string{": "} + message }
 		{
 		}
 

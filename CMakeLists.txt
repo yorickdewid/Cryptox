@@ -4,7 +4,7 @@
 # This file is part of the Cryptox project.
 #
 # Use of this source code is governed by a private license
-# that can be found in the LICENSE file. Content can not be 
+# that can be found in the LICENSE file. Content can not be
 # copied and/or distributed without the express of the author.
 
 # At least this version of CMake but newer is better
@@ -99,7 +99,7 @@ if(WIN32)
 endif()
 
 # Locate boost
-find_package(Boost 1.61 REQUIRED COMPONENTS
+find_package(Boost 1.57 REQUIRED COMPONENTS
 	program_options
 	filesystem
 	unit_test_framework

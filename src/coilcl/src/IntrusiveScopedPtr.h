@@ -12,6 +12,8 @@
 
 #include <memory>
 
+#if 0
+
 namespace CoilCl
 {
 
@@ -175,3 +177,5 @@ inline IntrusiveScopedPtr<_Ty> MakeIntrusiveScoped(_ArgsTy&&... _Args)
 }
 
 } // namespace Cry
+
+#endif
