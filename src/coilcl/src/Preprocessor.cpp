@@ -161,12 +161,30 @@ constexpr int ProgramCounterId()
 		+ (PRODUCT_VERSION_LOCAL);
 }
 
+constexpr bool IsBigEndian()
+{
+	union {
+		uint32_t i;
+		char c[4];
+	} bint = { 0x01020304 };
+
+	return bint.c[0] == 1;
+}
+
 void RegisterMacros()
 {
 	DEFINE_MACRO_STR("__VERSION__", PROGRAM_VERSION);
 	DEFINE_MACRO_INT("__CRYC__", 1);
 	DEFINE_MACRO_INT("__CRYC_VERSION__", ProgramCounterId());
 	DEFINE_MACRO_INT("__TIMESTAMP__", static_cast<int>(time(nullptr)));
+
+	// Limit to big and little endian only
+	if (IsBigEndian()) {
+		DEFINE_MACRO_INT("__BIG_ENDIAN__", 1);
+	}
+	else {
+		DEFINE_MACRO_INT("__LITTLE_ENDIAN__", 1);
+	}
 
 #ifdef _WIN32
 	DEFINE_MACRO_INT("_WIN32", 1);
