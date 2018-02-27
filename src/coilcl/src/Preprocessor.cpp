@@ -192,14 +192,23 @@ void RegisterMacros()
 #ifdef _WIN64
 	DEFINE_MACRO_INT("_WIN64", 1);
 #endif
-#ifdef linux
+#if defined(linux) || defined(__linux) || defined(__linux__)
 	DEFINE_MACRO_INT("linux", 1);
-#endif
-#ifdef __linux
 	DEFINE_MACRO_INT("__linux", 1);
-#endif
-#ifdef __linux__
 	DEFINE_MACRO_INT("__linux__", 1);
+	DEFINE_MACRO_INT("__gnu_linux", 1);
+#endif
+#ifdef __FreeBSD__
+	DEFINE_MACRO_INT("__FreeBSD__", 1);
+#endif
+#ifdef __DragonFly__
+	DEFINE_MACRO_INT("__DragonFly__", 1);
+#endif
+#ifdef __NetBSD__
+	DEFINE_MACRO_INT("__NetBSD__", 1);
+#endif
+#ifdef __OpenBSD__
+	DEFINE_MACRO_INT("__OpenBSD__", 1);
 #endif
 #ifdef __APPLE__
 	DEFINE_MACRO_INT("__APPLE__", 1);
@@ -207,16 +216,9 @@ void RegisterMacros()
 #ifdef __MACH__
 	DEFINE_MACRO_INT("__MACH__", 1);
 #endif
-#ifdef __FreeBSD__
-	DEFINE_MACRO_INT("__FreeBSD__", 1);
-#endif
-#ifdef unix
+#if defined(unix) || defined(__unix) || defined(__unix__)
 	DEFINE_MACRO_INT("unix", 1);
-#endif
-#ifdef __unix
 	DEFINE_MACRO_INT("__unix", 1);
-#endif
-#ifdef __unix__
 	DEFINE_MACRO_INT("__unix__", 1);
 #endif
 
