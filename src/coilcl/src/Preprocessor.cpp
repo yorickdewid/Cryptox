@@ -292,18 +292,24 @@ protected:
 
 class ImportSource : public AbstractDirective
 {
+	std::shared_ptr<Profile>& m_profile;
 	bool hasBegin = false;
 	std::string tempSource;
 
 	// Request input source push from the frontend
 	void Import(const std::string& source)
 	{
-		std::cout << "import " << source << std::endl;
+		//std::cout << "import " << source << std::endl;
 
-		//TODO: call push import sources
+		//m_profile->Include(source);
 	}
 
 public:
+	ImportSource(std::shared_ptr<Profile>& profile)
+		: m_profile{ profile }
+	{
+	}
+
 	void Dispence(TokenProcessor::TokenType token, const TokenProcessor::DataType data)
 	{
 		switch (token) {
@@ -829,7 +835,6 @@ public:
 	}
 };
 
-
 // Report linquistic error
 class LinguisticError : public AbstractDirective
 {
@@ -885,7 +890,7 @@ void Preprocessor::MethodFactory(TokenType token)
 
 	switch (token) {
 	case TK_PP_INCLUDE:
-		m_method = MakeMethod<ImportSource>();
+		m_method = MakeMethod<ImportSource>(std::ref(m_profile));
 		break;
 	case TK_PP_DEFINE:
 		m_method = MakeMethod<DefinitionTag>();

@@ -49,7 +49,7 @@ protected:
 			throw std::system_error{ std::make_error_code(std::errc::no_such_file_or_directory) };
 		}
 
-		m_unitList.push(std::make_unique<SourceUnit>(SourceUnit(filename, false)));
+		m_unitList.push(std::make_unique<SourceUnit>(SourceUnit{ filename }));
 	}
 
 	template<typename _Ty>

@@ -14,19 +14,18 @@
 #include <string>
 #include <iostream>
 
-using namespace CoilCl;
+#define CONTEXT() (m_context.top())
 
-constexpr char EndOfUnit = '\0';
+using namespace CoilCl;
 
 void Lexer::Error(const std::string& errormsg)
 {
 	if (errHandlerFunc) {
-		errHandlerFunc(errormsg, m_currentChar, m_lastTokenLine, m_currentColumn);
+		errHandlerFunc(errormsg, CONTEXT().m_currentChar, CONTEXT().m_lastTokenLine, CONTEXT().m_currentColumn);
 	}
 
-	m_isEof = true;
-	m_prevToken = m_currentToken;
-	m_currentChar = EndOfUnit;
+	CONTEXT().m_prevToken = CONTEXT().m_currentToken;
+	CONTEXT().SignalEndOfSource();
 }
 
 void Lexer::InitKeywords()
@@ -71,40 +70,49 @@ void Lexer::InitKeywords()
 }
 
 // Retrieve Next character from content and store it 
-// as the current token. If there is no Next token this
+// as the current token. If there is no next token this
 // function will set the end of file toggle and push the
 // EndofUnit as current character.
 void Lexer::Next()
 {
 read_again:
-	if (m_offset < m_content.size()) {
-		m_currentChar = m_content[m_offset++];
-		m_currentColumn++;
+	auto& context = CONTEXT();
+	if (context.HasBufferLeft()) {
+		context.AdvanceBuffer();
 		return;
 	}
 
-	// If the next offset is zero, there are no more source chunks left.
-	// Otherwise ask the caller for more input data.
-	if (m_offset > 0) {
+	// Ask the frontend for next input chunk unless
+	// there is no more data on the frontend.
+	if (!context.IsOffsetZero()) {
 		ConsumeNextChunk();
 		goto read_again;
 	}
 
-	m_isEof = true;
-	m_currentChar = EndOfUnit;
+	// Mark end of source
+	context.SignalEndOfSource();
 }
 
 void Lexer::VNext()
 {
-	m_currentLine++;
-	m_prevToken = m_currentToken;
-	m_currentToken = '\n';
+	auto& context = CONTEXT();
+	context.m_currentLine++;
+	context.m_prevToken = context.m_currentToken;
+	context.m_currentToken = '\n';
 	Next();
-	m_currentColumn = 1;
+	context.m_currentColumn = 1;
+}
+
+void Lexer::SwapSource(const std::string& name)
+{
+	m_context.emplace();
+	m_profile->Include(name);
+	ConsumeNextChunk();
 }
 
 int Lexer::DefaultLexSet(char lexChar)
 {
+	auto& context = CONTEXT();
 	switch (lexChar) {
 
 		//TODO: \f
@@ -124,7 +132,7 @@ int Lexer::DefaultLexSet(char lexChar)
 
 	case '/':
 		Next();
-		switch (m_currentChar) {
+		switch (context.m_currentChar) {
 		case '*':
 			Next(); //TODO: remove?
 			LexBlockComment();
@@ -141,7 +149,7 @@ int Lexer::DefaultLexSet(char lexChar)
 
 	case '=':
 		Next();
-		if (m_currentChar != '=') {
+		if (context.m_currentChar != '=') {
 			return AssembleToken(TK_ASSIGN);
 		}
 		else {
@@ -151,14 +159,14 @@ int Lexer::DefaultLexSet(char lexChar)
 
 	case '<':
 		Next();
-		switch (m_currentChar) {
+		switch (context.m_currentChar) {
 		case '=':
 			Next();
 			return AssembleToken(TK_LE_OP);
 			break;
 		case '<':
 			Next();
-			if (m_currentChar == '=') {
+			if (context.m_currentChar == '=') {
 				Next();
 				return AssembleToken(TK_LEFT_ASSIGN);
 			}
@@ -170,13 +178,13 @@ int Lexer::DefaultLexSet(char lexChar)
 
 	case '>':
 		Next();
-		if (m_currentChar == '=') {
+		if (context.m_currentChar == '=') {
 			Next();
 			return AssembleToken(TK_GE_OP);
 		}
-		else if (m_currentChar == '>') {
+		else if (context.m_currentChar == '>') {
 			Next();
-			if (m_currentChar == '=') {
+			if (context.m_currentChar == '=') {
 				Next();
 				return AssembleToken(TK_RIGHT_ASSIGN);
 			}
@@ -190,7 +198,7 @@ int Lexer::DefaultLexSet(char lexChar)
 
 	case '!':
 		Next();
-		if (m_currentChar != '=') {
+		if (context.m_currentChar != '=') {
 			return AssembleToken(TK_NOT);
 		}
 		else {
@@ -202,7 +210,7 @@ int Lexer::DefaultLexSet(char lexChar)
 	case '\'':
 	{
 		int stype;
-		if ((stype = ReadString(m_currentChar)) != -1) {
+		if ((stype = ReadString(context.m_currentChar)) != -1) {
 			return AssembleToken(stype);
 		}
 		Error("error parsing string");
@@ -244,7 +252,7 @@ int Lexer::DefaultLexSet(char lexChar)
 
 	case '^':
 		Next();
-		if (m_currentChar == '=') {
+		if (context.m_currentChar == '=') {
 			Next();
 			return AssembleToken(TK_XOR_ASSIGN);
 		}
@@ -254,11 +262,11 @@ int Lexer::DefaultLexSet(char lexChar)
 
 	case '.':
 		Next();
-		if (m_currentChar != '.') {
+		if (context.m_currentChar != '.') {
 			return AssembleToken(TK_DOT);
 		}
 		Next();
-		if (m_currentChar != '.') {
+		if (context.m_currentChar != '.') {
 			Error("invalid token '..'");
 		}
 		Next();
@@ -266,10 +274,10 @@ int Lexer::DefaultLexSet(char lexChar)
 
 	case '&':
 		Next();
-		if (m_currentChar != '&') {
+		if (context.m_currentChar != '&') {
 			return AssembleToken(TK_AMPERSAND);
 		}
-		else if (m_currentChar == '=') {
+		else if (context.m_currentChar == '=') {
 			Next();
 			return AssembleToken(TK_AND_ASSIGN);
 		}
@@ -280,10 +288,10 @@ int Lexer::DefaultLexSet(char lexChar)
 
 	case '|':
 		Next();
-		if (m_currentChar != '|') {
+		if (context.m_currentChar != '|') {
 			return AssembleToken(TK_VERTIAL_BAR);
 		}
-		else if (m_currentChar == '=') {
+		else if (context.m_currentChar == '=') {
 			Next();
 			return AssembleToken(TK_OR_ASSIGN);
 		}
@@ -294,7 +302,7 @@ int Lexer::DefaultLexSet(char lexChar)
 
 	case '*':
 		Next();
-		if (m_currentChar == '=') {
+		if (context.m_currentChar == '=') {
 			Next();
 			return AssembleToken(TK_MUL_ASSIGN);
 		}
@@ -304,7 +312,7 @@ int Lexer::DefaultLexSet(char lexChar)
 
 	case '%':
 		Next();
-		if (m_currentChar == '=') {
+		if (context.m_currentChar == '=') {
 			Next();
 			return AssembleToken(TK_MOD_ASSIGN);
 		}
@@ -314,15 +322,15 @@ int Lexer::DefaultLexSet(char lexChar)
 
 	case '-':
 		Next();
-		if (m_currentChar == '=') {
+		if (context.m_currentChar == '=') {
 			Next();
 			return AssembleToken(TK_SUB_ASSIGN);
 		}
-		else if (m_currentChar == '-') {
+		else if (context.m_currentChar == '-') {
 			Next();
 			return AssembleToken(TK_DEC_OP);
 		}
-		else if (m_currentChar == '>') {
+		else if (context.m_currentChar == '>') {
 			Next();
 			return AssembleToken(TK_PTR_OP);
 		}
@@ -332,11 +340,11 @@ int Lexer::DefaultLexSet(char lexChar)
 
 	case '+':
 		Next();
-		if (m_currentChar == '=') {
+		if (context.m_currentChar == '=') {
 			Next();
 			return AssembleToken(TK_ADD_ASSIGN);
 		}
-		else if (m_currentChar == '+') {
+		else if (context.m_currentChar == '+') {
 			Next();
 			return AssembleToken(TK_INC_OP);
 		}
@@ -344,7 +352,7 @@ int Lexer::DefaultLexSet(char lexChar)
 			return AssembleToken(TK_PLUS);
 		}
 
-	case EndOfUnit:
+	case END_OF_UNIT:
 		// Reached end of input, so long ...
 		return TK_HALT;
 
@@ -352,14 +360,14 @@ int Lexer::DefaultLexSet(char lexChar)
 		// No token sequence matched so we either deal with scalars, ids or 
 		// control carachters. If the first character is a digit, try to
 		// parse the entire token as number.
-		if (std::isdigit(m_currentChar)) {
+		if (std::isdigit(context.m_currentChar)) {
 			return AssembleToken(LexScalar());
 		}
-		else if (std::isalpha(m_currentChar) || m_currentChar == '_') {
+		else if (std::isalpha(context.m_currentChar) || context.m_currentChar == '_') {
 			return AssembleToken(ReadID());
 		}
 		else {
-			Error("stray '" + std::string{ m_currentChar } +"' in program");
+			Error("stray '" + std::string{ context.m_currentChar } +"' in program");
 		}
 	}
 
@@ -369,9 +377,10 @@ int Lexer::DefaultLexSet(char lexChar)
 int Lexer::Lex()
 {
 	m_data.reset();
-	m_lastTokenLine = m_currentLine;
-	while (m_currentChar != EndOfUnit) {
-		int token = DefaultLexSet(m_currentChar);
+	auto& context = CONTEXT();
+	context.m_lastTokenLine = context.m_currentLine;
+	while (context.m_currentChar != END_OF_UNIT) {
+		int token = DefaultLexSet(context.m_currentChar);
 		if (token == CONTINUE_NEXT_TOKEN) { continue; }
 		return token;
 	}
@@ -383,22 +392,23 @@ int Lexer::Lex()
 void Lexer::LexBlockComment()
 {
 	bool done = false;
+	auto& context = CONTEXT();
 	while (!done) {
-		switch (m_currentChar) {
+		switch (context.m_currentChar) {
 		case '*':
 		{
 			Next();
-			if (m_currentChar == '/') {
+			if (context.m_currentChar == '/') {
 				done = true;
 				Next();
 			}
 		};
 		continue;
 		case '\n':
-			m_currentLine++;
+			context.m_currentLine++;
 			Next();
 			continue;
-		case EndOfUnit:
+		case END_OF_UNIT:
 			return;
 		default:
 			Next();
@@ -410,12 +420,13 @@ void Lexer::LexLineComment()
 {
 	do {
 		Next();
-	} while (m_currentChar != '\n' && m_currentChar != EndOfUnit);
+	} while (CONTEXT().m_currentChar != '\n' && CONTEXT().m_currentChar != END_OF_UNIT);
 }
 
 int Lexer::ReadString(int ndelim)
 {
 	std::string _longstr;
+	auto& context = CONTEXT();
 
 	Next();
 	//TODO:
@@ -423,14 +434,14 @@ int Lexer::ReadString(int ndelim)
 		return -1;
 	}*/
 
-	while (m_currentChar != ndelim && m_currentChar != EndOfUnit) {
-		_longstr.push_back(m_currentChar);
+	while (context.m_currentChar != ndelim && context.m_currentChar != END_OF_UNIT) {
+		_longstr.push_back(context.m_currentChar);
 		Next();
 	}
 
 	Next();
 
-	int len = _longstr.size();
+	size_t len = _longstr.size();
 	if (ndelim == '\'') {
 		if (len == 0) { Error("empty constant"); }
 		if (len > 1) { Error("constant too long"); }
@@ -448,11 +459,12 @@ int Lexer::ReadString(int ndelim)
 int Lexer::ReadID()
 {
 	std::string _longstr;
+	auto& context = CONTEXT();
 
 	do {
-		_longstr.push_back(m_currentChar);
+		_longstr.push_back(context.m_currentChar);
 		Next();
-	} while (std::isalnum(m_currentChar) || m_currentChar == '_');
+	} while (std::isalnum(context.m_currentChar) || context.m_currentChar == '_');
 
 	// Match string as keyword
 	auto result = m_keywords.find(_longstr);
@@ -477,7 +489,8 @@ int Lexer::LexScalar()
 		OCTAL = 5,
 	} ScalarType;
 
-	const int firstchar = m_currentChar;
+	auto& context = CONTEXT();
+	const int firstchar = context.m_currentChar;
 
 	const auto isodigit = [](int c) -> bool { return c >= '0' && c <= '7'; };
 	const auto isexponent = [](int c) -> bool { return c == 'e' || c == 'E'; };
@@ -487,22 +500,22 @@ int Lexer::LexScalar()
 	Next();
 
 	// Check if we dealing with an octal or hex. If not then we know it is some integer
-	if (firstchar == '0' && (std::toupper(m_currentChar) == 'X' || isdigit(m_currentChar))) {
-		if (isodigit(m_currentChar)) {
+	if (firstchar == '0' && (std::toupper(context.m_currentChar) == 'X' || isdigit(context.m_currentChar))) {
+		if (isodigit(context.m_currentChar)) {
 			ScalarType = OCTAL;
-			while (isodigit(m_currentChar)) {
-				_longstr.push_back(m_currentChar);
+			while (isodigit(context.m_currentChar)) {
+				_longstr.push_back(context.m_currentChar);
 				Next();
 			}
-			if (std::isdigit(m_currentChar)) {
+			if (std::isdigit(context.m_currentChar)) {
 				Error("invalid octal number");
 			}
 		}
 		else {
 			Next();
 			ScalarType = HEX;
-			while (isxdigit(m_currentChar)) {
-				_longstr.push_back(m_currentChar);
+			while (isxdigit(context.m_currentChar)) {
+				_longstr.push_back(context.m_currentChar);
 				Next();
 			}
 			if (_longstr.size() > sizeof(int) * 2) {
@@ -514,28 +527,28 @@ int Lexer::LexScalar()
 		// At this point we know the temporary buffer contains an integer.
 		ScalarType = INT;
 		_longstr.push_back(static_cast<char>(const_cast<int&>(firstchar)));
-		while (m_currentChar == '.' || std::isdigit(m_currentChar) || isexponent(m_currentChar)) {
-			if (m_currentChar == '.' || isexponent(m_currentChar)) {
+		while (context.m_currentChar == '.' || std::isdigit(context.m_currentChar) || isexponent(context.m_currentChar)) {
+			if (context.m_currentChar == '.' || isexponent(context.m_currentChar)) {
 				ScalarType = DOUBLE;
 			}
-			if (isexponent(m_currentChar)) {
+			if (isexponent(context.m_currentChar)) {
 				if (ScalarType != DOUBLE) {
 					Error("invalid numeric format");
 				}
 
 				ScalarType = SCIENTIFIC;
-				_longstr.push_back(m_currentChar);
+				_longstr.push_back(context.m_currentChar);
 				Next();
-				if (m_currentChar == '+' || m_currentChar == '-') {
-					_longstr.push_back(m_currentChar);
+				if (context.m_currentChar == '+' || context.m_currentChar == '-') {
+					_longstr.push_back(context.m_currentChar);
 					Next();
 				}
-				if (!std::isdigit(m_currentChar)) {
+				if (!std::isdigit(context.m_currentChar)) {
 					Error("exponent expected");
 				}
 			}
 
-			_longstr.push_back(m_currentChar);
+			_longstr.push_back(context.m_currentChar);
 			Next();
 		}
 	}
@@ -571,6 +584,9 @@ Lexer::Lexer(std::shared_ptr<Profile>& profile)
 {
 	// Register all tokenized keywords
 	InitKeywords();
+
+	// Create initial context
+	m_context.emplace();
 
 	// Fetch first datachunk
 	ConsumeNextChunk();

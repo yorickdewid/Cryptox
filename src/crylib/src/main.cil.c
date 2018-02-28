@@ -6,11 +6,24 @@
  *
  */
 
+#include "D:\Projects\Cryptox\src\crylib\src\main.cil.h"
+
+#define CONSTANT    1
+#define RETURN_OK   0
+
 int printf(const char *fmt, ...);
 
 int main() {
+    
     /* My first program in C */
     printf("Hello, %s!\n", "world");
     
-    return 34 + 43;
+    int i = CONSTANT;
+    if (i >= 1) {
+        puts("statement true");
+    } else {
+        puts("statement false");
+    }
+
+    return RETURN_OK;
 }

@@ -182,11 +182,12 @@ int DirectiveScanner::PreprocessLexSet(char lexChar)
 int DirectiveScanner::LexWrapper()
 {
 	m_data.reset();
-	m_lastTokenLine = m_currentLine;
-	while (m_currentChar != EndOfUnit) {
-		int token = PreprocessLexSet(m_currentChar);
+	auto& context = m_context.top();
+	context.m_lastTokenLine = context.m_currentLine;
+	while (context.m_currentChar != EndOfUnit) {
+		int token = PreprocessLexSet(context.m_currentChar);
 		if (token == CONTINUE_NEXT_TOKEN) {
-			token = Lexer::DefaultLexSet(m_currentChar);
+			token = Lexer::DefaultLexSet(context.m_currentChar);
 			if (token == CONTINUE_NEXT_TOKEN) { continue; }
 		}
 

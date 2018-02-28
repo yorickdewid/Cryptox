@@ -12,12 +12,14 @@
 #include "Tokenizer.h"
 #include "Valuedef.h"
 
+#include <stack>
 #include <string>
 #include <memory>
 #include <functional>
 #include <unordered_map>
 
 #define CONTINUE_NEXT_TOKEN -1
+#define END_OF_UNIT 0
 
 class Parser;
 
@@ -123,7 +125,7 @@ enum Token
 struct Keyword
 {
 	friend class Lexer;
-	
+
 	Keyword(Token token)
 		: m_token{ token }
 	{
@@ -147,15 +149,15 @@ public:
 	Lexer(std::shared_ptr<CoilCl::Profile>&);
 
 	// Check if EOF is reached
-	virtual bool IsDone() const { return m_isEof; }
+	virtual bool IsDone() const { return m_context.top().IsEnfofSource(); }
 
 	// Implementing interface
 	virtual bool HasData() const { return !!m_data; }
 	virtual ValuePointer Data() { return m_data; }
 
 	// Source location methods
-	virtual int TokenLine() const { return m_currentLine; }
-	virtual int TokenColumn() const { return m_currentColumn; }
+	virtual int TokenLine() const { return m_context.top().m_currentLine; }
+	virtual int TokenColumn() const { return m_context.top().m_currentColumn; }
 
 	// Push machine state forward
 	virtual int Lex();
@@ -170,13 +172,13 @@ private:
 
 	void ConsumeNextChunk()
 	{
-		m_content = m_profile->ReadInput();
-		m_offset = 0;
+		m_context.top().FillDataBuffer(m_profile->ReadInput());
 	}
 
 protected:
 	void Next();
 	void VNext();
+	void SwapSource(const std::string& name);
 	void Error(const std::string& errormsg);
 	int DefaultLexSet(char lexChar);
 
@@ -189,24 +191,63 @@ protected:
 	template<typename _Ty>
 	int AssembleToken(_Ty token)
 	{
-		m_prevToken = m_currentToken;
-		m_currentToken = static_cast<int>(token);
-		return m_currentToken;
+		m_context.top().m_prevToken = m_context.top().m_currentToken;
+		m_context.top().m_currentToken = static_cast<int>(token);
+		return m_context.top().m_currentToken;
 	}
 
 private:
 	std::unordered_map<std::string, Keyword> m_keywords;
-	std::string m_content;
-	size_t m_offset = 0;
-	bool m_isEof = false;
+
+protected:
+	struct AnalysisContext
+	{
+		// Provide new buffer to current context
+		void FillDataBuffer(std::string&& buffer) noexcept
+		{
+			m_content = std::move(buffer);
+			m_offset = 0;
+		}
+
+		inline bool HasBufferLeft() noexcept
+		{
+			return m_offset < m_content.size();
+		}
+
+		// Move current state forward by one character
+		void AdvanceBuffer()
+		{
+			m_currentChar = m_content[m_offset++];
+			m_currentColumn++;
+		}
+
+		// Mark end of source
+		void SignalEndOfSource()
+		{
+			m_isEof = true;
+			m_currentChar = END_OF_UNIT;
+		}
+
+		// Return current charater
+		inline char& CurrentToken() { return m_currentChar; }
+		inline bool IsOffsetZero() const { return m_offset == 0; }
+		inline bool IsEnfofSource() const { return m_isEof; }
+
+		char m_currentChar;
+		int m_currentColumn = 0;
+		int m_currentToken;
+		int m_prevToken = -1;
+		int m_currentLine = 1;
+		int m_lastTokenLine = m_currentLine;
+
+	private:
+		bool m_isEof = false;
+		size_t m_offset = 0;
+		std::string m_content;
+	};
 
 protected:
 	std::shared_ptr<CoilCl::Profile>& m_profile;
 	std::shared_ptr<CoilCl::Valuedef::Value> m_data;
-	char m_currentChar;
-	int m_currentColumn = 0;
-	int m_currentToken;
-	int m_prevToken = -1;
-	int m_currentLine = 1;
-	int m_lastTokenLine = m_currentLine;
+	std::stack<AnalysisContext> m_context;
 };
