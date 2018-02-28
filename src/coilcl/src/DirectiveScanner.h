@@ -36,8 +36,9 @@ enum PreprocessorToken
 	TK_PP_ENDIF = 107,   // endif
 	TK_PP_PRAGMA = 108,  // pragma
 	TK_PP_LINE = 109,    // line
-	TK_PP_WARNING = 110, // warning
-	TK_PP_ERROR = 111,   // error
+	TK_PP_MESSAGE = 110, // message
+	TK_PP_WARNING = 111, // warning
+	TK_PP_ERROR = 112,   // error
 
 	// Compiler translation
 	TK___LINE__ = 390,

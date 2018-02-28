@@ -815,6 +815,22 @@ public:
 };
 
 // Report linquistic error
+class CompilerMessage : public AbstractDirective
+{
+public:
+	void Dispence(TokenProcessor::TokenType token, const TokenProcessor::DataType data)
+	{
+		if (token != TK_CONSTANT) {
+			throw DirectiveException{ "message", "expected constant after 'message'" };
+		}
+
+		// For now print to terminal
+		std::cout << ConvertDataAs<std::string>(data) << std::endl;
+	}
+};
+
+
+// Report linquistic error
 class LinguisticError : public AbstractDirective
 {
 	const bool m_isFatal;
@@ -894,6 +910,9 @@ void Preprocessor::MethodFactory(TokenType token)
 		break;
 	case TK_PP_LINE:
 		m_method = MakeMethod<FixLocation>();
+		break;
+	case TK_PP_MESSAGE:
+		m_method = MakeMethod<LinguisticError>();
 		break;
 	case TK_PP_WARNING:
 		m_method = MakeMethod<LinguisticError>(false);
