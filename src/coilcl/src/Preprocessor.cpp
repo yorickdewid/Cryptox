@@ -153,6 +153,7 @@ private:
 	std::set<CallbackFunc> m_subscriptionSet;
 } g_tokenSubscription;
 
+// Convert program version parts into version integer
 constexpr int ProgramCounterId()
 {
 	return (PRODUCT_VERSION_MAJOR * 1000000)
@@ -299,7 +300,7 @@ class ImportSource : public AbstractDirective
 	// Request input source push from the frontend
 	void Import(const std::string& source)
 	{
-		//std::cout << "import " << source << std::endl;
+		std::cout << "import " << source << std::endl;
 
 		//m_profile->Include(source);
 	}

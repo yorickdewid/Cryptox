@@ -20,12 +20,13 @@ using namespace CoilCl;
 
 void Lexer::Error(const std::string& errormsg)
 {
+	auto& context = CONTEXT();
 	if (errHandlerFunc) {
-		errHandlerFunc(errormsg, CONTEXT().m_currentChar, CONTEXT().m_lastTokenLine, CONTEXT().m_currentColumn);
+		errHandlerFunc(errormsg, context.m_currentChar, context.m_lastTokenLine, context.m_currentColumn);
 	}
 
-	CONTEXT().m_prevToken = CONTEXT().m_currentToken;
-	CONTEXT().SignalEndOfSource();
+	context.m_prevToken = context.m_currentToken;
+	context.SignalEndOfSource();
 }
 
 void Lexer::InitKeywords()
@@ -87,6 +88,12 @@ read_again:
 	if (!context.IsOffsetZero()) {
 		ConsumeNextChunk();
 		goto read_again;
+	}
+
+	// If there are other sources, switch back
+	if (m_context.size() > 1) {
+		m_context.pop();
+		return;
 	}
 
 	// Mark end of source
