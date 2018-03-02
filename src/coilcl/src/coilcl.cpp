@@ -12,6 +12,7 @@
 #include "Frontend.h"
 #include "Parser.h"
 #include "Semer.h"
+#include "NonFatal.h"
 #include "UnsupportedOperationException.h"
 
 #include <string>
@@ -29,6 +30,8 @@
 		c = callback; \
 		return (*this); \
 	}
+
+CoilCl::DefaultNoticeList CoilCl::g_warningQueue;
 
 namespace CoilCl
 {
@@ -116,7 +119,7 @@ public:
 	void CaptureBackRefPtr(_Ty ptr)
 	{
 		static_assert(std::is_pointer<_Ty>::value
-					  && std::is_pod<_Ty>::value, "Backref must be pointer to POD");
+			&& std::is_pod<_Ty>::value, "Backref must be pointer to POD");
 		backreferencePointer = static_cast<void*>(ptr);
 	}
 
@@ -170,6 +173,11 @@ public:
 			// For now dump contents to screen
 			program->AstPassthrough()->Print<ASTNode::Traverse::STAGE_LAST>();
 			program->PrintSymbols();
+
+			// Print all compiler stage non fatal messages
+			for (auto notice : g_warningQueue) {
+				std::cout << notice << std::endl;
+			}
 
 #ifdef EMITTER
 			// Source building

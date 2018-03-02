@@ -328,11 +328,14 @@ public:
 		default:
 			if (hasBegin) {
 				if (!data) {
-					//TODO: Feed token back to generator
-					//TODO: This list is my no means complete
+					//FUTURE: Each token must be able to fetch its characteral representation
+					//TODO: This list not complete
 					switch (token) {
 					case TK_DOT:
 						tempSource.push_back('.');
+						break;
+					case TK_SLASH:
+						tempSource.push_back('/');
 						break;
 					case TK_COMMA:
 						tempSource.push_back(',');
