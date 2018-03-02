@@ -8,24 +8,18 @@
  * permission of the author.
  */
 
-#ifndef	_CRYLIB_H
-#define	_CRYLIB_H 1
+#pragma once
 
 /* Header is cry compiler specific. */
 #if defined(__GNUC__) || defined(__GNUG__) \
  || defined(__clang__) \
  || defined(_MSC_VER) \
  || !defined(__CRYC__)
-# error "source is cry compiler specific"
-#endif
-
-/* Check invalid language. */
-#ifdef __cplusplus
-# error "wuut!, /me no do C++"
+# error "source is compiler specific"
 #endif
 
 /* Cry library version */
-#define __CRYLIB_V 10200 /* 1.2.0. */
+#define __CRYLIB_V 10200 /* XX.XX.XX. */
 
 /* Crygenerator info type. */
 #ifndef ___crygen_info_t_defined
@@ -36,10 +30,6 @@ typedef struct
 	int ts_alter;       /* Alteration timestamp. */
 } _crygen_info_t;
 # define ___crygen_info_t_defined 1
-#endif
-
-#ifdef __CRYC_INTERNAL_INVOKE
-__cryinvoke_internal_ro(...);
 #endif
 
 /* OS directive. */
@@ -56,5 +46,4 @@ __cryinvoke_internal_ro(...);
 #else
 # warning "unknown compiler"
 #endif
-
-#endif /* crylib.h  */
+#define __OS_defined 1

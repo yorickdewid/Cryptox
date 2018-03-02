@@ -161,7 +161,7 @@ add_subdirectory(src/pfupgr)
 add_subdirectory(src/plgex)
 #add_subdirectory(src/primcore)
 #add_subdirectory(src/entropysrv)
-#add_subdirectory(src/crylib)
+add_subdirectory(src/crylib)
 
 # UI parts are disabled
 #add_subdirectory(src/shapework)

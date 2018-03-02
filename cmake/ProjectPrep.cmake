@@ -27,7 +27,7 @@ if(WIN32)
 endif()
 
 # Fetch sources
-file(GLOB ${PROJECT_NAME}_src  ${${PROJECT_NAME}_SRC}/*.cpp ${${PROJECT_NAME}_SRC}/*.h)
+file(GLOB ${PROJECT_NAME}_src  ${${PROJECT_NAME}_SRC}/*.cpp ${${PROJECT_NAME}_SRC}/*.c ${${PROJECT_NAME}_SRC}/*.h)
 file(GLOB_RECURSE ${PROJECT_NAME}_h ${${PROJECT_NAME}_INCLUDE}/*.h)
 file(GLOB ${PROJECT_NAME}_rel ${CMAKE_CURRENT_SOURCE_DIR}/*.rc ${CMAKE_CURRENT_SOURCE_DIR}/*.txt ${CMAKE_CURRENT_SOURCE_DIR}/*.man)
 
