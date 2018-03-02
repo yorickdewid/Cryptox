@@ -123,6 +123,13 @@ public:
 		backreferencePointer = static_cast<void*>(ptr);
 	}
 
+	static void PrintNoticeMessages()
+	{
+		for (auto notice : g_warningQueue) {
+			std::cout << notice << std::endl;
+		}
+	}
+
 	// Run all stages and build the program, the program is returned if no exceptions occur
 	static ProgramPtr Dispatch(std::shared_ptr<Compiler>&& compiler)
 	{
@@ -175,19 +182,16 @@ public:
 			program->PrintSymbols();
 
 			// Print all compiler stage non fatal messages
-			for (auto notice : g_warningQueue) {
-				std::cout << notice << std::endl;
-			}
+			PrintNoticeMessages();
 
 #ifdef EMITTER
 			// Source building
-			/*CoilCl::Emitter{ profile }
+			CoilCl::Emitter{ profile }
 				.MoveStage()
 				.Syntax<decltype(oast)>(scheme.Ast())
 				.Sequence(CoilCl::Emiter::CASM)
 				.Sequence(CoilCl::Emiter::RPTS)
 				.StreamSink<CoilCl::Stream::Console>();
-			*/
 #endif
 
 			//program->AstPassthrough()->Print<ASTNode::Traverse::STAGE_FIRST>();

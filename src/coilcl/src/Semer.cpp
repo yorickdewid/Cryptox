@@ -8,6 +8,8 @@
 
 #include <Cry/Algorithm.h>
 
+#include <boost/format.hpp>
+
 #include "AST.h"
 #include "ASTNode.h"
 #include "Semer.h"
@@ -258,6 +260,8 @@ void CoilCl::Semer::ResolveIdentifier()
 	AST::Compare::Equal<DeclRefExpr> eqOp;
 	MatchIf(m_ast.begin(), m_ast.end(), eqOp, [=](AST::AST::iterator itr)
 	{
+		boost::format semfmt{ "use of undeclared identifier '%1%'" };
+
 		auto node = itr.shared_ptr();
 		auto decl = std::dynamic_pointer_cast<DeclRefExpr>(node);
 		if (!decl->IsResolved()) {
@@ -267,7 +271,8 @@ void CoilCl::Semer::ResolveIdentifier()
 				if (block == nullptr) {
 					auto binder = this->m_resolveList[GLOBAL_DEFS].find(decl->Identifier());
 					if (binder == this->m_resolveList[GLOBAL_DEFS].end()) {
-						throw SemanticException{ "use of undeclared identifier'x'", 0, 0 };
+						semfmt % decl->Identifier();
+						throw SemanticException{ semfmt.str().c_str(), 0, 0 };
 					}
 
 					decl->Resolve(binder->second);
@@ -282,7 +287,8 @@ void CoilCl::Semer::ResolveIdentifier()
 				if (binder == this->m_resolveList[func->Id()].end()) {
 					binder = this->m_resolveList[GLOBAL_DEFS].find(decl->Identifier());
 					if (binder == this->m_resolveList[GLOBAL_DEFS].end()) {
-						throw SemanticException{ "use of undeclared identifier'x'", 0, 0 };
+						semfmt % decl->Identifier();
+						throw SemanticException{ semfmt.str().c_str(), 0, 0 };
 					}
 				}
 
