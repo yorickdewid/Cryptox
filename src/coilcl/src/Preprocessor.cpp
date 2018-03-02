@@ -300,9 +300,9 @@ class ImportSource : public AbstractDirective
 	// Request input source push from the frontend
 	void Import(const std::string& source)
 	{
-		std::cout << "import " << source << std::endl;
-
-		//m_profile->Include(source);
+		if (!m_profile->Include(source)) {
+			throw std::system_error(ENOENT, std::system_category());
+		}
 	}
 
 public:

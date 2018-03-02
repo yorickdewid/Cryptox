@@ -26,8 +26,5 @@ Frontend& Frontend::CheckCompatibility()
 
 TokenizerPtr Frontend::SelectTokenizer()
 {
-	/*auto tokenizer = Frontend::Factory(m_profile->Language());
-	tokenizer->SetOptions(...);
-	return tokenizer;*/
 	return std::make_shared<DirectiveScanner>(m_profile);
 }

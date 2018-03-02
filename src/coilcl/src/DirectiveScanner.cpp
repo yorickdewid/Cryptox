@@ -46,8 +46,56 @@ struct MatchOn
 } // namespace std
 
 template<typename _Ty>
-TokenProcessorProxy<_Ty>::TokenProcessorProxy(std::shared_ptr<Profile>& profile)
-	: tokenProcessor{ profile }
+class TokenProcessorProxy<_Ty>::ProfileWrapper : public CoilCl::Profile
+{
+	std::shared_ptr<Profile>& m_profileOrigin;
+	std::function<bool(const std::string&)> m_sourceIncludeCb;
+
+public:
+	ProfileWrapper(std::shared_ptr<Profile>& profile)
+		: m_profileOrigin{ profile }
+	{
+	}
+
+	ProfileWrapper(std::shared_ptr<Profile>& profile, std::function<bool(const std::string&)>&& sourceIncludeCb)
+		: m_profileOrigin{ profile }
+		, m_sourceIncludeCb{ std::move(sourceIncludeCb) }
+	{
+	}
+
+	[[noreturn]] // TODO: throw something usefull
+	virtual std::string ReadInput() { throw 1; };
+
+	// Load source via lexer as opposed to the default frontend loader
+	virtual bool Include(const std::string& source)
+	{
+		return m_sourceIncludeCb(source);
+	};
+
+	// Pass meta info request through to original profile
+	virtual std::shared_ptr<metainfo_t> MetaInfo()
+	{
+		return m_profileOrigin->MetaInfo();
+	};
+
+	// Pass error handler through to original profile
+	virtual void Error(const std::string& message, bool isFatal)
+	{
+		m_profileOrigin->Error(message, isFatal);
+	};
+
+	// Return the original, wrapped, profile object
+	std::shared_ptr<Profile> NativeProfile()
+	{
+		return m_profileOrigin;
+	}
+};
+
+template<typename _Ty>
+template<typename... _ArgsTy>
+TokenProcessorProxy<_Ty>::TokenProcessorProxy(std::shared_ptr<Profile>& profile, _ArgsTy&&... args)
+	: m_profile{ std::shared_ptr<Profile>{ new ProfileWrapper{ profile, std::forward<_ArgsTy>(args)... } } }
+	, tokenProcessor{ m_profile }
 {
 }
 
@@ -68,9 +116,9 @@ TokenProcessor::TokenDataPair<TokenProcessor::TokenType, const TokenProcessor::D
 
 template<typename _Ty>
 int TokenProcessorProxy<_Ty>::operator()(std::function<int()> lexerLexCall,
-										 std::function<bool()> lexerHasDataCall,
-										 std::function<Tokenizer::ValuePointer()> lexerDataCall,
-										 std::function<void(const Tokenizer::ValuePointer&)> lexerSetDataCall)
+	std::function<bool()> lexerHasDataCall,
+	std::function<Tokenizer::ValuePointer()> lexerDataCall,
+	std::function<void(const Tokenizer::ValuePointer&)> lexerSetDataCall)
 {
 	int token = -1;
 	bool skipNewline = false;
@@ -202,9 +250,9 @@ int DirectiveScanner::Lex()
 {
 	// Setup proxy between directive scanner and token processor.
 	return m_proxy([this]() { return this->LexWrapper(); },
-				   [this]() { return this->HasData(); },
-				   [this]() { return m_data; },
-				   [this](const Tokenizer::ValuePointer& dataPtr)
+		[this]() { return this->HasData(); },
+		[this]() { return m_data; },
+		[this](const Tokenizer::ValuePointer& dataPtr)
 	{
 		m_data = Tokenizer::ValuePointer{ dataPtr };
 	});
@@ -212,7 +260,7 @@ int DirectiveScanner::Lex()
 
 DirectiveScanner::DirectiveScanner(std::shared_ptr<Profile>& profile)
 	: Lexer{ profile }
-	, m_proxy{ profile }
+, m_proxy{ profile, [this](const std::string& source) -> bool { this->SwapSource(source); return true; /*TODO: Unmock*/ } }
 {
 	AddKeyword("include", TK_PP_INCLUDE);
 	AddKeyword("include", TK_PP_INCLUDE);

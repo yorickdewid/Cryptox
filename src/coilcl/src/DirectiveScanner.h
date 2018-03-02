@@ -67,19 +67,21 @@ private:
 template<typename _Ty>
 class TokenProcessorProxy
 {
+	class ProfileWrapper;
+	
+	std::set<int> m_subscribedTokens;
+	std::shared_ptr<Profile> m_profile;
 	_Ty tokenProcessor;
 
 private:
 	std::unique_ptr<std::deque<TokenProcessor::TokenDataPair<TokenProcessor::TokenType, const TokenProcessor::DataType>>> m_tokenBacklog;
 
 protected:
-	std::set<int> m_subscribedTokens;
-
-protected:
 	TokenProcessor::TokenDataPair<TokenProcessor::TokenType, const TokenProcessor::DataType> ProcessBacklog();
 
 public:
-	TokenProcessorProxy(std::shared_ptr<Profile>&);
+	template<typename... _ArgsTy>
+	TokenProcessorProxy(std::shared_ptr<Profile>&, _ArgsTy&&...);
 
 	// Connection between scanner and token processor.
 	int operator()(std::function<int()>,

@@ -6,7 +6,7 @@
  *
  */
 
-#include "D:\Projects\Cryptox\src\crylib\src\main.cil.h"
+#include "D:\Projects\Cryptox\src\crylib\srcctrl\main.cil.h"
 
 #define CONSTANT    1
 #define RETURN_OK   0

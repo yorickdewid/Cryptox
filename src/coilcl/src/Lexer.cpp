@@ -113,7 +113,9 @@ void Lexer::VNext()
 void Lexer::SwapSource(const std::string& name)
 {
 	m_context.emplace();
-	m_profile->Include(name);
+	if (!m_profile->Include(name)) {
+		throw std::runtime_error{ "cannot load '" + name + "'" }; //TODO
+	}
 	ConsumeNextChunk();
 }
 
