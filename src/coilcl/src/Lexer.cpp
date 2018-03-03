@@ -26,7 +26,7 @@ void Lexer::Error(const std::string& errormsg)
 	}
 
 	context.m_prevToken = context.m_currentToken;
-	context.SignalEndOfSource();
+	MarkDone();
 }
 
 void Lexer::InitKeywords()
@@ -70,9 +70,9 @@ void Lexer::InitKeywords()
 	AddKeyword("while", TK_WHILE);
 }
 
-// Retrieve Next character from content and store it 
+// Retrieve next character from content and store it 
 // as the current token. If there is no next token this
-// function will set the end of file toggle and push the
+// function will set the end of input toggle and push the
 // EndofUnit as current character.
 void Lexer::Next()
 {
@@ -90,14 +90,18 @@ read_again:
 		goto read_again;
 	}
 
-	// If there are other sources, switch back
+	// If there are multiple sources, then there is more 
+	// input left. Pop context and continue.
 	if (m_context.size() > 1) {
 		m_context.pop();
-		return;
+		goto read_again;
 	}
 
-	// Mark end of source
-	context.SignalEndOfSource();
+	// All input in the buffer was consumed and the frontend
+	// cannot supply more tokens. This indicates all input is
+	// analysed and no more tokens will be available. The next
+	// character will signal all operations to halt and return.
+	MarkDone();
 }
 
 void Lexer::VNext()
@@ -116,7 +120,9 @@ void Lexer::SwapSource(const std::string& name)
 	if (!m_profile->Include(name)) {
 		throw std::runtime_error{ "cannot load '" + name + "'" }; //TODO
 	}
+
 	ConsumeNextChunk();
+	Next();
 }
 
 int Lexer::DefaultLexSet(char lexChar)

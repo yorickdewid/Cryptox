@@ -148,8 +148,17 @@ class Lexer : public CoilCl::Tokenizer
 public:
 	Lexer(std::shared_ptr<CoilCl::Profile>&);
 
-	// Check if EOF is reached
-	virtual bool IsDone() const { return m_context.top().IsEnfofSource(); }
+	// Check if end of input is reached
+	virtual bool IsDone() const { return m_isEndofInput; }
+
+	// Set last token to end of input and so parsing operations
+	// can halt, and mark the lexer as done
+	virtual void MarkDone()
+	{
+		assert(m_context.size() == 1);
+		m_context.top().SignalEndOfInput();
+		m_isEndofInput = true;
+	}
 
 	// Implementing interface
 	virtual bool HasData() const { return !!m_data; }
@@ -221,17 +230,15 @@ protected:
 			m_currentColumn++;
 		}
 
-		// Mark end of source
-		void SignalEndOfSource()
+		// Mark end of input
+		void SignalEndOfInput()
 		{
-			m_isEof = true;
 			m_currentChar = END_OF_UNIT;
 		}
 
 		// Return current charater
 		inline char& CurrentToken() { return m_currentChar; }
 		inline bool IsOffsetZero() const { return m_offset == 0; }
-		inline bool IsEnfofSource() const { return m_isEof; }
 
 		char m_currentChar;
 		int m_currentColumn = 0;
@@ -241,7 +248,6 @@ protected:
 		int m_lastTokenLine = m_currentLine;
 
 	private:
-		bool m_isEof = false;
 		size_t m_offset = 0;
 		std::string m_content;
 	};
@@ -250,4 +256,5 @@ protected:
 	std::shared_ptr<CoilCl::Profile>& m_profile;
 	std::shared_ptr<CoilCl::Valuedef::Value> m_data;
 	std::stack<AnalysisContext> m_context;
+	bool m_isEndofInput = false;
 };

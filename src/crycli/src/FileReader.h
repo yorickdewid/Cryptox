@@ -12,30 +12,29 @@ class FileReader : public Reader
 public:
 	FileReader() = default;
 
-	explicit FileReader(const std::string& filename)
+	FileReader(const std::string& filename)
 	{
 		AppendFileToList(filename);
 	}
 
+	// Implement interface reader
 	virtual std::string FetchNextChunk(size_t sizeHint)
 	{
 		auto content = m_unitList.top()->Read(sizeHint);
 		if (content.empty()) {
 			m_unitList.pop();
-
-			if (!m_unitList.empty()) {
-				return FetchNextChunk(sizeHint);
-			}
 		}
 
 		return content;
 	}
 
+	// Implement interface meta info request
 	virtual std::string FetchMetaInfo()
 	{
 		return m_unitList.top()->Name();
 	}
 
+	// Implement interface, switch to source
 	virtual void SwitchSource(const std::string& source)
 	{
 		AppendFileToList(source);
@@ -52,10 +51,10 @@ protected:
 		m_unitList.push(std::make_unique<SourceUnit>(SourceUnit{ filename }));
 	}
 
-	template<typename _Ty>
-	void AppendFileToList(_Ty&& unit)
+	// Append source unit to unit stack
+	void AppendFileToList(SourceUnit&& unit)
 	{
-		m_unitList.push(std::make_unique<_Ty>(std::move(unit)));
+		m_unitList.push(std::make_unique<SourceUnit>(std::move(unit)));
 	}
 
 private:
