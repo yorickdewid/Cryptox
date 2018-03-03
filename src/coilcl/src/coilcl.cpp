@@ -12,6 +12,7 @@
 #include "Frontend.h"
 #include "Parser.h"
 #include "Semer.h"
+#include "Emitter.h"
 #include "NonFatal.h"
 #include "UnsupportedOperationException.h"
 
@@ -177,24 +178,28 @@ public:
 				.Metrics(program->FillMetrics());
 #endif
 
+			using Seq = CoilCl::Emit::Sequence;
+			CoilCl::Emit::Sink<Seq::AIIPX> AIIPXSink{};
+
+			auto consoleStream = std::make_shared<CoilCl::Emit::Stream::Console>();
+			auto fileStream = std::make_shared<CoilCl::Emit::Stream::File>();
+			auto memStream = std::make_shared<CoilCl::Emit::Stream::MemoryBlock>();
+			AIIPXSink.AddStream(consoleStream);
+			AIIPXSink.AddStream(fileStream);
+			AIIPXSink.AddStream(memStream);
+
+			// Program output building
+			CoilCl::Emit::Emitter{ profile, std::move(program->Ast()) }
+				.MoveStage()
+				.AddSink(AIIPXSink)
+				.DumpSink();
+
 			// For now dump contents to screen
 			program->AstPassthrough()->Print<ASTNode::Traverse::STAGE_LAST>();
 			program->PrintSymbols();
 
 			// Print all compiler stage non fatal messages
 			PrintNoticeMessages();
-
-#ifdef EMITTER
-			// Source building
-			CoilCl::Emitter{ profile }
-				.MoveStage()
-				.Syntax<decltype(oast)>(scheme.Ast())
-				.Sequence(CoilCl::Emiter::CASM)
-				.Sequence(CoilCl::Emiter::RPTS)
-				.StreamSink<CoilCl::Stream::Console>();
-#endif
-
-			//program->AstPassthrough()->Print<ASTNode::Traverse::STAGE_FIRST>();
 		}
 		// Catch any leaked erros not caught in the stages
 		catch (std::exception& e) {

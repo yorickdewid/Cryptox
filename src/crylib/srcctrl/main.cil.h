@@ -14,3 +14,9 @@ struct info {
     int version;
     int counter;
 };
+
+/* Formats and prints characters and values to stdout. */
+int printf(const char *fmt, ...);
+
+/* Prints a string to stdout. */
+int puts(const char *str);
