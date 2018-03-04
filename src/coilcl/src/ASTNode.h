@@ -17,6 +17,8 @@
 #include "RefCount.h"
 #include "ASTState.h"
 
+#include <boost/any.hpp>
+
 #include <vector>
 #include <memory>
 #include <sstream>
@@ -207,6 +209,12 @@ public:
 		return children;
 	}
 
+	template<typename _Pred>
+	auto UserData(_Pred predicate)
+	{
+		return std::find_if(m_userData.begin(), m_userData.end(), predicate);
+	}
+
 	//TODO: friend
 	void UpdateDelegate()
 	{
@@ -234,10 +242,17 @@ protected:
 		m_parent = node;
 	}
 
+	template<typename _Ty>
+	void SetUserData(_Ty&& data)
+	{
+		m_userData.emplace(std::move(data));
+	}
+
 protected:
 	CoilCl::AST::ASTState<_MyTy> m_state;
 	std::vector<std::weak_ptr<_MyTy>> children;
 	std::weak_ptr<_MyTy> m_parent;
+	std::vector<boost::any> m_userData;
 };
 
 //
