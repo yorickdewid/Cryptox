@@ -8,9 +8,6 @@
 
 #pragma once
 
-#include "Profile.h"
-#include "Stage.h"
-
 namespace CoilCl
 {
 namespace Emit
@@ -18,19 +15,33 @@ namespace Emit
 namespace Stream
 {
 
+class InputStream
+{
+	void Read(std::vector<uint8_t>& vector) {}
+	void Read(uint8_t *vector, size_t sz) {}
+};
+
 class OutputStream
 {
+	void Write(std::vector<uint8_t>& vector) {}
+	void Write(uint8_t *vector, size_t sz) {}
 };
 
-class Console : public OutputStream
+class Console
+	: public InputStream
+	, public OutputStream
 {
 };
 
-class File : public OutputStream
+class File
+	: public InputStream
+	, public OutputStream
 {
 };
 
-class MemoryBlock : public OutputStream
+class MemoryBlock
+	: public InputStream
+	, public OutputStream
 {
 };
 

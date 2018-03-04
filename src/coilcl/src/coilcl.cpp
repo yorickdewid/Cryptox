@@ -14,7 +14,7 @@
 #include "Semer.h"
 #include "Emitter.h"
 #include "NonFatal.h"
-#include "UnsupportedOperationException.h"
+#include "UnsupportedOperationException.h" //TODO: remove
 
 #include <string>
 #include <iostream>
@@ -178,24 +178,21 @@ public:
 				.Metrics(program->FillMetrics());
 #endif
 
-			using Seq = CoilCl::Emit::Sequence;
-			CoilCl::Emit::Sink<Seq::AIIPX> AIIPXSink{};
+			// For now dump contents to screen
+			program->AstPassthrough()->Print<ASTNode::Traverse::STAGE_LAST>();
+
+			CoilCl::Emit::Module<CoilCl::Emit::Sequencer::AIIPX> AIIPXMod;
 
 			auto consoleStream = std::make_shared<CoilCl::Emit::Stream::Console>();
-			auto fileStream = std::make_shared<CoilCl::Emit::Stream::File>();
-			auto memStream = std::make_shared<CoilCl::Emit::Stream::MemoryBlock>();
-			AIIPXSink.AddStream(consoleStream);
-			AIIPXSink.AddStream(fileStream);
-			AIIPXSink.AddStream(memStream);
+			AIIPXMod.AddStream(consoleStream);
 
 			// Program output building
 			CoilCl::Emit::Emitter{ profile, std::move(program->Ast()) }
 				.MoveStage()
-				.AddSink(AIIPXSink)
-				.DumpSink();
+				.AddModule(AIIPXMod)
+				.Process();
 
-			// For now dump contents to screen
-			program->AstPassthrough()->Print<ASTNode::Traverse::STAGE_LAST>();
+			// Print symbols
 			program->PrintSymbols();
 
 			// Print all compiler stage non fatal messages

@@ -20,6 +20,7 @@ namespace CoilCl
 //FUTURE:
 // - Error codes
 // - Source unit
+// - Order by Type
 class NonFatalNotice
 {
 	std::string m_message;

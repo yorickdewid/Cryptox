@@ -24,7 +24,40 @@ Emitter& Emitter::CheckCompatibility()
 	return (*this);
 }
 
-Emitter& Emitter::DumpSink()
+AST::AST Emitter::Strategy(ModuleInterface::ModulePerm permission)
 {
+	switch (permission)
+	{
+	case ModuleInterface::ReadOnly:
+		break;
+	case ModuleInterface::CopyOnWrite:
+		break;
+	case ModuleInterface::Substitute:
+		break;
+	default:
+		break;
+	}
+	
+	return nullptr; /* m_ast->;*/
+}
+
+Emitter& Emitter::Process()
+{
+	// Reorder modules so that the most destructive modules are called first
+	std::sort(m_mods.begin(), m_mods.end(), [](ModulePair lhs, ModulePair rhs) {
+		return lhs.first > rhs.first;
+	});
+	
+	for (auto& mod : m_mods)
+	{
+		// Determine AST strategy
+		auto& ast = Strategy(mod.first);
+
+		// Call module with tree
+		mod.second.Invoke(/*ast*/);
+	}
+
 	return (*this);
 }
+
+
