@@ -38,7 +38,7 @@ namespace CoilCl
 {
 
 class Compiler final
-	: public CoilCl::Profile
+	: public Profile
 	, public std::enable_shared_from_this<Compiler>
 {
 	std::function<std::string()> readHandler;
@@ -60,7 +60,7 @@ class Compiler final
 	};
 
 public:
-	using ProgramPtr = std::unique_ptr<CoilCl::Program>;
+	using ProgramPtr = std::unique_ptr<Program>;
 
 private:
 	StageOptions<codegen> stageOne;
@@ -138,7 +138,7 @@ public:
 		auto profile = std::dynamic_pointer_cast<Profile>(compiler);
 
 		// Create an empty program for the first stage
-		ProgramPtr program = std::make_unique<CoilCl::Program>();
+		ProgramPtr program = std::make_unique<Program>();
 
 		try {
 			// The frontend will not perform any substitutions, but instead
@@ -154,24 +154,24 @@ public:
 				.DumpAST();
 
 			// Compose definitive program structure
-			CoilCl::Program::Bind(std::move(program), std::move(ast));
+			Program::Bind(std::move(program), std::move(ast));
 
 			// For now dump contents to screen
 			program->AstPassthrough()->Print<ASTNode::Traverse::STAGE_FIRST>();
 
 			// Semantic analysis
-			CoilCl::Semer{ profile, std::move(program->Ast()) }
+			Semer{ profile, std::move(program->Ast()) }
 				.MoveStage()
 				.StaticResolve()
 				.PreliminaryAssert()
 				.StandardCompliance()
 				.PedanticCompliance()
-				//.Optimize<CoilCl::LeanOptimzer>()
+				//.Optimize<LeanOptimzer>()
 				.ExtractSymbols(program->FillSymbols());
 
 #ifdef OPTIMIZER
 			// Optimizer
-			CoilCl::Optimizer{ profile, std::move(program->Ast()) }
+			Optimizer{ profile, std::move(program->Ast()) }
 				.MoveStage()
 				.TrivialReduction()
 				.DeepInflation()
@@ -181,13 +181,13 @@ public:
 			// For now dump contents to screen
 			program->AstPassthrough()->Print<ASTNode::Traverse::STAGE_LAST>();
 
-			CoilCl::Emit::Module<CoilCl::Emit::Sequencer::AIIPX> AIIPXMod;
+			Emit::Module<Emit::Sequencer::AIIPX> AIIPXMod;
 
-			auto consoleStream = std::make_shared<CoilCl::Emit::Stream::Console>();
+			auto consoleStream = std::make_shared<Emit::Stream::Console>();
 			AIIPXMod.AddStream(consoleStream);
 
 			// Program output building
-			CoilCl::Emit::Emitter{ profile, std::move(program->Ast()) }
+			Emit::Emitter{ profile, std::move(program->Ast()) }
 				.MoveStage()
 				.AddModule(AIIPXMod)
 				.Process();
@@ -207,7 +207,7 @@ public:
 	}
 };
 
-} // namespace Compiler
+} // namespace CoilCl
 
 namespace InterOpHelper
 {

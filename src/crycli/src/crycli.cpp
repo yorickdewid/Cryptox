@@ -28,6 +28,8 @@ int main(int argc, const char *argv[])
 			("print-search-dirs", "Display the directories in the compiler's search path")
 			("print-std-list", "Display supported language standards")
 			("print-targets", "Display output target")
+			("print-spec", "Display the compiler specification configuration")
+			("plugin", po::value<std::string>()->value_name("<plugin>"), "Load compiler plugin")
 			("v", "Compiler version information");
 
 		// Compiler options
@@ -36,11 +38,14 @@ int main(int argc, const char *argv[])
 			("o", po::value<std::string>()->value_name("<file>"), "Object output file")
 			("g", "Compile with debug support")
 			("E", "Preprocess only; do not compile")
-			("T", po::value<std::string>()->value_name("<target>")->default_value("RPTS"), "Set output target")
+			("D", po::value<std::string>()->value_name("<definition>"), "Add definitions")
+			("T", po::value<std::string>()->value_name("<target>")->default_value("AIIPX"), "Set output target")
 			("B", po::value<std::string>()->value_name("<directory>"), "Add directory to the compiler's search paths")
 			("x", po::value<std::string>()->value_name("<lang>")->default_value("cil"), "Specify the language of the input files")
 			("std", po::value<std::string>()->value_name("<standard>")->default_value("c99"), "CIL language standard")
+			("nostd", "Ignore all standard libraries")
 			("pedantic", "Pedantic language compliance")
+			("Wd", po::value<std::string>()->value_name("<warning-id>"), "Ignore specific warnings or hints")
 			("Wall", "Report all warnings")
 			("Werror", "Threat warnings as errors");
 
@@ -114,7 +119,7 @@ int main(int argc, const char *argv[])
 		else if (vm.count("print-targets")) {
 			std::cout << "Compiler targets:\n"
 				<< "  1) CASM\tCryptox Assamble\n"
-				<< "  2) RPTS\tRunnable Program Tree Structure"
+				<< "  2) AIIPX\tArchitecture Independent Intermediate Program Executor"
 				<< std::endl;
 		}
 		// Print version and exit

@@ -16,6 +16,7 @@ struct LanguageExtension
 	///
 };
 
+//TODO: Append object to the tree nodes
 class CryIntermediate : public LanguageExtension
 {
 public:
