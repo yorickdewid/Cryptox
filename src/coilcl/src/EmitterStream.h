@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include <iostream>
+
 namespace CoilCl
 {
 namespace Emit
@@ -15,30 +17,48 @@ namespace Emit
 namespace Stream
 {
 
+// Stream input contract
 class InputStream
 {
-	void Read(std::vector<uint8_t>& vector) {}
+	virtual void Read(std::vector<uint8_t>& vector) {}
+
+public:
 	void Read(uint8_t *vector, size_t sz) {}
 };
 
+// Stream output contract
 class OutputStream
 {
-	void Write(std::vector<uint8_t>& vector) {}
+	virtual void Write(std::vector<uint8_t>& vector) {}
+
+public:
 	void Write(uint8_t *vector, size_t sz) {}
 };
 
+// Interact with the console
 class Console
 	: public InputStream
 	, public OutputStream
 {
+public:
+	// Write data stream to console output
+	virtual void Write(std::vector<uint8_t>& vector) override
+	{
+		for (auto& byte : vector) {
+			std::cout << std::hex << byte;
+		}
+		std::cout << std::flush;
+	}
 };
 
+// Write or read data to file
 class File
 	: public InputStream
 	, public OutputStream
 {
 };
 
+// Write or read data from memory slab
 class MemoryBlock
 	: public InputStream
 	, public OutputStream

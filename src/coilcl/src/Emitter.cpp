@@ -29,15 +29,20 @@ AST::AST Emitter::Strategy(ModuleInterface::ModulePerm permission)
 	switch (permission)
 	{
 	case ModuleInterface::ReadOnly:
+		return std::move(m_ast.tree_ref());
+	case ModuleInterface::AppendData:
 		break;
 	case ModuleInterface::CopyOnWrite:
 		break;
-	case ModuleInterface::Substitute:
-		break;
+	case ModuleInterface::Substitute: {
+		std::shared_ptr<ASTNode> k; //TODO
+		m_ast.swap(k);
+		return std::move(m_ast);
+	}
 	default:
 		break;
 	}
-	
+
 	return nullptr; /* m_ast->;*/
 }
 
@@ -47,14 +52,20 @@ Emitter& Emitter::Process()
 	std::sort(m_mods.begin(), m_mods.end(), [](ModulePair lhs, ModulePair rhs) {
 		return lhs.first > rhs.first;
 	});
-	
+
 	for (auto& mod : m_mods)
 	{
 		// Determine AST strategy
 		auto& ast = Strategy(mod.first);
 
-		// Call module with tree
-		mod.second.Invoke(/*ast*/);
+		try {
+			// Call module with tree
+			mod.second.Invoke(/*ast*/);
+		}
+		//FUTURE: update exception
+		catch (const ModuleException& e) {
+			throw;
+		}
 	}
 
 	return (*this);

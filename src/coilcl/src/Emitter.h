@@ -20,11 +20,17 @@ namespace CoilCl
 namespace Emit
 {
 
+//TODO
+struct ModuleException : public std::exception
+{
+};
+
 struct ModuleInterface
 {
 	enum ModulePerm
 	{
 		ReadOnly,    // Request data only (default)
+		AppendData,  // Append non-executable data to the tree
 		CopyOnWrite, // Copy-in new or altered node when touched
 		Substitute,	 // Substitue the entire tree
 	};
@@ -44,8 +50,10 @@ class Module : public ModuleInterface
 {
 	friend Module<Sequencer::Interface>;
 
+	using _MyTy = Module<_SeqTy>;
+
 	std::vector<std::shared_ptr<Stream::OutputStream>> m_streamOut;
-	_SeqTy m_sequencer;
+	_SeqTy m_sequencer{ &_MyTy::RelayOutput };
 
 public:
 	template<typename _StreamTy>
@@ -54,14 +62,25 @@ public:
 		m_streamOut.push_back(std::dynamic_pointer_cast<Stream::OutputStream>(ptr));
 	}
 
-	/*ModulePerm RequestPermissionInfo() override
+	ModulePerm RequestPermissionInfo() override
 	{
-	//TODO: call m_sequencer;
-	}*/
+		//TODO: call m_sequencer;
+		return ModuleInterface::RequestPermissionInfo();
+	}
+
+	// Write output to streams
+	void RelayOutput(uint8_t *data, size_t sz)
+	{
+		for (auto& outputStream : m_streamOut)
+		{
+			outputStream->Write(data, sz);
+		}
+	}
 
 	virtual void Invoke()
 	{
-		//TODO: call m_sequencer;
+		//m_sequencer.
+		
 	}
 };
 
