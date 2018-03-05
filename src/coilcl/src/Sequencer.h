@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include "ASTNode.h"
+
 namespace CoilCl
 {
 namespace Emit
@@ -17,17 +19,23 @@ namespace Sequencer
 
 class Interface
 {
-	//
+public:
+	virtual void Execute(ASTNode *node) = 0;
 };
 
 class CASM : public Interface
 {
-	//
+public:
+	virtual void Execute(ASTNode *node)
+	{
+		CRY_UNUSED(node);
+	}
 };
 
 class AIIPX : public Interface
 {
-	//
+public:
+	virtual void Execute(ASTNode *node);
 };
 
 } // namespace Sequencer

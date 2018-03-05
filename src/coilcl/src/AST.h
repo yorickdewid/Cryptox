@@ -254,6 +254,10 @@ public:
 	// Direct tree access
 	inline ASTNode *operator->() const { return m_tree.get(); }
 
+	//TODO: this is not wat we want since this allows undefined ownership
+	// Get top node
+	inline ASTNode *operator*() { return m_tree.get(); }
+
 	// Copy self with new reference to tree
 	AST tree_ref()
 	{
@@ -266,7 +270,7 @@ public:
 	int TreeLinkCount() const { return interfaceCounter; }
 
 private:
-	std::shared_ptr<ASTNode> m_tree;
+	std::shared_ptr<ASTNode> m_tree; //TODO: unique ptr?
 	const int treeLink;
 
 private:

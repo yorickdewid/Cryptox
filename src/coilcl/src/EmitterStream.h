@@ -20,19 +20,33 @@ namespace Stream
 // Stream input contract
 class InputStream
 {
-	virtual void Read(std::vector<uint8_t>& vector) {}
+	virtual void Read(std::vector<uint8_t>& vector)
+	{
+		CRY_UNUSED(vector);
+	}
 
 public:
-	void Read(uint8_t *vector, size_t sz) {}
+	void Read(uint8_t *vector, size_t sz)
+	{
+		CRY_UNUSED(vector);
+		CRY_UNUSED(sz);
+	}
 };
 
 // Stream output contract
 class OutputStream
 {
-	virtual void Write(std::vector<uint8_t>& vector) {}
+	virtual void Write(std::vector<uint8_t>& vector)
+	{
+		CRY_UNUSED(vector);
+	}
 
 public:
-	void Write(uint8_t *vector, size_t sz) {}
+	void Write(uint8_t *vector, size_t sz)
+	{
+		CRY_UNUSED(vector);
+		CRY_UNUSED(sz);
+	}
 };
 
 // Interact with the console
