@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Specification.h"
+
 #include <string>
 
 class Env
@@ -17,7 +19,7 @@ public:
 		DefaultSettings();
 	}
 
-	static Env InitBasicEnvironment();
+	static Env InitBasicEnvironment(Specification&);
 
 	inline void SetDebug(bool toggle)
 	{

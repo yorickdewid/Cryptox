@@ -14,8 +14,11 @@
 
 #include "Env.h"
 #include "Runstrap.h"
+#include "Specification.h"
 
 #include <iostream>
+
+#define SPECIFICATION_FILE "default.spec"
 
 namespace po = boost::program_options;
 
@@ -91,8 +94,11 @@ int main(int argc, const char *argv[])
 			std::cout << parser << std::endl;
 		};
 
+		// Build specification
+		Specification spec{ Specification::CurrentDirectory(), SPECIFICATION_FILE };
+
 		// Initialize compiler environment
-		Env env = Env::InitBasicEnvironment();
+		Env env = Env::InitBasicEnvironment(spec);
 
 		// Set debug mode
 		if (vm.count("g")) {

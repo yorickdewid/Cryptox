@@ -24,7 +24,7 @@ void Env::DefaultSettings()
 	// TODO: read from config
 }
 
-Env Env::InitBasicEnvironment()
+Env Env::InitBasicEnvironment(Specification& spec)
 {
 	Env env;
 	env.GatherEnvVars();
