@@ -50,7 +50,10 @@ public:
 	}
 };
 
-// Interact with the console
+// Interact with the console. All output is written to the
+// standard out console. Input is requested from the console.
+// This stream structure is mainly used for debug and interactive
+// shell environments.
 class Console
 	: public InputStream
 	, public OutputStream
@@ -80,6 +83,29 @@ class MemoryBlock
 	: public InputStream
 	, public OutputStream
 {
+	std::vector<uint8_t> m_block;
+
+public:
+	MemoryBlock(size_t capacity = 2048)
+	{
+		m_block.reserve(capacity);
+	}
+
+	MemoryBlock(const MemoryBlock&) = delete;
+	MemoryBlock(MemoryBlock&& other)
+	{
+		m_block = std::move(other.m_block);
+		m_block.shrink_to_fit();
+	}
+
+	// Memory data size
+	inline size_t Size() const noexcept { return m_block.size(); }
+
+	// Write data stream to console output
+	virtual void Write(uint8_t *vector, size_t sz) override
+	{
+		m_block.insert(m_block.end(), vector, vector + sz);
+	}
 };
 
 } // namespace Stream
