@@ -57,8 +57,10 @@ class Module : public ModuleInterface
 
 public:
 	Module()
-		: m_sequencer{ std::make_shared<_SeqTy>() }
 	{
+		m_sequencer = std::make_shared<_SeqTy>([this](uint8_t *data, size_t sz) {
+			this->RelayOutput(data, sz);
+		});
 	}
 
 	template<typename _StreamTy>
@@ -99,7 +101,7 @@ public:
 
 	ModulePerm RequestPermissionInfo() override
 	{
-		//TOD: ask m_sequencer for permissions
+		//TODO: ask m_sequencer for permissions
 		return ModuleInterface::RequestPermissionInfo();
 	}
 

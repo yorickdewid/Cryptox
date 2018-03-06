@@ -9,6 +9,7 @@
 #pragma once
 
 #include <iostream>
+#include <iomanip>
 
 namespace CoilCl
 {
@@ -42,7 +43,7 @@ class OutputStream
 	}
 
 public:
-	void Write(uint8_t *vector, size_t sz)
+	virtual void Write(uint8_t *vector, size_t sz)
 	{
 		CRY_UNUSED(vector);
 		CRY_UNUSED(sz);
@@ -56,10 +57,12 @@ class Console
 {
 public:
 	// Write data stream to console output
-	virtual void Write(std::vector<uint8_t>& vector) override
+	virtual void Write(uint8_t *vector, size_t sz) override
 	{
-		for (auto& byte : vector) {
-			std::cout << std::hex << byte;
+		for (size_t i = 0; i < sz; i++)
+		{
+			const int ch = static_cast<int>(static_cast<unsigned char>(vector[i]));
+			std::cout << std::hex << std::setfill('0') << std::setw(2) << ch;
 		}
 		std::cout << std::flush;
 	}
