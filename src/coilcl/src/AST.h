@@ -215,6 +215,7 @@ public:
 	using iterator = Iterator;
 	using const_iterator = ConstIterator;
 
+	// Move tree into AST wrapper
 	AST(std::shared_ptr<ASTNode>&& tree)
 		: m_tree{ std::move(tree) }
 		, treeLink{ ++interfaceCounter }
@@ -232,13 +233,19 @@ public:
 	AST(const AST&) = delete;
 	AST(AST&&) = default;
 
-	// Iterators
+	// Iterator interfaces
 	iterator begin() { return Iterator{ m_tree }; }
 	iterator end() { return Iterator{}; }
 	const_iterator begin() const { return ConstIterator{ m_tree }; }
 	const_iterator end() const { return ConstIterator{}; }
 	const_iterator cbegin() const { return ConstIterator{ m_tree }; }
 	const_iterator cend() const { return ConstIterator{}; }
+
+	// Overload default swap via ADL
+	void swap(std::shared_ptr<ASTNode>& rhs) noexcept
+	{
+		std::swap(m_tree, rhs);
+	}
 
 	// Capacity
 	size_type size() { return std::distance(this->begin(), this->end()); }
@@ -247,6 +254,10 @@ public:
 	// Direct tree access
 	inline ASTNode *operator->() const { return m_tree.get(); }
 
+	//TODO: this is not wat we want since this allows undefined ownership
+	// Get top node
+	inline ASTNode *operator*() { return m_tree.get(); }
+
 	// Copy self with new reference to tree
 	AST tree_ref()
 	{
@@ -254,12 +265,12 @@ public:
 		return tmp;
 	}
 
-	// AST tree reference operations
+	// AST tree reference trackers
 	int TreeLinkId() const { return treeLink; }
 	int TreeLinkCount() const { return interfaceCounter; }
 
 private:
-	std::shared_ptr<ASTNode> m_tree;
+	std::shared_ptr<ASTNode> m_tree; //TODO: unique ptr?
 	const int treeLink;
 
 private:

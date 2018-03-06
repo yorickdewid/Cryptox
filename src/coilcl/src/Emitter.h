@@ -20,11 +20,17 @@ namespace CoilCl
 namespace Emit
 {
 
+//TODO
+struct ModuleException : public std::exception
+{
+};
+
 struct ModuleInterface
 {
 	enum ModulePerm
 	{
 		ReadOnly,    // Request data only (default)
+		AppendData,  // Append non-executable data to the tree
 		CopyOnWrite, // Copy-in new or altered node when touched
 		Substitute,	 // Substitue the entire tree
 	};
@@ -36,7 +42,7 @@ struct ModuleInterface
 	}
 
 	// Call the module
-	virtual void Invoke() = 0;
+	virtual void Invoke(ASTNode *node) = 0;
 };
 
 template<typename _SeqTy>
@@ -44,49 +50,62 @@ class Module : public ModuleInterface
 {
 	friend Module<Sequencer::Interface>;
 
+	using _MyTy = Module<_SeqTy>;
+
 	std::vector<std::shared_ptr<Stream::OutputStream>> m_streamOut;
-	_SeqTy m_sequencer;
+	std::shared_ptr<_SeqTy> m_sequencer;
 
 public:
+	Module()
+		: m_sequencer{ std::make_shared<_SeqTy>() }
+	{
+	}
+
 	template<typename _StreamTy>
 	void AddStream(std::shared_ptr<_StreamTy>& ptr)
 	{
 		m_streamOut.push_back(std::dynamic_pointer_cast<Stream::OutputStream>(ptr));
 	}
 
-	/*ModulePerm RequestPermissionInfo() override
+	// Write output to streams
+	void RelayOutput(uint8_t *data, size_t sz)
 	{
-	//TODO: call m_sequencer;
-	}*/
+		for (auto& outputStream : m_streamOut)
+		{
+			outputStream->Write(data, sz);
+		}
+	}
 
-	virtual void Invoke()
+	// Should only invoke from the sequencer interface
+	virtual void Invoke(ASTNode *node)
 	{
-		//TODO: call m_sequencer;
+		CRY_UNUSED(node);
 	}
 };
 
 template<>
 class Module<Sequencer::Interface> : public ModuleInterface
 {
-	Sequencer::Interface m_sequencer;
+	std::shared_ptr<Sequencer::Interface> m_sequencer;
 
 public:
 	Module() = default;
 
 	template<typename _SeqTy>
 	Module(Module<_SeqTy>&& sequencer)
+		: m_sequencer{ std::move(sequencer.m_sequencer) }
 	{
-		m_sequencer = sequencer.m_sequencer;
 	}
 
-	/*ModulePerm RequestPermissionInfo() override
+	ModulePerm RequestPermissionInfo() override
 	{
-	//TODO: call m_sequencer;
-	}*/
+		//TOD: ask m_sequencer for permissions
+		return ModuleInterface::RequestPermissionInfo();
+	}
 
-	virtual void Invoke()
+	virtual void Invoke(ASTNode *node)
 	{
-		//TODO: call m_sequencer;
+		m_sequencer->Execute(node);
 	}
 };
 
@@ -124,7 +143,7 @@ public:
 
 		const auto permInfo = modIface.RequestPermissionInfo();
 
-		m_mods.push_back({ permInfo, modIface });
+		m_mods.push_back({ permInfo, std::move(modIface) });
 		return (*this);
 	}
 
