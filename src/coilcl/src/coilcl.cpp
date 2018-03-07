@@ -186,14 +186,15 @@ public:
 			auto consoleStream = std::make_shared<Emit::Stream::Console>();
 			AIIPXMod.AddStream(consoleStream);
 
+			auto& aiipxResult = program->GetResultSection();
+			auto memoryStream = std::make_shared<Emit::Stream::MemoryBlock>(aiipxResult.Data());
+			AIIPXMod.AddStream(memoryStream);
+
 			// Program output building
 			Emit::Emitter{ profile, std::move(program->Ast()) }
 				.MoveStage()
 				.AddModule(AIIPXMod)
 				.Process();
-
-			// Print symbols
-			program->PrintSymbols();
 
 			// Print all compiler stage non fatal messages
 			PrintNoticeMessages();
@@ -275,5 +276,8 @@ COILCLAPI void Compile(compiler_info_t *cl_info) NOTHROW
 	Compiler::ProgramPtr program = Compiler::Dispatch(std::move(coilcl));
 	if (!program->Condition().IsRunnable()) {
 		std::cout << "Consensus: resulting program not runnable" << std::endl;
+	}
+	if (program->HasSymbols()) {
+		program->PrintSymbols();
 	}
 }

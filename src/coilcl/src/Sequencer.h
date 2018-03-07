@@ -34,7 +34,16 @@ public:
 
 class AIIPX : public Interface
 {
+	std::function<void(uint8_t *data, size_t sz)> m_outputCallback;
+
+	void CompressNode(ASTNode *node);
+
 public:
+	AIIPX(std::function<void(uint8_t *data, size_t sz)> outputCallback)
+		: m_outputCallback{ outputCallback }
+	{
+	}
+	
 	virtual void Execute(ASTNode *node);
 };
 
