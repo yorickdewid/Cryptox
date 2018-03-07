@@ -56,6 +56,26 @@ public:
 		}
 	};
 
+	class ResultSection
+	{
+		std::vector<uint8_t> m_content;
+
+	public:
+		ResultSection()
+		{
+		}
+
+		inline size_t Size() const noexcept
+		{
+			return m_content.size();
+		}
+
+		std::vector<uint8_t>& Data()
+		{
+			return m_content;
+		}
+	};
+
 public:
 	// Program constructors
 	Program() = default;
@@ -78,17 +98,24 @@ public:
 
 	// Symbol operations
 	void PrintSymbols();
+	inline bool HasSymbols() const { return !m_symbols.empty(); }
 	inline bool HasSymbol(const std::string& name) const { return m_symbols.find(name) != m_symbols.end(); }
 	auto& FillSymbols() { return m_symbols; } //TODO: friend?
+
+	auto& GetResultSection()
+	{
+		auto it = m_resultSet.emplace(m_resultSet.cend());
+		return (*it);
+	}
 
 	// Retieve program condition
 	inline const ConditionTracker& Condition() const { return m_treeCondition; }
 
 	template<typename... _ArgsTy>
-	static void Bind(std::unique_ptr<CoilCl::Program>&& program, _ArgsTy&&... args)
+	static void Bind(std::unique_ptr<Program>&& program, _ArgsTy&&... args)
 	{
 		auto ptr = program.release();
-		program = std::make_unique<CoilCl::Program>(std::move(*(ptr)), std::forward<_ArgsTy>(args)...);
+		program = std::make_unique<Program>(std::move(*(ptr)), std::forward<_ArgsTy>(args)...);
 		delete ptr;
 	}
 
@@ -99,6 +126,7 @@ private:
 private:
 	std::map<std::string, std::shared_ptr<ASTNode>> m_symbols;
 	std::unique_ptr<AST::AST> m_ast;
+	std::vector<ResultSection> m_resultSet;
 };
 
 } // namespace CoilCl

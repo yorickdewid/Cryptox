@@ -83,29 +83,55 @@ class MemoryBlock
 	: public InputStream
 	, public OutputStream
 {
-	std::vector<uint8_t> m_block;
+	void LocalFree()
+	{
+		if (m_doFree && m_block) {
+			delete m_block;
+			m_block = nullptr;
+		}
+	}
 
 public:
+	using MemoryPool = std::vector<uint8_t>;
 	MemoryBlock(size_t capacity = 2048)
+		: m_block{ new MemoryPool{} }
+		, m_doFree{ true }
 	{
-		m_block.reserve(capacity);
+		m_block->reserve(capacity);
+	}
+
+	// Write into the caller provided block
+	explicit MemoryBlock(MemoryPool& block)
+		: m_block{ &block }
+		, m_doFree{ false }
+	{
 	}
 
 	MemoryBlock(const MemoryBlock&) = delete;
 	MemoryBlock(MemoryBlock&& other)
 	{
+		LocalFree();
 		m_block = std::move(other.m_block);
-		m_block.shrink_to_fit();
+		m_block->shrink_to_fit();
+	}
+
+	~MemoryBlock()
+	{
+		LocalFree();
 	}
 
 	// Memory data size
-	inline size_t Size() const noexcept { return m_block.size(); }
+	inline size_t Size() const noexcept { return m_block->size(); }
 
 	// Write data stream to console output
 	virtual void Write(uint8_t *vector, size_t sz) override
 	{
-		m_block.insert(m_block.end(), vector, vector + sz);
+		m_block->insert(m_block->end(), vector, vector + sz);
 	}
+
+private:
+	bool m_doFree;
+	MemoryPool *m_block = nullptr;
 };
 
 } // namespace Stream
