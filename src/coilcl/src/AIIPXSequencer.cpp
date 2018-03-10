@@ -54,6 +54,10 @@ public:
 	{
 		ss << d;
 	}
+	virtual void operator<<(bool b)
+	{
+		ss << b;
+	}
 	virtual void operator<<(AST::NodeID n)
 	{
 		ss.write(reinterpret_cast<const char *>(&n), sizeof(AST::NodeID));
@@ -70,6 +74,10 @@ public:
 	virtual void operator>>(double& d)
 	{
 		ss >> d;
+	}
+	virtual void operator>>(bool& b)
+	{
+		ss >> b;
 	}
 	virtual void operator>>(AST::NodeID& n)
 	{

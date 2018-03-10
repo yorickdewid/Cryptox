@@ -127,12 +127,14 @@ struct Serializable
 		// Stream out operators
 		virtual void operator<<(int i) = 0;
 		virtual void operator<<(double d) = 0;
+		virtual void operator<<(bool b) = 0;
 		virtual void operator<<(AST::NodeID n) = 0;
 		virtual void operator<<(std::string s) = 0;
 
 		// Stream in operators
 		virtual void operator>>(int& i) = 0;
 		virtual void operator>>(double& d) = 0;
+		virtual void operator>>(bool& b) = 0;
 		virtual void operator>>(AST::NodeID& n) = 0;
 		virtual void operator>>(std::string& s) = 0;
 	};
@@ -955,6 +957,22 @@ public:
 	{
 	}
 
+	virtual void Serialize(Serializable::Interface& pack)
+	{
+		pack << nodeId;
+		ASTNode::Serialize(pack);
+	}
+
+	virtual void Deserialize(Serializable::Interface& pack)
+	{
+		AST::NodeID _nodeId;
+
+		pack >> _nodeId;
+		AssertNode(_nodeId, nodeId);
+
+		ASTNode::Deserialize(pack);
+	}
+
 	PRINT_NODE(VariadicDecl);
 
 private:
@@ -971,6 +989,22 @@ public:
 	TypedefDecl(const std::string& name, std::shared_ptr<Typedef::TypedefBase> type)
 		: Decl{ name, type }
 	{
+	}
+
+	virtual void Serialize(Serializable::Interface& pack)
+	{
+		pack << nodeId;
+		ASTNode::Serialize(pack);
+	}
+
+	virtual void Deserialize(Serializable::Interface& pack)
+	{
+		AST::NodeID _nodeId;
+
+		pack >> _nodeId;
+		AssertNode(_nodeId, nodeId);
+
+		ASTNode::Deserialize(pack);
 	}
 
 	virtual const std::string NodeName() const
@@ -1145,6 +1179,22 @@ public:
 		ASTNode::UpdateDelegate();
 	}
 
+	virtual void Serialize(Serializable::Interface& pack)
+	{
+		pack << nodeId;
+		ASTNode::Serialize(pack);
+	}
+
+	virtual void Deserialize(Serializable::Interface& pack)
+	{
+		AST::NodeID _nodeId;
+
+		pack >> _nodeId;
+		AssertNode(_nodeId, nodeId);
+
+		ASTNode::Deserialize(pack);
+	}
+
 	const std::string NodeName() const
 	{
 		std::string _node{ RemoveClassFromName(typeid(EnumConstantDecl).name()) };
@@ -1195,6 +1245,22 @@ public:
 		ASTNode::UpdateDelegate();
 	}
 
+	virtual void Serialize(Serializable::Interface& pack)
+	{
+		pack << nodeId;
+		ASTNode::Serialize(pack);
+	}
+
+	virtual void Deserialize(Serializable::Interface& pack)
+	{
+		AST::NodeID _nodeId;
+
+		pack >> _nodeId;
+		AssertNode(_nodeId, nodeId);
+
+		ASTNode::Deserialize(pack);
+	}
+
 	const std::string NodeName() const
 	{
 		std::string _node{ RemoveClassFromName(typeid(EnumDecl).name()) };
@@ -1221,7 +1287,10 @@ class FunctionDecl
 	std::vector<AST::TypeFacade> m_signature;
 
 	bool m_isPrototype = true;
+
+#if 0
 	size_t m_useCount = 0;
+#endif
 
 public:
 	explicit FunctionDecl(const std::string& name, std::shared_ptr<CompoundStmt>& node)
@@ -1280,6 +1349,24 @@ public:
 		assert(m_protoRef.expired());
 
 		m_protoRef = node;
+	}
+
+	virtual void Serialize(Serializable::Interface& pack)
+	{
+		pack << nodeId;
+		pack << m_isPrototype;
+		ASTNode::Serialize(pack);
+	}
+
+	virtual void Deserialize(Serializable::Interface& pack)
+	{
+		AST::NodeID _nodeId;
+
+		pack >> _nodeId;
+		AssertNode(_nodeId, nodeId);
+
+		pack >> m_isPrototype;
+		ASTNode::Deserialize(pack);
 	}
 
 	const std::string NodeName() const

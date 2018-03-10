@@ -164,7 +164,8 @@ CoilCl::Semer& CoilCl::Semer::StaticResolve()
 			// No expression, use typename
 			else {
 				// Replace static builtin operation with integer result
-				auto m_data = Util::MakeValueObject<int>(Typedef::BuiltinType::Specifier::INT, builtinExpr->TypeName().Size());
+				auto builtinSize = static_cast<int>(builtinExpr->TypeName().Size());
+				auto m_data = Util::MakeValueObject<int>(Typedef::BuiltinType::Specifier::INT, builtinSize);
 				auto literal = CoilCl::AST::MakeASTNode<IntegerLiteral>(std::move(m_data));
 
 				// Emplace current object on existing
