@@ -375,10 +375,10 @@ int Lexer::DefaultLexSet(char lexChar)
 		// No token sequence matched so we either deal with scalars, ids or 
 		// control carachters. If the first character is a digit, try to
 		// parse the entire token as number.
-		if (std::isdigit(context.m_currentChar)) {
+		if (std::isdigit(static_cast<int>(context.m_currentChar))) {
 			return AssembleToken(LexScalar());
 		}
-		else if (std::isalpha(context.m_currentChar) || context.m_currentChar == '_') {
+		else if (std::isalpha(static_cast<int>(context.m_currentChar)) || context.m_currentChar == '_') {
 			return AssembleToken(ReadID());
 		}
 		else {
@@ -479,7 +479,7 @@ int Lexer::ReadID()
 	do {
 		_longstr.push_back(context.m_currentChar);
 		Next();
-	} while (std::isalnum(context.m_currentChar) || context.m_currentChar == '_');
+	} while (std::isalnum(static_cast<int>(context.m_currentChar)) || context.m_currentChar == '_');
 
 	// Match string as keyword
 	auto result = m_keywords.find(_longstr);
@@ -515,21 +515,22 @@ int Lexer::LexScalar()
 	Next();
 
 	// Check if we dealing with an octal or hex. If not then we know it is some integer
-	if (firstchar == '0' && (std::toupper(context.m_currentChar) == 'X' || isdigit(context.m_currentChar))) {
+	if (firstchar == '0' && (std::toupper(static_cast<int>(context.m_currentChar)) == 'X'
+		|| isdigit(static_cast<int>(context.m_currentChar)))) {
 		if (isodigit(context.m_currentChar)) {
 			ScalarType = OCTAL;
 			while (isodigit(context.m_currentChar)) {
 				_longstr.push_back(context.m_currentChar);
 				Next();
 			}
-			if (std::isdigit(context.m_currentChar)) {
+			if (std::isdigit(static_cast<int>(context.m_currentChar))) {
 				Error("invalid octal number");
 			}
 		}
 		else {
 			Next();
 			ScalarType = HEX;
-			while (isxdigit(context.m_currentChar)) {
+			while (isxdigit(static_cast<int>(context.m_currentChar))) {
 				_longstr.push_back(context.m_currentChar);
 				Next();
 			}
@@ -542,7 +543,8 @@ int Lexer::LexScalar()
 		// At this point we know the temporary buffer contains an integer.
 		ScalarType = INT;
 		_longstr.push_back(static_cast<char>(const_cast<int&>(firstchar)));
-		while (context.m_currentChar == '.' || std::isdigit(context.m_currentChar) || isexponent(context.m_currentChar)) {
+		while (context.m_currentChar == '.' || std::isdigit(static_cast<int>(context.m_currentChar))
+			|| isexponent(static_cast<int>(context.m_currentChar))) {
 			if (context.m_currentChar == '.' || isexponent(context.m_currentChar)) {
 				ScalarType = DOUBLE;
 			}
@@ -558,7 +560,7 @@ int Lexer::LexScalar()
 					_longstr.push_back(context.m_currentChar);
 					Next();
 				}
-				if (!std::isdigit(context.m_currentChar)) {
+				if (!std::isdigit(static_cast<int>(context.m_currentChar))) {
 					Error("exponent expected");
 				}
 			}
