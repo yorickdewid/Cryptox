@@ -27,7 +27,7 @@ class InputStream
 	}
 
 public:
-	void Read(uint8_t *vector, size_t sz)
+	virtual void Read(uint8_t *vector, size_t sz)
 	{
 		CRY_UNUSED(vector);
 		CRY_UNUSED(sz);
@@ -83,6 +83,8 @@ class MemoryBlock
 	: public InputStream
 	, public OutputStream
 {
+#define DEFAULT_MEMORY_BLOCK (2 << 9)
+
 	void LocalFree()
 	{
 		if (m_doFree && m_block) {
@@ -91,13 +93,30 @@ class MemoryBlock
 		}
 	}
 
+	// Reserve enough memory
+	void ReserveMemory()
+	{
+		if (m_block->capacity() < DEFAULT_MEMORY_BLOCK / 2) {
+			m_block->reserve(DEFAULT_MEMORY_BLOCK);
+		}
+	}
+
+	void ResizeMemory()
+	{
+		m_block->reserve(m_block->capacity() + DEFAULT_MEMORY_BLOCK);
+	}
+
 public:
 	using MemoryPool = std::vector<uint8_t>;
-	MemoryBlock(size_t capacity = 2048)
+	MemoryBlock(size_t capacity = 0)
 		: m_block{ new MemoryPool{} }
 		, m_doFree{ true }
 	{
-		m_block->reserve(capacity);
+		if (capacity > 0) {
+			m_block->reserve(capacity);
+		}
+		
+		ReserveMemory();
 	}
 
 	// Write into the caller provided block
@@ -105,6 +124,7 @@ public:
 		: m_block{ &block }
 		, m_doFree{ false }
 	{
+		ReserveMemory();
 	}
 
 	MemoryBlock(const MemoryBlock&) = delete;
@@ -112,7 +132,7 @@ public:
 	{
 		LocalFree();
 		m_block = std::move(other.m_block);
-		m_block->shrink_to_fit();
+		ReserveMemory();
 	}
 
 	~MemoryBlock()
@@ -123,10 +143,22 @@ public:
 	// Memory data size
 	inline size_t Size() const noexcept { return m_block->size(); }
 
+	inline void Shrink() { m_block->shrink_to_fit(); }
+
 	// Write data stream to console output
 	virtual void Write(uint8_t *vector, size_t sz) override
 	{
 		m_block->insert(m_block->end(), vector, vector + sz);
+		if (m_block->size() >= (m_block->capacity() * 0.1)) {
+			ResizeMemory();
+		}
+	}
+
+	virtual void Read(uint8_t *vector, size_t sz) override
+	{
+		//FUTURE
+		CRY_UNUSED(vector);
+		CRY_UNUSED(sz);
 	}
 
 private:

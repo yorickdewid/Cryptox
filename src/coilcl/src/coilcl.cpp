@@ -183,9 +183,11 @@ public:
 
 			Emit::Module<Emit::Sequencer::AIIPX> AIIPXMod;
 
+			// Add console output stream to module
 			auto consoleStream = std::make_shared<Emit::Stream::Console>();
 			AIIPXMod.AddStream(consoleStream);
 
+			// Add program memory block to module
 			auto& aiipxResult = program->GetResultSection();
 			auto memoryStream = std::make_shared<Emit::Stream::MemoryBlock>(aiipxResult.Data());
 			AIIPXMod.AddStream(memoryStream);
@@ -272,7 +274,7 @@ COILCLAPI void Compile(compiler_info_t *cl_info) NOTHROW
 	// Store pointer to original object
 	coilcl->CaptureBackRefPtr(cl_info);
 
-	// Start compiler
+	// Start compiler and return the program as result
 	Compiler::ProgramPtr program = Compiler::Dispatch(std::move(coilcl));
 	if (!program->Condition().IsRunnable()) {
 		std::cout << "Consensus: resulting program not runnable" << std::endl;

@@ -75,8 +75,6 @@ public:
 		ss >> s;
 	}
 
-	//MarshalUserData(node);
-
 	void WriteOutput(std::function<void(uint8_t *data, size_t sz)>& outputCallback)
 	{
 		outputCallback((uint8_t*)ss.str().c_str(), ss.str().size());
