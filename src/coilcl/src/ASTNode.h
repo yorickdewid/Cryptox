@@ -15,6 +15,7 @@
 #include "TypeFacade.h"
 #include "Converter.h"
 #include "RefCount.h"
+#include "NodeId.h"
 #include "ASTState.h"
 
 #include <boost/any.hpp>
@@ -38,6 +39,9 @@
 
 #define BUMP_STATE() \
 	m_state.Bump((*this));
+
+#define NODE_ID(i) \
+	static const AST::NodeID nodeId = i;
 
 using namespace CoilCl;
 
@@ -113,6 +117,22 @@ public:
 	virtual AST::TypeFacade ReturnType() const { return m_returnType; }
 };
 
+struct Serializable
+{
+	struct Interface
+	{
+		virtual void operator<<(int i) = 0;
+		virtual void operator<<(double d) = 0;
+		virtual void operator<<(AST::NodeID n) = 0;
+		virtual void operator<<(std::string s) = 0;
+
+		virtual void operator>>(AST::NodeID& n) = 0;
+	};
+
+	virtual void Serialize(Interface&) = 0;
+	virtual void Deserialize(Interface&) = 0;
+};
+
 struct ModifierInterface
 {
 	virtual void Emplace(size_t, const std::shared_ptr<ASTNode>&&) = 0;
@@ -127,7 +147,10 @@ class ParamStmt;
 class ASTNode
 	: public ModifierInterface
 	, public UniqueObj
+	, virtual public Serializable
 {
+	NODE_ID(AST::NodeID::AST_NODE_ID);
+
 protected:
 	using _MyTy = ASTNode;
 
@@ -165,6 +188,11 @@ public:
 	{
 		line = loc.first;
 		col = loc.second;
+	}
+
+	std::pair<int, int> Location() const
+	{
+		return { line, col };
 	}
 
 	// Abstract function interfaces
@@ -209,6 +237,12 @@ public:
 		return children;
 	}
 
+	template<typename _Ty, typename = std::enable_if<std::is_pointer<_Ty>::value>::type>
+	void AddUserData(_Ty data)
+	{
+		m_userData.push_back(reinterpret_cast<uintptr_t*>(data));
+	}
+
 	template<typename _Pred>
 	auto UserData(_Pred predicate)
 	{
@@ -223,6 +257,19 @@ public:
 				ptr->SetParent(std::move(this->PolySelf()));
 			}
 		}
+	}
+
+	virtual void Serialize(Serializable::Interface& pack)
+	{
+		pack << nodeId;
+		pack << Id();
+		pack << line;
+		pack << col;
+		//pack << m_userData;
+	}
+
+	virtual void Deserialize(Serializable::Interface& pack)
+	{
 	}
 
 protected:
@@ -242,17 +289,11 @@ protected:
 		m_parent = node;
 	}
 
-	template<typename _Ty>
-	void SetUserData(_Ty&& data)
-	{
-		m_userData.emplace(std::move(data));
-	}
-
 protected:
 	CoilCl::AST::ASTState<_MyTy> m_state;
 	std::vector<std::weak_ptr<_MyTy>> children;
 	std::weak_ptr<_MyTy> m_parent;
-	std::vector<boost::any> m_userData;
+	std::vector<uintptr_t*> m_userData;
 };
 
 //
@@ -263,6 +304,8 @@ class Operator
 	: public Returnable
 	, public ASTNode
 {
+	NODE_ID(AST::NodeID::OPERATOR_ID);
+
 public:
 	virtual ~Operator() = 0;
 };
@@ -271,6 +314,7 @@ class BinaryOperator
 	: public Operator
 	, public SelfReference<BinaryOperator>
 {
+	NODE_ID(AST::NodeID::BINARY_OPERATOR_ID);
 	std::shared_ptr<ASTNode> m_lhs;
 	std::shared_ptr<ASTNode> m_rhs;
 
@@ -403,6 +447,7 @@ class ConditionalOperator
 	: public Operator
 	, public SelfReference<ConditionalOperator>
 {
+	NODE_ID(AST::NodeID::CONDITIONAL_OPERATOR_ID);
 	std::shared_ptr<ASTNode> evalNode;
 	std::shared_ptr<ASTNode> truthStmt;
 	std::shared_ptr<ASTNode> altStmt;
@@ -462,6 +507,7 @@ class UnaryOperator
 	: public Operator
 	, public SelfReference<UnaryOperator>
 {
+	NODE_ID(AST::NodeID::UNARY_OPERATOR_ID);
 	std::shared_ptr<ASTNode> m_body;
 
 public:
@@ -552,6 +598,7 @@ class CompoundAssignOperator
 	: public Operator
 	, public SelfReference<CompoundAssignOperator>
 {
+	NODE_ID(AST::NodeID::COMPOUND_ASSIGN_OPERATOR_ID);
 	std::shared_ptr<ASTNode> m_body;
 	std::shared_ptr<DeclRefExpr> m_identifier;
 
@@ -631,6 +678,8 @@ class Literal
 	: public Returnable
 	, public ASTNode
 {
+	NODE_ID(AST::NodeID::LITERAL_ID);
+
 public:
 	virtual ~Literal() = 0;
 
@@ -683,6 +732,8 @@ private:
 
 class CharacterLiteral : public LiteralImpl<char, CharacterLiteral>
 {
+	NODE_ID(AST::NodeID::CHARACTER_LITERAL_ID);
+
 public:
 	template<typename _Ty>
 	CharacterLiteral(_Ty&& value)
@@ -693,6 +744,8 @@ public:
 
 class StringLiteral : public LiteralImpl<std::string, StringLiteral>
 {
+	NODE_ID(AST::NodeID::STRING_LITERAL_ID);
+
 public:
 	template<typename _Ty>
 	StringLiteral(_Ty&& value)
@@ -703,6 +756,8 @@ public:
 
 class IntegerLiteral : public LiteralImpl<int, IntegerLiteral>
 {
+	NODE_ID(AST::NodeID::INTEGER_LITERAL_ID);
+
 public:
 	template<typename _Ty>
 	IntegerLiteral(_Ty&& value)
@@ -713,6 +768,8 @@ public:
 
 class FloatingLiteral : public LiteralImpl<double, FloatingLiteral>
 {
+	NODE_ID(AST::NodeID::FLOAT_LITERAL_ID);
+
 public:
 	template<typename _Ty>
 	FloatingLiteral(_Ty&& value)
@@ -730,6 +787,8 @@ class Decl
 	, public ASTNode
 	, public CoilCl::AST::RefCount
 {
+	NODE_ID(AST::NodeID::DECL_ID);
+
 protected:
 	std::string m_identifier;
 
@@ -749,6 +808,19 @@ public:
 	{
 	}
 
+	virtual void Serialize(Serializable::Interface& pack)
+	{
+		pack << nodeId;
+		pack << m_identifier;
+		ASTNode::Serialize(pack);
+	}
+
+	virtual void Deserialize(Serializable::Interface& pack)
+	{
+		//
+		ASTNode::Deserialize(pack);
+	}
+
 	auto Identifier() const { return m_identifier; }
 };
 
@@ -756,6 +828,7 @@ class VarDecl
 	: public Decl
 	, public SelfReference<VarDecl>
 {
+	NODE_ID(AST::NodeID::VAR_DECL_ID);
 	std::shared_ptr<ASTNode> m_body;
 
 public:
@@ -802,6 +875,8 @@ class ParamDecl
 	: public Decl
 	, public SelfReference<ParamDecl>
 {
+	NODE_ID(AST::NodeID::PARAM_DECL_ID);
+
 public:
 	ParamDecl(const std::string& name, std::shared_ptr<Typedef::TypedefBase> type)
 		: Decl{ name, type }
@@ -840,6 +915,8 @@ class VariadicDecl
 	: public Decl
 	, public SelfReference<VariadicDecl>
 {
+	NODE_ID(AST::NodeID::VARIADIC_DECL_ID);
+
 public:
 	VariadicDecl()
 		: Decl{ "", std::dynamic_pointer_cast<Typedef::TypedefBase>(Util::MakeVariadicType()) }
@@ -856,6 +933,8 @@ class TypedefDecl
 	: public Decl
 	, public SelfReference<TypedefDecl>
 {
+	NODE_ID(AST::NodeID::TYPEDEF_DECL_ID);
+
 public:
 	TypedefDecl(const std::string& name, std::shared_ptr<Typedef::TypedefBase> type)
 		: Decl{ name, type }
@@ -882,6 +961,7 @@ class FieldDecl
 	: public Decl
 	, public SelfReference<FieldDecl>
 {
+	NODE_ID(AST::NodeID::FIELD_DECL_ID);
 	std::shared_ptr<IntegerLiteral> m_bits;
 
 public:
@@ -918,6 +998,7 @@ class RecordDecl
 	: public Decl
 	, public SelfReference<RecordDecl>
 {
+	NODE_ID(AST::NodeID::RECORD_DECL_ID);
 	std::vector<std::shared_ptr<FieldDecl>> m_fields;
 
 public:
@@ -977,6 +1058,7 @@ class EnumConstantDecl
 	: public Decl
 	, public SelfReference<EnumConstantDecl>
 {
+	NODE_ID(AST::NodeID::ENUM_CONSTANT_DECL_ID);
 	std::shared_ptr<ASTNode> m_body;
 
 public:
@@ -1016,6 +1098,7 @@ class EnumDecl
 	: public Decl
 	, public SelfReference<EnumDecl>
 {
+	NODE_ID(AST::NodeID::ENUM_DECL_ID);
 	std::vector<std::shared_ptr<EnumConstantDecl>> m_constants;
 
 public:
@@ -1061,6 +1144,7 @@ class FunctionDecl
 	: public Decl
 	, public SelfReference<FunctionDecl>
 {
+	NODE_ID(AST::NodeID::FUNCTION_DECL_ID);
 	std::shared_ptr<ParamStmt> m_params;
 	std::shared_ptr<CompoundStmt> m_body;
 	std::weak_ptr<FunctionDecl> m_protoRef;
@@ -1176,6 +1260,7 @@ class TranslationUnitDecl
 	: public Decl
 	, public SelfReference<TranslationUnitDecl>
 {
+	NODE_ID(AST::NodeID::TRANSLATION_UNIT_DECL_ID);
 	std::list<std::shared_ptr<ASTNode>> m_children;
 
 private:
@@ -1201,6 +1286,19 @@ public:
 		return ptr;
 	}
 
+	virtual void Serialize(Serializable::Interface& pack)
+	{
+		pack << nodeId;
+		Decl::Serialize(pack);
+	}
+
+	virtual void Deserialize(Serializable::Interface& pack)
+	{
+		AST::NodeID _nodeId;
+		pack >> _nodeId;
+		Decl::Deserialize(pack);
+	}
+
 	PRINT_NODE(TranslationUnitDecl);
 
 private:
@@ -1215,6 +1313,8 @@ class Expr
 	: public Returnable
 	, public ASTNode
 {
+	NODE_ID(AST::NodeID::EXPR_ID);
+
 public:
 	virtual ~Expr() = 0;
 };
@@ -1223,6 +1323,7 @@ class ResolveRefExpr
 	: public Expr
 	, public SelfReference<ResolveRefExpr>
 {
+	NODE_ID(AST::NodeID::RESOLVE_REF_EXPR_ID);
 	std::string m_identifier;
 
 public:
@@ -1252,6 +1353,7 @@ private:
 class DeclRefExpr
 	: public ResolveRefExpr
 {
+	NODE_ID(AST::NodeID::DECL_REF_EXPR_ID);
 	std::weak_ptr<Decl> m_ref;
 
 public:
@@ -1319,6 +1421,7 @@ class CallExpr
 	: public Expr
 	, public SelfReference<CallExpr>
 {
+	NODE_ID(AST::NodeID::CALL_EXPR_ID);
 	std::shared_ptr<DeclRefExpr> m_funcRef;
 	std::shared_ptr<ArgumentStmt> m_args;
 
@@ -1364,6 +1467,7 @@ private:
 class BuiltinExpr final
 	: public CallExpr
 {
+	NODE_ID(AST::NodeID::BUILTIN_EXPR_ID);
 	std::shared_ptr<ASTNode> m_expr;
 	AST::TypeFacade m_typenameType;
 
@@ -1410,6 +1514,7 @@ class CastExpr
 	: public Expr
 	, public SelfReference<CastExpr>
 {
+	NODE_ID(AST::NodeID::CAST_EXPR_ID);
 	std::shared_ptr<ASTNode> rtype;
 
 public:
@@ -1438,6 +1543,7 @@ class ImplicitConvertionExpr
 	: public Expr
 	, public SelfReference<ImplicitConvertionExpr>
 {
+	NODE_ID(AST::NodeID::IMPLICIT_CONVERTION_EXPR_ID);
 	std::shared_ptr<ASTNode> m_body;
 	Conv::Cast::Tag m_convOp;
 
@@ -1473,6 +1579,7 @@ class ParenExpr
 	: public Expr
 	, public SelfReference<ParenExpr>
 {
+	NODE_ID(AST::NodeID::PAREN_EXPR_ID);
 	std::shared_ptr<ASTNode> m_body;
 
 public:
@@ -1492,6 +1599,7 @@ class InitListExpr
 	: public Expr
 	, public SelfReference<InitListExpr>
 {
+	NODE_ID(AST::NodeID::INIT_LIST_EXPR_ID);
 	std::vector<std::shared_ptr<ASTNode>> m_children;
 
 public:
@@ -1513,6 +1621,7 @@ class CompoundLiteralExpr
 	: public Expr
 	, public SelfReference<CompoundLiteralExpr>
 {
+	NODE_ID(AST::NodeID::COMPOUND_LITERAL_EXPR_ID);
 	std::shared_ptr<InitListExpr> m_body;
 
 public:
@@ -1532,6 +1641,7 @@ class ArraySubscriptExpr
 	: public Expr
 	, public SelfReference<ArraySubscriptExpr>
 {
+	NODE_ID(AST::NodeID::ARRAY_SUBSCRIPT_EXPR_ID);
 	std::shared_ptr<DeclRefExpr> m_identifier;
 	std::shared_ptr<ASTNode> m_offset;
 
@@ -1554,6 +1664,7 @@ class MemberExpr
 	: public Expr
 	, public SelfReference<MemberExpr>
 {
+	NODE_ID(AST::NodeID::MEMBER_EXPR_ID);
 	std::string m_name;
 	std::shared_ptr<DeclRefExpr> m_record;
 
@@ -1594,6 +1705,8 @@ private:
 
 class Stmt : public ASTNode
 {
+	NODE_ID(AST::NodeID::STMT_ID);
+
 public:
 	virtual ~Stmt() = 0;
 };
@@ -1602,6 +1715,8 @@ class ContinueStmt
 	: public Stmt
 	, public SelfReference<ContinueStmt>
 {
+	NODE_ID(AST::NodeID::CONTINUE_STMT_ID);
+
 public:
 	PRINT_NODE(ContinueStmt);
 
@@ -1613,6 +1728,7 @@ class ReturnStmt
 	: public Stmt
 	, public SelfReference<ReturnStmt>
 {
+	NODE_ID(AST::NodeID::RETURN_STMT_ID);
 	std::shared_ptr<ASTNode> m_returnExpr;
 
 public:
@@ -1648,6 +1764,7 @@ class IfStmt
 	: public Stmt
 	, public SelfReference<IfStmt>
 {
+	NODE_ID(AST::NodeID::IF_STMT_ID);
 	std::shared_ptr<ASTNode> m_evalNode;
 	std::shared_ptr<ASTNode> m_truthStmt;
 	std::shared_ptr<ASTNode> m_altStmt;
@@ -1710,6 +1827,7 @@ class SwitchStmt
 	: public Stmt
 	, public SelfReference<SwitchStmt>
 {
+	NODE_ID(AST::NodeID::SWITCH_STMT_ID);
 	std::shared_ptr<ASTNode> evalNode;
 	std::shared_ptr<ASTNode> m_body;
 
@@ -1743,6 +1861,7 @@ class WhileStmt
 	: public Stmt
 	, public SelfReference<WhileStmt>
 {
+	NODE_ID(AST::NodeID::WHILE_STMT_ID);
 	std::shared_ptr<ASTNode> evalNode;
 	std::shared_ptr<ASTNode> m_body;
 
@@ -1776,6 +1895,7 @@ class DoStmt
 	: public Stmt
 	, public SelfReference<DoStmt>
 {
+	NODE_ID(AST::NodeID::DO_STMT_ID);
 	std::shared_ptr<ASTNode> evalNode;
 	std::shared_ptr<ASTNode> m_body;
 
@@ -1809,6 +1929,7 @@ class ForStmt
 	: public Stmt
 	, public SelfReference<ForStmt>
 {
+	NODE_ID(AST::NodeID::FOR_STMT_ID);
 	std::shared_ptr<ASTNode> m_node1;
 	std::shared_ptr<ASTNode> m_node2;
 	std::shared_ptr<ASTNode> m_node3;
@@ -1843,6 +1964,8 @@ class BreakStmt
 	: public Stmt
 	, public SelfReference<BreakStmt>
 {
+	NODE_ID(AST::NodeID::BREAK_STMT_ID);
+
 public:
 	BreakStmt()
 	{
@@ -1858,6 +1981,7 @@ class DefaultStmt
 	: public Stmt
 	, public SelfReference<DefaultStmt>
 {
+	NODE_ID(AST::NodeID::DEFAULT_STMT_ID);
 	std::shared_ptr<ASTNode> m_body;
 
 public:
@@ -1877,6 +2001,7 @@ class CaseStmt
 	: public Stmt
 	, public SelfReference<CaseStmt>
 {
+	NODE_ID(AST::NodeID::CASE_STMT_ID);
 	std::shared_ptr<ASTNode> m_name;
 	std::shared_ptr<ASTNode> m_body;
 
@@ -1899,6 +2024,7 @@ class DeclStmt
 	: public Stmt
 	, public SelfReference<DeclStmt>
 {
+	NODE_ID(AST::NodeID::DECL_STMT_ID);
 	std::list<std::shared_ptr<VarDecl>> m_var;
 
 public:
@@ -1920,6 +2046,7 @@ class ArgumentStmt
 	: public Stmt
 	, public SelfReference<ArgumentStmt>
 {
+	NODE_ID(AST::NodeID::ARGUMENT_STMT_ID);
 	std::vector<std::shared_ptr<ASTNode>> m_arg;
 
 public:
@@ -1952,6 +2079,7 @@ class ParamStmt
 	: public Stmt
 	, public SelfReference<ParamStmt>
 {
+	NODE_ID(AST::NodeID::PARAM_STMT_ID);
 	std::vector<std::shared_ptr<ASTNode>> m_param;
 
 public:
@@ -1973,6 +2101,7 @@ class LabelStmt
 	: public Stmt
 	, public SelfReference<LabelStmt>
 {
+	NODE_ID(AST::NodeID::LABEL_STMT_ID);
 	std::string m_name;
 	std::shared_ptr<ASTNode> m_body;
 
@@ -1994,6 +2123,7 @@ class GotoStmt
 	: public Stmt
 	, public SelfReference<GotoStmt>
 {
+	NODE_ID(AST::NodeID::GOTO_STMT_ID);
 	std::string m_labelName;
 
 public:
@@ -2015,6 +2145,7 @@ class CompoundStmt
 	: public Stmt
 	, public SelfReference<CompoundStmt>
 {
+	NODE_ID(AST::NodeID::COMPOUND_STMT_ID);
 	std::list<std::shared_ptr<ASTNode>> m_children;
 
 public:
