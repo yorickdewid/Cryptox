@@ -17,6 +17,7 @@
 #include "RefCount.h"
 #include "NodeId.h"
 #include "ASTState.h"
+#include "UserData.h"
 
 #include <boost/any.hpp>
 
@@ -187,7 +188,7 @@ public:
 		CRY_UNUSED(idx);
 		CRY_UNUSED(node);
 
-		throw UnsupportedOperationException{ "Emplace" };
+		assert(0);
 	}
 
 	void SetLocation(int _line, int _col) const
@@ -252,14 +253,14 @@ public:
 	template<typename _Ty, typename = std::enable_if<std::is_pointer<_Ty>::value>::type>
 	void AddUserData(_Ty data)
 	{
-		m_userData.push_back(reinterpret_cast<uintptr_t*>(data));
+		m_userData.emplace_back(data);
 	}
 
-	template<typename _Pred>
+	/*template<typename _Pred>
 	auto UserData(_Pred predicate)
 	{
 		return std::find_if(m_userData.begin(), m_userData.end(), predicate);
-	}
+	}*/
 
 	//TODO: friend
 	void UpdateDelegate()
@@ -277,7 +278,10 @@ public:
 		pack << Id();
 		pack << line;
 		pack << col;
-		//pack << m_userData;
+		
+		/*for (const auto& data : m_userData) {
+			pack << data->Serialize();
+		}*/
 	}
 
 	virtual void Deserialize(Serializable::Interface& pack)
@@ -290,6 +294,8 @@ public:
 		pack >> Id();
 		pack >> line;
 		pack >> col;
+
+		//TODO: deserialize user data
 	}
 
 protected:
@@ -313,7 +319,7 @@ protected:
 	CoilCl::AST::ASTState<_MyTy> m_state;
 	std::vector<std::weak_ptr<_MyTy>> children;
 	std::weak_ptr<_MyTy> m_parent;
-	std::vector<uintptr_t*> m_userData;
+	std::vector<UserDataWrapper> m_userData;
 };
 
 //

@@ -15,6 +15,32 @@ namespace Cry
 namespace Algorithm
 {
 
+template<class _Ty>
+struct AllTrue
+{
+	using argument_type = _Ty;
+	using result_type = bool;
+
+	constexpr bool operator()(const _Ty& _Left) const
+	{
+		CRY_UNUSED(_Left);
+		return true;
+	}
+};
+
+template<class _Ty>
+struct AllFalse
+{
+	using argument_type = _Ty;
+	using result_type = bool;
+
+	constexpr bool operator()(const _Ty& _Left) const
+	{
+		CRY_UNUSED(_Left);
+		return false;
+	}
+};
+
 // The match if algorithm will call the predicate for each element in the container
 // and when evaluated to true the callback routine is called. This combines a
 // predicate check and callback in one which is also possible with individual

@@ -12,20 +12,11 @@
 
 using namespace CoilCl::Emit::Sequencer;
 
-//constexpr static const uint8_t initMarker[] = { };
+//TODO: const
+// AIIPX marker to recognize this particular sequencer
 static uint8_t initMarker[] = { 0x9, 0x3, 0xef, 0x17 };
 
 using OutputCallback = std::function<void(uint8_t *data, size_t sz)>;
-
-#if 0
-struct UserDataInterface
-{
-	unsigned int objectId;
-
-	virtual void Serialize() = 0;
-	virtual void Deserialize() = 0;
-};
-#endif
 
 class Visitor : public Serializable::Interface
 {
@@ -99,57 +90,14 @@ public:
 	}
 };
 
-template<class _Ty>
-struct all_true
-{
-	using argument_type = _Ty;
-	using result_type = bool;
-
-	constexpr bool operator()(const _Ty& _Left) const
-	{
-		CRY_UNUSED(_Left);
-		return true;
-	}
-};
-
-template<class _Ty>
-struct all_false
-{
-	using argument_type = _Ty;
-	using result_type = bool;
-
-	constexpr bool operator()(const _Ty& _Left) const
-	{
-		CRY_UNUSED(_Left);
-		return false;
-	}
-};
-
-// Use the most complex structure to iterate over a vector
-void MarshalUserData(ASTNode *node)
-{
-	all_true<uintptr_t*> trueComp;
-	all_false<uintptr_t*> falseComp;
-
-	auto itStart = node->UserData(trueComp);
-	auto itEnd = node->UserData(falseComp);
-	for (; itStart != itEnd; ++itStart)
-	{
-		//TODO: marshall
-		std::cout << *(*itStart) << std::endl;
-	}
-}
-
 void CompressNode(ASTNode *node, Visitor visitor, OutputCallback callback)
 {
 	//std::cout << "visitor.Level " << visitor.Level() << std::endl;
 
 	node->Serialize(visitor);
-	node->Deserialize(visitor);
 
 	// Let the visitor determine how to write the output to the stream
 	visitor.WriteOutput(callback);
-
 	for (const auto& weakChild : node->Children()) {
 		if (auto delegateChildren = weakChild.lock()) {
 			CompressNode(delegateChildren.get(), visitor, callback);

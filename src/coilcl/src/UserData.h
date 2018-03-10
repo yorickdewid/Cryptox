@@ -43,10 +43,10 @@ public:
 	{
 	}
 
-	UserDataWrapper(const UserDataWrapper&) = delete;
+	UserDataWrapper(const UserDataWrapper&) = default; //TODO
 	UserDataWrapper(UserDataWrapper&&) = default;
 
-	UserDataWrapper& operator=(const UserDataWrapper&) = delete;
+	UserDataWrapper& operator=(const UserDataWrapper&) = default; //TODO
 	UserDataWrapper& operator=(UserDataWrapper&&) = default;
 
 	// Serialize passthrough
@@ -56,6 +56,7 @@ public:
 
 	// Access internal pointer
 	inline UserDataInterface *operator*() const noexcept { return m_ptr; }
+	inline UserDataInterface *operator->() const noexcept { return m_ptr; }
 	inline UserDataInterface *get() const noexcept { return m_ptr; }
 
 	// Release pointer to caller

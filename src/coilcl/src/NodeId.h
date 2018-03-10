@@ -19,6 +19,7 @@ enum struct NodeID : uint32_t
 {
 	AST_NODE_ID = 10,
 	
+	// Operator IDs
 	OPERATOR_ID,
 	BINARY_OPERATOR_ID,
 	CONDITIONAL_OPERATOR_ID,
