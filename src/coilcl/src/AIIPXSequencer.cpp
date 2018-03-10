@@ -41,6 +41,11 @@ public:
 
 	int Level() { return level; }
 
+	void SetId(int id)
+	{
+		parentId = id;
+	}
+
 	virtual void operator<<(int i)
 	{
 		ss.write(reinterpret_cast<const char *>(&i), sizeof(uint32_t));

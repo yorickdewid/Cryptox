@@ -122,6 +122,8 @@ struct Serializable
 {
 	struct Interface
 	{
+		virtual void SetId(int id) = 0;
+
 		// Stream out operators
 		virtual void operator<<(int i) = 0;
 		virtual void operator<<(double d) = 0;
@@ -274,11 +276,11 @@ public:
 
 	virtual void Serialize(Serializable::Interface& pack)
 	{
+		pack.SetId(UniqueObj::Id());
 		pack << nodeId;
-		pack << Id();
 		pack << line;
 		pack << col;
-		
+
 		/*for (const auto& data : m_userData) {
 			pack << data->Serialize();
 		}*/
@@ -291,7 +293,6 @@ public:
 		pack >> _nodeId;
 		AssertNode(_nodeId, nodeId);
 
-		pack >> Id();
 		pack >> line;
 		pack >> col;
 
@@ -847,7 +848,7 @@ public:
 
 		pack >> _nodeId;
 		AssertNode(_nodeId, nodeId);
-		
+
 		pack >> m_identifier;
 		ASTNode::Deserialize(pack);
 	}
@@ -1009,6 +1010,21 @@ public:
 		ASTNode::UpdateDelegate();
 	}
 
+	virtual void Serialize(Serializable::Interface& pack)
+	{
+		pack << nodeId;
+		ASTNode::Serialize(pack);
+	}
+
+	virtual void Deserialize(Serializable::Interface& pack)
+	{
+		AST::NodeID _nodeId;
+		pack >> _nodeId;
+		AssertNode(_nodeId, nodeId);
+
+		Decl::Deserialize(pack);
+	}
+
 	virtual const std::string NodeName() const
 	{
 		std::string _node{ RemoveClassFromName(typeid(FieldDecl).name()) };
@@ -1037,7 +1053,10 @@ public:
 	{
 		STRUCT,
 		UNION,
-	} m_type = RecordType::STRUCT;
+	};
+
+private:
+	RecordType m_type = RecordType::STRUCT;
 
 public:
 	RecordDecl(const std::string& name)
@@ -1067,6 +1086,26 @@ public:
 		m_fields.push_back(node);
 
 		ASTNode::UpdateDelegate();
+	}
+
+	virtual void Serialize(Serializable::Interface& pack)
+	{
+		pack << nodeId;
+		pack << m_type;
+		ASTNode::Serialize(pack);
+	}
+
+	virtual void Deserialize(Serializable::Interface& pack)
+	{
+		AST::NodeID _nodeId;
+		pack >> _nodeId;
+		AssertNode(_nodeId, nodeId);
+
+		int type;
+		pack >> type;
+		m_type = static_cast<RecordType>(type);
+
+		Decl::Deserialize(pack);
 	}
 
 	virtual const std::string NodeName() const
@@ -1327,6 +1366,8 @@ public:
 	{
 		AST::NodeID _nodeId;
 		pack >> _nodeId;
+		AssertNode(_nodeId, nodeId);
+
 		Decl::Deserialize(pack);
 	}
 

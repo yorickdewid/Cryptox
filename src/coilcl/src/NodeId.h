@@ -15,7 +15,7 @@ namespace CoilCl
 namespace AST
 {
 
-enum struct NodeID : uint32_t
+enum struct NodeID : uint16_t
 {
 	AST_NODE_ID = 10,
 	
