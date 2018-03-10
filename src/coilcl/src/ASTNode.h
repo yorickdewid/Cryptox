@@ -77,7 +77,7 @@ public:
 	using unique_type = int;
 
 private:
-	unique_type id;
+	mutable unique_type id;
 
 public:
 	UniqueObj()
@@ -85,14 +85,14 @@ public:
 		id = ++_id;
 	}
 
-	inline auto Id() const -> decltype(id) { return id; }
+	inline auto& Id() const noexcept { return id; }
 
-	bool operator==(const UniqueObj& other)
+	bool operator==(const UniqueObj& other) const noexcept
 	{
 		return id == other.id;
 	}
 
-	bool operator!=(const UniqueObj& other)
+	bool operator!=(const UniqueObj& other) const noexcept
 	{
 		return id != other.id;
 	}
@@ -121,16 +121,28 @@ struct Serializable
 {
 	struct Interface
 	{
+		// Stream out operators
 		virtual void operator<<(int i) = 0;
 		virtual void operator<<(double d) = 0;
 		virtual void operator<<(AST::NodeID n) = 0;
 		virtual void operator<<(std::string s) = 0;
 
+		// Stream in operators
+		virtual void operator>>(int& i) = 0;
+		virtual void operator>>(double& d) = 0;
 		virtual void operator>>(AST::NodeID& n) = 0;
+		virtual void operator>>(std::string& s) = 0;
 	};
 
 	virtual void Serialize(Interface&) = 0;
 	virtual void Deserialize(Interface&) = 0;
+
+protected:
+	void AssertNode(const AST::NodeID& got, const AST::NodeID& exp) {
+		if (got != exp) {
+			throw 2; //TODO
+		}
+	}
 };
 
 struct ModifierInterface
@@ -270,6 +282,14 @@ public:
 
 	virtual void Deserialize(Serializable::Interface& pack)
 	{
+		AST::NodeID _nodeId;
+
+		pack >> _nodeId;
+		AssertNode(_nodeId, nodeId);
+
+		pack >> Id();
+		pack >> line;
+		pack >> col;
 	}
 
 protected:
@@ -817,7 +837,12 @@ public:
 
 	virtual void Deserialize(Serializable::Interface& pack)
 	{
-		//
+		AST::NodeID _nodeId;
+
+		pack >> _nodeId;
+		AssertNode(_nodeId, nodeId);
+		
+		pack >> m_identifier;
 		ASTNode::Deserialize(pack);
 	}
 
