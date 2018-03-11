@@ -130,8 +130,24 @@ public:
 
 struct Serializable
 {
-	struct Interface
+	struct ChildGroupInterface
 	{
+		virtual void operator<<(int i) = 0;
+		virtual void operator>>(int i) = 0;
+	};
+
+	class ChildGroupFacade;
+
+	using GroupListType = std::vector<std::shared_ptr<ChildGroupInterface>>;
+
+	class Interface
+	{
+		GroupListType m_childGroups;
+
+		virtual GroupListType CreateChildGroups(size_t size) = 0;
+
+	public:
+		// Set the node id
 		virtual void SetId(int id) = 0;
 
 		// Stream out operators
@@ -147,6 +163,46 @@ struct Serializable
 		virtual void operator>>(bool& b) = 0;
 		virtual void operator>>(AST::NodeID& n) = 0;
 		virtual void operator>>(std::string& s) = 0;
+
+		ChildGroupFacade ChildGroups(size_t size = 0)
+		{
+			if (size > 0) {
+				m_childGroups = CreateChildGroups(size);
+			}
+			return m_childGroups.begin();
+		}
+	};
+
+	class ChildGroupFacade final : public ChildGroupInterface
+	{
+		GroupListType::iterator m_it;
+		GroupListType::iterator m_beginIt;
+
+	public:
+		ChildGroupFacade(GroupListType::iterator it)
+			: m_it{ it }
+			, m_beginIt{ it }
+		{
+			assert(m_it == m_beginIt);
+		}
+
+		// Get group id
+		auto Id() const { return std::distance(m_beginIt, m_it) + 1; }
+
+		void operator<<(int i) { (*m_it)->operator<<(i); }
+		void operator>>(int i) { (*m_it)->operator>>(i); }
+
+		// Move iterator forward
+		void operator++() { ++m_it; }
+		void operator++(int) { m_it++; }
+
+		// Move iterator backward
+		void operator--() { --m_it; }
+		void operator--(int) { m_it--; }
+
+		// Move iterator
+		void Next() { ++m_it; }
+		void Previous() { --m_it; }
 	};
 
 	virtual void Serialize(Interface&) = 0;
@@ -155,7 +211,7 @@ struct Serializable
 protected:
 	void AssertNode(const AST::NodeID& got, const AST::NodeID& exp) {
 		if (got != exp) {
-			throw 2; //TODO
+			throw 2; //TODO: throw something usefull
 		}
 	}
 };
@@ -290,6 +346,7 @@ public:
 	{
 		pack.SetId(UniqueObj::Id());
 		pack << nodeId;
+		pack << UniqueObj::Id();
 		pack << line;
 		pack << col;
 
@@ -305,6 +362,7 @@ public:
 		pack >> _nodeId;
 		AssertNode(_nodeId, nodeId);
 
+		pack >> UniqueObj::Id();
 		pack >> line;
 		pack >> col;
 
@@ -1569,6 +1627,18 @@ public:
 	virtual void Serialize(Serializable::Interface& pack)
 	{
 		pack << nodeId;
+
+		auto group = pack.ChildGroups(1);
+		/*for (const auto& child : m_children) {
+			group << 12;
+		}*/
+
+		group++;
+		group--;
+		group.Next();
+		group.Previous();
+		group.Id();
+
 		Decl::Serialize(pack);
 	}
 
@@ -1577,6 +1647,12 @@ public:
 		AST::NodeID _nodeId;
 		pack >> _nodeId;
 		AssertNode(_nodeId, nodeId);
+
+		//auto group = pack.ChildGroups();
+		//for (const auto& child : group.Children()) {
+		//	//m_children.push_back(child);
+		//	child >> m_children;
+		//}
 
 		Decl::Deserialize(pack);
 	}
@@ -2676,7 +2752,7 @@ public:
 
 		ASTNode::UpdateDelegate();
 	}
-	
+
 	virtual void Serialize(Serializable::Interface& pack)
 	{
 		pack << nodeId;

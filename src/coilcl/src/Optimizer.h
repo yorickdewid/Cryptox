@@ -11,6 +11,9 @@
 namespace CoilCl
 {
 
+//TODO:
+// - Remove unused code
+// - Calculate constants
 class LeanOptimzer
 {
 

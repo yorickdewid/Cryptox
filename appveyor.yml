@@ -31,9 +31,14 @@ install:
   - set PATH=%BOOST_LIBRARYDIR%;%PATH%
   - if defined MSVC_ARCH call "%VS140COMNTOOLS%\..\..\VC\vcvarsall.bat" %MSVC_ARCH%
 
+before_build:
+  - if not exist Build mkdir Build
+  - cd Build
+  - cmake -G "%CMAKE_GENERATOR%" -DBOOST_ROOT="%BOOST_ROOT%" -DBOOST_INCLUDEDIR="%BOOST_INCLUDEDIR%" -DBOOST_LIBRARYDIR="%BOOST_LIBRARYDIR%" ..
+
 build_script:
-  - md C:\Build
-  - cd C:\Build
-  - cmake -G "%CMAKE_GENERATOR%" -DBOOST_ROOT="%BOOST_ROOT%" -DBOOST_INCLUDEDIR="%BOOST_INCLUDEDIR%" -DBOOST_LIBRARYDIR="%BOOST_LIBRARYDIR%" C:\projects\cryptox
-  - cmake --build . --config %configuration%
-  - dir
+  - cmake --build . --config %CONFIGURATION%
+
+test_script:
+  - cd %APPVEYOR_BUILD_FOLDER%\Build\bin\%CONFIGURATION%
+  - boost-test.exe
