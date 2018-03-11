@@ -51,14 +51,13 @@
 #endif // __GNUC__
 
 #if !defined(BSWAP16) && !defined(BSWAP32) && !defined(BSWAP64)
-# define BSWAP16(x) ((x >> 8) | (x << 8))
-# define BSWAP32(x) ((x >> 24) & 0xff) \
-                    | ((x << 8) & 0xff0000) \
-                    | ((x >> 8) & 0xff00) \
-                    | ((x << 24) & 0xff000000)
-# define BSWAP64(x) ((x & 0x00000000ffffffff) << 32) | ((x & 0xffffffff00000000) >> 32) \
-                    | ((x & 0x0000ffff0000ffff) << 16) | ((x & 0xffff0000ffff0000) >> 16) \
-                    | ((x & 0x00ff00ff00ff00ff) << 8) | ((x & 0xff00ff00ff00ff00) >> 8)
+# define BSWAP16(x) ( ((x >> 8) | (x << 8)) )
+# define BSWAP32(x) ( ((x >> 24) & 0x000000ff) | ((x >>  8) & 0x0000ff00) | \
+                      ((x <<  8) & 0x00ff0000) | ((x << 24) & 0xff000000) )
+# define BSWAP64(x) ( ((x >> 56) & 0x00000000000000ff) | ((x >> 40) & 0x000000000000ff00) | \
+                      ((x >> 24) & 0x0000000000ff0000) | ((x >>  8) & 0x00000000ff000000) | \
+                      ((x <<  8) & 0x000000ff00000000) | ((x << 24) & 0x0000ff0000000000) | \
+                      ((x << 40) & 0x00ff000000000000) | ((x << 56) & 0xff00000000000000) )
 #endif
 
 // Runtime check if arch is little endian
