@@ -234,6 +234,11 @@ std::shared_ptr<_Ty> WrapMeta(_Ty *metaPtr)
 	return std::shared_ptr<_Ty>{ metaPtr };
 }
 
+void AssimilateProgram(program_t *out_program, Compiler::ProgramPtr&& in_program)
+{
+	out_program->program_ptr = in_program.release();
+}
+
 } // namespace InterOpHelper
 
 #define CHECK_API_VERSION(u) \
@@ -252,6 +257,7 @@ COILCLAPI void Compile(compiler_info_t *cl_info) NOTHROW
 	assert(cl_info->loadStreamRequestVPtr != nullptr);
 	assert(cl_info->streamMetaVPtr != nullptr);
 	assert(cl_info->errorHandler != nullptr);
+	assert(cl_info->program.program_ptr == nullptr);
 
 	// Register handlers with compiler object and covnert types between API
 	// interface and managed resources. Any additional handlers should be
@@ -282,4 +288,7 @@ COILCLAPI void Compile(compiler_info_t *cl_info) NOTHROW
 	if (program->HasSymbols()) {
 		program->PrintSymbols();
 	}
+
+	// Pass program to frontend
+	InterOpHelper::AssimilateProgram(&cl_info->program, std::move(program));
 }

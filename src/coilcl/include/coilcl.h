@@ -82,6 +82,13 @@ extern "C" {
 		unsigned int size;
 	} metainfo_t;
 
+	// Resulting program
+	typedef struct
+	{
+		// Pointer to the program structure
+		void *program_ptr;
+	} program_t;
+
 	typedef struct
 	{
 		// API version between executable and library
@@ -116,7 +123,11 @@ extern "C" {
 		// is an required function and *must* be set by the frontend.
 		void(*errorHandler)(void *, const char *, char);
 
-		// User provided context
+		// Compiler resulting output. This structure is set by the compiler
+		// interface and should be freed by the caller. The structure cannot
+		// be used directly, but shall be passed to program compatible components.
+		program_t program;
+		// User provided context.
 		void *user_data;
 	} compiler_info_t;
 

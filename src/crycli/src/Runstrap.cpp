@@ -70,10 +70,13 @@ public:
 		info.loadStreamRequestVPtr = &CCBLoadExternalSource;
 		info.streamMetaVPtr = &CCBMetaInfo;
 		info.errorHandler = &CCBErrorHandler;
+		info.program.program_ptr = nullptr;
 		info.user_data = static_cast<void*>(this);
 
 		// Invoke compiler with environment and compiler settings
 		Compile(&info);
+
+		delete info.program.program_ptr;
 	}
 
 	// Set the chunk size as a hint to the reader implementation. This value
