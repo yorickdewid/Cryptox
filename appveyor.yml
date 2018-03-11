@@ -11,7 +11,7 @@ platform:
 
 # Build configuration
 configuration:
-  - Release
+  - RelWithDebInfo
 
 environment:
   matrix:
@@ -32,8 +32,8 @@ install:
   - if defined MSVC_ARCH call "%VS140COMNTOOLS%\..\..\VC\vcvarsall.bat" %MSVC_ARCH%
 
 build_script:
-  - cd ..
-  - md build
-  - cd build
-  - cmake -G "%CMAKE_GENERATOR%" -DBOOST_ROOT="%BOOST_ROOT%" -DBOOST_INCLUDEDIR="%BOOST_INCLUDEDIR%" -DBOOST_LIBRARYDIR="%BOOST_LIBRARYDIR%" ..\cryptox
+  - md C:\Build
+  - cd C:\Build
+  - cmake -G "%CMAKE_GENERATOR%" -DBOOST_ROOT="%BOOST_ROOT%" -DBOOST_INCLUDEDIR="%BOOST_INCLUDEDIR%" -DBOOST_LIBRARYDIR="%BOOST_LIBRARYDIR%" $(APPVEYOR_BUILD_FOLDER)
   - cmake --build . --config %configuration%
+  - dir
