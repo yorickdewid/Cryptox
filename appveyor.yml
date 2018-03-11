@@ -42,3 +42,13 @@ build_script:
 test_script:
   - cd %APPVEYOR_BUILD_FOLDER%\Build\bin\%CONFIGURATION%
   - boost-test.exe
+
+artifacts:
+ - path: '%APPVEYOR_BUILD_FOLDER%\Build\bin\%CONFIGURATION%\*.dll'
+   name: Deliverables
+ 
+ - path: '%APPVEYOR_BUILD_FOLDER%\Build\bin\%CONFIGURATION%\*.exe'
+   name: Deliverables
+ 
+ - path: '%APPVEYOR_BUILD_FOLDER%\Build\bin\%CONFIGURATION%\*.pdb'
+   name: Diagnostics
