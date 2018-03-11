@@ -44,11 +44,11 @@ test_script:
   - boost-test.exe
 
 artifacts:
- - path: 'bin\**\*.dll'
+ - path: '**\bin\$(configuration)\*.dll'
    name: Deliverables
  
- - path: 'bin\**\*.exe'
+ - path: '**\bin\$(configuration)\*.exe'
    name: Deliverables
  
- - path: 'bin\**\*.pdb'
+ - path: '**\bin\$(configuration)\*.pdb'
    name: Diagnostics
