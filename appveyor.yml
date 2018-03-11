@@ -1,13 +1,13 @@
 version: '1.0.{build}'
 
 image: Visual Studio 2017
-clone_depth: 1
+clone_depth: 5
+
+# Maximum number of concurrent jobs for the project
+max_jobs: 1
 
 platform:
   - x64
-
-cache:
-  - c:/Users/appveyor/.cppan/storage
 
 # Build configuration
 configuration:
@@ -18,10 +18,19 @@ branches:
   only:
     - master
 
-before_build:
-  - git submodule update --init
-  - cd build
-  - cmake .. -G "Visual Studio 15 2017 Win64" .
+install:
+  - git submodule update --init --recursive
 
-build:
-  project: $(APPVEYOR_BUILD_FOLDER)\$(APPVEYOR_PROJECT_NAME).sln
+build_script:
+  - cd %APPVEYOR_BUILD_FOLDER%
+  - dir
+  # create folder for an out-of-source-tree build: "c:\projects\build"
+  - cd.. 
+  - mkdir build
+  - cd build
+  # generate build script
+  - >
+    cmake %APPVEYOR_BUILD_FOLDER%
+    -G "Visual Studio 15 2017 Win64"
+  # build
+  - cmake --build . --target ALL_BUILD --config %configuration%
