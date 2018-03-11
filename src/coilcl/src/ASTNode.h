@@ -44,6 +44,16 @@
 #define NODE_ID(i) \
 	static const AST::NodeID nodeId = i;
 
+#define SERIALIZE(p) \
+	virtual void Serialize(Serializable::Interface& pack) { \
+		pack << nodeId; p::Serialize(pack); \
+	}
+
+#define DESERIALIZE(p) \
+	virtual void Deserialize(Serializable::Interface& pack) { \
+		AST::NodeID _nodeId; pack >> _nodeId; AssertNode(_nodeId, nodeId); p::Deserialize(pack); \
+	}
+
 using namespace CoilCl;
 
 template<typename _Ty>
@@ -336,6 +346,8 @@ class Operator
 	NODE_ID(AST::NodeID::OPERATOR_ID);
 
 public:
+	SERIALIZE(ASTNode);
+	DESERIALIZE(ASTNode);
 	virtual ~Operator() = 0;
 };
 
@@ -452,6 +464,26 @@ public:
 		ASTNode::UpdateDelegate();
 	}
 
+	virtual void Serialize(Serializable::Interface& pack)
+	{
+		pack << nodeId;
+		pack << m_operand;
+		Operator::Serialize(pack);
+	}
+
+	virtual void Deserialize(Serializable::Interface& pack)
+	{
+		AST::NodeID _nodeId;
+		pack >> _nodeId;
+		AssertNode(_nodeId, nodeId);
+
+		int operand;
+		pack >> operand;
+		m_operand = static_cast<BinOperand>(operand);
+
+		Operator::Deserialize(pack);
+	}
+
 	const std::string NodeName() const
 	{
 		std::string _node{ RemoveClassFromName(typeid(BinaryOperator).name()) };
@@ -512,6 +544,21 @@ public:
 		altStmt = node;
 
 		ASTNode::UpdateDelegate();
+	}
+
+	virtual void Serialize(Serializable::Interface& pack)
+	{
+		pack << nodeId;
+		Operator::Serialize(pack);
+	}
+
+	virtual void Deserialize(Serializable::Interface& pack)
+	{
+		AST::NodeID _nodeId;
+		pack >> _nodeId;
+		AssertNode(_nodeId, nodeId);
+
+		Operator::Deserialize(pack);
 	}
 
 	virtual const std::string NodeName() const
@@ -593,6 +640,31 @@ public:
 	{
 		ASTNode::AppendChild(node);
 		m_body = node;
+	}
+
+	virtual void Serialize(Serializable::Interface& pack)
+	{
+		pack << nodeId;
+		pack << m_operand;
+		pack << m_side;
+		Operator::Serialize(pack);
+	}
+
+	virtual void Deserialize(Serializable::Interface& pack)
+	{
+		AST::NodeID _nodeId;
+		pack >> _nodeId;
+		AssertNode(_nodeId, nodeId);
+
+		int operand;
+		pack >> operand;
+		m_operand = static_cast<UnaryOperand>(operand);
+
+		int side;
+		pack >> side;
+		m_side = static_cast<OperandSide>(side);
+
+		Operator::Deserialize(pack);
 	}
 
 	const std::string NodeName() const
@@ -688,6 +760,26 @@ public:
 		m_body = node;
 
 		ASTNode::UpdateDelegate();
+	}
+
+	virtual void Serialize(Serializable::Interface& pack)
+	{
+		pack << nodeId;
+		pack << m_operand;
+		Operator::Serialize(pack);
+	}
+
+	virtual void Deserialize(Serializable::Interface& pack)
+	{
+		AST::NodeID _nodeId;
+		pack >> _nodeId;
+		AssertNode(_nodeId, nodeId);
+
+		int operand;
+		pack >> operand;
+		m_operand = static_cast<CompoundAssignOperand>(operand);
+
+		Operator::Deserialize(pack);
 	}
 
 	const std::string NodeName() const
@@ -852,6 +944,7 @@ public:
 		AssertNode(_nodeId, nodeId);
 
 		pack >> m_identifier;
+
 		ASTNode::Deserialize(pack);
 	}
 
@@ -882,6 +975,21 @@ public:
 		m_body = std::move(node);
 
 		ASTNode::UpdateDelegate();
+	}
+
+	virtual void Serialize(Serializable::Interface& pack)
+	{
+		pack << nodeId;
+		Decl::Serialize(pack);
+	}
+
+	virtual void Deserialize(Serializable::Interface& pack)
+	{
+		AST::NodeID _nodeId;
+		pack >> _nodeId;
+		AssertNode(_nodeId, nodeId);
+
+		Decl::Deserialize(pack);
 	}
 
 	virtual const std::string NodeName() const
@@ -920,6 +1028,21 @@ public:
 	ParamDecl(const std::shared_ptr<Typedef::TypedefBase>& type)
 		: Decl{ "", type }
 	{
+	}
+
+	virtual void Serialize(Serializable::Interface& pack)
+	{
+		pack << nodeId;
+		ASTNode::Serialize(pack);
+	}
+
+	virtual void Deserialize(Serializable::Interface& pack)
+	{
+		AST::NodeID _nodeId;
+		pack >> _nodeId;
+		AssertNode(_nodeId, nodeId);
+
+		Decl::Deserialize(pack);
 	}
 
 	virtual const std::string NodeName() const
@@ -1475,6 +1598,8 @@ class Expr
 	NODE_ID(AST::NodeID::EXPR_ID);
 
 public:
+	SERIALIZE(ASTNode);
+	DESERIALIZE(ASTNode);
 	virtual ~Expr() = 0;
 };
 
@@ -1500,6 +1625,24 @@ public:
 	}
 
 protected:
+	virtual void Serialize(Serializable::Interface& pack)
+	{
+		pack << nodeId;
+		pack << m_identifier;
+		Expr::Serialize(pack);
+	}
+
+	virtual void Deserialize(Serializable::Interface& pack)
+	{
+		AST::NodeID _nodeId;
+		pack >> _nodeId;
+		AssertNode(_nodeId, nodeId);
+
+		pack >> m_identifier;
+
+		Expr::Deserialize(pack);
+	}
+
 	const std::string NodeName() const
 	{
 		return std::string{ RemoveClassFromName(typeid(ResolveRefExpr).name()) } +" {" + std::to_string(m_state.Alteration()) + "}" + " <line:" + std::to_string(line) + ",col:" + std::to_string(col) + "> '" + m_identifier + "'";
@@ -1551,6 +1694,21 @@ public:
 		return Returnable::ReturnType();
 	}
 
+	virtual void Serialize(Serializable::Interface& pack)
+	{
+		pack << nodeId;
+		ResolveRefExpr::Serialize(pack);
+	}
+
+	virtual void Deserialize(Serializable::Interface& pack)
+	{
+		AST::NodeID _nodeId;
+		pack >> _nodeId;
+		AssertNode(_nodeId, nodeId);
+
+		ResolveRefExpr::Deserialize(pack);
+	}
+
 	const std::string NodeName() const
 	{
 		if (IsResolved()) {
@@ -1595,6 +1753,21 @@ public:
 			ASTNode::AppendChild(NODE_UPCAST(args));
 			m_args = args;
 		}
+	}
+
+	virtual void Serialize(Serializable::Interface& pack)
+	{
+		pack << nodeId;
+		Expr::Serialize(pack);
+	}
+
+	virtual void Deserialize(Serializable::Interface& pack)
+	{
+		AST::NodeID _nodeId;
+		pack >> _nodeId;
+		AssertNode(_nodeId, nodeId);
+
+		Expr::Deserialize(pack);
 	}
 
 	const std::string NodeName() const
@@ -1658,6 +1831,24 @@ public:
 	auto Expression() const { return m_expr; }
 	auto TypeName() const { return m_typenameType; }
 
+	virtual void Serialize(Serializable::Interface& pack)
+	{
+		pack << nodeId;
+		//pack << m_typenameType;//TODO
+		Expr::Serialize(pack);
+	}
+
+	virtual void Deserialize(Serializable::Interface& pack)
+	{
+		AST::NodeID _nodeId;
+		pack >> _nodeId;
+		AssertNode(_nodeId, nodeId);
+
+		//pack >> m_typenameType;//TODO
+
+		Expr::Deserialize(pack);
+	}
+
 	const std::string NodeName() const final
 	{
 		return std::string{ RemoveClassFromName(typeid(BuiltinExpr).name()) } +" {" + std::to_string(m_state.Alteration()) + "}" + " <line:" + std::to_string(line) + ",col:" + std::to_string(col) + "> ";
@@ -1682,6 +1873,21 @@ public:
 	{
 		ASTNode::AppendChild(node);
 		rtype = node;
+	}
+
+	virtual void Serialize(Serializable::Interface& pack)
+	{
+		pack << nodeId;
+		Expr::Serialize(pack);
+	}
+
+	virtual void Deserialize(Serializable::Interface& pack)
+	{
+		AST::NodeID _nodeId;
+		pack >> _nodeId;
+		AssertNode(_nodeId, nodeId);
+
+		Expr::Deserialize(pack);
 	}
 
 	const std::string NodeName() const
@@ -1712,6 +1918,24 @@ public:
 		, m_convOp{ convOp }
 	{
 		ASTNode::AppendChild(node);
+	}
+
+	virtual void Serialize(Serializable::Interface& pack)
+	{
+		pack << nodeId;
+		//pack << m_convOp;//TODO
+		Expr::Serialize(pack);
+	}
+
+	virtual void Deserialize(Serializable::Interface& pack)
+	{
+		AST::NodeID _nodeId;
+		pack >> _nodeId;
+		AssertNode(_nodeId, nodeId);
+
+		//pack >> m_convOp;//TODO
+
+		Expr::Deserialize(pack);
 	}
 
 	virtual const std::string NodeName() const
@@ -1748,6 +1972,21 @@ public:
 		ASTNode::AppendChild(node);
 	}
 
+	virtual void Serialize(Serializable::Interface& pack)
+	{
+		pack << nodeId;
+		Expr::Serialize(pack);
+	}
+
+	virtual void Deserialize(Serializable::Interface& pack)
+	{
+		AST::NodeID _nodeId;
+		pack >> _nodeId;
+		AssertNode(_nodeId, nodeId);
+
+		Expr::Deserialize(pack);
+	}
+
 	PRINT_NODE(ParenExpr);
 
 private:
@@ -1770,6 +2009,21 @@ public:
 		ASTNode::UpdateDelegate();
 	}
 
+	virtual void Serialize(Serializable::Interface& pack)
+	{
+		pack << nodeId;
+		Expr::Serialize(pack);
+	}
+
+	virtual void Deserialize(Serializable::Interface& pack)
+	{
+		AST::NodeID _nodeId;
+		pack >> _nodeId;
+		AssertNode(_nodeId, nodeId);
+
+		Expr::Deserialize(pack);
+	}
+
 	PRINT_NODE(InitListExpr);
 
 private:
@@ -1788,6 +2042,21 @@ public:
 		: m_body{ node }
 	{
 		ASTNode::AppendChild(NODE_UPCAST(node));
+	}
+
+	virtual void Serialize(Serializable::Interface& pack)
+	{
+		pack << nodeId;
+		Expr::Serialize(pack);
+	}
+
+	virtual void Deserialize(Serializable::Interface& pack)
+	{
+		AST::NodeID _nodeId;
+		pack >> _nodeId;
+		AssertNode(_nodeId, nodeId);
+
+		Expr::Deserialize(pack);
 	}
 
 	PRINT_NODE(CompoundLiteralExpr);
@@ -1811,6 +2080,21 @@ public:
 	{
 		ASTNode::AppendChild(NODE_UPCAST(ref));
 		ASTNode::AppendChild(expr);
+	}
+
+	virtual void Serialize(Serializable::Interface& pack)
+	{
+		pack << nodeId;
+		Expr::Serialize(pack);
+	}
+
+	virtual void Deserialize(Serializable::Interface& pack)
+	{
+		AST::NodeID _nodeId;
+		pack >> _nodeId;
+		AssertNode(_nodeId, nodeId);
+
+		Expr::Deserialize(pack);
 	}
 
 	PRINT_NODE(ArraySubscriptExpr);
@@ -1843,6 +2127,29 @@ public:
 		ASTNode::AppendChild(NODE_UPCAST(node));
 	}
 
+	virtual void Serialize(Serializable::Interface& pack)
+	{
+		pack << nodeId;
+		pack << m_name;
+		pack << m_memberType;
+		Expr::Serialize(pack);
+	}
+
+	virtual void Deserialize(Serializable::Interface& pack)
+	{
+		AST::NodeID _nodeId;
+		pack >> _nodeId;
+		AssertNode(_nodeId, nodeId);
+
+		pack >> m_name;
+
+		int memberType;
+		pack >> memberType;
+		m_memberType = static_cast<MemberType>(memberType);
+
+		Expr::Deserialize(pack);
+	}
+
 	const std::string NodeName() const
 	{
 		std::string _node{ RemoveClassFromName(typeid(MemberExpr).name()) };
@@ -1867,6 +2174,8 @@ class Stmt : public ASTNode
 	NODE_ID(AST::NodeID::STMT_ID);
 
 public:
+	SERIALIZE(ASTNode);
+	DESERIALIZE(ASTNode);
 	virtual ~Stmt() = 0;
 };
 
@@ -1877,6 +2186,8 @@ class ContinueStmt
 	NODE_ID(AST::NodeID::CONTINUE_STMT_ID);
 
 public:
+	SERIALIZE(Stmt);
+	DESERIALIZE(Stmt);
 	PRINT_NODE(ContinueStmt);
 
 private:
@@ -1911,6 +2222,21 @@ public:
 		m_returnExpr = std::move(node);
 
 		ASTNode::UpdateDelegate();
+	}
+
+	virtual void Serialize(Serializable::Interface& pack)
+	{
+		pack << nodeId;
+		Stmt::Serialize(pack);
+	}
+
+	virtual void Deserialize(Serializable::Interface& pack)
+	{
+		AST::NodeID _nodeId;
+		pack >> _nodeId;
+		AssertNode(_nodeId, nodeId);
+
+		Stmt::Deserialize(pack);
 	}
 
 	PRINT_NODE(ReturnStmt);
@@ -1959,6 +2285,21 @@ public:
 		m_altStmt = node;
 
 		ASTNode::UpdateDelegate();
+	}
+
+	virtual void Serialize(Serializable::Interface& pack)
+	{
+		pack << nodeId;
+		Stmt::Serialize(pack);
+	}
+
+	virtual void Deserialize(Serializable::Interface& pack)
+	{
+		AST::NodeID _nodeId;
+		pack >> _nodeId;
+		AssertNode(_nodeId, nodeId);
+
+		Stmt::Deserialize(pack);
 	}
 
 	virtual const std::string NodeName() const
@@ -2010,6 +2351,21 @@ public:
 		ASTNode::UpdateDelegate();
 	}
 
+	virtual void Serialize(Serializable::Interface& pack)
+	{
+		pack << nodeId;
+		Stmt::Serialize(pack);
+	}
+
+	virtual void Deserialize(Serializable::Interface& pack)
+	{
+		AST::NodeID _nodeId;
+		pack >> _nodeId;
+		AssertNode(_nodeId, nodeId);
+
+		Stmt::Deserialize(pack);
+	}
+
 	PRINT_NODE(SwitchStmt);
 
 private:
@@ -2044,6 +2400,21 @@ public:
 		ASTNode::UpdateDelegate();
 	}
 
+	virtual void Serialize(Serializable::Interface& pack)
+	{
+		pack << nodeId;
+		Stmt::Serialize(pack);
+	}
+
+	virtual void Deserialize(Serializable::Interface& pack)
+	{
+		AST::NodeID _nodeId;
+		pack >> _nodeId;
+		AssertNode(_nodeId, nodeId);
+
+		Stmt::Deserialize(pack);
+	}
+
 	PRINT_NODE(WhileStmt);
 
 private:
@@ -2076,6 +2447,21 @@ public:
 		evalNode = node;
 
 		ASTNode::UpdateDelegate();
+	}
+
+	virtual void Serialize(Serializable::Interface& pack)
+	{
+		pack << nodeId;
+		Stmt::Serialize(pack);
+	}
+
+	virtual void Deserialize(Serializable::Interface& pack)
+	{
+		AST::NodeID _nodeId;
+		pack >> _nodeId;
+		AssertNode(_nodeId, nodeId);
+
+		Stmt::Deserialize(pack);
 	}
 
 	PRINT_NODE(DoStmt);
@@ -2113,6 +2499,21 @@ public:
 		ASTNode::UpdateDelegate();
 	}
 
+	virtual void Serialize(Serializable::Interface& pack)
+	{
+		pack << nodeId;
+		Stmt::Serialize(pack);
+	}
+
+	virtual void Deserialize(Serializable::Interface& pack)
+	{
+		AST::NodeID _nodeId;
+		pack >> _nodeId;
+		AssertNode(_nodeId, nodeId);
+
+		Stmt::Deserialize(pack);
+	}
+
 	PRINT_NODE(ForStmt);
 
 private:
@@ -2129,6 +2530,9 @@ public:
 	BreakStmt()
 	{
 	}
+
+	SERIALIZE(Stmt);
+	DESERIALIZE(Stmt);
 
 	PRINT_NODE(BreakStmt);
 
@@ -2148,6 +2552,21 @@ public:
 		: m_body{ body }
 	{
 		ASTNode::AppendChild(body);
+	}
+
+	virtual void Serialize(Serializable::Interface& pack)
+	{
+		pack << nodeId;
+		Stmt::Serialize(pack);
+	}
+
+	virtual void Deserialize(Serializable::Interface& pack)
+	{
+		AST::NodeID _nodeId;
+		pack >> _nodeId;
+		AssertNode(_nodeId, nodeId);
+
+		Stmt::Deserialize(pack);
 	}
 
 	PRINT_NODE(DefaultStmt);
@@ -2173,6 +2592,21 @@ public:
 		ASTNode::AppendChild(body);
 	}
 
+	virtual void Serialize(Serializable::Interface& pack)
+	{
+		pack << nodeId;
+		Stmt::Serialize(pack);
+	}
+
+	virtual void Deserialize(Serializable::Interface& pack)
+	{
+		AST::NodeID _nodeId;
+		pack >> _nodeId;
+		AssertNode(_nodeId, nodeId);
+
+		Stmt::Deserialize(pack);
+	}
+
 	PRINT_NODE(CaseStmt);
 
 private:
@@ -2193,6 +2627,21 @@ public:
 		m_var.push_back(node);
 
 		ASTNode::UpdateDelegate();
+	}
+
+	virtual void Serialize(Serializable::Interface& pack)
+	{
+		pack << nodeId;
+		Stmt::Serialize(pack);
+	}
+
+	virtual void Deserialize(Serializable::Interface& pack)
+	{
+		AST::NodeID _nodeId;
+		pack >> _nodeId;
+		AssertNode(_nodeId, nodeId);
+
+		Stmt::Deserialize(pack);
 	}
 
 	PRINT_NODE(DeclStmt);
@@ -2227,6 +2676,21 @@ public:
 
 		ASTNode::UpdateDelegate();
 	}
+	
+	virtual void Serialize(Serializable::Interface& pack)
+	{
+		pack << nodeId;
+		Stmt::Serialize(pack);
+	}
+
+	virtual void Deserialize(Serializable::Interface& pack)
+	{
+		AST::NodeID _nodeId;
+		pack >> _nodeId;
+		AssertNode(_nodeId, nodeId);
+
+		Stmt::Deserialize(pack);
+	}
 
 	PRINT_NODE(ArgumentStmt);
 
@@ -2248,6 +2712,21 @@ public:
 		m_param.push_back(node);
 
 		ASTNode::UpdateDelegate();
+	}
+
+	virtual void Serialize(Serializable::Interface& pack)
+	{
+		pack << nodeId;
+		Stmt::Serialize(pack);
+	}
+
+	virtual void Deserialize(Serializable::Interface& pack)
+	{
+		AST::NodeID _nodeId;
+		pack >> _nodeId;
+		AssertNode(_nodeId, nodeId);
+
+		Stmt::Deserialize(pack);
 	}
 
 	PRINT_NODE(ParamStmt);
@@ -2272,6 +2751,24 @@ public:
 		ASTNode::AppendChild(node);
 	}
 
+	virtual void Serialize(Serializable::Interface& pack)
+	{
+		pack << nodeId;
+		pack << m_name;
+		Stmt::Serialize(pack);
+	}
+
+	virtual void Deserialize(Serializable::Interface& pack)
+	{
+		AST::NodeID _nodeId;
+		pack >> _nodeId;
+		AssertNode(_nodeId, nodeId);
+
+		pack >> m_name;
+
+		Stmt::Deserialize(pack);
+	}
+
 	PRINT_NODE(LabelStmt);
 
 private:
@@ -2289,6 +2786,24 @@ public:
 	GotoStmt(const std::string& name)
 		: m_labelName{ name }
 	{
+	}
+
+	virtual void Serialize(Serializable::Interface& pack)
+	{
+		pack << nodeId;
+		pack << m_labelName;
+		Stmt::Serialize(pack);
+	}
+
+	virtual void Deserialize(Serializable::Interface& pack)
+	{
+		AST::NodeID _nodeId;
+		pack >> _nodeId;
+		AssertNode(_nodeId, nodeId);
+
+		pack >> m_labelName;
+
+		Stmt::Deserialize(pack);
 	}
 
 	virtual const std::string NodeName() const
@@ -2314,6 +2829,21 @@ public:
 		m_children.push_back(node);
 
 		ASTNode::UpdateDelegate();
+	}
+
+	virtual void Serialize(Serializable::Interface& pack)
+	{
+		pack << nodeId;
+		Stmt::Serialize(pack);
+	}
+
+	virtual void Deserialize(Serializable::Interface& pack)
+	{
+		AST::NodeID _nodeId;
+		pack >> _nodeId;
+		AssertNode(_nodeId, nodeId);
+
+		Stmt::Deserialize(pack);
 	}
 
 	PRINT_NODE(CompoundStmt);
