@@ -34,6 +34,6 @@ install:
 build_script:
   - md C:\Build
   - cd C:\Build
-  - cmake -G "%CMAKE_GENERATOR%" -DBOOST_ROOT="%BOOST_ROOT%" -DBOOST_INCLUDEDIR="%BOOST_INCLUDEDIR%" -DBOOST_LIBRARYDIR="%BOOST_LIBRARYDIR%" $(APPVEYOR_BUILD_FOLDER)
+  - cmake -G "%CMAKE_GENERATOR%" -DBOOST_ROOT="%BOOST_ROOT%" -DBOOST_INCLUDEDIR="%BOOST_INCLUDEDIR%" -DBOOST_LIBRARYDIR="%BOOST_LIBRARYDIR%" C:\projects\cryptox
   - cmake --build . --config %configuration%
   - dir
