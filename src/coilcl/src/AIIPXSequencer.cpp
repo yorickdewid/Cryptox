@@ -20,9 +20,37 @@ using OutputCallback = std::function<void(uint8_t *data, size_t sz)>;
 
 class ChildGroup : public Serializable::ChildGroupInterface
 {
+	std::stringstream& m_ss;
+	size_t m_elements = 0;
+
 public:
-	virtual void operator<<(int i) { CRY_UNUSED(i); }
-	virtual void operator>>(int i) { CRY_UNUSED(i); }
+	ChildGroup(std::stringstream& ss, bool read = true)
+		: m_ss{ ss }
+	{
+		// Read the initial data from the input stream
+		if (!read) {
+			m_ss.read(reinterpret_cast<char *>(&m_elements), sizeof(uint32_t));
+			assert(m_elements > 0);
+		}
+	}
+
+	virtual void SaveNode(std::shared_ptr<ASTNode>& node)
+	{
+		m_ss.write(reinterpret_cast<const char *>(&node->Id()), sizeof(uint32_t));
+	}
+
+	virtual void SetSize(size_t size)
+	{
+		// Write the number of groups elements to the stream
+		auto _size = static_cast<uint32_t>(size);
+		m_ss.write(reinterpret_cast<const char *>(&_size), sizeof(uint32_t));
+		m_elements = size;
+	}
+
+	virtual size_t GetSize() const noexcept
+	{
+		return m_elements;
+	}
 };
 
 class Visitor : public Serializable::Interface
@@ -52,7 +80,20 @@ public:
 
 	virtual Serializable::GroupListType CreateChildGroups(size_t size)
 	{
-		return Serializable::GroupListType{ size, std::make_shared<ChildGroup>() };
+		// Write the number of groups to the stream
+		auto _size = static_cast<uint32_t>(size);
+		ss.write(reinterpret_cast<const char *>(&_size), sizeof(uint32_t));
+
+		return Serializable::GroupListType{ size, std::make_shared<ChildGroup>(ss) };
+	}
+
+	virtual Serializable::GroupListType GetChildGroups()
+	{
+		uint32_t size = 0;
+		ss.read(reinterpret_cast<char *>(&size), sizeof(uint32_t));
+		assert(size > 0);
+
+		return Serializable::GroupListType{ size, std::make_shared<ChildGroup>(ss, false) };
 	}
 
 	// Set the node id
@@ -92,6 +133,7 @@ void CompressNode(ASTNode *node, Visitor visitor, OutputCallback callback)
 	//std::cout << "visitor.Level " << visitor.Level() << std::endl;
 
 	node->Serialize(visitor);
+	node->Deserialize(visitor);
 
 	// Let the visitor determine how to write the output to the stream
 	visitor.WriteOutput(callback);

@@ -132,8 +132,11 @@ struct Serializable
 {
 	struct ChildGroupInterface
 	{
-		virtual void operator<<(int i) = 0;
-		virtual void operator>>(int i) = 0;
+		virtual void SaveNode(std::shared_ptr<ASTNode>&) = 0;
+		//virtual void LoadNode(std::shared_ptr<ASTNode>&) = 0;
+
+		virtual void SetSize(size_t sz) = 0;
+		virtual size_t GetSize() const noexcept = 0;
 	};
 
 	class ChildGroupFacade;
@@ -145,6 +148,7 @@ struct Serializable
 		GroupListType m_childGroups;
 
 		virtual GroupListType CreateChildGroups(size_t size) = 0;
+		virtual GroupListType GetChildGroups() = 0;
 
 	public:
 		// Set the node id
@@ -169,11 +173,14 @@ struct Serializable
 			if (size > 0) {
 				m_childGroups = CreateChildGroups(size);
 			}
+			else {
+				m_childGroups = GetChildGroups();
+			}
 			return m_childGroups.begin();
 		}
 	};
 
-	class ChildGroupFacade final : public ChildGroupInterface
+	class ChildGroupFacade final
 	{
 		GroupListType::iterator m_it;
 		GroupListType::iterator m_beginIt;
@@ -189,8 +196,24 @@ struct Serializable
 		// Get group id
 		auto Id() const { return std::distance(m_beginIt, m_it) + 1; }
 
-		void operator<<(int i) { (*m_it)->operator<<(i); }
-		void operator>>(int i) { (*m_it)->operator>>(i); }
+		template<typename _Ty, typename = typename std::enable_if<std::is_base_of<ASTNode, _Ty>::value>::type>
+		void operator<<(std::shared_ptr<_Ty> ptr)
+		{
+			auto astNode = std::dynamic_pointer_cast<ASTNode>(ptr);
+			(*m_it)->SaveNode(astNode);
+		}
+		template<typename _Ty, typename = typename std::enable_if<std::is_base_of<ASTNode, _Ty>::value>::type>
+		void operator<<(std::weak_ptr<_Ty> ptr)
+		{
+			if (auto astNode = ptr.lock()) {
+				(*m_it)->SaveNode(astNode);
+			}
+		}
+
+		/*void operator>>(std::shared_ptr<ASTNode> ptr)
+		{
+			(*m_it)->LoadNode(ptr);
+		}*/
 
 		// Move iterator forward
 		void operator++() { ++m_it; }
@@ -203,6 +226,18 @@ struct Serializable
 		// Move iterator
 		void Next() { ++m_it; }
 		void Previous() { --m_it; }
+
+		size_t Size(size_t sz = 0)
+		{
+			if (sz > 0) {
+				(*m_it)->SetSize(sz);
+				return sz;
+			}
+
+			return (*m_it)->GetSize();
+		}
+
+		std::vector<std::shared_ptr<ASTNode>> Children() { return {}; }
 	};
 
 	virtual void Serialize(Interface&) = 0;
@@ -1629,15 +1664,10 @@ public:
 		pack << nodeId;
 
 		auto group = pack.ChildGroups(1);
-		/*for (const auto& child : m_children) {
-			group << 12;
-		}*/
-
-		group++;
-		group--;
-		group.Next();
-		group.Previous();
-		group.Id();
+		group.Size(m_children.size());
+		for (const auto& child : m_children) {
+			group << child;
+		}
 
 		Decl::Serialize(pack);
 	}
@@ -1648,12 +1678,13 @@ public:
 		pack >> _nodeId;
 		AssertNode(_nodeId, nodeId);
 
-		//auto group = pack.ChildGroups();
-		//for (const auto& child : group.Children()) {
-		//	//m_children.push_back(child);
-		//	child >> m_children;
-		//}
-
+		auto group = pack.ChildGroups();
+		for (size_t i = 0; i < group.Size(); ++i)
+		{
+			//	ASTNode::AppendChild(node);
+			//	m_children.push_back(node);
+		}
+		
 		Decl::Deserialize(pack);
 	}
 
