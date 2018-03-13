@@ -135,7 +135,9 @@ struct Serializable
 		virtual void SaveNode(std::shared_ptr<ASTNode>&) = 0;
 		virtual int LoadNode(int) = 0;
 
+		// Set size interface
 		virtual void SetSize(size_t sz) = 0;
+		// Get size interface
 		virtual size_t GetSize() noexcept = 0;
 	};
 
@@ -200,21 +202,23 @@ struct Serializable
 		template<typename _Ty, typename = typename std::enable_if<std::is_base_of<ASTNode, _Ty>::value>::type>
 		void operator<<(std::shared_ptr<_Ty> ptr)
 		{
+			if (!ptr) { return; }
 			auto astNode = std::dynamic_pointer_cast<ASTNode>(ptr);
 			(*m_it)->SaveNode(astNode);
 		}
 		template<typename _Ty, typename = typename std::enable_if<std::is_base_of<ASTNode, _Ty>::value>::type>
 		void operator<<(std::weak_ptr<_Ty> ptr)
 		{
+			if (!ptr) { return; }
 			if (auto astNode = ptr.lock()) {
 				(*m_it)->SaveNode(astNode);
 			}
 		}
 
 		// Return node id
-		int operator[](int idx)
+		int operator[](size_t idx)
 		{
-			return (*m_it)->LoadNode(idx);
+			return (*m_it)->LoadNode(static_cast<int>(idx));
 		}
 
 		// Move iterator forward
@@ -243,11 +247,14 @@ struct Serializable
 		std::vector<std::shared_ptr<ASTNode>> Children() { return {}; }
 	};
 
+	// Serialize interface
 	virtual void Serialize(Interface&) = 0;
+	// Deserialize interface
 	virtual void Deserialize(Interface&) = 0;
 
 protected:
-	void AssertNode(const AST::NodeID& got, const AST::NodeID& exp) {
+	void AssertNode(const AST::NodeID& got, const AST::NodeID& exp)
+	{
 		if (got != exp) {
 			throw 2; //TODO: throw something usefull
 		}
@@ -1266,6 +1273,11 @@ public:
 	virtual void Serialize(Serializable::Interface& pack)
 	{
 		pack << nodeId;
+
+		auto group = pack.ChildGroups(1);
+		group.Size(1);
+		group << m_bits;
+
 		ASTNode::Serialize(pack);
 	}
 
@@ -1345,6 +1357,13 @@ public:
 	{
 		pack << nodeId;
 		pack << m_type;
+
+		auto group = pack.ChildGroups(1);
+		group.Size(m_fields.size());
+		for (const auto& child : m_fields) {
+			group << child;
+		}
+
 		ASTNode::Serialize(pack);
 	}
 
@@ -1574,6 +1593,20 @@ public:
 	{
 		pack << nodeId;
 		pack << m_isPrototype;
+
+		auto group = pack.ChildGroups(3);
+		group.Size(1);
+		group << NODE_UPCAST(m_params);
+
+		group++;
+		group.Size(1);
+		group << NODE_UPCAST(m_body);
+
+		//TODO
+		/*group++;
+		group.Size(1);
+		group << m_protoRef;*/
+
 		ASTNode::Serialize(pack);
 	}
 

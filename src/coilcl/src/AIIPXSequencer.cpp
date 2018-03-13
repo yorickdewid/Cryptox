@@ -108,7 +108,12 @@ public:
 		auto _size = static_cast<uint32_t>(size);
 		ss.write(reinterpret_cast<const char *>(&_size), sizeof(uint32_t));
 
-		return Serializable::GroupListType{ size, std::make_shared<ChildGroup>(ss) };
+		Serializable::GroupListType group;
+		for (size_t i = 0; i < size; i++)
+		{
+			group.push_back(std::make_shared<ChildGroup>(ss));
+		}
+		return group;
 	}
 
 	virtual Serializable::GroupListType GetChildGroups()
@@ -118,7 +123,12 @@ public:
 		ss.read(reinterpret_cast<char *>(&size), sizeof(uint32_t));
 		assert(size > 0);
 
-		return Serializable::GroupListType{ size, std::make_shared<ChildGroup>(ss, false) };
+		Serializable::GroupListType group;
+		for (size_t i = 0; i < size; i++)
+		{
+			group.push_back(std::make_shared<ChildGroup>(ss, false));
+		}
+		return group;
 	}
 
 	// Set the node id
@@ -158,7 +168,6 @@ void CompressNode(ASTNode *node, Visitor visitor, OutputCallback callback)
 	//std::cout << "visitor.Level " << visitor.Level() << std::endl;
 
 	node->Serialize(visitor);
-	node->Deserialize(visitor);
 
 	// Let the visitor determine how to write the output to the stream
 	visitor.WriteOutput(callback);
