@@ -60,6 +60,13 @@
                       ((x << 40) & 0x00ff000000000000) | ((x << 56) & 0xff00000000000000) )
 #endif
 
+constexpr bool IsBigEndian()
+{
+	short int n = 0x01020304;
+	char *p = (char *)&n;
+	return (p[0] == 1);
+}
+
 // Runtime check if arch is little endian
 constexpr bool IsLittleEndian()
 {

@@ -188,7 +188,7 @@ public:
 			AIIPXMod.AddStream(consoleStream);
 
 			// Add program memory block to module
-			auto& aiipxResult = program->GetResultSection();
+			auto& aiipxResult = program->GetResultSection(Program::ResultSection::AIIPX);
 			auto memoryStream = std::make_shared<Emit::Stream::MemoryBlock>(aiipxResult.Data());
 			AIIPXMod.AddStream(memoryStream);
 

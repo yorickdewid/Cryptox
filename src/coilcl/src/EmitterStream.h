@@ -76,6 +76,7 @@ class File
 	: public InputStream
 	, public OutputStream
 {
+	//FUTURE: write content to disk in a frontend provided file.
 };
 
 // Write or read data from memory slab

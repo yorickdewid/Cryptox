@@ -61,7 +61,16 @@ public:
 		std::vector<uint8_t> m_content;
 
 	public:
-		ResultSection()
+		enum Tag
+		{
+			AIIPX,         // Resulting section for AIIPX content
+			CASM,          // Resulting section for CASM content
+			COMPLEMENTARY, // Resulting section for additional content
+		} m_tag;
+
+	public:
+		ResultSection(Tag tag = Tag::COMPLEMENTARY)
+			: m_tag{ tag }
 		{
 		}
 
@@ -102,11 +111,8 @@ public:
 	inline bool HasSymbol(const std::string& name) const { return m_symbols.find(name) != m_symbols.end(); }
 	auto& FillSymbols() { return m_symbols; } //TODO: friend?
 
-	auto& GetResultSection()
-	{
-		auto it = m_resultSet.emplace(m_resultSet.cend());
-		return (*it);
-	}
+	// Get memory block
+	ResultSection& GetResultSection(ResultSection::Tag tag = ResultSection::Tag::COMPLEMENTARY);
 
 	// Retieve program condition
 	inline const ConditionTracker& Condition() const { return m_treeCondition; }
