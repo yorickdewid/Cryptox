@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include "Cry/Except.h"
+
 #include "ASTNode.h"
 
 namespace CoilCl
@@ -29,6 +31,7 @@ public:
 	virtual void Execute(ASTNode *node)
 	{
 		CRY_UNUSED(node);
+		throw Cry::Except::NotImplementedException{ "CASM::Execute" };
 	}
 };
 
@@ -41,7 +44,7 @@ public:
 		: m_outputCallback{ outputCallback }
 	{
 	}
-	
+
 	virtual void Execute(ASTNode *node);
 };
 

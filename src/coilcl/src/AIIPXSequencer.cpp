@@ -22,6 +22,20 @@ class ChildGroup : public Serializable::ChildGroupInterface
 {
 	std::stringstream& m_ss;
 	size_t m_elements = 0;
+	std::vector<int> m_nodeIdList;
+
+	// Retrieve node ids from stream at the current position
+	void RetrieveNodes()
+	{
+		if (!m_nodeIdList.empty()) { return; }
+
+		uint32_t nodeId;
+		for (size_t i = 0; i < m_elements; i++)
+		{
+			m_ss.read(reinterpret_cast<char *>(&nodeId), sizeof(uint32_t));
+			m_nodeIdList.push_back(static_cast<int>(nodeId));
+		}
+	}
 
 public:
 	ChildGroup(std::stringstream& ss, bool read = true)
@@ -37,18 +51,28 @@ public:
 	virtual void SaveNode(std::shared_ptr<ASTNode>& node)
 	{
 		m_ss.write(reinterpret_cast<const char *>(&node->Id()), sizeof(uint32_t));
+		m_nodeIdList.push_back(node->Id());
+	}
+
+	virtual int LoadNode(int index)
+	{
+		RetrieveNodes();
+
+		assert(m_nodeIdList.size() > index);
+		return m_nodeIdList[index];
 	}
 
 	virtual void SetSize(size_t size)
 	{
-		// Write the number of groups elements to the stream
+		// Read the number of groups elements to the stream
 		auto _size = static_cast<uint32_t>(size);
 		m_ss.write(reinterpret_cast<const char *>(&_size), sizeof(uint32_t));
 		m_elements = size;
 	}
 
-	virtual size_t GetSize() const noexcept
+	virtual size_t GetSize() noexcept
 	{
+		RetrieveNodes();
 		return m_elements;
 	}
 };
@@ -89,6 +113,7 @@ public:
 
 	virtual Serializable::GroupListType GetChildGroups()
 	{
+		// Write the number of groups to the stream
 		uint32_t size = 0;
 		ss.read(reinterpret_cast<char *>(&size), sizeof(uint32_t));
 		assert(size > 0);

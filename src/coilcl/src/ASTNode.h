@@ -133,10 +133,10 @@ struct Serializable
 	struct ChildGroupInterface
 	{
 		virtual void SaveNode(std::shared_ptr<ASTNode>&) = 0;
-		//virtual void LoadNode(std::shared_ptr<ASTNode>&) = 0;
+		virtual int LoadNode(int) = 0;
 
 		virtual void SetSize(size_t sz) = 0;
-		virtual size_t GetSize() const noexcept = 0;
+		virtual size_t GetSize() noexcept = 0;
 	};
 
 	class ChildGroupFacade;
@@ -180,6 +180,7 @@ struct Serializable
 		}
 	};
 
+	//FUTURE: More methods and operators to communicate data back and forth
 	class ChildGroupFacade final
 	{
 		GroupListType::iterator m_it;
@@ -210,10 +211,11 @@ struct Serializable
 			}
 		}
 
-		/*void operator>>(std::shared_ptr<ASTNode> ptr)
+		// Return node id
+		int operator[](int idx)
 		{
-			(*m_it)->LoadNode(ptr);
-		}*/
+			return (*m_it)->LoadNode(idx);
+		}
 
 		// Move iterator forward
 		void operator++() { ++m_it; }
@@ -227,6 +229,7 @@ struct Serializable
 		void Next() { ++m_it; }
 		void Previous() { --m_it; }
 
+		// Get or set element size in group
 		size_t Size(size_t sz = 0)
 		{
 			if (sz > 0) {
@@ -1681,10 +1684,14 @@ public:
 		auto group = pack.ChildGroups();
 		for (size_t i = 0; i < group.Size(); ++i)
 		{
-			//	ASTNode::AppendChild(node);
-			//	m_children.push_back(node);
+			int childNodeId = group[i];
+			CRY_UNUSED(childNodeId);
+			/*RegisterContinuation(nodeId, [=](const std::shared_ptr<ASTNode>& node) {
+				ASTNode::AppendChild(node);
+				m_children.push_back(node);
+			});*/
 		}
-		
+
 		Decl::Deserialize(pack);
 	}
 
