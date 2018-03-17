@@ -1607,6 +1607,8 @@ public:
 		group.Size(1);
 		group << m_protoRef;*/
 
+		//TODO: m_signature
+
 		ASTNode::Serialize(pack);
 	}
 
@@ -1905,6 +1907,15 @@ public:
 	virtual void Serialize(Serializable::Interface& pack)
 	{
 		pack << nodeId;
+
+		auto group = pack.ChildGroups(2);
+		group.Size(1);
+		group << NODE_UPCAST(m_funcRef);
+
+		group++;
+		group.Size(1);
+		group << NODE_UPCAST(m_args);
+
 		Expr::Serialize(pack);
 	}
 
@@ -2779,6 +2790,13 @@ public:
 	virtual void Serialize(Serializable::Interface& pack)
 	{
 		pack << nodeId;
+
+		auto group = pack.ChildGroups(1);
+		group.Size(m_var.size());
+		for (const auto& child : m_var) {
+			group << child;
+		}
+
 		Stmt::Serialize(pack);
 	}
 
@@ -2827,6 +2845,13 @@ public:
 	virtual void Serialize(Serializable::Interface& pack)
 	{
 		pack << nodeId;
+		
+		auto group = pack.ChildGroups(1);
+		group.Size(m_arg.size());
+		for (const auto& child : m_arg) {
+			group << child;
+		}
+
 		Stmt::Serialize(pack);
 	}
 
@@ -2864,6 +2889,13 @@ public:
 	virtual void Serialize(Serializable::Interface& pack)
 	{
 		pack << nodeId;
+
+		auto group = pack.ChildGroups(1);
+		group.Size(m_param.size());
+		for (const auto& child : m_param) {
+			group << child;
+		}
+
 		Stmt::Serialize(pack);
 	}
 
@@ -2981,6 +3013,13 @@ public:
 	virtual void Serialize(Serializable::Interface& pack)
 	{
 		pack << nodeId;
+
+		auto group = pack.ChildGroups(1);
+		group.Size(m_children.size());
+		for (const auto& child : m_children) {
+			group << child;
+		}
+
 		Stmt::Serialize(pack);
 	}
 

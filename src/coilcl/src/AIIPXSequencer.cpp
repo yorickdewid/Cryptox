@@ -102,6 +102,9 @@ public:
 
 	int Level() { return level; }
 
+	// Create list of child groups and write the number of groups to the 
+	// output stream. Each child group in the list is allocated with the 
+	// output stream.
 	virtual Serializable::GroupListType CreateChildGroups(size_t size)
 	{
 		// Write the number of groups to the stream
@@ -113,6 +116,7 @@ public:
 		{
 			group.push_back(std::make_shared<ChildGroup>(ss));
 		}
+		
 		return group;
 	}
 
@@ -128,6 +132,7 @@ public:
 		{
 			group.push_back(std::make_shared<ChildGroup>(ss, false));
 		}
+		
 		return group;
 	}
 
