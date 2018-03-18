@@ -8,6 +8,7 @@
 /packages
 .vs/
 .vscode
+*.code-workspace
 
 *.aps
 RC*

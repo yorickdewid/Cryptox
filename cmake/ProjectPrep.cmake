@@ -14,7 +14,7 @@ set(PRODUCT_VERSION_LOCAL ${${PROJECT_NAME}_VERSION_LOCAL})
 set(PRODUCT_DESCRIPTION ${${PROJECT_NAME}_DESCRIPTION})
 
 # Generated CMake files before target
-configure_file(${CMAKE_SOURCE_DIR}/common/Config.h.in ${CMAKE_CURRENT_BINARY_DIR}/include/Cry/Config.h @ONLY)
+configure_file(${CMAKE_SOURCE_DIR}/common/config.h.in ${CMAKE_CURRENT_BINARY_DIR}/include/Cry/Config.h @ONLY)
 configure_file(${CMAKE_SOURCE_DIR}/common/version.rc.in ${CMAKE_CURRENT_BINARY_DIR}/res/version.rc @ONLY)
 
 # Project directories
