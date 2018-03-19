@@ -209,8 +209,7 @@ struct Serializable
 		template<typename _Ty, typename = typename std::enable_if<std::is_base_of<ASTNode, _Ty>::value>::type>
 		void operator<<(std::weak_ptr<_Ty> ptr)
 		{
-			if (!ptr) { return; }
-			if (auto astNode = ptr.lock()) {
+			if (std::shared_ptr<ASTNode> astNode = ptr.lock()) {
 				(*m_it)->SaveNode(astNode);
 			}
 		}
@@ -1619,10 +1618,9 @@ public:
 		group.Size(1);
 		group << NODE_UPCAST(m_body);
 
-		//TODO
-		/*group++;
+		group++;
 		group.Size(1);
-		group << m_protoRef;*/
+		group << m_protoRef;
 
 		//TODO: m_signature
 
@@ -1864,7 +1862,9 @@ public:
 	{
 		pack << nodeId;
 
-		//TODO: m_ref
+		auto group = pack.ChildGroups(1);
+		group.Size(1);
+		group << m_ref;
 
 		ResolveRefExpr::Serialize(pack);
 	}
