@@ -8,21 +8,17 @@
 # copied and/or distributed without the express of the author.
 
 # Set project info
-project(Crycli CXX)
-project_version(${PROJECT_NAME} 9)
-project_description(${PROJECT_NAME} "Compiler CLI Interface")
+project(CryEVM CXX)
+project_version(${PROJECT_NAME} 0)
+project_description(${PROJECT_NAME} "Cry Execute VM")
 
 # Load project defaults
 include(ProjectPrep)
 
-# Ignore security checks
-enable_unsecure_crt()
-
 # External includes
 include_directories(${CoilCl_INCLUDE_DIRS})
-include_directories(${CryEVM_INCLUDE_DIRS})
 
-add_executable(${PROJECT_NAME}
+add_library(${PROJECT_NAME} SHARED
 	${${PROJECT_NAME}_src}
 	${${PROJECT_NAME}_h}
 	${${PROJECT_NAME}_rel}
@@ -31,21 +27,12 @@ add_executable(${PROJECT_NAME}
 
 # Define output directories
 set_target_properties(${PROJECT_NAME}
-    PROPERTIES
-	OUTPUT_NAME "crycli"
-	PROJECT_LABEL "${Cryptox_ID} Compiler CLI Interface"
-    ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
-    LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
-    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
-)
-
-target_link_libraries(${PROJECT_NAME}
-	CoilCl
-	CryEVM
-	${Boost_FILESYSTEM_LIBRARY}
-	${Boost_PROGRAM_OPTIONS_LIBRARY}
-	${Boost_SYSTEM_LIBRARY}
-	${Boost_LIBRARIES}
+	PROPERTIES
+	OUTPUT_NAME "cryevm"
+	PROJECT_LABEL "Cry Execute VM"
+	ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
+	LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
+	RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
 )
 
 # Set project options

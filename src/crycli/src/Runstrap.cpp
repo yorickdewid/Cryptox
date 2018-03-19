@@ -2,7 +2,8 @@
 #include "StringReader.h"
 #include "Runstrap.h"
 
-#include "coilcl.h"
+#include <coilcl.h>
+#include <evm.h>
 
 #include <iostream>
 #include <fstream>
@@ -12,6 +13,8 @@ datachunk_t *CCBFetchChunk(void *);
 metainfo_t *CCBMetaInfo(void *);
 int CCBLoadExternalSource(void *, const char *);
 void CCBErrorHandler(void *, const char *, char);
+
+using ProgramPtr = void*;
 
 // Class is single instance only and should therefore be non-copyable
 struct NonCopyable
@@ -60,7 +63,7 @@ public:
 
 	// Create a new compiler and run the source code. The compiler is configured to
 	// be using the lexer to parse the program.
-	void Start()
+	ProgramPtr Start()
 	{
 		compiler_info_t info;
 		info.apiVer = COILCLAPIVER;
@@ -76,7 +79,7 @@ public:
 		// Invoke compiler with environment and compiler settings
 		Compile(&info);
 
-		delete info.program.program_ptr;
+		return info.program.program_ptr;
 	}
 
 	// Set the chunk size as a hint to the reader implementation. This value
@@ -178,12 +181,13 @@ void CCBErrorHandler(void *user_data, const char *message, char fatal)
 // Direct API call to run a single file
 void RunSourceFile(Env& env, const std::string& m_sourceFile)
 {
-	auto reader = std::make_shared<FileReader>(m_sourceFile);
-	StreamReaderAdapter{ std::move(std::dynamic_pointer_cast<Reader>(reader)) }.Start();
+	std::shared_ptr<Reader> reader = std::make_shared<FileReader>(m_sourceFile);
+	ProgramPtr program = StreamReaderAdapter{ std::move(reader) }.Start();
+	delete program;
 }
 
-//TODO: Implement
-// Direct API call to run a multiple files
+//FUTURE: Implement
+// Direct API call to run a multiple files in order
 void RunSourceFile(Env& env, const std::vector<std::string>& sourceFiles)
 {
 	/*auto reader = std::make_shared<FileReader>(m_sourceFile);
@@ -193,6 +197,7 @@ void RunSourceFile(Env& env, const std::vector<std::string>& sourceFiles)
 // Direct API call to run source from memory
 void RunMemoryString(Env& env, const std::string& content)
 {
-	auto reader = std::make_shared<StringReader>(content);
-	StreamReaderAdapter{ std::move(std::dynamic_pointer_cast<Reader>(reader)) }.SetStreamChuckSize(256).Start();
+	std::shared_ptr<Reader> reader = std::make_shared<StringReader>(content);
+	ProgramPtr program = StreamReaderAdapter{ std::move(reader) }.SetStreamChuckSize(256).Start();
+	delete program;
 }

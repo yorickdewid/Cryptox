@@ -17,10 +17,7 @@ include(ProjectPrep)
 
 # Options
 option(${Cryptox_ID}_CIL_BUILD_INTERPRETER "Build with interpreter support" ON)
-option(${Cryptox_ID}_CIL_BUILD_VM "Build with VM support" ON)
-
-# External includes
-include_directories(${${PROJECT_NAME}_INCLUDE})
+option(${Cryptox_ID}_CIL_BUILD_ASM "Build with ASM support" ON)
 
 add_library(${PROJECT_NAME} SHARED
 	${${PROJECT_NAME}_src}
