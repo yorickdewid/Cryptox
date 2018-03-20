@@ -58,7 +58,7 @@ public:
 	{
 		RetrieveNodes();
 
-		assert(m_nodeIdList.size() > index);
+		assert(m_nodeIdList.size() > static_cast<size_t>(index));
 		return m_nodeIdList[index];
 	}
 
@@ -116,7 +116,7 @@ public:
 		{
 			group.push_back(std::make_shared<ChildGroup>(ss));
 		}
-		
+
 		return group;
 	}
 
@@ -132,7 +132,7 @@ public:
 		{
 			group.push_back(std::make_shared<ChildGroup>(ss, false));
 		}
-		
+
 		return group;
 	}
 

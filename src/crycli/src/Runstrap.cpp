@@ -14,7 +14,7 @@ metainfo_t *CCBMetaInfo(void *);
 int CCBLoadExternalSource(void *, const char *);
 void CCBErrorHandler(void *, const char *, char);
 
-using ProgramPtr = void*;
+//using ProgramPtr = program_t * ;
 
 // Class is single instance only and should therefore be non-copyable
 struct NonCopyable
@@ -48,6 +48,42 @@ protected:
 	std::string m_msg;
 };
 
+class ProgramWrapper : protected program_t
+{
+public:
+	ProgramWrapper()
+	{
+		// Set program pointer to null by default
+		program_ptr = nullptr;
+	}
+
+	ProgramWrapper(program_t program)
+		: program_t{ program }
+	{
+	}
+
+	// Guard against pointer copies
+	ProgramWrapper(const ProgramWrapper&) = delete;
+	ProgramWrapper(ProgramWrapper&& other)
+	{
+		assert(program_ptr == nullptr || other.program_ptr == nullptr);
+		std::swap(program_ptr, other.program_ptr);
+	}
+
+	inline void *operator->() const noexcept { return program_ptr; }
+	inline void *operator*() const noexcept { return program_ptr; }
+
+	~ProgramWrapper()
+	{
+		// Delete program pointer if required
+		if (program_ptr) {
+			delete program_ptr;
+			program_ptr = nullptr;
+		}
+	}
+};
+
+
 // Adapter between different reader implementations. The adapter will prepare
 // all settings for compiler calls and return the appropriate datastructures
 // according to the reader interface.
@@ -63,7 +99,7 @@ public:
 
 	// Create a new compiler and run the source code. The compiler is configured to
 	// be using the lexer to parse the program.
-	ProgramPtr Start()
+	ProgramWrapper Start()
 	{
 		compiler_info_t info;
 		info.apiVer = COILCLAPIVER;
@@ -79,7 +115,7 @@ public:
 		// Invoke compiler with environment and compiler settings
 		Compile(&info);
 
-		return info.program.program_ptr;
+		return info.program;
 	}
 
 	// Set the chunk size as a hint to the reader implementation. This value
@@ -178,12 +214,26 @@ void CCBErrorHandler(void *user_data, const char *message, char fatal)
 	throw CompilerException(message);
 }
 
+// Call the program executor and release resource
+// after the executor returns
+class Executor final
+{
+	ProgramWrapper m_program;
+
+public:
+	Executor(ProgramWrapper&& program)
+		: m_program{ std::move(program) }
+	{
+		//Execute(...);
+	}
+};
+
 // Direct API call to run a single file
 void RunSourceFile(Env& env, const std::string& m_sourceFile)
 {
 	std::shared_ptr<Reader> reader = std::make_shared<FileReader>(m_sourceFile);
-	ProgramPtr program = StreamReaderAdapter{ std::move(reader) }.Start();
-	delete program;
+	ProgramWrapper program = StreamReaderAdapter{ std::move(reader) }.Start();
+	Executor{ std::move(program) };
 }
 
 //FUTURE: Implement
@@ -191,13 +241,14 @@ void RunSourceFile(Env& env, const std::string& m_sourceFile)
 void RunSourceFile(Env& env, const std::vector<std::string>& sourceFiles)
 {
 	/*auto reader = std::make_shared<FileReader>(m_sourceFile);
-	StreamReaderAdapter<FileReader>{ sourceFiles }.Start();*/
+	ProgramWrapper program = StreamReaderAdapter<FileReader>{ sourceFiles }.Start();
+	Executor{ std::move(program) };*/
 }
 
 // Direct API call to run source from memory
 void RunMemoryString(Env& env, const std::string& content)
 {
 	std::shared_ptr<Reader> reader = std::make_shared<StringReader>(content);
-	ProgramPtr program = StreamReaderAdapter{ std::move(reader) }.SetStreamChuckSize(256).Start();
-	delete program;
+	ProgramWrapper program = StreamReaderAdapter{ std::move(reader) }.SetStreamChuckSize(256).Start();
+	Executor{ std::move(program) };
 }
