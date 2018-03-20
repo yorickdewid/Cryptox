@@ -27,11 +27,7 @@ class InputStream
 	}
 
 public:
-	virtual void Read(uint8_t *vector, size_t sz)
-	{
-		CRY_UNUSED(vector);
-		CRY_UNUSED(sz);
-	}
+	virtual void Read(uint8_t *vector, size_t *sz) = 0;
 };
 
 // Stream output contract
@@ -43,11 +39,7 @@ class OutputStream
 	}
 
 public:
-	virtual void Write(uint8_t *vector, size_t sz)
-	{
-		CRY_UNUSED(vector);
-		CRY_UNUSED(sz);
-	}
+	virtual void Write(uint8_t *vector, size_t sz) = 0;
 };
 
 // Interact with the console. All output is written to the
@@ -55,12 +47,12 @@ public:
 // This stream structure is mainly used for debug and interactive
 // shell environments.
 class Console
-	: public InputStream
-	, public OutputStream
+	//: public InputStream
+	: public OutputStream
 {
 public:
 	// Write data stream to console output
-	virtual void Write(uint8_t *vector, size_t sz) override
+	virtual void Write(uint8_t *vector, size_t sz)
 	{
 		for (size_t i = 0; i < sz; i++)
 		{
@@ -73,10 +65,16 @@ public:
 
 // Write or read data to file
 class File
-	: public InputStream
-	, public OutputStream
+	//: public InputStream
+	: public OutputStream
 {
 	//FUTURE: write content to disk in a frontend provided file.
+public:
+	virtual void Write(uint8_t *vector, size_t sz)
+	{
+		CRY_UNUSED(vector);
+		CRY_UNUSED(sz);
+	}
 };
 
 // Write or read data from memory slab
@@ -116,7 +114,7 @@ public:
 		if (capacity > 0) {
 			m_block->reserve(capacity);
 		}
-		
+
 		ReserveMemory();
 	}
 
@@ -147,7 +145,7 @@ public:
 	inline void Shrink() { m_block->shrink_to_fit(); }
 
 	// Write data stream to console output
-	virtual void Write(uint8_t *vector, size_t sz) override
+	virtual void Write(uint8_t *vector, size_t sz)
 	{
 		m_block->insert(m_block->end(), vector, vector + sz);
 		if (m_block->size() >= (m_block->capacity() * 0.1)) {
@@ -155,11 +153,18 @@ public:
 		}
 	}
 
-	virtual void Read(uint8_t *vector, size_t sz) override
+	virtual void Read(uint8_t *vector, size_t* sz) override
 	{
 		//FUTURE
 		CRY_UNUSED(vector);
 		CRY_UNUSED(sz);
+	}
+
+	std::shared_ptr<MemoryBlock> DeepCopy()
+	{
+		auto ptr = std::make_shared<MemoryBlock>(this->m_block->size());
+		ptr->m_block->assign(this->m_block->begin(), this->m_block->end());
+		return ptr;
 	}
 
 private:

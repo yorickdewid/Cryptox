@@ -38,10 +38,13 @@ public:
 class AIIPX : public Interface
 {
 	std::function<void(uint8_t *data, size_t sz)> m_outputCallback;
+	std::function<void(uint8_t *data, size_t* sz)> m_inputCallback;
 
 public:
-	AIIPX(std::function<void(uint8_t *data, size_t sz)> outputCallback)
+	AIIPX(std::function<void(uint8_t *data, size_t sz)> outputCallback
+		, std::function<void(uint8_t *data, size_t* sz)> inputCallback)
 		: m_outputCallback{ outputCallback }
+		, m_inputCallback{ inputCallback }
 	{
 	}
 

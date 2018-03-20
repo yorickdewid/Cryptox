@@ -74,4 +74,12 @@ Emitter& Emitter::Process()
 	return (*this);
 }
 
+Emitter& Emitter::RegisterModule(Module<Sequencer::Interface>&& module)
+{
+	// Request module permissions so we can register the module
+	const auto permInfo = module.RequestPermissionInfo();
 
+	// Push module on list
+	m_mods.push_back({ permInfo, std::move(module) });
+	return (*this);
+}

@@ -198,6 +198,12 @@ public:
 				.AddModule(AIIPXMod)
 				.Process();
 
+			auto q = memoryStream->DeepCopy();
+			Emit::Module<Emit::Sequencer::AIIPX> testMod;
+			testMod.AddStream(q);
+
+			//testMod.;
+
 			// Print all compiler stage non fatal messages
 			PrintNoticeMessages();
 		}
