@@ -183,11 +183,26 @@ void CompressNode(ASTNode *node, Visitor visitor, OutputCallback callback)
 	}
 }
 
-void AIIPX::Execute(ASTNode *node)
+void AIIPX::PackAST(ASTNode *node)
 {
 	Visitor visit;
 	assert(node);
 
+	// Write marker to output stream to recognize the sequencer
 	m_outputCallback(&initMarker[0], static_cast<size_t>(sizeof(initMarker)));
 	CompressNode(node, visit, m_outputCallback);
+}
+
+void AIIPX::UnpackAST(ASTNode *node)
+{
+	uint8_t _initMarker[sizeof(initMarker)];
+	CRY_MEMZERO(_initMarker, sizeof(initMarker));
+
+	// Read marker from input stream
+	m_inputCallback(&_initMarker[0], sizeof(initMarker));
+	if (memcmp(_initMarker, initMarker, sizeof(initMarker))) {
+		throw 1; //TODO
+	}
+	
+	//UncompressNode();
 }

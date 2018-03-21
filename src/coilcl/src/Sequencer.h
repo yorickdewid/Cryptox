@@ -22,6 +22,7 @@ namespace Sequencer
 class Interface
 {
 public:
+	// Execute the sequencer
 	virtual void Execute(ASTNode *node) = 0;
 };
 
@@ -37,18 +38,29 @@ public:
 
 class AIIPX : public Interface
 {
-	std::function<void(uint8_t *data, size_t sz)> m_outputCallback;
-	std::function<void(uint8_t *data, size_t* sz)> m_inputCallback;
+	using IOCallback = std::function<void(uint8_t *data, size_t sz)>;
+
+	// Input/Output stream callbacks
+	IOCallback m_outputCallback;
+	IOCallback m_inputCallback;
 
 public:
-	AIIPX(std::function<void(uint8_t *data, size_t sz)> outputCallback
-		, std::function<void(uint8_t *data, size_t* sz)> inputCallback)
+	AIIPX(IOCallback outputCallback, IOCallback inputCallback)
 		: m_outputCallback{ outputCallback }
 		, m_inputCallback{ inputCallback }
 	{
 	}
 
-	virtual void Execute(ASTNode *node);
+	// Implement interface
+	virtual void Execute(ASTNode *node)
+	{
+		PackAST(node);
+	}
+
+	// Convert tree into output stream
+	void PackAST(ASTNode *node);
+	// Convert input stream into tree
+	void UnpackAST(ASTNode *node);
 };
 
 } // namespace Sequencer

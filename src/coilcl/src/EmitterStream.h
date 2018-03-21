@@ -27,7 +27,7 @@ class InputStream
 	}
 
 public:
-	virtual void Read(uint8_t *vector, size_t *sz) = 0;
+	virtual void Read(uint8_t *vector, size_t sz) = 0;
 };
 
 // Stream output contract
@@ -107,6 +107,8 @@ class MemoryBlock
 
 public:
 	using MemoryPool = std::vector<uint8_t>;
+
+public:
 	MemoryBlock(size_t capacity = 0)
 		: m_block{ new MemoryPool{} }
 		, m_doFree{ true }
@@ -141,10 +143,10 @@ public:
 
 	// Memory data size
 	inline size_t Size() const noexcept { return m_block->size(); }
-
+	// Shrink the capacity to size
 	inline void Shrink() { m_block->shrink_to_fit(); }
 
-	// Write data stream to console output
+	// Write data stream to memory block
 	virtual void Write(uint8_t *vector, size_t sz)
 	{
 		m_block->insert(m_block->end(), vector, vector + sz);
@@ -153,11 +155,15 @@ public:
 		}
 	}
 
-	virtual void Read(uint8_t *vector, size_t* sz) override
+	// Read data stream from memory block
+	virtual void Read(uint8_t *vector, size_t sz) override
 	{
-		//FUTURE
-		CRY_UNUSED(vector);
-		CRY_UNUSED(sz);
+		if (m_readOffset + sz > m_block->size()) {
+			sz = m_block->size() - m_readOffset;
+		}
+
+		CRY_MEMCPY(vector, sz, m_block->data() + m_readOffset, sz);
+		m_readOffset += sz;
 	}
 
 	std::shared_ptr<MemoryBlock> DeepCopy()
@@ -169,6 +175,7 @@ public:
 
 private:
 	bool m_doFree;
+	size_t m_readOffset = 0;
 	MemoryPool *m_block = nullptr;
 };
 

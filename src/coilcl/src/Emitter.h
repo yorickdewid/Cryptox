@@ -59,10 +59,10 @@ class Module : public ModuleInterface
 public:
 	Module()
 	{
-		auto out = [this](uint8_t *data, size_t sz) {
+		const auto out = [this](uint8_t *data, size_t sz) {
 			this->RelayOutput(data, sz);
 		};
-		auto in = [this](uint8_t *data, size_t* sz) {
+		const auto in = [this](uint8_t *data, size_t sz) {
 			this->RelayInput(data, sz);
 		};
 
@@ -100,7 +100,7 @@ public:
 	}
 
 	// Read input from streams
-	void RelayInput(uint8_t *data, size_t *sz)
+	void RelayInput(uint8_t *data, size_t sz)
 	{
 		if (m_streamIn) {
 			m_streamIn->Read(data, sz);
