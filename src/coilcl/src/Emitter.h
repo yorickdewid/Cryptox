@@ -53,20 +53,41 @@ class Module : public ModuleInterface
 	using _MyTy = Module<_SeqTy>;
 
 	std::vector<std::shared_ptr<Stream::OutputStream>> m_streamOut;
+	std::shared_ptr<Stream::InputStream> m_streamIn;
 	std::shared_ptr<_SeqTy> m_sequencer;
 
 public:
 	Module()
 	{
-		m_sequencer = std::make_shared<_SeqTy>([this](uint8_t *data, size_t sz) {
+		auto out = [this](uint8_t *data, size_t sz) {
 			this->RelayOutput(data, sz);
-		});
+		};
+		auto in = [this](uint8_t *data, size_t* sz) {
+			this->RelayInput(data, sz);
+		};
+
+		m_sequencer = std::make_shared<_SeqTy>(std::move(out), std::move(in));
+	}
+
+	// Only add stream to list of output streams
+	void AddStreamOut(std::shared_ptr<Stream::OutputStream>&& ptr)
+	{
+		m_streamOut.push_back(std::move(ptr));
+	}
+
+	// Set input stream if none configured, otherwise skip
+	void AddStreamIn(std::shared_ptr<Stream::InputStream>&& ptr)
+	{
+		if (!m_streamIn) {
+			m_streamIn = std::move(ptr);
+		}
 	}
 
 	template<typename _StreamTy>
 	void AddStream(std::shared_ptr<_StreamTy>& ptr)
 	{
-		m_streamOut.push_back(std::dynamic_pointer_cast<Stream::OutputStream>(ptr));
+		AddStreamOut(std::dynamic_pointer_cast<Stream::OutputStream>(ptr));
+		AddStreamIn(std::dynamic_pointer_cast<Stream::InputStream>(ptr));
 	}
 
 	// Write output to streams
@@ -75,6 +96,14 @@ public:
 		for (auto& outputStream : m_streamOut)
 		{
 			outputStream->Write(data, sz);
+		}
+	}
+
+	// Read input from streams
+	void RelayInput(uint8_t *data, size_t *sz)
+	{
+		if (m_streamIn) {
+			m_streamIn->Read(data, sz);
 		}
 	}
 
@@ -111,7 +140,7 @@ public:
 	}
 };
 
-//Future: Magic to work with dynamic loader
+//FUTURE: Magic to work with dynamic loader
 class ExtModule : public ModuleInterface
 {
 public:
@@ -143,13 +172,11 @@ public:
 	{
 		Module<Sequencer::Interface> modIface{ std::move(ptr) };
 
-		const auto permInfo = modIface.RequestPermissionInfo();
-
-		m_mods.push_back({ permInfo, std::move(modIface) });
-		return (*this);
+		return RegisterModule(std::move(modIface));
 	}
 
 private:
+	Emitter& RegisterModule(Module<Sequencer::Interface>&&);
 	AST::AST Strategy(ModuleInterface::ModulePerm);
 
 private:
