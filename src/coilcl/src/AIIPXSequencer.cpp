@@ -7,6 +7,7 @@
 // copied and/or distributed without the express of the author.
 
 #include "Sequencer.h"
+#include "ASTFactory.h"
 
 #include <iostream>
 
@@ -17,6 +18,7 @@ using namespace CoilCl::Emit::Sequencer;
 static uint8_t initMarker[] = { 0x9, 0x3, 0xef, 0x17 };
 
 using OutputCallback = std::function<void(uint8_t *data, size_t sz)>;
+using InputCallback = std::function<void(uint8_t *data, size_t sz)>;
 
 class ChildGroup : public Serializable::ChildGroupInterface
 {
@@ -154,7 +156,7 @@ public:
 	virtual void operator>>(std::string& s) { ss >> s; }
 
 	// Write output to streaming backend
-	void WriteOutput(std::function<void(uint8_t *data, size_t sz)>& outputCallback)
+	void WriteOutput(OutputCallback& outputCallback)
 	{
 		outputCallback((uint8_t*)ss.str().c_str(), ss.str().size());
 		ss.str(std::string{});
@@ -166,6 +168,19 @@ public:
 		std::vector<uint8_t> t;
 		outputCallback(t);
 	}
+
+	// Read input from streaming backend
+	//void ReadInput(InputCallback& inputCallback)
+	//{
+	//	AST::NodeID _nodeId;
+	//	inputCallback(reinterpret_cast<uint8_t *>(&_nodeId), sizeof(AST::NodeID));
+
+	//	// Get matching node from AST factory
+	//	ASTNode *node = AST::ASTFactory::MakeNode(_nodeId);
+	//	assert(node);
+
+	//	//
+	//}
 };
 
 void CompressNode(ASTNode *node, Visitor visitor, OutputCallback callback)
@@ -183,6 +198,21 @@ void CompressNode(ASTNode *node, Visitor visitor, OutputCallback callback)
 	}
 }
 
+void UncompressNode(ASTNode *node, Visitor visitor, InputCallback callback)
+{
+	// Read content from stream
+	//visitor.ReadInput(callback);
+
+	AST::NodeID _nodeId;
+	callback(reinterpret_cast<uint8_t *>(&_nodeId), sizeof(AST::NodeID));
+
+	// Get matching node from AST factory
+	node = AST::ASTFactory::MakeNode(_nodeId);
+	assert(node);
+
+	node->Deserialize(visitor);
+}
+
 void AIIPX::PackAST(ASTNode *node)
 {
 	Visitor visit;
@@ -195,6 +225,7 @@ void AIIPX::PackAST(ASTNode *node)
 
 void AIIPX::UnpackAST(ASTNode *node)
 {
+	Visitor visit;
 	uint8_t _initMarker[sizeof(initMarker)];
 	CRY_MEMZERO(_initMarker, sizeof(initMarker));
 
@@ -203,6 +234,6 @@ void AIIPX::UnpackAST(ASTNode *node)
 	if (memcmp(_initMarker, initMarker, sizeof(initMarker))) {
 		throw 1; //TODO
 	}
-	
-	//UncompressNode();
+
+	UncompressNode(node, visit, m_inputCallback);
 }

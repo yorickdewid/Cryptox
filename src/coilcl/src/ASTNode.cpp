@@ -9,6 +9,7 @@ Literal::~Literal() {}
 Expr::~Expr() {}
 Stmt::~Stmt() {}
 
+// Unique object counter initialization
 int UniqueObj::_id = 100;
 
 void ASTNode::Print(int version, int level, bool last, std::vector<int> ignore) const
@@ -35,6 +36,7 @@ void ASTNode::Print(int version, int level, bool last, std::vector<int> ignore) 
 		}
 	}
 
+	// Traverse down the tree
 	const auto traverse = [=](const std::vector<std::weak_ptr<ASTNode>>& cList)
 	{
 		for (const auto& weakChild : cList) {

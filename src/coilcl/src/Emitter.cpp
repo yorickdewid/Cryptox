@@ -31,17 +31,17 @@ AST::AST Emitter::Strategy(ModuleInterface::ModulePerm permission)
 	case ModuleInterface::ReadOnly:
 		//TODO: mark ReadOnly
 		return std::move(m_ast);
-	
+
 	case ModuleInterface::AppendData:
 	case ModuleInterface::CopyOnWrite:
 		return std::move(m_ast);
-	
+
 	case ModuleInterface::Substitute: {
 		std::shared_ptr<ASTNode> k; //TODO
 		m_ast.swap(k);
 		return std::move(m_ast);
 	}
-	
+
 	default:
 		break;
 	}
@@ -65,9 +65,8 @@ Emitter& Emitter::Process()
 			// Call module with tree
 			mod.second.Invoke(*ast);
 		}
-		//FUTURE: update exception
 		catch (const ModuleException&) {
-			throw;
+			throw; //TODO 
 		}
 	}
 
