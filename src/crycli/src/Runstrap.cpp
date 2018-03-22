@@ -1,3 +1,11 @@
+// Copyright (c) 2017 Quenza Inc. All rights reserved.
+//
+// This file is part of the Cryptox project.
+//
+// Use of this source code is governed by a private license
+// that can be found in the LICENSE file. Content can not be 
+// copied and/or distributed without the express of the author.
+
 #include "FileReader.h"
 #include "StringReader.h"
 #include "Runstrap.h"
@@ -66,8 +74,8 @@ public:
 	ProgramWrapper(const ProgramWrapper&) = delete;
 	ProgramWrapper(ProgramWrapper&& other)
 	{
-		assert(program_ptr == nullptr || other.program_ptr == nullptr);
-		std::swap(program_ptr, other.program_ptr);
+		program_ptr = other.program_ptr;
+		other.program_ptr = nullptr;
 	}
 
 	inline void *operator->() const noexcept { return program_ptr; }
@@ -224,7 +232,8 @@ public:
 	Executor(ProgramWrapper&& program)
 		: m_program{ std::move(program) }
 	{
-		//Execute(...);
+		// Perform sneaky upcast on protected base
+		Execute(reinterpret_cast<program_t*>(&m_program));
 	}
 };
 
