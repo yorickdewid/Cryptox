@@ -14,9 +14,23 @@ namespace CoilCl
 namespace AST
 {
 
-ASTNode *ASTFactory::MakeNode(NodeID nodeId)
+AST::NodeID GetNodeId(Serializable::Interface *visitor)
 {
-	switch (nodeId)
+	AST::NodeID _nodeId;
+	(*visitor) >> _nodeId;
+	
+	return _nodeId;
+}
+
+template<typename _Ty, typename = typename std::enable_if<std::is_base_of<ASTNode, _Ty>::value>::type>
+ASTNode *ReturnNode(Serializable::Interface *visitor)
+{
+	return new _Ty{ (*visitor) };
+}
+
+ASTNode *ASTFactory::MakeNode(Serializable::Interface *visitor)
+{
+	switch (GetNodeId(visitor))
 	{
 	case NodeID::AST_NODE_ID:
 		break;
@@ -61,7 +75,7 @@ ASTNode *ASTFactory::MakeNode(NodeID nodeId)
 	case NodeID::FUNCTION_DECL_ID:
 		break;
 	case NodeID::TRANSLATION_UNIT_DECL_ID:
-		//return TranslationUnitDecl::Make().get();
+		return ReturnNode<TranslationUnitDecl>(visitor);
 	case NodeID::EXPR_ID:
 		break;
 	case NodeID::RESOLVE_REF_EXPR_ID:

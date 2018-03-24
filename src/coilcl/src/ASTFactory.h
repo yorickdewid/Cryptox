@@ -17,7 +17,7 @@ namespace AST
 
 struct ASTFactory
 {
-	static ASTNode *MakeNode(NodeID);
+	static ASTNode *MakeNode(Serializable::Interface *visitor);
 };
 
 } // namespace AST
