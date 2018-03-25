@@ -10,6 +10,7 @@
 #include "ASTFactory.h"
 
 #include <iostream>
+#include <map>
 
 using namespace CoilCl::Emit::Sequencer;
 
@@ -28,6 +29,7 @@ class Visitor : public Serializable::Interface
 	int nodeId;
 	int parentId;
 	std::stringstream ss;
+	std::multimap<int, std::function<void(const std::shared_ptr<ASTNode>&)>> m_nodeHookList;
 	InputCallback inputCallback;
 
 	friend ChildGroup;
@@ -59,7 +61,7 @@ class Visitor : public Serializable::Interface
 	{
 		// If stream is empty, redirect read to callback
 		if (ss.tellg() == std::stringstream::pos_type{ 0 }) {
-			//inputCallback(reinterpret_cast<uint8_t *>(str), count);
+			//TODO ..
 			return;
 		}
 
@@ -90,6 +92,8 @@ public:
 
 	// Set the node id
 	virtual void SetId(int id) { nodeId = id; }
+	// Invoke registered callbacks
+	virtual void FireDependencies(ASTNode *);
 
 	// Stream node data into visitor
 	virtual void operator<<(int i) { WriteProxy(reinterpret_cast<const char *>(&i), sizeof(uint32_t)); }
@@ -104,6 +108,9 @@ public:
 	virtual void operator>>(bool& b) { ReadProxy(b); }
 	virtual void operator>>(AST::NodeID& n) { ReadProxy(reinterpret_cast<char *>(&n), sizeof(AST::NodeID)); }
 	virtual void operator>>(std::string& s) { ReadProxy(s); }
+
+	// Callback operations
+	virtual void operator<<=(std::pair<int, std::function<void(const std::shared_ptr<ASTNode>&)>>);
 
 	// Write output to streaming backend
 	void WriteOutput(OutputCallback& outputCallback);
@@ -225,6 +232,19 @@ Serializable::GroupListType Visitor::GetChildGroups()
 	return group;
 }
 
+void Visitor::FireDependencies(ASTNode *node)
+{
+	const auto callList = m_nodeHookList.find(node->Id());
+	if (callList != m_nodeHookList.end()) {
+		callList->second(nullptr);
+	}
+}
+
+void Visitor::operator<<=(std::pair<int, std::function<void(const std::shared_ptr<ASTNode>&)>> value)
+{
+	m_nodeHookList.emplace(std::move(value));
+}
+
 void Visitor::WriteOutput(OutputCallback& outputCallback)
 {
 	outputCallback((uint8_t*)ss.str().c_str(), ss.str().size());
@@ -254,14 +274,9 @@ void CompressNode(ASTNode *node, Visitor visitor, OutputCallback callback)
 
 void UncompressNode(ASTNode *node, Visitor *visitor, InputCallback callback)
 {
-	//AST::NodeID _nodeId;
-	//callback(reinterpret_cast<uint8_t *>(&_nodeId), sizeof(AST::NodeID));
-
 	// Get matching node from AST factory
 	node = AST::ASTFactory::MakeNode(visitor);
 	assert(node);
-
-	//node->Deserialize(visitor);
 }
 
 void AIIPX::PackAST(ASTNode *node)

@@ -18,14 +18,16 @@ AST::NodeID GetNodeId(Serializable::Interface *visitor)
 {
 	AST::NodeID _nodeId;
 	(*visitor) >> _nodeId;
-	
+
 	return _nodeId;
 }
 
 template<typename _Ty, typename = typename std::enable_if<std::is_base_of<ASTNode, _Ty>::value>::type>
 ASTNode *ReturnNode(Serializable::Interface *visitor)
 {
-	return new _Ty{ (*visitor) };
+	auto *node = new _Ty{ (*visitor) };
+	visitor->FireDependencies(node);
+	return node;
 }
 
 ASTNode *ASTFactory::MakeNode(Serializable::Interface *visitor)

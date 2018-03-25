@@ -155,20 +155,25 @@ struct Serializable
 	public:
 		// Set the node id
 		virtual void SetId(int id) = 0;
+		// Invoke registered callbacks
+		virtual void FireDependencies(ASTNode *) = 0;
 
 		// Stream out operators
-		virtual void operator<<(int i) = 0;
-		virtual void operator<<(double d) = 0;
-		virtual void operator<<(bool b) = 0;
-		virtual void operator<<(AST::NodeID n) = 0;
-		virtual void operator<<(std::string s) = 0;
+		virtual void operator<<(int) = 0;
+		virtual void operator<<(double) = 0;
+		virtual void operator<<(bool) = 0;
+		virtual void operator<<(AST::NodeID) = 0;
+		virtual void operator<<(std::string) = 0;
 
 		// Stream in operators
-		virtual void operator>>(int& i) = 0;
-		virtual void operator>>(double& d) = 0;
-		virtual void operator>>(bool& b) = 0;
-		virtual void operator>>(AST::NodeID& n) = 0;
-		virtual void operator>>(std::string& s) = 0;
+		virtual void operator>>(int&) = 0;
+		virtual void operator>>(double&) = 0;
+		virtual void operator>>(bool&) = 0;
+		virtual void operator>>(AST::NodeID&) = 0;
+		virtual void operator>>(std::string&) = 0;
+
+		// Callback operations
+		virtual void operator<<=(std::pair<int, std::function<void(const std::shared_ptr<ASTNode>&)>>) = 0;
 
 		ChildGroupFacade ChildGroups(size_t size = 0)
 		{
@@ -1734,19 +1739,14 @@ public:
 
 	virtual void Deserialize(Serializable::Interface& pack)
 	{
-		/*AST::NodeID _nodeId;
-		pack >> _nodeId;
-		AssertNode(_nodeId, nodeId);*/
-
 		auto group = pack.ChildGroups();
 		for (size_t i = 0; i < group.Size(); ++i)
 		{
 			int childNodeId = group[i];
-			CRY_UNUSED(childNodeId);
-			/*RegisterContinuation(nodeId, [=](const std::shared_ptr<ASTNode>& node) {
-				ASTNode::AppendChild(node);
-				m_children.push_back(node);
-			});*/
+
+			pack <<= {childNodeId, [=](const std::shared_ptr<ASTNode>& node) {
+				AppendChild(node);
+			}};
 		}
 
 		Decl::Deserialize(pack);
