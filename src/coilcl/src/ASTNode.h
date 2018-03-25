@@ -156,7 +156,7 @@ struct Serializable
 		// Set the node id
 		virtual void SetId(int id) = 0;
 		// Invoke registered callbacks
-		virtual void FireDependencies(ASTNode *) = 0;
+		virtual void FireDependencies(std::shared_ptr<ASTNode>&) = 0;
 
 		// Stream out operators
 		virtual void operator<<(int) = 0;
@@ -1739,11 +1739,14 @@ public:
 
 	virtual void Deserialize(Serializable::Interface& pack)
 	{
+		AST::NodeID _nodeId;
+		pack >> _nodeId;
+		AssertNode(_nodeId, nodeId);
+
 		auto group = pack.ChildGroups();
 		for (size_t i = 0; i < group.Size(); ++i)
 		{
 			int childNodeId = group[i];
-
 			pack <<= {childNodeId, [=](const std::shared_ptr<ASTNode>& node) {
 				AppendChild(node);
 			}};

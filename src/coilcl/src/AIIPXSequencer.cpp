@@ -48,7 +48,7 @@ class Visitor : public Serializable::Interface
 	void ReadProxy(std::stringstream::char_type *str, std::streamsize count)
 	{
 		// If stream is empty, redirect read to callback
-		if (ss.tellg() == std::stringstream::pos_type{ 0 }) {
+		if (!ss.rdbuf()->in_avail()) {
 			inputCallback(reinterpret_cast<uint8_t *>(str), count);
 			return;
 		}
@@ -60,7 +60,7 @@ class Visitor : public Serializable::Interface
 	void ReadProxy(_Ty& value)
 	{
 		// If stream is empty, redirect read to callback
-		if (ss.tellg() == std::stringstream::pos_type{ 0 }) {
+		if (!ss.rdbuf()->in_avail()) {
 			//TODO ..
 			return;
 		}
@@ -93,7 +93,7 @@ public:
 	// Set the node id
 	virtual void SetId(int id) { nodeId = id; }
 	// Invoke registered callbacks
-	virtual void FireDependencies(ASTNode *);
+	virtual void FireDependencies(std::shared_ptr<ASTNode>&);
 
 	// Stream node data into visitor
 	virtual void operator<<(int i) { WriteProxy(reinterpret_cast<const char *>(&i), sizeof(uint32_t)); }
@@ -232,11 +232,11 @@ Serializable::GroupListType Visitor::GetChildGroups()
 	return group;
 }
 
-void Visitor::FireDependencies(ASTNode *node)
+void Visitor::FireDependencies(std::shared_ptr<ASTNode>& node)
 {
 	const auto callList = m_nodeHookList.find(node->Id());
 	if (callList != m_nodeHookList.end()) {
-		callList->second(nullptr);
+		callList->second(node);
 	}
 }
 
@@ -275,8 +275,8 @@ void CompressNode(ASTNode *node, Visitor visitor, OutputCallback callback)
 void UncompressNode(ASTNode *node, Visitor *visitor, InputCallback callback)
 {
 	// Get matching node from AST factory
-	node = AST::ASTFactory::MakeNode(visitor);
-	assert(node);
+	auto _node = AST::ASTFactory::MakeNode(visitor);
+	assert(_node);
 }
 
 void AIIPX::PackAST(ASTNode *node)

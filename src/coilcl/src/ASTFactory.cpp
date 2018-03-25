@@ -18,19 +18,20 @@ AST::NodeID GetNodeId(Serializable::Interface *visitor)
 {
 	AST::NodeID _nodeId;
 	(*visitor) >> _nodeId;
+	(*visitor) << _nodeId;
 
 	return _nodeId;
 }
 
 template<typename _Ty, typename = typename std::enable_if<std::is_base_of<ASTNode, _Ty>::value>::type>
-ASTNode *ReturnNode(Serializable::Interface *visitor)
+std::shared_ptr<ASTNode> ReturnNode(Serializable::Interface *visitor)
 {
-	auto *node = new _Ty{ (*visitor) };
+	std::shared_ptr<ASTNode> node = std::make_shared<_Ty>(*visitor);
 	visitor->FireDependencies(node);
-	return node;
+	return std::move(node);
 }
 
-ASTNode *ASTFactory::MakeNode(Serializable::Interface *visitor)
+std::shared_ptr<ASTNode> ASTFactory::MakeNode(Serializable::Interface *visitor)
 {
 	switch (GetNodeId(visitor))
 	{
