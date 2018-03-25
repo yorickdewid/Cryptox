@@ -45,6 +45,14 @@ class Visitor : public Serializable::Interface
 		ss << value;
 	}
 
+	template<>
+	void WriteProxy(const std::string& value)
+	{
+		size_t sz = value.size();
+		WriteProxy(reinterpret_cast<const char *>(&sz), sizeof(uint32_t));
+		ss << value;
+	}
+
 	void ReadProxy(std::stringstream::char_type *str, std::streamsize count)
 	{
 		// If stream is empty, redirect read to callback
@@ -62,6 +70,21 @@ class Visitor : public Serializable::Interface
 		// If stream is empty, redirect read to callback
 		if (!ss.rdbuf()->in_avail()) {
 			//TODO ..
+			return;
+		}
+
+		ss >> value;
+	}
+
+	template<>
+	void ReadProxy(std::string& value)
+	{
+		// If stream is empty, redirect read to callback
+		if (!ss.rdbuf()->in_avail()) {
+			size_t sz = 0;
+			ReadProxy(reinterpret_cast<char *>(&sz), sizeof(uint32_t));
+			value.resize(sz);
+			inputCallback(reinterpret_cast<uint8_t *>(&value[0]), sz);
 			return;
 		}
 
