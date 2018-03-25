@@ -173,9 +173,11 @@ struct Serializable
 		ChildGroupFacade ChildGroups(size_t size = 0)
 		{
 			if (size > 0) {
+				// Create child groups
 				m_childGroups = CreateChildGroups(size);
 			}
 			else {
+				// Retrieve child groups
 				m_childGroups = GetChildGroups();
 			}
 			return m_childGroups.begin();
@@ -1696,6 +1698,11 @@ private:
 	}
 
 public:
+	TranslationUnitDecl(Serializable::Interface& pack)
+	{
+		Deserialize(pack);
+	}
+
 	void AppendChild(const std::shared_ptr<ASTNode>& node) final
 	{
 		ASTNode::AppendChild(node);
@@ -1727,9 +1734,9 @@ public:
 
 	virtual void Deserialize(Serializable::Interface& pack)
 	{
-		AST::NodeID _nodeId;
+		/*AST::NodeID _nodeId;
 		pack >> _nodeId;
-		AssertNode(_nodeId, nodeId);
+		AssertNode(_nodeId, nodeId);*/
 
 		auto group = pack.ChildGroups();
 		for (size_t i = 0; i < group.Size(); ++i)
@@ -2016,7 +2023,7 @@ public:
 		auto group = pack.ChildGroups(1);
 		group.Size(1);
 		group << m_expr;
-		
+
 		//pack << m_typenameType;//TODO
 
 		Expr::Serialize(pack);

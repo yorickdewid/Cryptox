@@ -20,9 +20,100 @@ static uint8_t initMarker[] = { 0x9, 0x3, 0xef, 0x17 };
 using OutputCallback = std::function<void(uint8_t *data, size_t sz)>;
 using InputCallback = std::function<void(uint8_t *data, size_t sz)>;
 
+class ChildGroup;
+
+class Visitor : public Serializable::Interface
+{
+	int level;
+	int nodeId;
+	int parentId;
+	std::stringstream ss;
+	InputCallback inputCallback;
+
+	friend ChildGroup;
+
+	void WriteProxy(const std::stringstream::char_type *str, std::streamsize count)
+	{
+		ss.write(str, count);
+	}
+
+	template<typename _Ty>
+	void WriteProxy(const _Ty& value)
+	{
+		ss << value;
+	}
+
+	void ReadProxy(std::stringstream::char_type *str, std::streamsize count)
+	{
+		// If stream is empty, redirect read to callback
+		if (ss.tellg() == std::stringstream::pos_type{ 0 }) {
+			inputCallback(reinterpret_cast<uint8_t *>(str), count);
+			return;
+		}
+
+		ss.read(str, count);
+	}
+
+	template<typename _Ty>
+	void ReadProxy(_Ty& value)
+	{
+		// If stream is empty, redirect read to callback
+		if (ss.tellg() == std::stringstream::pos_type{ 0 }) {
+			//inputCallback(reinterpret_cast<uint8_t *>(str), count);
+			return;
+		}
+
+		ss >> value;
+	}
+
+public:
+	// Default constructor
+	Visitor();
+
+	// Initialize with input callback
+	Visitor(InputCallback& _inputCallback);
+
+	// Copy and increment level
+	Visitor(Visitor& other);
+
+	// Prohibit indirect moves
+	Visitor(Visitor&&) = delete;
+
+	int Level() { return level; }
+
+	// Create list of child groups and write the number of groups to the 
+	// output stream. Each child group in the list is allocated with the 
+	// output stream.
+	virtual Serializable::GroupListType CreateChildGroups(size_t size);
+	//....
+	virtual Serializable::GroupListType GetChildGroups();
+
+	// Set the node id
+	virtual void SetId(int id) { nodeId = id; }
+
+	// Stream node data into visitor
+	virtual void operator<<(int i) { WriteProxy(reinterpret_cast<const char *>(&i), sizeof(uint32_t)); }
+	virtual void operator<<(double d) { WriteProxy(d); }
+	virtual void operator<<(bool b) { WriteProxy(b); }
+	virtual void operator<<(AST::NodeID n) { WriteProxy(reinterpret_cast<const char *>(&n), sizeof(AST::NodeID)); }
+	virtual void operator<<(std::string s) { WriteProxy(s); }
+
+	// Stream node data from visitor
+	virtual void operator>>(int& i) { ReadProxy(reinterpret_cast<char *>(&i), sizeof(uint32_t)); }
+	virtual void operator>>(double& d) { ReadProxy(d); }
+	virtual void operator>>(bool& b) { ReadProxy(b); }
+	virtual void operator>>(AST::NodeID& n) { ReadProxy(reinterpret_cast<char *>(&n), sizeof(AST::NodeID)); }
+	virtual void operator>>(std::string& s) { ReadProxy(s); }
+
+	// Write output to streaming backend
+	void WriteOutput(OutputCallback& outputCallback);
+	// Write output to streaming backend
+	void WriteOutput(std::function<void(std::vector<uint8_t>&)>& outputCallback);
+};
+
 class ChildGroup : public Serializable::ChildGroupInterface
 {
-	std::stringstream& m_ss;
+	Visitor& m_visitor;
 	size_t m_elements = 0;
 	std::vector<int> m_nodeIdList;
 
@@ -34,25 +125,25 @@ class ChildGroup : public Serializable::ChildGroupInterface
 		uint32_t nodeId;
 		for (size_t i = 0; i < m_elements; i++)
 		{
-			m_ss.read(reinterpret_cast<char *>(&nodeId), sizeof(uint32_t));
+			m_visitor.ReadProxy(reinterpret_cast<char *>(&nodeId), sizeof(uint32_t));
 			m_nodeIdList.push_back(static_cast<int>(nodeId));
 		}
 	}
 
 public:
-	ChildGroup(std::stringstream& ss, bool read = true)
-		: m_ss{ ss }
+	ChildGroup(Visitor *visitor, bool read = true)
+		: m_visitor{ (*visitor) }
 	{
 		// Read the initial data from the input stream
 		if (!read) {
-			m_ss.read(reinterpret_cast<char *>(&m_elements), sizeof(uint32_t));
+			m_visitor.ReadProxy(reinterpret_cast<char *>(&m_elements), sizeof(uint32_t));
 			assert(m_elements > 0);
 		}
 	}
 
 	virtual void SaveNode(std::shared_ptr<ASTNode>& node)
 	{
-		m_ss.write(reinterpret_cast<const char *>(&node->Id()), sizeof(uint32_t));
+		m_visitor.WriteProxy(reinterpret_cast<const char *>(&node->Id()), sizeof(uint32_t));
 		m_nodeIdList.push_back(node->Id());
 	}
 
@@ -68,7 +159,7 @@ public:
 	{
 		// Read the number of groups elements to the stream
 		auto _size = static_cast<uint32_t>(size);
-		m_ss.write(reinterpret_cast<const char *>(&_size), sizeof(uint32_t));
+		m_visitor.WriteProxy(reinterpret_cast<const char *>(&_size), sizeof(uint32_t));
 		m_elements = size;
 	}
 
@@ -79,109 +170,72 @@ public:
 	}
 };
 
-class Visitor : public Serializable::Interface
+Visitor::Visitor()
+	: level{ 0 }
+	, nodeId{ 0 }
+	, parentId{ 0 }
 {
-	int level;
-	int nodeId;
-	int parentId;
-	std::stringstream ss;
+}
 
-public:
-	Visitor()
-		: level{ 0 }
-		, nodeId{ 0 }
-		, parentId{ 0 }
+Visitor::Visitor(InputCallback& _inputCallback)
+	: inputCallback{ _inputCallback }
+	, level{ 0 }
+	, nodeId{ 0 }
+	, parentId{ 0 }
+{
+}
+
+Visitor::Visitor(Visitor& other)
+{
+	inputCallback = other.inputCallback;
+	parentId = other.nodeId;
+	level = other.level + 1;
+}
+
+Serializable::GroupListType Visitor::CreateChildGroups(size_t size)
+{
+	// Write the number of groups to the stream
+	auto _size = static_cast<uint32_t>(size);
+	WriteProxy(reinterpret_cast<const char *>(&_size), sizeof(uint32_t));
+
+	Serializable::GroupListType group;
+	for (size_t i = 0; i < size; i++)
 	{
+		// Create child group and read initial stream data
+		group.push_back(std::make_shared<ChildGroup>(this));
 	}
 
-	Visitor(Visitor& other)
+	return group;
+}
+
+Serializable::GroupListType Visitor::GetChildGroups()
+{
+	// Write the number of groups to the stream
+	uint32_t size = 0;
+	ReadProxy(reinterpret_cast<char *>(&size), sizeof(uint32_t));
+	assert(size > 0);
+
+	Serializable::GroupListType group;
+	for (size_t i = 0; i < size; i++)
 	{
-		parentId = other.nodeId;
-		level = other.level + 1;
+		// Create child group
+		group.push_back(std::make_shared<ChildGroup>(this, false));
 	}
 
-	Visitor(Visitor&&) = delete;
+	return group;
+}
 
-	int Level() { return level; }
+void Visitor::WriteOutput(OutputCallback& outputCallback)
+{
+	outputCallback((uint8_t*)ss.str().c_str(), ss.str().size());
+	ss.str(std::string{});
+}
 
-	// Create list of child groups and write the number of groups to the 
-	// output stream. Each child group in the list is allocated with the 
-	// output stream.
-	virtual Serializable::GroupListType CreateChildGroups(size_t size)
-	{
-		// Write the number of groups to the stream
-		auto _size = static_cast<uint32_t>(size);
-		ss.write(reinterpret_cast<const char *>(&_size), sizeof(uint32_t));
-
-		Serializable::GroupListType group;
-		for (size_t i = 0; i < size; i++)
-		{
-			group.push_back(std::make_shared<ChildGroup>(ss));
-		}
-
-		return group;
-	}
-
-	virtual Serializable::GroupListType GetChildGroups()
-	{
-		// Write the number of groups to the stream
-		uint32_t size = 0;
-		ss.read(reinterpret_cast<char *>(&size), sizeof(uint32_t));
-		assert(size > 0);
-
-		Serializable::GroupListType group;
-		for (size_t i = 0; i < size; i++)
-		{
-			group.push_back(std::make_shared<ChildGroup>(ss, false));
-		}
-
-		return group;
-	}
-
-	// Set the node id
-	virtual void SetId(int id) { nodeId = id; }
-
-	// Stream node data into visitor
-	virtual void operator<<(int i) { ss.write(reinterpret_cast<const char *>(&i), sizeof(uint32_t)); }
-	virtual void operator<<(double d) { ss << d; }
-	virtual void operator<<(bool b) { ss << b; }
-	virtual void operator<<(AST::NodeID n) { ss.write(reinterpret_cast<const char *>(&n), sizeof(AST::NodeID)); }
-	virtual void operator<<(std::string s) { ss << s; }
-
-	// Stream node data from visitor
-	virtual void operator>>(int& i) { ss.read(reinterpret_cast<char *>(&i), sizeof(uint32_t)); }
-	virtual void operator>>(double& d) { ss >> d; }
-	virtual void operator>>(bool& b) { ss >> b; }
-	virtual void operator>>(AST::NodeID& n) { ss.read(reinterpret_cast<char *>(&n), sizeof(AST::NodeID)); }
-	virtual void operator>>(std::string& s) { ss >> s; }
-
-	// Write output to streaming backend
-	void WriteOutput(OutputCallback& outputCallback)
-	{
-		outputCallback((uint8_t*)ss.str().c_str(), ss.str().size());
-		ss.str(std::string{});
-	}
-
-	// Write output to streaming backend
-	void WriteOutput(std::function<void(std::vector<uint8_t>&)>& outputCallback)
-	{
-		std::vector<uint8_t> t;
-		outputCallback(t);
-	}
-
-	// Read input from streaming backend
-	//void ReadInput(InputCallback& inputCallback)
-	//{
-	//	AST::NodeID _nodeId;
-	//	inputCallback(reinterpret_cast<uint8_t *>(&_nodeId), sizeof(AST::NodeID));
-
-	//	// Get matching node from AST factory
-	//	ASTNode *node = AST::ASTFactory::MakeNode(_nodeId);
-	//	assert(node);
-
-	//	//
-	//}
-};
+void Visitor::WriteOutput(std::function<void(std::vector<uint8_t>&)>& outputCallback)
+{
+	std::vector<uint8_t> t;
+	outputCallback(t);
+}
 
 void CompressNode(ASTNode *node, Visitor visitor, OutputCallback callback)
 {
@@ -198,19 +252,16 @@ void CompressNode(ASTNode *node, Visitor visitor, OutputCallback callback)
 	}
 }
 
-void UncompressNode(ASTNode *node, Visitor visitor, InputCallback callback)
+void UncompressNode(ASTNode *node, Visitor *visitor, InputCallback callback)
 {
-	// Read content from stream
-	//visitor.ReadInput(callback);
-
-	AST::NodeID _nodeId;
-	callback(reinterpret_cast<uint8_t *>(&_nodeId), sizeof(AST::NodeID));
+	//AST::NodeID _nodeId;
+	//callback(reinterpret_cast<uint8_t *>(&_nodeId), sizeof(AST::NodeID));
 
 	// Get matching node from AST factory
-	node = AST::ASTFactory::MakeNode(_nodeId);
+	node = AST::ASTFactory::MakeNode(visitor);
 	assert(node);
 
-	node->Deserialize(visitor);
+	//node->Deserialize(visitor);
 }
 
 void AIIPX::PackAST(ASTNode *node)
@@ -225,7 +276,7 @@ void AIIPX::PackAST(ASTNode *node)
 
 void AIIPX::UnpackAST(ASTNode *node)
 {
-	Visitor visit;
+	Visitor visit{ m_inputCallback };
 	uint8_t _initMarker[sizeof(initMarker)];
 	CRY_MEMZERO(_initMarker, sizeof(initMarker));
 
@@ -235,5 +286,5 @@ void AIIPX::UnpackAST(ASTNode *node)
 		throw 1; //TODO
 	}
 
-	UncompressNode(node, visit, m_inputCallback);
+	UncompressNode(node, &visit, m_inputCallback);
 }
