@@ -34,4 +34,11 @@ public:
 
 };
 
+void MyFreeFunc()
+{
+    while (true) {
+        Subspace::helper_call<int>();
+    }
+}
+
 } // namespace DefaultNamespace

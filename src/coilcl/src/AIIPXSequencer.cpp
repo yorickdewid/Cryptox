@@ -297,9 +297,27 @@ void CompressNode(ASTNode *node, Visitor visitor, OutputCallback callback)
 
 void UncompressNode(ASTNode *node, Visitor *visitor, InputCallback callback)
 {
-	// Get matching node from AST factory
-	auto _node = AST::ASTFactory::MakeNode(visitor);
-	assert(_node);
+	std::shared_ptr<ASTNode> root;
+
+	try
+	{
+		do {
+			// Get node from AST factory
+			auto _node = AST::ASTFactory::MakeNode(visitor);
+			assert(_node);
+
+			// Set tree root
+			if (!root) {
+				root = _node;
+			}
+		} while (true);
+	}
+	catch (int e)
+	{
+		if (e == 2) { //TODO: for now
+			//TODO: Inval node, end here
+		}
+	}
 }
 
 void AIIPX::PackAST(ASTNode *node)

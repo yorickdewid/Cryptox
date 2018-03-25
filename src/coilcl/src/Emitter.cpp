@@ -59,7 +59,7 @@ Emitter& Emitter::Process()
 	for (auto& mod : m_mods)
 	{
 		// Determine AST strategy
-		auto ast = Strategy(mod.first);
+		AST::AST ast = Strategy(mod.first);
 
 		try {
 			// Call module with tree

@@ -16,7 +16,7 @@ namespace AST
 
 AST::NodeID GetNodeId(Serializable::Interface *visitor)
 {
-	AST::NodeID _nodeId;
+	AST::NodeID _nodeId = AST::NodeID::INVAL;
 	(*visitor) >> _nodeId;
 	(*visitor) << _nodeId;
 
@@ -35,6 +35,8 @@ std::shared_ptr<ASTNode> ASTFactory::MakeNode(Serializable::Interface *visitor)
 {
 	switch (GetNodeId(visitor))
 	{
+	case NodeID::INVAL:
+		throw 2; //TODO
 	case NodeID::AST_NODE_ID:
 		break;
 	case NodeID::OPERATOR_ID:

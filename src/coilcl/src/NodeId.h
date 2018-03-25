@@ -17,6 +17,9 @@ namespace AST
 
 enum struct NodeID : uint16_t
 {
+	INVAL = 0,
+
+	// Root ID
 	AST_NODE_ID = 10,
 	
 	// Operator IDs
