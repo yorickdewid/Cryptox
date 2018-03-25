@@ -145,10 +145,13 @@ public:
 	inline size_t Size() const noexcept { return m_block->size(); }
 	// Shrink the capacity to size
 	inline void Shrink() { m_block->shrink_to_fit(); }
+	// Check if stream is depleted
+	inline bool IsEoS() const noexcept { return m_readOffset == m_block->size(); }
 
 	// Write data stream to memory block
 	virtual void Write(uint8_t *vector, size_t sz)
 	{
+		if (sz < 1) { return; }
 		m_block->insert(m_block->end(), vector, vector + sz);
 		if (m_block->size() >= (m_block->capacity() * 0.1)) {
 			ResizeMemory();
@@ -158,6 +161,9 @@ public:
 	// Read data stream from memory block
 	virtual void Read(uint8_t *vector, size_t sz) override
 	{
+		if (sz < 1) { return; }
+		if (IsEoS()) { return; }
+
 		if (m_readOffset + sz > m_block->size()) {
 			sz = m_block->size() - m_readOffset;
 		}
