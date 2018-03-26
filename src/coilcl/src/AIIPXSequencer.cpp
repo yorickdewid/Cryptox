@@ -83,6 +83,7 @@ class Visitor : public Serializable::Interface
 		if (!ss.rdbuf()->in_avail()) {
 			size_t sz = 0;
 			ReadProxy(reinterpret_cast<char *>(&sz), sizeof(uint32_t));
+			if (!sz) { return; }
 			value.resize(sz);
 			inputCallback(reinterpret_cast<uint8_t *>(&value[0]), sz);
 			return;
@@ -105,6 +106,8 @@ public:
 	Visitor(Visitor&&) = delete;
 
 	int Level() { return level; }
+	// Clear internal buffer
+	void Clear() noexcept { ss = std::stringstream{}; }
 
 	// Create list of child groups and write the number of groups to the 
 	// output stream. Each child group in the list is allocated with the 
@@ -257,9 +260,10 @@ Serializable::GroupListType Visitor::GetChildGroups()
 
 void Visitor::FireDependencies(std::shared_ptr<ASTNode>& node)
 {
-	const auto callList = m_nodeHookList.find(node->Id());
-	if (callList != m_nodeHookList.end()) {
-		callList->second(node);
+	const auto range = m_nodeHookList.equal_range(node->Id());
+	for (auto it = range.first; it != range.second; ++it)
+	{
+		it->second(node);
 	}
 }
 
@@ -304,6 +308,7 @@ void UncompressNode(ASTNode *node, Visitor *visitor, InputCallback callback)
 		do {
 			// Get node from AST factory
 			auto _node = AST::ASTFactory::MakeNode(visitor);
+			visitor->Clear();
 			assert(_node);
 
 			// Set tree root

@@ -1335,6 +1335,11 @@ private:
 	RecordType m_type = RecordType::STRUCT;
 
 public:
+	RecordDecl(Serializable::Interface& pack)
+	{
+		Deserialize(pack);
+	}
+
 	RecordDecl(const std::string& name)
 		: Decl{ name }
 	{
@@ -1375,7 +1380,7 @@ public:
 			group << child;
 		}
 
-		ASTNode::Serialize(pack);
+		Decl::Serialize(pack);
 	}
 
 	virtual void Deserialize(Serializable::Interface& pack)
@@ -1387,6 +1392,16 @@ public:
 		int type;
 		pack >> type;
 		m_type = static_cast<RecordType>(type);
+
+		auto group = pack.ChildGroups();
+		for (size_t i = 0; i < group.Size(); ++i)
+		{
+			int childNodeId = group[i];
+			pack <<= {childNodeId, [=](const std::shared_ptr<ASTNode>& node) {
+				auto field = std::dynamic_pointer_cast<FieldDecl>(node);
+				AddField(field);
+			}};
+		}
 
 		Decl::Deserialize(pack);
 	}
