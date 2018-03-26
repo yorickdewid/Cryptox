@@ -133,6 +133,7 @@ struct Serializable
 	struct ChildGroupInterface
 	{
 		virtual void SaveNode(std::shared_ptr<ASTNode>&) = 0;
+		virtual void SaveNode(nullptr_t) = 0;
 		virtual int LoadNode(int) = 0;
 
 		// Set size interface
@@ -209,7 +210,11 @@ struct Serializable
 		template<typename _Ty, typename = typename std::enable_if<std::is_base_of<ASTNode, _Ty>::value>::type>
 		void operator<<(std::shared_ptr<_Ty> ptr)
 		{
-			if (!ptr) { return; }
+			if (!ptr) {
+				(*m_it)->SaveNode(nullptr);
+				return;
+			}
+
 			auto astNode = std::dynamic_pointer_cast<ASTNode>(ptr);
 			(*m_it)->SaveNode(astNode);
 		}
@@ -218,7 +223,10 @@ struct Serializable
 		{
 			if (std::shared_ptr<ASTNode> astNode = ptr.lock()) {
 				(*m_it)->SaveNode(astNode);
+				return;
 			}
+
+			(*m_it)->SaveNode(nullptr);
 		}
 
 		// Return node id
@@ -1268,6 +1276,11 @@ class FieldDecl
 	std::shared_ptr<IntegerLiteral> m_bits;
 
 public:
+	FieldDecl(Serializable::Interface& pack)
+	{
+		Deserialize(pack);
+	}
+
 	FieldDecl(const std::string& name, std::shared_ptr<Typedef::TypedefBase> type)
 		: Decl{ name, type }
 	{
@@ -1289,7 +1302,7 @@ public:
 		group.Size(1);
 		group << m_bits;
 
-		ASTNode::Serialize(pack);
+		Decl::Serialize(pack);
 	}
 
 	virtual void Deserialize(Serializable::Interface& pack)
@@ -1297,6 +1310,13 @@ public:
 		AST::NodeID _nodeId;
 		pack >> _nodeId;
 		AssertNode(_nodeId, nodeId);
+
+		auto group = pack.ChildGroups();
+		if (group.Size() != 1) { throw 3; } //TODO
+		pack <<= {group[0], [=](const std::shared_ptr<ASTNode>& node) {
+			auto bits = std::dynamic_pointer_cast<IntegerLiteral>(node);
+			SetBitField(bits);
+		}};
 
 		Decl::Deserialize(pack);
 	}

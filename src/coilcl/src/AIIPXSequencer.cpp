@@ -179,6 +179,13 @@ public:
 		m_visitor.WriteProxy(reinterpret_cast<const char *>(&node->Id()), sizeof(uint32_t));
 		m_nodeIdList.push_back(node->Id());
 	}
+	
+	virtual void SaveNode(nullptr_t)
+	{
+		constexpr const uint32_t n = 0;
+		m_visitor.WriteProxy(reinterpret_cast<const char *>(&n), sizeof(uint32_t));
+		m_nodeIdList.push_back(n);
+	}
 
 	virtual int LoadNode(int index)
 	{
@@ -269,6 +276,7 @@ void Visitor::FireDependencies(std::shared_ptr<ASTNode>& node)
 
 void Visitor::operator<<=(std::pair<int, std::function<void(const std::shared_ptr<ASTNode>&)>> value)
 {
+	if (!value.first) { return; }
 	m_nodeHookList.emplace(std::move(value));
 }
 
