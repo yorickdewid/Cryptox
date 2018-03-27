@@ -1142,6 +1142,11 @@ class ParamDecl
 	NODE_ID(AST::NodeID::PARAM_DECL_ID);
 
 public:
+	explicit ParamDecl(Serializable::Interface& pack)
+	{
+		Deserialize(pack);
+	}
+
 	ParamDecl(const std::string& name, std::shared_ptr<Typedef::TypedefBase> type)
 		: Decl{ name, type }
 	{
@@ -1155,7 +1160,7 @@ public:
 	virtual void Serialize(Serializable::Interface& pack)
 	{
 		pack << nodeId;
-		ASTNode::Serialize(pack);
+		Decl::Serialize(pack);
 	}
 
 	virtual void Deserialize(Serializable::Interface& pack)

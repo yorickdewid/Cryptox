@@ -64,7 +64,7 @@ std::shared_ptr<ASTNode> ASTFactory::MakeNode(Serializable::Interface *visitor)
 	case NodeID::VAR_DECL_ID:
 		break;
 	case NodeID::PARAM_DECL_ID:
-		break;
+		return ReturnNode<ParamDecl>(visitor);
 	case NodeID::VARIADIC_DECL_ID:
 		break;
 	case NodeID::TYPEDEF_DECL_ID:
