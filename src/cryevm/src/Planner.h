@@ -10,29 +10,18 @@
 
 #include "../../coilcl/src/Program.h"
 
-using ProgramPtr = std::unique_ptr<CoilCl::Program>;
+using ProgramPtr = std::unique_ptr<CoilCl::Program, void(*)(CoilCl::Program *)>;
 
 namespace EVM
 {
 
-class Strategy
+struct Strategy
 {
-public:
-	Strategy()
-	{
-	}
-
-	~Strategy()
-	{
-	}
-
-	bool IsRunnable() { return true; }
-	void Execute(){}
-
-private:
-	
+	// Check if strategy can run the program
+	bool IsRunnable() const noexcept { return true; }
+	// Run the program with current strategy
+	void Execute() {}
 };
-
 
 class Planner
 {
@@ -46,12 +35,12 @@ public:
 
 public:
 	Planner(ProgramPtr&& program, Plan plan);
-	~Planner();
-
-	Strategy DetermineStrategy() { return Strategy{}; }
+	// Match possible strategies with program
+	Strategy DetermineStrategy();
 
 private:
-
+	ProgramPtr && m_program;
+	Plan m_opt;
 };
 
 } // namespace EVM

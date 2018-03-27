@@ -91,6 +91,8 @@ public:
 	}
 };
 
+// Verify size of program wrapper
+static_assert(sizeof(ProgramWrapper) == sizeof(program_t), "");
 
 // Adapter between different reader implementations. The adapter will prepare
 // all settings for compiler calls and return the appropriate datastructures

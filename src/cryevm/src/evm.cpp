@@ -21,15 +21,25 @@
 //    - Or Virtual machine
 //    - Or native
 
-using ProgramPtr = std::unique_ptr<CoilCl::Program>;
+using ProgramPtr = std::unique_ptr<CoilCl::Program, void(*)(CoilCl::Program *)>;
 
 namespace Helper {
 
-struct Program
+class Program
 {
+	// Ingore deletion of object since pointer must be preserved
+	static void PreserveObject(CoilCl::Program *ptr)
+	{
+		CRY_UNUSED(ptr);
+	}
+
+public:
+	// Capture the raw pointer in a managed object. Since this pointer cannot be freed here, but
+	// must be provided to certain methods as a managed object and custom deleter is used. This
+	// makes the program a shared scoped pointer.
 	static ProgramPtr Capture(program_t *program_raw)
 	{
-		return std::unique_ptr<CoilCl::Program>{};
+		return ProgramPtr{ reinterpret_cast<CoilCl::Program *>(program_raw), PreserveObject };
 	}
 };
 
@@ -44,7 +54,7 @@ EVMAPI void Execute(program_t *program_raw) noexcept
 	// Determine strategy for program
 	auto runner = EVM::Planner{ std::move(program), EVM::Planner::Plan::ALL }.DetermineStrategy();
 	if (!runner.IsRunnable()) {
-		throw 1;
+		throw 1; //TODO
 	}
 
 	try {
