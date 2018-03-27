@@ -40,9 +40,18 @@ class Visitor : public Serializable::Interface
 	}
 
 	template<typename _Ty>
-	void WriteProxy(const _Ty& value)
+	void WriteProxy(const _Ty& value);
+
+	template<>
+	void WriteProxy(const double& value)
 	{
-		ss << value;
+		WriteProxy(reinterpret_cast<const char *>(&value), sizeof(double));
+	}
+
+	template<>
+	void WriteProxy(const bool& value)
+	{
+		WriteProxy(reinterpret_cast<const char *>(&value), sizeof(bool));
 	}
 
 	template<>
@@ -65,11 +74,26 @@ class Visitor : public Serializable::Interface
 	}
 
 	template<typename _Ty>
-	void ReadProxy(_Ty& value)
+	void ReadProxy(_Ty& value);
+
+	template<>
+	void ReadProxy(double& value)
 	{
 		// If stream is empty, redirect read to callback
 		if (!ss.rdbuf()->in_avail()) {
-			//TODO ..
+			ReadProxy(reinterpret_cast<char *>(&value), sizeof(double));
+			return;
+		}
+
+		ss >> value;
+	}
+
+	template<>
+	void ReadProxy(bool& value)
+	{
+		// If stream is empty, redirect read to callback
+		if (!ss.rdbuf()->in_avail()) {
+			ReadProxy(reinterpret_cast<char *>(&value), sizeof(bool));
 			return;
 		}
 
@@ -155,6 +179,12 @@ class ChildGroup : public Serializable::ChildGroupInterface
 	{
 		if (!m_nodeIdList.empty()) { return; }
 
+		// Read the initial data from the input stream if there are no elements
+		if (!m_elements) {
+			m_visitor.ReadProxy(reinterpret_cast<char *>(&m_elements), sizeof(uint32_t));
+			assert(m_elements > 0);
+		}
+
 		uint32_t nodeId;
 		for (size_t i = 0; i < m_elements; i++)
 		{
@@ -164,14 +194,9 @@ class ChildGroup : public Serializable::ChildGroupInterface
 	}
 
 public:
-	ChildGroup(Visitor *visitor, bool read = true)
+	ChildGroup(Visitor *visitor)
 		: m_visitor{ (*visitor) }
 	{
-		// Read the initial data from the input stream
-		if (!read) {
-			m_visitor.ReadProxy(reinterpret_cast<char *>(&m_elements), sizeof(uint32_t));
-			assert(m_elements > 0);
-		}
 	}
 
 	virtual void SaveNode(std::shared_ptr<ASTNode>& node)
@@ -179,7 +204,7 @@ public:
 		m_visitor.WriteProxy(reinterpret_cast<const char *>(&node->Id()), sizeof(uint32_t));
 		m_nodeIdList.push_back(node->Id());
 	}
-	
+
 	virtual void SaveNode(nullptr_t)
 	{
 		constexpr const uint32_t n = 0;
@@ -258,8 +283,7 @@ Serializable::GroupListType Visitor::GetChildGroups()
 	Serializable::GroupListType group;
 	for (size_t i = 0; i < size; i++)
 	{
-		// Create child group
-		group.push_back(std::make_shared<ChildGroup>(this, false));
+		group.push_back(std::make_shared<ChildGroup>(this));
 	}
 
 	return group;

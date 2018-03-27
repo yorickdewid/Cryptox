@@ -1312,7 +1312,6 @@ public:
 		AssertNode(_nodeId, nodeId);
 
 		auto group = pack.ChildGroups();
-		if (group.Size() != 1) { throw 3; } //TODO
 		pack <<= {group[0], [=](const std::shared_ptr<ASTNode>& node) {
 			auto bits = std::dynamic_pointer_cast<IntegerLiteral>(node);
 			SetBitField(bits);
@@ -1589,7 +1588,12 @@ class FunctionDecl
 #endif
 
 public:
-	explicit FunctionDecl(const std::string& name, std::shared_ptr<CompoundStmt>& node)
+	FunctionDecl(Serializable::Interface& pack)
+	{
+		Deserialize(pack);
+	}
+
+	FunctionDecl(const std::string& name, std::shared_ptr<CompoundStmt>& node)
 		: Decl{ name }
 		, m_body{ node }
 		, m_isPrototype{ false }
@@ -1597,7 +1601,7 @@ public:
 		ASTNode::AppendChild(NODE_UPCAST(node));
 	}
 
-	explicit FunctionDecl(const std::string& name, std::shared_ptr<Typedef::TypedefBase> type)
+	FunctionDecl(const std::string& name, std::shared_ptr<Typedef::TypedefBase> type)
 		: Decl{ name, type }
 	{
 	}
@@ -1677,6 +1681,25 @@ public:
 		AssertNode(_nodeId, nodeId);
 
 		pack >> m_isPrototype;
+
+		auto group = pack.ChildGroups();
+		pack <<= {group[0], [=](const std::shared_ptr<ASTNode>& node) {
+			auto param = std::dynamic_pointer_cast<ParamStmt>(node);
+			SetParameterStatement(param);
+		}};
+
+		group++;
+		pack <<= {group[0], [=](const std::shared_ptr<ASTNode>& node) {
+			auto body = std::dynamic_pointer_cast<CompoundStmt>(node);
+			SetCompound(body);
+		}};
+
+		group++;
+		pack <<= {group[0], [=](const std::shared_ptr<ASTNode>& node) {
+			auto ref = std::dynamic_pointer_cast<FunctionDecl>(node);
+			BindPrototype(ref);
+		}};
+
 		ASTNode::Deserialize(pack);
 	}
 

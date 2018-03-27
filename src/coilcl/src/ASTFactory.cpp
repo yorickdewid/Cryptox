@@ -78,7 +78,7 @@ std::shared_ptr<ASTNode> ASTFactory::MakeNode(Serializable::Interface *visitor)
 	case NodeID::ENUM_DECL_ID:
 		break;
 	case NodeID::FUNCTION_DECL_ID:
-		break;
+		return ReturnNode<FunctionDecl>(visitor);
 	case NodeID::TRANSLATION_UNIT_DECL_ID:
 		return ReturnNode<TranslationUnitDecl>(visitor);
 	case NodeID::EXPR_ID:
