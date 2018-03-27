@@ -56,5 +56,11 @@ target_link_libraries(${PROJECT_NAME}
 	${Boost_LIBRARIES}
 )
 
+# Add test
+add_test(NAME ${PROJECT_NAME}
+	WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/bin
+	COMMAND ${CMAKE_BINARY_DIR}/bin/boost-test
+)
+
 # Set project options
 include(ProjectFin)

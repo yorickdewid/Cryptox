@@ -45,12 +45,39 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/")
 # Find the host operating system and architecture
 include(Util)
 include(CPack)
+include(CTest)
 include(FindOS)
 include(CheckCXXCompilerFlag)
+
+# Force build type
+if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
+	set(CMAKE_BUILD_TYPE "Debug" CACHE STRING "Build type for Swift [Debug, RelWithDebInfo, Release, MinSizeRel]" FORCE)
+	message(STATUS "No build type was specified, will default to ${CMAKE_BUILD_TYPE}")
+endif()
 
 # In-source builds are disabled.
 if(${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_BINARY_DIR})
     message(FATAL_ERROR "CMAKE generation is not possible within the source directory!")
+endif()
+
+# Compiler check
+if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+    # Require at least GCC 4.8
+    if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS 4.8)
+        message(FATAL_ERROR "Compiler does not support C++11")
+    endif()
+elseif(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+    # Require at least Clang 3.3
+    if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS 3.3)
+        message(FATAL_ERROR "Compiler does not support C++11")
+	endif()
+elseif(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+	# Require at least MSVC 14.0
+	if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS 14.0)
+        message(FATAL_ERROR "Compiler does not support C++11")
+	endif()
+else()
+    message(WARNING "Unknown compiler")
 endif()
 
 # Options
@@ -83,7 +110,7 @@ endif()
 
 if($ENV{APPVEYOR_BUILD_NUMBER})
 	set(${PROJECT_NAME}_VERSION_BUILD $ENV{APPVEYOR_BUILD_NUMBER})
-	message(STATUS "Build nr ${PROJECT_NAME}_VERSION_BUILD")
+	message(STATUS "Build nr ${${PROJECT_NAME}_VERSION_BUILD}")
 endif()
 
 # Find source control reference
@@ -108,6 +135,14 @@ set(PRODUCT_BRAND_NAME ${${${PROJECT_NAME}_ID}_BRAND_NAME})
 set(PRODUCT_BRAND_NAME_FULL ${${${PROJECT_NAME}_ID}_BRAND_NAME_FULL})
 set(PRODUCT_BRAND_AUTHOR ${${${PROJECT_NAME}_ID}_BRAND_AUTHOR})
 set(PRODUCT_COPYRIGHT ${${PROJECT_NAME}_COPYRIGHT})
+
+if(${${PROJECT_NAME}_VERSION_BUILD})
+	set(PRODUCT_VERSION_BUILD ${PROJECT_NAME}_VERSION_BUILD)
+endif()
+
+if(${${PROJECT_NAME}_VERSION_REV})
+	set(PRODUCT_VERSION_REV ${PROJECT_NAME}_VERSION_REV)
+endif()
 
 if (NOT ${${${PROJECT_NAME}_ID}_RELEASE_ADD} STREQUAL "")
 	set(PRODUCT_VERSION_EXT ${${${PROJECT_NAME}_ID}_RELEASE_ADD})
