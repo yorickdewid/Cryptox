@@ -132,7 +132,7 @@ std::shared_ptr<ASTNode> ASTFactory::MakeNode(Serializable::Interface *visitor)
 	case NodeID::ARGUMENT_STMT_ID:
 		break;
 	case NodeID::PARAM_STMT_ID:
-		break;
+		return ReturnNode<ParamStmt>(visitor);
 	case NodeID::LABEL_STMT_ID:
 		break;
 	case NodeID::GOTO_STMT_ID:

@@ -3089,7 +3089,14 @@ class ParamStmt
 	std::vector<std::shared_ptr<ASTNode>> m_param;
 
 public:
-	void AppendParamter(std::shared_ptr<ASTNode>& node)
+	explicit ParamStmt(Serializable::Interface& pack)
+	{
+		Deserialize(pack);
+	}
+
+	ParamStmt() = default;
+
+	void AppendParamter(const std::shared_ptr<ASTNode>& node)
 	{
 		ASTNode::AppendChild(node);
 		m_param.push_back(node);
@@ -3115,6 +3122,15 @@ public:
 		AST::NodeID _nodeId;
 		pack >> _nodeId;
 		AssertNode(_nodeId, nodeId);
+
+		auto group = pack.ChildGroups();
+		for (size_t i = 0; i < group.Size(); ++i)
+		{
+			int childNodeId = group[i];
+			pack <<= {childNodeId, [=](const std::shared_ptr<ASTNode>& node) {
+				AppendParamter(node);
+			}};
+		}
 
 		Stmt::Deserialize(pack);
 	}
