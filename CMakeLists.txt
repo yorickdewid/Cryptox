@@ -15,8 +15,28 @@ project(Cryptox)
 set(${PROJECT_NAME}_ID Cry)
 set(${PROJECT_NAME}_CIL CIL)
 
-if(POLICY CMP0025)
-	cmake_policy(SET CMP0025 NEW)
+if(POLICY CMP0026)
+  cmake_policy(SET CMP0026 NEW)
+endif()
+
+if(POLICY CMP0042)
+  cmake_policy(SET CMP0042 NEW)
+endif()
+
+if(POLICY CMP0046)
+  cmake_policy(SET CMP0046 NEW)
+endif()
+
+if(POLICY CMP0051)
+  cmake_policy(SET CMP0051 NEW)
+endif()
+
+if(POLICY CMP0056)
+  cmake_policy(SET CMP0056 NEW)
+endif()
+
+if(POLICY CMP0067)
+  cmake_policy(SET CMP0067 NEW)
 endif()
 
 # Include modules
@@ -60,6 +80,22 @@ set(${PROJECT_NAME}_VERSION ${${PROJECT_NAME}_VERSION_MAJOR}.${${PROJECT_NAME}_V
 if (NOT ${${${PROJECT_NAME}_ID}_RELEASE_ADD} STREQUAL "")
 	set(${PROJECT_NAME}_VERSION "${${PROJECT_NAME}_VERSION}-${${${PROJECT_NAME}_ID}_RELEASE_ADD}")
 endif()
+
+if($ENV{APPVEYOR_BUILD_NUMBER})
+	set(${PROJECT_NAME}_VERSION_BUILD $ENV{APPVEYOR_BUILD_NUMBER})
+	message(STATUS "Build nr ${PROJECT_NAME}_VERSION_BUILD")
+endif()
+
+# Find source control reference
+find_program(GIT_EXE NAMES git)
+if(GIT_EXE)
+    execute_process(
+		WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+        COMMAND ${GIT_EXE} name-rev HEAD --tags --name-only --no-undefined --always
+        OUTPUT_VARIABLE ${PROJECT_NAME}_VERSION_REV
+        OUTPUT_STRIP_TRAILING_WHITESPACE)
+endif()
+message(STATUS "Build rev ${${PROJECT_NAME}_VERSION_REV}")
 
 # Static config exports
 string(TIMESTAMP ${PROJECT_NAME}_COMPILE_TIMESTAMP "%Y-%m-%d %H:%M:%S")
@@ -149,12 +185,17 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 # Build sources with additional warnings
 if(${${PROJECT_NAME}_ID}_BUILD_WALL)
-	if(CMAKE_COMPILER_IS_GNUCC)
-		set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -Wall -Wextra")
-	endif()
 	if(MSVC)
-		set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} /W4 /sdl")
+		set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /W4")
+	elseif(MINGW)
+		set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Wall -Werror -Wno-error=format= -Wno-error=format -Wno-error=format-extra-args")
+	else()
+		set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Werror -Wall")
 	endif()
+endif()
+
+if(MSVC)
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /sdl")
 endif()
 
 set(CMAKE_VERBOSE_MAKEFILE ON)
