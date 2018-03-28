@@ -1771,7 +1771,7 @@ private:
 	}
 
 public:
-	TranslationUnitDecl(Serializable::Interface& pack)
+	explicit TranslationUnitDecl(Serializable::Interface& pack)
 	{
 		Deserialize(pack);
 	}
@@ -1901,6 +1901,11 @@ class DeclRefExpr
 	std::weak_ptr<Decl> m_ref;
 
 public:
+	explicit DeclRefExpr(Serializable::Interface& pack)
+	{
+		Deserialize(pack);
+	}
+
 	// We're not saving the reference as child in the root to prevent
 	// circulair references in the upper node.
 	explicit DeclRefExpr(std::shared_ptr<Decl>& ref)
@@ -1952,6 +1957,11 @@ public:
 		AST::NodeID _nodeId;
 		pack >> _nodeId;
 		AssertNode(_nodeId, nodeId);
+
+		auto group = pack.ChildGroups();
+		pack <<= {group[0], [=](const std::shared_ptr<ASTNode>& node) {
+			Resolve(node);
+		}};
 
 		ResolveRefExpr::Deserialize(pack);
 	}
@@ -3063,7 +3073,14 @@ class ArgumentStmt
 	std::vector<std::shared_ptr<ASTNode>> m_arg;
 
 public:
-	void AppendArgument(std::shared_ptr<ASTNode>& node)
+	explicit ArgumentStmt(Serializable::Interface& pack)
+	{
+		Deserialize(pack);
+	}
+
+	ArgumentStmt() = default;
+
+	void AppendArgument(const std::shared_ptr<ASTNode>& node)
 	{
 		ASTNode::AppendChild(node);
 		m_arg.push_back(node);
@@ -3100,6 +3117,15 @@ public:
 		AST::NodeID _nodeId;
 		pack >> _nodeId;
 		AssertNode(_nodeId, nodeId);
+
+		auto group = pack.ChildGroups();
+		for (size_t i = 0; i < group.Size(); ++i)
+		{
+			int childNodeId = group[i];
+			pack <<= {childNodeId, [=](const std::shared_ptr<ASTNode>& node) {
+				AppendArgument(node);
+			}};
+		}
 
 		Stmt::Deserialize(pack);
 	}
