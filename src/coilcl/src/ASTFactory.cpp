@@ -66,7 +66,7 @@ std::shared_ptr<ASTNode> ASTFactory::MakeNode(Serializable::Interface *visitor)
 	case NodeID::PARAM_DECL_ID:
 		return ReturnNode<ParamDecl>(visitor);
 	case NodeID::VARIADIC_DECL_ID:
-		break;
+		return ReturnNode<VariadicDecl>(visitor);
 	case NodeID::TYPEDEF_DECL_ID:
 		break;
 	case NodeID::FIELD_DECL_ID:
@@ -88,7 +88,7 @@ std::shared_ptr<ASTNode> ASTFactory::MakeNode(Serializable::Interface *visitor)
 	case NodeID::DECL_REF_EXPR_ID:
 		break;
 	case NodeID::CALL_EXPR_ID:
-		break;
+		return ReturnNode<CallExpr>(visitor);
 	case NodeID::BUILTIN_EXPR_ID:
 		break;
 	case NodeID::CAST_EXPR_ID:
@@ -138,7 +138,7 @@ std::shared_ptr<ASTNode> ASTFactory::MakeNode(Serializable::Interface *visitor)
 	case NodeID::GOTO_STMT_ID:
 		break;
 	case NodeID::COMPOUND_STMT_ID:
-		break;
+		return ReturnNode<CompoundStmt>(visitor);
 	default:
 		break;
 	}

@@ -1202,6 +1202,11 @@ class VariadicDecl
 	NODE_ID(AST::NodeID::VARIADIC_DECL_ID);
 
 public:
+	explicit VariadicDecl(Serializable::Interface& pack)
+	{
+		Deserialize(pack);
+	}
+
 	VariadicDecl()
 		: Decl{ "", std::dynamic_pointer_cast<Typedef::TypedefBase>(Util::MakeVariadicType()) }
 	{
@@ -1985,6 +1990,11 @@ class CallExpr
 	std::shared_ptr<ArgumentStmt> m_args;
 
 public:
+	explicit CallExpr(Serializable::Interface& pack)
+	{
+		Deserialize(pack);
+	}
+
 	CallExpr(std::shared_ptr<DeclRefExpr>& func, std::shared_ptr<ArgumentStmt> args = nullptr)
 		: Expr{}
 	{
@@ -2017,6 +2027,20 @@ public:
 		AST::NodeID _nodeId;
 		pack >> _nodeId;
 		AssertNode(_nodeId, nodeId);
+
+		auto group = pack.ChildGroups();
+		pack <<= {group[0], [=](const std::shared_ptr<ASTNode>& node) {
+			ASTNode::AppendChild(node);
+			auto ref = std::dynamic_pointer_cast<DeclRefExpr>(node);
+			m_funcRef = ref;
+		}};
+
+		group++;
+		pack <<= {group[0], [=](const std::shared_ptr<ASTNode>& node) {
+			ASTNode::AppendChild(node);
+			auto args = std::dynamic_pointer_cast<ArgumentStmt>(node);
+			m_args = args;
+		}};
 
 		Expr::Deserialize(pack);
 	}
@@ -3239,6 +3263,13 @@ class CompoundStmt
 	std::list<std::shared_ptr<ASTNode>> m_children;
 
 public:
+	explicit CompoundStmt(Serializable::Interface& pack)
+	{
+		Deserialize(pack);
+	}
+
+	CompoundStmt() = default;
+
 	void AppendChild(const std::shared_ptr<ASTNode>& node) final
 	{
 		ASTNode::AppendChild(node);
@@ -3265,6 +3296,15 @@ public:
 		AST::NodeID _nodeId;
 		pack >> _nodeId;
 		AssertNode(_nodeId, nodeId);
+
+		auto group = pack.ChildGroups();
+		for (size_t i = 0; i < group.Size(); ++i)
+		{
+			int childNodeId = group[i];
+			pack <<= {childNodeId, [=](const std::shared_ptr<ASTNode>& node) {
+				AppendChild(node);
+			}};
+		}
 
 		Stmt::Deserialize(pack);
 	}
