@@ -36,9 +36,8 @@ std::shared_ptr<ASTNode> ASTFactory::MakeNode(Serializable::Interface *visitor)
 	switch (GetNodeId(visitor))
 	{
 	case NodeID::INVAL:
-		throw 2; //TODO
 	case NodeID::AST_NODE_ID:
-		break;
+		throw 2; //TODO
 	case NodeID::OPERATOR_ID:
 		break;
 	case NodeID::BINARY_OPERATOR_ID:
@@ -54,7 +53,7 @@ std::shared_ptr<ASTNode> ASTFactory::MakeNode(Serializable::Interface *visitor)
 	case NodeID::CHARACTER_LITERAL_ID:
 		break;
 	case NodeID::STRING_LITERAL_ID:
-		break;
+		return ReturnNode<StringLiteral>(visitor);
 	case NodeID::INTEGER_LITERAL_ID:
 		break;
 	case NodeID::FLOAT_LITERAL_ID:

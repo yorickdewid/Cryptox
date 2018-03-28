@@ -311,7 +311,6 @@ public:
 	inline size_t ChildrenCount() const { return children.size(); }
 	inline size_t ModifierCount() const { return m_state.Alteration(); }
 
-	[[noreturn]]
 	virtual void Emplace(size_t idx, const std::shared_ptr<ASTNode>&& node)
 	{
 		CRY_UNUSED(idx);
@@ -985,10 +984,31 @@ class StringLiteral : public LiteralImpl<std::string, StringLiteral>
 	NODE_ID(AST::NodeID::STRING_LITERAL_ID);
 
 public:
+	explicit StringLiteral(Serializable::Interface& pack)
+	{
+		Deserialize(pack);
+	}
+
 	template<typename _Ty>
 	StringLiteral(_Ty&& value)
 		: LiteralImpl{ std::forward<_Ty>(value) }
 	{
+	}
+
+	virtual void Serialize(Serializable::Interface& pack)
+	{
+		pack << nodeId;
+		ASTNode::Serialize(pack);
+	}
+
+	virtual void Deserialize(Serializable::Interface& pack)
+	{
+		AST::NodeID _nodeId;
+
+		pack >> _nodeId;
+		AssertNode(_nodeId, nodeId);
+
+		ASTNode::Deserialize(pack);
 	}
 };
 
