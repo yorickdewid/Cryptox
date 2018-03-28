@@ -8,9 +8,11 @@
 
 #pragma once
 
+#include "UniquePreservePtr.h"
+
 #include "../../coilcl/src/Program.h"
 
-using ProgramPtr = std::unique_ptr<CoilCl::Program, void(*)(CoilCl::Program *)>;
+using ProgramPtr = Detail::UniquePreservePtr<CoilCl::Program>;
 
 namespace EVM
 {
@@ -39,7 +41,7 @@ public:
 	Strategy DetermineStrategy();
 
 private:
-	ProgramPtr && m_program;
+	ProgramPtr m_program{nullptr};
 	Plan m_opt;
 };
 

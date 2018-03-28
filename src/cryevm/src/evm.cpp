@@ -8,6 +8,7 @@
 
 #include "evm.h"
 #include "Planner.h"
+#include "UniquePreservePtr.h"
 
 #include "../../coilcl/src/Program.h"
 
@@ -21,35 +22,13 @@
 //    - Or Virtual machine
 //    - Or native
 
-using ProgramPtr = std::unique_ptr<CoilCl::Program, void(*)(CoilCl::Program *)>;
-
-namespace Helper {
-
-class Program
-{
-	// Ingore deletion of object since pointer must be preserved
-	static void PreserveObject(CoilCl::Program *ptr)
-	{
-		CRY_UNUSED(ptr);
-	}
-
-public:
-	// Capture the raw pointer in a managed object. Since this pointer cannot be freed here, but
-	// must be provided to certain methods as a managed object and custom deleter is used. This
-	// makes the program a shared scoped pointer.
-	static ProgramPtr Capture(program_t *program_raw)
-	{
-		return ProgramPtr{ reinterpret_cast<CoilCl::Program *>(program_raw), PreserveObject };
-	}
-};
-
-} // namespace Helper
+using ProgramPtr = Detail::UniquePreservePtr<CoilCl::Program>;
 
 // Execute program
 EVMAPI void Execute(program_t *program_raw) noexcept
 {
 	// Capture program pointer and cast into program structure
-	ProgramPtr program = Helper::Program::Capture(program_raw);
+	ProgramPtr program = ProgramPtr{ program_raw };
 
 	// Determine strategy for program
 	auto runner = EVM::Planner{ std::move(program), EVM::Planner::Plan::ALL }.DetermineStrategy();
