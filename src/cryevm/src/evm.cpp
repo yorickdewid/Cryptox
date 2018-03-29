@@ -37,7 +37,7 @@ EVMAPI void Execute(program_t *program_raw) noexcept
 	}
 
 	try {
-		// Execute the program in the designated runner
+		// Execute the program in the designated strategy
 		runner.Execute();
 	}
 	// Catch any runtime errors

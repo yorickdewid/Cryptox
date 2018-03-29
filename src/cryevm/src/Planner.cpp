@@ -7,6 +7,7 @@
 // copied and/or distributed without the express of the author.
 
 #include "Planner.h"
+#include "Interpreter.h"
 
 using namespace EVM;
 
@@ -16,36 +17,42 @@ Planner::Planner(ProgramPtr&& program, Plan plan)
 {
 }
 
+template<typename _Ty = Strategy>
+Strategy YieldStrategy()
+{
+	return _Ty{};
+}
+
 Strategy Planner::DetermineStrategy()
 {
 	// Algoritm
 	/*
 	if (wants_native && plan != NO_ARCH) {
 		if (has_native_code(x64)) {
-			return run_native()
+			return YieldStrategy<OSNative>();
 		}
 		if (can_convert_to_native(x64)) {
 			convert_native()
-			return run_native()
+			return YieldStrategy<OSNative>();
 		}
 		if (plan == NATIVE_ONLY) {
-			return null
+			return YieldStrategy<>();
 		}
 	}
 	if (has_casm && plan == ALL) {
-		return run_casm()
+		return YieldStrategy<VirtualMachine>();
 	}
 	if (wants_casm && plan == ALL) {
 		if (can_convert_to_casm) {
 			convert_casm()
-			return run_casm()
+			return YieldStrategy<VirtualMachine>();
 		}
 	}
 	if (plan != NATIVE_ONLY) {
-		return run_interpreter()
+		return YieldStrategy<Interpreter>();
 	}
-	return null
+	return YieldStrategy<>();
 	*/
-
-	return Strategy{};
+	
+	return YieldStrategy<Interpreter>();
 }
