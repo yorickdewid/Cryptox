@@ -302,6 +302,7 @@ protected:
 
 public:
 	ASTNode() = default;
+
 	ASTNode(int _line, int _col)
 		: line{ _line }
 		, col{ _col }
@@ -2597,6 +2598,13 @@ class ContinueStmt
 	NODE_ID(AST::NodeID::CONTINUE_STMT_ID);
 
 public:
+	explicit ContinueStmt(Serializable::Interface& pack)
+	{
+		Deserialize(pack);
+	}
+
+	ContinueStmt() = default;
+
 	SERIALIZE(Stmt);
 	DESERIALIZE(Stmt);
 	PRINT_NODE(ContinueStmt);
@@ -2795,6 +2803,11 @@ class SwitchStmt
 	std::shared_ptr<ASTNode> m_body;
 
 public:
+	explicit SwitchStmt(Serializable::Interface& pack)
+	{
+		Deserialize(pack);
+	}
+
 	SwitchStmt(std::shared_ptr<ASTNode>& eval, std::shared_ptr<ASTNode> body = nullptr)
 		: evalNode{ eval }
 	{
@@ -2806,7 +2819,7 @@ public:
 		}
 	}
 
-	void SetBody(std::shared_ptr<ASTNode>& node)
+	void SetBody(const std::shared_ptr<ASTNode>& node)
 	{
 		ASTNode::AppendChild(node);
 		m_body = node;
@@ -2834,6 +2847,17 @@ public:
 		AST::NodeID _nodeId;
 		pack >> _nodeId;
 		AssertNode(_nodeId, nodeId);
+
+		auto group = pack.ChildGroups();
+		pack <<= {group[0], [=](const std::shared_ptr<ASTNode>& node) {
+			evalNode = node;
+			ASTNode::AppendChild(node);
+		}};
+
+		group++;
+		pack <<= {group[0], [=](const std::shared_ptr<ASTNode>& node) {
+			SetBody(node);
+		}};
 
 		Stmt::Deserialize(pack);
 	}
@@ -2853,6 +2877,11 @@ class WhileStmt
 	std::shared_ptr<ASTNode> m_body;
 
 public:
+	explicit WhileStmt(Serializable::Interface& pack)
+	{
+		Deserialize(pack);
+	}
+
 	WhileStmt(std::shared_ptr<ASTNode>& eval, std::shared_ptr<ASTNode> body = nullptr)
 		: evalNode{ eval }
 	{
@@ -2864,7 +2893,7 @@ public:
 		}
 	}
 
-	void SetBody(std::shared_ptr<ASTNode>& node)
+	void SetBody(const std::shared_ptr<ASTNode>& node)
 	{
 		ASTNode::AppendChild(node);
 		m_body = node;
@@ -2893,6 +2922,17 @@ public:
 		pack >> _nodeId;
 		AssertNode(_nodeId, nodeId);
 
+		auto group = pack.ChildGroups();
+		pack <<= {group[0], [=](const std::shared_ptr<ASTNode>& node) {
+			evalNode = node;
+			ASTNode::AppendChild(node);
+		}};
+
+		group++;
+		pack <<= {group[0], [=](const std::shared_ptr<ASTNode>& node) {
+			SetBody(node);
+		}};
+
 		Stmt::Deserialize(pack);
 	}
 
@@ -2911,6 +2951,11 @@ class DoStmt
 	std::shared_ptr<ASTNode> m_body;
 
 public:
+	explicit DoStmt(Serializable::Interface& pack)
+	{
+		Deserialize(pack);
+	}
+
 	DoStmt(std::shared_ptr<ASTNode>& body, std::shared_ptr<ASTNode> eval = nullptr)
 		: m_body{ body }
 	{
@@ -2922,7 +2967,7 @@ public:
 		}
 	}
 
-	void SetEval(std::shared_ptr<ASTNode>& node)
+	void SetEval(const std::shared_ptr<ASTNode>& node)
 	{
 		ASTNode::AppendChild(node);
 		evalNode = node;
@@ -2951,6 +2996,17 @@ public:
 		pack >> _nodeId;
 		AssertNode(_nodeId, nodeId);
 
+		auto group = pack.ChildGroups();
+		pack <<= {group[0], [=](const std::shared_ptr<ASTNode>& node) {
+			SetEval(node);
+		}};
+
+		group++;
+		pack <<= {group[0], [=](const std::shared_ptr<ASTNode>& node) {
+			m_body = node;
+			ASTNode::AppendChild(node);
+		}};
+
 		Stmt::Deserialize(pack);
 	}
 
@@ -2971,6 +3027,11 @@ class ForStmt
 	std::shared_ptr<ASTNode> m_body;
 
 public:
+	explicit ForStmt(Serializable::Interface& pack)
+	{
+		Deserialize(pack);
+	}
+
 	ForStmt(std::shared_ptr<ASTNode>& node1, std::shared_ptr<ASTNode>& node2, std::shared_ptr<ASTNode>& node3)
 		: m_node1{ node1 }
 		, m_node2{ node2 }
@@ -2981,7 +3042,7 @@ public:
 		ASTNode::AppendChild(node3);
 	}
 
-	void SetBody(std::shared_ptr<ASTNode>& node)
+	void SetBody(const std::shared_ptr<ASTNode>& node)
 	{
 		ASTNode::AppendChild(node);
 		m_body = node;
@@ -3018,6 +3079,29 @@ public:
 		pack >> _nodeId;
 		AssertNode(_nodeId, nodeId);
 
+		auto group = pack.ChildGroups();
+		pack <<= {group[0], [=](const std::shared_ptr<ASTNode>& node) {
+			m_node1 = node;
+			ASTNode::AppendChild(node);
+		}};
+
+		group++;
+		pack <<= {group[0], [=](const std::shared_ptr<ASTNode>& node) {
+			m_node2 = node;
+			ASTNode::AppendChild(node);
+		}};
+
+		group++;
+		pack <<= {group[0], [=](const std::shared_ptr<ASTNode>& node) {
+			m_node3 = node;
+			ASTNode::AppendChild(node);
+		}};
+
+		group++;
+		pack <<= {group[0], [=](const std::shared_ptr<ASTNode>& node) {
+			SetBody(node);
+		}};
+
 		Stmt::Deserialize(pack);
 	}
 
@@ -3034,9 +3118,12 @@ class BreakStmt
 	NODE_ID(AST::NodeID::BREAK_STMT_ID);
 
 public:
-	BreakStmt()
+	explicit BreakStmt(Serializable::Interface& pack)
 	{
+		Deserialize(pack);
 	}
+
+	BreakStmt() = default;
 
 	SERIALIZE(Stmt);
 	DESERIALIZE(Stmt);
@@ -3055,6 +3142,11 @@ class DefaultStmt
 	std::shared_ptr<ASTNode> m_body;
 
 public:
+	explicit DefaultStmt(Serializable::Interface& pack)
+	{
+		Deserialize(pack);
+	}
+
 	DefaultStmt(const std::shared_ptr<ASTNode>& body)
 		: m_body{ body }
 	{
@@ -3078,6 +3170,12 @@ public:
 		pack >> _nodeId;
 		AssertNode(_nodeId, nodeId);
 
+		auto group = pack.ChildGroups();
+		pack <<= {group[0], [=](const std::shared_ptr<ASTNode>& node) {
+			m_body = node;
+			ASTNode::AppendChild(node);
+		}};
+
 		Stmt::Deserialize(pack);
 	}
 
@@ -3096,6 +3194,11 @@ class CaseStmt
 	std::shared_ptr<ASTNode> m_body;
 
 public:
+	explicit CaseStmt(Serializable::Interface& pack)
+	{
+		Deserialize(pack);
+	}
+
 	CaseStmt(std::shared_ptr<ASTNode>& name, std::shared_ptr<ASTNode>& body)
 		: m_name{ name }
 		, m_body{ body }
@@ -3124,6 +3227,18 @@ public:
 		AST::NodeID _nodeId;
 		pack >> _nodeId;
 		AssertNode(_nodeId, nodeId);
+
+		auto group = pack.ChildGroups();
+		pack <<= {group[0], [=](const std::shared_ptr<ASTNode>& node) {
+			m_name = node;
+			ASTNode::AppendChild(node);
+		}};
+
+		group++;
+		pack <<= {group[0], [=](const std::shared_ptr<ASTNode>& node) {
+			m_body = node;
+			ASTNode::AppendChild(node);
+		}};
 
 		Stmt::Deserialize(pack);
 	}
@@ -3335,6 +3450,11 @@ class LabelStmt
 	std::shared_ptr<ASTNode> m_body;
 
 public:
+	explicit LabelStmt(Serializable::Interface& pack)
+	{
+		Deserialize(pack);
+	}
+
 	LabelStmt(const std::string& name, std::shared_ptr<ASTNode>& node)
 		: m_name{ name }
 		, m_body{ node }
@@ -3362,6 +3482,12 @@ public:
 
 		pack >> m_name;
 
+		auto group = pack.ChildGroups();
+		pack <<= {group[0], [=](const std::shared_ptr<ASTNode>& node) {
+			m_body = node;
+			ASTNode::AppendChild(node);
+		}};
+
 		Stmt::Deserialize(pack);
 	}
 
@@ -3379,6 +3505,11 @@ class GotoStmt
 	std::string m_labelName;
 
 public:
+	explicit GotoStmt(Serializable::Interface& pack)
+	{
+		Deserialize(pack);
+	}
+
 	GotoStmt(const std::string& name)
 		: m_labelName{ name }
 	{
@@ -3419,7 +3550,7 @@ class CompoundStmt
 	std::list<std::shared_ptr<ASTNode>> m_children;
 
 public:
-	explicit CompoundStmt(Serializable::Interface& pack)
+	CompoundStmt(Serializable::Interface& pack)
 	{
 		Deserialize(pack);
 	}
