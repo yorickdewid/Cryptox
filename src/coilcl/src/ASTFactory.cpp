@@ -26,7 +26,7 @@ AST::NodeID GetNodeId(Serializable::Interface *visitor)
 template<typename _Ty, typename = typename std::enable_if<std::is_base_of<ASTNode, _Ty>::value>::type>
 std::shared_ptr<ASTNode> ReturnNode(Serializable::Interface *visitor)
 {
-	std::shared_ptr<ASTNode> node = std::make_shared<_Ty>(*visitor);
+	std::shared_ptr<ASTNode> node = std::shared_ptr<_Ty>{ new _Ty{ (*visitor) } };
 	visitor->FireDependencies(node);
 	return std::move(node);
 }
@@ -37,9 +37,14 @@ std::shared_ptr<ASTNode> ASTFactory::MakeNode(Serializable::Interface *visitor)
 	{
 	case NodeID::INVAL:
 	case NodeID::AST_NODE_ID:
-		throw 2; //TODO
 	case NodeID::OPERATOR_ID:
+	case NodeID::LITERAL_ID:
+	case NodeID::DECL_ID:
+	case NodeID::EXPR_ID:
+	case NodeID::STMT_ID:
+		throw 2; //TODO
 		break;
+	
 	case NodeID::BINARY_OPERATOR_ID:
 		break;
 	case NodeID::CONDITIONAL_OPERATOR_ID:
@@ -48,20 +53,18 @@ std::shared_ptr<ASTNode> ASTFactory::MakeNode(Serializable::Interface *visitor)
 		break;
 	case NodeID::COMPOUND_ASSIGN_OPERATOR_ID:
 		break;
-	case NodeID::LITERAL_ID:
-		break;
+	
 	case NodeID::CHARACTER_LITERAL_ID:
-		break;
+		return ReturnNode<CharacterLiteral>(visitor);
 	case NodeID::STRING_LITERAL_ID:
 		return ReturnNode<StringLiteral>(visitor);
 	case NodeID::INTEGER_LITERAL_ID:
-		break;
+		return ReturnNode<IntegerLiteral>(visitor);
 	case NodeID::FLOAT_LITERAL_ID:
-		break;
-	case NodeID::DECL_ID:
-		break;
+		return ReturnNode<FloatingLiteral>(visitor);
+	
 	case NodeID::VAR_DECL_ID:
-		break;
+		return ReturnNode<VarDecl>(visitor);
 	case NodeID::PARAM_DECL_ID:
 		return ReturnNode<ParamDecl>(visitor);
 	case NodeID::VARIADIC_DECL_ID:
@@ -80,8 +83,7 @@ std::shared_ptr<ASTNode> ASTFactory::MakeNode(Serializable::Interface *visitor)
 		return ReturnNode<FunctionDecl>(visitor);
 	case NodeID::TRANSLATION_UNIT_DECL_ID:
 		return ReturnNode<TranslationUnitDecl>(visitor);
-	case NodeID::EXPR_ID:
-		break;
+	
 	case NodeID::RESOLVE_REF_EXPR_ID:
 		break;
 	case NodeID::DECL_REF_EXPR_ID:
@@ -104,8 +106,7 @@ std::shared_ptr<ASTNode> ASTFactory::MakeNode(Serializable::Interface *visitor)
 		break;
 	case NodeID::MEMBER_EXPR_ID:
 		break;
-	case NodeID::STMT_ID:
-		break;
+
 	case NodeID::CONTINUE_STMT_ID:
 		break;
 	case NodeID::RETURN_STMT_ID:
@@ -127,7 +128,7 @@ std::shared_ptr<ASTNode> ASTFactory::MakeNode(Serializable::Interface *visitor)
 	case NodeID::CASE_STMT_ID:
 		break;
 	case NodeID::DECL_STMT_ID:
-		break;
+		return ReturnNode<DeclStmt>(visitor);
 	case NodeID::ARGUMENT_STMT_ID:
 		return ReturnNode<ArgumentStmt>(visitor);
 	case NodeID::PARAM_STMT_ID:

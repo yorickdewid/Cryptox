@@ -951,6 +951,22 @@ public:
 	{
 	}
 
+	virtual void Serialize(Serializable::Interface& pack)
+	{
+		pack << _DrivTy::nodeId;
+		ASTNode::Serialize(pack);
+	}
+
+	virtual void Deserialize(Serializable::Interface& pack)
+	{
+		AST::NodeID _nodeId;
+
+		pack >> _nodeId;
+		AssertNode(_nodeId, _DrivTy::nodeId);
+
+		ASTNode::Deserialize(pack);
+	}
+
 	const std::string NodeName() const
 	{
 		std::stringstream ss;
@@ -971,7 +987,14 @@ class CharacterLiteral : public LiteralImpl<char, CharacterLiteral>
 {
 	NODE_ID(AST::NodeID::CHARACTER_LITERAL_ID);
 
+	friend class LiteralImpl<char, CharacterLiteral>;
+
 public:
+	explicit CharacterLiteral(Serializable::Interface& pack)
+	{
+		Deserialize(pack);
+	}
+
 	template<typename _Ty>
 	CharacterLiteral(_Ty&& value)
 		: LiteralImpl{ std::forward<_Ty>(value) }
@@ -982,6 +1005,8 @@ public:
 class StringLiteral : public LiteralImpl<std::string, StringLiteral>
 {
 	NODE_ID(AST::NodeID::STRING_LITERAL_ID);
+
+	friend class LiteralImpl<std::string, StringLiteral>;
 
 public:
 	explicit StringLiteral(Serializable::Interface& pack)
@@ -994,29 +1019,20 @@ public:
 		: LiteralImpl{ std::forward<_Ty>(value) }
 	{
 	}
-
-	virtual void Serialize(Serializable::Interface& pack)
-	{
-		pack << nodeId;
-		ASTNode::Serialize(pack);
-	}
-
-	virtual void Deserialize(Serializable::Interface& pack)
-	{
-		AST::NodeID _nodeId;
-
-		pack >> _nodeId;
-		AssertNode(_nodeId, nodeId);
-
-		ASTNode::Deserialize(pack);
-	}
 };
 
 class IntegerLiteral : public LiteralImpl<int, IntegerLiteral>
 {
 	NODE_ID(AST::NodeID::INTEGER_LITERAL_ID);
 
+	friend class LiteralImpl<int, IntegerLiteral>;
+
 public:
+	explicit IntegerLiteral(Serializable::Interface& pack)
+	{
+		Deserialize(pack);
+	}
+
 	template<typename _Ty>
 	IntegerLiteral(_Ty&& value)
 		: LiteralImpl{ std::forward<_Ty>(value) }
@@ -1028,7 +1044,14 @@ class FloatingLiteral : public LiteralImpl<double, FloatingLiteral>
 {
 	NODE_ID(AST::NodeID::FLOAT_LITERAL_ID);
 
+	friend class LiteralImpl<double, FloatingLiteral>;
+
 public:
+	explicit FloatingLiteral(Serializable::Interface& pack)
+	{
+		Deserialize(pack);
+	}
+
 	template<typename _Ty>
 	FloatingLiteral(_Ty&& value)
 		: LiteralImpl{ std::forward<_Ty>(value) }
@@ -1096,6 +1119,11 @@ class VarDecl
 	std::shared_ptr<ASTNode> m_body;
 
 public:
+	explicit VarDecl(Serializable::Interface& pack)
+	{
+		Deserialize(pack);
+	}
+
 	VarDecl(const std::string& name, std::shared_ptr<Typedef::TypedefBase> type, std::shared_ptr<ASTNode> node = nullptr)
 		: Decl{ name, type }
 		, m_body{ node }
@@ -1130,6 +1158,11 @@ public:
 		AST::NodeID _nodeId;
 		pack >> _nodeId;
 		AssertNode(_nodeId, nodeId);
+
+		auto group = pack.ChildGroups();
+		pack <<= {group[0], [=](const std::shared_ptr<ASTNode>& node) {
+			m_body = node;
+		}};
 
 		Decl::Deserialize(pack);
 	}
@@ -3049,6 +3082,13 @@ class DeclStmt
 	std::list<std::shared_ptr<VarDecl>> m_var;
 
 public:
+	explicit DeclStmt(Serializable::Interface& pack)
+	{
+		Deserialize(pack);
+	}
+
+	DeclStmt() = default;
+
 	void AddDeclaration(const std::shared_ptr<VarDecl>& node)
 	{
 		ASTNode::AppendChild(NODE_UPCAST(node));
@@ -3075,6 +3115,16 @@ public:
 		AST::NodeID _nodeId;
 		pack >> _nodeId;
 		AssertNode(_nodeId, nodeId);
+
+		auto group = pack.ChildGroups();
+		for (size_t i = 0; i < group.Size(); ++i)
+		{
+			int childNodeId = group[i];
+			pack <<= {childNodeId, [=](const std::shared_ptr<ASTNode>& node) {
+				auto decl = std::dynamic_pointer_cast<VarDecl>(node);
+				AddDeclaration(decl);
+			}};
+		}
 
 		Stmt::Deserialize(pack);
 	}

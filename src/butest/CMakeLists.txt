@@ -25,9 +25,6 @@ enable_unsecure_crt()
 # Allow testing on this target
 enable_testing()
 
-# Add it to test execution TODO
-add_test("Cryptox Test" "boost-test")
-
 add_executable(${PROJECT_NAME}
 	${${PROJECT_NAME}_src}
 	${${PROJECT_NAME}_h}
