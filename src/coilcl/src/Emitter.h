@@ -42,7 +42,7 @@ struct ModuleInterface
 	}
 
 	// Call the module
-	virtual void Invoke(ASTNode *node) = 0;
+	virtual void Invoke(AST::AST) = 0;
 };
 
 template<typename _SeqTy>
@@ -108,9 +108,8 @@ public:
 	}
 
 	// Should only invoke from the sequencer interface
-	virtual void Invoke(ASTNode *node)
+	virtual void Invoke(AST::AST)
 	{
-		CRY_UNUSED(node);
 	}
 };
 
@@ -134,9 +133,9 @@ public:
 		return ModuleInterface::RequestPermissionInfo();
 	}
 
-	virtual void Invoke(ASTNode *node)
+	virtual void Invoke(AST::AST astWrapper)
 	{
-		m_sequencer->Execute(node);
+		m_sequencer->Execute(astWrapper);
 	}
 };
 
@@ -176,7 +175,7 @@ public:
 	}
 
 private:
-	Emitter& RegisterModule(Module<Sequencer::Interface>&&);
+	Emitter & RegisterModule(Module<Sequencer::Interface>&&);
 	AST::AST Strategy(ModuleInterface::ModulePerm);
 
 private:

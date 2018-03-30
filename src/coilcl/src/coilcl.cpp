@@ -198,12 +198,12 @@ public:
 				.AddModule(AIIPXMod)
 				.Process();
 
-			ASTNode *root = nullptr;
+			AST::AST tree;
 			auto treeBlock = memoryStream->DeepCopy();
 			Emit::Sequencer::AIIPX{
 				[](uint8_t *data, size_t sz) { CRY_UNUSED(data); CRY_UNUSED(sz); },
 				[&treeBlock](uint8_t *data, size_t sz) { treeBlock->Read(data, sz); }
-			}.UnpackAST(root);
+			}.UnpackAST(tree);
 
 			// Print all compiler stage non fatal messages
 			PrintNoticeMessages();

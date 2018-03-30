@@ -215,23 +215,20 @@ public:
 	using iterator = Iterator;
 	using const_iterator = ConstIterator;
 
+	// Wrapper without tree
+	AST() = default;
+
 	// Move tree into AST wrapper
 	AST(std::shared_ptr<ASTNode>&& tree)
 		: m_tree{ std::move(tree) }
-		, treeLink{ ++interfaceCounter }
 	{
 	}
 
 	// Link new AST object to internal tree
 	AST(std::shared_ptr<ASTNode>& tree)
 		: m_tree{ tree }
-		, treeLink{ ++interfaceCounter }
 	{
 	}
-
-	// No implicit copy, only move
-	AST(const AST&) = delete;
-	AST(AST&&) = default;
 
 	// Iterator interfaces
 	iterator begin() { return Iterator{ m_tree }; }
@@ -248,8 +245,18 @@ public:
 	}
 
 	// Capacity
-	size_type size() { return std::distance(this->begin(), this->end()); }
-	bool empty() { return std::distance(this->begin(), this->end()) == 0; }
+	size_type size() const
+	{
+		if (!m_tree) { return 0; }
+		return std::distance(this->cbegin(), this->cend());
+	}
+	bool empty() const
+	{
+		if (!m_tree) { return false; }
+		return std::distance(this->cbegin(), this->cend()) == 0;
+	}
+
+	inline bool has_tree() const noexcept { return !!m_tree; }
 
 	// Direct tree access
 	inline ASTNode *operator->() const { return m_tree.get(); }
@@ -258,23 +265,18 @@ public:
 	// Get top node
 	inline ASTNode *operator*() { return m_tree.get(); }
 
+	//TODO: Remove this method in favor of copy ctor
 	// Copy self with new reference to tree
 	AST tree_ref()
 	{
-		AST tmp{ m_tree };
-		return tmp;
+		AST copy{ m_tree };
+		return copy;
 	}
 
-	// AST tree reference trackers
-	int TreeLinkId() const { return treeLink; }
-	int TreeLinkCount() const { return interfaceCounter; }
+	//TODO: DeepCopy()
 
 private:
-	std::shared_ptr<ASTNode> m_tree; //TODO: unique ptr?
-	const int treeLink;
-
-private:
-	static int interfaceCounter;
+	std::shared_ptr<ASTNode> m_tree;
 };
 
 template<typename _Ty, typename... _Args>

@@ -10,7 +10,7 @@
 
 #include "Cry/Except.h"
 
-#include "ASTNode.h"
+#include "AST.h"
 
 namespace CoilCl
 {
@@ -23,15 +23,14 @@ class Interface
 {
 public:
 	// Execute the sequencer
-	virtual void Execute(ASTNode *node) = 0;
+	virtual void Execute(AST::AST) = 0;
 };
 
 class CASM : public Interface
 {
 public:
-	virtual void Execute(ASTNode *node)
+	virtual void Execute(AST::AST)
 	{
-		CRY_UNUSED(node);
 		throw Cry::Except::NotImplementedException{ "CASM::Execute" };
 	}
 };
@@ -52,15 +51,15 @@ public:
 	}
 
 	// Implement interface
-	virtual void Execute(ASTNode *node)
+	virtual void Execute(AST::AST tree)
 	{
-		PackAST(node);
+		PackAST(tree);
 	}
 
 	// Convert tree into output stream
-	void PackAST(ASTNode *node);
+	void PackAST(AST::AST);
 	// Convert input stream into tree
-	void UnpackAST(ASTNode *node);
+	void UnpackAST(AST::AST&);
 };
 
 } // namespace Sequencer

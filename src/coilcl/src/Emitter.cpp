@@ -59,11 +59,11 @@ Emitter& Emitter::Process()
 	for (auto& mod : m_mods)
 	{
 		// Determine AST strategy
-		AST::AST ast = Strategy(mod.first);
+		AST::AST astWrapper = Strategy(mod.first);
 
 		try {
 			// Call module with tree
-			mod.second.Invoke(*ast);
+			mod.second.Invoke(astWrapper);
 		}
 		catch (const ModuleException&) {
 			throw; //TODO 
