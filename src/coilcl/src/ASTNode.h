@@ -547,6 +547,11 @@ public:
 	}
 
 public:
+	explicit BinaryOperator(Serializable::Interface& pack)
+	{
+		Deserialize(pack);
+	}
+
 	BinaryOperator(BinOperand operand, const std::shared_ptr<ASTNode>& leftSide)
 		: m_operand{ operand }
 		, m_lhs{ leftSide }
@@ -554,7 +559,7 @@ public:
 		ASTNode::AppendChild(leftSide);
 	}
 
-	void SetRightSide(std::shared_ptr<ASTNode>& node)
+	void SetRightSide(const std::shared_ptr<ASTNode>& node)
 	{
 		ASTNode::AppendChild(node);
 		m_rhs = node;
@@ -584,6 +589,15 @@ public:
 	{
 		pack << nodeId;
 		pack << m_operand;
+
+		auto group = pack.ChildGroups(2);
+		group.Size(1);
+		group << m_lhs;
+
+		group++;
+		group.Size(1);
+		group << m_rhs;
+
 		Operator::Serialize(pack);
 	}
 
@@ -596,6 +610,17 @@ public:
 		int operand;
 		pack >> operand;
 		m_operand = static_cast<BinOperand>(operand);
+
+		auto group = pack.ChildGroups();
+		pack <<= {group[0], [=](const std::shared_ptr<ASTNode>& node) {
+			m_lhs = node;
+			ASTNode::AppendChild(node);
+		}};
+
+		group++;
+		pack <<= {group[0], [=](const std::shared_ptr<ASTNode>& node) {
+			SetRightSide(node);
+		}};
 
 		Operator::Deserialize(pack);
 	}
@@ -1162,6 +1187,7 @@ public:
 		auto group = pack.ChildGroups();
 		pack <<= {group[0], [=](const std::shared_ptr<ASTNode>& node) {
 			m_body = node;
+			ASTNode::AppendChild(node);
 		}};
 
 		Decl::Deserialize(pack);
@@ -2587,6 +2613,13 @@ class ReturnStmt
 	std::shared_ptr<ASTNode> m_returnExpr;
 
 public:
+	explicit ReturnStmt(Serializable::Interface& pack)
+	{
+		Deserialize(pack);
+	}
+
+	ReturnStmt() = default;
+
 	void SetReturnNode(std::shared_ptr<ASTNode>& node)
 	{
 		ASTNode::AppendChild(node);
@@ -2626,6 +2659,12 @@ public:
 		pack >> _nodeId;
 		AssertNode(_nodeId, nodeId);
 
+		auto group = pack.ChildGroups();
+		pack <<= {group[0], [=](const std::shared_ptr<ASTNode>& node) {
+			m_returnExpr = node;
+			ASTNode::AppendChild(node);
+		}};
+
 		Stmt::Deserialize(pack);
 	}
 
@@ -2645,6 +2684,11 @@ class IfStmt
 	std::shared_ptr<ASTNode> m_altStmt;
 
 public:
+	explicit IfStmt(Serializable::Interface& pack)
+	{
+		Deserialize(pack);
+	}
+
 	IfStmt(std::shared_ptr<ASTNode>& eval, std::shared_ptr<ASTNode> truth = nullptr, std::shared_ptr<ASTNode> alt = nullptr)
 		: m_evalNode{ eval }
 	{
@@ -2661,7 +2705,7 @@ public:
 		}
 	}
 
-	void SetTruthCompound(std::shared_ptr<ASTNode>& node)
+	void SetTruthCompound(const std::shared_ptr<ASTNode>& node)
 	{
 		ASTNode::AppendChild(node);
 		m_truthStmt = node;
@@ -2669,7 +2713,7 @@ public:
 		ASTNode::UpdateDelegate();
 	}
 
-	void SetAltCompound(std::shared_ptr<ASTNode>& node)
+	void SetAltCompound(const std::shared_ptr<ASTNode>& node)
 	{
 		ASTNode::AppendChild(node);
 		m_altStmt = node;
@@ -2701,6 +2745,22 @@ public:
 		AST::NodeID _nodeId;
 		pack >> _nodeId;
 		AssertNode(_nodeId, nodeId);
+
+		auto group = pack.ChildGroups();
+		pack <<= {group[0], [=](const std::shared_ptr<ASTNode>& node) {
+			m_evalNode = node;
+			ASTNode::AppendChild(node);
+		}};
+
+		group++;
+		pack <<= {group[0], [=](const std::shared_ptr<ASTNode>& node) {
+			SetTruthCompound(node);
+		}};
+
+		group++;
+		pack <<= {group[0], [=](const std::shared_ptr<ASTNode>& node) {
+			SetAltCompound(node);
+		}};
 
 		Stmt::Deserialize(pack);
 	}

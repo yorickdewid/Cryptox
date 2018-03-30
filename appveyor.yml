@@ -48,9 +48,7 @@ build_script:
   - cmake --build . --config %CONFIGURATION%
 
 test_script:
-  - ctest -V --build-config %CONFIGURATION%
-  # - cd %APPVEYOR_BUILD_FOLDER%\Build\bin\%CONFIGURATION%
-  # - boost-test.exe
+  - ctest -V --repeat-until-fail 2 --build-config %CONFIGURATION%
 
 # Disable artefacts as there is a storage limit
 # artifacts:

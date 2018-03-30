@@ -46,7 +46,7 @@ std::shared_ptr<ASTNode> ASTFactory::MakeNode(Serializable::Interface *visitor)
 		break;
 	
 	case NodeID::BINARY_OPERATOR_ID:
-		break;
+		return ReturnNode<BinaryOperator>(visitor);
 	case NodeID::CONDITIONAL_OPERATOR_ID:
 		break;
 	case NodeID::UNARY_OPERATOR_ID:
@@ -110,9 +110,9 @@ std::shared_ptr<ASTNode> ASTFactory::MakeNode(Serializable::Interface *visitor)
 	case NodeID::CONTINUE_STMT_ID:
 		break;
 	case NodeID::RETURN_STMT_ID:
-		break;
+		return ReturnNode<ReturnStmt>(visitor);
 	case NodeID::IF_STMT_ID:
-		break;
+		return ReturnNode<IfStmt>(visitor);
 	case NodeID::SWITCH_STMT_ID:
 		break;
 	case NodeID::WHILE_STMT_ID:
