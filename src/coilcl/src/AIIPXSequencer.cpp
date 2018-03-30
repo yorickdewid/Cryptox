@@ -331,15 +331,16 @@ void CompressNode(ASTNode *node, Visitor visitor, OutputCallback callback)
 	}
 }
 
-void UncompressNode(ASTNode *node, Visitor *visitor, InputCallback callback)
+AST::AST UncompressNode(Visitor *visitor, InputCallback callback)
 {
+	using AST::ASTFactory;
 	std::shared_ptr<ASTNode> root;
 
 	try
 	{
 		do {
 			// Get node from AST factory
-			auto _node = AST::ASTFactory::MakeNode(visitor);
+			auto _node = ASTFactory::MakeNode(visitor);
 			visitor->Clear();
 			assert(_node);
 
@@ -349,29 +350,33 @@ void UncompressNode(ASTNode *node, Visitor *visitor, InputCallback callback)
 			}
 		} while (true);
 	}
-	catch (int e)
+	catch (ASTFactory::EndOfStreamException&)
 	{
-		if (e == 2) { //TODO: for now
-			//TODO: Inval node, end here
-		}
+		// Return root as program tree. The AST wrapper
+		// will incorporate the root as tree.
+		return root;
 	}
+
+	return nullptr;
 }
 
-void AIIPX::PackAST(ASTNode *node)
+void AIIPX::PackAST(AST::AST tree)
 {
 	Visitor visit;
-	assert(node);
 
 	// Write marker to output stream to recognize the sequencer
 	m_outputCallback(&initMarker[0], static_cast<size_t>(sizeof(initMarker)));
-	CompressNode(node, visit, m_outputCallback);
+	CompressNode((*tree), visit, m_outputCallback);
 }
 
-void AIIPX::UnpackAST(ASTNode *node)
+void AIIPX::UnpackAST(AST::AST& tree)
 {
+	// Initialize visitor with input stream
 	Visitor visit{ m_inputCallback };
+	
 	uint8_t _initMarker[sizeof(initMarker)];
 	CRY_MEMZERO(_initMarker, sizeof(initMarker));
+	assert(!tree.has_tree());
 
 	// Read marker from input stream
 	m_inputCallback(&_initMarker[0], sizeof(initMarker));
@@ -379,5 +384,5 @@ void AIIPX::UnpackAST(ASTNode *node)
 		throw 1; //TODO
 	}
 
-	UncompressNode(node, &visit, m_inputCallback);
+	std::swap(tree, UncompressNode(&visit, m_inputCallback));
 }

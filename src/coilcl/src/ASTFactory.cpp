@@ -18,6 +18,9 @@ AST::NodeID GetNodeId(Serializable::Interface *visitor)
 {
 	AST::NodeID _nodeId = AST::NodeID::INVAL;
 	(*visitor) >> _nodeId;
+	if (_nodeId == AST::NodeID::INVAL) {
+		return _nodeId;
+	}
 	(*visitor) << _nodeId;
 
 	return _nodeId;
@@ -41,7 +44,7 @@ std::shared_ptr<ASTNode> ASTFactory::MakeNode(Serializable::Interface *visitor)
 		//         not done. There must be a more reliable method to test of the
 		//         end of input stream.
 	case NodeID::INVAL:
-		throw 2; //TODO
+		throw EndOfStreamException{};
 
 	case NodeID::BINARY_OPERATOR_ID:
 		return ReturnNode<BinaryOperator>(visitor);

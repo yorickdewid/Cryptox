@@ -17,6 +17,10 @@ namespace AST
 
 struct ASTFactory
 {
+	struct EndOfStreamException
+	{
+	};
+
 	static std::shared_ptr<ASTNode> MakeNode(Serializable::Interface *visitor);
 };
 
