@@ -2,10 +2,10 @@
 
 #include <iostream>
 
-// Implement abstract class dtor
+// Implement abstract class destructors
 Operator::~Operator() {}
 Literal::~Literal() {}
-//Decl::~Decl() {} //TODO
+Decl::~Decl() {}
 Expr::~Expr() {}
 Stmt::~Stmt() {}
 

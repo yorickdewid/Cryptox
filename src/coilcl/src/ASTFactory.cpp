@@ -71,7 +71,7 @@ std::shared_ptr<ASTNode> ASTFactory::MakeNode(Serializable::Interface *visitor)
 	case NodeID::VARIADIC_DECL_ID:
 		return ReturnNode<VariadicDecl>(visitor);
 	case NodeID::TYPEDEF_DECL_ID:
-		break;
+		return ReturnNode<TypedefDecl>(visitor);
 	case NodeID::FIELD_DECL_ID:
 		return ReturnNode<FieldDecl>(visitor);
 	case NodeID::RECORD_DECL_ID:

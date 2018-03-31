@@ -10,8 +10,8 @@
 
 #include <Cry/Indep.h>
 
-#include "Typedef.h" //TODO: remove ?
-#include "Valuedef.h" //TODO: remove ?
+#include "Typedef.h" //TODO: remove,replace ?
+#include "Valuedef.h" //TODO: remove,replace ?
 #include "TypeFacade.h"
 #include "Converter.h"
 #include "RefCount.h"
@@ -116,13 +116,18 @@ class Returnable
 {
 	AST::TypeFacade m_returnType;
 
-public:
+protected:
+	// Take no return type by default. The caller can query this
+	// interface to ask if an return type was set.
 	Returnable() = default;
+
+	// Initialize object with return type
 	Returnable(AST::TypeFacade type)
 		: m_returnType{ type }
 	{
 	}
 
+public:
 	virtual bool HasReturnType() const { return m_returnType.HasValue(); }
 	virtual void SetReturnType(AST::TypeFacade type) { m_returnType = type; }
 	virtual AST::TypeFacade ReturnType() const { return m_returnType; }
@@ -1018,17 +1023,39 @@ class Literal
 {
 	NODE_ID(AST::NodeID::LITERAL_ID);
 
-public:
+protected:
 	virtual ~Literal() = 0;
 
-	Literal() = default;
+	virtual void Serialize(Serializable::Interface& pack)
+	{
+		pack << nodeId;
 
+		//TODO: Handle Returnable here...
+
+		ASTNode::Serialize(pack);
+	}
+
+	virtual void Deserialize(Serializable::Interface& pack)
+	{
+		AST::NodeID _nodeId;
+		pack >> _nodeId;
+		AssertNode(_nodeId, nodeId);
+
+		//TODO: Handle Returnable here...
+
+		ASTNode::Deserialize(pack);
+	}
+
+public:
 	template<typename... _VariaTy>
 	Literal(_VariaTy&&... args)
 		: Returnable{ std::forward<_VariaTy>(args)... }
 	{
 	}
 };
+
+namespace Detail
+{
 
 template<typename _NativTy, class _DrivTy>
 class LiteralImpl
@@ -1040,12 +1067,14 @@ protected:
 
 public:
 	// Default to void type with no data
+	// FUTURE: Make this more readable and only instantiate a single object
 	LiteralImpl()
-		: LiteralImpl{ CoilCl::Util::MakeBuiltinType(CoilCl::Typedef::BuiltinType::Specifier::VOID) }
+		: Literal{ AST::TypeFacade{ CoilCl::Util::MakeBuiltinType(CoilCl::Typedef::BuiltinType::Specifier::VOID) } }
+		, m_valueObj{ CoilCl::Util::MakeBuiltinType(CoilCl::Typedef::BuiltinType::Specifier::VOID) }
 	{
 	}
 
-	// Move data object from lexer into literal
+	// Move data object from token processor into literal object
 	LiteralImpl(std::shared_ptr<CoilCl::Valuedef::ValueObject<_NativTy>>&& object)
 		: Literal{ AST::TypeFacade{ object->DataType() } }
 		, m_valueObj{ std::move(object) }
@@ -1055,7 +1084,7 @@ public:
 	virtual void Serialize(Serializable::Interface& pack)
 	{
 		pack << _DrivTy::nodeId;
-		ASTNode::Serialize(pack);
+		Literal::Serialize(pack);
 	}
 
 	virtual void Deserialize(Serializable::Interface& pack)
@@ -1065,7 +1094,7 @@ public:
 		pack >> _nodeId;
 		AssertNode(_nodeId, _DrivTy::nodeId);
 
-		ASTNode::Deserialize(pack);
+		Literal::Deserialize(pack);
 	}
 
 	const std::string NodeName() const
@@ -1084,11 +1113,13 @@ private:
 	POLY_IMPL();
 };
 
-class CharacterLiteral : public LiteralImpl<char, CharacterLiteral>
+} // namespace Detail
+
+class CharacterLiteral : public Detail::LiteralImpl<char, CharacterLiteral>
 {
 	NODE_ID(AST::NodeID::CHARACTER_LITERAL_ID);
 
-	friend class LiteralImpl<char, CharacterLiteral>;
+	friend class Detail::LiteralImpl<char, CharacterLiteral>;
 
 public:
 	explicit CharacterLiteral(Serializable::Interface& pack)
@@ -1103,11 +1134,11 @@ public:
 	}
 };
 
-class StringLiteral : public LiteralImpl<std::string, StringLiteral>
+class StringLiteral : public Detail::LiteralImpl<std::string, StringLiteral>
 {
 	NODE_ID(AST::NodeID::STRING_LITERAL_ID);
 
-	friend class LiteralImpl<std::string, StringLiteral>;
+	friend class Detail::LiteralImpl<std::string, StringLiteral>;
 
 public:
 	explicit StringLiteral(Serializable::Interface& pack)
@@ -1122,11 +1153,11 @@ public:
 	}
 };
 
-class IntegerLiteral : public LiteralImpl<int, IntegerLiteral>
+class IntegerLiteral : public Detail::LiteralImpl<int, IntegerLiteral>
 {
 	NODE_ID(AST::NodeID::INTEGER_LITERAL_ID);
 
-	friend class LiteralImpl<int, IntegerLiteral>;
+	friend class Detail::LiteralImpl<int, IntegerLiteral>;
 
 public:
 	explicit IntegerLiteral(Serializable::Interface& pack)
@@ -1141,11 +1172,11 @@ public:
 	}
 };
 
-class FloatingLiteral : public LiteralImpl<double, FloatingLiteral>
+class FloatingLiteral : public Detail::LiteralImpl<double, FloatingLiteral>
 {
 	NODE_ID(AST::NodeID::FLOAT_LITERAL_ID);
 
-	friend class LiteralImpl<double, FloatingLiteral>;
+	friend class Detail::LiteralImpl<double, FloatingLiteral>;
 
 public:
 	explicit FloatingLiteral(Serializable::Interface& pack)
@@ -1174,19 +1205,13 @@ class Decl
 protected:
 	std::string m_identifier;
 
-public:
-	Decl() = default; //TODO: temp, remove afterwards
-	//virtual ~Decl() = 0;//TODO
+protected:
+	virtual ~Decl() = 0;
 
-	//TODO: temp, remove afterwards
-	Decl(const std::string& name)
-		: m_identifier{ name }
-	{
-	}
-
-	Decl(const std::string& name, const std::shared_ptr<Typedef::TypedefBase>& specifier)
-		: m_identifier{ name }
-		, Returnable{ AST::TypeFacade{ specifier } }
+	// Constructor only available for deserialization
+	// operations. This constructor should never be called
+	// direct, and is only available to derived classes.
+	explicit Decl(Serializable::Interface&)
 	{
 	}
 
@@ -1200,13 +1225,25 @@ public:
 	virtual void Deserialize(Serializable::Interface& pack)
 	{
 		AST::NodeID _nodeId;
-
 		pack >> _nodeId;
 		AssertNode(_nodeId, nodeId);
 
 		pack >> m_identifier;
 
 		ASTNode::Deserialize(pack);
+	}
+
+public:
+	//TODO: temp, remove afterwards
+	Decl(const std::string& name)
+		: m_identifier{ name }
+	{
+	}
+
+	Decl(const std::string& name, const std::shared_ptr<Typedef::TypedefBase>& specifier)
+		: m_identifier{ name }
+		, Returnable{ AST::TypeFacade{ specifier } }
+	{
 	}
 
 	auto Identifier() const { return m_identifier; }
@@ -1221,6 +1258,7 @@ class VarDecl
 
 public:
 	explicit VarDecl(Serializable::Interface& pack)
+		: Decl{ pack }
 	{
 		Deserialize(pack);
 	}
@@ -1298,6 +1336,7 @@ class ParamDecl
 
 public:
 	explicit ParamDecl(Serializable::Interface& pack)
+		: Decl{ pack }
 	{
 		Deserialize(pack);
 	}
@@ -1358,6 +1397,7 @@ class VariadicDecl
 
 public:
 	explicit VariadicDecl(Serializable::Interface& pack)
+		: Decl{ pack }
 	{
 		Deserialize(pack);
 	}
@@ -1396,6 +1436,12 @@ class TypedefDecl
 	NODE_ID(AST::NodeID::TYPEDEF_DECL_ID);
 
 public:
+	explicit TypedefDecl(Serializable::Interface& pack)
+		: Decl{ pack }
+	{
+		Deserialize(pack);
+	}
+
 	TypedefDecl(const std::string& name, std::shared_ptr<Typedef::TypedefBase> type)
 		: Decl{ name, type }
 	{
@@ -1410,7 +1456,6 @@ public:
 	virtual void Deserialize(Serializable::Interface& pack)
 	{
 		AST::NodeID _nodeId;
-
 		pack >> _nodeId;
 		AssertNode(_nodeId, nodeId);
 
@@ -1441,7 +1486,8 @@ class FieldDecl
 	std::shared_ptr<IntegerLiteral> m_bits;
 
 public:
-	FieldDecl(Serializable::Interface& pack)
+	explicit FieldDecl(Serializable::Interface& pack)
+		: Decl{ pack }
 	{
 		Deserialize(pack);
 	}
@@ -1519,7 +1565,8 @@ private:
 	RecordType m_type = RecordType::STRUCT;
 
 public:
-	RecordDecl(Serializable::Interface& pack)
+	explicit RecordDecl(Serializable::Interface& pack)
+		: Decl{ pack }
 	{
 		Deserialize(pack);
 	}
@@ -1615,6 +1662,7 @@ class EnumConstantDecl
 
 public:
 	explicit EnumConstantDecl(Serializable::Interface& pack)
+		: Decl{ pack }
 	{
 		Deserialize(pack);
 	}
@@ -1687,6 +1735,7 @@ class EnumDecl
 
 public:
 	explicit EnumDecl(Serializable::Interface& pack)
+		: Decl{ pack }
 	{
 		Deserialize(pack);
 	}
@@ -1779,7 +1828,8 @@ class FunctionDecl
 #endif
 
 public:
-	FunctionDecl(Serializable::Interface& pack)
+	explicit FunctionDecl(Serializable::Interface& pack)
+		: Decl{ pack }
 	{
 		Deserialize(pack);
 	}
@@ -1953,6 +2003,7 @@ private:
 
 public:
 	explicit TranslationUnitDecl(Serializable::Interface& pack)
+		: Decl{ pack }
 	{
 		Deserialize(pack);
 	}

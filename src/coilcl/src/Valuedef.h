@@ -70,14 +70,14 @@ public:
 	inline void SetInline() { m_isInline = true; }
 
 	// Return the type specifier
-	auto DataType() const { return m_objectType; }
+	auto DataType() const noexcept { return m_objectType; }
 
 	template<typename _CastTy>
 	auto DataType() const { return std::dynamic_pointer_cast<_CastTy>(m_objectType); }
 
 	// Check if current storage type is array
-	inline auto IsArray() const { return m_array.m_Size != 0; }
-	inline auto Size() const { return m_array.m_Size; }
+	inline auto IsArray() const noexcept { return m_array.m_Size != 0; }
+	inline auto Size() const noexcept { return m_array.m_Size; }
 
 	// By default try direct cast from any
 	template<typename _Ty>

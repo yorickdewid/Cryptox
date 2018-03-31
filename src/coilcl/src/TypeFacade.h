@@ -24,7 +24,7 @@ class TypeFacade
 	size_t m_ptrCount = 0;
 
 public:
-	TypeFacade() = default;
+	TypeFacade() = default;//TODO: Should be removed?
 	
 	TypeFacade(const std::shared_ptr<Typedef::TypedefBase>& type)
 		: m_type{ type }
