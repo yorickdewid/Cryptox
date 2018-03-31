@@ -10,9 +10,6 @@
 
 #include "Typedef.h"
 
-#include <memory>
-#include <string>
-
 namespace CoilCl
 {
 namespace AST
@@ -54,18 +51,13 @@ public:
 		return typeid(*m_type.get());
 	}
 
+	// Comparison equal operator
 	bool operator==(const TypeFacade& other) const { return m_type->Equals(other.m_type.get()); }
+	// Comparison not equal operator
 	bool operator!=(const TypeFacade& other) const { return !m_type->Equals(other.m_type.get()); }
 
 private:
-	std::string PointerName() const
-	{
-		if (m_ptrCount == 0) {
-			return "";
-		}
-
-		return " " + std::string(m_ptrCount, '*');
-	}
+	std::string PointerName() const;
 };
 
 } // namespace AST

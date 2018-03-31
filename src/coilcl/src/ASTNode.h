@@ -422,7 +422,6 @@ public:
 	virtual void Deserialize(Serializable::Interface& pack)
 	{
 		AST::NodeID _nodeId;
-
 		pack >> _nodeId;
 		AssertNode(_nodeId, nodeId);
 
@@ -467,7 +466,7 @@ class Operator
 {
 	NODE_ID(AST::NodeID::OPERATOR_ID);
 
-public:
+protected:
 	SERIALIZE(ASTNode);
 	DESERIALIZE(ASTNode);
 	virtual ~Operator() = 0;
@@ -1046,7 +1045,6 @@ protected:
 		ASTNode::Deserialize(pack);
 	}
 
-public:
 	template<typename... _VariaTy>
 	Literal(_VariaTy&&... args)
 		: Returnable{ std::forward<_VariaTy>(args)... }
@@ -1215,10 +1213,16 @@ protected:
 	{
 	}
 
+	// Default initializer with empty identifier
+	Decl() = default;
+
 	virtual void Serialize(Serializable::Interface& pack)
 	{
 		pack << nodeId;
 		pack << m_identifier;
+
+		//TODO: Handle Returnable here...
+
 		ASTNode::Serialize(pack);
 	}
 
@@ -1230,10 +1234,11 @@ protected:
 
 		pack >> m_identifier;
 
+		//TODO: Handle Returnable here...
+
 		ASTNode::Deserialize(pack);
 	}
 
-public:
 	//TODO: temp, remove afterwards
 	Decl(const std::string& name)
 		: m_identifier{ name }
@@ -1241,11 +1246,12 @@ public:
 	}
 
 	Decl(const std::string& name, const std::shared_ptr<Typedef::TypedefBase>& specifier)
-		: m_identifier{ name }
-		, Returnable{ AST::TypeFacade{ specifier } }
+		: Returnable{ AST::TypeFacade{ specifier } }
+		, m_identifier{ name }
 	{
 	}
 
+public:
 	auto Identifier() const { return m_identifier; }
 };
 
@@ -2071,7 +2077,7 @@ class Expr
 {
 	NODE_ID(AST::NodeID::EXPR_ID);
 
-public:
+protected:
 	SERIALIZE(ASTNode);
 	DESERIALIZE(ASTNode);
 	virtual ~Expr() = 0;
@@ -2836,7 +2842,7 @@ class Stmt : public ASTNode
 {
 	NODE_ID(AST::NodeID::STMT_ID);
 
-public:
+protected:
 	SERIALIZE(ASTNode);
 	DESERIALIZE(ASTNode);
 	virtual ~Stmt() = 0;

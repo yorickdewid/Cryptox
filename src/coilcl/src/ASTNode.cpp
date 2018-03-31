@@ -12,6 +12,7 @@ Stmt::~Stmt() {}
 // Unique object counter initialization
 int UniqueObj::_id = 100;
 
+// Print the AST tree to screen
 void ASTNode::Print(int version, int level, bool last, std::vector<int> ignore) const
 {
 	if (level == 0) {
