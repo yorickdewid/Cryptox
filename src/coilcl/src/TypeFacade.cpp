@@ -12,6 +12,16 @@
 
 using namespace CoilCl::AST;
 
+void TypeFacade::Serialize(const TypeFacade& in, std::vector<uint8_t>& out)
+{
+	//
+}
+
+void TypeFacade::Deserialize(TypeFacade& out, const std::vector<uint8_t>& in)
+{
+	//
+}
+
 std::string TypeFacade::PointerName() const
 {
 	if (m_ptrCount == 0) {

@@ -130,7 +130,8 @@ protected:
 public:
 	virtual bool HasReturnType() const { return m_returnType.HasValue(); }
 	virtual void SetReturnType(AST::TypeFacade type) { m_returnType = type; }
-	virtual AST::TypeFacade ReturnType() const { return m_returnType; }
+	virtual const AST::TypeFacade& ReturnType() const { return m_returnType; }
+	virtual AST::TypeFacade& UpdateReturnType() { return m_returnType; }
 };
 
 struct Serializable
@@ -384,7 +385,7 @@ public:
 		return children;
 	}
 
-	template<typename _Ty, typename = std::enable_if<std::is_pointer<_Ty>::value>::type>
+	template<typename _Ty, typename = typename std::enable_if<std::is_pointer<_Ty>::value>::type>
 	void AddUserData(_Ty data)
 	{
 		m_userData.emplace_back(data);
@@ -1221,7 +1222,14 @@ protected:
 		pack << nodeId;
 		pack << m_identifier;
 
-		//TODO: Handle Returnable here...
+		if (HasReturnType()) {
+			pack << true;
+			std::vector<uint8_t> buffer;
+			AST::TypeFacade::Serialize(ReturnType(), buffer);
+		}
+		else {
+			pack << false;
+		}
 
 		ASTNode::Serialize(pack);
 	}
@@ -1234,7 +1242,12 @@ protected:
 
 		pack >> m_identifier;
 
-		//TODO: Handle Returnable here...
+		bool hasReturn = false;
+		pack >> hasReturn;
+		if (hasReturn) {
+			std::vector<uint8_t> buffer;
+			//AST::TypeFacade::Deserialize(ReturnType(), buffer);
+		}
 
 		ASTNode::Deserialize(pack);
 	}
@@ -2165,18 +2178,29 @@ public:
 		m_ref = std::dynamic_pointer_cast<Decl>(ref);
 	}
 
+	// If reference resolves there is an return type
 	bool HasReturnType() const override
 	{
 		return IsResolved();
 	}
 
-	AST::TypeFacade ReturnType() const override
+	// 
+	void SetReturnType(AST::TypeFacade type) override
 	{
-		if (IsResolved()) {
-			return Reference()->ReturnType();
-		}
+		assert(IsResolved());
+		return Reference()->SetReturnType(type);
+	}
 
-		return Returnable::ReturnType();
+	const AST::TypeFacade& ReturnType() const override
+	{
+		assert(IsResolved());
+		return Reference()->ReturnType();
+	}
+
+	AST::TypeFacade& UpdateReturnType() override
+	{
+		assert(IsResolved());
+		return Reference()->UpdateReturnType();
 	}
 
 	virtual void Serialize(Serializable::Interface& pack)

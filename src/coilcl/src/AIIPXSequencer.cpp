@@ -373,7 +373,7 @@ void AIIPX::UnpackAST(AST::AST& tree)
 {
 	// Initialize visitor with input stream
 	Visitor visit{ m_inputCallback };
-	
+
 	uint8_t _initMarker[sizeof(initMarker)];
 	CRY_MEMZERO(_initMarker, sizeof(initMarker));
 	assert(!tree.has_tree());
@@ -384,5 +384,5 @@ void AIIPX::UnpackAST(AST::AST& tree)
 		throw 1; //TODO
 	}
 
-	std::swap(tree, UncompressNode(&visit, m_inputCallback));
+	tree = std::move(UncompressNode(&visit, m_inputCallback));
 }

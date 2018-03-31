@@ -132,14 +132,13 @@ void IsConversionRequired(std::shared_ptr<_ParentTy> parent, std::shared_ptr<_Ch
 		return;
 	}
 
-	AST::TypeFacade initType;
 	if (auto ret = std::dynamic_pointer_cast<Returnable>(child)) {
-		initType = ret->ReturnType();
-	}
+		const AST::TypeFacade& initType = ret->ReturnType();
 
-	assert(initType.HasValue());
-	if (baseType != initType) {
-		InjectConverter<_Idx>(parent, child, baseType, initType);
+		assert(initType.HasValue());
+		if (baseType != initType) {
+			InjectConverter<_Idx>(parent, child, baseType, initType);
+		}
 	}
 }
 

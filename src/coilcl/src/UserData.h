@@ -67,7 +67,7 @@ public:
 		return tmpPtr;
 	}
 
-	template<typename _Ty, typename = std::enable_if<std::is_base_of<UserDataInterface, _Ty>::value>::type>
+	template<typename _Ty, typename = typename std::enable_if<std::is_base_of<UserDataInterface, _Ty>::value>::type>
 	static UserDataWrapper Make()
 	{
 		return std::move(UserDataWrapper{ reinterpret_cast<UserDataInterface *>(new _Ty{}), true });

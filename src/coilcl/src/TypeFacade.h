@@ -21,7 +21,7 @@ class TypeFacade
 	size_t m_ptrCount = 0;
 
 public:
-	TypeFacade() = default;//TODO: Should be removed?
+	TypeFacade() = default;
 	
 	TypeFacade(const std::shared_ptr<Typedef::TypedefBase>& type)
 		: m_type{ type }
@@ -31,6 +31,7 @@ public:
 	// Fetch type information
 	inline auto HasValue() const { return m_type != nullptr; }
 	inline auto IsPointer() const { return m_ptrCount > 0; }
+	inline auto PointerCount() const { return m_ptrCount; }
 	inline void SetPointer(size_t ptrCount) { m_ptrCount = ptrCount; }
 	inline auto Size() const { return m_type->UnboxedSize(); }
 
@@ -45,6 +46,11 @@ public:
 	{
 		return m_type.get();
 	}
+
+	// Convert type into data stream
+	static void Serialize(const TypeFacade&, std::vector<uint8_t>&);
+	// Convert data stream into type
+	static void Deserialize(TypeFacade&, const std::vector<uint8_t>&);
 
 	const std::type_info& Type() const
 	{

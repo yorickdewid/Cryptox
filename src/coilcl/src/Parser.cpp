@@ -457,7 +457,7 @@ bool Parser::StructOrUnionSpecifier()
 				m_identifierStack.pop();
 				auto field = CoilCl::AST::MakeASTNode<FieldDecl>(decl, m_typeStack.top());
 				field->SetLocation(CURRENT_LOCATION());
-				field->ReturnType().SetPointer(m_pointerCounter);
+				field->UpdateReturnType().SetPointer(m_pointerCounter);
 				m_pointerCounter = 0;
 
 				if (MATCH_TOKEN(TK_COLON)) {
@@ -1948,7 +1948,7 @@ void Parser::Declaration()
 			auto name = m_identifierStack.top();
 			auto decl = CoilCl::AST::MakeASTNode<TypedefDecl>(name, m_typeStack.top());
 			decl->SetLocation(CURRENT_LOCATION());
-			decl->ReturnType().SetPointer(m_pointerCounter);
+			decl->UpdateReturnType().SetPointer(m_pointerCounter);
 			m_pointerCounter = 0;
 			m_typedefList[name] = m_typeStack.top();
 			m_identifierStack.pop();
@@ -2000,7 +2000,7 @@ void Parser::InitDeclaratorList()
 
 			auto decl = CoilCl::AST::MakeASTNode<VarDecl>(m_identifierStack.top(), m_typeStack.top(), m_elementDescentPipe.next());
 			decl->SetLocation(CURRENT_LOCATION());
-			decl->ReturnType().SetPointer(m_pointerCounter);
+			decl->UpdateReturnType().SetPointer(m_pointerCounter);
 			m_pointerCounter = 0;
 			m_identifierStack.pop();
 			m_elementDescentPipe.pop();
@@ -2011,7 +2011,7 @@ void Parser::InitDeclaratorList()
 		else {
 			auto decl = CoilCl::AST::MakeASTNode<VarDecl>(m_identifierStack.top(), m_typeStack.top());
 			decl->SetLocation(CURRENT_LOCATION());
-			decl->ReturnType().SetPointer(m_pointerCounter);
+			decl->UpdateReturnType().SetPointer(m_pointerCounter);
 			m_pointerCounter = 0;
 			m_identifierStack.pop();
 			m_elementDescentPipe.push(decl);
@@ -2207,7 +2207,7 @@ bool Parser::DirectDeclarator()
 
 				auto decl = CoilCl::AST::MakeASTNode<FunctionDecl>(m_identifierStack.top(), m_typeStack.top());
 				decl->SetLocation(CURRENT_LOCATION());
-				decl->ReturnType().SetPointer(m_pointerCounter);
+				decl->UpdateReturnType().SetPointer(m_pointerCounter);
 				m_pointerCounter = 0;
 				m_identifierStack.pop();
 				m_typeStack.pop();
@@ -2249,7 +2249,7 @@ bool Parser::DirectDeclarator()
 				auto decl = CoilCl::AST::MakeASTNode<FunctionDecl>(m_identifierStack.top(), m_typeStack.top());
 				decl->SetLocation(CURRENT_LOCATION());
 				decl->SetParameterStatement(std::dynamic_pointer_cast<ParamStmt>(m_elementDescentPipe.next()));
-				decl->ReturnType().SetPointer(m_pointerCounter);
+				decl->UpdateReturnType().SetPointer(m_pointerCounter);
 				m_pointerCounter = 0;
 				m_elementDescentPipe.pop();
 				m_typeStack.pop();
@@ -2374,7 +2374,7 @@ bool Parser::ParameterDeclaration()
 	if (Declarator()) {
 		auto decl = CoilCl::AST::MakeASTNode<ParamDecl>(m_identifierStack.top(), m_typeStack.top());
 		decl->SetLocation(CURRENT_LOCATION());
-		decl->ReturnType().SetPointer(m_pointerCounter);
+		decl->UpdateReturnType().SetPointer(m_pointerCounter);
 		m_pointerCounter = 0;
 		m_identifierStack.pop();
 		m_typeStack.pop();
@@ -2388,7 +2388,7 @@ bool Parser::ParameterDeclaration()
 	AbstractDeclarator();
 	auto decl = CoilCl::AST::MakeASTNode<ParamDecl>(m_typeStack.top());
 	decl->SetLocation(CURRENT_LOCATION());
-	decl->ReturnType().SetPointer(m_pointerCounter);
+	decl->UpdateReturnType().SetPointer(m_pointerCounter);
 	m_pointerCounter = 0;
 	m_typeStack.pop();
 
