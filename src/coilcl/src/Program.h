@@ -90,6 +90,10 @@ public:
 	Program() = default;
 	Program(const Program&) = delete;
 	Program(Program&&) = default;
+	Program(AST::AST&& tree)
+		: m_ast{ new AST::AST{ std::move(tree) } }
+	{
+	}
 	Program(Program&& other, std::shared_ptr<TranslationUnitDecl>&& ast)
 		: m_ast{ new AST::AST{ std::move(ast) } }
 		, m_treeCondition{ other.m_treeCondition }
@@ -131,7 +135,7 @@ private:
 
 private:
 	std::map<std::string, std::shared_ptr<ASTNode>> m_symbols;
-	std::unique_ptr<AST::AST> m_ast;
+	std::unique_ptr<AST::AST> m_ast = std::make_unique<AST::AST>();
 	std::vector<ResultSection> m_resultSet;
 };
 

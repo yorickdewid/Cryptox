@@ -656,6 +656,11 @@ class ConditionalOperator
 	std::shared_ptr<ASTNode> altStmt;
 
 public:
+	explicit ConditionalOperator(Serializable::Interface& pack)
+	{
+		Deserialize(pack);
+	}
+
 	ConditionalOperator(std::shared_ptr<ASTNode>& eval, std::shared_ptr<ASTNode> truth = nullptr, std::shared_ptr<ASTNode> alt = nullptr)
 		: evalNode{ eval }
 	{
@@ -672,7 +677,7 @@ public:
 		}
 	}
 
-	void SetTruthCompound(std::shared_ptr<ASTNode>& node)
+	void SetTruthCompound(const std::shared_ptr<ASTNode>& node)
 	{
 		ASTNode::AppendChild(node);
 		truthStmt = node;
@@ -680,7 +685,7 @@ public:
 		ASTNode::UpdateDelegate();
 	}
 
-	void SetAltCompound(std::shared_ptr<ASTNode>& node)
+	void SetAltCompound(const std::shared_ptr<ASTNode>& node)
 	{
 		ASTNode::AppendChild(node);
 		altStmt = node;
@@ -691,6 +696,19 @@ public:
 	virtual void Serialize(Serializable::Interface& pack)
 	{
 		pack << nodeId;
+
+		auto group = pack.ChildGroups(3);
+		group.Size(1);
+		group << evalNode;
+
+		group++;
+		group.Size(1);
+		group << truthStmt;
+
+		group++;
+		group.Size(1);
+		group << altStmt;
+
 		Operator::Serialize(pack);
 	}
 
@@ -699,6 +717,22 @@ public:
 		AST::NodeID _nodeId;
 		pack >> _nodeId;
 		AssertNode(_nodeId, nodeId);
+
+		auto group = pack.ChildGroups();
+		pack <<= {group[0], [=](const std::shared_ptr<ASTNode>& node) {
+			evalNode = node;
+			ASTNode::AppendChild(node);
+		}};
+
+		group++;
+		pack <<= {group[0], [=](const std::shared_ptr<ASTNode>& node) {
+			SetTruthCompound(node);
+		}};
+
+		group++;
+		pack <<= {group[0], [=](const std::shared_ptr<ASTNode>& node) {
+			SetAltCompound(node);
+		}};
 
 		Operator::Deserialize(pack);
 	}
@@ -742,7 +776,7 @@ public:
 
 		BITNOT,		// ~
 		BOOLNOT,	// !
-	} m_operand;
+	} m_operand; //TODO: make private
 
 	const char *UnaryOperandStr(UnaryOperand operand) const
 	{
@@ -776,6 +810,11 @@ public:
 	} m_side;
 
 public:
+	explicit UnaryOperator(Serializable::Interface& pack)
+	{
+		Deserialize(pack);
+	}
+	
 	UnaryOperator(UnaryOperand operand, OperandSide side, const std::shared_ptr<ASTNode>& node)
 		: m_operand{ operand }
 		, m_side{ side }
@@ -789,6 +828,11 @@ public:
 		pack << nodeId;
 		pack << m_operand;
 		pack << m_side;
+
+		auto group = pack.ChildGroups(3);
+		group.Size(1);
+		group << m_body;
+
 		Operator::Serialize(pack);
 	}
 
@@ -805,6 +849,12 @@ public:
 		int side;
 		pack >> side;
 		m_side = static_cast<OperandSide>(side);
+
+		auto group = pack.ChildGroups();
+		pack <<= {group[0], [=](const std::shared_ptr<ASTNode>& node) {
+			m_body = node;
+			ASTNode::AppendChild(node);
+		}};
 
 		Operator::Deserialize(pack);
 	}
@@ -858,7 +908,7 @@ public:
 		AND,		// &=
 		XOR,		// ^=
 		OR,			// |=
-	} m_operand;
+	} m_operand; //TODO: make private
 
 	const char *CompoundAssignOperandStr(CompoundAssignOperand operand) const
 	{
@@ -889,6 +939,11 @@ public:
 	}
 
 public:
+	explicit CompoundAssignOperator(Serializable::Interface& pack)
+	{
+		Deserialize(pack);
+	}
+
 	CompoundAssignOperator(CompoundAssignOperand operand, const std::shared_ptr<DeclRefExpr>& node)
 		: m_operand{ operand }
 	{
@@ -896,7 +951,7 @@ public:
 		m_identifier = node;
 	}
 
-	void SetRightSide(std::shared_ptr<ASTNode>& node)
+	void SetRightSide(const std::shared_ptr<ASTNode>& node)
 	{
 		ASTNode::AppendChild(node);
 		m_body = node;
@@ -908,6 +963,15 @@ public:
 	{
 		pack << nodeId;
 		pack << m_operand;
+
+		auto group = pack.ChildGroups(3);
+		group.Size(1);
+		group << m_body;
+
+		group++;
+		group.Size(1);
+		group << NODE_UPCAST(m_identifier);
+
 		Operator::Serialize(pack);
 	}
 
@@ -920,6 +984,17 @@ public:
 		int operand;
 		pack >> operand;
 		m_operand = static_cast<CompoundAssignOperand>(operand);
+
+		auto group = pack.ChildGroups();
+		pack <<= {group[0], [=](const std::shared_ptr<ASTNode>& node) {
+			SetRightSide(node);
+		}};
+
+		group++;
+		pack <<= {group[0], [=](const std::shared_ptr<ASTNode>& node) {
+			m_identifier = std::dynamic_pointer_cast<DeclRefExpr>(node);
+			ASTNode::AppendChild(node);
+		}};
 
 		Operator::Deserialize(pack);
 	}

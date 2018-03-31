@@ -205,6 +205,9 @@ public:
 				[&treeBlock](uint8_t *data, size_t sz) { treeBlock->Read(data, sz); }
 			}.UnpackAST(tree);
 
+			ProgramPtr recoveredProgram = std::make_unique<Program>(std::move(tree));
+			recoveredProgram->AstPassthrough()->Print<ASTNode::Traverse::STAGE_FIRST>();
+
 			// Print all compiler stage non fatal messages
 			PrintNoticeMessages();
 		}

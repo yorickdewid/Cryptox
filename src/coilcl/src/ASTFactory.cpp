@@ -49,11 +49,11 @@ std::shared_ptr<ASTNode> ASTFactory::MakeNode(Serializable::Interface *visitor)
 	case NodeID::BINARY_OPERATOR_ID:
 		return ReturnNode<BinaryOperator>(visitor);
 	case NodeID::CONDITIONAL_OPERATOR_ID:
-		break;
+		return ReturnNode<ConditionalOperator>(visitor);
 	case NodeID::UNARY_OPERATOR_ID:
-		break;
+		return ReturnNode<UnaryOperator>(visitor);
 	case NodeID::COMPOUND_ASSIGN_OPERATOR_ID:
-		break;
+		return ReturnNode<CompoundAssignOperator>(visitor);
 
 	case NodeID::CHARACTER_LITERAL_ID:
 		return ReturnNode<CharacterLiteral>(visitor);
