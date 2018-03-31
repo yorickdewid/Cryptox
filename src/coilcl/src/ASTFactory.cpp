@@ -77,9 +77,9 @@ std::shared_ptr<ASTNode> ASTFactory::MakeNode(Serializable::Interface *visitor)
 	case NodeID::RECORD_DECL_ID:
 		return ReturnNode<RecordDecl>(visitor);
 	case NodeID::ENUM_CONSTANT_DECL_ID:
-		break;
+		return ReturnNode<EnumConstantDecl>(visitor);
 	case NodeID::ENUM_DECL_ID:
-		break;
+		return ReturnNode<EnumDecl>(visitor);
 	case NodeID::FUNCTION_DECL_ID:
 		return ReturnNode<FunctionDecl>(visitor);
 	case NodeID::TRANSLATION_UNIT_DECL_ID:
@@ -92,21 +92,21 @@ std::shared_ptr<ASTNode> ASTFactory::MakeNode(Serializable::Interface *visitor)
 	case NodeID::CALL_EXPR_ID:
 		return ReturnNode<CallExpr>(visitor);
 	case NodeID::BUILTIN_EXPR_ID:
-		break;
+		//return ReturnNode<BuiltinExpr>(visitor);
 	case NodeID::CAST_EXPR_ID:
-		break;
+		return ReturnNode<CastExpr>(visitor);
 	case NodeID::IMPLICIT_CONVERTION_EXPR_ID:
-		break;
+		return ReturnNode<ImplicitConvertionExpr>(visitor);
 	case NodeID::PAREN_EXPR_ID:
-		break;
+		return ReturnNode<ParenExpr>(visitor);
 	case NodeID::INIT_LIST_EXPR_ID:
-		break;
+		return ReturnNode<InitListExpr>(visitor);
 	case NodeID::COMPOUND_LITERAL_EXPR_ID:
-		break;
+		return ReturnNode<CompoundLiteralExpr>(visitor);
 	case NodeID::ARRAY_SUBSCRIPT_EXPR_ID:
-		break;
+		return ReturnNode<ArraySubscriptExpr>(visitor);
 	case NodeID::MEMBER_EXPR_ID:
-		break;
+		return ReturnNode<MemberExpr>(visitor);
 
 	case NodeID::CONTINUE_STMT_ID:
 		return ReturnNode<ContinueStmt>(visitor);

@@ -814,7 +814,7 @@ public:
 	{
 		Deserialize(pack);
 	}
-	
+
 	UnaryOperator(UnaryOperand operand, OperandSide side, const std::shared_ptr<ASTNode>& node)
 		: m_operand{ operand }
 		, m_side{ side }
@@ -1614,6 +1614,11 @@ class EnumConstantDecl
 	std::shared_ptr<ASTNode> m_body;
 
 public:
+	explicit EnumConstantDecl(Serializable::Interface& pack)
+	{
+		Deserialize(pack);
+	}
+
 	EnumConstantDecl(const std::string& name)
 		: Decl{ name }
 	{
@@ -1645,6 +1650,12 @@ public:
 		pack >> _nodeId;
 		AssertNode(_nodeId, nodeId);
 
+		auto group = pack.ChildGroups();
+		pack <<= {group[0], [=](const std::shared_ptr<ASTNode>& node) {
+			m_body = node;
+			ASTNode::AppendChild(node);
+		}};
+
 		ASTNode::Deserialize(pack);
 	}
 
@@ -1675,6 +1686,11 @@ class EnumDecl
 	std::vector<std::shared_ptr<EnumConstantDecl>> m_constants;
 
 public:
+	explicit EnumDecl(Serializable::Interface& pack)
+	{
+		Deserialize(pack);
+	}
+
 	EnumDecl()
 		: Decl{} //TOOD: nope! At least give a name
 	{
@@ -1717,6 +1733,16 @@ public:
 
 		pack >> _nodeId;
 		AssertNode(_nodeId, nodeId);
+
+		auto group = pack.ChildGroups();
+		for (size_t i = 0; i < group.Size(); ++i)
+		{
+			int childNodeId = group[i];
+			pack <<= {childNodeId, [=](const std::shared_ptr<ASTNode>& node) {
+				auto constant = std::dynamic_pointer_cast<EnumConstantDecl>(node);
+				AddConstant(constant);
+			}};
+		}
 
 		ASTNode::Deserialize(pack);
 	}
@@ -2244,6 +2270,11 @@ class BuiltinExpr final
 	AST::TypeFacade m_typenameType;
 
 public:
+	/*explicit BuiltinExpr(Serializable::Interface& pack)
+	{
+		Deserialize(pack);
+	}*/
+
 	BuiltinExpr(std::shared_ptr<DeclRefExpr>& func, std::shared_ptr<DeclRefExpr> expr = nullptr, std::shared_ptr<ArgumentStmt> args = nullptr)
 		: CallExpr{ func, args }
 		, m_expr{ expr }
@@ -2253,7 +2284,7 @@ public:
 		}
 	}
 
-	void SetExpression(std::shared_ptr<ASTNode>& node)
+	void SetExpression(const std::shared_ptr<ASTNode>& node)
 	{
 		ASTNode::AppendChild(node);
 		m_expr = node;
@@ -2292,6 +2323,11 @@ public:
 
 		//pack >> m_typenameType;//TODO
 
+		auto group = pack.ChildGroups();
+		pack <<= {group[0], [=](const std::shared_ptr<ASTNode>& node) {
+			SetExpression(node);
+		}};
+
 		Expr::Deserialize(pack);
 	}
 
@@ -2314,6 +2350,11 @@ class CastExpr
 	std::shared_ptr<ASTNode> rtype;
 
 public:
+	explicit CastExpr(Serializable::Interface& pack)
+	{
+		Deserialize(pack);
+	}
+
 	CastExpr(std::shared_ptr<ASTNode>& node)
 		: Expr{}
 	{
@@ -2337,6 +2378,12 @@ public:
 		AST::NodeID _nodeId;
 		pack >> _nodeId;
 		AssertNode(_nodeId, nodeId);
+
+		auto group = pack.ChildGroups();
+		pack <<= {group[0], [=](const std::shared_ptr<ASTNode>& node) {
+			rtype = node;
+			ASTNode::AppendChild(node);
+		}};
 
 		Expr::Deserialize(pack);
 	}
@@ -2364,6 +2411,11 @@ class ImplicitConvertionExpr
 	Conv::Cast::Tag m_convOp;
 
 public:
+	explicit ImplicitConvertionExpr(Serializable::Interface& pack)
+	{
+		Deserialize(pack);
+	}
+
 	ImplicitConvertionExpr(std::shared_ptr<ASTNode>& node, Conv::Cast::Tag convOp)
 		: m_body{ node }
 		, m_convOp{ convOp }
@@ -2380,6 +2432,7 @@ public:
 		group << m_body;
 
 		//pack << m_convOp;//TODO
+
 		Expr::Serialize(pack);
 	}
 
@@ -2390,6 +2443,12 @@ public:
 		AssertNode(_nodeId, nodeId);
 
 		//pack >> m_convOp;//TODO
+
+		auto group = pack.ChildGroups();
+		pack <<= {group[0], [=](const std::shared_ptr<ASTNode>& node) {
+			m_body = node;
+			ASTNode::AppendChild(node);
+		}};
 
 		Expr::Deserialize(pack);
 	}
@@ -2422,6 +2481,11 @@ class ParenExpr
 	std::shared_ptr<ASTNode> m_body;
 
 public:
+	explicit ParenExpr(Serializable::Interface& pack)
+	{
+		Deserialize(pack);
+	}
+
 	ParenExpr(std::shared_ptr<ASTNode>& node)
 		: m_body{ node }
 	{
@@ -2445,6 +2509,12 @@ public:
 		pack >> _nodeId;
 		AssertNode(_nodeId, nodeId);
 
+		auto group = pack.ChildGroups();
+		pack <<= {group[0], [=](const std::shared_ptr<ASTNode>& node) {
+			m_body = node;
+			ASTNode::AppendChild(node);
+		}};
+
 		Expr::Deserialize(pack);
 	}
 
@@ -2462,7 +2532,14 @@ class InitListExpr
 	std::vector<std::shared_ptr<ASTNode>> m_children;
 
 public:
-	void AddListItem(std::shared_ptr<ASTNode>& node)
+	explicit InitListExpr(Serializable::Interface& pack)
+	{
+		Deserialize(pack);
+	}
+
+	InitListExpr() = default;
+
+	void AddListItem(const std::shared_ptr<ASTNode>& node)
 	{
 		ASTNode::AppendChild(node);
 		m_children.push_back(node);
@@ -2489,6 +2566,15 @@ public:
 		pack >> _nodeId;
 		AssertNode(_nodeId, nodeId);
 
+		auto group = pack.ChildGroups();
+		for (size_t i = 0; i < group.Size(); ++i)
+		{
+			int childNodeId = group[i];
+			pack <<= {childNodeId, [=](const std::shared_ptr<ASTNode>& node) {
+				AddListItem(node);
+			}};
+		}
+
 		Expr::Deserialize(pack);
 	}
 
@@ -2506,6 +2592,11 @@ class CompoundLiteralExpr
 	std::shared_ptr<InitListExpr> m_body;
 
 public:
+	explicit CompoundLiteralExpr(Serializable::Interface& pack)
+	{
+		Deserialize(pack);
+	}
+
 	CompoundLiteralExpr(std::shared_ptr<InitListExpr>& node)
 		: m_body{ node }
 	{
@@ -2529,6 +2620,12 @@ public:
 		pack >> _nodeId;
 		AssertNode(_nodeId, nodeId);
 
+		auto group = pack.ChildGroups();
+		pack <<= {group[0], [=](const std::shared_ptr<ASTNode>& node) {
+			m_body = std::dynamic_pointer_cast<InitListExpr>(node);
+			ASTNode::AppendChild(node);
+		}};
+
 		Expr::Deserialize(pack);
 	}
 
@@ -2547,6 +2644,11 @@ class ArraySubscriptExpr
 	std::shared_ptr<ASTNode> m_offset;
 
 public:
+	explicit ArraySubscriptExpr(Serializable::Interface& pack)
+	{
+		Deserialize(pack);
+	}
+
 	ArraySubscriptExpr(std::shared_ptr<DeclRefExpr>& ref, std::shared_ptr<ASTNode>& expr)
 		: m_identifier{ ref }
 		, m_offset{ expr }
@@ -2576,6 +2678,18 @@ public:
 		pack >> _nodeId;
 		AssertNode(_nodeId, nodeId);
 
+		auto group = pack.ChildGroups();
+		pack <<= {group[0], [=](const std::shared_ptr<ASTNode>& node) {
+			m_identifier = std::dynamic_pointer_cast<DeclRefExpr>(node);
+			ASTNode::AppendChild(node);
+		}};
+
+		group++;
+		pack <<= {group[0], [=](const std::shared_ptr<ASTNode>& node) {
+			m_offset = node;
+			ASTNode::AppendChild(node);
+		}};
+
 		Expr::Deserialize(pack);
 	}
 
@@ -2601,6 +2715,11 @@ public:
 	} m_memberType;
 
 public:
+	explicit MemberExpr(Serializable::Interface& pack)
+	{
+		Deserialize(pack);
+	}
+
 	MemberExpr(MemberType type, const std::string& name, std::shared_ptr<DeclRefExpr>& node)
 		: m_memberType{ type }
 		, m_name{ name }
@@ -2633,6 +2752,12 @@ public:
 		int memberType;
 		pack >> memberType;
 		m_memberType = static_cast<MemberType>(memberType);
+
+		auto group = pack.ChildGroups();
+		pack <<= {group[0], [=](const std::shared_ptr<ASTNode>& node) {
+			m_record = std::dynamic_pointer_cast<DeclRefExpr>(node);
+			ASTNode::AppendChild(node);
+		}};
 
 		Expr::Deserialize(pack);
 	}
