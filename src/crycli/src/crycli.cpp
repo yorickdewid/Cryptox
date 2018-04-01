@@ -13,7 +13,7 @@
 #include <boost/algorithm/string.hpp>
 
 #include "Env.h"
-#include "Runstrap.h"
+#include "Direct.h"
 #include "Specification.h"
 
 #include <iostream>
@@ -33,6 +33,7 @@ int main(int argc, const char *argv[])
 			("print-targets", "Display output target")
 			("print-spec", "Display the compiler specification configuration")
 			("plugin", po::value<std::string>()->value_name("<plugin>"), "Load compiler plugin")
+			("run", "Compile and execute")
 			("v", "Compiler version information");
 
 		// Compiler options
@@ -66,7 +67,8 @@ int main(int argc, const char *argv[])
 			("trace", "Trace compiler stage")
 			("dump-input", "Dump token stream")
 			("dump-tree", "Dump AST tree")
-			("dump-ast-mod", "Write all ast modifications to file");
+			("dump-ast-mod", "Write all ast modifications to file")
+			("safe", "Run in safe mode (without plugins)");
 
 		// Positional arguments
 		po::options_description hidden;
@@ -89,7 +91,8 @@ int main(int argc, const char *argv[])
 			(positional);
 		parser.Run(vm);
 
-		auto usage = [&parser]
+		// Print usage text
+		const auto usage = [&parser]
 		{
 			std::cout << parser << std::endl;
 		};
@@ -107,7 +110,13 @@ int main(int argc, const char *argv[])
 
 		// Parse input file as source
 		if (vm.count("file")) {
-			RunSourceFile(env, vm["file"].as<std::string>());
+			const std::string file = vm["file"].as<std::string>();
+			if (vm.count("run")) {
+				RunSourceFile(env, file);
+			}
+			else {
+				CompileSourceFile(env, file);
+			}
 		}
 		// Print search directories
 		else if (vm.count("print-search-dirs")) {

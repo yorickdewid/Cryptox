@@ -6,33 +6,21 @@
 // that can be found in the LICENSE file. Content can not be 
 // copied and/or distributed without the express of the author.
 
-#include "FileReader.h"
-#include "StringReader.h"
-#include "Runstrap.h"
+#include "Bootstrap.h"
 
-#include <coilcl.h>
-#include <evm.h>
+#include <Cry/Indep.h>
+#include <Cry/NonCopyable.h>
 
 #include <iostream>
 #include <fstream>
 #include <sstream>
 
+//TODO: namespace
+
 datachunk_t *CCBFetchChunk(void *);
 metainfo_t *CCBMetaInfo(void *);
 int CCBLoadExternalSource(void *, const char *);
 void CCBErrorHandler(void *, const char *, char);
-
-//using ProgramPtr = program_t * ;
-
-// Class is single instance only and should therefore be non-copyable
-struct NonCopyable
-{
-	NonCopyable() = default;
-	NonCopyable(const NonCopyable&) = delete;
-	NonCopyable(NonCopyable&&) = delete;
-	NonCopyable& operator=(const NonCopyable&) = delete;
-	NonCopyable& operator=(NonCopyable&&) = delete;
-};
 
 class CompilerException final : public std::exception
 {
@@ -56,60 +44,20 @@ protected:
 	std::string m_msg;
 };
 
-class ProgramWrapper : protected program_t
-{
-public:
-	ProgramWrapper()
-	{
-		// Set program pointer to null by default
-		program_ptr = nullptr;
-	}
-
-	ProgramWrapper(program_t program)
-		: program_t{ program }
-	{
-	}
-
-	// Guard against pointer copies
-	ProgramWrapper(const ProgramWrapper&) = delete;
-	ProgramWrapper(ProgramWrapper&& other)
-	{
-		program_ptr = other.program_ptr;
-		other.program_ptr = nullptr;
-	}
-
-	inline void *operator->() const noexcept { return program_ptr; }
-	inline void *operator*() const noexcept { return program_ptr; }
-
-	~ProgramWrapper()
-	{
-		// Delete program pointer if required
-		if (program_ptr) {
-			delete program_ptr;
-			program_ptr = nullptr;
-		}
-	}
-};
-
-// Verify size of program wrapper
-static_assert(sizeof(ProgramWrapper) == sizeof(program_t), "");
-
 // Adapter between different reader implementations. The adapter will prepare
 // all settings for compiler calls and return the appropriate datastructures
 // according to the reader interface.
-class StreamReaderAdapter final : private NonCopyable
+class StreamReaderAdapter final
+	: public CompilerContract
+	, private Cry::NonCopyable
 {
 	static const size_t defaultChunkSize = 128;
 
-public:
-	StreamReaderAdapter(const std::shared_ptr<Reader>&& reader)
-		: contentReader{ std::move(reader) }
-	{
-	}
-
 	// Create a new compiler and run the source code. The compiler is configured to
-	// be using the lexer to parse the program.
-	ProgramWrapper Start()
+	// be using the lexer to parse the program. The compose method offers a single
+	// shot call to the compiler compatible API. Any changes to the API should be
+	// reflected here and only here.
+	program_t Compose()
 	{
 		compiler_info_t info;
 		info.apiVer = COILCLAPIVER;
@@ -128,34 +76,50 @@ public:
 		return info.program;
 	}
 
-	// Set the chunk size as a hint to the reader implementation. This value
-	// can be ignored and should bot be relied upon.
-	StreamReaderAdapter& SetStreamChuckSize(size_t size)
+public:
+	StreamReaderAdapter(const BaseReader&& reader, size_t size)
+		: m_contentReader{ std::move(reader) }
+		, m_chunkSize{ size }
+	{
+	}
+
+	StreamReaderAdapter(const BaseReader&& reader)
+		: m_contentReader{ std::move(reader) }
+	{
+	}
+
+	// Create a new compiler and run the source code. The compiler is configured to
+	// be using the lexer to parse the program.
+	program_t Execute()
+	{
+		return Compose();
+	}
+
+	void SetStreamChuckSize(size_t size)
 	{
 		m_chunkSize = size;
-		return *this;
 	}
 
 	// Forward call to adapter interface FetchNextChunk
 	const std::string FetchNextChunk() const
 	{
-		return contentReader->FetchNextChunk(m_chunkSize);
+		return m_contentReader->FetchNextChunk(m_chunkSize);
 	}
 
 	// Forward call to adapter interface SwitchSource
 	const void SwitchSource(const std::string& source) const
 	{
-		contentReader->SwitchSource(source);
+		m_contentReader->SwitchSource(source);
 	}
 
 	// Forward call to adapter interface FetchMetaInfo
 	const std::string FetchMetaInfo() const
 	{
-		return contentReader->FetchMetaInfo();
+		return m_contentReader->FetchMetaInfo();
 	}
 
 private:
-	std::shared_ptr<Reader> contentReader;
+	const BaseReader&& m_contentReader;
 	size_t m_chunkSize = defaultChunkSize;
 };
 
@@ -212,7 +176,9 @@ metainfo_t *CCBMetaInfo(void *user_data)
 
 void CCBErrorHandler(void *user_data, const char *message, char fatal)
 {
-	//TMP
+	CRY_UNUSED(user_data);
+
+	//FIXME:
 	std::cout << message << std::endl;
 
 	// If the error is non fatal, log and continue
@@ -224,42 +190,25 @@ void CCBErrorHandler(void *user_data, const char *message, char fatal)
 	throw CompilerException(message);
 }
 
-// Call the program executor and release resource
-// after the executor returns
-class Executor final
+//FUTURE: No need for dynamic polymorph, eliminate pointer
+CompilerAbstraction::CompilerAbstraction(const BaseReader&& reader)
+	: m_compiler{ new StreamReaderAdapter{ std::move(reader) } }
 {
-	ProgramWrapper m_program;
-
-public:
-	Executor(ProgramWrapper&& program)
-		: m_program{ std::move(program) }
-	{
-		// Perform sneaky upcast on protected base
-		Execute(reinterpret_cast<program_t*>(&m_program));
-	}
-};
-
-// Direct API call to run a single file
-void RunSourceFile(Env& env, const std::string& m_sourceFile)
-{
-	std::shared_ptr<Reader> reader = std::make_shared<FileReader>(m_sourceFile);
-	ProgramWrapper program = StreamReaderAdapter{ std::move(reader) }.Start();
-	Executor{ std::move(program) };
 }
 
-//FUTURE: Implement
-// Direct API call to run a multiple files in order
-void RunSourceFile(Env& env, const std::vector<std::string>& sourceFiles)
+CompilerAbstraction::~CompilerAbstraction()
 {
-	/*auto reader = std::make_shared<FileReader>(m_sourceFile);
-	ProgramWrapper program = StreamReaderAdapter<FileReader>{ sourceFiles }.Start();
-	Executor{ std::move(program) };*/
+	delete m_compiler;
+	m_compiler = nullptr;
 }
 
-// Direct API call to run source from memory
-void RunMemoryString(Env& env, const std::string& content)
+program_t CompilerAbstraction::Start()
 {
-	std::shared_ptr<Reader> reader = std::make_shared<StringReader>(content);
-	ProgramWrapper program = StreamReaderAdapter{ std::move(reader) }.SetStreamChuckSize(256).Start();
-	Executor{ std::move(program) };
+	return m_compiler->Execute();
+}
+
+CompilerAbstraction& CompilerAbstraction::SetBuffer(size_t size)
+{
+	m_compiler->SetStreamChuckSize(size);
+	return (*this);
 }
