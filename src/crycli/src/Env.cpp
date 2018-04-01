@@ -59,9 +59,14 @@ Env::Env()
 	DefaultSettings();
 }
 
+// Load specific settings from program environment if they
+// are set. The current setting is not changed if a matching
+// key could not be located int the environment.
 void Env::GatherEnvVars()
 {
 	GetEnvVar(ENV_STR_PREFIX "DEBUG", debugMode);
+	GetEnvVar(ENV_STR_PREFIX "DEBUG_LEVEL", debugLevel);
+	GetEnvVar(ENV_STR_PREFIX "SAFE", safeMode);
 	GetEnvVar(ENV_STR_PREFIX "INC_PATH", incPath);
 	GetEnvVar(ENV_STR_PREFIX "STD_PATH", stdPath);
 	GetEnvVar(ENV_STR_PREFIX "LIB_PATH", libPath);
@@ -69,18 +74,40 @@ void Env::GatherEnvVars()
 
 void Env::DefaultSettings()
 {
-	// TODO: read from config
+	// TODO: Not sure wat to do here...
 }
 
+// Load the default settings from the specification file.
+void Env::LoadSpecification(Specification& spec)
+{
+	// Check if specification file was loaded.
+	if (!spec.HasProperties()) { return; }
+}
+
+Env::VariableList Env::GetSettingLibraryPath()
+{
+	//FIXME:
+	return { "kaas" };
+}
+
+// Intialize environment specific to production requirements
+// Defaults in order of processing:
+//  - Load defaults
+//  - Load settings from specification file, if exist
+//  - Load settings from environment, overriding current settings
 Env Env::InitBasicEnvironment(Specification& spec)
 {
-	CRY_UNUSED(spec);
 	Env env;
+	env.LoadSpecification(spec);
 	env.GatherEnvVars();
 
 	return std::move(env);
 }
 
+// Intialize environment specific to development requirements
+// Defaults in order of processing:
+//  - Load defaults
+//  - Enable debug mode
 Env Env::InitDevelopmentEnvironment(Specification& spec)
 {
 	CRY_UNUSED(spec);
@@ -90,6 +117,10 @@ Env Env::InitDevelopmentEnvironment(Specification& spec)
 	return std::move(env);
 }
 
+// Intialize environment specific to testing requirements
+// Defaults in order of processing:
+//  - Load defaults
+//  - Enable debug mode
 Env Env::InitTestEnvironment(Specification& spec)
 {
 	CRY_UNUSED(spec);

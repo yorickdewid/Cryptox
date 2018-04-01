@@ -21,6 +21,12 @@ public:
 	Specification(const std::string& path);
 	Specification(const std::string& path, const std::string& file);
 
+	// Check if specification file was loaded
+	inline bool HasProperties() const noexcept { return !m_spec.empty(); }
+
+	//TODO: Suggest directories for spec file
+
+	// Retrieve current working directory
 	static std::string CurrentDirectory();
 };
 

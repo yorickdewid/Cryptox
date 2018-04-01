@@ -21,7 +21,7 @@ std::string Specification::CurrentDirectory()
 
 Specification::Specification(const std::string& path)
 {
-	// If specification was not found, ignore everything
+	// If specification was not found, ignore
 	if (!boost::filesystem::exists(path)) {
 		return;
 	}

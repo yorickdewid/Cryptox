@@ -11,16 +11,20 @@
 #include "Specification.h"
 
 #include <string>
+#include <vector>
 
 class Env
 {
 	bool debugMode = false;
+	bool safeMode = false;
+	int debugLevel = 0;
 	std::string incPath; // Source header include paths
 	std::string stdPath; // Standard library paths
 	std::string libPath; // Library include paths
 
 	void GatherEnvVars();
 	void DefaultSettings();
+	void LoadSpecification(Specification&);
 
 	// Only allow static methods to initialize a new environment
 	explicit Env();
@@ -33,7 +37,13 @@ public:
 	// Setup testing environment.
 	static Env InitTestEnvironment(Specification&);
 
-	inline void SetDebug(bool toggle)
+public:
+	using Variable = std::string;
+	using VariableList = std::vector<Variable>;
+
+	VariableList GetSettingLibraryPath();
+
+	inline void SetDebug(bool toggle) noexcept
 	{
 		debugMode = toggle;
 	}

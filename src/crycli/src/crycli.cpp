@@ -97,7 +97,7 @@ int main(int argc, const char *argv[])
 			std::cout << parser << std::endl;
 		};
 
-		// Build specification
+		// Build specification from file
 		Specification spec{ Specification::CurrentDirectory(), SPECIFICATION_FILE };
 
 		// Initialize compiler environment
@@ -120,8 +120,9 @@ int main(int argc, const char *argv[])
 		}
 		// Print search directories
 		else if (vm.count("print-search-dirs")) {
-			//TODO: get from Env
-			std::cout << "/somedir" << std::endl;
+			for (const auto& path : env.GetSettingLibraryPath()) {
+				std::cout << path << std::endl;
+			}
 		}
 		// Display all language standards
 		else if (vm.count("print-std-list")) {
