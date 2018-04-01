@@ -25,6 +25,7 @@ directory {
 defensive         on;
 flow_guard        on;
 sanitize_section  off;
+safe_mode         off;
 
 ; Resulting image options
 keep_comment      off;

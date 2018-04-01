@@ -12,6 +12,7 @@ platform:
 # Build configuration
 configuration:
   - RelWithDebInfo
+  - Debug
 
 environment:
   matrix:
@@ -32,7 +33,7 @@ branches:
     - master
 
 skip_commits:
-  message: /cmake|appveyor/
+  message: /cmake|appveyor/\[contrib\]/
 
 install:
   - git submodule update --init --recursive

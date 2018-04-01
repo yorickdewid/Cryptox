@@ -269,3 +269,5 @@ endif()
 if (${${PROJECT_NAME}_ID}_BUILD_LZ4XX)
 	add_subdirectory(third_party/lz4xx)
 endif()
+
+install(DIRECTORY DESTINATION "redist")
