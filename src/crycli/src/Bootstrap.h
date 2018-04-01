@@ -19,11 +19,12 @@ struct CompilerAbstraction;
 
 class CompilerContract
 {
+	// Allow the abstract compiler internal access.
 	friend struct CompilerAbstraction;
 
-	// Run compiler
+	// Run compiler.
 	virtual program_t Execute() = 0;
-	// Set stream chunk size
+	// Set stream chunk size.
 	virtual void SetStreamChuckSize(size_t) = 0;
 };
 
@@ -32,7 +33,7 @@ struct CompilerAbstraction
 	CompilerAbstraction(const BaseReader&& reader);
 	~CompilerAbstraction();
 
-	// Start backend compiler
+	// Start backend compiler.
 	virtual program_t Start();
 
 	// Set the chunk size as a hint to the reader implementation. This value
@@ -44,8 +45,7 @@ private:
 };
 
 // Create a new stream reader object. 
-//TODO: test _Ty on base
-template<typename _Ty, typename... _ArgsTy>
+template<typename _Ty, typename... _ArgsTy, typename = typename std::enable_if<std::is_base_of<Reader, _Ty>::value>::type>
 inline auto MakeReader(_ArgsTy&&... args) -> BaseReader
 {
 	return std::make_shared<_Ty>(std::forward<_ArgsTy>(args)...);

@@ -15,12 +15,12 @@
 #include <fstream>
 #include <sstream>
 
-//TODO: namespace
+namespace {
 
-datachunk_t *CCBFetchChunk(void *);
-metainfo_t *CCBMetaInfo(void *);
-int CCBLoadExternalSource(void *, const char *);
-void CCBErrorHandler(void *, const char *, char);
+static datachunk_t *CCBFetchChunk(void *);
+static metainfo_t *CCBMetaInfo(void *);
+static int CCBLoadExternalSource(void *, const char *);
+static void CCBErrorHandler(void *, const char *, char);
 
 class CompilerException final : public std::exception
 {
@@ -95,6 +95,7 @@ public:
 		return Compose();
 	}
 
+	// Set stream read buffer
 	void SetStreamChuckSize(size_t size)
 	{
 		m_chunkSize = size;
@@ -189,6 +190,8 @@ void CCBErrorHandler(void *user_data, const char *message, char fatal)
 
 	throw CompilerException(message);
 }
+
+} // namespace
 
 //FUTURE: No need for dynamic polymorph, eliminate pointer
 CompilerAbstraction::CompilerAbstraction(const BaseReader&& reader)

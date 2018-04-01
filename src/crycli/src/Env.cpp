@@ -37,5 +37,5 @@ Env Env::InitBasicEnvironment(Specification& spec)
 	Env env;
 	env.GatherEnvVars();
 
-	return env;
+	return std::move(env);
 }

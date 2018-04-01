@@ -54,7 +54,9 @@ public:
 static_assert(sizeof(ProgramWrapper) == sizeof(program_t), "");
 
 // Call the program executor and release resource
-// after the executor returns
+// after the executor returns. This is only used in
+// the case the frontend instructed the backend to
+// compile and run the source.
 class Executor final
 {
 	ProgramWrapper m_program;
@@ -67,6 +69,10 @@ public:
 		Execute(reinterpret_cast<program_t*>(&m_program));
 	}
 };
+
+//
+// Compile and run
+//
 
 // Direct API call to run a single file
 void RunSourceFile(Env& env, const std::string& m_sourceFile)
@@ -83,9 +89,9 @@ void RunSourceFile(Env& env, const std::vector<std::string>& sourceFiles)
 {
 	CRY_UNUSED(env);
 	CRY_UNUSED(sourceFiles);
-	//BaseReader reader = MakeReader<FileReader>(m_sourceFile);
-	//auto program = CompilerAbstraction<FileReader>{ sourceFiles }.Start();
-	//Executor{ std::move(program) };
+	/*BaseReader reader = MakeReader<FileReader>(m_sourceFile);
+	auto program = CompilerAbstraction{ std::move(reader) }.Start();
+	Executor{ std::move(program) };*/
 }
 
 // Direct API call to run source from memory
@@ -97,10 +103,35 @@ void RunMemoryString(Env& env, const std::string& content)
 	Executor{ std::move(program) };
 }
 
+//
+// Compile only
+//
+
 // Direct API call to compile a single file
 void CompileSourceFile(Env& env, const std::string& m_sourceFile)
 {
 	CRY_UNUSED(env);
 	BaseReader reader = MakeReader<FileReader>(m_sourceFile);
-	auto program = CompilerAbstraction{ std::move(reader) }.Start();
+	ProgramWrapper{ CompilerAbstraction{ std::move(reader) }.Start() };
+	//TODO: Dump program to CEX
+}
+
+//FUTURE: Implement
+// Direct API call to compile multiple files in order
+void CompileSourceFile(Env& env, const std::vector<std::string>& sourceFiles)
+{
+	CRY_UNUSED(env);
+	CRY_UNUSED(sourceFiles);
+	/*BaseReader reader = MakeReader<FileReader>(m_sourceFile);
+	ProgramWrapper{ CompilerAbstraction{ std::move(reader) }.Start() };*/
+	//TODO: Dump program to CEX
+}
+
+// Direct API call to compile source from memory
+void CompileMemoryString(Env& env, const std::string& m_sourceFile)
+{
+	CRY_UNUSED(env);
+	BaseReader reader = MakeReader<StringReader>(m_sourceFile);
+	ProgramWrapper{ CompilerAbstraction{ std::move(reader) }.SetBuffer(256).Start() };
+	//TODO: Dump program to CEX
 }
