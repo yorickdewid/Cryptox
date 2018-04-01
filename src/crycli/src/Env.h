@@ -14,20 +14,24 @@
 
 class Env
 {
-	std::string toolchainLocation;
 	bool debugMode = false;
+	std::string incPath; // Source header include paths
+	std::string stdPath; // Standard library paths
+	std::string libPath; // Library include paths
 
-protected:
 	void GatherEnvVars();
 	void DefaultSettings();
 
-public:
-	Env()
-	{
-		DefaultSettings();
-	}
+	// Only allow static methods to initialize a new environment
+	explicit Env();
 
+public:
+	// Setup basic production environment.
 	static Env InitBasicEnvironment(Specification&);
+	// Setup development environment for modules and plugins.
+	static Env InitDevelopmentEnvironment(Specification&);
+	// Setup testing environment.
+	static Env InitTestEnvironment(Specification&);
 
 	inline void SetDebug(bool toggle)
 	{

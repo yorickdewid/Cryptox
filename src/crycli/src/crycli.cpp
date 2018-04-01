@@ -120,10 +120,12 @@ int main(int argc, const char *argv[])
 		}
 		// Print search directories
 		else if (vm.count("print-search-dirs")) {
+			//TODO: get from Env
 			std::cout << "/somedir" << std::endl;
 		}
 		// Display all language standards
 		else if (vm.count("print-std-list")) {
+			//TODO: get from Env
 			std::cout << "Supported standards:\n"
 				<< "  1) C89\n"
 				<< "  2) C99\n"
@@ -132,6 +134,7 @@ int main(int argc, const char *argv[])
 		}
 		// Display all language standards
 		else if (vm.count("print-targets")) {
+			//TODO: get from Env
 			std::cout << "Compiler targets:\n"
 				<< "  1) CASM\tCryptox Assamble\n"
 				<< "  2) AIIPX\tArchitecture Independent Intermediate Program Executor"
@@ -149,14 +152,14 @@ int main(int argc, const char *argv[])
 		// Anything else; we're in trouble
 		else {
 			usage();
-			return 1;
+			return EXIT_FAILURE;
 		}
 	}
 	// Commandline parse whoops, report back to user
 	catch (const std::exception& e) {
 		std::cerr << e.what() << std::endl;
-		return 1;
+		return EXIT_FAILURE;
 	}
 
-	return 0;
+	return EXIT_SUCCESS;
 }
