@@ -13,6 +13,19 @@ namespace CoilCl
 namespace Typedef
 {
 
+std::vector<uint8_t> TypedefBase::TypeEnvelope() const
+{
+	std::vector<uint8_t> buffer;
+
+	// Typedef base generic options
+	buffer.push_back(static_cast<uint8_t>(m_isInline));
+	buffer.push_back(static_cast<uint8_t>(m_storageClass));
+	buffer.push_back(static_cast<uint8_t>(m_typeQualifier[0]));
+	buffer.push_back(static_cast<uint8_t>(m_typeQualifier[1]));
+
+	return buffer;
+}
+
 const std::string TypedefBase::StorageClassName() const
 {
 	switch (m_storageClass) {
@@ -138,6 +151,8 @@ std::vector<uint8_t> BuiltinType::TypeEnvelope() const
 	//TODO: narrow conversion, might lose the bits
 	buffer.push_back(static_cast<uint8_t>(m_typeOptions.to_ulong()));
 	buffer.push_back(static_cast<uint8_t>(m_specifier));
+	const auto base = TypedefBase::TypeEnvelope();
+	buffer.insert(buffer.cend(), base.begin(), base.end());
 	return buffer;
 }
 
@@ -185,6 +200,8 @@ std::vector<uint8_t> RecordType::TypeEnvelope() const
 	buffer.reserve(m_name.size());
 	std::copy(m_name.cbegin(), m_name.cend(), buffer.begin());
 	buffer.push_back(static_cast<uint8_t>(m_specifier));
+	const auto base = TypedefBase::TypeEnvelope();
+	buffer.insert(buffer.cend(), base.begin(), base.end());
 	return buffer;
 }
 
@@ -220,6 +237,8 @@ std::vector<uint8_t> TypedefType::TypeEnvelope() const
 		buffer.insert(buffer.cend(), envelop.begin(), envelop.end());
 	}
 
+	const auto base = TypedefBase::TypeEnvelope();
+	buffer.insert(buffer.cend(), base.begin(), base.end());
 	return buffer;
 }
 
@@ -230,6 +249,8 @@ std::vector<uint8_t> TypedefType::TypeEnvelope() const
 std::vector<uint8_t> VariadicType::TypeEnvelope() const
 {
 	std::vector<uint8_t> buffer = { m_c_internalType };
+	const auto base = TypedefBase::TypeEnvelope();
+	buffer.insert(buffer.cend(), base.begin(), base.end());
 	return buffer;
 }
 
@@ -238,8 +259,31 @@ std::vector<uint8_t> VariadicType::TypeEnvelope() const
 namespace Util
 {
 
-std::shared_ptr<Typedef::TypedefBase> MakeType()
+std::shared_ptr<Typedef::TypedefBase> MakeType(std::vector<uint8_t>&& in)
 {
+	using CoilCl::Typedef::TypedefBase;
+	using CoilCl::Typedef::BuiltinType;
+	using CoilCl::Typedef::RecordType;
+
+	assert(in.size() > 1);
+	switch (static_cast<TypedefBase::TypeVariation>(in.at(0)))
+	{
+	case TypedefBase::TypeVariation::INVAL:
+		throw 1; //TODO: or something else
+	case TypedefBase::TypeVariation::BUILTIN:
+		return MakeBuiltinType(BuiltinType::Specifier::INT);
+	case TypedefBase::TypeVariation::RECORD:
+		return MakeRecordType("kaas", RecordType::Specifier::STRUCT);
+	case TypedefBase::TypeVariation::TYPEDEF: {
+		std::shared_ptr<TypedefBase> q = MakeVariadicType();
+		return MakeTypedefType("worst", q);
+	}
+	case TypedefBase::TypeVariation::VARIADIC:
+		return MakeVariadicType();
+	default:
+		break;
+	}
+
 	return nullptr;
 }
 

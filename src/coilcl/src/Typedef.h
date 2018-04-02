@@ -117,7 +117,7 @@ public:
 	virtual void Consolidate(std::shared_ptr<TypedefBase>& type) = 0;
 	virtual size_t UnboxedSize() const = 0;
 	virtual bool Equals(TypedefBase* other) const = 0;
-	virtual std::vector<uint8_t> TypeEnvelope() const = 0;
+	virtual std::vector<uint8_t> TypeEnvelope() const;
 
 	// Type specifier inputs
 	inline void SetStorageClass(StorageClassSpecifier storageClass) { m_storageClass = storageClass; }
@@ -207,7 +207,7 @@ public:
 
 	bool Equals(TypedefBase* other) const;
 
-	std::vector<uint8_t> TypeEnvelope() const;
+	std::vector<uint8_t> TypeEnvelope() const override;
 
 	void Consolidate(std::shared_ptr<TypedefBase>& type);
 
@@ -241,7 +241,7 @@ public:
 
 	bool Equals(TypedefBase* other) const;
 
-	std::vector<uint8_t> TypeEnvelope() const;
+	std::vector<uint8_t> TypeEnvelope() const override;
 
 	void Consolidate(std::shared_ptr<TypedefBase>& type)
 	{
@@ -275,7 +275,7 @@ public:
 
 	bool Equals(TypedefBase* other) const;
 
-	std::vector<uint8_t> TypeEnvelope() const;
+	std::vector<uint8_t> TypeEnvelope() const override;
 
 	void Consolidate(std::shared_ptr<TypedefBase>& type)
 	{
@@ -299,7 +299,7 @@ public:
 		return dynamic_cast<VariadicType*>(other) != nullptr;
 	}
 
-	std::vector<uint8_t> TypeEnvelope() const;
+	std::vector<uint8_t> TypeEnvelope() const override;
 
 	void Consolidate(std::shared_ptr<TypedefBase>& type)
 	{
@@ -314,16 +314,14 @@ public:
 namespace Util
 {
 
-template<typename... _TyArgs>
-inline auto MakeBuiltinType(_TyArgs&&... args)
+inline auto MakeBuiltinType(Typedef::BuiltinType::Specifier specifier)
 {
-	return std::make_shared<Typedef::BuiltinType>(std::forward<_TyArgs>(args)...);
+	return std::make_shared<Typedef::BuiltinType>(specifier);
 }
 
-template<typename... _TyArgs>
-inline auto MakeRecordType(const std::string& name, _TyArgs&&... args)
+inline auto MakeRecordType(const std::string& name, Typedef::RecordType::Specifier specifier)
 {
-	return std::make_shared<Typedef::RecordType>(name, args...);
+	return std::make_shared<Typedef::RecordType>(name, specifier);
 }
 
 inline auto MakeTypedefType(const std::string& name, std::shared_ptr<Typedef::TypedefBase>& type)
@@ -336,7 +334,8 @@ inline auto MakeVariadicType()
 	return std::make_shared<Typedef::VariadicType>();
 }
 
-std::shared_ptr<Typedef::TypedefBase> MakeType();
+// Create typedefinition based on byte array
+std::shared_ptr<Typedef::TypedefBase> MakeType(std::vector<uint8_t>&&);
 
 } // namespace Util
 } // namespace CoilCl
