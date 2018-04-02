@@ -171,6 +171,7 @@ struct Serializable
 		virtual void operator<<(bool) = 0;
 		virtual void operator<<(AST::NodeID) = 0;
 		virtual void operator<<(std::string) = 0;
+		virtual void operator<<(std::vector<uint8_t>) = 0;
 
 		// Stream in operators
 		virtual void operator>>(int&) = 0;
@@ -178,6 +179,7 @@ struct Serializable
 		virtual void operator>>(bool&) = 0;
 		virtual void operator>>(AST::NodeID&) = 0;
 		virtual void operator>>(std::string&) = 0;
+		virtual void operator>>(std::vector<uint8_t>&) = 0;
 
 		// Callback operations
 		virtual void operator<<=(std::pair<int, std::function<void(const std::shared_ptr<ASTNode>&)>>) = 0;
@@ -1226,6 +1228,7 @@ protected:
 			pack << true;
 			std::vector<uint8_t> buffer;
 			AST::TypeFacade::Serialize(ReturnType(), buffer);
+			pack << buffer;
 		}
 		else {
 			pack << false;
@@ -1246,7 +1249,8 @@ protected:
 		pack >> hasReturn;
 		if (hasReturn) {
 			std::vector<uint8_t> buffer;
-			//AST::TypeFacade::Deserialize(ReturnType(), buffer);
+			pack >> buffer;
+			AST::TypeFacade::Deserialize(UpdateReturnType(), buffer);
 		}
 
 		ASTNode::Deserialize(pack);

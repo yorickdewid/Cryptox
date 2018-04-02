@@ -187,7 +187,7 @@ public:
 public:
 	BuiltinType(Specifier specifier);
 
-	// Set type options
+	// Test type options
 	inline auto Unsigned() const { return m_typeOptions.test(IS_UNSIGNED); }
 	inline auto Signed() const { return !Unsigned(); }
 	inline auto Short() const { return m_typeOptions.test(IS_SHORT); }

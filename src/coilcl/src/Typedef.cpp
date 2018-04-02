@@ -22,7 +22,6 @@ std::vector<uint8_t> TypedefBase::TypeEnvelope() const
 	buffer.push_back(static_cast<uint8_t>(m_storageClass));
 	buffer.push_back(static_cast<uint8_t>(m_typeQualifier[0]));
 	buffer.push_back(static_cast<uint8_t>(m_typeQualifier[1]));
-
 	return buffer;
 }
 
@@ -148,8 +147,6 @@ bool BuiltinType::Equals(TypedefBase* other) const
 std::vector<uint8_t> BuiltinType::TypeEnvelope() const
 {
 	std::vector<uint8_t> buffer = { m_c_internalType };
-	//TODO: narrow conversion, might lose the bits
-	buffer.push_back(static_cast<uint8_t>(m_typeOptions.to_ulong()));
 	buffer.push_back(static_cast<uint8_t>(m_specifier));
 	const auto base = TypedefBase::TypeEnvelope();
 	buffer.insert(buffer.cend(), base.begin(), base.end());
@@ -198,6 +195,7 @@ std::vector<uint8_t> RecordType::TypeEnvelope() const
 {
 	std::vector<uint8_t> buffer = { m_c_internalType };
 	buffer.reserve(m_name.size());
+	buffer.push_back(static_cast<uint8_t>(m_name.size()));
 	std::copy(m_name.cbegin(), m_name.cend(), buffer.begin());
 	buffer.push_back(static_cast<uint8_t>(m_specifier));
 	const auto base = TypedefBase::TypeEnvelope();
@@ -230,6 +228,7 @@ std::vector<uint8_t> TypedefType::TypeEnvelope() const
 {
 	std::vector<uint8_t> buffer = { m_c_internalType };
 	buffer.reserve(m_name.size());
+	buffer.push_back(static_cast<uint8_t>(m_name.size()));
 	std::copy(m_name.cbegin(), m_name.cend(), buffer.begin());
 
 	if (m_resolveType) {
@@ -265,26 +264,63 @@ std::shared_ptr<Typedef::TypedefBase> MakeType(std::vector<uint8_t>&& in)
 	using CoilCl::Typedef::BuiltinType;
 	using CoilCl::Typedef::RecordType;
 
-	assert(in.size() > 1);
+	assert(in.size() > 0);
+	size_t envelopeOffset = 0;
+	std::shared_ptr<Typedef::TypedefBase> type;
 	switch (static_cast<TypedefBase::TypeVariation>(in.at(0)))
 	{
-	case TypedefBase::TypeVariation::INVAL:
-		throw 1; //TODO: or something else
-	case TypedefBase::TypeVariation::BUILTIN:
-		return MakeBuiltinType(BuiltinType::Specifier::INT);
-	case TypedefBase::TypeVariation::RECORD:
-		return MakeRecordType("kaas", RecordType::Specifier::STRUCT);
-	case TypedefBase::TypeVariation::TYPEDEF: {
-		std::shared_ptr<TypedefBase> q = MakeVariadicType();
-		return MakeTypedefType("worst", q);
-	}
-	case TypedefBase::TypeVariation::VARIADIC:
-		return MakeVariadicType();
-	default:
+	case TypedefBase::TypeVariation::BUILTIN: {
+		assert(in.size() > 1);
+		const auto spec = static_cast<BuiltinType::Specifier>(in.at(1));
+		envelopeOffset = 2;
+		type = MakeBuiltinType(spec);
 		break;
 	}
+	case TypedefBase::TypeVariation::RECORD: {
+		assert(in.size() > 2);
+		std::string name;
+		const auto nameSize = static_cast<size_t>(in.at(1));
+		name.resize(nameSize);
+		CRY_MEMCPY(static_cast<void*>(&(name[0])), name.size(), &(in.at(2)), nameSize);
+		//TODO: m_specifier
+		//TODO: envelopeOffset = 99;
+		type = MakeRecordType(name, RecordType::Specifier::STRUCT);
+		break;
+	}
+	case TypedefBase::TypeVariation::TYPEDEF: {
+		assert(in.size() > 2);
+		std::string name;
+		const auto nameSize = static_cast<size_t>(in.at(1));
+		name.resize(nameSize);
+		CRY_MEMCPY(static_cast<void*>(&(name[0])), name.size(), &(in.at(2)), nameSize);
+		//TODO: m_resolveType
+		//TODO: envelopeOffset = 99;
+		std::shared_ptr<TypedefBase> q = MakeVariadicType();
+		type = MakeTypedefType(name, q);
+		break;
+	}
+	case TypedefBase::TypeVariation::VARIADIC: {
+		type = MakeVariadicType();
+		break;
+	}
+	case TypedefBase::TypeVariation::INVAL:
+	default:
+		throw 1; //TODO: or something else
+	}
 
-	return nullptr;
+	{
+		assert(type);
+		if (static_cast<bool>(in.at(envelopeOffset))) {
+			type->SetInline();
+		}
+
+		auto spec = static_cast<TypedefBase::StorageClassSpecifier>(in.at(envelopeOffset + 1));
+		type->SetStorageClass(spec);
+		type->SetQualifier(static_cast<TypedefBase::TypeQualifier>(in.at(envelopeOffset + 2)));
+		type->SetQualifier(static_cast<TypedefBase::TypeQualifier>(in.at(envelopeOffset + 3)));
+	}
+
+	return type;
 }
 
 } // namespace Util

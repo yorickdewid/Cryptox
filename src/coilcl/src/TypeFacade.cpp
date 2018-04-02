@@ -32,12 +32,15 @@ void TypeFacade::Deserialize(TypeFacade& out, const std::vector<uint8_t>& in)
 
 	auto ptrCount = static_cast<size_t>(in.at(0));
 	const auto sizeOfEnvelope = static_cast<size_t>(in.at(1));
+	assert(sizeOfEnvelope + 2 == in.size());
 
+	//FUTURE: Replace copy by move
 	std::vector<uint8_t> type;
 	type.resize(in.size() - 2);
 	std::copy(in.begin() + 2, in.cend(), type.begin());
 	std::shared_ptr<Typedef::TypedefBase> ptr = Util::MakeType(std::move(type));
-
+	
+	// Set type facade options
 	TypeFacade tmp{ ptr };
 	tmp.SetPointer(ptrCount);
 	out = tmp;

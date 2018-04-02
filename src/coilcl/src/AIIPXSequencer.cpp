@@ -62,6 +62,14 @@ class Visitor : public Serializable::Interface
 		ss << value;
 	}
 
+	template<>
+	void WriteProxy(const std::vector<uint8_t>& value)
+	{
+		size_t sz = value.size();
+		WriteProxy(reinterpret_cast<const char *>(&sz), sizeof(uint32_t));
+		WriteProxy(reinterpret_cast<const char *>(value.data()), value.size());
+	}
+
 	void ReadProxy(std::stringstream::char_type *str, std::streamsize count)
 	{
 		// If stream is empty, redirect read to callback
@@ -113,7 +121,28 @@ class Visitor : public Serializable::Interface
 			return;
 		}
 
+		size_t sz = 0;
+		ReadProxy(reinterpret_cast<char *>(&sz), sizeof(uint32_t));
 		ss >> value;
+	}
+
+	template<>
+	void ReadProxy(std::vector<uint8_t>& value)
+	{
+		// If stream is empty, redirect read to callback
+		if (!ss.rdbuf()->in_avail()) {
+			size_t sz = 0;
+			ReadProxy(reinterpret_cast<char *>(&sz), sizeof(uint32_t));
+			if (!sz) { return; }
+			value.resize(sz);
+			inputCallback(reinterpret_cast<uint8_t *>(&value[0]), sz);
+			return;
+		}
+
+		size_t sz = 0;
+		ReadProxy(reinterpret_cast<char *>(&sz), sizeof(uint32_t));
+		value.resize(sz);
+		ReadProxy(reinterpret_cast<char *>(value.data()), sz);
 	}
 
 public:
@@ -151,6 +180,7 @@ public:
 	virtual void operator<<(bool b) { WriteProxy(b); }
 	virtual void operator<<(AST::NodeID n) { WriteProxy(reinterpret_cast<const char *>(&n), sizeof(AST::NodeID)); }
 	virtual void operator<<(std::string s) { WriteProxy(s); }
+	virtual void operator<<(std::vector<uint8_t> b) { WriteProxy(b); }
 
 	// Stream node data from visitor
 	virtual void operator>>(int& i) { ReadProxy(reinterpret_cast<char *>(&i), sizeof(uint32_t)); }
@@ -158,6 +188,7 @@ public:
 	virtual void operator>>(bool& b) { ReadProxy(b); }
 	virtual void operator>>(AST::NodeID& n) { ReadProxy(reinterpret_cast<char *>(&n), sizeof(AST::NodeID)); }
 	virtual void operator>>(std::string& s) { ReadProxy(s); }
+	virtual void operator>>(std::vector<uint8_t>& b) { ReadProxy(b); }
 
 	// Callback operations
 	virtual void operator<<=(std::pair<int, std::function<void(const std::shared_ptr<ASTNode>&)>>);
