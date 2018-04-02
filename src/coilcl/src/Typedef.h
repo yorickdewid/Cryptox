@@ -52,8 +52,15 @@ public:
 	public:
 		using InternalArray = std::array<_Ty, N>;
 
+		StaticArray() = default;
+		StaticArray(std::initializer_list<TypeQualifier>)
+		{
+			//TODO
+		}
+
 		using value_type = typename InternalArray::value_type;
 		using reference = typename InternalArray::reference;
+		using const_reference = typename InternalArray::const_reference;
 		using iterator = typename InternalArray::iterator;
 		using const_iterator = typename InternalArray::const_iterator;
 		using reverse_iterator = typename InternalArray::reverse_iterator;
@@ -69,9 +76,23 @@ public:
 		const_iterator cbegin() const noexcept { return m_array.cbegin(); }
 		const_iterator cend() const noexcept { return m_array.cend(); }
 
-		void PushBack(_Ty tq)
+		const_reference operator[](size_t idx) const
 		{
-			m_array[m_offset++] = tq;
+			return m_array[idx];
+		}
+
+		void PushBack(value_type tq)
+		{
+			if (!Full()) {
+				m_array[m_offset++] = tq;
+			}
+		}
+
+		void PushBack(value_type&& tq)
+		{
+			if (!Full()) {
+				m_array[m_offset++] = std::move(tq);
+			}
 		}
 
 	private:
@@ -103,8 +124,8 @@ public:
 
 protected:
 	bool m_isInline = false;
-	StorageClassSpecifier m_storageClass;
-	StaticArray<TypeQualifier, 2> m_typeQualifier;
+	StorageClassSpecifier m_storageClass = StorageClassSpecifier::NONE;
+	StaticArray<TypeQualifier, 2> m_typeQualifier = { TypeQualifier::NONE, TypeQualifier::NONE };
 };
 
 class BuiltinType : public TypedefBase
@@ -126,29 +147,7 @@ class BuiltinType : public TypedefBase
 private:
 	// If specifier matches a type option, set the option bit
 	// and default the type to integer.
-	void SpecifierToOptions()
-	{
-		switch (m_specifier) {
-		case Specifier::SIGNED:
-			m_typeOptions.set(IS_SIGNED);
-			m_typeOptions.reset(IS_UNSIGNED);
-			m_specifier = Specifier::INT;
-			break;
-		case Specifier::UNSIGNED:
-			m_typeOptions.set(IS_UNSIGNED);
-			m_typeOptions.set(IS_SIGNED);
-			m_specifier = Specifier::INT;
-			break;
-		case Specifier::SHORT:
-			m_typeOptions.set(IS_SHORT);
-			m_specifier = Specifier::INT;
-			break;
-		case Specifier::LONG:
-			m_typeOptions.set(IS_LONG);
-			m_specifier = Specifier::INT;
-			break;
-		}
-	}
+	void SpecifierToOptions();
 
 public:
 	enum class Specifier
@@ -166,11 +165,7 @@ public:
 	};
 
 public:
-	BuiltinType(Specifier specifier)
-		: m_specifier{ specifier }
-	{
-		SpecifierToOptions();
-	}
+	BuiltinType(Specifier specifier);
 
 	// Set type options
 	inline auto Unsigned() const { return m_typeOptions.test(IS_UNSIGNED); }
@@ -190,33 +185,9 @@ public:
 
 	size_t UnboxedSize() const;
 
-	bool Equals(TypedefBase* other) const
-	{
-		auto self = dynamic_cast<BuiltinType*>(other);
-		if (self == nullptr) {
-			return false;
-		}
+	bool Equals(TypedefBase* other) const;
 
-		return m_specifier == self->m_specifier
-			&& m_typeOptions == self->m_typeOptions;
-	}
-
-	void Consolidate(std::shared_ptr<TypedefBase>& type)
-	{
-		assert(type->AllowCoalescence());
-
-		auto otherType = std::dynamic_pointer_cast<BuiltinType>(type);
-		if (otherType->Unsigned()) { m_typeOptions.set(IS_UNSIGNED); }
-		if (otherType->Short()) { m_typeOptions.set(IS_SHORT); }
-		if (otherType->Long()) {
-			if (this->Long()) {
-				m_typeOptions.set(IS_LONG_LONG);
-			}
-			else {
-				m_typeOptions.set(IS_LONG);
-			}
-		}
-	}
+	void Consolidate(std::shared_ptr<TypedefBase>& type);
 
 private:
 	Specifier m_specifier;
@@ -234,11 +205,7 @@ public:
 	};
 
 public:
-	RecordType(const std::string& name, Specifier specifier)
-		: m_name{ name }
-		, m_specifier{ specifier }
-	{
-	}
+	RecordType(const std::string& name, Specifier specifier);
 
 	const std::string TypeName() const final
 	{
@@ -250,16 +217,7 @@ public:
 	//TODO: quite the puzzle
 	size_t UnboxedSize() const { return 0; }
 
-	bool Equals(TypedefBase* other) const
-	{
-		auto self = dynamic_cast<RecordType*>(other);
-		if (self == nullptr) {
-			return false;
-		}
-
-		return m_specifier == self->m_specifier
-			&& m_name == self->m_name;
-	}
+	bool Equals(TypedefBase* other) const;
 
 	void Consolidate(std::shared_ptr<TypedefBase>& type)
 	{
@@ -278,11 +236,7 @@ class TypedefType : public TypedefBase
 	std::shared_ptr<TypedefBase> m_resolveType;
 
 public:
-	TypedefType(const std::string& name, std::shared_ptr<TypedefBase>& nativeType)
-		: m_name{ name }
-		, m_resolveType{ std::move(nativeType) }
-	{
-	}
+	TypedefType(const std::string& name, std::shared_ptr<TypedefBase>& nativeType);
 
 	const std::string TypeName() const final
 	{
@@ -293,16 +247,7 @@ public:
 
 	size_t UnboxedSize() const { return m_resolveType->UnboxedSize(); }
 
-	bool Equals(TypedefBase* other) const
-	{
-		auto self = dynamic_cast<TypedefType*>(other);
-		if (self == nullptr) {
-			return false;
-		}
-
-		return m_resolveType == self->m_resolveType
-			&& m_name == self->m_name;
-	}
+	bool Equals(TypedefBase* other) const;
 
 	void Consolidate(std::shared_ptr<TypedefBase>& type)
 	{

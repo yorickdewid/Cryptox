@@ -37,6 +37,40 @@ const std::string TypedefBase::QualifierName() const
 	return result;
 }
 
+//
+// BuiltinType
+//
+
+BuiltinType::BuiltinType(Specifier specifier)
+	: m_specifier{ specifier }
+{
+	SpecifierToOptions();
+}
+
+void BuiltinType::SpecifierToOptions()
+{
+	switch (m_specifier) {
+	case Specifier::SIGNED:
+		m_typeOptions.set(IS_SIGNED);
+		m_typeOptions.reset(IS_UNSIGNED);
+		m_specifier = Specifier::INT;
+		break;
+	case Specifier::UNSIGNED:
+		m_typeOptions.set(IS_UNSIGNED);
+		m_typeOptions.set(IS_SIGNED);
+		m_specifier = Specifier::INT;
+		break;
+	case Specifier::SHORT:
+		m_typeOptions.set(IS_SHORT);
+		m_specifier = Specifier::INT;
+		break;
+	case Specifier::LONG:
+		m_typeOptions.set(IS_LONG);
+		m_specifier = Specifier::INT;
+		break;
+	}
+}
+
 const std::string BuiltinType::TypeName() const
 {
 	auto qualifier = TypedefBase::QualifierName();
@@ -85,6 +119,76 @@ size_t BuiltinType::UnboxedSize() const
 	}
 
 	throw std::exception{};//TODO
+}
+
+bool BuiltinType::Equals(TypedefBase* other) const
+{
+	auto self = dynamic_cast<BuiltinType*>(other);
+	if (self == nullptr) {
+		return false;
+	}
+
+	return m_specifier == self->m_specifier
+		&& m_typeOptions == self->m_typeOptions;
+}
+
+void BuiltinType::Consolidate(std::shared_ptr<TypedefBase>& type)
+{
+	assert(type->AllowCoalescence());
+
+	auto otherType = std::dynamic_pointer_cast<BuiltinType>(type);
+	if (otherType->Unsigned()) { m_typeOptions.set(IS_UNSIGNED); }
+	if (otherType->Short()) { m_typeOptions.set(IS_SHORT); }
+	if (otherType->Long()) {
+		if (this->Long()) {
+			m_typeOptions.set(IS_LONG_LONG);
+		}
+		else {
+			m_typeOptions.set(IS_LONG);
+		}
+	}
+}
+
+//
+// RecordType
+//
+
+RecordType::RecordType(const std::string& name, Specifier specifier)
+	: m_name{ name }
+	, m_specifier{ specifier }
+{
+}
+
+bool RecordType::Equals(TypedefBase* other) const
+{
+	auto self = dynamic_cast<RecordType*>(other);
+	if (self == nullptr) {
+		return false;
+	}
+
+	return m_specifier == self->m_specifier
+		&& m_name == self->m_name;
+}
+
+//
+// TypedefType
+//
+
+TypedefType::TypedefType(const std::string& name, std::shared_ptr<TypedefBase>& nativeType)
+	: m_name{ name }
+	, m_resolveType{ std::move(nativeType) }
+{
+}
+
+bool TypedefType::Equals(TypedefBase* other) const
+{
+	auto self = dynamic_cast<TypedefType*>(other);
+	if (self == nullptr) {
+		return false;
+	}
+
+	return m_resolveType == self->m_resolveType
+		&& m_name == self->m_name;
 }
 
 } // namespace Typedef
