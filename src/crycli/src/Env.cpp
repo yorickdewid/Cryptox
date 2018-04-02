@@ -12,6 +12,7 @@
 
 #include <cstdlib>
 
+#include <boost/algorithm/string.hpp>
 #include <boost/lexical_cast.hpp>
 
 #define ENV_STR_PREFIX "CRYCL_"
@@ -74,7 +75,8 @@ void Env::GatherEnvVars()
 
 void Env::DefaultSettings()
 {
-	// TODO: Not sure wat to do here...
+	// TODO: Platform and hardware specific settings
+	//  - Arch, Byte-order, OS, etc..
 }
 
 // Load the default settings from the specification file.
@@ -86,8 +88,14 @@ void Env::LoadSpecification(Specification& spec)
 
 Env::VariableList Env::GetSettingLibraryPath()
 {
-	//FIXME:
-	return { "kaas" };
+	using namespace boost::algorithm;
+
+	std::vector<std::string> list;
+	split(list, libPath, is_any_of(";"));
+	list.erase(std::remove_if(list.begin(), list.end(), [](const std::string& str) {
+		return str.empty();
+	}), list.end());
+	return list;
 }
 
 // Intialize environment specific to production requirements
