@@ -134,7 +134,10 @@ bool BuiltinType::Equals(TypedefBase* other) const
 
 std::vector<uint8_t> BuiltinType::TypeEnvelope() const
 {
-	std::vector<uint8_t> buffer = { 12,34,54,9 };
+	std::vector<uint8_t> buffer = { m_c_internalType };
+	//TODO: narrow conversion, might lose the bits
+	buffer.push_back(static_cast<uint8_t>(m_typeOptions.to_ulong()));
+	buffer.push_back(static_cast<uint8_t>(m_specifier));
 	return buffer;
 }
 
@@ -178,7 +181,11 @@ bool RecordType::Equals(TypedefBase* other) const
 
 std::vector<uint8_t> RecordType::TypeEnvelope() const
 {
-	return {};
+	std::vector<uint8_t> buffer = { m_c_internalType };
+	buffer.reserve(m_name.size());
+	std::copy(m_name.cbegin(), m_name.cend(), buffer.begin());
+	buffer.push_back(static_cast<uint8_t>(m_specifier));
+	return buffer;
 }
 
 //
@@ -204,7 +211,7 @@ bool TypedefType::Equals(TypedefBase* other) const
 
 std::vector<uint8_t> TypedefType::TypeEnvelope() const
 {
-	std::vector<uint8_t> buffer;
+	std::vector<uint8_t> buffer = { m_c_internalType };
 	buffer.reserve(m_name.size());
 	std::copy(m_name.cbegin(), m_name.cend(), buffer.begin());
 
@@ -216,5 +223,25 @@ std::vector<uint8_t> TypedefType::TypeEnvelope() const
 	return buffer;
 }
 
+//
+// VariadicType
+//
+
+std::vector<uint8_t> VariadicType::TypeEnvelope() const
+{
+	std::vector<uint8_t> buffer = { m_c_internalType };
+	return buffer;
+}
+
 } // namespace Typedef
+
+namespace Util
+{
+
+std::shared_ptr<Typedef::TypedefBase> MakeType()
+{
+	return nullptr;
+}
+
+} // namespace Util
 } // namespace CoilCl

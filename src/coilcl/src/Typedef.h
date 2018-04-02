@@ -27,6 +27,16 @@ namespace Typedef
 class TypedefBase
 {
 public:
+	enum class TypeVariation : uint8_t
+	{
+		INVAL = 0,
+		BUILTIN = 100,
+		RECORD,
+		TYPEDEF,
+		VARIADIC,
+	};
+
+public:
 	// Storage class specifier
 	enum class StorageClassSpecifier
 	{
@@ -129,6 +139,14 @@ protected:
 	StaticArray<TypeQualifier, 2> m_typeQualifier = { TypeQualifier::NONE, TypeQualifier::NONE };
 };
 
+constexpr uint8_t SetInteralType(TypedefBase::TypeVariation type)
+{
+	return static_cast<uint8_t>(type);
+}
+
+#define REGISTER_TYPE(t)\
+	const uint8_t m_c_internalType = SetInteralType(TypedefBase::TypeVariation::t); \
+
 class BuiltinType : public TypedefBase
 {
 	// Additional type options
@@ -143,6 +161,7 @@ class BuiltinType : public TypedefBase
 		IS_IMAGINARY,
 	};
 
+	REGISTER_TYPE(BUILTIN);
 	std::bitset<8> m_typeOptions;
 
 private:
@@ -198,6 +217,8 @@ private:
 
 class RecordType : public TypedefBase
 {
+	REGISTER_TYPE(RECORD);
+
 public:
 	enum class Specifier
 	{
@@ -236,6 +257,7 @@ private:
 
 class TypedefType : public TypedefBase
 {
+	REGISTER_TYPE(TYPEDEF);
 	std::string m_name;
 	std::shared_ptr<TypedefBase> m_resolveType;
 
@@ -265,6 +287,8 @@ public:
 
 class VariadicType : public TypedefBase
 {
+	REGISTER_TYPE(VARIADIC);
+
 public:
 	const std::string TypeName() const final { return "..."; }
 	bool AllowCoalescence() const final { return false; }
@@ -275,10 +299,7 @@ public:
 		return dynamic_cast<VariadicType*>(other) != nullptr;
 	}
 
-	std::vector<uint8_t> TypeEnvelope() const
-	{
-		return {};
-	}
+	std::vector<uint8_t> TypeEnvelope() const;
 
 	void Consolidate(std::shared_ptr<TypedefBase>& type)
 	{
@@ -314,6 +335,8 @@ inline auto MakeVariadicType()
 {
 	return std::make_shared<Typedef::VariadicType>();
 }
+
+std::shared_ptr<Typedef::TypedefBase> MakeType();
 
 } // namespace Util
 } // namespace CoilCl
