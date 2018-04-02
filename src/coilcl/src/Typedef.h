@@ -13,9 +13,9 @@
 #include <Cry/Indep.h>
 
 #include <cassert>
+#include <array>
 #include <string>
 #include <memory>
-#include <vector>
 #include <list>
 #include <bitset>
 
@@ -46,6 +46,39 @@ public:
 		VOLATILE,
 	};
 
+	template<typename _Ty, size_t N>
+	class StaticArray
+	{
+	public:
+		using InternalArray = std::array<_Ty, N>;
+
+		using value_type = typename InternalArray::value_type;
+		using reference = typename InternalArray::reference;
+		using iterator = typename InternalArray::iterator;
+		using const_iterator = typename InternalArray::const_iterator;
+		using reverse_iterator = typename InternalArray::reverse_iterator;
+		using const_reverse_iterator = typename InternalArray::const_reverse_iterator;
+
+		bool Full() const noexcept { return m_offset >= N; }
+		bool Empty() const noexcept { return !m_offset; }
+
+		iterator begin() { return m_array.begin(); }
+		iterator end() { return m_array.end(); }
+		const_iterator begin() const noexcept { return m_array.begin(); }
+		const_iterator end() const noexcept { return m_array.end(); }
+		const_iterator cbegin() const noexcept { return m_array.cbegin(); }
+		const_iterator cend() const noexcept { return m_array.cend(); }
+
+		void PushBack(_Ty tq)
+		{
+			m_array[m_offset++] = tq;
+		}
+
+	private:
+		InternalArray m_array = InternalArray{};
+		size_t m_offset = 0;
+	};
+
 public:
 	// Abstract methods
 	virtual const std::string TypeName() const = 0;
@@ -56,7 +89,7 @@ public:
 
 	// Type specifier inputs
 	inline void SetStorageClass(StorageClassSpecifier storageClass) { m_storageClass = storageClass; }
-	inline void SetQualifier(TypeQualifier qypeQualifier) { m_typeQualifier.push_back(qypeQualifier); }
+	inline void SetQualifier(TypeQualifier typeQualifier) { m_typeQualifier.PushBack(typeQualifier); }
 	inline void SetInline() { m_isInline = true; }
 
 	// Stringify type name
@@ -64,13 +97,14 @@ public:
 	const std::string QualifierName() const;
 
 	// Additional type specifiers
-	inline StorageClassSpecifier StorageClass() const { return m_storageClass; }
-	inline auto IsInline() const { return m_isInline; }
+	inline StorageClassSpecifier StorageClass() const noexcept { return m_storageClass; }
+	inline StaticArray<TypeQualifier, 2> TypeQualifiers() const noexcept { return m_typeQualifier; }
+	inline bool IsInline() const noexcept { return m_isInline; }
 
 protected:
 	bool m_isInline = false;
 	StorageClassSpecifier m_storageClass;
-	std::vector<TypeQualifier> m_typeQualifier{ 2 };
+	StaticArray<TypeQualifier, 2> m_typeQualifier;
 };
 
 class BuiltinType : public TypedefBase
@@ -230,7 +264,7 @@ public:
 	void Consolidate(std::shared_ptr<TypedefBase>& type)
 	{
 		CRY_UNUSED(type);
-		
+
 		throw UnsupportedOperationException{ "TypedefType::Consolidate" };
 	}
 
@@ -293,7 +327,7 @@ public:
 	void Consolidate(std::shared_ptr<TypedefBase>& type)
 	{
 		CRY_UNUSED(type);
-		
+
 		throw UnsupportedOperationException{ "VariadicType::Consolidate" };
 	}
 };
