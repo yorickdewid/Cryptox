@@ -132,6 +132,12 @@ bool BuiltinType::Equals(TypedefBase* other) const
 		&& m_typeOptions == self->m_typeOptions;
 }
 
+std::vector<uint8_t> BuiltinType::TypeEnvelope() const
+{
+	std::vector<uint8_t> buffer = { 12,34,54,9 };
+	return buffer;
+}
+
 void BuiltinType::Consolidate(std::shared_ptr<TypedefBase>& type)
 {
 	assert(type->AllowCoalescence());
@@ -170,6 +176,11 @@ bool RecordType::Equals(TypedefBase* other) const
 		&& m_name == self->m_name;
 }
 
+std::vector<uint8_t> RecordType::TypeEnvelope() const
+{
+	return {};
+}
+
 //
 // TypedefType
 //
@@ -189,6 +200,20 @@ bool TypedefType::Equals(TypedefBase* other) const
 
 	return m_resolveType == self->m_resolveType
 		&& m_name == self->m_name;
+}
+
+std::vector<uint8_t> TypedefType::TypeEnvelope() const
+{
+	std::vector<uint8_t> buffer;
+	buffer.reserve(m_name.size());
+	std::copy(m_name.cbegin(), m_name.cend(), buffer.begin());
+
+	if (m_resolveType) {
+		auto envelop = m_resolveType->TypeEnvelope();
+		buffer.insert(buffer.cend(), envelop.begin(), envelop.end());
+	}
+
+	return buffer;
 }
 
 } // namespace Typedef

@@ -8,9 +8,9 @@
 
 #pragma once
 
-#include <memory>
-
 #include "Cry.h"
+
+#include <memory>
 
 namespace Cry
 {

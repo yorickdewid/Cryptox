@@ -10,6 +10,8 @@
 
 #include "Typedef.h"
 
+#include <vector>
+
 namespace CoilCl
 {
 namespace AST

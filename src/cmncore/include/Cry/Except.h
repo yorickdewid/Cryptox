@@ -8,9 +8,9 @@
 
 #pragma once
 
-#include <stdexcept>
-
 #include "Cry.h"
+
+#include <stdexcept>
 
 namespace Cry
 {

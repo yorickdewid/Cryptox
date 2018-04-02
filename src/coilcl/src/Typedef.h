@@ -8,14 +8,14 @@
 
 #pragma once
 
-#include "UnsupportedOperationException.h" //TODO: replace
-
-#include <Cry/Indep.h>
+#include <Cry/Cry.h>
+#include <Cry/Except.h>
 
 #include <cassert>
 #include <array>
 #include <string>
 #include <memory>
+#include <vector>
 #include <list>
 #include <bitset>
 
@@ -107,6 +107,7 @@ public:
 	virtual void Consolidate(std::shared_ptr<TypedefBase>& type) = 0;
 	virtual size_t UnboxedSize() const = 0;
 	virtual bool Equals(TypedefBase* other) const = 0;
+	virtual std::vector<uint8_t> TypeEnvelope() const = 0;
 
 	// Type specifier inputs
 	inline void SetStorageClass(StorageClassSpecifier storageClass) { m_storageClass = storageClass; }
@@ -187,6 +188,8 @@ public:
 
 	bool Equals(TypedefBase* other) const;
 
+	std::vector<uint8_t> TypeEnvelope() const;
+
 	void Consolidate(std::shared_ptr<TypedefBase>& type);
 
 private:
@@ -195,8 +198,6 @@ private:
 
 class RecordType : public TypedefBase
 {
-	std::string m_name;
-
 public:
 	enum class Specifier
 	{
@@ -219,14 +220,17 @@ public:
 
 	bool Equals(TypedefBase* other) const;
 
+	std::vector<uint8_t> TypeEnvelope() const;
+
 	void Consolidate(std::shared_ptr<TypedefBase>& type)
 	{
 		CRY_UNUSED(type);
 
-		throw UnsupportedOperationException{ "TypedefType::Consolidate" };
+		throw Cry::Except::UnsupportedOperationException{ "TypedefType::Consolidate" };
 	}
 
 private:
+	std::string m_name;
 	Specifier m_specifier;
 };
 
@@ -249,11 +253,13 @@ public:
 
 	bool Equals(TypedefBase* other) const;
 
+	std::vector<uint8_t> TypeEnvelope() const;
+
 	void Consolidate(std::shared_ptr<TypedefBase>& type)
 	{
 		CRY_UNUSED(type);
 
-		throw UnsupportedOperationException{ "TypedefType::Consolidate" };
+		throw Cry::Except::UnsupportedOperationException{ "TypedefType::Consolidate" };
 	}
 };
 
@@ -269,11 +275,16 @@ public:
 		return dynamic_cast<VariadicType*>(other) != nullptr;
 	}
 
+	std::vector<uint8_t> TypeEnvelope() const
+	{
+		return {};
+	}
+
 	void Consolidate(std::shared_ptr<TypedefBase>& type)
 	{
 		CRY_UNUSED(type);
 
-		throw UnsupportedOperationException{ "VariadicType::Consolidate" };
+		throw Cry::Except::UnsupportedOperationException{ "VariadicType::Consolidate" };
 	}
 };
 
