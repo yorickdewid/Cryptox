@@ -1032,7 +1032,15 @@ protected:
 	{
 		pack << nodeId;
 
-		//TODO: Handle Returnable here...
+		if (HasReturnType()) {
+			pack << true;
+			std::vector<uint8_t> buffer;
+			AST::TypeFacade::Serialize(ReturnType(), buffer);
+			pack << buffer;
+		}
+		else {
+			pack << false;
+		}
 
 		ASTNode::Serialize(pack);
 	}
@@ -1043,7 +1051,13 @@ protected:
 		pack >> _nodeId;
 		AssertNode(_nodeId, nodeId);
 
-		//TODO: Handle Returnable here...
+		bool hasReturn = false;
+		pack >> hasReturn;
+		if (hasReturn) {
+			std::vector<uint8_t> buffer;
+			pack >> buffer;
+			AST::TypeFacade::Deserialize(UpdateReturnType(), buffer);
+		}
 
 		ASTNode::Deserialize(pack);
 	}
@@ -1085,6 +1099,7 @@ public:
 	virtual void Serialize(Serializable::Interface& pack)
 	{
 		pack << _DrivTy::nodeId;
+		//m_valueObj
 		Literal::Serialize(pack);
 	}
 
@@ -1600,12 +1615,11 @@ public:
 	}
 
 	RecordDecl(RecordType type)
-		: Decl{ }
-		, m_type{ type }
+		: m_type{ type }
 	{
 	}
 
-	auto IsAnonymous() const
+	bool IsAnonymous() const
 	{
 		return m_identifier.empty();
 	}
@@ -1934,7 +1948,7 @@ public:
 
 		//TODO: m_signature
 
-		ASTNode::Serialize(pack);
+		Decl::Serialize(pack);
 	}
 
 	virtual void Deserialize(Serializable::Interface& pack)
@@ -1964,7 +1978,7 @@ public:
 			BindPrototype(ref);
 		}};
 
-		ASTNode::Deserialize(pack);
+		Decl::Deserialize(pack);
 	}
 
 	const std::string NodeName() const

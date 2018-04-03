@@ -23,8 +23,9 @@ class TypeFacade
 	size_t m_ptrCount = 0;
 
 public:
+	//FUTURE: maybe remove
 	TypeFacade() = default;
-	
+
 	TypeFacade(const std::shared_ptr<Typedef::TypedefBase>& type)
 		: m_type{ type }
 	{
@@ -38,14 +39,16 @@ public:
 	inline auto Size() const { return m_type->UnboxedSize(); }
 
 	// Concat type base name and pointer counter for convenience
-	auto TypeName() const
+	std::string TypeName() const
 	{
+		if (!HasValue()) { return {}; }
 		return m_type->TypeName() + PointerName();
 	}
 
 	// Access native type base
 	Typedef::TypedefBase *operator->() const
 	{
+		if (!HasValue()) { return nullptr; }
 		return m_type.get();
 	}
 
@@ -56,6 +59,7 @@ public:
 
 	const std::type_info& Type() const
 	{
+		if (!HasValue()) { return typeid(nullptr); }
 		return typeid(*m_type.get());
 	}
 
