@@ -1120,7 +1120,7 @@ public:
 		ss << " {" + std::to_string(m_state.Alteration()) + "}";
 		ss << " <line:" << line << ",col:" << col << "> ";
 		ss << "'" << ReturnType()->TypeName() << "' ";
-		ss << (*m_valueObj);
+		ss << m_valueObj->Print();
 
 		return ss.str();
 	}

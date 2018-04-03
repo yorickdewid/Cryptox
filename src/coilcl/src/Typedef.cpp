@@ -153,7 +153,7 @@ std::vector<uint8_t> BuiltinType::TypeEnvelope() const
 	return buffer;
 }
 
-void BuiltinType::Consolidate(std::shared_ptr<TypedefBase>& type)
+void BuiltinType::Consolidate(ValueType& type)
 {
 	assert(type->AllowCoalescence());
 
@@ -207,7 +207,7 @@ std::vector<uint8_t> RecordType::TypeEnvelope() const
 // TypedefType
 //
 
-TypedefType::TypedefType(const std::string& name, std::shared_ptr<TypedefBase>& nativeType)
+TypedefType::TypedefType(const std::string& name, ValueType& nativeType)
 	: m_name{ name }
 	, m_resolveType{ std::move(nativeType) }
 {
@@ -258,7 +258,7 @@ std::vector<uint8_t> VariadicType::TypeEnvelope() const
 namespace Util
 {
 
-std::shared_ptr<Typedef::TypedefBase> MakeType(std::vector<uint8_t>&& in)
+Typedef::ValueType MakeType(std::vector<uint8_t>&& in)
 {
 	using CoilCl::Typedef::TypedefBase;
 	using CoilCl::Typedef::BuiltinType;

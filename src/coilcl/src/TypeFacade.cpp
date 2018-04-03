@@ -38,7 +38,7 @@ void TypeFacade::Deserialize(TypeFacade& out, const std::vector<uint8_t>& in)
 	std::vector<uint8_t> type;
 	type.resize(in.size() - 2);
 	std::copy(in.begin() + 2, in.cend(), type.begin());
-	std::shared_ptr<Typedef::TypedefBase> ptr = Util::MakeType(std::move(type));
+	Typedef::ValueType ptr = Util::MakeType(std::move(type));
 	
 	// Set type facade options
 	TypeFacade tmp{ ptr };

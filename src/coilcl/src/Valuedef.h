@@ -9,7 +9,8 @@
 #pragma once
 
 #include "Typedef.h"
-#include "Cry/PolyConstructTrait.h"
+
+#include <Cry/PolyConstructTrait.h>
 
 #include <boost/any.hpp>
 #include <boost/lexical_cast.hpp>
@@ -23,13 +24,12 @@ namespace Valuedef
 
 class Value : public Cry::PolyConstruct
 {
-public:
-	using variant_type = boost::any;
-
 protected:
+	using ValueVariant = boost::any;
+
 	// The internal datastructure stores the value
 	// as close to the actual data type specifier.
-	variant_type m_value;
+	ValueVariant m_value;
 
 	// If this counter is greater than 0, the external type is an array
 	struct
@@ -42,26 +42,9 @@ protected:
 
 public:
 	// Special member funcion, copy constructor
-	Value(const Value& other)
-		: m_objectType{ other.m_objectType }
-		, m_value{ other.m_value }
-		, m_isVoid{ other.m_isVoid }
-		, m_isInline{ other.m_isInline }
-	{
-		m_array.m_Size = other.m_array.m_Size;
-		m_array._0terminator = other.m_array._0terminator;
-	}
-
-	Value(std::shared_ptr<Typedef::TypedefBase> typeBase, variant_type value)
-		: m_objectType{ typeBase }
-		, m_value{ value }
-	{
-	}
-
-	Value(std::shared_ptr<Typedef::TypedefBase> typeBase)
-		: m_objectType{ typeBase }
-	{
-	}
+	Value(const Value& other);
+	Value(Typedef::ValueType typeBase, ValueVariant value);
+	Value(Typedef::ValueType typeBase);
 
 	// Value class is abstract and must be explicity defined
 	virtual ~Value() = default; // = 0;
@@ -70,7 +53,7 @@ public:
 	inline void SetInline() { m_isInline = true; }
 
 	// Return the type specifier
-	auto DataType() const noexcept { return m_objectType; }
+	Typedef::ValueType DataType() const noexcept { return m_objectType; }
 
 	template<typename _CastTy>
 	auto DataType() const { return std::dynamic_pointer_cast<_CastTy>(m_objectType); }
@@ -88,18 +71,8 @@ public:
 
 private:
 	bool m_isInline = false;
-	std::shared_ptr<Typedef::TypedefBase> m_objectType;
+	Typedef::ValueType m_objectType;
 };
-
-// If string was required, try cast 'boosst any' to vector and string
-template<>
-inline auto Value::As() const -> std::string
-{
-	auto vec = boost::any_cast<std::vector<std::string::value_type>>(m_value);
-	return m_array._0terminator ?
-		std::string{ vec.begin(), vec.end() - 1 } :
-		std::string{ vec.begin(), vec.end() };
-}
 
 template<typename _Ty, typename _ = void>
 class ValueObject;

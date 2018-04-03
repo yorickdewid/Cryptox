@@ -19,14 +19,14 @@ namespace AST
 
 class TypeFacade
 {
-	std::shared_ptr<Typedef::TypedefBase> m_type;
+	Typedef::ValueType m_type;
 	size_t m_ptrCount = 0;
 
 public:
 	//FUTURE: maybe remove
 	TypeFacade() = default;
 
-	TypeFacade(const std::shared_ptr<Typedef::TypedefBase>& type)
+	TypeFacade(const Typedef::ValueType& type)
 		: m_type{ type }
 	{
 	}
