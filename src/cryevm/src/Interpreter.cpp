@@ -10,7 +10,8 @@
 
 using namespace EVM;
 
-Interpreter::Interpreter()
+Interpreter::Interpreter(Planner& planner)
+	: Strategy{ planner }
 {
 	//
 }
@@ -18,4 +19,17 @@ Interpreter::Interpreter()
 Interpreter::~Interpreter()
 {
 	//
+}
+
+// Check if strategy can run the program
+bool Interpreter::IsRunnable() const noexcept
+{
+	return Program()->Condition().IsRunnable() || true;
+}
+
+// Run the program with current strategy
+Interpreter::ReturnCode Interpreter::Execute()
+{
+	Program()->Ast();
+	return EXIT_SUCCESS;
 }

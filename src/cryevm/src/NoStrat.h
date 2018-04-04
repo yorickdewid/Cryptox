@@ -13,19 +13,13 @@
 namespace EVM
 {
 
-class Interpreter : public Strategy
+class None final : public Strategy
 {
 public:
-	Interpreter(Planner&);
-	~Interpreter();
-
 	// Check if strategy can run the program
-	virtual bool IsRunnable() const noexcept;
+	virtual bool IsRunnable() const noexcept { return false; }
 	// Run the program with current strategy
-	virtual ReturnCode Execute();
-
-private:
-
+	virtual ReturnCode Execute() { return EXIT_FAILURE; }
 };
 
 } // namespace EVM

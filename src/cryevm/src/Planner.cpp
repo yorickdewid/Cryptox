@@ -7,6 +7,7 @@
 // copied and/or distributed without the express of the author.
 
 #include "Planner.h"
+#include "NoStrat.h"
 #include "Interpreter.h"
 
 using namespace EVM;
@@ -17,23 +18,31 @@ Planner::Planner(ProgramPtr&& program, Plan plan)
 {
 }
 
-template<typename _Ty = Strategy>
-Strategy YieldStrategy()
+template<typename _Ty = None, typename _ObjTy>
+std::unique_ptr<Strategy> YieldStrategy(_ObjTy planner)
 {
-	return _Ty{};
+	return std::make_unique<_Ty>(*planner);
 }
 
-Strategy Planner::DetermineStrategy()
+std::unique_ptr<Strategy> Planner::DetermineStrategy()
 {
-	// Algoritm
+	// Algoritm for choosing the 'best' runner for the program.
+	// The planner takes the architectural options, pereferences
+	// and program structure into account when making a strategy
+	// determination. Runners can be non-executable and the caller
+	// *must* check this condition preparatory to invokation.
 	/*
 	if (wants_native && plan != NO_ARCH) {
 		if (has_native_code(x64)) {
 			return YieldStrategy<OSNative>();
 		}
 		if (can_convert_to_native(x64)) {
-			convert_native()
+			convert_native(x64)
 			return YieldStrategy<OSNative>();
+			if (test_native_fallback(x86)) {
+				convert_native(x86)
+				return YieldStrategy<OSNative>();
+			}
 		}
 		if (plan == NATIVE_ONLY) {
 			return YieldStrategy<>();
@@ -54,5 +63,5 @@ Strategy Planner::DetermineStrategy()
 	return YieldStrategy<>();
 	*/
 	
-	return YieldStrategy<Interpreter>();
+	return YieldStrategy<Interpreter>(this);
 }

@@ -28,17 +28,17 @@ using ProgramPtr = Detail::UniquePreservePtr<CoilCl::Program>;
 EVMAPI void Execute(program_t *program_raw) noexcept
 {
 	// Capture program pointer and cast into program structure
-	ProgramPtr program = ProgramPtr{ program_raw };
+	ProgramPtr program = ProgramPtr{ program_raw->program_ptr };
 
 	// Determine strategy for program
 	auto runner = EVM::Planner{ std::move(program), EVM::Planner::Plan::ALL }.DetermineStrategy();
-	if (!runner.IsRunnable()) {
+	if (!runner->IsRunnable()) {
 		throw 1; //TODO
 	}
 
 	try {
 		// Execute the program in the designated strategy
-		runner.Execute();
+		auto result = runner->Execute();
 	}
 	// Catch any runtime errors
 	catch (...) {
