@@ -13,6 +13,7 @@
 #include "../../coilcl/src/Program.h"
 
 #include <memory>
+#include <iostream> // only for cerr
 
 //TODO:
 // - Involve planner and determine strategy
@@ -38,10 +39,11 @@ EVMAPI void Execute(program_t *program_raw) noexcept
 
 	try {
 		// Execute the program in the designated strategy
-		auto result = runner->Execute();
+		program_raw->return_code = runner->Execute();
 	}
 	// Catch any runtime errors
-	catch (...) {
-		//TODO
+	catch (const std::exception& e) {
+		//FIXME:
+		std::cerr << e.what() << std::endl;
 	}
 }

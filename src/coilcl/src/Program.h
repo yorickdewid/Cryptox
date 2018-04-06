@@ -121,6 +121,8 @@ public:
 	// Retieve program condition
 	inline const ConditionTracker& Condition() const { return m_treeCondition; }
 
+	operator bool() const noexcept { return !!m_ast; }
+
 	template<typename... _ArgsTy>
 	static void Bind(std::unique_ptr<Program>&& program, _ArgsTy&&... args)
 	{

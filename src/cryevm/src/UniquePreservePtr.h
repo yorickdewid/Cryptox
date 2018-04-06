@@ -67,6 +67,11 @@ public:
 		return _MyBase::get();
 	}
 
+	_MyBase::pointer operator*()  const noexcept
+	{
+		return _MyBase::get();
+	}
+
 	_MyBase::pointer Get() const noexcept
 	{
 		return _MyBase::get();

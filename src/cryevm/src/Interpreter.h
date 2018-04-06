@@ -17,7 +17,6 @@ class Interpreter : public Strategy
 {
 public:
 	Interpreter(Planner&);
-	~Interpreter();
 
 	// Check if strategy can run the program
 	virtual bool IsRunnable() const noexcept;

@@ -87,6 +87,7 @@ extern "C" {
 	{
 		// Pointer to the program structure
 		void *program_ptr;
+		int return_code;
 	} program_t;
 
 	typedef struct

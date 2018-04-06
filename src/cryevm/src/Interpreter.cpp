@@ -16,20 +16,37 @@ Interpreter::Interpreter(Planner& planner)
 	//
 }
 
-Interpreter::~Interpreter()
-{
-	//
-}
-
 // Check if strategy can run the program
 bool Interpreter::IsRunnable() const noexcept
 {
 	return Program()->Condition().IsRunnable() || true;
 }
 
+class Visitor
+{
+public:
+	Visitor();
+	~Visitor();
+
+private:
+
+};
+
+Visitor::Visitor()
+{
+}
+
+Visitor::~Visitor()
+{
+}
+
 // Run the program with current strategy
 Interpreter::ReturnCode Interpreter::Execute()
 {
-	Program()->Ast();
+	Visitor visitor;
+
+	const auto ast = Program()->Ast();
+	assert(ast.has_tree());
+	//ast->Serialize(visitor);
 	return EXIT_SUCCESS;
 }
