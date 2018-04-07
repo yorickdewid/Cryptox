@@ -115,7 +115,8 @@ TokenProcessor::TokenDataPair<TokenProcessor::TokenType, const TokenProcessor::D
 }
 
 template<typename _Ty>
-int TokenProcessorProxy<_Ty>::operator()(std::function<int()> lexerLexCall,
+int TokenProcessorProxy<_Ty>::operator()(
+	std::function<int()> lexerLexCall,
 	std::function<bool()> lexerHasDataCall,
 	std::function<Tokenizer::ValuePointer()> lexerDataCall,
 	std::function<void(const Tokenizer::ValuePointer&)> lexerSetDataCall)
@@ -262,7 +263,6 @@ DirectiveScanner::DirectiveScanner(std::shared_ptr<Profile>& profile)
 	: Lexer{ profile }
 , m_proxy{ profile, [this](const std::string& source) -> bool { this->SwapSource(source); return true; /*TODO: Unmock*/ } }
 {
-	AddKeyword("include", TK_PP_INCLUDE);
 	AddKeyword("include", TK_PP_INCLUDE);
 	AddKeyword("define", TK_PP_DEFINE);
 	AddKeyword("defined", TK_PP_DEFINED);

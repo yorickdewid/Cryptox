@@ -74,6 +74,16 @@ private:
 	Typedef::ValueType m_objectType;
 };
 
+// If string was required, try cast 'boost any' to vector and string
+template<>
+inline std::string Value::As() const
+{
+	const auto vec = boost::any_cast<std::vector<std::string::value_type>>(m_value);
+	return m_array._0terminator ?
+		std::string{ vec.cbegin(), vec.cend() - 1 } :
+		std::string{ vec.cbegin(), vec.cend() };
+}
+
 template<typename _Ty, typename _ = void>
 class ValueObject;
 
@@ -208,6 +218,7 @@ inline auto MakeValueObject(Typedef::BuiltinType&& type, _ValTy value)
 	return std::make_unique<Valuedef::ValueObject<_NativTy>>(std::move(type), value); //TODO: Make shared
 }
 
+//TODO:
 inline auto CopyValueObject(const Valuedef::Value *object)
 {
 	assert(object);

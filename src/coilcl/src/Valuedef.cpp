@@ -35,15 +35,5 @@ Value::Value(Typedef::ValueType typeBase)
 {
 }
 
-// If string was required, try cast 'boosst any' to vector and string
-template<>
-inline auto Value::As() const -> std::string
-{
-	auto vec = boost::any_cast<std::vector<std::string::value_type>>(m_value);
-	return m_array._0terminator ?
-		std::string{ vec.begin(), vec.end() - 1 } :
-		std::string{ vec.begin(), vec.end() };
-}
-
 } // namespace Util
 } // namespace CoilCl
