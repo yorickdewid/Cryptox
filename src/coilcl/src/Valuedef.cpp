@@ -18,19 +18,18 @@ Value::Value(const Value& other)
 	: m_objectType{ other.m_objectType }
 	, m_value{ other.m_value }
 	, m_isVoid{ other.m_isVoid }
-	, m_isInline{ other.m_isInline }
 {
 	m_array.m_Size = other.m_array.m_Size;
 	m_array._0terminator = other.m_array._0terminator;
 }
 
-Value::Value(Typedef::ValueType typeBase, ValueVariant value)
+Value::Value(Typedef::BaseType typeBase, ValueVariant value)
 	: m_objectType{ typeBase }
 	, m_value{ value }
 {
 }
 
-Value::Value(Typedef::ValueType typeBase)
+Value::Value(Typedef::BaseType typeBase)
 	: m_objectType{ typeBase }
 {
 }

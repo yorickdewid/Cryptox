@@ -19,14 +19,14 @@ namespace AST
 
 class TypeFacade
 {
-	Typedef::ValueType m_type;
+	Typedef::BaseType m_type;
 	size_t m_ptrCount = 0;
 
 public:
 	//FUTURE: maybe remove
 	TypeFacade() = default;
 
-	TypeFacade(const Typedef::ValueType& type)
+	TypeFacade(const Typedef::BaseType& type)
 		: m_type{ type }
 	{
 	}

@@ -11,6 +11,7 @@
 #include "Typedef.h"
 
 #include <Cry/PolyConstructTrait.h>
+#include <Cry/Serialize.h>
 
 #include <boost/any.hpp>
 #include <boost/lexical_cast.hpp>
@@ -35,25 +36,23 @@ protected:
 	struct
 	{
 		size_t m_Size = 0;
-		bool _0terminator = false;
+		bool _0terminator{ false };
 	} m_array;
 
-	bool m_isVoid = false;
+	// True for void types
+	bool m_isVoid{ false };
 
 public:
 	// Special member funcion, copy constructor
 	Value(const Value& other);
-	Value(Typedef::ValueType typeBase, ValueVariant value);
-	Value(Typedef::ValueType typeBase);
+	Value(Typedef::BaseType typeBase, ValueVariant value);
+	Value(Typedef::BaseType typeBase);
 
 	// Value class is abstract and must be explicity defined
-	virtual ~Value() = default; // = 0;
-
-	// Type specifier inputs
-	inline void SetInline() { m_isInline = true; }
+	virtual ~Value() = default; //TODO: = 0;
 
 	// Return the type specifier
-	Typedef::ValueType DataType() const noexcept { return m_objectType; }
+	Typedef::BaseType DataType() const noexcept { return m_objectType; }
 
 	template<typename _CastTy>
 	auto DataType() const { return std::dynamic_pointer_cast<_CastTy>(m_objectType); }
@@ -68,10 +67,11 @@ public:
 
 	// Print value
 	virtual const std::string Print() const = 0;
+	// Serialize the value into byte array
+	virtual const Cry::ByteArray Serialize() const = 0;
 
 private:
-	bool m_isInline = false;
-	Typedef::ValueType m_objectType;
+	Typedef::BaseType m_objectType;
 };
 
 // If string was required, try cast 'boost any' to vector and string
@@ -84,13 +84,27 @@ inline std::string Value::As() const
 		std::string{ vec.cbegin(), vec.cend() };
 }
 
+namespace Trait {
+
+template<typename _Ty>
+using IsBuiltinType = typename std::enable_if<std::is_fundamental<_Ty>::value
+	&& !std::is_void<_Ty>::value>::type;
+
+template<typename _Ty>
+using IsCompoundType = typename std::enable_if<std::is_compound<_Ty>::value
+	&& !std::is_void<_Ty>::value && !std::is_enum<_Ty>::value
+	&& !std::is_null_pointer<_Ty>::value && !std::is_function<_Ty>::value>::type;
+
+} // namespace Trait
+
 template<typename _Ty, typename _ = void>
 class ValueObject;
 
 template<typename _Ty>
-class ValueObject<_Ty,
-	typename std::enable_if<std::is_fundamental<_Ty>::value
-	&& !std::is_void<_Ty>::value>::type>
+using ValueType = std::shared_ptr<ValueObject<_Ty>>;
+
+template<typename _Ty>
+class ValueObject<_Ty, Trait::IsBuiltinType<_Ty>>
 	: public Value
 {
 	using _Myty = ValueObject<_Ty>;
@@ -110,9 +124,14 @@ public:
 		return new _Myty{ (*this) };
 	}
 
-	virtual const std::string Print() const override
+	virtual const std::string Print() const
 	{
 		return boost::lexical_cast<std::string>(boost::any_cast<_Ty>(m_value));
+	}
+
+	virtual const Cry::ByteArray Serialize() const
+	{
+		return DataType()->TypeEnvelope();
 	}
 
 	friend std::ostream& operator<<(std::ostream& os, const _Myty& value)
@@ -120,13 +139,16 @@ public:
 		os << value.Print();
 		return os;
 	}
+
+	static ValueType<_Ty> Deserialize(Cry::ByteArray& /*buffer*/)
+	{
+		_Ty _o = 12;
+		return std::make_shared<Valuedef::ValueObject<_Ty>>(Typedef::BuiltinType::Specifier::INT, _o);
+	}
 };
 
 template<typename _Ty>
-class ValueObject<_Ty,
-	typename std::enable_if<std::is_compound<_Ty>::value
-	&& !std::is_void<_Ty>::value && !std::is_enum<_Ty>::value
-	&& !std::is_null_pointer<_Ty>::value && !std::is_function<_Ty>::value>::type>
+class ValueObject<_Ty, Trait::IsCompoundType<_Ty>>
 	: public Value
 {
 	using _Myty = ValueObject<_Ty>;
@@ -159,15 +181,25 @@ public:
 		return new _Myty{ (*this) };
 	}
 
-	virtual const std::string Print() const override
+	virtual const std::string Print() const
 	{
 		return Value::As<std::string>();
+	}
+
+	virtual const Cry::ByteArray Serialize() const
+	{
+		return DataType()->TypeEnvelope();
 	}
 
 	friend std::ostream& operator<<(std::ostream& os, const _Myty& value)
 	{
 		os << value.Print();
 		return os;
+	}
+
+	static ValueType<_Ty> Deserialize(Cry::ByteArray& /*buffer*/)
+	{
+		return std::make_shared<Valuedef::ValueObject<std::string>>(Typedef::BuiltinType::Specifier::CHAR, "lol");
 	}
 };
 
@@ -193,15 +225,25 @@ public:
 		return new _Myty{ (*this) };
 	}
 
-	virtual const std::string Print() const override
+	virtual const std::string Print() const
 	{
 		return typeid(void).name();
+	}
+
+	virtual const Cry::ByteArray Serialize() const
+	{
+		return DataType()->TypeEnvelope();
 	}
 
 	friend std::ostream& operator<<(std::ostream& os, const _Myty& value)
 	{
 		os << value.Print();
 		return os;
+	}
+
+	static ValueType<void> Deserialize(Cry::ByteArray&)
+	{
+		return std::make_shared<Valuedef::ValueObject<void>>();
 	}
 };
 
@@ -215,7 +257,25 @@ using namespace ::CoilCl;
 template<typename _NativTy, typename _ValTy>
 inline auto MakeValueObject(Typedef::BuiltinType&& type, _ValTy value)
 {
-	return std::make_unique<Valuedef::ValueObject<_NativTy>>(std::move(type), value); //TODO: Make shared
+	return std::make_shared<Valuedef::ValueObject<_NativTy>>(std::move(type), value);
+}
+
+template<typename _Ty = std::string, typename _TTy = Typedef::BuiltinType::Specifier::CHAR>
+Valuedef::ValueType<_Ty> MakeString(_Ty v)
+{
+	return MakeValueObject<_Ty>(_TTy, std::move(v));
+}
+
+template<typename _Ty = int, typename _TTy = Typedef::BuiltinType::Specifier::INT>
+Valuedef::ValueType<_Ty> MakeInt(_Ty v)
+{
+	return MakeValueObject<_Ty>(_TTy, std::move(v));
+}
+
+template<typename _Ty = void>
+Valuedef::ValueType<_Ty> MakeVoid()
+{
+	return std::make_shared<Valuedef::ValueObject<_Ty>>();
 }
 
 //TODO:
