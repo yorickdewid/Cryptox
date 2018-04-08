@@ -11,6 +11,7 @@
 
 #include <boost/program_options.hpp>
 #include <boost/algorithm/string.hpp>
+#include <boost/filesystem.hpp>
 
 #include "Env.h"
 #include "Direct.h"
@@ -19,8 +20,10 @@
 #include <iostream>
 
 #define SPECIFICATION_FILE "default.spec"
+#define IMAGE_EXTENSION "cex"
 
 namespace po = boost::program_options;
+namespace fs = boost::filesystem;
 
 int main(int argc, const char *argv[])
 {
@@ -39,7 +42,7 @@ int main(int argc, const char *argv[])
 		// Compiler options
 		po::options_description codegen{ "\nCompiler options" };
 		codegen.add_options()
-			("o", po::value<std::string>()->value_name("<file>"), "Object output file")
+			("out", po::value<std::string>()->value_name("<file>"), "Image output file")
 			("g", "Compile with debug support")
 			("E", "Preprocess only; do not compile")
 			("D", po::value<std::string>()->value_name("<definition>"), "Add definitions")
@@ -106,6 +109,16 @@ int main(int argc, const char *argv[])
 		// Set debug mode
 		if (vm.count("g")) {
 			env.SetDebug(true);
+		}
+
+		// Set image output name
+		if (vm.count("out")) {
+			const std::string imageName = vm["out"].as<std::string>();
+			fs::path image{ imageName };
+			if (!image.has_extension()) {
+				image.replace_extension(IMAGE_EXTENSION);
+			}
+			env.SetImageName(image);
 		}
 
 		// Parse input file as source

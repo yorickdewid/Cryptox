@@ -16,6 +16,7 @@ namespace Cry
 {
 
 using Byte = uint8_t;
+using Word = uint32_t;
 using ByteArray = std::vector<Byte>;
 
 } // namespace Cry

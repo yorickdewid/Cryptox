@@ -415,5 +415,6 @@ void AIIPX::UnpackAST(AST::AST& tree)
 		throw 1; //TODO
 	}
 
+	// Move resulting tree into AST
 	tree = std::move(UncompressNode(&visit, m_inputCallback));
 }

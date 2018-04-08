@@ -17,6 +17,8 @@
 
 #define ENV_STR_PREFIX "CRYCL_"
 
+using namespace boost::filesystem;
+
 namespace Detail {
 
 template<typename _Ty>
@@ -58,6 +60,16 @@ inline void GetEnvVar(const char *str, _Ty& var)
 Env::Env()
 {
 	DefaultSettings();
+}
+
+void Env::SetImageName(const std::string& name)
+{
+	imageName = name;
+}
+
+void Env::SetImageName(path& path)
+{
+	imageName = path.string();
 }
 
 // Load specific settings from program environment if they

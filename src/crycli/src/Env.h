@@ -10,14 +10,18 @@
 
 #include "Specification.h"
 
+#include <boost/filesystem.hpp>
+
 #include <string>
 #include <vector>
 
 class Env
 {
-	bool debugMode = false;
-	bool safeMode = false;
-	int debugLevel = 0;
+	bool debugMode{ false };
+	bool safeMode{ false };
+	int debugLevel{ 0 };
+	std::string imageName;
+
 	std::string incPath; // Source header include paths
 	std::string stdPath; // Standard library paths
 	std::string libPath; // Library include paths
@@ -41,7 +45,12 @@ public:
 	using Variable = std::string;
 	using VariableList = std::vector<Variable>;
 
-	VariableList GetSettingLibraryPath();
+	VariableList GetSettingLibraryPath(); //TODO: fs::path
+
+	// Set the output image filename
+	void SetImageName(const std::string&);
+	// Set the output image filename
+	void SetImageName(boost::filesystem::path& path);
 
 	inline void SetDebug(bool toggle) noexcept
 	{
