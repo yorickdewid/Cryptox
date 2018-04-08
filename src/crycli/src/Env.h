@@ -15,16 +15,18 @@
 #include <string>
 #include <vector>
 
+namespace fs = boost::filesystem;
+
 class Env
 {
 	bool debugMode{ false };
 	bool safeMode{ false };
 	int debugLevel{ 0 };
-	std::string imageName;
+	fs::path imageFile;
 
-	std::string incPath; // Source header include paths
-	std::string stdPath; // Standard library paths
-	std::string libPath; // Library include paths
+	std::vector<fs::path> includePaths; // Source header include paths
+	std::vector<fs::path> standardPaths; // Standard library paths
+	std::vector<fs::path> libraryPaths; // Library include paths
 
 	void GatherEnvVars();
 	void DefaultSettings();
@@ -42,15 +44,16 @@ public:
 	static Env InitTestEnvironment(Specification&);
 
 public:
-	using Variable = std::string;
-	using VariableList = std::vector<Variable>;
-
-	VariableList GetSettingLibraryPath(); //TODO: fs::path
+	const std::vector<fs::path>& GetSettingIncludePaths() const;
+	const std::vector<fs::path>& GetSettingStandardPaths() const;
+	const std::vector<fs::path>& GetSettingLibraryPaths() const;
 
 	// Set the output image filename
 	void SetImageName(const std::string&);
 	// Set the output image filename
 	void SetImageName(boost::filesystem::path& path);
+	// Query if image name is already set
+	bool HasImageName() const noexcept;
 
 	inline void SetDebug(bool toggle) noexcept
 	{

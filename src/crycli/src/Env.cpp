@@ -16,6 +16,7 @@
 #include <boost/lexical_cast.hpp>
 
 #define ENV_STR_PREFIX "CRYCL_"
+#define IMAGE_EXTENSION "cex"
 
 using namespace boost::filesystem;
 
@@ -49,6 +50,22 @@ std::string GetEnvVar(const char *str, std::string d)
 	return std::string{ envPtr };
 }
 
+template<>
+std::vector<path> GetEnvVar(const char *str, std::vector<path> d)
+{
+	using namespace boost::algorithm;
+
+	const char *envPtr = std::getenv(str);
+	if (!envPtr) { return d; }
+
+	std::vector<path> list;
+	split(list, envPtr, is_any_of(";"));
+	list.erase(std::remove_if(list.begin(), list.end(), [](const path& path) {
+		return path.empty();
+	}), list.end());
+	return list;
+}
+
 } // namespace Detail
 
 template<typename _Ty>
@@ -64,12 +81,20 @@ Env::Env()
 
 void Env::SetImageName(const std::string& name)
 {
-	imageName = name;
+	path ref{ name };
+	Env::SetImageName(ref);
 }
 
 void Env::SetImageName(path& path)
 {
-	imageName = path.string();
+	imageFile = path
+		.replace_extension(IMAGE_EXTENSION)
+		.filename();
+}
+
+bool Env::HasImageName() const noexcept
+{
+	return !imageFile.empty();
 }
 
 // Load specific settings from program environment if they
@@ -80,9 +105,9 @@ void Env::GatherEnvVars()
 	GetEnvVar(ENV_STR_PREFIX "DEBUG", debugMode);
 	GetEnvVar(ENV_STR_PREFIX "DEBUG_LEVEL", debugLevel);
 	GetEnvVar(ENV_STR_PREFIX "SAFE", safeMode);
-	GetEnvVar(ENV_STR_PREFIX "INC_PATH", incPath);
-	GetEnvVar(ENV_STR_PREFIX "STD_PATH", stdPath);
-	GetEnvVar(ENV_STR_PREFIX "LIB_PATH", libPath);
+	GetEnvVar(ENV_STR_PREFIX "INC_PATH", includePaths);
+	GetEnvVar(ENV_STR_PREFIX "STD_PATH", standardPaths);
+	GetEnvVar(ENV_STR_PREFIX "LIB_PATH", libraryPaths);
 }
 
 void Env::DefaultSettings()
@@ -98,16 +123,19 @@ void Env::LoadSpecification(Specification& spec)
 	if (!spec.HasProperties()) { return; }
 }
 
-Env::VariableList Env::GetSettingLibraryPath()
+const std::vector<path>& Env::GetSettingIncludePaths() const
 {
-	using namespace boost::algorithm;
+	return includePaths;
+}
 
-	std::vector<std::string> list;
-	split(list, libPath, is_any_of(";"));
-	list.erase(std::remove_if(list.begin(), list.end(), [](const std::string& str) {
-		return str.empty();
-	}), list.end());
-	return list;
+const std::vector<path>& Env::GetSettingStandardPaths() const
+{
+	return standardPaths;
+}
+
+const std::vector<path>& Env::GetSettingLibraryPaths() const
+{
+	return libraryPaths;
 }
 
 // Intialize environment specific to production requirements

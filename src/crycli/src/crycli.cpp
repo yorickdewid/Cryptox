@@ -11,7 +11,6 @@
 
 #include <boost/program_options.hpp>
 #include <boost/algorithm/string.hpp>
-#include <boost/filesystem.hpp>
 
 #include "Env.h"
 #include "Direct.h"
@@ -20,10 +19,8 @@
 #include <iostream>
 
 #define SPECIFICATION_FILE "default.spec"
-#define IMAGE_EXTENSION "cex"
 
 namespace po = boost::program_options;
-namespace fs = boost::filesystem;
 
 int main(int argc, const char *argv[])
 {
@@ -31,7 +28,9 @@ int main(int argc, const char *argv[])
 		// Generic options
 		po::options_description description{ PROGRAM_UTIL_HEADER "\n\n" PROGRAM_ORIGINAL_NAME ": [OPTIONS] FILE ...\n\nOptions" };
 		description.add_options()
-			("print-search-dirs", "Display the directories in the compiler's search path")
+			("print-include-dirs", "Display the include directories in the compiler's search path")
+			("print-standard-dirs", "Display the standard directories in the compiler's search path")
+			("print-library-dirs", "Display the library directories in the compiler's search path")
 			("print-std-list", "Display supported language standards")
 			("print-targets", "Display output target")
 			("print-spec", "Display the compiler specification configuration")
@@ -113,17 +112,15 @@ int main(int argc, const char *argv[])
 
 		// Set image output name
 		if (vm.count("out")) {
-			const std::string imageName = vm["out"].as<std::string>();
-			fs::path image{ imageName };
-			if (!image.has_extension()) {
-				image.replace_extension(IMAGE_EXTENSION);
-			}
-			env.SetImageName(image);
+			env.SetImageName(vm["out"].as<std::string>());
 		}
 
 		// Parse input file as source
 		if (vm.count("file")) {
-			const std::string file = vm["file"].as<std::string>();
+			const auto file = vm["file"].as<std::string>();
+			if (!env.HasImageName()) {
+				env.SetImageName(file);
+			}
 			if (vm.count("run")) {
 				RunSourceFile(env, file);
 			}
@@ -131,9 +128,21 @@ int main(int argc, const char *argv[])
 				CompileSourceFile(env, file);
 			}
 		}
-		// Print search directories
-		else if (vm.count("print-search-dirs")) {
-			for (const auto& path : env.GetSettingLibraryPath()) {
+		// Print include directory paths
+		else if (vm.count("print-include-dirs")) {
+			for (const auto& path : env.GetSettingIncludePaths()) {
+				std::cout << path << std::endl;
+			}
+		}
+		// Print standard directory paths
+		else if (vm.count("print-standard-dirs")) {
+			for (const auto& path : env.GetSettingStandardPaths()) {
+				std::cout << path << std::endl;
+			}
+		}
+		// Print library directory paths
+		else if (vm.count("print-library-dirs")) {
+			for (const auto& path : env.GetSettingLibraryPaths()) {
 				std::cout << path << std::endl;
 			}
 		}
