@@ -7,6 +7,7 @@
 // copied and/or distributed without the express of the author.
 
 #include "Direct.h"
+#include "Env.h"
 #include "Bootstrap.h"
 
 #include <Cry/Indep.h>
@@ -53,6 +54,10 @@ public:
 // Verify size of program wrapper
 static_assert(sizeof(ProgramWrapper) == sizeof(program_t), "");
 
+//
+// Compile and run
+//
+
 // Call the program executor and release resource
 // after the executor returns. This is only used in
 // the case the frontend instructed the backend to
@@ -69,10 +74,6 @@ public:
 		Execute(reinterpret_cast<program_t*>(&m_program));
 	}
 };
-
-//
-// Compile and run
-//
 
 // Direct API call to run a single file
 void RunSourceFile(Env& env, const std::string& m_sourceFile)
@@ -107,13 +108,35 @@ void RunMemoryString(Env& env, const std::string& content)
 // Compile only
 //
 
+class CEXWriter final
+{
+	ProgramWrapper m_program;
+	const std::string m_cexFile;
+
+public:
+	CEXWriter(const std::string& filename, ProgramWrapper&& program)
+		: m_cexFile{ filename }
+		, m_program{ std::move(program) }
+	{
+		//TODO: Replace with CEX format writer, but for now
+		//      dump program into file.
+		{
+			std::ofstream file;
+			file.open(m_cexFile, std::ios_base::binary);
+			assert(file.is_open());
+
+			file.write("A", 1);
+			file.close();
+		}
+	}
+};
+
 // Direct API call to compile a single file
 void CompileSourceFile(Env& env, const std::string& m_sourceFile)
 {
-	CRY_UNUSED(env);
 	BaseReader reader = MakeReader<FileReader>(m_sourceFile);
-	ProgramWrapper{ CompilerAbstraction{ std::move(reader) }.Start() };
-	//TODO: Dump program to CEX
+	auto program = CompilerAbstraction{ std::move(reader) }.Start();
+	CEXWriter{ env.ImageName(), std::move(program) };
 }
 
 //FUTURE: Implement
@@ -124,14 +147,12 @@ void CompileSourceFile(Env& env, const std::vector<std::string>& sourceFiles)
 	CRY_UNUSED(sourceFiles);
 	/*BaseReader reader = MakeReader<FileReader>(m_sourceFile);
 	ProgramWrapper{ CompilerAbstraction{ std::move(reader) }.Start() };*/
-	//TODO: Dump program to CEX
 }
 
 // Direct API call to compile source from memory
 void CompileMemoryString(Env& env, const std::string& m_sourceFile)
 {
-	CRY_UNUSED(env);
 	BaseReader reader = MakeReader<StringReader>(m_sourceFile);
-	ProgramWrapper{ CompilerAbstraction{ std::move(reader) }.SetBuffer(256).Start() };
-	//TODO: Dump program to CEX
+	auto program = CompilerAbstraction{ std::move(reader) }.SetBuffer(256).Start();
+	CEXWriter{ env.ImageName(), std::move(program) };
 }

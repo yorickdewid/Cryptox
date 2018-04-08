@@ -23,7 +23,6 @@ class Env
 	bool safeMode{ false };
 	int debugLevel{ 0 };
 	fs::path imageFile;
-
 	std::vector<fs::path> includePaths; // Source header include paths
 	std::vector<fs::path> standardPaths; // Standard library paths
 	std::vector<fs::path> libraryPaths; // Library include paths
@@ -54,6 +53,8 @@ public:
 	void SetImageName(boost::filesystem::path& path);
 	// Query if image name is already set
 	bool HasImageName() const noexcept;
+	// Query image name
+	std::string ImageName() const noexcept;
 
 	inline void SetDebug(bool toggle) noexcept
 	{

@@ -97,6 +97,11 @@ bool Env::HasImageName() const noexcept
 	return !imageFile.empty();
 }
 
+std::string Env::ImageName() const noexcept
+{
+	return imageFile.string();
+}
+
 // Load specific settings from program environment if they
 // are set. The current setting is not changed if a matching
 // key could not be located int the environment.
