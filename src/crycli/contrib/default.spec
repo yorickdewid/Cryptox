@@ -18,7 +18,7 @@ env {
 
 directory {
     include   "\\include";
-	extension "\\ext";
+    extension "\\ext";
 };
 
 ; Safety options
@@ -42,13 +42,13 @@ build_output "$(filename).$(timestamp).log"
 ; Compiler extension support
 extension {
     builtin_cil     on;
-	allow_external  on;
-	autoload_all    on;
-	require_signed  on;
+    allow_external  on;
+    autoload_all    on;
+    require_signed  on;
 
-	; whitelist {
-	;  Add specific extensions to autoload at start
-	; };
+    ; whitelist {
+    ;  Add specific extensions to autoload at start
+    ; };
 };
 
 ; Development options

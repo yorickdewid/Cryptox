@@ -15,13 +15,6 @@
 #include <fstream>
 #include <sstream>
 
-namespace {
-
-static datachunk_t *CCBFetchChunk(void *);
-static metainfo_t *CCBMetaInfo(void *);
-static int CCBLoadExternalSource(void *, const char *);
-static void CCBErrorHandler(void *, const char *, char);
-
 class CompilerException final : public std::exception
 {
 public:
@@ -43,6 +36,13 @@ public:
 protected:
 	std::string m_msg;
 };
+
+namespace {
+
+static datachunk_t *CCBFetchChunk(void *);
+static metainfo_t *CCBMetaInfo(void *);
+static int CCBLoadExternalSource(void *, const char *);
+static void CCBErrorHandler(void *, const char *, char);
 
 // Adapter between different reader implementations. The adapter will prepare
 // all settings for compiler calls and return the appropriate datastructures

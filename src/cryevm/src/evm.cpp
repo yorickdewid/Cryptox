@@ -39,7 +39,8 @@ EVMAPI void Execute(program_t *program_raw) noexcept
 
 	try {
 		// Execute the program in the designated strategy
-		program_raw->return_code = runner->Execute();
+		//program_raw->return_code = runner->Execute();
+		runner->Execute();
 	}
 	// Catch any runtime errors
 	catch (const std::exception& e) {

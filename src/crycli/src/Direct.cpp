@@ -9,10 +9,9 @@
 #include "Direct.h"
 #include "Env.h"
 #include "Bootstrap.h"
+#include "Runtime.h"
 
 #include <Cry/Indep.h>
-
-#include <evm.h> //TODO: Only here for Executor::Execute()
 
 #include <memory>
 
@@ -65,13 +64,20 @@ static_assert(sizeof(ProgramWrapper) == sizeof(program_t), "");
 class Executor final
 {
 	ProgramWrapper m_program;
+	ExecutionEnv m_execEnv;
 
 public:
 	Executor(ProgramWrapper&& program)
 		: m_program{ std::move(program) }
+		, m_execEnv{ (*m_program) }
 	{
-		// Perform sneaky upcast on protected base
-		Execute(reinterpret_cast<program_t*>(&m_program));
+	}
+
+	void Run()
+	{
+		m_execEnv
+			.Setup()
+			.ExecuteProgram();
 	}
 };
 
@@ -81,7 +87,7 @@ void RunSourceFile(Env& env, const std::string& m_sourceFile)
 	CRY_UNUSED(env);
 	BaseReader reader = MakeReader<FileReader>(m_sourceFile);
 	auto program = CompilerAbstraction{ std::move(reader) }.Start();
-	Executor{ std::move(program) };
+	Executor{ std::move(program) }.Run();
 }
 
 //FUTURE: Implement
@@ -92,7 +98,7 @@ void RunSourceFile(Env& env, const std::vector<std::string>& sourceFiles)
 	CRY_UNUSED(sourceFiles);
 	/*BaseReader reader = MakeReader<FileReader>(m_sourceFile);
 	auto program = CompilerAbstraction{ std::move(reader) }.Start();
-	Executor{ std::move(program) };*/
+	Executor{ std::move(program) }.Run();*/
 }
 
 // Direct API call to run source from memory
@@ -101,7 +107,7 @@ void RunMemoryString(Env& env, const std::string& content)
 	CRY_UNUSED(env);
 	BaseReader reader = MakeReader<StringReader>(content);
 	auto program = CompilerAbstraction{ std::move(reader) }.SetBuffer(256).Start();
-	Executor{ std::move(program) };
+	Executor{ std::move(program) }.Run();
 }
 
 //
