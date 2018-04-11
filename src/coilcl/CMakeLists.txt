@@ -38,3 +38,10 @@ set_target_properties(${PROJECT_NAME}
 
 # Set project options
 include(ProjectFin)
+
+option(${Cryptox_ID}_CIL_BUILD_EXAMPLE "Build CoilCl examples" OFF)
+
+if(${Cryptox_ID}_CIL_BUILD_EXAMPLE)
+	add_subdirectory(example)
+endif()
+

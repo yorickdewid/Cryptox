@@ -23,8 +23,11 @@ public:
 	// Run the program with current strategy
 	virtual ReturnCode Execute();
 
-private:
+protected:
+	void PreliminaryCheck();
 
+private:
+	
 };
 
 } // namespace EVM

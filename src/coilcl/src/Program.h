@@ -111,6 +111,7 @@ public:
 
 	// Symbol operations
 	void PrintSymbols();
+	bool MatchSymbol(const std::string&);
 	inline bool HasSymbols() const { return !m_symbols.empty(); }
 	inline bool HasSymbol(const std::string& name) const { return m_symbols.find(name) != m_symbols.end(); }
 	auto& FillSymbols() { return m_symbols; } //TODO: friend?

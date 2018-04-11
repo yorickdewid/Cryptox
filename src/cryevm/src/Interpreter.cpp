@@ -40,10 +40,19 @@ Visitor::~Visitor()
 {
 }
 
+void Interpreter::PreliminaryCheck()
+{
+	assert(Program()->HasSymbols());
+	//Program()->MatchSymbol("kaas");
+}
+
 // Run the program with current strategy
 Interpreter::ReturnCode Interpreter::Execute()
 {
 	Visitor visitor;
+
+	// Check if settings work for this program.
+	PreliminaryCheck();
 
 	const auto ast = Program()->Ast();
 	assert(ast.has_tree());
