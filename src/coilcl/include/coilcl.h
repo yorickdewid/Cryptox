@@ -13,6 +13,8 @@
 #pragma once
 #endif
 
+#include <program.h>
+
 #ifdef _WIN32
 # if defined(COILCL_EXPORTS) || defined(CoilCl_EXPORTS)
 #  define COILCLAPI   __declspec(dllexport)
@@ -81,14 +83,6 @@ extern "C" {
 		// Source unit size
 		unsigned int size;
 	} metainfo_t;
-
-	// Resulting program
-	typedef struct
-	{
-		// Pointer to the program structure
-		void *program_ptr;
-		int return_code;
-	} program_t;
 
 	typedef struct
 	{
