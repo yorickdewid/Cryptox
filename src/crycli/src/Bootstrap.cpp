@@ -76,18 +76,6 @@ class StreamReaderAdapter final
 		return info.program;
 	}
 
-public:
-	StreamReaderAdapter(const BaseReader&& reader, size_t size)
-		: m_contentReader{ std::move(reader) }
-		, m_chunkSize{ size }
-	{
-	}
-
-	StreamReaderAdapter(const BaseReader&& reader)
-		: m_contentReader{ std::move(reader) }
-	{
-	}
-
 	// Create a new compiler and run the source code. The compiler is configured to
 	// be using the lexer to parse the program.
 	program_t Execute()
@@ -99,6 +87,18 @@ public:
 	void SetStreamChuckSize(size_t size)
 	{
 		m_chunkSize = size;
+	}
+
+public:
+	StreamReaderAdapter(const BaseReader&& reader, size_t size)
+		: m_contentReader{ std::move(reader) }
+		, m_chunkSize{ size }
+	{
+	}
+
+	StreamReaderAdapter(const BaseReader&& reader)
+		: m_contentReader{ std::move(reader) }
+	{
 	}
 
 	// Forward call to adapter interface FetchNextChunk

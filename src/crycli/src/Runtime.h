@@ -8,15 +8,19 @@
 
 #pragma once
 
+#include <string>
+
 class ExecutionEnv;
 
 class VMContract
 {
 	// Allow the abstract compiler internal access.
-	friend struct ExecutionEnv;
+	friend class ExecutionEnv;
 
 	// Run compiler.
 	virtual void Execute() = 0;
+	// Run compiler.
+	virtual void SetEntryPoint(const char *) = 0;
 };
 
 class ExecutionEnv
@@ -27,6 +31,8 @@ public:
 
 	// Setup the environment and runtime settings.
 	ExecutionEnv& Setup();
+	// Provide program main entry point.
+	ExecutionEnv& EntryPoint(const std::string&);
 	// Run the program.
 	void ExecuteProgram();
 

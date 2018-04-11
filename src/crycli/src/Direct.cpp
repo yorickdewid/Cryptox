@@ -75,8 +75,8 @@ public:
 
 	void Run()
 	{
-		m_execEnv
-			.Setup()
+		m_execEnv.Setup()
+			.EntryPoint("main")
 			.ExecuteProgram();
 	}
 };

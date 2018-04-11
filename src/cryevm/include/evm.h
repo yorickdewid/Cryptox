@@ -33,6 +33,9 @@
 # define NOTHROW
 #endif
 
+#define RETURN_OK 0
+#define RETURN_NOT_RUNNABLE 1
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -42,27 +45,9 @@ extern "C" {
 		// API version between executable and library
 		unsigned short apiVer;
 		// Program entry point, this must be a synbol name.
-		const char *entryPoint;
-
-		// The read callback is an function pointer set in the frontend and
-		// called by the tokenizer. The streamreader returns chunks of input
-		// data everytime the function is called. If no more data is available
-		// an nullpointer is returned by the frontend. This is an required
-		// function and *must* be set by the frontend.
-		//datachunk_t*(*streamReaderVPtr)(void *);
-
-		// The meta callback is an function pointer set in the frontend and
-		// called by various backend objects. The meta reader presents
-		// all metadata information about the current source unit. The meta
-		// info structure is a result of this function. This is an required
-		// function and *must* be set by the frontend.
-		//metainfo_t*(*streamMetaVPtr)(void *);
-
-		// The stream request loader is an function set in the frontend and
-		// grants the backend a way to request another source unit to be loaded.
-		// The frontend can implement this in any way desired. This is an
-		// required function and *must* be set by the frontend.
-		//int(*loadStreamRequestVPtr)(void *, const char *);
+		const char *entry_point;
+		// Program exit code. Zero indicates exit with success.
+		int return_code;
 
 		// The error handler is an function set by the frontend and called by
 		// the backend whenever an error corrurs. Since the backend can throw
@@ -80,7 +65,7 @@ extern "C" {
 	} runtime_settings_t;
 
 	// Compiler library entry point
-	EVMAPI void Execute(program_t *program) NOTHROW;
+	EVMAPI int ExecuteProgram(runtime_settings_t *) NOTHROW;
 
 #ifdef __cplusplus
 }

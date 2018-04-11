@@ -8,11 +8,10 @@
 
 #include "Runtime.h"
 
-//#include <Cry/Indep.h>
+#include <Cry/Indep.h>
 #include <Cry/NonCopyable.h>
 
 #include <evm.h>
-//#include <coilcl.h> // Really?
 
 #include <iostream>
 
@@ -50,14 +49,35 @@ class ExecuteAdapter final
 	{
 		runtime_settings_t settings;
 		settings.apiVer = EVMAPIVER;
-		settings.entryPoint = "main";
+		settings.entry_point = entrySymbol;
+		settings.return_code = EXIT_SUCCESS;
 		settings.errorHandler = &CCBErrorHandler;
 		settings.program = m_program;
 		settings.user_data = static_cast<void*>(this);
 
 		// Invoke compiler with environment and compiler settings
-		//Execute(&settings);
+		switch (ExecuteProgram(&settings))
+		{
+		case RETURN_NOT_RUNNABLE: // Program was not runnable.
+			break;
+		case RETURN_OK: // Execution done.
+			//TODO: Check return code
+			break;
+		default:
+			break;
+		}
+
 		//return info.program;
+	}
+
+	void Execute()
+	{
+		return Compose();
+	}
+
+	void SetEntryPoint(const char *str)
+	{
+		entrySymbol = str;
 	}
 
 public:
@@ -66,13 +86,9 @@ public:
 		std::swap(program, m_program);
 	}
 
-	void Execute()
-	{
-		return Compose();
-	}
-
 private:
 	program_t m_program;
+	const char *entrySymbol = nullptr;
 };
 
 void CCBErrorHandler(void *user_data, const char *message, char fatal)
@@ -99,6 +115,12 @@ ExecutionEnv::~ExecutionEnv()
 ExecutionEnv& ExecutionEnv::Setup()
 {
 	//TODO:
+	return (*this);
+}
+
+ExecutionEnv& ExecutionEnv::EntryPoint(const std::string& str)
+{
+	m_virtualMachine->SetEntryPoint(str.c_str());
 	return (*this);
 }
 
