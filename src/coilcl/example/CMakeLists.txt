@@ -15,6 +15,9 @@ project_description(${PROJECT_NAME} "Interface examples")
 # Load project defaults
 include(ProjectPrep)
 
+# Ignore security checks
+enable_unsecure_crt()
+
 # External includes
 include_directories(${CoilCl_INCLUDE_DIRS})
 
