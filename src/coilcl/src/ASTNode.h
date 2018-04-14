@@ -1991,53 +1991,15 @@ public:
 
 	ReturnStmt() = default;
 
-	void SetReturnNode(std::shared_ptr<ASTNode>& node)
-	{
-		ASTNode::AppendChild(node);
-		m_returnExpr = node;
-
-		ASTNode::UpdateDelegate();
-	}
+	void SetReturnNode(std::shared_ptr<ASTNode>& node);
 
 	auto HasExpression() const { return m_returnExpr != nullptr; }
 	auto& Expression() const { return m_returnExpr; }
 
-	void Emplace(size_t idx, const std::shared_ptr<ASTNode>&& node) override
-	{
-		BUMP_STATE();
+	void Emplace(size_t idx, const std::shared_ptr<ASTNode>&& node) override;
 
-		ASTNode::RemoveChild(idx);
-		ASTNode::AppendChild(node);
-		m_returnExpr = std::move(node);
-
-		ASTNode::UpdateDelegate();
-	}
-
-	virtual void Serialize(Serializable::Interface& pack)
-	{
-		pack << nodeId;
-
-		auto group = pack.ChildGroups(1);
-		group.Size(1);
-		group << m_returnExpr;
-
-		Stmt::Serialize(pack);
-	}
-
-	virtual void Deserialize(Serializable::Interface& pack)
-	{
-		AST::NodeID _nodeId;
-		pack >> _nodeId;
-		AssertNode(_nodeId, nodeId);
-
-		auto group = pack.ChildGroups();
-		pack <<= {group[0], [=](const std::shared_ptr<ASTNode>& node) {
-			m_returnExpr = node;
-			ASTNode::AppendChild(node);
-		}};
-
-		Stmt::Deserialize(pack);
-	}
+	virtual void Serialize(Serializable::Interface& pack);
+	virtual void Deserialize(Serializable::Interface& pack);
 
 	PRINT_NODE(ReturnStmt);
 
@@ -2060,98 +2022,15 @@ public:
 		Deserialize(pack);
 	}
 
-	IfStmt(std::shared_ptr<ASTNode>& eval, std::shared_ptr<ASTNode> truth = nullptr, std::shared_ptr<ASTNode> alt = nullptr)
-		: m_evalNode{ eval }
-	{
-		ASTNode::AppendChild(eval);
+	IfStmt(std::shared_ptr<ASTNode>& eval, std::shared_ptr<ASTNode> truth = nullptr, std::shared_ptr<ASTNode> alt = nullptr);
 
-		if (truth) {
-			ASTNode::AppendChild(truth);
-			m_truthStmt = truth;
-		}
+	void SetTruthCompound(const std::shared_ptr<ASTNode>& node);
+	void SetAltCompound(const std::shared_ptr<ASTNode>& node);
 
-		if (alt) {
-			ASTNode::AppendChild(alt);
-			m_altStmt = alt;
-		}
-	}
+	virtual void Serialize(Serializable::Interface& pack);
+	virtual void Deserialize(Serializable::Interface& pack);
 
-	void SetTruthCompound(const std::shared_ptr<ASTNode>& node)
-	{
-		ASTNode::AppendChild(node);
-		m_truthStmt = node;
-
-		ASTNode::UpdateDelegate();
-	}
-
-	void SetAltCompound(const std::shared_ptr<ASTNode>& node)
-	{
-		ASTNode::AppendChild(node);
-		m_altStmt = node;
-
-		ASTNode::UpdateDelegate();
-	}
-
-	virtual void Serialize(Serializable::Interface& pack)
-	{
-		pack << nodeId;
-
-		auto group = pack.ChildGroups(3);
-		group.Size(1);
-		group << m_evalNode;
-
-		group++;
-		group.Size(1);
-		group << m_truthStmt;
-
-		group++;
-		group.Size(1);
-		group << m_altStmt;
-
-		Stmt::Serialize(pack);
-	}
-
-	virtual void Deserialize(Serializable::Interface& pack)
-	{
-		AST::NodeID _nodeId;
-		pack >> _nodeId;
-		AssertNode(_nodeId, nodeId);
-
-		auto group = pack.ChildGroups();
-		pack <<= {group[0], [=](const std::shared_ptr<ASTNode>& node) {
-			m_evalNode = node;
-			ASTNode::AppendChild(node);
-		}};
-
-		group++;
-		pack <<= {group[0], [=](const std::shared_ptr<ASTNode>& node) {
-			SetTruthCompound(node);
-		}};
-
-		group++;
-		pack <<= {group[0], [=](const std::shared_ptr<ASTNode>& node) {
-			SetAltCompound(node);
-		}};
-
-		Stmt::Deserialize(pack);
-	}
-
-	virtual const std::string NodeName() const
-	{
-		std::string _node{ RemoveClassFromName(typeid(IfStmt).name()) };
-		_node += " {" + std::to_string(m_state.Alteration()) + "}";
-		_node += " <line:" + std::to_string(line) + ",col:" + std::to_string(col) + "> ";
-
-		if (m_truthStmt) {
-			_node += "notruth ";
-		}
-
-		if (m_altStmt == nullptr) {
-			_node += "noalt ";
-		}
-
-		return _node;
-	}
+	virtual const std::string NodeName() const;
 
 private:
 	POLY_IMPL();
@@ -2171,59 +2050,12 @@ public:
 		Deserialize(pack);
 	}
 
-	SwitchStmt(std::shared_ptr<ASTNode>& eval, std::shared_ptr<ASTNode> body = nullptr)
-		: evalNode{ eval }
-	{
-		ASTNode::AppendChild(eval);
+	SwitchStmt(std::shared_ptr<ASTNode>& eval, std::shared_ptr<ASTNode> body = nullptr);
 
-		if (body) {
-			ASTNode::AppendChild(body);
-			m_body = body;
-		}
-	}
+	void SetBody(const std::shared_ptr<ASTNode>& node);
 
-	void SetBody(const std::shared_ptr<ASTNode>& node)
-	{
-		ASTNode::AppendChild(node);
-		m_body = node;
-
-		ASTNode::UpdateDelegate();
-	}
-
-	virtual void Serialize(Serializable::Interface& pack)
-	{
-		pack << nodeId;
-
-		auto group = pack.ChildGroups(2);
-		group.Size(1);
-		group << evalNode;
-
-		group++;
-		group.Size(1);
-		group << m_body;
-
-		Stmt::Serialize(pack);
-	}
-
-	virtual void Deserialize(Serializable::Interface& pack)
-	{
-		AST::NodeID _nodeId;
-		pack >> _nodeId;
-		AssertNode(_nodeId, nodeId);
-
-		auto group = pack.ChildGroups();
-		pack <<= {group[0], [=](const std::shared_ptr<ASTNode>& node) {
-			evalNode = node;
-			ASTNode::AppendChild(node);
-		}};
-
-		group++;
-		pack <<= {group[0], [=](const std::shared_ptr<ASTNode>& node) {
-			SetBody(node);
-		}};
-
-		Stmt::Deserialize(pack);
-	}
+	virtual void Serialize(Serializable::Interface& pack);
+	virtual void Deserialize(Serializable::Interface& pack);
 
 	PRINT_NODE(SwitchStmt);
 
@@ -2245,59 +2077,12 @@ public:
 		Deserialize(pack);
 	}
 
-	WhileStmt(std::shared_ptr<ASTNode>& eval, std::shared_ptr<ASTNode> body = nullptr)
-		: evalNode{ eval }
-	{
-		ASTNode::AppendChild(eval);
+	WhileStmt(std::shared_ptr<ASTNode>& eval, std::shared_ptr<ASTNode> body = nullptr);
 
-		if (body) {
-			ASTNode::AppendChild(body);
-			m_body = body;
-		}
-	}
+	void SetBody(const std::shared_ptr<ASTNode>& node);
 
-	void SetBody(const std::shared_ptr<ASTNode>& node)
-	{
-		ASTNode::AppendChild(node);
-		m_body = node;
-
-		ASTNode::UpdateDelegate();
-	}
-
-	virtual void Serialize(Serializable::Interface& pack)
-	{
-		pack << nodeId;
-
-		auto group = pack.ChildGroups(2);
-		group.Size(1);
-		group << evalNode;
-
-		group++;
-		group.Size(1);
-		group << m_body;
-
-		Stmt::Serialize(pack);
-	}
-
-	virtual void Deserialize(Serializable::Interface& pack)
-	{
-		AST::NodeID _nodeId;
-		pack >> _nodeId;
-		AssertNode(_nodeId, nodeId);
-
-		auto group = pack.ChildGroups();
-		pack <<= {group[0], [=](const std::shared_ptr<ASTNode>& node) {
-			evalNode = node;
-			ASTNode::AppendChild(node);
-		}};
-
-		group++;
-		pack <<= {group[0], [=](const std::shared_ptr<ASTNode>& node) {
-			SetBody(node);
-		}};
-
-		Stmt::Deserialize(pack);
-	}
+	virtual void Serialize(Serializable::Interface& pack);
+	virtual void Deserialize(Serializable::Interface& pack);
 
 	PRINT_NODE(WhileStmt);
 
@@ -2319,59 +2104,12 @@ public:
 		Deserialize(pack);
 	}
 
-	DoStmt(std::shared_ptr<ASTNode>& body, std::shared_ptr<ASTNode> eval = nullptr)
-		: m_body{ body }
-	{
-		ASTNode::AppendChild(body);
+	DoStmt(std::shared_ptr<ASTNode>& body, std::shared_ptr<ASTNode> eval = nullptr);
 
-		if (eval) {
-			ASTNode::AppendChild(eval);
-			m_body = eval;
-		}
-	}
+	void SetEval(const std::shared_ptr<ASTNode>& node);
 
-	void SetEval(const std::shared_ptr<ASTNode>& node)
-	{
-		ASTNode::AppendChild(node);
-		evalNode = node;
-
-		ASTNode::UpdateDelegate();
-	}
-
-	virtual void Serialize(Serializable::Interface& pack)
-	{
-		pack << nodeId;
-
-		auto group = pack.ChildGroups(2);
-		group.Size(1);
-		group << evalNode;
-
-		group++;
-		group.Size(1);
-		group << m_body;
-
-		Stmt::Serialize(pack);
-	}
-
-	virtual void Deserialize(Serializable::Interface& pack)
-	{
-		AST::NodeID _nodeId;
-		pack >> _nodeId;
-		AssertNode(_nodeId, nodeId);
-
-		auto group = pack.ChildGroups();
-		pack <<= {group[0], [=](const std::shared_ptr<ASTNode>& node) {
-			SetEval(node);
-		}};
-
-		group++;
-		pack <<= {group[0], [=](const std::shared_ptr<ASTNode>& node) {
-			m_body = node;
-			ASTNode::AppendChild(node);
-		}};
-
-		Stmt::Deserialize(pack);
-	}
+	virtual void Serialize(Serializable::Interface& pack);
+	virtual void Deserialize(Serializable::Interface& pack);
 
 	PRINT_NODE(DoStmt);
 
@@ -2395,78 +2133,12 @@ public:
 		Deserialize(pack);
 	}
 
-	ForStmt(std::shared_ptr<ASTNode>& node1, std::shared_ptr<ASTNode>& node2, std::shared_ptr<ASTNode>& node3)
-		: m_node1{ node1 }
-		, m_node2{ node2 }
-		, m_node3{ node3 }
-	{
-		ASTNode::AppendChild(node1);
-		ASTNode::AppendChild(node2);
-		ASTNode::AppendChild(node3);
-	}
+	ForStmt(std::shared_ptr<ASTNode>& node1, std::shared_ptr<ASTNode>& node2, std::shared_ptr<ASTNode>& node3);
 
-	void SetBody(const std::shared_ptr<ASTNode>& node)
-	{
-		ASTNode::AppendChild(node);
-		m_body = node;
+	void SetBody(const std::shared_ptr<ASTNode>& node);
 
-		ASTNode::UpdateDelegate();
-	}
-
-	virtual void Serialize(Serializable::Interface& pack)
-	{
-		pack << nodeId;
-
-		auto group = pack.ChildGroups(4);
-		group.Size(1);
-		group << m_node1;
-
-		group++;
-		group.Size(1);
-		group << m_node2;
-
-		group++;
-		group.Size(1);
-		group << m_node3;
-
-		group++;
-		group.Size(1);
-		group << m_body;
-
-		Stmt::Serialize(pack);
-	}
-
-	virtual void Deserialize(Serializable::Interface& pack)
-	{
-		AST::NodeID _nodeId;
-		pack >> _nodeId;
-		AssertNode(_nodeId, nodeId);
-
-		auto group = pack.ChildGroups();
-		pack <<= {group[0], [=](const std::shared_ptr<ASTNode>& node) {
-			m_node1 = node;
-			ASTNode::AppendChild(node);
-		}};
-
-		group++;
-		pack <<= {group[0], [=](const std::shared_ptr<ASTNode>& node) {
-			m_node2 = node;
-			ASTNode::AppendChild(node);
-		}};
-
-		group++;
-		pack <<= {group[0], [=](const std::shared_ptr<ASTNode>& node) {
-			m_node3 = node;
-			ASTNode::AppendChild(node);
-		}};
-
-		group++;
-		pack <<= {group[0], [=](const std::shared_ptr<ASTNode>& node) {
-			SetBody(node);
-		}};
-
-		Stmt::Deserialize(pack);
-	}
+	virtual void Serialize(Serializable::Interface& pack);
+	virtual void Deserialize(Serializable::Interface& pack);
 
 	PRINT_NODE(ForStmt);
 
@@ -2510,37 +2182,10 @@ public:
 		Deserialize(pack);
 	}
 
-	DefaultStmt(const std::shared_ptr<ASTNode>& body)
-		: m_body{ body }
-	{
-		ASTNode::AppendChild(body);
-	}
+	DefaultStmt(const std::shared_ptr<ASTNode>& body);
 
-	virtual void Serialize(Serializable::Interface& pack)
-	{
-		pack << nodeId;
-
-		auto group = pack.ChildGroups(1);
-		group.Size(1);
-		group << m_body;
-
-		Stmt::Serialize(pack);
-	}
-
-	virtual void Deserialize(Serializable::Interface& pack)
-	{
-		AST::NodeID _nodeId;
-		pack >> _nodeId;
-		AssertNode(_nodeId, nodeId);
-
-		auto group = pack.ChildGroups();
-		pack <<= {group[0], [=](const std::shared_ptr<ASTNode>& node) {
-			m_body = node;
-			ASTNode::AppendChild(node);
-		}};
-
-		Stmt::Deserialize(pack);
-	}
+	virtual void Serialize(Serializable::Interface& pack);
+	virtual void Deserialize(Serializable::Interface& pack);
 
 	PRINT_NODE(DefaultStmt);
 
@@ -2562,49 +2207,10 @@ public:
 		Deserialize(pack);
 	}
 
-	CaseStmt(std::shared_ptr<ASTNode>& name, std::shared_ptr<ASTNode>& body)
-		: m_name{ name }
-		, m_body{ body }
-	{
-		ASTNode::AppendChild(name);
-		ASTNode::AppendChild(body);
-	}
+	CaseStmt(std::shared_ptr<ASTNode>& name, std::shared_ptr<ASTNode>& body);
 
-	virtual void Serialize(Serializable::Interface& pack)
-	{
-		pack << nodeId;
-
-		auto group = pack.ChildGroups(2);
-		group.Size(1);
-		group << m_name;
-
-		group++;
-		group.Size(1);
-		group << m_body;
-
-		Stmt::Serialize(pack);
-	}
-
-	virtual void Deserialize(Serializable::Interface& pack)
-	{
-		AST::NodeID _nodeId;
-		pack >> _nodeId;
-		AssertNode(_nodeId, nodeId);
-
-		auto group = pack.ChildGroups();
-		pack <<= {group[0], [=](const std::shared_ptr<ASTNode>& node) {
-			m_name = node;
-			ASTNode::AppendChild(node);
-		}};
-
-		group++;
-		pack <<= {group[0], [=](const std::shared_ptr<ASTNode>& node) {
-			m_body = node;
-			ASTNode::AppendChild(node);
-		}};
-
-		Stmt::Deserialize(pack);
-	}
+	virtual void Serialize(Serializable::Interface& pack);
+	virtual void Deserialize(Serializable::Interface& pack);
 
 	PRINT_NODE(CaseStmt);
 
@@ -2627,45 +2233,10 @@ public:
 
 	DeclStmt() = default;
 
-	void AddDeclaration(const std::shared_ptr<VarDecl>& node)
-	{
-		ASTNode::AppendChild(NODE_UPCAST(node));
-		m_var.push_back(node);
+	void AddDeclaration(const std::shared_ptr<VarDecl>& node);
 
-		ASTNode::UpdateDelegate();
-	}
-
-	virtual void Serialize(Serializable::Interface& pack)
-	{
-		pack << nodeId;
-
-		auto group = pack.ChildGroups(1);
-		group.Size(m_var.size());
-		for (const auto& child : m_var) {
-			group << child;
-		}
-
-		Stmt::Serialize(pack);
-	}
-
-	virtual void Deserialize(Serializable::Interface& pack)
-	{
-		AST::NodeID _nodeId;
-		pack >> _nodeId;
-		AssertNode(_nodeId, nodeId);
-
-		auto group = pack.ChildGroups();
-		for (size_t i = 0; i < group.Size(); ++i)
-		{
-			int childNodeId = group[i];
-			pack <<= {childNodeId, [=](const std::shared_ptr<ASTNode>& node) {
-				auto decl = std::dynamic_pointer_cast<VarDecl>(node);
-				AddDeclaration(decl);
-			}};
-		}
-
-		Stmt::Deserialize(pack);
-	}
+	virtual void Serialize(Serializable::Interface& pack);
+	virtual void Deserialize(Serializable::Interface& pack);
 
 	PRINT_NODE(DeclStmt);
 
@@ -2688,55 +2259,12 @@ public:
 
 	ArgumentStmt() = default;
 
-	void AppendArgument(const std::shared_ptr<ASTNode>& node)
-	{
-		ASTNode::AppendChild(node);
-		m_arg.push_back(node);
+	void AppendArgument(const std::shared_ptr<ASTNode>& node);
 
-		ASTNode::UpdateDelegate();
-	}
+	void Emplace(size_t idx, const std::shared_ptr<ASTNode>&& node) override final;
 
-	void Emplace(size_t idx, const std::shared_ptr<ASTNode>&& node) override final
-	{
-		BUMP_STATE();
-
-		ASTNode::RemoveChild(idx);
-		ASTNode::AppendChild(node);
-		m_arg[idx] = std::move(node);
-
-		ASTNode::UpdateDelegate();
-	}
-
-	virtual void Serialize(Serializable::Interface& pack)
-	{
-		pack << nodeId;
-
-		auto group = pack.ChildGroups(1);
-		group.Size(m_arg.size());
-		for (const auto& child : m_arg) {
-			group << child;
-		}
-
-		Stmt::Serialize(pack);
-	}
-
-	virtual void Deserialize(Serializable::Interface& pack)
-	{
-		AST::NodeID _nodeId;
-		pack >> _nodeId;
-		AssertNode(_nodeId, nodeId);
-
-		auto group = pack.ChildGroups();
-		for (size_t i = 0; i < group.Size(); ++i)
-		{
-			int childNodeId = group[i];
-			pack <<= {childNodeId, [=](const std::shared_ptr<ASTNode>& node) {
-				AppendArgument(node);
-			}};
-		}
-
-		Stmt::Deserialize(pack);
-	}
+	virtual void Serialize(Serializable::Interface& pack);
+	virtual void Deserialize(Serializable::Interface& pack);
 
 	PRINT_NODE(ArgumentStmt);
 
@@ -2759,44 +2287,10 @@ public:
 
 	ParamStmt() = default;
 
-	void AppendParamter(const std::shared_ptr<ASTNode>& node)
-	{
-		ASTNode::AppendChild(node);
-		m_param.push_back(node);
+	void AppendParamter(const std::shared_ptr<ASTNode>& node);
 
-		ASTNode::UpdateDelegate();
-	}
-
-	virtual void Serialize(Serializable::Interface& pack)
-	{
-		pack << nodeId;
-
-		auto group = pack.ChildGroups(1);
-		group.Size(m_param.size());
-		for (const auto& child : m_param) {
-			group << child;
-		}
-
-		Stmt::Serialize(pack);
-	}
-
-	virtual void Deserialize(Serializable::Interface& pack)
-	{
-		AST::NodeID _nodeId;
-		pack >> _nodeId;
-		AssertNode(_nodeId, nodeId);
-
-		auto group = pack.ChildGroups();
-		for (size_t i = 0; i < group.Size(); ++i)
-		{
-			int childNodeId = group[i];
-			pack <<= {childNodeId, [=](const std::shared_ptr<ASTNode>& node) {
-				AppendParamter(node);
-			}};
-		}
-
-		Stmt::Deserialize(pack);
-	}
+	virtual void Serialize(Serializable::Interface& pack);
+	virtual void Deserialize(Serializable::Interface& pack);
 
 	PRINT_NODE(ParamStmt);
 
@@ -2818,41 +2312,10 @@ public:
 		Deserialize(pack);
 	}
 
-	LabelStmt(const std::string& name, std::shared_ptr<ASTNode>& node)
-		: m_name{ name }
-		, m_body{ node }
-	{
-		ASTNode::AppendChild(node);
-	}
+	LabelStmt(const std::string& name, std::shared_ptr<ASTNode>& node);
 
-	virtual void Serialize(Serializable::Interface& pack)
-	{
-		pack << nodeId;
-		pack << m_name;
-
-		auto group = pack.ChildGroups(1);
-		group.Size(1);
-		group << m_body;
-
-		Stmt::Serialize(pack);
-	}
-
-	virtual void Deserialize(Serializable::Interface& pack)
-	{
-		AST::NodeID _nodeId;
-		pack >> _nodeId;
-		AssertNode(_nodeId, nodeId);
-
-		pack >> m_name;
-
-		auto group = pack.ChildGroups();
-		pack <<= {group[0], [=](const std::shared_ptr<ASTNode>& node) {
-			m_body = node;
-			ASTNode::AppendChild(node);
-		}};
-
-		Stmt::Deserialize(pack);
-	}
+	virtual void Serialize(Serializable::Interface& pack);
+	virtual void Deserialize(Serializable::Interface& pack);
 
 	PRINT_NODE(LabelStmt);
 
@@ -2873,33 +2336,12 @@ public:
 		Deserialize(pack);
 	}
 
-	GotoStmt(const std::string& name)
-		: m_labelName{ name }
-	{
-	}
+	GotoStmt(const std::string& name);
 
-	virtual void Serialize(Serializable::Interface& pack)
-	{
-		pack << nodeId;
-		pack << m_labelName;
-		Stmt::Serialize(pack);
-	}
+	virtual void Serialize(Serializable::Interface& pack);
+	virtual void Deserialize(Serializable::Interface& pack);
 
-	virtual void Deserialize(Serializable::Interface& pack)
-	{
-		AST::NodeID _nodeId;
-		pack >> _nodeId;
-		AssertNode(_nodeId, nodeId);
-
-		pack >> m_labelName;
-
-		Stmt::Deserialize(pack);
-	}
-
-	virtual const std::string NodeName() const
-	{
-		return std::string{ RemoveClassFromName(typeid(GotoStmt).name()) } +" {" + std::to_string(m_state.Alteration()) + "}" + " <line:" + std::to_string(line) + ",col:" + std::to_string(col) + "> '" + m_labelName + "'";
-	}
+	virtual const std::string NodeName() const;
 
 private:
 	POLY_IMPL();
@@ -2920,44 +2362,10 @@ public:
 
 	CompoundStmt() = default;
 
-	void AppendChild(const std::shared_ptr<ASTNode>& node) final
-	{
-		ASTNode::AppendChild(node);
-		m_children.push_back(node);
+	void AppendChild(const std::shared_ptr<ASTNode>& node) final;
 
-		ASTNode::UpdateDelegate();
-	}
-
-	virtual void Serialize(Serializable::Interface& pack)
-	{
-		pack << nodeId;
-
-		auto group = pack.ChildGroups(1);
-		group.Size(m_children.size());
-		for (const auto& child : m_children) {
-			group << child;
-		}
-
-		Stmt::Serialize(pack);
-	}
-
-	virtual void Deserialize(Serializable::Interface& pack)
-	{
-		AST::NodeID _nodeId;
-		pack >> _nodeId;
-		AssertNode(_nodeId, nodeId);
-
-		auto group = pack.ChildGroups();
-		for (size_t i = 0; i < group.Size(); ++i)
-		{
-			int childNodeId = group[i];
-			pack <<= {childNodeId, [=](const std::shared_ptr<ASTNode>& node) {
-				AppendChild(node);
-			}};
-		}
-
-		Stmt::Deserialize(pack);
-	}
+	virtual void Serialize(Serializable::Interface& pack);
+	virtual void Deserialize(Serializable::Interface& pack);
 
 	PRINT_NODE(CompoundStmt);
 
