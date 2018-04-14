@@ -338,7 +338,7 @@ inline auto MakeVariadicType()
 	return std::make_shared<Typedef::VariadicType>();
 }
 
-// Create typedefinition based on byte array
+// Create type definition based on byte array.
 Typedef::BaseType MakeType(std::vector<uint8_t>&&);
 
 } // namespace Util

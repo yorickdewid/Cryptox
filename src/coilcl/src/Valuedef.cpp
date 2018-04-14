@@ -13,14 +13,9 @@ namespace CoilCl
 namespace Valuedef
 {
 
-// Special member funcion, copy constructor
-Value::Value(const Value& other)
-	: m_objectType{ other.m_objectType }
-	, m_value{ other.m_value }
-	, m_isVoid{ other.m_isVoid }
+Value::Value(Typedef::BaseType typeBase)
+	: m_objectType{ typeBase }
 {
-	m_array.m_Size = other.m_array.m_Size;
-	m_array._0terminator = other.m_array._0terminator;
 }
 
 Value::Value(Typedef::BaseType typeBase, ValueVariant value)
@@ -29,9 +24,118 @@ Value::Value(Typedef::BaseType typeBase, ValueVariant value)
 {
 }
 
-Value::Value(Typedef::BaseType typeBase)
-	: m_objectType{ typeBase }
+class TypePacker final : public boost::static_visitor<>
 {
+	enum NativeType : uint8_t
+	{
+		INT, CHAR, DOUBLE, STR,
+	};
+
+public:
+	TypePacker(Cry::ByteArray& buffer)
+		: m_buffer{ buffer }
+	{
+	}
+
+	void operator()(int i) const
+	{
+		m_buffer.push_back(static_cast<NativeType>(NativeType::INT));
+		m_buffer.push_back(static_cast<Cry::Byte>(i));
+	}
+
+	void operator()(char c) const
+	{
+		m_buffer.push_back(static_cast<NativeType>(NativeType::CHAR));
+		m_buffer.push_back(c);
+	}
+
+	void operator()(double d) const
+	{
+		m_buffer.push_back(static_cast<NativeType>(NativeType::DOUBLE));
+		m_buffer.push_back(static_cast<Cry::Byte>(d));
+	}
+
+	void operator()(const std::string& s) const
+	{
+		m_buffer.push_back(static_cast<NativeType>(NativeType::STR));
+		m_buffer.push_back(static_cast<Cry::Byte>(s.size()));
+		m_buffer.insert(m_buffer.cend(), s.begin(), s.end());
+	}
+
+	std::shared_ptr<Valuedef::Value> Unpack(Typedef::BaseType base)
+	{
+		switch (static_cast<NativeType>(m_buffer[0]))
+		{
+		case TypePacker::INT:
+			return std::make_shared<Valuedef::Value>(std::move(base), static_cast<int>(m_buffer[1]));
+		case TypePacker::CHAR:
+			return std::make_shared<Valuedef::Value>(std::move(base), static_cast<char>(m_buffer[1]));
+		case TypePacker::DOUBLE:
+			return std::make_shared<Valuedef::Value>(std::move(base), static_cast<double>(m_buffer[1]));
+		case TypePacker::STR: {
+			auto strSize = static_cast<size_t>(m_buffer[1]);
+			assert(strSize);
+			std::string buffer;
+			buffer.resize(strSize);
+			buffer.insert(buffer.cbegin(), m_buffer.begin() + 2, m_buffer.begin() + 2 + strSize);
+			return std::make_shared<Valuedef::Value>(std::move(base), std::move(buffer));
+		}
+		default:
+			throw 1;
+		}
+	}
+
+private:
+	Cry::ByteArray& m_buffer;
+};
+
+const Cry::ByteArray Value::Serialize() const
+{
+	Cry::ByteArray buffer;
+	//TODO: Write magic
+	//TODO: Byte order
+	buffer.push_back(static_cast<Cry::Byte>(m_isVoid));
+	buffer.push_back(static_cast<Cry::Byte>(m_arraySize)); //FUTURE: Limited to 256
+
+	const auto type = m_objectType->TypeEnvelope();
+	buffer.push_back(static_cast<Cry::Byte>(type.size()));
+	buffer.insert(buffer.cend(), type.begin(), type.end());
+
+	TypePacker visitor{ buffer };
+	m_value.apply_visitor(TypePacker{ visitor });
+	return buffer;
+}
+
+} // namespace Valuedef
+
+namespace Util
+{
+
+std::shared_ptr<Valuedef::Value> ValueFactory::BaseValue(Cry::ByteArray& buffer)
+{
+	const auto array = buffer.data();
+	bool isVoid = static_cast<bool>(array[0]);
+	size_t arraySize = static_cast<size_t>(array[1]);
+
+	Cry::ByteArray type;
+	size_t evSize = static_cast<size_t>(array[2]);
+	type.resize(evSize);
+	std::copy(buffer.cbegin() + 2 + 1, buffer.cbegin() + 2 + 1 + evSize, type.begin());
+	Typedef::BaseType ptr = Util::MakeType(std::move(type));
+
+	std::shared_ptr<Valuedef::Value> value;
+	if (isVoid) {
+		value = MakeVoid();
+	}
+	else {
+		Cry::ByteArray subBuffer{ buffer.cbegin() + 2 + 1 + evSize, buffer.cend() };
+		Valuedef::TypePacker visitor{ subBuffer };
+		value = visitor.Unpack(ptr);
+	}
+
+	value->m_arraySize = arraySize;
+
+	return value;
 }
 
 } // namespace Util

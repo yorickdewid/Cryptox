@@ -195,7 +195,7 @@ std::vector<uint8_t> RecordType::TypeEnvelope() const
 {
 	std::vector<uint8_t> buffer = { m_c_internalType };
 	buffer.reserve(m_name.size());
-	buffer.push_back(static_cast<uint8_t>(m_name.size()));
+	buffer.push_back(static_cast<uint8_t>(m_name.size())); //FUTURE: Limited to 256
 	std::copy(m_name.cbegin(), m_name.cend(), buffer.begin());
 	buffer.push_back(static_cast<uint8_t>(m_specifier));
 	const auto base = TypedefBase::TypeEnvelope();
@@ -228,7 +228,7 @@ std::vector<uint8_t> TypedefType::TypeEnvelope() const
 {
 	std::vector<uint8_t> buffer = { m_c_internalType };
 	buffer.reserve(m_name.size());
-	buffer.push_back(static_cast<uint8_t>(m_name.size()));
+	buffer.push_back(static_cast<uint8_t>(m_name.size())); //FUTURE: Limited to 256
 	std::copy(m_name.cbegin(), m_name.cend(), buffer.begin());
 
 	if (m_resolveType) {
