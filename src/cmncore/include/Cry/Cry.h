@@ -18,4 +18,5 @@
 #ifdef AUTO_INCLUDE
 # include "Indep.h"
 # include "OS.h"
+# include "Arch.h"
 #endif

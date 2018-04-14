@@ -19,6 +19,7 @@
 #include <endian.h>
 #endif
 
+// Determine endianness
 #if defined(__BYTE_ORDER) && __BYTE_ORDER == __BIG_ENDIAN || \
     defined(REG_DWORD) && REG_DWORD == REG_DWORD_BIG_ENDIAN || \
     defined(__BIG_ENDIAN__) || \
@@ -39,18 +40,21 @@
 # error "Unknown architecture"
 #endif
 
-#ifdef _MSC_VER
-# define BSWAP16(x) ((unsigned short)_byteswap_ushort(x))
-# define BSWAP32(x) ((unsigned int)_byteswap_ulong(x))
-# define BSWAP64(x) ((__int64)_byteswap_uint64(x))
-#endif // _MSC_VER
-#ifdef __GNUC__
-# define BSWAP16(x) ((uint16_t)__builtin_bswap16(x))
-# define BSWAP32(x) ((uint32_t)__builtin_bswap32(x))
-# define BSWAP64(x) ((uint64_t)__builtin_bswap64(x))
-#endif // __GNUC__
+#ifndef __NO_INTERNAL_BO
+# ifdef _MSC_VER
+#  define BSWAP16(x) ((__int16)_byteswap_ushort(x))
+#  define BSWAP32(x) ((__int32)_byteswap_ulong(x))
+#  define BSWAP64(x) ((__int64)_byteswap_uint64(x))
+# endif // _MSC_VER
+# ifdef __GNUC__
+#  define BSWAP16(x) ((uint16_t)__builtin_bswap16(x))
+#  define BSWAP32(x) ((uint32_t)__builtin_bswap32(x))
+#  define BSWAP64(x) ((uint64_t)__builtin_bswap64(x))
+# endif // __GNUC__
+#endif // __NO_INTERNAL_BO
 
-#if !defined(BSWAP16) && !defined(BSWAP32) && !defined(BSWAP64)
+// Fallback byte swap macros
+#if (!defined(BSWAP16) && !defined(BSWAP32) && !defined(BSWAP64)) || defined(__NO_INTERNAL_BO)
 # define BSWAP16(x) ( ((x >> 8) | (x << 8)) )
 # define BSWAP32(x) ( ((x >> 24) & 0x000000ff) | ((x >>  8) & 0x0000ff00) | \
                       ((x <<  8) & 0x00ff0000) | ((x << 24) & 0xff000000) )
@@ -60,9 +64,10 @@
                       ((x << 40) & 0x00ff000000000000) | ((x << 56) & 0xff00000000000000) )
 #endif
 
+// Runtime check if arch is big endian
 constexpr bool IsBigEndian()
 {
-	short int n = 0x01020304;
+	int n = 0x01020304;
 	char *p = (char *)&n;
 	return (p[0] == 1);
 }
@@ -70,7 +75,7 @@ constexpr bool IsBigEndian()
 // Runtime check if arch is little endian
 constexpr bool IsLittleEndian()
 {
-	short int n = 0x1;
+	int n = 0x1;
 	char *p = (char *)&n;
 	return (p[0] == 1);
 }

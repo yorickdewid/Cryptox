@@ -33,5 +33,5 @@
 #elif defined(_POSIX_VERSION)
 # define CRY_POSIX 1
 #else
-# error "Unknown compiler"
+# error "Unknown OS"
 #endif
