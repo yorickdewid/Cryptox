@@ -1578,12 +1578,8 @@ class ResolveRefExpr
 	std::string m_identifier;
 
 public:
-	ResolveRefExpr(const std::string& identifier)
-		: m_identifier{ identifier }
-	{
-	}
-
 	ResolveRefExpr() = default;
+	ResolveRefExpr(const std::string& identifier);
 
 	//TODO: friend
 	auto Identifier() const
@@ -1592,28 +1588,10 @@ public:
 	}
 
 protected:
-	virtual void Serialize(Serializable::Interface& pack)
-	{
-		pack << nodeId;
-		pack << m_identifier;
-		Expr::Serialize(pack);
-	}
+	virtual void Serialize(Serializable::Interface& pack);
+	virtual void Deserialize(Serializable::Interface& pack);
 
-	virtual void Deserialize(Serializable::Interface& pack)
-	{
-		AST::NodeID _nodeId;
-		pack >> _nodeId;
-		AssertNode(_nodeId, nodeId);
-
-		pack >> m_identifier;
-
-		Expr::Deserialize(pack);
-	}
-
-	const std::string NodeName() const
-	{
-		return std::string{ RemoveClassFromName(typeid(ResolveRefExpr).name()) } +" {" + std::to_string(m_state.Alteration()) + "}" + " <line:" + std::to_string(line) + ",col:" + std::to_string(col) + "> '" + m_identifier + "'";
-	}
+	const std::string NodeName() const;
 
 private:
 	POLY_IMPL();
@@ -1647,79 +1625,22 @@ public:
 	auto IsResolved() const { return !m_ref.expired(); }
 	auto Reference() const { return m_ref.lock(); }
 
-	void Resolve(const std::shared_ptr<ASTNode>& ref)
-	{
-		m_ref = std::dynamic_pointer_cast<Decl>(ref);
-	}
+	void Resolve(const std::shared_ptr<ASTNode>& ref);
 
 	// If reference resolves there is an return type
-	bool HasReturnType() const override
-	{
-		return IsResolved();
-	}
+	bool HasReturnType() const override;
 
 	// 
-	void SetReturnType(AST::TypeFacade type) override
-	{
-		assert(IsResolved());
-		return Reference()->SetReturnType(type);
-	}
+	void SetReturnType(AST::TypeFacade type) override;
 
-	const AST::TypeFacade& ReturnType() const override
-	{
-		assert(IsResolved());
-		return Reference()->ReturnType();
-	}
+	const AST::TypeFacade& ReturnType() const override;
 
-	AST::TypeFacade& UpdateReturnType() override
-	{
-		assert(IsResolved());
-		return Reference()->UpdateReturnType();
-	}
+	AST::TypeFacade& UpdateReturnType() override;
 
-	virtual void Serialize(Serializable::Interface& pack)
-	{
-		pack << nodeId;
+	virtual void Serialize(Serializable::Interface& pack);
+	virtual void Deserialize(Serializable::Interface& pack);
 
-		auto group = pack.ChildGroups(1);
-		group.Size(1);
-		group << m_ref;
-
-		ResolveRefExpr::Serialize(pack);
-	}
-
-	virtual void Deserialize(Serializable::Interface& pack)
-	{
-		AST::NodeID _nodeId;
-		pack >> _nodeId;
-		AssertNode(_nodeId, nodeId);
-
-		auto group = pack.ChildGroups();
-		pack <<= {group[0], [=](const std::shared_ptr<ASTNode>& node) {
-			Resolve(node);
-		}};
-
-		ResolveRefExpr::Deserialize(pack);
-	}
-
-	const std::string NodeName() const
-	{
-		if (IsResolved()) {
-			std::string _node{ RemoveClassFromName(typeid(DeclRefExpr).name()) };
-			_node += " {" + std::to_string(m_state.Alteration()) + "}";
-			_node += " <line:" + std::to_string(line) + ",col:" + std::to_string(col) + "> ";
-			_node += "linked '" + m_ref.lock()->Identifier() + "' ";
-
-			if (Reference()->ReturnType().HasValue()) {
-				_node += "'" + Reference()->ReturnType().TypeName() + "' ";
-				_node += Reference()->ReturnType()->StorageClassName();
-			}
-
-			return _node;
-		}
-
-		return ResolveRefExpr::NodeName();
-	}
+	const std::string NodeName() const;
 
 	std::shared_ptr<ASTNode> PolySelf()
 	{
@@ -1742,7 +1663,7 @@ public:
 	}
 
 	CallExpr(std::shared_ptr<DeclRefExpr>& func, std::shared_ptr<ArgumentStmt> args = nullptr)
-		: Expr{}
+		: Expr{} //TODO
 	{
 		ASTNode::AppendChild(NODE_UPCAST(func));
 		m_funcRef = func;
@@ -1753,57 +1674,10 @@ public:
 		}
 	}
 
-	virtual void Serialize(Serializable::Interface& pack)
-	{
-		pack << nodeId;
+	virtual void Serialize(Serializable::Interface& pack);
+	virtual void Deserialize(Serializable::Interface& pack);
 
-		auto group = pack.ChildGroups(2);
-		group.Size(1);
-		group << NODE_UPCAST(m_funcRef);
-
-		group++;
-		group.Size(1);
-		group << NODE_UPCAST(m_args);
-
-		Expr::Serialize(pack);
-	}
-
-	virtual void Deserialize(Serializable::Interface& pack)
-	{
-		AST::NodeID _nodeId;
-		pack >> _nodeId;
-		AssertNode(_nodeId, nodeId);
-
-		auto group = pack.ChildGroups();
-		pack <<= {group[0], [=](const std::shared_ptr<ASTNode>& node) {
-			ASTNode::AppendChild(node);
-			auto ref = std::dynamic_pointer_cast<DeclRefExpr>(node);
-			m_funcRef = ref;
-		}};
-
-		group++;
-		pack <<= {group[0], [=](const std::shared_ptr<ASTNode>& node) {
-			ASTNode::AppendChild(node);
-			auto args = std::dynamic_pointer_cast<ArgumentStmt>(node);
-			m_args = args;
-		}};
-
-		Expr::Deserialize(pack);
-	}
-
-	const std::string NodeName() const
-	{
-		std::string _node{ RemoveClassFromName(typeid(CallExpr).name()) };
-		_node += " {" + std::to_string(m_state.Alteration()) + "}";
-		_node += " <line:" + std::to_string(line) + ",col:" + std::to_string(col) + "> ";
-
-		if (ReturnType().HasValue()) {
-			_node += "'" + ReturnType().TypeName() + "' ";
-			_node += ReturnType()->StorageClassName();
-		}
-
-		return _node;
-	}
+	const std::string NodeName() const;
 
 	auto& ArgumentStatement() const { return m_args; }
 
@@ -1825,71 +1699,27 @@ class BuiltinExpr final
 	AST::TypeFacade m_typenameType;
 
 public:
+	//TODO:?
 	/*explicit BuiltinExpr(Serializable::Interface& pack)
 	{
 		Deserialize(pack);
 	}*/
 
-	BuiltinExpr(std::shared_ptr<DeclRefExpr>& func, std::shared_ptr<DeclRefExpr> expr = nullptr, std::shared_ptr<ArgumentStmt> args = nullptr)
-		: CallExpr{ func, args }
-		, m_expr{ expr }
-	{
-		if (expr != nullptr) {
-			ASTNode::AppendChild(NODE_UPCAST(expr));
-		}
-	}
+	BuiltinExpr(std::shared_ptr<DeclRefExpr>& func, std::shared_ptr<DeclRefExpr> expr = nullptr, std::shared_ptr<ArgumentStmt> args = nullptr);
 
-	void SetExpression(const std::shared_ptr<ASTNode>& node)
-	{
-		ASTNode::AppendChild(node);
-		m_expr = node;
-
-		ASTNode::UpdateDelegate();
-	}
+	void SetExpression(const std::shared_ptr<ASTNode>& node);
 
 	//TODO: move?
-	void SetTypename(std::shared_ptr<Typedef::TypedefBase>& type)
-	{
-		m_typenameType = type;
-	}
+	void SetTypename(std::shared_ptr<Typedef::TypedefBase>& type);
 
 	///TODO: friends
 	auto Expression() const { return m_expr; }
 	auto TypeName() const { return m_typenameType; }
 
-	virtual void Serialize(Serializable::Interface& pack)
-	{
-		pack << nodeId;
+	virtual void Serialize(Serializable::Interface& pack);
+	virtual void Deserialize(Serializable::Interface& pack);
 
-		auto group = pack.ChildGroups(1);
-		group.Size(1);
-		group << m_expr;
-
-		//pack << m_typenameType;//TODO
-
-		Expr::Serialize(pack);
-	}
-
-	virtual void Deserialize(Serializable::Interface& pack)
-	{
-		AST::NodeID _nodeId;
-		pack >> _nodeId;
-		AssertNode(_nodeId, nodeId);
-
-		//pack >> m_typenameType;//TODO
-
-		auto group = pack.ChildGroups();
-		pack <<= {group[0], [=](const std::shared_ptr<ASTNode>& node) {
-			SetExpression(node);
-		}};
-
-		Expr::Deserialize(pack);
-	}
-
-	const std::string NodeName() const final
-	{
-		return std::string{ RemoveClassFromName(typeid(BuiltinExpr).name()) } +" {" + std::to_string(m_state.Alteration()) + "}" + " <line:" + std::to_string(line) + ",col:" + std::to_string(col) + "> ";
-	}
+	const std::string NodeName() const final;
 
 	std::shared_ptr<ASTNode> PolySelf()
 	{
@@ -1917,40 +1747,10 @@ public:
 		rtype = node;
 	}
 
-	virtual void Serialize(Serializable::Interface& pack)
-	{
-		pack << nodeId;
+	virtual void Serialize(Serializable::Interface& pack);
+	virtual void Deserialize(Serializable::Interface& pack);
 
-		auto group = pack.ChildGroups(1);
-		group.Size(1);
-		group << rtype;
-
-		Expr::Serialize(pack);
-	}
-
-	virtual void Deserialize(Serializable::Interface& pack)
-	{
-		AST::NodeID _nodeId;
-		pack >> _nodeId;
-		AssertNode(_nodeId, nodeId);
-
-		auto group = pack.ChildGroups();
-		pack <<= {group[0], [=](const std::shared_ptr<ASTNode>& node) {
-			rtype = node;
-			ASTNode::AppendChild(node);
-		}};
-
-		Expr::Deserialize(pack);
-	}
-
-	const std::string NodeName() const
-	{
-		std::string _node{ RemoveClassFromName(typeid(CastExpr).name()) };
-		_node += " {" + std::to_string(m_state.Alteration()) + "}";
-		_node += " <line:" + std::to_string(line) + ",col:" + std::to_string(col) + "> ";
-
-		return _node;
-	}
+	const std::string NodeName() const;
 
 private:
 	POLY_IMPL();
@@ -1971,12 +1771,7 @@ public:
 		Deserialize(pack);
 	}
 
-	ImplicitConvertionExpr(std::shared_ptr<ASTNode>& node, Conv::Cast::Tag convOp)
-		: m_body{ node }
-		, m_convOp{ convOp }
-	{
-		ASTNode::AppendChild(node);
-	}
+	ImplicitConvertionExpr(std::shared_ptr<ASTNode>& node, Conv::Cast::Tag convOp);
 
 	virtual void Serialize(Serializable::Interface& pack)
 	{
@@ -2008,21 +1803,7 @@ public:
 		Expr::Deserialize(pack);
 	}
 
-	virtual const std::string NodeName() const
-	{
-		std::string _node{ RemoveClassFromName(typeid(ImplicitConvertionExpr).name()) };
-		_node += " {" + std::to_string(m_state.Alteration()) + "}";
-		_node += " <line:" + std::to_string(line) + ",col:" + std::to_string(col) + "> ";
-
-		if (ReturnType().HasValue()) {
-			_node += "'" + ReturnType().TypeName() + "' ";
-			_node += ReturnType()->StorageClassName();
-		}
-
-		_node += "[" + Conv::Cast::PrintTag(m_convOp) + "]";
-
-		return _node;
-	}
+	virtual const std::string NodeName() const;
 
 private:
 	POLY_IMPL();
@@ -2041,37 +1822,10 @@ public:
 		Deserialize(pack);
 	}
 
-	ParenExpr(std::shared_ptr<ASTNode>& node)
-		: m_body{ node }
-	{
-		ASTNode::AppendChild(node);
-	}
+	ParenExpr(std::shared_ptr<ASTNode>& node);
 
-	virtual void Serialize(Serializable::Interface& pack)
-	{
-		pack << nodeId;
-
-		auto group = pack.ChildGroups(1);
-		group.Size(1);
-		group << m_body;
-
-		Expr::Serialize(pack);
-	}
-
-	virtual void Deserialize(Serializable::Interface& pack)
-	{
-		AST::NodeID _nodeId;
-		pack >> _nodeId;
-		AssertNode(_nodeId, nodeId);
-
-		auto group = pack.ChildGroups();
-		pack <<= {group[0], [=](const std::shared_ptr<ASTNode>& node) {
-			m_body = node;
-			ASTNode::AppendChild(node);
-		}};
-
-		Expr::Deserialize(pack);
-	}
+	virtual void Serialize(Serializable::Interface& pack);
+	virtual void Deserialize(Serializable::Interface& pack);
 
 	PRINT_NODE(ParenExpr);
 
@@ -2094,44 +1848,10 @@ public:
 
 	InitListExpr() = default;
 
-	void AddListItem(const std::shared_ptr<ASTNode>& node)
-	{
-		ASTNode::AppendChild(node);
-		m_children.push_back(node);
+	void AddListItem(const std::shared_ptr<ASTNode>& node);
 
-		ASTNode::UpdateDelegate();
-	}
-
-	virtual void Serialize(Serializable::Interface& pack)
-	{
-		pack << nodeId;
-
-		auto group = pack.ChildGroups(1);
-		group.Size(m_children.size());
-		for (const auto& child : m_children) {
-			group << child;
-		}
-
-		Expr::Serialize(pack);
-	}
-
-	virtual void Deserialize(Serializable::Interface& pack)
-	{
-		AST::NodeID _nodeId;
-		pack >> _nodeId;
-		AssertNode(_nodeId, nodeId);
-
-		auto group = pack.ChildGroups();
-		for (size_t i = 0; i < group.Size(); ++i)
-		{
-			int childNodeId = group[i];
-			pack <<= {childNodeId, [=](const std::shared_ptr<ASTNode>& node) {
-				AddListItem(node);
-			}};
-		}
-
-		Expr::Deserialize(pack);
-	}
+	virtual void Serialize(Serializable::Interface& pack);
+	virtual void Deserialize(Serializable::Interface& pack);
 
 	PRINT_NODE(InitListExpr);
 
@@ -2152,37 +1872,10 @@ public:
 		Deserialize(pack);
 	}
 
-	CompoundLiteralExpr(std::shared_ptr<InitListExpr>& node)
-		: m_body{ node }
-	{
-		ASTNode::AppendChild(NODE_UPCAST(node));
-	}
+	CompoundLiteralExpr(std::shared_ptr<InitListExpr>& node);
 
-	virtual void Serialize(Serializable::Interface& pack)
-	{
-		pack << nodeId;
-
-		auto group = pack.ChildGroups(1);
-		group.Size(1);
-		group << m_body;
-
-		Expr::Serialize(pack);
-	}
-
-	virtual void Deserialize(Serializable::Interface& pack)
-	{
-		AST::NodeID _nodeId;
-		pack >> _nodeId;
-		AssertNode(_nodeId, nodeId);
-
-		auto group = pack.ChildGroups();
-		pack <<= {group[0], [=](const std::shared_ptr<ASTNode>& node) {
-			m_body = std::dynamic_pointer_cast<InitListExpr>(node);
-			ASTNode::AppendChild(node);
-		}};
-
-		Expr::Deserialize(pack);
-	}
+	virtual void Serialize(Serializable::Interface& pack);
+	virtual void Deserialize(Serializable::Interface& pack);
 
 	PRINT_NODE(CompoundLiteralExpr);
 
@@ -2204,49 +1897,10 @@ public:
 		Deserialize(pack);
 	}
 
-	ArraySubscriptExpr(std::shared_ptr<DeclRefExpr>& ref, std::shared_ptr<ASTNode>& expr)
-		: m_identifier{ ref }
-		, m_offset{ expr }
-	{
-		ASTNode::AppendChild(NODE_UPCAST(ref));
-		ASTNode::AppendChild(expr);
-	}
+	ArraySubscriptExpr(std::shared_ptr<DeclRefExpr>& ref, std::shared_ptr<ASTNode>& expr);
 
-	virtual void Serialize(Serializable::Interface& pack)
-	{
-		pack << nodeId;
-
-		auto group = pack.ChildGroups(2);
-		group.Size(1);
-		group << m_identifier;
-
-		group++;
-		group.Size(1);
-		group << m_offset;
-
-		Expr::Serialize(pack);
-	}
-
-	virtual void Deserialize(Serializable::Interface& pack)
-	{
-		AST::NodeID _nodeId;
-		pack >> _nodeId;
-		AssertNode(_nodeId, nodeId);
-
-		auto group = pack.ChildGroups();
-		pack <<= {group[0], [=](const std::shared_ptr<ASTNode>& node) {
-			m_identifier = std::dynamic_pointer_cast<DeclRefExpr>(node);
-			ASTNode::AppendChild(node);
-		}};
-
-		group++;
-		pack <<= {group[0], [=](const std::shared_ptr<ASTNode>& node) {
-			m_offset = node;
-			ASTNode::AppendChild(node);
-		}};
-
-		Expr::Deserialize(pack);
-	}
+	void Serialize(Serializable::Interface& pack);
+	void Deserialize(Serializable::Interface& pack);
 
 	PRINT_NODE(ArraySubscriptExpr);
 
@@ -2275,58 +1929,12 @@ public:
 		Deserialize(pack);
 	}
 
-	MemberExpr(MemberType type, const std::string& name, std::shared_ptr<DeclRefExpr>& node)
-		: m_memberType{ type }
-		, m_name{ name }
-		, m_record{ node }
-	{
-		ASTNode::AppendChild(NODE_UPCAST(node));
-	}
+	MemberExpr(MemberType type, const std::string& name, std::shared_ptr<DeclRefExpr>& node);
 
-	virtual void Serialize(Serializable::Interface& pack)
-	{
-		pack << nodeId;
-		pack << m_name;
-		pack << m_memberType;
+	virtual void Serialize(Serializable::Interface& pack);
+	virtual void Deserialize(Serializable::Interface& pack);
 
-		auto group = pack.ChildGroups(1);
-		group.Size(1);
-		group << m_record;
-
-		Expr::Serialize(pack);
-	}
-
-	virtual void Deserialize(Serializable::Interface& pack)
-	{
-		AST::NodeID _nodeId;
-		pack >> _nodeId;
-		AssertNode(_nodeId, nodeId);
-
-		pack >> m_name;
-
-		int memberType;
-		pack >> memberType;
-		m_memberType = static_cast<MemberType>(memberType);
-
-		auto group = pack.ChildGroups();
-		pack <<= {group[0], [=](const std::shared_ptr<ASTNode>& node) {
-			m_record = std::dynamic_pointer_cast<DeclRefExpr>(node);
-			ASTNode::AppendChild(node);
-		}};
-
-		Expr::Deserialize(pack);
-	}
-
-	const std::string NodeName() const
-	{
-		std::string _node{ RemoveClassFromName(typeid(MemberExpr).name()) };
-		_node += " {" + std::to_string(m_state.Alteration()) + "}";
-		_node += " <line:" + std::to_string(line) + ",col:" + std::to_string(col) + "> ";
-		_node += m_memberType == MemberType::REFERENCE ? "." : "->";
-		_node += m_name;
-
-		return _node;
-	}
+	const std::string NodeName() const;
 
 private:
 	POLY_IMPL();
