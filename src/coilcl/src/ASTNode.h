@@ -1099,7 +1099,10 @@ public:
 	virtual void Serialize(Serializable::Interface& pack)
 	{
 		pack << _DrivTy::nodeId;
-		//m_valueObj
+
+		std::vector<uint8_t> buffer = m_valueObj->Serialize();
+		pack << buffer;
+
 		Literal::Serialize(pack);
 	}
 
@@ -1109,6 +1112,10 @@ public:
 
 		pack >> _nodeId;
 		AssertNode(_nodeId, _DrivTy::nodeId);
+
+		std::vector<uint8_t> buffer;
+		pack >> buffer;
+		m_valueObj = CoilCl::Util::ValueFactory::MakeValue<_NativTy>(buffer);
 
 		Literal::Deserialize(pack);
 	}

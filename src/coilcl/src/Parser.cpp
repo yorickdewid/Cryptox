@@ -865,18 +865,10 @@ void Parser::PrimaryExpression()
 		}
 		case BuiltinType::Specifier::CHAR:
 		{
-			if (CURRENT_DATA()->IsArray()) {
-				auto object = std::dynamic_pointer_cast<ValueObject<std::string>>(CURRENT_DATA());
-				auto literal = CoilCl::AST::MakeASTNode<StringLiteral>(std::move(object));
-				literal->SetLocation(CURRENT_LOCATION());
-				m_elementDescentPipe.push(literal);
-			}
-			else {
-				auto object = std::dynamic_pointer_cast<ValueObject<char>>(CURRENT_DATA());
-				auto literal = CoilCl::AST::MakeASTNode<CharacterLiteral>(std::move(object));
-				literal->SetLocation(CURRENT_LOCATION());
-				m_elementDescentPipe.push(literal);
-			}
+			auto object = std::dynamic_pointer_cast<ValueObject<std::string>>(CURRENT_DATA());
+			auto literal = CoilCl::AST::MakeASTNode<StringLiteral>(std::move(object));
+			literal->SetLocation(CURRENT_LOCATION());
+			m_elementDescentPipe.push(literal);
 			break;
 		}
 		}
