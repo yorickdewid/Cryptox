@@ -8,6 +8,8 @@
 
 #include "ASTNode.h"
 
+#include <boost/format.hpp>
+
 void Decl::Serialize(Serializable::Interface& pack)
 {
 	pack << nodeId;
@@ -182,14 +184,13 @@ void TypedefDecl::Deserialize(Serializable::Interface& pack)
 
 const std::string TypedefDecl::NodeName() const
 {
-	std::string _node{ RemoveClassFromName(typeid(TypedefDecl).name()) };
-	_node += " {" + std::to_string(m_state.Alteration()) + "}";
-	_node += " <line:" + std::to_string(line) + ",col:" + std::to_string(col) + "> ";
-	_node += m_identifier;
-	_node += " '" + ReturnType().TypeName() + "' ";
-	_node += ReturnType()->StorageClassName();
-
-	return _node;
+	return boost::str(boost::format("%1$s {%2$d} <line:%3$d,col:%4$d> %5% '%6%' %7%")
+		% RemoveClassFromName(typeid(VarDecl).name())
+		% m_state.Alteration()
+		% line % col
+		% m_identifier
+		% ReturnType().TypeName()
+		% ReturnType()->StorageClassName());
 }
 
 
@@ -234,14 +235,13 @@ void FieldDecl::Deserialize(Serializable::Interface& pack)
 
 const std::string FieldDecl::NodeName() const
 {
-	std::string _node{ RemoveClassFromName(typeid(FieldDecl).name()) };
-	_node += " {" + std::to_string(m_state.Alteration()) + "}";
-	_node += " <line:" + std::to_string(line) + ",col:" + std::to_string(col) + "> ";
-	_node += m_identifier;
-	_node += " '" + ReturnType().TypeName() + "' ";
-	_node += ReturnType()->StorageClassName();
-
-	return _node;
+	return boost::str(boost::format("%1$s {%2$d} <line:%3$d,col:%4$d> %5% '%6%' %7%")
+		% RemoveClassFromName(typeid(FieldDecl).name())
+		% m_state.Alteration()
+		% line % col
+		% m_identifier
+		% ReturnType().TypeName()
+		% ReturnType()->StorageClassName());
 }
 
 
@@ -312,14 +312,12 @@ void RecordDecl::Deserialize(Serializable::Interface& pack)
 
 const std::string RecordDecl::NodeName() const
 {
-	std::string _node{ RemoveClassFromName(typeid(RecordDecl).name()) };
-	_node += " {" + std::to_string(m_state.Alteration()) + "}";
-	_node += " <line:" + std::to_string(line) + ",col:" + std::to_string(col) + "> ";
-
-	_node += m_type == RecordType::STRUCT ? "struct " : "union ";
-	_node += IsAnonymous() ? "anonymous" : m_identifier;
-
-	return _node;
+	return boost::str(boost::format("%1$s {%2$d} <line:%3$d,col:%4$d> %5% %6%")
+		% RemoveClassFromName(typeid(RecordDecl).name())
+		% m_state.Alteration()
+		% line % col
+		% (m_type == RecordType::STRUCT ? "struct" : "union")
+		% (IsAnonymous() ? "anonymous" : m_identifier));
 }
 
 
@@ -432,13 +430,11 @@ void EnumDecl::Deserialize(Serializable::Interface& pack)
 
 const std::string EnumDecl::NodeName() const
 {
-	std::string _node{ RemoveClassFromName(typeid(EnumDecl).name()) };
-	_node += " {" + std::to_string(m_state.Alteration()) + "}";
-	_node += " <line:" + std::to_string(line) + ",col:" + std::to_string(col) + "> ";
-
-	_node += IsAnonymous() ? "anonymous" : m_identifier;
-
-	return _node;
+	return boost::str(boost::format("%1$s {%2$d} <line:%3$d,col:%4$d> %5%")
+		% RemoveClassFromName(typeid(FieldDecl).name())
+		% m_state.Alteration()
+		% line % col
+		% (IsAnonymous() ? "anonymous" : m_identifier));
 }
 
 

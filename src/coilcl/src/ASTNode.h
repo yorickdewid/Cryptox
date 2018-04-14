@@ -172,7 +172,7 @@ struct Serializable
 		virtual void operator<<(bool) = 0;
 		virtual void operator<<(AST::NodeID) = 0;
 		virtual void operator<<(std::string) = 0;
-		virtual void operator<<(std::vector<uint8_t>) = 0;
+		virtual void operator<<(Cry::ByteArray) = 0;
 
 		// Stream in operators
 		virtual void operator>>(int&) = 0;
@@ -180,7 +180,7 @@ struct Serializable
 		virtual void operator>>(bool&) = 0;
 		virtual void operator>>(AST::NodeID&) = 0;
 		virtual void operator>>(std::string&) = 0;
-		virtual void operator>>(std::vector<uint8_t>&) = 0;
+		virtual void operator>>(Cry::ByteArray&) = 0;
 
 		// Callback operations
 		virtual void operator<<=(std::pair<int, std::function<void(const std::shared_ptr<ASTNode>&)>>) = 0;
@@ -472,49 +472,7 @@ public:
 		LOR,		// ||
 	} m_operand;
 
-	const char *BinOperandStr(BinOperand operand) const
-	{
-		switch (operand) {
-		case BinOperand::PLUS:
-			return "+";
-		case BinOperand::MINUS:
-			return "-";
-		case BinOperand::MUL:
-			return "*";
-		case BinOperand::DIV:
-			return "/";
-		case BinOperand::MOD:
-			return "%";
-		case BinOperand::ASSGN:
-			return "=";
-		case BinOperand::XOR:
-			return "^";
-		case BinOperand::AND:
-			return "&";
-		case BinOperand::SLEFT:
-			return "<<";
-		case BinOperand::SRIGHT:
-			return ">>";
-		case BinOperand::EQ:
-			return "==";
-		case BinOperand::NEQ:
-			return "!=";
-		case BinOperand::LT:
-			return "<";
-		case BinOperand::GT:
-			return ">";
-		case BinOperand::LE:
-			return "<=";
-		case BinOperand::GE:
-			return ">=";
-		case BinOperand::LAND:
-			return "&&";
-		case BinOperand::LOR:
-			return "||";
-		}
-
-		return "<unknown>";
-	}
+	const char *BinOperandStr(BinOperand operand) const;
 
 public:
 	explicit BinaryOperator(Serializable::Interface& pack)
@@ -522,94 +480,16 @@ public:
 		Deserialize(pack);
 	}
 
-	BinaryOperator(BinOperand operand, const std::shared_ptr<ASTNode>& leftSide)
-		: m_operand{ operand }
-		, m_lhs{ leftSide }
-	{
-		ASTNode::AppendChild(leftSide);
-	}
+	BinaryOperator(BinOperand operand, const std::shared_ptr<ASTNode>& leftSide);
 
-	void SetRightSide(const std::shared_ptr<ASTNode>& node)
-	{
-		ASTNode::AppendChild(node);
-		m_rhs = node;
+	void SetRightSide(const std::shared_ptr<ASTNode>& node);
 
-		ASTNode::UpdateDelegate();
-	}
+	void Emplace(size_t idx, const std::shared_ptr<ASTNode>&& node) override;
 
-	void Emplace(size_t idx, const std::shared_ptr<ASTNode>&& node) override
-	{
-		assert(idx == 0 || idx == 1);
-		BUMP_STATE();
+	virtual void Serialize(Serializable::Interface& pack);
+	virtual void Deserialize(Serializable::Interface& pack);
 
-		ASTNode::RemoveChild(idx);
-		ASTNode::AppendChild(node);
-
-		if (idx == 0) {
-			m_lhs = std::move(node);
-		}
-		else {
-			m_rhs = std::move(node);
-		}
-
-		ASTNode::UpdateDelegate();
-	}
-
-	virtual void Serialize(Serializable::Interface& pack)
-	{
-		pack << nodeId;
-		pack << m_operand;
-
-		auto group = pack.ChildGroups(2);
-		group.Size(1);
-		group << m_lhs;
-
-		group++;
-		group.Size(1);
-		group << m_rhs;
-
-		Operator::Serialize(pack);
-	}
-
-	virtual void Deserialize(Serializable::Interface& pack)
-	{
-		AST::NodeID _nodeId;
-		pack >> _nodeId;
-		AssertNode(_nodeId, nodeId);
-
-		int operand;
-		pack >> operand;
-		m_operand = static_cast<BinOperand>(operand);
-
-		auto group = pack.ChildGroups();
-		pack <<= {group[0], [=](const std::shared_ptr<ASTNode>& node) {
-			m_lhs = node;
-			ASTNode::AppendChild(node);
-		}};
-
-		group++;
-		pack <<= {group[0], [=](const std::shared_ptr<ASTNode>& node) {
-			SetRightSide(node);
-		}};
-
-		Operator::Deserialize(pack);
-	}
-
-	const std::string NodeName() const
-	{
-		std::string _node{ RemoveClassFromName(typeid(BinaryOperator).name()) };
-		_node += " {" + std::to_string(m_state.Alteration()) + "}";
-		_node += " <line:" + std::to_string(line) + ",col:" + std::to_string(col) + "> ";
-
-		if (Operator::ReturnType().HasValue()) {
-			_node += "'" + Operator::ReturnType().TypeName() + "' ";
-			_node += Operator::ReturnType()->StorageClassName();
-		}
-
-		_node += "'" + std::string{ BinOperandStr(m_operand) } +"'";
-
-		return _node;
-	}
+	const std::string NodeName() const;
 
 private:
 	POLY_IMPL();
@@ -630,90 +510,15 @@ public:
 		Deserialize(pack);
 	}
 
-	ConditionalOperator(std::shared_ptr<ASTNode>& eval, std::shared_ptr<ASTNode> truth = nullptr, std::shared_ptr<ASTNode> alt = nullptr)
-		: evalNode{ eval }
-	{
-		ASTNode::AppendChild(eval);
+	ConditionalOperator(std::shared_ptr<ASTNode>& eval, std::shared_ptr<ASTNode> truth = nullptr, std::shared_ptr<ASTNode> alt = nullptr);
 
-		if (truth) {
-			ASTNode::AppendChild(truth);
-			truthStmt = truth;
-		}
+	void SetTruthCompound(const std::shared_ptr<ASTNode>& node);
+	void SetAltCompound(const std::shared_ptr<ASTNode>& node);
 
-		if (alt) {
-			ASTNode::AppendChild(alt);
-			altStmt = alt;
-		}
-	}
+	virtual void Serialize(Serializable::Interface& pack);
+	virtual void Deserialize(Serializable::Interface& pack);
 
-	void SetTruthCompound(const std::shared_ptr<ASTNode>& node)
-	{
-		ASTNode::AppendChild(node);
-		truthStmt = node;
-
-		ASTNode::UpdateDelegate();
-	}
-
-	void SetAltCompound(const std::shared_ptr<ASTNode>& node)
-	{
-		ASTNode::AppendChild(node);
-		altStmt = node;
-
-		ASTNode::UpdateDelegate();
-	}
-
-	virtual void Serialize(Serializable::Interface& pack)
-	{
-		pack << nodeId;
-
-		auto group = pack.ChildGroups(3);
-		group.Size(1);
-		group << evalNode;
-
-		group++;
-		group.Size(1);
-		group << truthStmt;
-
-		group++;
-		group.Size(1);
-		group << altStmt;
-
-		Operator::Serialize(pack);
-	}
-
-	virtual void Deserialize(Serializable::Interface& pack)
-	{
-		AST::NodeID _nodeId;
-		pack >> _nodeId;
-		AssertNode(_nodeId, nodeId);
-
-		auto group = pack.ChildGroups();
-		pack <<= {group[0], [=](const std::shared_ptr<ASTNode>& node) {
-			evalNode = node;
-			ASTNode::AppendChild(node);
-		}};
-
-		group++;
-		pack <<= {group[0], [=](const std::shared_ptr<ASTNode>& node) {
-			SetTruthCompound(node);
-		}};
-
-		group++;
-		pack <<= {group[0], [=](const std::shared_ptr<ASTNode>& node) {
-			SetAltCompound(node);
-		}};
-
-		Operator::Deserialize(pack);
-	}
-
-	virtual const std::string NodeName() const
-	{
-		std::string _node{ RemoveClassFromName(typeid(ConditionalOperator).name()) };
-		_node += " {" + std::to_string(m_state.Alteration()) + "}";
-		_node += " <line:" + std::to_string(line) + ",col:" + std::to_string(col) + "> ";
-
-		return _node;
-	}
+	virtual const std::string NodeName() const;
 
 private:
 	POLY_IMPL();
@@ -747,29 +552,7 @@ public:
 		BOOLNOT,	// !
 	} m_operand; //TODO: make private
 
-	const char *UnaryOperandStr(UnaryOperand operand) const
-	{
-		switch (operand) {
-		case UnaryOperand::INC:
-			return "++";
-		case UnaryOperand::DEC:
-			return "--";
-		case UnaryOperand::INTPOS:
-			return "+";
-		case UnaryOperand::INTNEG:
-			return "-";
-		case UnaryOperand::ADDR:
-			return "&";
-		case UnaryOperand::PTRVAL:
-			return "*";
-		case UnaryOperand::BITNOT:
-			return "~";
-		case UnaryOperand::BOOLNOT:
-			return "!";
-		}
-
-		return "<unknown>";
-	}
+	const char *UnaryOperandStr(UnaryOperand operand) const;
 
 public:
 	enum OperandSide
@@ -784,70 +567,12 @@ public:
 		Deserialize(pack);
 	}
 
-	UnaryOperator(UnaryOperand operand, OperandSide side, const std::shared_ptr<ASTNode>& node)
-		: m_operand{ operand }
-		, m_side{ side }
-	{
-		ASTNode::AppendChild(node);
-		m_body = node;
-	}
+	UnaryOperator(UnaryOperand operand, OperandSide side, const std::shared_ptr<ASTNode>& node);
 
-	virtual void Serialize(Serializable::Interface& pack)
-	{
-		pack << nodeId;
-		pack << m_operand;
-		pack << m_side;
+	virtual void Serialize(Serializable::Interface& pack);
+	virtual void Deserialize(Serializable::Interface& pack);
 
-		auto group = pack.ChildGroups(3);
-		group.Size(1);
-		group << m_body;
-
-		Operator::Serialize(pack);
-	}
-
-	virtual void Deserialize(Serializable::Interface& pack)
-	{
-		AST::NodeID _nodeId;
-		pack >> _nodeId;
-		AssertNode(_nodeId, nodeId);
-
-		int operand;
-		pack >> operand;
-		m_operand = static_cast<UnaryOperand>(operand);
-
-		int side;
-		pack >> side;
-		m_side = static_cast<OperandSide>(side);
-
-		auto group = pack.ChildGroups();
-		pack <<= {group[0], [=](const std::shared_ptr<ASTNode>& node) {
-			m_body = node;
-			ASTNode::AppendChild(node);
-		}};
-
-		Operator::Deserialize(pack);
-	}
-
-	const std::string NodeName() const
-	{
-		std::string _node{ RemoveClassFromName(typeid(UnaryOperator).name()) };
-		_node += +" {" + std::to_string(m_state.Alteration()) + "}";
-		_node += " <line:" + std::to_string(line) + ",col:" + std::to_string(col) + "> ";
-
-		switch (m_side) {
-		case UnaryOperator::POSTFIX:
-			_node += "postfix ";
-			break;
-		case UnaryOperator::PREFIX:
-			_node += "prefix ";
-			break;
-		}
-
-		_node += "'";
-		_node += UnaryOperandStr(m_operand);
-		_node += "'";
-		return _node;
-	}
+	const std::string NodeName() const;
 
 private:
 	POLY_IMPL();
@@ -879,33 +604,7 @@ public:
 		OR,			// |=
 	} m_operand; //TODO: make private
 
-	const char *CompoundAssignOperandStr(CompoundAssignOperand operand) const
-	{
-		switch (operand) {
-		case CompoundAssignOperand::MUL:
-			return "*=";
-		case CompoundAssignOperand::DIV:
-			return "/=";
-		case CompoundAssignOperand::MOD:
-			return "%=";
-		case CompoundAssignOperand::ADD:
-			return "+=";
-		case CompoundAssignOperand::SUB:
-			return "-=";
-		case CompoundAssignOperand::LEFT:
-			return "<<=";
-		case CompoundAssignOperand::RIGHT:
-			return ">>=";
-		case CompoundAssignOperand::AND:
-			return "&=";
-		case CompoundAssignOperand::XOR:
-			return "^=";
-		case CompoundAssignOperand::OR:
-			return "|=";
-		}
-
-		return "<unknown>";
-	}
+	const char *CompoundAssignOperandStr(CompoundAssignOperand operand) const;
 
 public:
 	explicit CompoundAssignOperator(Serializable::Interface& pack)
@@ -913,65 +612,14 @@ public:
 		Deserialize(pack);
 	}
 
-	CompoundAssignOperator(CompoundAssignOperand operand, const std::shared_ptr<DeclRefExpr>& node)
-		: m_operand{ operand }
-	{
-		ASTNode::AppendChild(NODE_UPCAST(node));
-		m_identifier = node;
-	}
+	CompoundAssignOperator(CompoundAssignOperand operand, const std::shared_ptr<DeclRefExpr>& node);
 
-	void SetRightSide(const std::shared_ptr<ASTNode>& node)
-	{
-		ASTNode::AppendChild(node);
-		m_body = node;
+	void SetRightSide(const std::shared_ptr<ASTNode>& node);
+	
+	virtual void Serialize(Serializable::Interface& pack);
+	virtual void Deserialize(Serializable::Interface& pack);
 
-		ASTNode::UpdateDelegate();
-	}
-
-	virtual void Serialize(Serializable::Interface& pack)
-	{
-		pack << nodeId;
-		pack << m_operand;
-
-		auto group = pack.ChildGroups(3);
-		group.Size(1);
-		group << m_body;
-
-		group++;
-		group.Size(1);
-		group << NODE_UPCAST(m_identifier);
-
-		Operator::Serialize(pack);
-	}
-
-	virtual void Deserialize(Serializable::Interface& pack)
-	{
-		AST::NodeID _nodeId;
-		pack >> _nodeId;
-		AssertNode(_nodeId, nodeId);
-
-		int operand;
-		pack >> operand;
-		m_operand = static_cast<CompoundAssignOperand>(operand);
-
-		auto group = pack.ChildGroups();
-		pack <<= {group[0], [=](const std::shared_ptr<ASTNode>& node) {
-			SetRightSide(node);
-		}};
-
-		group++;
-		pack <<= {group[0], [=](const std::shared_ptr<ASTNode>& node) {
-			m_identifier = std::dynamic_pointer_cast<DeclRefExpr>(node);
-			ASTNode::AppendChild(node);
-		}};
-
-		Operator::Deserialize(pack);
-	}
-
-	const std::string NodeName() const
-	{
-		return std::string{ RemoveClassFromName(typeid(CompoundAssignOperator).name()) } +" {" + std::to_string(m_state.Alteration()) + "}" + " <line:" + std::to_string(line) + ",col:" + std::to_string(col) + "> '" + CompoundAssignOperandStr(m_operand) + "'";
-	}
+	const std::string NodeName() const;
 
 private:
 	POLY_IMPL();
@@ -1062,7 +710,7 @@ public:
 	{
 		pack << _DrivTy::nodeId;
 
-		std::vector<uint8_t> buffer = m_valueObj->Serialize();
+		Cry::ByteArray buffer = m_valueObj->Serialize();
 		pack << buffer;
 
 		Literal::Serialize(pack);
@@ -1075,7 +723,7 @@ public:
 		pack >> _nodeId;
 		AssertNode(_nodeId, _DrivTy::nodeId);
 
-		std::vector<uint8_t> buffer;
+		Cry::ByteArray buffer;
 		pack >> buffer;
 		m_valueObj = CoilCl::Util::ValueFactory::MakeValue<_NativTy>(buffer);
 
