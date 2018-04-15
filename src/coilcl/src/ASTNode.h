@@ -68,12 +68,20 @@ constexpr std::string RemoveClassFromName(_Ty *_name)
 	return f;
 }
 
+namespace CoilCl
+{
+namespace AST
+{
+
 class ASTNode;
+
+} // namespace CoilCl
+} // namespace AST
 
 template <typename _Ty>
 struct Identity { using type = typename _Ty::value_type; };
 
-template<typename _Ty, typename _Base = ASTNode>
+template<typename _Ty, typename _Base = CoilCl::AST::ASTNode>
 class SelfReference : public std::enable_shared_from_this<_Ty>
 {
 protected:
@@ -139,7 +147,7 @@ struct Serializable
 {
 	struct ChildGroupInterface
 	{
-		virtual void SaveNode(std::shared_ptr<ASTNode>&) = 0;
+		virtual void SaveNode(std::shared_ptr<CoilCl::AST::ASTNode>&) = 0;
 		virtual void SaveNode(nullptr_t) = 0;
 		virtual int LoadNode(int) = 0;
 
@@ -164,7 +172,7 @@ struct Serializable
 		// Set the node id
 		virtual void SetId(int id) = 0;
 		// Invoke registered callbacks
-		virtual void FireDependencies(std::shared_ptr<ASTNode>&) = 0;
+		virtual void FireDependencies(std::shared_ptr<CoilCl::AST::ASTNode>&) = 0;
 
 		// Stream out operators
 		virtual void operator<<(int) = 0;
@@ -183,7 +191,7 @@ struct Serializable
 		virtual void operator>>(std::vector<uint8_t>&) = 0;
 
 		// Callback operations
-		virtual void operator<<=(std::pair<int, std::function<void(const std::shared_ptr<ASTNode>&)>>) = 0;
+		virtual void operator<<=(std::pair<int, std::function<void(const std::shared_ptr<CoilCl::AST::ASTNode>&)>>) = 0;
 
 		ChildGroupFacade ChildGroups(size_t size = 0)
 		{
@@ -216,7 +224,7 @@ struct Serializable
 		// Get group id
 		auto Id() const { return std::distance(m_beginIt, m_it) + 1; }
 
-		template<typename _Ty, typename = typename std::enable_if<std::is_base_of<ASTNode, _Ty>::value>::type>
+		template<typename _Ty, typename = typename std::enable_if<std::is_base_of<CoilCl::AST::ASTNode, _Ty>::value>::type>
 		void operator<<(std::shared_ptr<_Ty> ptr)
 		{
 			if (!ptr) {
@@ -224,13 +232,13 @@ struct Serializable
 				return;
 			}
 
-			auto astNode = std::dynamic_pointer_cast<ASTNode>(ptr);
+			auto astNode = std::dynamic_pointer_cast<CoilCl::AST::ASTNode>(ptr);
 			(*m_it)->SaveNode(astNode);
 		}
-		template<typename _Ty, typename = typename std::enable_if<std::is_base_of<ASTNode, _Ty>::value>::type>
+		template<typename _Ty, typename = typename std::enable_if<std::is_base_of<CoilCl::AST::ASTNode, _Ty>::value>::type>
 		void operator<<(std::weak_ptr<_Ty> ptr)
 		{
-			if (std::shared_ptr<ASTNode> astNode = ptr.lock()) {
+			if (std::shared_ptr<CoilCl::AST::ASTNode> astNode = ptr.lock()) {
 				(*m_it)->SaveNode(astNode);
 				return;
 			}
@@ -267,7 +275,7 @@ struct Serializable
 			return (*m_it)->GetSize();
 		}
 
-		std::vector<std::shared_ptr<ASTNode>> Children() { return {}; }
+		std::vector<std::shared_ptr<CoilCl::AST::ASTNode>> Children() { return {}; }
 	};
 
 	// Serialize interface
@@ -286,7 +294,9 @@ protected:
 
 struct ModifierInterface
 {
-	virtual void Emplace(size_t, const std::shared_ptr<ASTNode>&&) = 0;
+	// Emplace object, and push current object one stage down
+	virtual void Emplace(size_t, const std::shared_ptr<CoilCl::AST::ASTNode>&&) = 0;
+	// Get modifier count
 	virtual size_t ModifierCount() const = 0;
 };
 
@@ -294,6 +304,11 @@ class DeclRefExpr;
 class CompoundStmt;
 class ArgumentStmt;
 class ParamStmt;
+
+namespace CoilCl
+{
+namespace AST
+{
 
 class ASTNode
 	: public ModifierInterface
@@ -421,13 +436,16 @@ protected:
 	std::vector<UserDataWrapper> m_userData;
 };
 
+} // namespace CoilCl
+} // namespace AST
+
 //
 // Operator nodes
 //
 
 class Operator
 	: public Returnable
-	, public ASTNode
+	, public CoilCl::AST::ASTNode
 {
 	NODE_ID(AST::NodeID::OPERATOR_ID);
 
@@ -631,46 +649,15 @@ private:
 
 class Literal
 	: public Returnable
-	, public ASTNode
+	, public CoilCl::AST::ASTNode
 {
 	NODE_ID(AST::NodeID::LITERAL_ID);
 
 protected:
 	virtual ~Literal() = 0;
 
-	virtual void Serialize(Serializable::Interface& pack)
-	{
-		pack << nodeId;
-
-		if (HasReturnType()) {
-			pack << true;
-			std::vector<uint8_t> buffer;
-			AST::TypeFacade::Serialize(ReturnType(), buffer);
-			pack << buffer;
-		}
-		else {
-			pack << false;
-		}
-
-		ASTNode::Serialize(pack);
-	}
-
-	virtual void Deserialize(Serializable::Interface& pack)
-	{
-		AST::NodeID _nodeId;
-		pack >> _nodeId;
-		AssertNode(_nodeId, nodeId);
-
-		bool hasReturn = false;
-		pack >> hasReturn;
-		if (hasReturn) {
-			std::vector<uint8_t> buffer;
-			pack >> buffer;
-			AST::TypeFacade::Deserialize(UpdateReturnType(), buffer);
-		}
-
-		ASTNode::Deserialize(pack);
-	}
+	virtual void Serialize(Serializable::Interface& pack);
+	virtual void Deserialize(Serializable::Interface& pack);
 
 	template<typename... _VariaTy>
 	Literal(_VariaTy&&... args)
@@ -830,7 +817,7 @@ public:
 
 class Decl
 	: public Returnable
-	, public ASTNode
+	, public CoilCl::AST::ASTNode
 	, public CoilCl::AST::RefCount
 {
 	NODE_ID(AST::NodeID::DECL_ID);
@@ -1089,10 +1076,7 @@ public:
 		Deserialize(pack);
 	}
 
-	EnumDecl()
-		: Decl{} //TODO: nope! At least give a name
-	{
-	}
+	EnumDecl() = default;
 
 	auto IsAnonymous() const;
 
@@ -1208,7 +1192,7 @@ private:
 
 class Expr
 	: public Returnable
-	, public ASTNode
+	, public CoilCl::AST::ASTNode
 {
 	NODE_ID(AST::NodeID::EXPR_ID);
 
@@ -1311,7 +1295,7 @@ public:
 	}
 
 	CallExpr(std::shared_ptr<DeclRefExpr>& func, std::shared_ptr<ArgumentStmt> args = nullptr)
-		: Expr{} //TODO
+		//: Expr{} //TODO
 	{
 		ASTNode::AppendChild(NODE_UPCAST(func));
 		m_funcRef = func;
@@ -1389,7 +1373,7 @@ public:
 	}
 
 	CastExpr(std::shared_ptr<ASTNode>& node)
-		: Expr{}
+		//: Expr{}
 	{
 		ASTNode::AppendChild(node);
 		rtype = node;
@@ -1592,7 +1576,7 @@ private:
 // Statement nodes
 //
 
-class Stmt : public ASTNode
+class Stmt : public CoilCl::AST::ASTNode
 {
 	NODE_ID(AST::NodeID::STMT_ID);
 

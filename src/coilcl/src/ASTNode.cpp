@@ -10,6 +10,8 @@
 
 #include <iostream>
 
+using namespace CoilCl::AST;
+
 //
 // Implement abstract class destructors
 //

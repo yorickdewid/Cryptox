@@ -37,7 +37,7 @@ AST::AST Emitter::Strategy(ModuleInterface::ModulePerm permission)
 		return std::move(m_ast);
 
 	case ModuleInterface::Substitute: {
-		std::shared_ptr<ASTNode> k; //TODO
+		std::shared_ptr<CoilCl::AST::ASTNode> k; //TODO
 		m_ast.swap(k);
 		return std::move(m_ast);
 	}

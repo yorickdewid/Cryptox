@@ -137,7 +137,7 @@ private:
 	StageType m_lastStage;
 
 private:
-	std::map<std::string, std::shared_ptr<ASTNode>> m_symbols;
+	std::map<std::string, std::shared_ptr<CoilCl::AST::ASTNode>> m_symbols;
 	std::unique_ptr<AST::AST> m_ast = std::make_unique<AST::AST>();
 	std::vector<ResultSection> m_resultSet;
 };

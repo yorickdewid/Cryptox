@@ -299,5 +299,5 @@ private:
 	std::map<std::string, std::shared_ptr<Typedef::TypedefBase>> m_typedefList;
 	std::stack<std::shared_ptr<Typedef::TypedefBase>> m_typeStack;
 	std::stack<std::string> m_identifierStack;
-	LockPipe<std::shared_ptr<ASTNode>> m_elementDescentPipe;
+	LockPipe<std::shared_ptr<CoilCl::AST::ASTNode>> m_elementDescentPipe;
 };

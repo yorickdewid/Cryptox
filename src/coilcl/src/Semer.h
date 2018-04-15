@@ -76,7 +76,7 @@ public:
 	template<typename _MapTy>
 	Semer& ExtractSymbols(_MapTy& map)
 	{
-		auto callback = [&map](const std::string name, const std::shared_ptr<ASTNode>& node)
+		auto callback = [&map](const std::string name, const std::shared_ptr<CoilCl::AST::ASTNode>& node)
 		{
 			map[name] = node;
 		};
@@ -91,7 +91,7 @@ private:
 	void BindPrototype();
 	void DeduceTypes();
 	void CheckDataType();
-	void FuncToSymbol(std::function<void(const std::string, const std::shared_ptr<ASTNode>& node)>);
+	void FuncToSymbol(std::function<void(const std::string, const std::shared_ptr<CoilCl::AST::ASTNode>& node)>);
 
 	inline void ClearnInternalState()
 	{
@@ -100,8 +100,8 @@ private:
 
 private:
 	AST::AST m_ast;
-	Stash<ASTNode> m_resolvStash;
-	std::map<UniqueObj::unique_type, std::map<std::string, std::shared_ptr<ASTNode>>> m_resolveList;
+	Stash<CoilCl::AST::ASTNode> m_resolvStash;
+	std::map<UniqueObj::unique_type, std::map<std::string, std::shared_ptr<CoilCl::AST::ASTNode>>> m_resolveList;
 	std::shared_ptr<CoilCl::Profile> m_profile;
 };
 

@@ -157,7 +157,7 @@ public:
 			Program::Bind(std::move(program), std::move(ast));
 
 			// For now dump contents to screen
-			program->AstPassthrough()->Print<ASTNode::Traverse::STAGE_FIRST>();
+			program->AstPassthrough()->Print<CoilCl::AST::ASTNode::Traverse::STAGE_FIRST>();
 
 			// Semantic analysis
 			Semer{ profile, std::move(program->Ast()) }
@@ -179,7 +179,7 @@ public:
 #endif
 
 			// For now dump contents to screen
-			program->AstPassthrough()->Print<ASTNode::Traverse::STAGE_LAST>();
+			program->AstPassthrough()->Print<CoilCl::AST::ASTNode::Traverse::STAGE_LAST>();
 
 			Emit::Module<Emit::Sequencer::AIIPX> AIIPXMod;
 
@@ -206,7 +206,7 @@ public:
 			}.UnpackAST(tree);
 
 			ProgramPtr recoveredProgram = std::make_unique<Program>(std::move(tree));
-			recoveredProgram->AstPassthrough()->Print<ASTNode::Traverse::STAGE_FIRST>();
+			recoveredProgram->AstPassthrough()->Print<CoilCl::AST::ASTNode::Traverse::STAGE_FIRST>();
 
 			// Print all compiler stage non fatal messages
 			PrintNoticeMessages();

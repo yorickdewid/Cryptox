@@ -110,7 +110,7 @@ CoilCl::Semer& CoilCl::Semer::CheckCompatibility()
 }
 
 template<typename _Ty>
-std::shared_ptr<_Ty> Closest(std::shared_ptr<ASTNode>& node)
+std::shared_ptr<_Ty> Closest(std::shared_ptr<CoilCl::AST::ASTNode>& node)
 {
 	AST::Compare::Equal<_Ty> eqOp;
 	if (auto parent = node->Parent().lock()) {
@@ -171,7 +171,7 @@ CoilCl::Semer& CoilCl::Semer::StaticResolve()
 				if (auto parent = builtinExpr->Parent().lock()) {
 					auto parentChildren = parent->Children();
 
-					auto selfListItem = std::find_if(parentChildren.begin(), parentChildren.end(), [=](std::weak_ptr<ASTNode>& wPtr)
+					auto selfListItem = std::find_if(parentChildren.begin(), parentChildren.end(), [=](std::weak_ptr<CoilCl::AST::ASTNode>& wPtr)
 					{
 						return wPtr.lock() == builtinExpr;
 					});
@@ -205,7 +205,7 @@ CoilCl::Semer& CoilCl::Semer::PreliminaryAssert()
 	return (*this);
 }
 
-void CoilCl::Semer::FuncToSymbol(std::function<void(const std::string, const std::shared_ptr<ASTNode>& node)> insert)
+void CoilCl::Semer::FuncToSymbol(std::function<void(const std::string, const std::shared_ptr<CoilCl::AST::ASTNode>& node)> insert)
 {
 	AST::Compare::Equal<FunctionDecl> eqOp;
 	MatchIf(m_ast.begin(), m_ast.end(), eqOp, [&insert](AST::AST::iterator itr)
@@ -302,7 +302,7 @@ void CoilCl::Semer::ResolveIdentifier()
 void CoilCl::Semer::BindPrototype()
 {
 	AST::Compare::Equal<FunctionDecl> eqOp;
-	Stash<ASTNode> m_resolFuncProto;
+	Stash<CoilCl::AST::ASTNode> m_resolFuncProto;
 
 	MatchIf(m_ast.begin(), m_ast.end(), eqOp, [&m_resolFuncProto](AST::AST::iterator itr)
 	{

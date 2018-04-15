@@ -29,7 +29,7 @@ class Visitor : public Serializable::Interface
 	int nodeId;
 	int parentId;
 	std::stringstream ss;
-	std::multimap<int, std::function<void(const std::shared_ptr<ASTNode>&)>> m_nodeHookList;
+	std::multimap<int, std::function<void(const std::shared_ptr<AST::ASTNode>&)>> m_nodeHookList;
 	InputCallback inputCallback;
 
 	friend ChildGroup;
@@ -172,7 +172,7 @@ public:
 	// Set the node id
 	virtual void SetId(int id) { nodeId = id; }
 	// Invoke registered callbacks
-	virtual void FireDependencies(std::shared_ptr<ASTNode>&);
+	virtual void FireDependencies(std::shared_ptr<AST::ASTNode>&);
 
 	// Stream node data into visitor
 	virtual void operator<<(int i) { WriteProxy(reinterpret_cast<const char *>(&i), sizeof(uint32_t)); }
@@ -191,7 +191,7 @@ public:
 	virtual void operator>>(std::vector<uint8_t>& b) { ReadProxy(b); }
 
 	// Callback operations
-	virtual void operator<<=(std::pair<int, std::function<void(const std::shared_ptr<ASTNode>&)>>);
+	virtual void operator<<=(std::pair<int, std::function<void(const std::shared_ptr<AST::ASTNode>&)>>);
 
 	// Write output to streaming backend
 	void WriteOutput(OutputCallback& outputCallback);
@@ -230,7 +230,7 @@ public:
 	{
 	}
 
-	virtual void SaveNode(std::shared_ptr<ASTNode>& node)
+	virtual void SaveNode(std::shared_ptr<AST::ASTNode>& node)
 	{
 		m_visitor.WriteProxy(reinterpret_cast<const char *>(&node->Id()), sizeof(uint32_t));
 		m_nodeIdList.push_back(node->Id());
@@ -320,7 +320,7 @@ Serializable::GroupListType Visitor::GetChildGroups()
 	return group;
 }
 
-void Visitor::FireDependencies(std::shared_ptr<ASTNode>& node)
+void Visitor::FireDependencies(std::shared_ptr<AST::ASTNode>& node)
 {
 	const auto range = m_nodeHookList.equal_range(node->Id());
 	for (auto it = range.first; it != range.second; ++it)
@@ -329,7 +329,7 @@ void Visitor::FireDependencies(std::shared_ptr<ASTNode>& node)
 	}
 }
 
-void Visitor::operator<<=(std::pair<int, std::function<void(const std::shared_ptr<ASTNode>&)>> value)
+void Visitor::operator<<=(std::pair<int, std::function<void(const std::shared_ptr<AST::ASTNode>&)>> value)
 {
 	if (!value.first) { return; }
 	m_nodeHookList.emplace(std::move(value));
@@ -347,7 +347,7 @@ void Visitor::WriteOutput(std::function<void(std::vector<uint8_t>&)>& outputCall
 	outputCallback(t);
 }
 
-void CompressNode(ASTNode *node, Visitor visitor, OutputCallback callback)
+void CompressNode(AST::ASTNode *node, Visitor visitor, OutputCallback callback)
 {
 	//std::cout << "visitor.Level " << visitor.Level() << std::endl;
 
@@ -365,7 +365,7 @@ void CompressNode(ASTNode *node, Visitor visitor, OutputCallback callback)
 AST::AST UncompressNode(Visitor *visitor, InputCallback callback)
 {
 	using AST::ASTFactory;
-	std::shared_ptr<ASTNode> root;
+	std::shared_ptr<AST::ASTNode> root;
 
 	try
 	{

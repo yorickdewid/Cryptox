@@ -1042,7 +1042,7 @@ void Parser::PostfixExpression()
 
 		auto resv = MAKE_RESV_REF();
 		resv->SetLocation(CURRENT_LOCATION());
-		auto unaryOp = CoilCl::AST::MakeASTNode<CoilCl::AST::UnaryOperator>(CoilCl::AST::UnaryOperator::UnaryOperator::INC, CoilCl::AST::UnaryOperator::OperandSide::POSTFIX, std::dynamic_pointer_cast<ASTNode>(resv));
+		auto unaryOp = CoilCl::AST::MakeASTNode<CoilCl::AST::UnaryOperator>(CoilCl::AST::UnaryOperator::UnaryOperator::INC, CoilCl::AST::UnaryOperator::OperandSide::POSTFIX, std::dynamic_pointer_cast<CoilCl::AST::ASTNode>(resv));
 		unaryOp->SetLocation(CURRENT_LOCATION());
 		m_elementDescentPipe.push(unaryOp);
 
@@ -1057,7 +1057,7 @@ void Parser::PostfixExpression()
 
 		auto resv = MAKE_RESV_REF();
 		resv->SetLocation(CURRENT_LOCATION());
-		auto unaryOp = CoilCl::AST::MakeASTNode<CoilCl::AST::UnaryOperator>(CoilCl::AST::UnaryOperator::UnaryOperator::DEC, CoilCl::AST::UnaryOperator::OperandSide::POSTFIX, std::dynamic_pointer_cast<ASTNode>(resv));
+		auto unaryOp = CoilCl::AST::MakeASTNode<CoilCl::AST::UnaryOperator>(CoilCl::AST::UnaryOperator::UnaryOperator::DEC, CoilCl::AST::UnaryOperator::OperandSide::POSTFIX, std::dynamic_pointer_cast<CoilCl::AST::ASTNode>(resv));
 		unaryOp->SetLocation(CURRENT_LOCATION());
 		m_elementDescentPipe.push(unaryOp);
 
@@ -1655,9 +1655,9 @@ bool Parser::IterationStatement()
 		NextToken();
 		ExpectToken(TK_PARENTHESE_OPEN);
 
-		std::shared_ptr<ASTNode> node1;
-		std::shared_ptr<ASTNode> node2;
-		std::shared_ptr<ASTNode> node3;
+		std::shared_ptr<CoilCl::AST::ASTNode> node1;
+		std::shared_ptr<CoilCl::AST::ASTNode> node2;
+		std::shared_ptr<CoilCl::AST::ASTNode> node3;
 
 		Declaration();
 		if (!m_elementDescentPipe.empty()) {
