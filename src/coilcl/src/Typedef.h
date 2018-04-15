@@ -56,7 +56,7 @@ public:
 	enum class TypeQualifier
 	{
 		NONE,
-		CONST,
+		CONST_T,
 		VOLATILE,
 	};
 
@@ -176,7 +176,7 @@ private:
 public:
 	enum class Specifier
 	{
-		VOID,
+		VOID_T,
 		CHAR,
 		SHORT,
 		INT,

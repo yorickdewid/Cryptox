@@ -32,6 +32,34 @@ public:
 	{
 	}
 
+	void AutoOffset(int offset = 0)
+	{
+		m_offset = offset;
+	}
+
+	int Offset() const noexcept
+	{
+		return m_offset;
+	}
+
+	void SetMagic(uint8_t magic)
+	{
+		_MyBase::push_back(magic);
+	}
+
+	bool ValidateMagic(uint8_t magic)
+	{
+		if (m_offset != -1) {
+			m_offset += sizeof(uint8_t);
+		}
+		return at(0) == magic;
+	}
+
+	void Serialize(uint8_t i)
+	{
+		_MyBase::push_back(i);
+	}
+
 	void Serialize(uint16_t i)
 	{
 #if CRY_LITTLE_ENDIAN
@@ -68,23 +96,43 @@ public:
 	}
 
 	template<typename _Ty>
-	_Ty Deserialize(size_t idx);
+	_Ty Deserialize(int idx);
 
 	template<>
-	uint16_t Deserialize(size_t idx)
+	uint8_t Deserialize(int idx)
 	{
+		if (idx == -1) {
+			idx = m_offset;
+		}
+
+		m_offset += sizeof(uint8_t);
+		return at(idx);
+	}
+
+	template<>
+	uint16_t Deserialize(int idx)
+	{
+		if (idx == -1) {
+			idx = m_offset;
+		}
+
 		uint16_t i = at(idx)
 			| at(idx + 1) << 8;
 
 #if CRY_LITTLE_ENDIAN
 		i = BSWAP16(i);
 #endif
+		m_offset += sizeof(uint16_t);
 		return i;
 	}
 
 	template<>
-	uint32_t Deserialize(size_t idx)
+	uint32_t Deserialize(int idx)
 	{
+		if (idx == -1) {
+			idx = m_offset;
+		}
+
 		uint32_t i = at(idx)
 			| at(idx + 1) << 8
 			| at(idx + 2) << 16
@@ -93,12 +141,17 @@ public:
 #if CRY_LITTLE_ENDIAN
 		i = BSWAP32(i);
 #endif
+		m_offset += sizeof(uint32_t);
 		return i;
 	}
 
 	template<>
-	uint64_t Deserialize(size_t idx)
+	uint64_t Deserialize(int idx)
 	{
+		if (idx == -1) {
+			idx = m_offset;
+		}
+
 		uint64_t i = 0;
 		i |= (uint64_t)at(idx) << 0;
 		i |= (uint64_t)at(idx + 1) << 8;
@@ -112,8 +165,12 @@ public:
 #if CRY_LITTLE_ENDIAN
 		i = BSWAP64(i);
 #endif
+		m_offset += sizeof(uint64_t);
 		return i;
 	}
+
+private:
+	int m_offset = -1;
 };
 
 } // namespace Cry
