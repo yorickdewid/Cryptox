@@ -57,8 +57,6 @@ static inline void __LocalTime(struct tm *timeinfo)
 	time(&rawtime);
 	assert(rawtime);
 
-	timeinfo = nullptr;
-
 #if _WIN32
 	errno_t ret = localtime_s(timeinfo, &rawtime);
 	assert(ret == 0);

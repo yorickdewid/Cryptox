@@ -17,14 +17,31 @@ namespace Cry
 {
 
 using Byte = uint8_t;
+using Short = uint16_t;
 using Word = uint32_t;
 
+// Byte container with multiplatform and multi archtitecture
+// support. The bytearray can be used to write builtin datatypes
+// to a byte stream. The byte stream can be converted back into
+// native objects. The class offers serialization methods for common
+// tricks including byte reordering and structure assertion.
 class ByteArray : public std::vector<Byte>
 {
 	using _MyBase = std::vector<Byte>;
 
+	const unsigned char flag0       = 1 << 0; // 0000 0001 
+	const unsigned char flagIs64    = 1 << 1; // 0000 0010
+	const unsigned char flagIsWin   = 1 << 2; // 0000 0100
+	const unsigned char flagIsUnix  = 1 << 3; // 0000 1000
+	const unsigned char flagisOSX   = 1 << 4; // 0001 0000
+	const unsigned char flag5       = 1 << 5; // 0010 0000
+	const unsigned char flag6       = 1 << 6; // 0100 0000
+	const unsigned char flagIsLE    = 1 << 7; // 1000 0000
+
 public:
 	ByteArray() = default;
+
+	enum { AUTO = -1 };
 
 	template<typename _InputIt>
 	ByteArray(_InputIt first, _InputIt last)
@@ -32,7 +49,7 @@ public:
 	{
 	}
 
-	void AutoOffset(int offset = 0)
+	void StartOffset(int offset)
 	{
 		m_offset = offset;
 	}
@@ -47,12 +64,41 @@ public:
 		_MyBase::push_back(magic);
 	}
 
-	bool ValidateMagic(uint8_t magic)
+	bool ValidateMagic(uint8_t magic, int idx = -1)
 	{
-		if (m_offset != -1) {
-			m_offset += sizeof(uint8_t);
+		if (idx == -1) {
+			idx = m_offset;
 		}
-		return at(0) == magic;
+		m_offset += sizeof(uint8_t);
+		return at(idx) == magic;
+	}
+
+	void SetPlatformCompat()
+	{
+		uint8_t flags = 0;
+#ifdef CRY_ARCH64
+		flags |= flagIs64;
+#endif // CRY_ARCH64
+#ifdef CRY_WINDOWS
+		flags |= flagIsWin;
+#endif // CRY_WINDOWS
+#ifdef CRY_UNIX
+		flags |= flagIsUnix;
+#endif // CRY_UNIX
+#ifdef CRY_OSX
+		flags |= flagisOSX;
+#endif // CRY_OSX
+#ifdef CRY_LITTLE_ENDIAN
+		flags |= flagIsLE;
+#endif // CRY_LITTLE_ENDIAN
+		Serialize(flags);
+	}
+
+	bool IsPlatformCompat()
+	{
+		//FUTURE: Do something with flags
+		Deserialize<uint8_t>(AUTO);
+		return true;
 	}
 
 	void Serialize(uint8_t i)
@@ -93,6 +139,12 @@ public:
 		_MyBase::push_back((i >> 40) & 0xff);
 		_MyBase::push_back((i >> 48) & 0xff);
 		_MyBase::push_back((i >> 56) & 0xff);
+	}
+
+	template<typename _Ty>
+	void SerializeAs(_Ty i)
+	{
+		Serialize(static_cast<_Ty>(i));
 	}
 
 	template<typename _Ty>
@@ -170,7 +222,7 @@ public:
 	}
 
 private:
-	int m_offset = -1;
+	int m_offset = 0;
 };
 
 } // namespace Cry

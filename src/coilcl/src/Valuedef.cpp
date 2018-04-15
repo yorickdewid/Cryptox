@@ -96,11 +96,12 @@ const Cry::ByteArray Value::Serialize() const
 {
 	Cry::ByteArray buffer;
 	buffer.SetMagic(VALUE_MAGIC);
-	buffer.Serialize(static_cast<Cry::Byte>(m_isVoid));
-	buffer.Serialize(static_cast<uint16_t>(m_arraySize));//FUTURE: Limited to 16bits
+	buffer.SetPlatformCompat();
+	buffer.SerializeAs<Cry::Byte>(m_isVoid);
+	buffer.SerializeAs<Cry::Short>(m_arraySize);//FUTURE: Limited to 16bits
 
 	const auto type = m_objectType->TypeEnvelope();
-	buffer.Serialize(static_cast<uint16_t>(type.size()));
+	buffer.SerializeAs<Cry::Short>(type.size());
 	buffer.insert(buffer.cend(), type.begin(), type.end());
 
 	TypePacker visitor{ buffer };
@@ -115,16 +116,20 @@ namespace Util
 
 std::shared_ptr<Valuedef::Value> ValueFactory::BaseValue(Cry::ByteArray& buffer)
 {
-	buffer.AutoOffset();
+	buffer.StartOffset(0);
 	if (!buffer.ValidateMagic(VALUE_MAGIC)) {
 		throw 1; //TODO
 	}
 
-	bool isVoid = buffer.Deserialize<Cry::Byte>(-1);
-	size_t arraySize = buffer.Deserialize<uint16_t>(-1);
+	if (!buffer.IsPlatformCompat()) {
+		throw 2;//TODO
+	}
+
+	bool isVoid = buffer.Deserialize<Cry::Byte>(Cry::ByteArray::AUTO);
+	size_t arraySize = buffer.Deserialize<Cry::Short>(Cry::ByteArray::AUTO);
 
 	Cry::ByteArray type;
-	size_t evSize = buffer.Deserialize<uint16_t>(-1);
+	size_t evSize = buffer.Deserialize<Cry::Short>(Cry::ByteArray::AUTO);
 	type.resize(evSize);
 	std::copy(buffer.cbegin() + buffer.Offset(), buffer.cbegin() + buffer.Offset() + evSize, type.begin());
 	Typedef::BaseType ptr = Util::MakeType(std::move(type));
