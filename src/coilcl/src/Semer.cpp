@@ -530,16 +530,16 @@ void CoilCl::Semer::CheckDataType()
 		}
 
 		// Function expected type from return
-		if (!stmt->HasExpression() && !func->ReturnType()->Equals(Util::MakeBuiltinType(Typedef::BuiltinType::Specifier::VOID).get())) {
+		if (!stmt->HasExpression() && !func->ReturnType()->Equals(Util::MakeBuiltinType(Typedef::BuiltinType::Specifier::VOID_T).get())) {
 			throw SemanticException{ "function declaration expected expression on return", 0, 0 };
 		}
 
 		// Function expects no returning type
-		if (stmt->HasExpression() && func->ReturnType()->Equals(Util::MakeBuiltinType(Typedef::BuiltinType::Specifier::VOID).get())) {
+		if (stmt->HasExpression() && func->ReturnType()->Equals(Util::MakeBuiltinType(Typedef::BuiltinType::Specifier::VOID_T).get())) {
 			throw SemanticException{ "unexpected expression on return", 0, 0 };
 		}
 		// If type is void and expresion is empty, continue
-		else if (func->ReturnType()->Equals(Util::MakeBuiltinType(Typedef::BuiltinType::Specifier::VOID).get())) {
+		else if (func->ReturnType()->Equals(Util::MakeBuiltinType(Typedef::BuiltinType::Specifier::VOID_T).get())) {
 			return;
 		}
 

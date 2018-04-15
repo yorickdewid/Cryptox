@@ -41,7 +41,7 @@ const std::string TypedefBase::QualifierName() const
 	std::string result;
 	for (const auto& qualifier : m_typeQualifier) {
 		switch (qualifier) {
-		case TypeQualifier::CONST:		result += "const "; break;
+		case TypeQualifier::CONST_T:		result += "const "; break;
 		case TypeQualifier::VOLATILE:	result += "volatile "; break;
 		}
 	}
@@ -102,7 +102,7 @@ const std::string BuiltinType::TypeName() const
 	}
 
 	switch (m_specifier) {
-	case Specifier::VOID:		qualifier += option + "void"; break;
+	case Specifier::VOID_T:		qualifier += option + "void"; break;
 	case Specifier::CHAR:		qualifier += option + "char"; break;
 	case Specifier::LONG:		qualifier += option + "long"; break;
 	case Specifier::SHORT:		qualifier += option + "short"; break;
@@ -119,7 +119,7 @@ const std::string BuiltinType::TypeName() const
 size_t BuiltinType::UnboxedSize() const
 {
 	switch (m_specifier) {
-	case Specifier::VOID:		throw std::exception{};//TODO
+	case Specifier::VOID_T:		throw std::exception{};//TODO
 	case Specifier::CHAR:		return sizeof(char);
 	case Specifier::LONG:		return sizeof(long);
 	case Specifier::SHORT:		return sizeof(short);

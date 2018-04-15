@@ -172,7 +172,7 @@ struct Serializable
 		virtual void operator<<(bool) = 0;
 		virtual void operator<<(AST::NodeID) = 0;
 		virtual void operator<<(std::string) = 0;
-		virtual void operator<<(Cry::ByteArray) = 0;
+		virtual void operator<<(std::vector<uint8_t>) = 0;
 
 		// Stream in operators
 		virtual void operator>>(int&) = 0;
@@ -180,7 +180,7 @@ struct Serializable
 		virtual void operator>>(bool&) = 0;
 		virtual void operator>>(AST::NodeID&) = 0;
 		virtual void operator>>(std::string&) = 0;
-		virtual void operator>>(Cry::ByteArray&) = 0;
+		virtual void operator>>(std::vector<uint8_t>&) = 0;
 
 		// Callback operations
 		virtual void operator<<=(std::pair<int, std::function<void(const std::shared_ptr<ASTNode>&)>>) = 0;
@@ -694,8 +694,8 @@ public:
 	// Default to void type with no data
 	// FUTURE: Make this more readable and only instantiate a single object
 	LiteralImpl()
-		: Literal{ AST::TypeFacade{ CoilCl::Util::MakeBuiltinType(CoilCl::Typedef::BuiltinType::Specifier::VOID) } }
-		, m_valueObj{ CoilCl::Util::MakeBuiltinType(CoilCl::Typedef::BuiltinType::Specifier::VOID) }
+		: Literal{ AST::TypeFacade{ CoilCl::Util::MakeBuiltinType(CoilCl::Typedef::BuiltinType::Specifier::VOID_T) } }
+		, m_valueObj{ CoilCl::Util::MakeBuiltinType(CoilCl::Typedef::BuiltinType::Specifier::VOID_T) }
 	{
 	}
 

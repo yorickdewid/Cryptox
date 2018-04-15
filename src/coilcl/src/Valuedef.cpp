@@ -8,6 +8,10 @@
 
 #include "Valuedef.h"
 
+#include <Cry/ByteOrder.h>
+
+#define VALUE_MAGIC 0x7a
+
 namespace CoilCl
 {
 namespace Valuedef
@@ -74,7 +78,6 @@ public:
 			return std::make_shared<Valuedef::Value>(std::move(base), static_cast<double>(m_buffer[1]));
 		case TypePacker::STR: {
 			auto strSize = static_cast<size_t>(m_buffer[1]);
-			assert(strSize);
 			std::string buffer;
 			buffer.resize(strSize);
 			buffer.insert(buffer.cbegin(), m_buffer.begin() + 2, m_buffer.begin() + 2 + strSize);
@@ -92,13 +95,12 @@ private:
 const Cry::ByteArray Value::Serialize() const
 {
 	Cry::ByteArray buffer;
-	//TODO: Write magic
-	//TODO: Byte order
-	buffer.push_back(static_cast<Cry::Byte>(m_isVoid));
-	buffer.push_back(static_cast<Cry::Byte>(m_arraySize)); //FUTURE: Limited to 256
+	buffer.SetMagic(VALUE_MAGIC);
+	buffer.Serialize(static_cast<Cry::Byte>(m_isVoid));
+	buffer.Serialize(static_cast<uint16_t>(m_arraySize));//FUTURE: Limited to 16bits
 
 	const auto type = m_objectType->TypeEnvelope();
-	buffer.push_back(static_cast<Cry::Byte>(type.size()));
+	buffer.Serialize(static_cast<uint16_t>(type.size()));
 	buffer.insert(buffer.cend(), type.begin(), type.end());
 
 	TypePacker visitor{ buffer };
@@ -113,28 +115,37 @@ namespace Util
 
 std::shared_ptr<Valuedef::Value> ValueFactory::BaseValue(Cry::ByteArray& buffer)
 {
-	const auto array = buffer.data();
-	bool isVoid = static_cast<bool>(array[0]);
-	size_t arraySize = static_cast<size_t>(array[1]);
+	buffer.AutoOffset();
+	if (!buffer.ValidateMagic(VALUE_MAGIC)) {
+		throw 1; //TODO
+	}
+
+	bool isVoid = buffer.Deserialize<Cry::Byte>(-1);
+	size_t arraySize = buffer.Deserialize<uint16_t>(-1);
 
 	Cry::ByteArray type;
-	size_t evSize = static_cast<size_t>(array[2]);
+	size_t evSize = buffer.Deserialize<uint16_t>(-1);
 	type.resize(evSize);
-	std::copy(buffer.cbegin() + 2 + 1, buffer.cbegin() + 2 + 1 + evSize, type.begin());
+	std::copy(buffer.cbegin() + buffer.Offset(), buffer.cbegin() + buffer.Offset() + evSize, type.begin());
 	Typedef::BaseType ptr = Util::MakeType(std::move(type));
+	if (!ptr) {
+		throw 1;
+	}
 
 	std::shared_ptr<Valuedef::Value> value;
 	if (isVoid) {
 		value = MakeVoid();
 	}
 	else {
-		Cry::ByteArray subBuffer{ buffer.cbegin() + 2 + 1 + evSize, buffer.cend() };
+		Cry::ByteArray subBuffer{ buffer.cbegin() + buffer.Offset() + evSize, buffer.cend() };
 		Valuedef::TypePacker visitor{ subBuffer };
 		value = visitor.Unpack(ptr);
+		if (!value) {
+			throw 1;
+		}
 	}
 
 	value->m_arraySize = arraySize;
-
 	return value;
 }
 

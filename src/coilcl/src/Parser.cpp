@@ -240,7 +240,7 @@ bool Parser::TypeSpecifier()
 
 	switch (CURRENT_TOKEN()) {
 	case TK_VOID:
-		m_typeStack.push(Util::MakeBuiltinType(BuiltinType::Specifier::VOID));
+		m_typeStack.push(Util::MakeBuiltinType(BuiltinType::Specifier::VOID_T));
 		return true;
 	case TK_CHAR:
 		m_typeStack.push(Util::MakeBuiltinType(BuiltinType::Specifier::CHAR));
@@ -300,7 +300,7 @@ auto Parser::TypeQualifier()
 
 	switch (CURRENT_TOKEN()) {
 	case TK_CONST:
-		return TypedefBase::TypeQualifier::CONST;
+		return TypedefBase::TypeQualifier::CONST_T;
 	case TK_VOLATILE:
 		return TypedefBase::TypeQualifier::VOLATILE;
 	}

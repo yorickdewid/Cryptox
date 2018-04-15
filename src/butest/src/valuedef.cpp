@@ -12,6 +12,8 @@
 // #include <boost/filesystem.hpp>
 #include <boost/algorithm/string.hpp>
 
+#if IMPLEMENTED
+
 // constexpr const char cexTestFileName[] = "_testfile.cex";
 
 // struct CEXEnvironment
@@ -196,3 +198,5 @@ BOOST_AUTO_TEST_CASE(WriteToSubSectionCexFile)
 }
 
 BOOST_AUTO_TEST_SUITE_END()
+
+#endif

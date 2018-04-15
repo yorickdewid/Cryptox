@@ -222,7 +222,7 @@ class ValueObject<void, void> : public Value
 
 public:
 	ValueObject()
-		: Value{ Util::MakeBuiltinType(Specifier::VOID) }
+		: Value{ Util::MakeBuiltinType(Specifier::VOID_T) }
 	{
 		m_isVoid = true;
 		static_assert(sizeof(_Myty) == sizeof(Value), "");
