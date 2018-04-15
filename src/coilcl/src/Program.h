@@ -11,6 +11,8 @@
 #include "AST.h"
 #include "Stage.h"
 
+#include <Cry/Serialize.h>
+
 #include <map>
 #include <vector>
 #include <memory>
@@ -58,13 +60,14 @@ public:
 
 	class ResultSection
 	{
-		std::vector<uint8_t> m_content;
+		Cry::ByteArray m_content;
 
 	public:
 		enum Tag
 		{
 			AIIPX,         // Resulting section for AIIPX content
 			CASM,          // Resulting section for CASM content
+			NATIVE,        // Resulting section for native content
 			COMPLEMENTARY, // Resulting section for additional content
 		} m_tag;
 
@@ -79,7 +82,7 @@ public:
 			return m_content.size();
 		}
 
-		std::vector<uint8_t>& Data()
+		Cry::ByteArray& Data()
 		{
 			return m_content;
 		}

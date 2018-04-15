@@ -29,25 +29,38 @@ class ByteArray : public std::vector<Byte>
 {
 	using _MyBase = std::vector<Byte>;
 
-	const unsigned char flag0       = 1 << 0; // 0000 0001 
-	const unsigned char flagIs64    = 1 << 1; // 0000 0010
-	const unsigned char flagIsWin   = 1 << 2; // 0000 0100
-	const unsigned char flagIsUnix  = 1 << 3; // 0000 1000
-	const unsigned char flagisOSX   = 1 << 4; // 0001 0000
-	const unsigned char flag5       = 1 << 5; // 0010 0000
-	const unsigned char flag6       = 1 << 6; // 0100 0000
-	const unsigned char flagIsLE    = 1 << 7; // 1000 0000
+	const unsigned char flag0 = 1 << 0;      // 0000 0001 
+	const unsigned char flagIs64 = 1 << 1;   // 0000 0010
+	const unsigned char flagIsWin = 1 << 2;  // 0000 0100
+	const unsigned char flagIsUnix = 1 << 3; // 0000 1000
+	const unsigned char flagisOSX = 1 << 4;  // 0001 0000
+	const unsigned char flag5 = 1 << 5;      // 0010 0000
+	const unsigned char flag6 = 1 << 6;      // 0100 0000
+	const unsigned char flagIsLE = 1 << 7;   // 1000 0000
 
 public:
 	ByteArray() = default;
-
-	enum { AUTO = -1 };
+	ByteArray(const ByteArray& other) { m_offset = other.m_offset; }
+	ByteArray(ByteArray&& other) { m_offset = other.m_offset; }
 
 	template<typename _InputIt>
 	ByteArray(_InputIt first, _InputIt last)
 		: _MyBase{ first, last }
 	{
 	}
+
+	ByteArray& operator=(const ByteArray& other)
+	{
+		m_offset = other.m_offset;
+		return (*this);
+	}
+	ByteArray& operator=(ByteArray&& other)
+	{
+		m_offset = other.m_offset;
+		return (*this);
+	}
+
+	enum { AUTO = -1 };
 
 	void StartOffset(int offset)
 	{
