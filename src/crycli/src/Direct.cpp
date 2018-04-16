@@ -131,7 +131,10 @@ public:
 			file.open(m_cexFile, std::ios_base::binary);
 			assert(file.is_open());
 
-			file.write("A", 1);
+			GetSectionMemoryBlock("AIIPX", (*m_program),
+				[&file](const char *buffer, size_t sz) {
+				file.write(buffer, sz);
+			});
 			file.close();
 		}
 	}

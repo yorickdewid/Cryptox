@@ -102,6 +102,16 @@ private:
 		errorHandler(message, isFatal);
 	}
 
+	static void PrintNoticeMessages(std::shared_ptr<Profile>& profile)
+	{
+		std::stringstream ss;
+		for (auto notice : g_warningQueue) {
+			ss = std::stringstream{};
+			ss << notice;
+			profile->Error(ss.str(), false);
+		}
+	}
+
 public:
 	Compiler() = default;
 	Compiler(Compiler&&) = default;
@@ -122,13 +132,6 @@ public:
 		static_assert(std::is_pointer<_Ty>::value
 			&& std::is_pod<_Ty>::value, "Backref must be pointer to POD");
 		backreferencePointer = static_cast<void*>(ptr);
-	}
-
-	static void PrintNoticeMessages()
-	{
-		for (auto notice : g_warningQueue) {
-			std::cout << notice << std::endl;
-		}
 	}
 
 	// Run all stages and build the program, the program is returned if no exceptions occur
@@ -198,6 +201,7 @@ public:
 				.AddModule(AIIPXMod)
 				.Process();
 
+#ifdef TESTING
 			AST::AST tree;
 			auto treeBlock = memoryStream->DeepCopy();
 			Emit::Sequencer::AIIPX{
@@ -207,9 +211,10 @@ public:
 
 			ProgramPtr recoveredProgram = std::make_unique<Program>(std::move(tree));
 			recoveredProgram->AstPassthrough()->Print<CoilCl::AST::ASTNode::Traverse::STAGE_FIRST>();
+#endif
 
 			// Print all compiler stage non fatal messages
-			PrintNoticeMessages();
+			PrintNoticeMessages(profile);
 		}
 		// Catch any leaked erros not caught in the stages
 		catch (std::exception& e) {
@@ -301,4 +306,30 @@ COILCLAPI void Compile(compiler_info_t *cl_info) NOTHROW
 
 	// Pass program to frontend
 	InterOpHelper::AssimilateProgram(&cl_info->program, std::move(program));
+}
+
+COILCLAPI void GetResultSection(result_t *result_inquery) NOTHROW
+{
+	Program::ResultSection::Tag mTag;
+	switch (result_inquery->tag)
+	{
+	case AIIPX:
+		mTag = Program::ResultSection::AIIPX;
+		break;
+	case CASM:
+		mTag = Program::ResultSection::CASM;
+		break;
+	case NATIVE:
+		mTag = Program::ResultSection::NATIVE;
+		break;
+	case COMPLEMENTARY:
+		mTag = Program::ResultSection::COMPLEMENTARY;
+		break;
+	}
+
+	Program *program = static_cast<Program *>(result_inquery->program.program_ptr);
+	Cry::ByteArray& content = program->GetResultSection(mTag).Data();
+	result_inquery->content.ptr = reinterpret_cast<const char *>(content.data());
+	result_inquery->content.size = content.size();
+	result_inquery->content.unmanaged_res = 0;
 }

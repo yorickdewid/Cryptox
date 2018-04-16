@@ -13,6 +13,8 @@
 
 #include <coilcl.h>
 
+#include <functional>
+
 using BaseReader = std::shared_ptr<Reader>;
 
 struct CompilerAbstraction;
@@ -41,7 +43,7 @@ struct CompilerAbstraction
 	virtual CompilerAbstraction& SetBuffer(size_t);
 
 private:
-	CompilerContract *m_compiler = nullptr;
+	CompilerContract * m_compiler = nullptr;
 };
 
 // Create a new stream reader object. 
@@ -50,3 +52,5 @@ inline auto MakeReader(_ArgsTy&&... args) -> BaseReader
 {
 	return std::make_shared<_Ty>(std::forward<_ArgsTy>(args)...);
 }
+
+void GetSectionMemoryBlock(const char *tag, void *program, std::function<void(const char *, size_t)>);

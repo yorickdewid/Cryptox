@@ -215,3 +215,49 @@ CompilerAbstraction& CompilerAbstraction::SetBuffer(size_t size)
 	m_compiler->SetStreamChuckSize(size);
 	return (*this);
 }
+
+void GetSectionMemoryBlock(const char *tag, void *programRaw, std::function<void(const char *, size_t)> callback)
+{
+	result_t result_inquery;
+	result_inquery.program.program_ptr = programRaw;
+	result_inquery.content.ptr = nullptr;
+	result_inquery.content.size = 0;
+	result_inquery.content.unmanaged_res = 0;
+
+	std::string stag = tag;
+	if (stag == "AIIPX") {
+		result_inquery.tag = resultsection_tag::AIIPX;
+	}
+	else if (stag == "CASM") {
+		result_inquery.tag = resultsection_tag::CASM;
+	}
+	else if (stag == "NATIVE") {
+		result_inquery.tag = resultsection_tag::NATIVE;
+	}
+	else if (stag == "COMPLEMENTARY") {
+		result_inquery.tag = resultsection_tag::COMPLEMENTARY;
+	}
+	else {
+		throw 1; //TODO
+	}
+
+	// Query the program for resulting section
+	GetResultSection(&result_inquery);
+
+	size_t offset = 0;
+	size_t left = result_inquery.content.size;
+	while (left > 0) {
+		size_t write = 100;
+		if (left < write) {
+			write = left;
+		}
+		callback(result_inquery.content.ptr + offset, write);
+		offset += write;
+		left -= write;
+	}
+
+	// Free unmanaged resource
+	if (result_inquery.content.unmanaged_res) {
+		delete result_inquery.content.ptr;
+	}
+}

@@ -97,20 +97,20 @@ extern "C" {
 		// an nullpointer is returned by the frontend. This is an required
 		// function and *must* be set by the frontend.
 		datachunk_t*(*streamReaderVPtr)(void *);
-		
+
 		// The meta callback is an function pointer set in the frontend and
 		// called by various backend objects. The meta reader presents
 		// all metadata information about the current source unit. The meta
 		// info structure is a result of this function. This is an required
 		// function and *must* be set by the frontend.
 		metainfo_t*(*streamMetaVPtr)(void *);
-		
+
 		// The stream request loader is an function set in the frontend and
 		// grants the backend a way to request another source unit to be loaded.
 		// The frontend can implement this in any way desired. This is an
 		// required function and *must* be set by the frontend.
 		int(*loadStreamRequestVPtr)(void *, const char *);
-		
+
 		// The error handler is an function set by the frontend and called by
 		// the backend whenever an error corrurs. Since the backend can throw
 		// and exception which cannot be caught by the frontend, the backend
@@ -126,8 +126,31 @@ extern "C" {
 		void *user_data;
 	} compiler_info_t;
 
-	// Compiler library entry point
-	COILCLAPI void Compile(compiler_info_t *cl_info) NOTHROW;
+	// Compiler entry point
+	COILCLAPI void Compile(compiler_info_t *) NOTHROW;
+
+	// Result section tag
+	enum resultsection_tag
+	{
+		AIIPX,
+		CASM,
+		NATIVE,
+		COMPLEMENTARY,
+	};
+
+	// Result inquery
+	typedef struct
+	{
+		// Query result set tag
+		enum resultsection_tag tag;
+		// Compiler resulting output
+		program_t program;
+		// Pointer to the requested contents
+		datachunk_t content;
+	} result_t;
+
+	// Retrieve resulting section from program
+	COILCLAPI void GetResultSection(result_t *) NOTHROW;
 
 #ifdef __cplusplus
 }
