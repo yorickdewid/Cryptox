@@ -19,6 +19,12 @@
 
 #define PROG_VERSION 1
 
+struct file_data
+{
+	FILE *file_handle;
+	const char *filename;
+};
+
 /* Check if file exist on disk */
 int file_exist(const char *filename)
 {
@@ -35,7 +41,6 @@ int file_exist(const char *filename)
 /* This callback is invoked when the backend encounters an error */
 static void error_handler(void *user_data, const char *message, char fatal)
 {
-	assert(user_data == NULL);
 	if (!fatal) {
 		fprintf(stderr, "Compiler warning: %s\n", message);
 		return;
@@ -46,11 +51,14 @@ static void error_handler(void *user_data, const char *message, char fatal)
 static datachunk_t *get_next_source_buffer(void *user_data)
 {
 	datachunk_t *buffer = (datachunk_t*)malloc(sizeof(datachunk_t));
-	assert(user_data == NULL);
 
-	buffer->size = 4;
-	buffer->ptr = "main";
-	buffer->unmanaged_res = 0; // Backend must not free our structure
+	FILE *handle = ((struct file_data *)user_data)->file_handle;
+	char *chunk_buffer = (char *)calloc(100, 1);
+	size_t size = fread(chunk_buffer, 100, 1, handle);
+
+	buffer->size = size * 100;
+	buffer->ptr = chunk_buffer;
+	buffer->unmanaged_res = 1;
 
 	return buffer;
 }
@@ -60,7 +68,6 @@ static datachunk_t *get_next_source_buffer(void *user_data)
  */
 int load_source(void *user_data, const char *source)
 {
-	assert(user_data == NULL);
 	return 0;
 }
 
@@ -68,17 +75,10 @@ int load_source(void *user_data, const char *source)
 metainfo_t *source_info(void *user_data)
 {
 	metainfo_t *meta_info = (metainfo_t*)malloc(sizeof(metainfo_t));
-	assert(user_data == NULL);
 
-	//meta_info->
-
-	/*StreamReaderAdapter &adapter = side_cast<StreamReaderAdapter>(user_data);
-	auto str = adapter.FetchMetaInfo();
-
-	auto metablock = new metainfo_t;
-	std::copy(str.begin(), str.end(), metablock->name);
-	metablock->name[str.size()] = '\0';
-	metablock->name[sizeof(metainfo_t::name) - 1] = '\0';*/
+	const char *file = ((struct file_data *)user_data)->filename;
+	strcpy(meta_info->name, file);
+	meta_info->size = sizeof(file);
 
 	return meta_info;
 }
@@ -87,6 +87,14 @@ void run_source_file(const char *file) {
 	compiler_info_t info;
 
 	if (file_exist(file)) {
+		fprintf(stderr, "Cannot open source file %s\n", file);
+		return;
+	}
+
+	struct file_data *ptr = (struct file_data*)malloc(sizeof(struct file_data));
+	ptr->filename = file;
+	ptr->file_handle = fopen(file, "r");
+	if (!ptr->file_handle) {
 		fprintf(stderr, "Cannot open source file %s\n", file);
 		return;
 	}
@@ -100,14 +108,15 @@ void run_source_file(const char *file) {
 	info.streamMetaVPtr = &source_info;
 	info.errorHandler = &error_handler;
 	info.program.program_ptr = NULL;
-	info.user_data = NULL;
+	info.user_data = ptr;
 	Compile(&info);
-	assert(info.user_data == NULL);
 
 	// Did the compiler fail
 	if (info.program.program_ptr == NULL) {
 		fprintf(stderr, "Invalid backend call\n");
 	}
+
+	fclose(((struct file_data *)info.user_data)->file_handle);
 }
 
 /* Print usage information on screen */
