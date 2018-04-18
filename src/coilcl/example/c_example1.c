@@ -38,6 +38,21 @@ int file_exist(const char *filename)
 	return 0;
 }
 
+void file_write(datachunk_t *data, const char *out)
+{
+	FILE *file = NULL;
+	if ((file = fopen(out, "wb")) == NULL) {
+		fprintf(stderr, "Error opening file: %d\n", errno);
+	}
+
+	fwrite(data->ptr, sizeof(char), data->size, file);
+	if (data->unmanaged_res) {
+		free(data->ptr);
+	}
+
+	fclose(file);
+}
+
 /* This callback is invoked when the backend encounters an error */
 static void error_handler(void *user_data, const char *message, char fatal)
 {
@@ -83,7 +98,8 @@ metainfo_t *source_info(void *user_data)
 	return meta_info;
 }
 
-void run_source_file(const char *file) {
+/*  */
+void run_source_file(const char *file, const char *out) {
 	compiler_info_t info;
 
 	if (file_exist(file)) {
@@ -116,6 +132,22 @@ void run_source_file(const char *file) {
 		fprintf(stderr, "Invalid backend call\n");
 	}
 
+	result_t result;
+	result.program = info.program;
+	result.content.ptr = NULL;
+	result.content.size = 0;
+	result.content.unmanaged_res = 0;
+	result.tag = AIIPX;
+	GetResultSection(&result);
+
+	if (!out) {
+		out = "a.out";
+	}
+
+	if (result.content.ptr) {
+		file_write(&result.content, out);
+	}
+
 	fclose(((struct file_data *)info.user_data)->file_handle);
 }
 
@@ -128,6 +160,9 @@ static int usage(const char *prognam) {
 }
 
 int main(int argc, char *argv[]) {
+	int fileidx = 1;
+	const char *out = NULL;
+
 	if (argc < 2)
 		return usage(argv[0]);
 
@@ -137,11 +172,15 @@ int main(int argc, char *argv[]) {
 		return 0;
 	}
 	else if (!strcmp(argv[1], "-O") || !strcmp(argv[1], "-O")) {
-		//
+		if (argc < 4)
+			return usage(argv[0]);
+
+		out = argv[2];
+		fileidx += 2;
 	}
 
-	const char *file = argv[1];
-	run_source_file(file);
+	const char *file = argv[fileidx];
+	run_source_file(file, out);
 
 	return 0;
 }
