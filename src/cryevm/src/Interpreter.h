@@ -20,11 +20,13 @@ public:
 
 	// Check if strategy can run the program
 	virtual bool IsRunnable() const noexcept;
+	// Program entry point
+	virtual std::string EntryPoint(const std::string);
 	// Run the program with current strategy
-	virtual ReturnCode Execute();
+	virtual ReturnCode Execute(const std::string = {});
 
 protected:
-	void PreliminaryCheck();
+	void PreliminaryCheck(const std::string&);
 
 private:
 	

@@ -69,8 +69,10 @@ public:
 
 	// Check if strategy can run the program
 	virtual bool IsRunnable() const noexcept = 0;
+	// Program entry point
+	virtual std::string EntryPoint(const std::string) = 0;
 	// Run the program with current strategy
-	virtual ReturnCode Execute() = 0;
+	virtual ReturnCode Execute(const std::string = {}) = 0;
 };
 
 } // namespace EVM

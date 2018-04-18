@@ -39,7 +39,7 @@ EVMAPI int ExecuteProgram(runtime_settings_t *runtime) noexcept
 
 	try {
 		// Execute the program in the designated strategy
-		runtime->return_code = runner->Execute();
+		runtime->return_code = runner->Execute(runner->EntryPoint(runtime->entry_point));
 	}
 	// Catch any runtime errors
 	catch (const std::exception& e) {

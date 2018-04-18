@@ -40,19 +40,24 @@ Visitor::~Visitor()
 {
 }
 
-void Interpreter::PreliminaryCheck()
+void Interpreter::PreliminaryCheck(const std::string& entry)
 {
 	assert(Program()->HasSymbols());
-	//Program()->MatchSymbol("kaas");
+	//Program()->MatchSymbol(entry);
+}
+
+std::string Interpreter::EntryPoint(const std::string entry)
+{
+	return entry;
 }
 
 // Run the program with current strategy
-Interpreter::ReturnCode Interpreter::Execute()
+Interpreter::ReturnCode Interpreter::Execute(const std::string entry)
 {
 	Visitor visitor;
 
 	// Check if settings work for this program.
-	PreliminaryCheck();
+	PreliminaryCheck(entry);
 
 	const auto ast = Program()->Ast();
 	assert(ast.has_tree());

@@ -34,6 +34,7 @@ int main(int argc, const char *argv[])
 			("print-std-list", "Display supported language standards")
 			("print-targets", "Display output target")
 			("print-spec", "Display the compiler specification configuration")
+			("spec", po::value<std::string>()->value_name("<file>"), "Load specifications from file")
 			("plugin", po::value<std::string>()->value_name("<plugin>"), "Load compiler plugin")
 			("run", "Compile and execute")
 			("v", "Compiler version information");

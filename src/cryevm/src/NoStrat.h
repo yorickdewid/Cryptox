@@ -18,8 +18,10 @@ class None final : public Strategy
 public:
 	// Check if strategy can run the program
 	virtual bool IsRunnable() const noexcept { return false; }
+	// Program entry point
+	virtual std::string EntryPoint(const std::string) { return ""; }
 	// Run the program with current strategy
-	virtual ReturnCode Execute() { return EXIT_FAILURE; }
+	virtual ReturnCode Execute(const std::string) { return EXIT_FAILURE; }
 };
 
 } // namespace EVM
