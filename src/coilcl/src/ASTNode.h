@@ -712,6 +712,7 @@ public:
 
 		Cry::ByteArray buffer;
 		pack >> buffer;
+		//TODO: validate buffer
 		m_valueObj = CoilCl::Util::ValueFactory::MakeValue<_NativTy>(buffer);
 
 		Literal::Deserialize(pack);

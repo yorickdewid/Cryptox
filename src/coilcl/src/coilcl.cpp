@@ -233,6 +233,7 @@ namespace InterOpHelper
 template<typename _Ty>
 _Ty CaptureChunk(const datachunk_t *dataPtrStrct)
 {
+	assert(dataPtrStrct);
 	_Ty sdata{ dataPtrStrct->ptr, dataPtrStrct->size };
 	if (static_cast<bool>(dataPtrStrct->unmanaged_res)) {
 		delete dataPtrStrct->ptr;
@@ -249,6 +250,7 @@ std::shared_ptr<_Ty> WrapMeta(_Ty *metaPtr)
 	return std::shared_ptr<_Ty>{ metaPtr };
 }
 
+// Release program pointer from managed resource
 void AssimilateProgram(program_t *out_program, Compiler::ProgramPtr&& in_program)
 {
 	out_program->program_ptr = in_program.release();
@@ -310,7 +312,7 @@ COILCLAPI void Compile(compiler_info_t *cl_info) NOTHROW
 
 COILCLAPI void GetResultSection(result_t *result_inquery) NOTHROW
 {
-	Program::ResultSection::Tag mTag;
+	Program::ResultSection::Tag mTag = Program::ResultSection::COMPLEMENTARY;
 	switch (result_inquery->tag)
 	{
 	case AIIPX:
@@ -325,11 +327,14 @@ COILCLAPI void GetResultSection(result_t *result_inquery) NOTHROW
 	case COMPLEMENTARY:
 		mTag = Program::ResultSection::COMPLEMENTARY;
 		break;
+	default:
+		//TODO: log something?
+		break;
 	}
 
 	Program *program = static_cast<Program *>(result_inquery->program.program_ptr);
 	Cry::ByteArray& content = program->GetResultSection(mTag).Data();
 	result_inquery->content.ptr = reinterpret_cast<const char *>(content.data());
-	result_inquery->content.size = content.size();
+	result_inquery->content.size = static_cast<unsigned int>(content.size());
 	result_inquery->content.unmanaged_res = 0;
 }

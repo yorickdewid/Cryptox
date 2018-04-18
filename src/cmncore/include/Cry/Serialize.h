@@ -40,8 +40,16 @@ class ByteArray : public std::vector<Byte>
 
 public:
 	ByteArray() = default;
-	ByteArray(const ByteArray& other) { m_offset = other.m_offset; }
-	ByteArray(ByteArray&& other) { m_offset = other.m_offset; }
+	ByteArray(const ByteArray& other)
+		: _MyBase{ other }
+		, m_offset{ other.m_offset }
+	{
+	}
+	ByteArray(ByteArray&& other)
+		: _MyBase{ std::move(other) }
+		, m_offset{ other.m_offset } //FIXME: this does not work
+	{
+	}
 
 	template<typename _InputIt>
 	ByteArray(_InputIt first, _InputIt last)
@@ -52,11 +60,13 @@ public:
 	ByteArray& operator=(const ByteArray& other)
 	{
 		m_offset = other.m_offset;
+		_MyBase::operator=(other);
 		return (*this);
 	}
 	ByteArray& operator=(ByteArray&& other)
 	{
 		m_offset = other.m_offset;
+		_MyBase::operator=(std::move(other));
 		return (*this);
 	}
 
@@ -154,10 +164,10 @@ public:
 		_MyBase::push_back((i >> 56) & 0xff);
 	}
 
-	template<typename _Ty>
-	void SerializeAs(_Ty i)
+	template<typename _TyConv, typename _TyIn>
+	void SerializeAs(_TyIn i)
 	{
-		Serialize(static_cast<_Ty>(i));
+		Serialize(static_cast<_TyConv>(i));
 	}
 
 	template<typename _Ty>

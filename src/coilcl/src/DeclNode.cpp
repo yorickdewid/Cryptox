@@ -504,7 +504,12 @@ void FunctionDecl::Serialize(Serializable::Interface& pack)
 	group.Size(1);
 	group << m_protoRef;
 
-	//TODO: m_signature
+	pack << static_cast<int>(m_signature.size());
+	for (const auto& signature : m_signature) {
+		Cry::ByteArray buffer;
+		AST::TypeFacade::Serialize(signature, buffer);
+		pack << buffer;
+	}
 
 	Decl::Serialize(pack);
 }
@@ -535,6 +540,17 @@ void FunctionDecl::Deserialize(Serializable::Interface& pack)
 		auto ref = std::dynamic_pointer_cast<FunctionDecl>(node);
 		BindPrototype(ref);
 	}};
+
+	int _signatureSize;
+	pack >> _signatureSize;
+	for (; _signatureSize > 0; --_signatureSize) {
+		Cry::ByteArray buffer;
+		pack >> buffer;
+
+		AST::TypeFacade type;
+		AST::TypeFacade::Deserialize(type, buffer);
+		m_signature.push_back(std::move(type));
+	}
 
 	Decl::Deserialize(pack);
 }
