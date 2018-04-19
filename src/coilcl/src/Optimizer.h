@@ -8,15 +8,30 @@
 
 #pragma once
 
+#include "Profile.h"
+#include "Stage.h"
+#include "AST.h"
+
 namespace CoilCl
 {
 
 //TODO:
 // - Remove unused code
 // - Calculate constants
-class LeanOptimzer
-{
 
+class Optimizer : public Stage<Optimizer>
+{
+public:
+	Optimizer(std::shared_ptr<CoilCl::Profile>& profile, AST::AST&& ast);
+
+	std::string Name() const { return "Optimizer"; }
+
+	Optimizer& CheckCompatibility();
+	Optimizer& TrivialReduction();
+
+private:
+	AST::AST m_ast;
+	std::shared_ptr<CoilCl::Profile> m_profile;
 };
 
 } // namespace CoilCl

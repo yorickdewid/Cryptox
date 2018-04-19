@@ -35,7 +35,7 @@ void ResolveRefExpr::Deserialize(Serializable::Interface& pack)
 
 const std::string ResolveRefExpr::NodeName() const
 {
-	return boost::str(boost::format("%1$s {%2$d} <line:%3$d,col:%4$d> '%5%")
+	return boost::str(boost::format("%1$s {%2$d} <line:%3$d,col:%4$d> '%5%'")
 		% RemoveClassFromName(typeid(ResolveRefExpr).name())
 		% m_state.Alteration()
 		% line % col
@@ -222,7 +222,10 @@ void BuiltinExpr::Deserialize(Serializable::Interface& pack)
 
 const std::string BuiltinExpr::NodeName() const
 {
-	return std::string{ RemoveClassFromName(typeid(BuiltinExpr).name()) } +" {" + std::to_string(m_state.Alteration()) + "}" + " <line:" + std::to_string(line) + ",col:" + std::to_string(col) + "> ";
+	return boost::str(boost::format("%1$s {%2$d} <line:%3$d,col:%4$d> '%5%'")
+		% RemoveClassFromName(typeid(ResolveRefExpr).name())
+		% m_state.Alteration()
+		% line % col);
 }
 
 
@@ -254,11 +257,10 @@ void CastExpr::Deserialize(Serializable::Interface& pack)
 
 const std::string CastExpr::NodeName() const
 {
-	std::string _node{ RemoveClassFromName(typeid(CastExpr).name()) };
-	_node += " {" + std::to_string(m_state.Alteration()) + "}";
-	_node += " <line:" + std::to_string(line) + ",col:" + std::to_string(col) + "> ";
-
-	return _node;
+	return boost::str(boost::format("%1$s {%2$d} <line:%3$d,col:%4$d> '%5%")
+		% RemoveClassFromName(typeid(ResolveRefExpr).name())
+		% m_state.Alteration()
+		% line % col);
 }
 
 
@@ -481,13 +483,10 @@ void MemberExpr::Deserialize(Serializable::Interface& pack)
 
 const std::string MemberExpr::NodeName() const
 {
-	std::string _node{ RemoveClassFromName(typeid(MemberExpr).name()) };
-	_node += " {" + std::to_string(m_state.Alteration()) + "}";
-	_node += " <line:" + std::to_string(line) + ",col:" + std::to_string(col) + "> ";
-	_node += m_memberType == MemberType::REFERENCE ? "." : "->";
-	_node += m_name;
-
-	return _node;
+	return boost::str(boost::format("%1$s {%2$d} <line:%3$d,col:%4$d> %5% %6%")
+		% RemoveClassFromName(typeid(ResolveRefExpr).name())
+		% m_state.Alteration()
+		% line % col
+		% (m_memberType == MemberType::REFERENCE ? "." : "->")
+		% m_name);
 }
-
-

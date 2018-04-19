@@ -8,8 +8,7 @@
 
 #pragma once
 
-#include "Typedef.h" //TODO: remove,replace ?
-#include "Valuedef.h" //TODO: remove,replace ?
+#include "Valuedef.h"
 #include "TypeFacade.h"
 #include "Converter.h"
 #include "RefCount.h"
@@ -568,7 +567,7 @@ public:
 
 		BITNOT,		// ~
 		BOOLNOT,	// !
-	} m_operand; //TODO: make private
+	};
 
 	const char *UnaryOperandStr(UnaryOperand operand) const;
 
@@ -577,7 +576,7 @@ public:
 	{
 		POSTFIX,
 		PREFIX,
-	} m_side;
+	};
 
 public:
 	explicit UnaryOperator(Serializable::Interface& pack)
@@ -593,6 +592,8 @@ public:
 	const std::string NodeName() const;
 
 private:
+	UnaryOperand m_operand;
+	OperandSide m_side;
 	POLY_IMPL();
 };
 
@@ -620,7 +621,7 @@ public:
 		AND,		// &=
 		XOR,		// ^=
 		OR,			// |=
-	} m_operand; //TODO: make private
+	};
 
 	const char *CompoundAssignOperandStr(CompoundAssignOperand operand) const;
 
@@ -640,6 +641,7 @@ public:
 	const std::string NodeName() const;
 
 private:
+	CompoundAssignOperand m_operand;
 	POLY_IMPL();
 };
 

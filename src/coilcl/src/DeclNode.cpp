@@ -416,8 +416,7 @@ void EnumDecl::Deserialize(Serializable::Interface& pack)
 	AssertNode(_nodeId, nodeId);
 
 	auto group = pack.ChildGroups();
-	for (size_t i = 0; i < group.Size(); ++i)
-	{
+	for (size_t i = 0; i < group.Size(); ++i) {
 		int childNodeId = group[i];
 		pack <<= {childNodeId, [=](const std::shared_ptr<ASTNode>& node) {
 			auto constant = std::dynamic_pointer_cast<EnumConstantDecl>(node);

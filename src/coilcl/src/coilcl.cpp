@@ -13,6 +13,7 @@
 #include "Parser.h"
 #include "Semer.h"
 #include "Emitter.h"
+#include "Optimizer.h"
 #include "NonFatal.h"
 #include "UnsupportedOperationException.h" //TODO: remove
 
@@ -169,17 +170,14 @@ public:
 				.PreliminaryAssert()
 				.StandardCompliance()
 				.PedanticCompliance()
-				//.Optimize<LeanOptimzer>()
 				.ExtractSymbols(program->FillSymbols());
 
-#ifdef OPTIMIZER
 			// Optimizer
 			Optimizer{ profile, std::move(program->Ast()) }
 				.MoveStage()
-				.TrivialReduction()
-				.DeepInflation()
-				.Metrics(program->FillMetrics());
-#endif
+				.TrivialReduction();
+				//.DeepInflation()
+				//.Metrics(program->FillMetrics());
 
 			// For now dump contents to screen
 			program->AstPassthrough()->Print<CoilCl::AST::ASTNode::Traverse::STAGE_LAST>();
