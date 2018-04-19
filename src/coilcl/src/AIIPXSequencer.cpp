@@ -30,6 +30,7 @@ class Visitor : public Serializable::Interface
 	int parentId;
 	std::stringstream ss;
 	std::multimap<int, std::function<void(const std::shared_ptr<AST::ASTNode>&)>> m_nodeHookList;
+	std::map<int, std::shared_ptr<AST::ASTNode>> m_passedList;
 	InputCallback inputCallback;
 
 	friend ChildGroup;
@@ -327,11 +328,18 @@ void Visitor::FireDependencies(std::shared_ptr<AST::ASTNode>& node)
 	{
 		it->second(node);
 	}
+	m_nodeHookList.erase(range.first, range.second);
+	m_passedList.emplace(node->Id(), node);
 }
 
 void Visitor::operator<<=(std::pair<int, std::function<void(const std::shared_ptr<AST::ASTNode>&)>> value)
 {
 	if (!value.first) { return; }
+	auto it = m_passedList.find(value.first);
+	if (it != m_passedList.end()) {
+		value.second(it->second);
+		return;
+	}
 	m_nodeHookList.emplace(std::move(value));
 }
 

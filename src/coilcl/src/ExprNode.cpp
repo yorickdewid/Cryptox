@@ -8,6 +8,8 @@
 
 #include "ASTNode.h"
 
+#include <boost/format.hpp>
+
 ResolveRefExpr::ResolveRefExpr(const std::string& identifier)
 	: m_identifier{ identifier }
 {
@@ -33,7 +35,11 @@ void ResolveRefExpr::Deserialize(Serializable::Interface& pack)
 
 const std::string ResolveRefExpr::NodeName() const
 {
-	return std::string{ RemoveClassFromName(typeid(ResolveRefExpr).name()) } +" {" + std::to_string(m_state.Alteration()) + "}" + " <line:" + std::to_string(line) + ",col:" + std::to_string(col) + "> '" + m_identifier + "'";
+	return boost::str(boost::format("%1$s {%2$d} <line:%3$d,col:%4$d> '%5%")
+		% RemoveClassFromName(typeid(ResolveRefExpr).name())
+		% m_state.Alteration()
+		% line % col
+		% m_identifier);
 }
 
 
