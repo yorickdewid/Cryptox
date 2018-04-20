@@ -13,11 +13,11 @@
 #include <boost/program_options.hpp>
 #include <boost/algorithm/string.hpp>
 
-#ifdef WIN32
+#ifdef CRY_WINDOWS
 #define CRY_CLI_DELIMITER "/"
 #else
 #define CRY_CLI_DELIMITER "-"
-#endif // WIN32
+#endif // CRY_WINDOWS
 
 #define VERSION_OPTION_LONG "version"
 #define VERSION_OPTION_SHORT "v"
@@ -36,34 +36,34 @@ class OptionParser
 
 	// Windows commandline style
 	constexpr static int WindowsStyle = (command_line_style::allow_short
-										 | command_line_style::short_allow_adjacent
-										 | command_line_style::short_allow_next
-										 | command_line_style::allow_long
-										 | command_line_style::long_allow_adjacent
-										 | command_line_style::long_allow_next
-										 | command_line_style::allow_sticky
-										 | command_line_style::allow_guessing
-										 | command_line_style::allow_dash_for_short
-										 | command_line_style::case_insensitive
-										 | command_line_style::allow_slash_for_short
-										 | command_line_style::allow_long_disguise);
+		| command_line_style::short_allow_adjacent
+		| command_line_style::short_allow_next
+		| command_line_style::allow_long
+		| command_line_style::long_allow_adjacent
+		| command_line_style::long_allow_next
+		| command_line_style::allow_sticky
+		| command_line_style::allow_guessing
+		| command_line_style::allow_dash_for_short
+		| command_line_style::case_insensitive
+		| command_line_style::allow_slash_for_short
+		| command_line_style::allow_long_disguise);
 
 	// Unix and alike command like style
 	constexpr static int UnixStyle = (command_line_style::allow_short
-									  | command_line_style::short_allow_adjacent
-									  | command_line_style::short_allow_next
-									  | command_line_style::allow_long
-									  | command_line_style::long_allow_adjacent
-									  | command_line_style::long_allow_next
-									  | command_line_style::allow_sticky
-									  | command_line_style::allow_guessing
-									  | command_line_style::allow_dash_for_short
-									  | command_line_style::allow_long_disguise);
+		| command_line_style::short_allow_adjacent
+		| command_line_style::short_allow_next
+		| command_line_style::allow_long
+		| command_line_style::long_allow_adjacent
+		| command_line_style::long_allow_next
+		| command_line_style::allow_sticky
+		| command_line_style::allow_guessing
+		| command_line_style::allow_dash_for_short
+		| command_line_style::allow_long_disguise);
 
 	// Fetch commandline options style per platform
 	inline int GetStyle() const
 	{
-#ifdef _WIN32
+#ifdef CRY_WINDOWS
 		return WindowsStyle;
 #else
 		return UnixStyle;
@@ -71,18 +71,19 @@ class OptionParser
 	}
 
 	// Shape helper output for current platform
-	std::string& PlatformHelperStyle(std::string&& str) const
+	template<typename Input, typename = typename std::enable_if_t<std::is_move_constructible_v<Input>>>
+	static Input&& PlatformHelperStyle(Input&& str)
 	{
 		if (str.size() > 0 && str[0] == '\n') { str.erase(0, 1); }
-		str.pop_back();
+		if (str.back() == '\n' && str.at(str.size() - 1) == '\n') { str.pop_back(); }
 		boost::algorithm::replace_all(str, "--", CRY_CLI_DELIMITER);
-		return str;
+		return std::move(str);
 	}
 
 	// Add default options
 	void AppendDefaultOptions()
 	{
-#ifdef _WIN32
+#ifdef CRY_WINDOWS
 		options.add_options()("?", "");
 #endif
 		options.add_options()("help", "");
@@ -90,7 +91,7 @@ class OptionParser
 	}
 
 public:
-	OptionParser(int argc, const char *argv[])
+	inline OptionParser(int argc, const char *argv[])
 		: parser{ argc, argv }
 	{
 	}
@@ -100,28 +101,32 @@ public:
 	{
 		AppendDefaultOptions();
 
-		const auto& parsedOptions = parser
-			.options(options)
-			.positional(positional)
-			.style(GetStyle())
-			.run();
+		try {
+			const auto& parsedOptions = parser
+				.options(options)
+				.positional(positional)
+				.style(GetStyle())
+				.run();
 
-		store(parsedOptions, vm, true);
+			store(parsedOptions, vm, true);
+		}
+		catch (error& parser_error) {
+			std::string str{ parser_error.what() };
+			throw error{ PlatformHelperStyle(std::move(str)) };
+		}
 	}
 
 	// This helper
 	inline OptionParser& Options() { return (*this); }
 
 	// Check if vesion is requested
-	inline bool Version(variables_map& vm) { return vm.count(VERSION_OPTION_LONG); }
+	inline bool Version(variables_map& vm) const { return vm.count(VERSION_OPTION_LONG); }
 
 	// Add parameters
 	OptionParser& operator()(options_description& desc, bool show = true)
 	{
 		options.add(desc);
-
 		if (show) { helpText << desc; }
-
 		return (*this);
 	}
 

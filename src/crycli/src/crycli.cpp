@@ -6,15 +6,15 @@
 // that can be found in the LICENSE file. Content can not be 
 // copied and/or distributed without the express of the author.
 
+#include "Env.h"
+#include "Direct.h"
+#include "Specification.h"
+
 #include <Cry/Config.h>
 #include <Cry/ProgramOptions.h>
 
 #include <boost/program_options.hpp>
 #include <boost/algorithm/string.hpp>
-
-#include "Env.h"
-#include "Direct.h"
-#include "Specification.h"
 
 #include <iostream>
 
@@ -94,12 +94,6 @@ int main(int argc, const char *argv[])
 			(positional);
 		parser.Run(vm);
 
-		// Print usage text
-		const auto usage = [&parser]
-		{
-			std::cout << parser << std::endl;
-		};
-
 		// Build specification from file
 		Specification spec{ Specification::CurrentDirectory(), SPECIFICATION_FILE };
 
@@ -166,16 +160,18 @@ int main(int argc, const char *argv[])
 		}
 		// Print version and exit
 		else if (parser.Version(vm)) {
+			std::cout << "Version: " PROGRAM_VERSION << std::endl;
+#ifdef CRY_DEBUG
 			std::cout
-				<< "Version: " PROGRAM_VERSION "\n"
 				<< "Compiler: 1.1\n"
 				<< "Virtual machine: 0.3\n"
 				<< "Interpreter: 1.2"
 				<< std::endl;
+#endif
 		}
 		// Anything else; we're in trouble
 		else {
-			usage();
+			std::cout << parser << std::endl;
 			return EXIT_FAILURE;
 		}
 	}

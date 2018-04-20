@@ -11,6 +11,12 @@
 #define CSTD std::
 #define CNOEXCEPT noexcept
 
+#ifndef CRY_DEBUG
+# if defined(DEBUG) || defined(_DEBUG)
+#  define CRY_DEBUG 1
+# endif
+#endif
+
 // Remove to disable automaic include of common header files
 #define AUTO_INCLUDE 1
 
