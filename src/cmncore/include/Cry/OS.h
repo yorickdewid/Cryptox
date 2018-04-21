@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include "Cry.h"
+
 #ifdef _WIN32
 # define CRY_WINDOWS 1
 #ifdef _WIN64

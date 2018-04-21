@@ -51,6 +51,11 @@ extern "C" {
 // Program definition helpers
 #define PROGRAM_UTIL_HEADER PRODUCT_BRAND_NAME " " PROGRAM_DESCRIPTION " - " PROGRAM_VERSION "\n" PRODUCT_COPYRIGHT
 
+//
+// For debug only
+// BEGIN {
+//
+
 // Directories
 #define BINARY_DIR "@CMAKE_BINARY_DIR@"
 #define SOURCE_DIR "@CMAKE_SOURCE_DIR@"
@@ -68,6 +73,10 @@ extern "C" {
 #define CXX_COMPILER "@CMAKE_CXX_COMPILER_ID@"
 #define C_FLAGS "@CMAKE_C_FLAGS@"
 #define CXX_FLAGS "@CMAKE_CXX_FLAGS@"
+
+//
+// END }
+//
 
 #ifdef __cplusplus
 }

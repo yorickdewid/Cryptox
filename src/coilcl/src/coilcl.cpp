@@ -17,6 +17,9 @@
 #include "NonFatal.h"
 #include "UnsupportedOperationException.h" //TODO: remove
 
+#include <Cry/Cry.h>
+#include <Cry/Config.h>
+
 #include <string>
 #include <iostream>
 #include <functional>
@@ -199,6 +202,7 @@ public:
 				.AddModule(AIIPXMod)
 				.Process();
 
+			#define TESTING 1
 #ifdef TESTING
 			AST::AST tree;
 			auto treeBlock = memoryStream->DeepCopy();
@@ -335,4 +339,14 @@ COILCLAPI void GetResultSection(result_t *result_inquery) NOTHROW
 	result_inquery->content.ptr = reinterpret_cast<const char *>(content.data());
 	result_inquery->content.size = static_cast<unsigned int>(content.size());
 	result_inquery->content.unmanaged_res = 0;
+}
+
+COILCLAPI void GetLibraryInfo(library_info_t *info) NOTHROW
+{
+	info->version_number.major = PRODUCT_VERSION_MAJOR;
+	info->version_number.minor = PRODUCT_VERSION_MINOR;
+	info->version_number.patch = PRODUCT_VERSION_PATCH;
+	info->version_number.local = PRODUCT_VERSION_LOCAL;
+	info->product = PROGRAM_NAME;
+	info->api_version = COILCLAPIVER;
 }

@@ -152,6 +152,24 @@ extern "C" {
 	// Retrieve resulting section from program
 	COILCLAPI void GetResultSection(result_t *) NOTHROW;
 
+	struct library_info_t
+	{
+		struct
+		{
+			short int major;
+			short int minor;
+			short int patch;
+			short int local;
+		} version_number;
+
+		short int api_version;
+		// Product name
+		const char *product;
+	};
+
+	// Library version information
+	COILCLAPI void GetLibraryInfo(library_info_t *) NOTHROW;
+
 #ifdef __cplusplus
 }
 #endif

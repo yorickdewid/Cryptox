@@ -71,7 +71,7 @@ BOOST_AUTO_TEST_CASE(ByteOrder)
 	}
 
 	{
-		uint64_t o = 17846744073709551617;
+		uint64_t o = 17846744073709551617U;
 		uint64_t i = BSWAP64(o);
 		uint64_t e = BSWAP64(i);
 		BOOST_REQUIRE_EQUAL(o, e);

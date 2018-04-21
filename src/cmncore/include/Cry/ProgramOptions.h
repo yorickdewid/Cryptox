@@ -71,7 +71,7 @@ class OptionParser
 	}
 
 	// Shape helper output for current platform
-	template<typename Input, typename = typename std::enable_if_t<std::is_move_constructible_v<Input>>>
+	template<typename Input, typename = typename std::enable_if<std::is_move_constructible<Input>::value>::type>
 	static Input&& PlatformHelperStyle(Input&& str)
 	{
 		if (str.size() > 0 && str[0] == '\n') { str.erase(0, 1); }
