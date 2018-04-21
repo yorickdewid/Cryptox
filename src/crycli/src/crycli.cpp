@@ -161,13 +161,11 @@ int main(int argc, const char *argv[])
 		// Print version and exit
 		else if (parser.Version(vm)) {
 			std::cout << "Version: " PROGRAM_VERSION << std::endl;
-#ifdef CRY_DEBUG
+			//TODO
 			std::cout
 				<< "Compiler: 1.1\n"
-				<< "Virtual machine: 0.3\n"
-				<< "Interpreter: 1.2"
+				<< "Virtual machine: 0.3"
 				<< std::endl;
-#endif
 		}
 		// Anything else; we're in trouble
 		else {

@@ -202,7 +202,6 @@ public:
 				.AddModule(AIIPXMod)
 				.Process();
 
-			#define TESTING 1
 #ifdef TESTING
 			AST::AST tree;
 			auto treeBlock = memoryStream->DeepCopy();

@@ -211,62 +211,86 @@ public:
 		bool operator>=(const ConstIterator& other) const { return cNode >= other.cNode; }
 	};
 
+	//TODO: BidirectionalIterator
+
 public:
 	using iterator = Iterator;
 	using const_iterator = ConstIterator;
 
 	// Wrapper without tree
 	AST() = default;
+	AST(nullptr_t)
+	{
+	}
 
 	// Move tree into AST wrapper
-	AST(std::shared_ptr<ASTNode>&& tree)
+	template<typename Node>
+	AST(std::shared_ptr<Node>&& tree)
 		: m_tree{ std::move(tree) }
 	{
 	}
 
 	// Link new AST object to internal tree
-	AST(std::shared_ptr<ASTNode>& tree)
+	template<typename Node>
+	AST(const std::shared_ptr<Node>& tree)
 		: m_tree{ tree }
 	{
 	}
 
 	// Iterator interfaces
-	iterator begin() { return Iterator{ m_tree }; }
-	iterator end() { return Iterator{}; }
-	const_iterator begin() const { return ConstIterator{ m_tree }; }
-	const_iterator end() const { return ConstIterator{}; }
-	const_iterator cbegin() const { return ConstIterator{ m_tree }; }
-	const_iterator cend() const { return ConstIterator{}; }
+	iterator Begin() { return Iterator{ m_tree }; }
+	iterator End() { return Iterator{}; }
+	const_iterator Begin() const { return ConstIterator{ m_tree }; }
+	const_iterator End() const { return ConstIterator{}; }
+	const_iterator Cbegin() const { return ConstIterator{ m_tree }; }
+	const_iterator Cend() const { return ConstIterator{}; }
+
+	// Iterator interfaces
+	iterator begin() { return Begin(); }
+	iterator end() { return End(); }
+	const_iterator begin() const { return Begin(); }
+	const_iterator end() const { return End(); }
+	const_iterator cbegin() const { return Cbegin(); }
+	const_iterator cend() const { return Cend(); }
 
 	// Overload default swap via ADL
-	void swap(std::shared_ptr<ASTNode>& rhs) noexcept
+	void swap(std::shared_ptr<ASTNode>& rhs) noexcept { Swap(rhs); }
+	void Swap(std::shared_ptr<ASTNode>& rhs) noexcept
 	{
 		std::swap(m_tree, rhs);
 	}
 
 	// Capacity
-	size_type size() const
+	size_type size() const { return Size(); }
+	size_type Size() const
 	{
 		if (!m_tree) { return 0; }
 		return std::distance(this->cbegin(), this->cend());
 	}
-	bool empty() const
+
+	// Is empty check
+	bool empty() const { return Empty(); }
+	bool Empty() const
 	{
 		if (!m_tree) { return false; }
 		return std::distance(this->cbegin(), this->cend()) == 0;
 	}
 
+	//[[deprecated]] // TODO: remove
 	inline bool has_tree() const noexcept { return !!m_tree; }
 
+	//TODO: limit access or remove?
 	// Direct tree access
-	inline ASTNode *operator->() const { return m_tree.get(); }
+	inline ASTNode *operator->() const noexcept { return m_tree.get(); }
 
+	//TODO: limit access or remove ?
 	//TODO: this is not wat we want since this allows undefined ownership
 	// Get top node
-	inline ASTNode *operator*() { return m_tree.get(); }
+	inline ASTNode *operator*() const noexcept { return m_tree.get(); }
 
 	//TODO: Remove this method in favor of copy ctor
 	// Copy self with new reference to tree
+	//[[deprecated]]
 	AST tree_ref()
 	{
 		AST copy{ m_tree };

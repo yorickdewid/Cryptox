@@ -15,26 +15,26 @@ namespace Cry
 namespace Algorithm
 {
 
-template<class _Ty>
+template<typename ArgumentType>
 struct AllTrue
 {
-	using argument_type = _Ty;
+	using argument_type = ArgumentType;
 	using result_type = bool;
 
-	constexpr bool operator()(const _Ty& _Left) const
+	constexpr bool operator()(const ArgumentType& _Left) const
 	{
 		CRY_UNUSED(_Left);
 		return true;
 	}
 };
 
-template<class _Ty>
+template<typename ArgumentType>
 struct AllFalse
 {
-	using argument_type = _Ty;
+	using argument_type = ArgumentType;
 	using result_type = bool;
 
-	constexpr bool operator()(const _Ty& _Left) const
+	constexpr bool operator()(const ArgumentType& _Left) const
 	{
 		CRY_UNUSED(_Left);
 		return false;
@@ -45,8 +45,8 @@ struct AllFalse
 // and when evaluated to true the callback routine is called. This combines a
 // predicate check and callback in one which is also possible with individual
 // std algorithms.
-template<typename _InputIt, typename _UnaryPredicate, typename _UnaryCallback>
-void MatchIf(_InputIt first, _InputIt last, _UnaryPredicate p, _UnaryCallback c)
+template<typename InputIt, typename UnaryPredicate, typename UnaryCallback>
+void MatchIf(InputIt first, InputIt last, UnaryPredicate p, UnaryCallback c)
 {
 	for (; first != last; ++first) {
 		if (p(*first)) {

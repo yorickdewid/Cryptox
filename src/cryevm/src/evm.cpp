@@ -34,7 +34,7 @@ EVMAPI int ExecuteProgram(runtime_settings_t *runtime) noexcept
 	// Determine strategy for program
 	auto runner = EVM::Planner{ std::move(program), EVM::Planner::Plan::ALL }.DetermineStrategy();
 	if (!runner->IsRunnable()) {
-		return RETURN_NOT_RUNNABLE; //TODO?
+		return RETURN_NOT_RUNNABLE;
 	}
 
 	try {

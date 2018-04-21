@@ -14,6 +14,7 @@
 #include "RefCount.h"
 #include "NodeId.h"
 #include "ASTState.h"
+#include "ASTTrait.h"
 #include "UserData.h"
 
 #include <Cry/Cry.h>
@@ -1162,6 +1163,9 @@ private:
 		: Decl{ sourceName }
 	{
 	}
+
+public:
+	using NodeTrait = AST::Trait::RootNodeTag;
 
 public:
 	explicit TranslationUnitDecl(Serializable::Interface& pack)

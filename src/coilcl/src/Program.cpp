@@ -26,7 +26,7 @@ void Program::PrintSymbols()
 
 bool Program::MatchSymbol(const std::string& symbol)
 {
-	return m_symbols.find(symbol) == m_symbols.cend();
+	return m_symbols.find(symbol) != m_symbols.cend();
 }
 
 Program::ResultSection& Program::GetResultSection(ResultSection::Tag tag)

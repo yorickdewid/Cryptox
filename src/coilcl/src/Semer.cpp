@@ -38,7 +38,7 @@ void InjectConverter(std::shared_ptr<_ParentTy> parent, std::shared_ptr<_ChildTy
 	}
 }
 
-//XXX: for now
+//TODO: replace by Cry::except...
 class NotImplementedException : public std::runtime_error
 {
 public:
@@ -109,6 +109,9 @@ CoilCl::Semer& CoilCl::Semer::CheckCompatibility()
 	return (*this);
 }
 
+namespace
+{
+
 template<typename _Ty>
 std::shared_ptr<_Ty> Closest(std::shared_ptr<CoilCl::AST::ASTNode>& node)
 {
@@ -141,6 +144,8 @@ void IsConversionRequired(std::shared_ptr<_ParentTy> parent, std::shared_ptr<_Ch
 		}
 	}
 }
+
+} // namespace
 
 // Resolve all static expresions such as native type size calculations
 // and inject the expression result back into the copied tree

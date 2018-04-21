@@ -267,8 +267,7 @@ void GetSectionMemoryBlock(const char *tag, void *programRaw, std::function<void
 CompilerLibraryInfo::CompilerLibraryInfo()
 {
 	library_info_t info;
-	//GetLibraryInfo(&info);
-	get_library_info(&info);
+	GetLibraryInfo(&info);
 
 	version = {
 		info.version_number.major,

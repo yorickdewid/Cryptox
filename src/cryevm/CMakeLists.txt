@@ -23,6 +23,8 @@ add_library(${PROJECT_NAME} SHARED
 	${${PROJECT_NAME}_h}
 	${${PROJECT_NAME}_rel}
 	${${PROJECT_NAME}_res}
+	"../coilcl/src/Program.cpp"
+	"../coilcl/src/AST.cpp"
 )
 
 # Define output directories
