@@ -349,4 +349,5 @@ COILCLAPI void GetLibraryInfo(library_info_t *info) NOTHROW
 	info->version_number.local = PRODUCT_VERSION_LOCAL;
 	info->product = PROGRAM_NAME;
 	info->api_version = COILCLAPIVER;
+	info->description = PROGRAM_DESCRIPTION;
 }

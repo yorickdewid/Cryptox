@@ -11,6 +11,8 @@
 #include <Cry/Indep.h>
 #include <Cry/NonCopyable.h>
 
+#include <boost/format.hpp>
+
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -260,4 +262,30 @@ void GetSectionMemoryBlock(const char *tag, void *programRaw, std::function<void
 	if (result_inquery.content.unmanaged_res) {
 		delete result_inquery.content.ptr;
 	}
+}
+
+CompilerLibraryInfo::CompilerLibraryInfo()
+{
+	library_info_t info;
+	//GetLibraryInfo(&info);
+	get_library_info(&info);
+
+	version = {
+		info.version_number.major,
+		info.version_number.minor,
+		info.version_number.patch,
+		info.version_number.local
+	};
+
+	name = info.product;
+	description = info.description;
+}
+
+std::string CompilerLibraryInfo::Version()
+{
+	return boost::str(boost::format{ "%1%.%2%.%3%.%4%" }
+		% std::get<0>(version)
+		% std::get<1>(version)
+		% std::get<2>(version)
+		% std::get<3>(version));
 }

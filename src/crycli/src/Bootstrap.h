@@ -54,3 +54,14 @@ inline auto MakeReader(_ArgsTy&&... args) -> BaseReader
 }
 
 void GetSectionMemoryBlock(const char *tag, void *program, std::function<void(const char *, size_t)>);
+
+struct CompilerLibraryInfo
+{
+	CompilerLibraryInfo();
+
+	std::string Version();
+
+	std::tuple<int, int, int, int> version;
+	std::string name;
+	std::string description;
+};

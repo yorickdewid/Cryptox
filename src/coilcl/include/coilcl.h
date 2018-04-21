@@ -162,13 +162,21 @@ extern "C" {
 			short int local;
 		} version_number;
 
+		// API version number
 		short int api_version;
 		// Product name
 		const char *product;
+		// Product description
+		const char *description;
 	};
 
 	// Library version information
 	COILCLAPI void GetLibraryInfo(library_info_t *) NOTHROW;
+
+// C function defines
+#define compile(c) Compile(c)
+#define get_result_section(r) GetResultSection(r)
+#define get_library_info(i) GetLibraryInfo(i)
 
 #ifdef __cplusplus
 }

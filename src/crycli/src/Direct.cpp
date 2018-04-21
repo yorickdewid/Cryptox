@@ -15,6 +15,14 @@
 
 #include <memory>
 
+namespace Version
+{
+
+CompilerLibraryInfo g_compilerInfo;
+//VirtualMachineInfo g_evmInfo;
+
+} // namespace Version
+
 class ProgramWrapper : protected program_t
 {
 public:
