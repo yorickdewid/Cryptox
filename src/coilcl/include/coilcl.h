@@ -152,7 +152,7 @@ extern "C" {
 	// Retrieve resulting section from program
 	COILCLAPI void GetResultSection(result_t *) NOTHROW;
 
-	struct library_info_t
+	typedef struct
 	{
 		struct
 		{
@@ -168,7 +168,7 @@ extern "C" {
 		const char *product;
 		// Product description
 		const char *description;
-	};
+	} library_info_t;
 
 	// Library version information
 	COILCLAPI void GetLibraryInfo(library_info_t *) NOTHROW;

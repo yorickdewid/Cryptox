@@ -113,7 +113,7 @@ public: // Member types
 	using difference_type = std::ptrdiff_t;
 
 public:
-	class Iterator : public ForwardItemTree
+	class Iterator : private ForwardItemTree
 	{
 		std::shared_ptr<ASTNode> cNode;
 
@@ -162,7 +162,7 @@ public:
 		bool operator>=(const Iterator& other) const { return cNode >= other.cNode; }
 	};
 
-	class ConstIterator : public ForwardItemTree
+	class ConstIterator : private ForwardItemTree
 	{
 		std::shared_ptr<ASTNode> cNode;
 

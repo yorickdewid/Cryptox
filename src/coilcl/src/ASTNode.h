@@ -13,6 +13,7 @@
 #include "Converter.h"
 #include "RefCount.h"
 #include "NodeId.h"
+#include "SourceLocation.h"
 #include "ASTState.h"
 #include "ASTTrait.h"
 #include "UserData.h"
@@ -321,6 +322,7 @@ protected:
 	using _MyTy = ASTNode;
 
 protected:
+	//TODO: Replace with Util::SourceLocation
 	mutable int line = -1;
 	mutable int col = -1;
 
@@ -339,12 +341,26 @@ public:
 		assert(0);
 	}
 
-	void SetLocation(int _line, int _col) const;
-	void SetLocation(const std::pair<int, int>& loc) const;
+	//
+	// Source location operations
+	//
+
+	// Set source location
+	void SetLocation(int, int) const;
+	// Set source location as pair
+	void SetLocation(const std::pair<int, int>&) const;
+	// Set source location as object
+	void SetLocation(Util::SourceLocation&&);
+	// Get source location
 	std::pair<int, int> Location() const;
 
+	//
 	// Abstract function interfaces
+	//
+
+	// Get node name
 	virtual const std::string NodeName() const = 0;
+	// Copy self and cast as base node
 	virtual std::shared_ptr<ASTNode> PolySelf() = 0;
 
 	enum struct Traverse
@@ -353,11 +369,15 @@ public:
 		STAGE_LAST = -1
 	};
 
-	template<Traverse _Ver>
-	inline void Print() { this->Print(static_cast<int>(_Ver)); }
+	template<Traverse Version>
+	inline void Print() { this->Print(static_cast<int>(Version)); }
 
 	//TODO: replace with algorithm ?
 	void Print(int version, int level = 0, bool last = 0, std::vector<int> ignore = {}) const;
+
+	//
+	// Node relations
+	//
 
 	//TODO: friend
 	// Forward the random access operator on the child node list
@@ -380,7 +400,7 @@ public:
 	}
 
 	//TODO: friend
-	std::vector<std::weak_ptr<ASTNode>>& Children()
+	const std::vector<std::weak_ptr<ASTNode>>& Children()
 	{
 		return children;
 	}

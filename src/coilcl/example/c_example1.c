@@ -47,7 +47,7 @@ void file_write(datachunk_t *data, const char *out)
 
 	fwrite(data->ptr, sizeof(char), data->size, file);
 	if (data->unmanaged_res) {
-		free(data->ptr);
+		free((void *)data->ptr);
 	}
 
 	fclose(file);
@@ -71,7 +71,7 @@ static datachunk_t *get_next_source_buffer(void *user_data)
 	char *chunk_buffer = (char *)calloc(100, 1);
 	size_t size = fread(chunk_buffer, 100, 1, handle);
 
-	buffer->size = size * 100;
+	buffer->size = (unsigned int)(size * 100);
 	buffer->ptr = chunk_buffer;
 	buffer->unmanaged_res = 1;
 

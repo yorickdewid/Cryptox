@@ -88,6 +88,12 @@ void ASTNode::SetLocation(const std::pair<int, int>& loc) const
 	col = loc.second;
 }
 
+void ASTNode::SetLocation(Util::SourceLocation&& location)
+{
+	line = location.Line();
+	col = location.Column();
+}
+
 std::pair<int, int> ASTNode::Location() const
 {
 	return { line, col };

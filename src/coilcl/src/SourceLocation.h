@@ -2,57 +2,57 @@
 
 #include <utility>
 
-template<typename _Ty = int>
-struct _SourceLocationImpl : public std::pair<_Ty, _Ty>
+namespace CoilCl
 {
-	using value_type = _Ty;
-	using _Myty = SourceLocation<_Ty>;
-	using _Mybase = std::pair<_Ty, _Ty>;
+namespace Util
+{
+namespace Detail
+{
 
-public:
-	SourceLocation(const value_type _Line, const value_type _Col)
-		: _Mybase{ _Line, _Col }
+template<typename Type = int, typename = typename std::enable_if<std::is_integral<Type>::value>::type>
+struct SourceLocationImpl : public std::pair<Type, Type>
+{
+	using value_type = Type;
+	using _Myty = SourceLocationImpl<Type>;
+	using _Mybase = std::pair<Type, Type>;
+
+	SourceLocationImpl() = default;
+	inline SourceLocationImpl(const value_type Line, const value_type Col)
+		: _Mybase{ Line, Col }
 	{
 	}
 
-	SourceLocation()
-		: _Mybase{}
+	SourceLocationImpl(const _Myty& Other)
+		: _Mybase{ Other }
 	{
 	}
 
-	SourceLocation(const _Myty& _Other)
-		: _Mybase{ _Other }
-	{
-	}
-
-	SourceLocation(_Myty&&)
+	SourceLocationImpl(_Myty&&)
 		: _Mybase{ std::move(_Other) }
 	{
 	}
 
-	SourceLocation& operator=(const _Myty& _Other)
+	SourceLocationImpl& operator=(const _Myty& _Other)
 	{
 		first = _Other.first;
 		second = _Other.second;
 		return (*this);
 	}
 
-	SourceLocation& operator=(_Myty&& _Other)
+	SourceLocationImpl& operator=(_Myty&& _Other)
 	{
 		first = std::move(_Other.first);
 		second = std::move(_Other.second);
 		return (*this);
 	}
 
-	value_type Line() const
-	{
-		return first;
-	}
-
-	value_type Column() const
-	{
-		return second;
-	}
+	value_type Line() const noexcept { return first; }
+	value_type Column() const noexcept { return second; }
 };
 
-typedef _SourceLocationImpl<> SourceLocation
+} // namespace Detail
+
+using SourceLocation = Detail::SourceLocationImpl<>;
+
+} // namespace Util
+} // namespace CoilCl
