@@ -253,6 +253,12 @@ public:
 	const_iterator cbegin() const { return Cbegin(); }
 	const_iterator cend() const { return Cend(); }
 
+	reference front() { return Front(); }
+	reference Front()
+	{
+		return (*m_tree.get());
+	}
+
 	// Overload default swap via ADL
 	void swap(std::shared_ptr<ASTNode>& rhs) noexcept { Swap(rhs); }
 	void Swap(std::shared_ptr<ASTNode>& rhs) noexcept

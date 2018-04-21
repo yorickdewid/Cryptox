@@ -37,7 +37,7 @@
 
 #define POLY_IMPL() \
 	std::shared_ptr<ASTNode> PolySelf() { \
-		return std::dynamic_pointer_cast<ASTNode>(this->GetSharedSelf()); \
+		return this->GetSharedSelf(); \
 	}
 
 #define BUMP_STATE() \
@@ -45,6 +45,9 @@
 
 #define NODE_ID(i) \
 	static const AST::NodeID nodeId = i;
+
+#define LABEL() \
+	virtual AST::NodeID Label() const noexcept override { return nodeId; }
 
 #define SERIALIZE(p) \
 	virtual void Serialize(Serializable::Interface& pack) { \
@@ -82,11 +85,11 @@ class ASTNode;
 template <typename _Ty>
 struct Identity { using type = typename _Ty::value_type; };
 
-template<typename _Ty, typename _Base = CoilCl::AST::ASTNode>
-class SelfReference : public std::enable_shared_from_this<_Ty>
+template<typename Node, typename BaseNode = CoilCl::AST::ASTNode>
+class SelfReference : public std::enable_shared_from_this<Node>
 {
 protected:
-	std::shared_ptr<_Base> GetSharedSelf()
+	std::shared_ptr<BaseNode> GetSharedSelf()
 	{
 		return this->shared_from_this();
 	}
@@ -101,7 +104,7 @@ private:
 	mutable unique_type id;
 
 public:
-	UniqueObj()
+	inline UniqueObj()
 	{
 		id = ++_id;
 	}
@@ -301,6 +304,20 @@ struct ModifierInterface
 	virtual size_t ModifierCount() const = 0;
 };
 
+struct VisitorInterface
+{
+	struct AbstractVisitor
+	{
+		//void Visit();
+	};
+
+	virtual void Apply(AbstractVisitor&) {}
+};
+
+//
+// Forward declarations
+//
+
 class DeclRefExpr;
 class CompoundStmt;
 class ArgumentStmt;
@@ -312,8 +329,9 @@ namespace AST
 {
 
 class ASTNode
-	: public ModifierInterface
-	, public UniqueObj
+	: public UniqueObj
+	, public VisitorInterface
+	, public ModifierInterface
 	, virtual public Serializable
 {
 	NODE_ID(AST::NodeID::AST_NODE_ID);
@@ -330,7 +348,11 @@ public:
 	ASTNode() = default;
 	ASTNode(int _line, int _col);
 
-	inline size_t ChildrenCount() const { return children.size(); }
+	//
+	// Node modifiers
+	//
+
+	inline size_t ChildrenCount() const noexcept { return children.size(); }
 	inline size_t ModifierCount() const { return m_state.Alteration(); }
 
 	virtual void Emplace(size_t idx, const std::shared_ptr<ASTNode>&& node)
@@ -417,6 +439,8 @@ public:
 		return std::find_if(m_userData.begin(), m_userData.end(), predicate);
 	}*/
 
+	virtual NodeID Label() const noexcept { return nodeId; }
+
 	//TODO: friend
 	void UpdateDelegate()
 	{
@@ -426,6 +450,10 @@ public:
 			}
 		}
 	}
+
+	//
+	// Node serialization interfaces
+	//
 
 	// Serialize base node
 	virtual void Serialize(Serializable::Interface& pack);
@@ -527,6 +555,7 @@ public:
 	virtual void Serialize(Serializable::Interface& pack);
 	virtual void Deserialize(Serializable::Interface& pack);
 
+	LABEL();
 	const std::string NodeName() const;
 
 private:
@@ -556,6 +585,7 @@ public:
 	virtual void Serialize(Serializable::Interface& pack);
 	virtual void Deserialize(Serializable::Interface& pack);
 
+	LABEL();
 	virtual const std::string NodeName() const;
 
 private:
@@ -610,6 +640,7 @@ public:
 	virtual void Serialize(Serializable::Interface& pack);
 	virtual void Deserialize(Serializable::Interface& pack);
 
+	virtual NodeID Label() const noexcept override { return nodeId; }
 	const std::string NodeName() const;
 
 private:
@@ -659,6 +690,7 @@ public:
 	virtual void Serialize(Serializable::Interface& pack);
 	virtual void Deserialize(Serializable::Interface& pack);
 
+	LABEL();
 	const std::string NodeName() const;
 
 private:
@@ -776,6 +808,8 @@ public:
 		: LiteralImpl{ std::forward<_Ty>(value) }
 	{
 	}
+
+	LABEL();
 };
 
 class StringLiteral : public Detail::LiteralImpl<std::string, StringLiteral>
@@ -795,6 +829,8 @@ public:
 		: LiteralImpl{ std::forward<_Ty>(value) }
 	{
 	}
+
+	LABEL();
 };
 
 class IntegerLiteral : public Detail::LiteralImpl<int, IntegerLiteral>
@@ -814,6 +850,8 @@ public:
 		: LiteralImpl{ std::forward<_Ty>(value) }
 	{
 	}
+
+	LABEL();
 };
 
 class FloatingLiteral : public Detail::LiteralImpl<double, FloatingLiteral>
@@ -833,6 +871,8 @@ public:
 		: LiteralImpl{ std::forward<_Ty>(value) }
 	{
 	}
+
+	LABEL();
 };
 
 //
@@ -902,6 +942,7 @@ public:
 	virtual void Serialize(Serializable::Interface& pack);
 	virtual void Deserialize(Serializable::Interface& pack);
 
+	LABEL();
 	virtual const std::string NodeName() const;
 
 private:
@@ -934,6 +975,7 @@ public:
 	virtual void Serialize(Serializable::Interface& pack);
 	virtual void Deserialize(Serializable::Interface& pack);
 
+	LABEL();
 	virtual const std::string NodeName() const;
 
 private:
@@ -961,6 +1003,7 @@ public:
 	virtual void Serialize(Serializable::Interface& pack);
 	virtual void Deserialize(Serializable::Interface& pack);
 
+	LABEL();
 	PRINT_NODE(VariadicDecl);
 
 private:
@@ -985,7 +1028,9 @@ public:
 	virtual void Serialize(Serializable::Interface& pack);
 	virtual void Deserialize(Serializable::Interface& pack);
 
+	LABEL();
 	virtual const std::string NodeName() const;
+
 private:
 	POLY_IMPL();
 };
@@ -1011,6 +1056,7 @@ public:
 	virtual void Serialize(Serializable::Interface& pack);
 	virtual void Deserialize(Serializable::Interface& pack);
 
+	LABEL();
 	virtual const std::string NodeName() const;
 
 private:
@@ -1053,6 +1099,7 @@ public:
 	virtual void Serialize(Serializable::Interface& pack);
 	virtual void Deserialize(Serializable::Interface& pack);
 
+	LABEL();
 	virtual const std::string NodeName() const;
 
 private:
@@ -1080,6 +1127,7 @@ public:
 	virtual void Serialize(Serializable::Interface& pack);
 	virtual void Deserialize(Serializable::Interface& pack);
 
+	LABEL();
 	const std::string NodeName() const;
 
 private:
@@ -1111,6 +1159,7 @@ public:
 	virtual void Serialize(Serializable::Interface& pack);
 	virtual void Deserialize(Serializable::Interface& pack);
 
+	LABEL();
 	const std::string NodeName() const;
 
 private:
@@ -1163,6 +1212,7 @@ public:
 	virtual void Serialize(Serializable::Interface& pack);
 	virtual void Deserialize(Serializable::Interface& pack);
 
+	LABEL();
 	const std::string NodeName() const;
 
 private:
@@ -1207,6 +1257,7 @@ public:
 	virtual void Serialize(Serializable::Interface& pack);
 	virtual void Deserialize(Serializable::Interface& pack);
 
+	LABEL();
 	PRINT_NODE(TranslationUnitDecl);
 
 private:
@@ -1250,6 +1301,7 @@ protected:
 	virtual void Serialize(Serializable::Interface& pack);
 	virtual void Deserialize(Serializable::Interface& pack);
 
+	LABEL();
 	const std::string NodeName() const;
 
 private:
@@ -1299,6 +1351,7 @@ public:
 	virtual void Serialize(Serializable::Interface& pack);
 	virtual void Deserialize(Serializable::Interface& pack);
 
+	LABEL();
 	const std::string NodeName() const;
 
 	std::shared_ptr<ASTNode> PolySelf()
@@ -1336,6 +1389,7 @@ public:
 	virtual void Serialize(Serializable::Interface& pack);
 	virtual void Deserialize(Serializable::Interface& pack);
 
+	LABEL();
 	const std::string NodeName() const;
 
 	auto& ArgumentStatement() const { return m_args; }
@@ -1378,6 +1432,7 @@ public:
 	virtual void Serialize(Serializable::Interface& pack);
 	virtual void Deserialize(Serializable::Interface& pack);
 
+	LABEL();
 	const std::string NodeName() const final;
 
 	std::shared_ptr<ASTNode> PolySelf()
@@ -1409,6 +1464,7 @@ public:
 	virtual void Serialize(Serializable::Interface& pack);
 	virtual void Deserialize(Serializable::Interface& pack);
 
+	LABEL();
 	const std::string NodeName() const;
 
 private:
@@ -1462,6 +1518,7 @@ public:
 		Expr::Deserialize(pack);
 	}
 
+	LABEL();
 	virtual const std::string NodeName() const;
 
 private:
@@ -1486,6 +1543,7 @@ public:
 	virtual void Serialize(Serializable::Interface& pack);
 	virtual void Deserialize(Serializable::Interface& pack);
 
+	LABEL();
 	PRINT_NODE(ParenExpr);
 
 private:
@@ -1512,6 +1570,7 @@ public:
 	virtual void Serialize(Serializable::Interface& pack);
 	virtual void Deserialize(Serializable::Interface& pack);
 
+	LABEL();
 	PRINT_NODE(InitListExpr);
 
 private:
@@ -1536,6 +1595,7 @@ public:
 	virtual void Serialize(Serializable::Interface& pack);
 	virtual void Deserialize(Serializable::Interface& pack);
 
+	LABEL();
 	PRINT_NODE(CompoundLiteralExpr);
 
 private:
@@ -1561,6 +1621,7 @@ public:
 	void Serialize(Serializable::Interface& pack);
 	void Deserialize(Serializable::Interface& pack);
 
+	LABEL();
 	PRINT_NODE(ArraySubscriptExpr);
 
 private:
@@ -1593,6 +1654,7 @@ public:
 	virtual void Serialize(Serializable::Interface& pack);
 	virtual void Deserialize(Serializable::Interface& pack);
 
+	LABEL();
 	const std::string NodeName() const;
 
 private:
@@ -1629,6 +1691,7 @@ public:
 
 	SERIALIZE(Stmt);
 	DESERIALIZE(Stmt);
+	LABEL();
 	PRINT_NODE(ContinueStmt);
 
 private:
@@ -1660,6 +1723,7 @@ public:
 	virtual void Serialize(Serializable::Interface& pack);
 	virtual void Deserialize(Serializable::Interface& pack);
 
+	LABEL();
 	PRINT_NODE(ReturnStmt);
 
 private:
@@ -1689,6 +1753,7 @@ public:
 	virtual void Serialize(Serializable::Interface& pack);
 	virtual void Deserialize(Serializable::Interface& pack);
 
+	LABEL();
 	virtual const std::string NodeName() const;
 
 private:
@@ -1716,6 +1781,7 @@ public:
 	virtual void Serialize(Serializable::Interface& pack);
 	virtual void Deserialize(Serializable::Interface& pack);
 
+	LABEL();
 	PRINT_NODE(SwitchStmt);
 
 private:
@@ -1743,6 +1809,7 @@ public:
 	virtual void Serialize(Serializable::Interface& pack);
 	virtual void Deserialize(Serializable::Interface& pack);
 
+	LABEL();
 	PRINT_NODE(WhileStmt);
 
 private:
@@ -1770,6 +1837,7 @@ public:
 	virtual void Serialize(Serializable::Interface& pack);
 	virtual void Deserialize(Serializable::Interface& pack);
 
+	LABEL();
 	PRINT_NODE(DoStmt);
 
 private:
@@ -1799,6 +1867,7 @@ public:
 	virtual void Serialize(Serializable::Interface& pack);
 	virtual void Deserialize(Serializable::Interface& pack);
 
+	LABEL();
 	PRINT_NODE(ForStmt);
 
 private:
@@ -1822,6 +1891,7 @@ public:
 	SERIALIZE(Stmt);
 	DESERIALIZE(Stmt);
 
+	LABEL();
 	PRINT_NODE(BreakStmt);
 
 private:
@@ -1846,6 +1916,7 @@ public:
 	virtual void Serialize(Serializable::Interface& pack);
 	virtual void Deserialize(Serializable::Interface& pack);
 
+	LABEL();
 	PRINT_NODE(DefaultStmt);
 
 private:
@@ -1871,6 +1942,7 @@ public:
 	virtual void Serialize(Serializable::Interface& pack);
 	virtual void Deserialize(Serializable::Interface& pack);
 
+	LABEL();
 	PRINT_NODE(CaseStmt);
 
 private:
@@ -1897,6 +1969,7 @@ public:
 	virtual void Serialize(Serializable::Interface& pack);
 	virtual void Deserialize(Serializable::Interface& pack);
 
+	LABEL();
 	PRINT_NODE(DeclStmt);
 
 private:
@@ -1925,6 +1998,7 @@ public:
 	virtual void Serialize(Serializable::Interface& pack);
 	virtual void Deserialize(Serializable::Interface& pack);
 
+	LABEL();
 	PRINT_NODE(ArgumentStmt);
 
 private:
@@ -1951,6 +2025,7 @@ public:
 	virtual void Serialize(Serializable::Interface& pack);
 	virtual void Deserialize(Serializable::Interface& pack);
 
+	LABEL();
 	PRINT_NODE(ParamStmt);
 
 private:
@@ -1976,6 +2051,7 @@ public:
 	virtual void Serialize(Serializable::Interface& pack);
 	virtual void Deserialize(Serializable::Interface& pack);
 
+	LABEL();
 	PRINT_NODE(LabelStmt);
 
 private:
@@ -2000,6 +2076,7 @@ public:
 	virtual void Serialize(Serializable::Interface& pack);
 	virtual void Deserialize(Serializable::Interface& pack);
 
+	LABEL();
 	virtual const std::string NodeName() const;
 
 private:
@@ -2026,6 +2103,7 @@ public:
 	virtual void Serialize(Serializable::Interface& pack);
 	virtual void Deserialize(Serializable::Interface& pack);
 
+	LABEL();
 	PRINT_NODE(CompoundStmt);
 
 private:
