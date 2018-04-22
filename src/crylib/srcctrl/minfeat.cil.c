@@ -1,3 +1,13 @@
+/**
+ * Copyright (C) 2017 Quenza Inc. All Rights Reserved.
+ * Copyright (C) 2018 Blub Corp. All Rights Reserved.
+ *
+ * This file is part of the Cryptox project.
+ *
+ * Content can not be copied and/or distributed without the express
+ * permission of the author.
+ */
+
 /* minfeat.c - It prompts the user to enter an integer N.
  *             It prints out all the primes up to N included.
  *             It uses a sieve method. As primes are found they are

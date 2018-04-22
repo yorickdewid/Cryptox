@@ -422,7 +422,7 @@ public:
 	}
 
 	//TODO: friend
-	const std::vector<std::weak_ptr<ASTNode>>& Children()
+	const std::vector<std::weak_ptr<ASTNode>>& Children() const
 	{
 		return children;
 	}
