@@ -9,8 +9,13 @@
 #pragma once
 
 #include <string>
+#include <vector>
+
+#include <boost/variant.hpp>
 
 class ExecutionEnv;
+
+using ArgumentList = std::vector<std::string>;
 
 class VMContract
 {
@@ -19,7 +24,9 @@ class VMContract
 
 	// Run compiler.
 	virtual void Execute() = 0;
-	// Run compiler.
+	// Set commandline arguments to the program.
+	virtual void CommandLineArgs(const ArgumentList&) = 0;
+	// Set symbol as entry point.
 	virtual void SetEntryPoint(const char *) = 0;
 };
 
@@ -34,7 +41,7 @@ public:
 	// Provide program main entry point.
 	ExecutionEnv& EntryPoint(const std::string&);
 	// Run the program.
-	void ExecuteProgram();
+	void ExecuteProgram(const ArgumentList = {});
 
 private:
 	VMContract * m_virtualMachine = nullptr;

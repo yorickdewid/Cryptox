@@ -12,12 +12,16 @@
 
 #include "../../coilcl/src/Program.h"
 
+#include <boost/variant.hpp>
+
 #ifndef EXIT_SUCCESS
 # define EXIT_SUCCESS 0
 # define EXIT_FAILURE 1
 #endif
 
 using ProgramPtr = Detail::UniquePreservePtr<CoilCl::Program>;
+using Argument = boost::variant<int, std::string>;
+using ArgumentList = std::vector<Argument>;
 
 namespace EVM
 {
@@ -72,7 +76,7 @@ public:
 	// Program entry point
 	virtual std::string EntryPoint(const std::string) = 0;
 	// Run the program with current strategy
-	virtual ReturnCode Execute(const std::string = {}) = 0;
+	virtual ReturnCode Execute(const std::string entry = {}, const ArgumentList args = {}) = 0;
 };
 
 } // namespace EVM

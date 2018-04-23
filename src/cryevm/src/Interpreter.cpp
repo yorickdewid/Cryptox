@@ -194,7 +194,7 @@ std::string Interpreter::EntryPoint(const std::string entry)
 }
 
 // Run the program with current strategy
-Interpreter::ReturnCode Interpreter::Execute(const std::string entry)
+Interpreter::ReturnCode Interpreter::Execute(const std::string entry, const ArgumentList args)
 {
 	// Check if settings work for this program.
 	PreliminaryCheck(entry);

@@ -12,6 +12,8 @@
 
 #include "../../coilcl/src/Program.h"
 
+#include <boost/lexical_cast.hpp>
+
 #include <memory>
 #include <iostream> // only for cerr
 
@@ -24,6 +26,10 @@
 //    - Or native
 
 using ProgramPtr = Detail::UniquePreservePtr<CoilCl::Program>;
+
+bool has_digits(const std::string& s) {
+	return s.find_first_not_of("0123456789") == std::string::npos;
+}
 
 // Execute program
 EVMAPI int ExecuteProgram(runtime_settings_t *runtime) noexcept
@@ -38,8 +44,27 @@ EVMAPI int ExecuteProgram(runtime_settings_t *runtime) noexcept
 	}
 
 	try {
+		ArgumentList args;
 		// Execute the program in the designated strategy
-		runtime->return_code = runner->Execute(runner->EntryPoint(runtime->entry_point));
+		if (runtime->args) {
+			size_t sz = 0;
+			do {
+				// Reconstruct parameters and cast to builtin type if possible
+				const datachunk_t *arg = runtime->args[sz++];
+				auto str = std::string{ arg->ptr, arg->size };
+				if (has_digits(str)) {
+					args.emplace_back(boost::lexical_cast<int>(str));
+				}
+				else {
+					args.push_back(std::move(str));
+				}
+				if (arg->unmanaged_res) {
+					free((void*)arg);
+				}
+			} while (runtime->args[sz]->ptr != nullptr);
+		}
+
+		runtime->return_code = runner->Execute(runner->EntryPoint(runtime->entry_point), args);
 	}
 	// Catch any runtime errors
 	catch (const std::exception& e) {

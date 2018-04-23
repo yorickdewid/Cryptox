@@ -19,7 +19,7 @@ public:
 	// Check if strategy can run the program
 	virtual bool IsRunnable() const noexcept { return false; }
 	// Program entry point
-	virtual std::string EntryPoint(const std::string) { return ""; }
+	virtual std::string EntryPoint(const std::string, const ArgumentList) { return ""; }
 	// Run the program with current strategy
 	virtual ReturnCode Execute(const std::string) { return EXIT_FAILURE; }
 };

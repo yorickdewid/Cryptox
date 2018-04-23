@@ -53,6 +53,7 @@ class ExecuteAdapter final
 		settings.return_code = EXIT_SUCCESS;
 		settings.errorHandler = &CCBErrorHandler;
 		settings.program = m_program;
+		settings.args = ConvertProgramArguments();
 		settings.user_data = static_cast<void*>(this);
 
 		// Invoke compiler with environment and compiler settings
@@ -67,6 +68,10 @@ class ExecuteAdapter final
 			break;
 		}
 
+		if (settings.args) {
+			free(settings.args);
+		}
+
 		//return info.program;
 	}
 
@@ -75,9 +80,31 @@ class ExecuteAdapter final
 		return Compose();
 	}
 
+	void CommandLineArgs(const ArgumentList& args)
+	{
+		m_args = args;
+	}
+
 	void SetEntryPoint(const char *str)
 	{
 		entrySymbol = str;
+	}
+
+	const datachunk_t **ConvertProgramArguments()
+	{
+		size_t argsz = m_args.size();
+		if (!argsz) { return nullptr; };
+		datachunk_t **argv = (datachunk_t **)malloc(argsz + 1);
+		for (size_t i = 0; i < argsz; ++i) {
+			argv[i] = (datachunk_t *)malloc(sizeof(datachunk_t));
+			argv[i]->ptr = m_args[i].data();
+			argv[i]->size = m_args[i].size();
+			argv[i]->unmanaged_res = 1;
+		}
+		argv[argsz] = (datachunk_t *)malloc(sizeof(datachunk_t));
+		argv[argsz]->ptr = nullptr;
+		argv[argsz]->size = 0;
+		argv[argsz]->unmanaged_res = 1;
 	}
 
 public:
@@ -87,6 +114,7 @@ public:
 	}
 
 private:
+	ArgumentList m_args;
 	program_t m_program;
 	const char *entrySymbol = nullptr;
 };
@@ -124,7 +152,10 @@ ExecutionEnv& ExecutionEnv::EntryPoint(const std::string& str)
 	return (*this);
 }
 
-void ExecutionEnv::ExecuteProgram()
+void ExecutionEnv::ExecuteProgram(const ArgumentList args)
 {
+	if (!args.empty()) {
+		m_virtualMachine->CommandLineArgs(args);
+	}
 	m_virtualMachine->Execute();
 }

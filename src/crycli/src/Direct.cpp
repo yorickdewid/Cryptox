@@ -85,7 +85,7 @@ public:
 	{
 		m_execEnv.Setup()
 			.EntryPoint("main")
-			.ExecuteProgram();
+			.ExecuteProgram({ "arg", "opt2", "2" });
 	}
 };
 

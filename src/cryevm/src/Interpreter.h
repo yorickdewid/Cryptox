@@ -23,13 +23,13 @@ public:
 	// Program entry point
 	virtual std::string EntryPoint(const std::string);
 	// Run the program with current strategy
-	virtual ReturnCode Execute(const std::string = {});
+	virtual ReturnCode Execute(const std::string entry = {}, const ArgumentList args = {});
 
 protected:
 	void PreliminaryCheck(const std::string&);
 
 private:
-	
+
 };
 
 } // namespace EVM

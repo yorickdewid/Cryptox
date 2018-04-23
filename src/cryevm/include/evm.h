@@ -40,6 +40,17 @@
 extern "C" {
 #endif
 
+	// C compatible string structure
+	typedef struct
+	{
+		// Size of the data chunk
+		unsigned int size;
+		// Pointer to data location
+		const char *ptr;
+		// Boolean indicating this memory block should be freed by the backend
+		int unmanaged_res;
+	} datachunk_t;
+
 	typedef struct
 	{
 		// API version between executable and library
@@ -60,6 +71,8 @@ extern "C" {
 		// interface and should be freed by the caller. The structure cannot
 		// be used directly, but shall be passed to program compatible components.
 		program_t program;
+		// Program runtime arguments.
+		const datachunk_t **args;
 		// User provided context.
 		void *user_data;
 	} runtime_settings_t;
