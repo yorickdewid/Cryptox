@@ -25,6 +25,11 @@ add_library(${PROJECT_NAME} SHARED
 	${${PROJECT_NAME}_res}
 	"../coilcl/src/Program.cpp"
 	"../coilcl/src/AST.cpp"
+	"../coilcl/src/ASTNode.cpp"
+	"../coilcl/src/DeclNode.cpp"
+	"../coilcl/src/LiteralNode.cpp"
+	"../coilcl/src/Typedef.cpp"
+	"../coilcl/src/TypeFacade.cpp"
 )
 
 # Define output directories

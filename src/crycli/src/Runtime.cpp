@@ -105,6 +105,7 @@ class ExecuteAdapter final
 		argv[argsz]->ptr = nullptr;
 		argv[argsz]->size = 0;
 		argv[argsz]->unmanaged_res = 1;
+		return const_cast<const datachunk_t **>(argv);
 	}
 
 public:
