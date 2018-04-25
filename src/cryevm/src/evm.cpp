@@ -62,6 +62,9 @@ EVMAPI int ExecuteProgram(runtime_settings_t *runtime) noexcept
 					free((void*)arg);
 				}
 			} while (runtime->args[sz]->ptr != nullptr);
+			if (runtime->args[sz]->unmanaged_res) {
+				free((void *)runtime->args[sz]);
+			}
 		}
 
 		runtime->return_code = runner->Execute(runner->EntryPoint(runtime->entry_point), args);
