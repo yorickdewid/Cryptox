@@ -1194,9 +1194,7 @@ public:
 
 	// If function declaration has a body, its not a prototype
 	void SetCompound(const std::shared_ptr<CompoundStmt>& node);
-
 	void SetSignature(std::vector<AST::TypeFacade>&& signature);
-
 	void SetParameterStatement(const std::shared_ptr<ParamStmt>& node);
 
 	auto HasSignature() const { return !m_signature.empty(); }

@@ -43,6 +43,7 @@ class Evaluator;
 
 namespace {
 
+class GlobalContext;
 class UnitContext;
 class CompoundContext;
 class FunctionContext;
@@ -51,25 +52,34 @@ class Context
 {
 	friend class Evaluator;
 
+public:
+	static std::shared_ptr<GlobalContext> MakeGlobalContext(std::shared_ptr<Context> ctx = nullptr)
+	{
+		if (ctx) {
+			return std::static_pointer_cast<GlobalContext>(ctx);
+		}
+		return std::make_shared<GlobalContext>();
+	}
+
 protected:
 	Context() = default;
-	/*Context(const std::shared_ptr<Context>& node)
-		: m_parentContext{ node }
-	{
-	}*/
 	Context(const Context *node)
 		: m_parentContext{ node }
 	{
 	}
 
-	virtual const Context *Parent()
+	const Context *Parent()
 	{
-		//return m_parentContext.lock();
 		return m_parentContext;
 	}
 
+	template<typename ContextType>
+	const ContextType *ParentAs()
+	{
+		return static_cast<const ContextType*>(m_parentContext);
+	}
+
 protected:
-	//std::weak_ptr<Context> m_parentContext;
 	const Context * m_parentContext;
 };
 
@@ -113,9 +123,57 @@ public:
 		m_objects.push_back(std::make_shared<Object>(object));
 	}
 
-	void RegisterSymbol(std::string symbol, std::shared_ptr<AST::ASTNode> node)
+	template<typename Node>
+	void RegisterSymbol(std::string, std::shared_ptr<Node>);
+
+	template<>
+	void RegisterSymbol(std::string symbol, std::shared_ptr<FunctionDecl> node)
 	{
+		/*if (node->IsPrototypeDefinition() && node->IsExternal()) {
+			auto ctx = ParentAs<GlobalContext>();
+			ctx->RegisterSymbol(std::forward(symbol, node));
+			return;
+		}*/
 		m_symbolTable.insert({ symbol, node });
+	}
+
+	template<typename CastNode>
+	std::shared_ptr<CastNode> LookupSymbol(const std::string& symbol)
+	{
+		auto it = m_symbolTable.find(symbol);
+		if (it == m_symbolTable.end()) {
+			throw 1; //TODO: No matching entry point was found, exit program
+		}
+
+		auto node = it->second.lock();
+		if (!node) {
+			throw 2; //TODO:
+		}
+
+		return node;
+	}
+
+	template<>
+	std::shared_ptr<FunctionDecl> LookupSymbol(const std::string& symbol)
+	{
+		assert(Parent());
+		auto it = m_symbolTable.find(symbol);
+		if (it == m_symbolTable.end()) {
+			throw 1; //TODO: No matching entry point was found, exit program
+		}
+
+		auto node = it->second.lock();
+		if (!node) {
+			throw 2; //TODO:
+		}
+
+		// If only a function prototype was defined, let the parent context do the work
+		auto func = std::dynamic_pointer_cast<FunctionDecl>(node);
+		/*if (func->IsPrototypeDefinition()) {
+			return ParentAs<GlobalContext>()->LookupSymbol<FunctionDecl>(symbol);
+		}*/
+
+		return func;
 	}
 
 	template<typename ContextType, typename... Args>
@@ -162,6 +220,13 @@ public:
 		return std::make_shared<ContextType>(this, std::forward<Args>(args)...);
 	}
 
+	/*template<typename... Args>
+	std::shared_ptr<FunctionContext> MakeContext<FunctionContext>(Args&&... args)
+	{
+		assert(Parent());
+		return std::make_shared<FunctionContext>(Parent(), std::forward<Args>(args)...);
+	}*/
+
 private:
 	std::list<std::shared_ptr<UnitContext>> m_objects;
 	std::string m_name;
@@ -178,17 +243,27 @@ std::shared_ptr<UnitContext> InitializeContext(AST::AST& ast, std::shared_ptr<Gl
 class Evaluator
 {
 	void Global(const TranslationUnitDecl&);
-	void Routine(const std::shared_ptr<FunctionDecl>&, std::shared_ptr<FunctionContext>&);
+	void Routine(const std::shared_ptr<FunctionDecl>&, std::shared_ptr<FunctionContext>&, const ArgumentList&);
+	void CallExpression(const std::shared_ptr<AST::ASTNode>&, std::shared_ptr<FunctionContext>&);
 
 public:
 	Evaluator(AST::AST&&, std::shared_ptr<GlobalContext>&);
+	Evaluator(AST::AST&&, std::shared_ptr<GlobalContext>&&);
 
-	void CallRoutine(const std::string&);
+	Evaluator& CallRoutine(const std::string&, const ArgumentList&);
+	int YieldResult();
+
+	static int CallFunction(AST::AST&&, const std::string&, const ArgumentList&);
 
 private:
 	AST::AST&& m_ast;
 	std::shared_ptr<UnitContext> m_unitContext;
 };
+
+Evaluator::Evaluator(AST::AST&& ast, std::shared_ptr<GlobalContext>&& ctx)
+	: Evaluator{ std::move(ast), ctx }
+{
+}
 
 Evaluator::Evaluator(AST::AST&& ast, std::shared_ptr<GlobalContext>& ctx)
 	: m_ast{ std::move(ast) }
@@ -230,32 +305,134 @@ void Evaluator::Global(const TranslationUnitDecl& node)
 	}
 }
 
-// Function scope routine operation
-void Evaluator::Routine(const std::shared_ptr<FunctionDecl>& node, std::shared_ptr<FunctionContext>& ctx)
+void Evaluator::CallExpression(const std::shared_ptr<AST::ASTNode>& node, std::shared_ptr<FunctionContext>& ctx)
 {
-	CRY_UNUSED(node);
-	CRY_UNUSED(ctx);
+	auto callExpr = std::static_pointer_cast<CallExpr>(node);
+	auto body = callExpr->Children();
+	assert(body.size());
+	auto declRef = std::static_pointer_cast<DeclRefExpr>(body.at(0).lock());
+	assert(declRef->IsResolved());
+
+	//{
+	//	auto it = m_unitContext->m_symbolTable.find(declRef->Identifier());
+	//	if (it == m_unitContext->m_symbolTable.end()) {
+	//		throw 1; //TODO: No matching entry point was found, exit program
+	//	}
+
+	//	auto func = it->second.lock();
+	//	if (!func) {
+	//		throw 2; //TODO:
+	//	}
+
+	//	auto funcDecl = std::dynamic_pointer_cast<FunctionDecl>(func);
+	//	if (funcDecl->IsPrototypeDefinition()) {
+	//		throw 3; //TODO: Cannot call on entry point signatures alone
+	//	}
+	//}
+
+	auto functional = ctx->MakeContext<FunctionContext>(declRef->Identifier());
+	/*Routine(std::dynamic_pointer_cast<FunctionDecl>(func), functional, args);*/
 }
 
-void Evaluator::CallRoutine(const std::string& symbol)
+static bool HasParams(std::vector<std::weak_ptr<AST::ASTNode>>& children, std::shared_ptr<FunctionContext>& ctx, const ArgumentList& args)
 {
-	auto it = m_unitContext->m_symbolTable.find(symbol);
-	if (it == m_unitContext->m_symbolTable.end()) {
-		throw 1; //TODO: No matching entry point was found, exit program
+	assert(!children.empty());
+	auto firstNode = children.at(0).lock();
+	if (!firstNode) {
+		throw 1; //TODO
+	}
+	if (firstNode->Label() == AST::NodeID::PARAM_STMT_ID) {
+		for (const auto& argument : args) {
+			//ctx->PushVar(, argument);
+		}
+
+		return true;
 	}
 
-	auto func = it->second.lock();
-	if (!func) {
-		throw 2; //TODO:
+	return false;
+}
+
+// Function scope routine operation
+void Evaluator::Routine(const std::shared_ptr<FunctionDecl>& node, std::shared_ptr<FunctionContext>& ctx, const ArgumentList& args)
+{
+	using namespace AST;
+	CRY_UNUSED(ctx);
+
+	auto body = node->Children();
+	if (!body.size()) {
+		throw 1; //TODO: no compound in function
 	}
 
-	auto funcdecl = std::dynamic_pointer_cast<FunctionDecl>(func);
-	if (funcdecl->IsPrototypeDefinition()) {
-		throw 3; //TODO: Cannot call on entry point signatures alone
+	// Function as arguments, commit to context
+	auto paredParam = HasParams(body, ctx, args);
+	if (paredParam && body.size() < 2) {
+		throw 1; //TODO: no compound in function
+	}
+	else if (!paredParam && body.size() < 3) {
+		throw 1; //TODO: no compound in function
 	}
 
-	auto functional = m_unitContext->MakeContext<FunctionContext>(funcdecl->Identifier());
-	Routine(std::dynamic_pointer_cast<FunctionDecl>(func), functional);
+	//TODO: Not sure about this one
+	if (body.at(1).lock()->Label() != NodeID::COMPOUND_STMT_ID) {
+		throw 1; //TODO: throw 1?
+	}
+
+	body = body.at(1).lock()->Children();
+	if (!body.size()) {
+		return; //TODO: Check if return type is void
+	}
+
+	for (const auto& childNode : body) {
+		auto child = childNode.lock();
+		switch (child->Label())
+		{
+		case NodeID::COMPOUND_STMT_ID:
+			puts("COMPOUND_STMT_ID");
+			break;
+		case NodeID::CALL_EXPR_ID:
+			CallExpression(child, ctx);
+			break;
+		case NodeID::DECL_STMT_ID:
+			puts("DECL_STMT_ID");
+			break;
+		case NodeID::IF_STMT_ID:
+			puts("IF_STMT_ID");
+			break;
+		case NodeID::RETURN_STMT_ID:
+			puts("RETURN_STMT_ID");
+			break;
+		default:
+			break;
+		}
+	}
+}
+
+// Convert argument list items to value definitions
+const ArgumentList& CovnertValueDef(const ArgumentList& args)
+{
+	return args;
+}
+
+// Call program routine from external context
+Evaluator& Evaluator::CallRoutine(const std::string& symbol, const ArgumentList& args)
+{
+	auto funcNode = m_unitContext->LookupSymbol<FunctionDecl>(symbol);
+	auto funcCtx = m_unitContext->MakeContext<FunctionContext>(funcNode->Identifier());
+	Routine(funcNode, funcCtx, CovnertValueDef(args));
+
+	return (*this);
+}
+
+int Evaluator::YieldResult()
+{
+	return EXIT_SUCCESS; //TODO: for now
+}
+
+int Evaluator::CallFunction(AST::AST&& ast, const std::string& symbol, const ArgumentList& args)
+{
+	return Evaluator{ std::move(ast), Context::MakeGlobalContext() }
+		.CallRoutine(symbol, args)
+		.YieldResult();
 }
 
 void Interpreter::PreliminaryCheck(const std::string& entry)
@@ -281,8 +458,5 @@ Interpreter::ReturnCode Interpreter::Execute(const std::string entry, const Argu
 	// Check if settings work for this program.
 	PreliminaryCheck(entry);
 
-	auto global = std::make_shared<GlobalContext>();
-	Evaluator{ std::move(Program()->Ast()), global }.CallRoutine(entry);
-
-	return EXIT_SUCCESS;
+	return Evaluator::CallFunction(Program()->Ast(), entry, args);
 }
