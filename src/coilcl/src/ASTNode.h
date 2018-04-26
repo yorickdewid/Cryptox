@@ -541,12 +541,12 @@ public:
 	const char *BinOperandStr(BinOperand operand) const;
 
 public:
+	BinaryOperator(BinOperand operand, const std::shared_ptr<ASTNode>& leftSide);
+
 	explicit BinaryOperator(Serializable::Interface& pack)
 	{
 		Deserialize(pack);
 	}
-
-	BinaryOperator(BinOperand operand, const std::shared_ptr<ASTNode>& leftSide);
 
 	void SetRightSide(const std::shared_ptr<ASTNode>& node);
 

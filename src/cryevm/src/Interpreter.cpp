@@ -312,6 +312,11 @@ public:
 		}
 	}
 
+	bool HasReturnValue() const noexcept
+	{
+		return !!m_returnType;
+	}
+
 	//TODO:
 	virtual void PushVarAsCopy(const std::string& key, std::shared_ptr<AST::ASTNode>& node)
 	{
@@ -416,6 +421,55 @@ using Parameters = std::vector<std::shared_ptr<CoilCl::Valuedef::Value>>;
 
 class ScopedRoutine
 {
+	static std::shared_ptr<CoilCl::Valuedef::Value> ResolveExpression(std::shared_ptr<AST::ASTNode> node)
+	{
+		switch (node->Label())
+		{
+
+			//
+			// Return literal types
+			//
+
+		case AST::NodeID::CHARACTER_LITERAL_ID:
+			return std::dynamic_pointer_cast<CharacterLiteral>(node)->Type();
+		case AST::NodeID::STRING_LITERAL_ID:
+			return std::dynamic_pointer_cast<StringLiteral>(node)->Type();
+		case AST::NodeID::INTEGER_LITERAL_ID:
+			return std::dynamic_pointer_cast<IntegerLiteral>(node)->Type();
+		case AST::NodeID::FLOAT_LITERAL_ID:
+			return std::dynamic_pointer_cast<FloatingLiteral>(node)->Type();
+		
+			//
+			// Operators
+			//
+
+		case AST::NodeID::BINARY_OPERATOR_ID:
+			std::dynamic_pointer_cast<BinaryOperator>(node);
+			break;
+		case AST::NodeID::CONDITIONAL_OPERATOR_ID:
+			std::dynamic_pointer_cast<ConditionalOperator>(node);
+			break;
+		case AST::NodeID::UNARY_OPERATOR_ID:
+			std::dynamic_pointer_cast<AST::UnaryOperator>(node);
+			break;
+		case AST::NodeID::COMPOUND_ASSIGN_OPERATOR_ID:
+			std::dynamic_pointer_cast<CompoundAssignOperator>(node);
+			break;
+
+			//
+			// Return routine result
+			//
+
+		case AST::NodeID::CALL_EXPR_ID:
+			break;
+
+		default:
+			break;
+		}
+
+		throw 1; //TODO
+	}
+
 	static void CallExpression(const std::shared_ptr<AST::ASTNode>& node, Context::Function& ctx)
 	{
 		auto callExpr = std::static_pointer_cast<CallExpr>(node);
@@ -538,14 +592,14 @@ class ScopedRoutine
 
 	void ProcessReturn(std::shared_ptr<ReturnStmt>& node, Context::Function& ctx)
 	{
+		// Create explicit return type
 		if (!node->HasExpression()) {
 			ctx->CreateTempVar(CoilCl::Util::MakeVoid());
 			return;
 		}
-		
-		//TODO: Quick & dirty, never going to work IRL
-		auto intLit = std::dynamic_pointer_cast<IntegerLiteral>(node->Expression());
-		ctx->CreateTempVar(intLit->Type());
+
+		// Resolve return expression
+		ctx->CreateTempVar(ResolveExpression(node->Expression()));
 	}
 
 public:
