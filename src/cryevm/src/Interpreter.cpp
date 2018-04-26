@@ -14,6 +14,23 @@
 
 using namespace EVM;
 
+struct InternalMethod
+{
+	const std::string symbol;
+	const std::function<void(const char *)> functional;
+
+	InternalMethod(const std::string symbol, std::function<void(const char *)> func)
+		: symbol{ symbol }
+		, functional{ func }
+	{
+	}
+};
+
+std::array<InternalMethod, 2> g_internalMethod = std::array<InternalMethod, 2>{
+	InternalMethod{ "puts", [](const char *s) { puts(s); } },
+		InternalMethod{ "printf", [](const char *s) { printf(s); } },
+};
+
 inline bool IsTranslationUnitNode(const AST::ASTNode& node) noexcept
 {
 	return node.Label() == AST::NodeID::TRANSLATION_UNIT_DECL_ID;
@@ -61,26 +78,26 @@ public:
 		return std::make_shared<GlobalContext>();
 	}
 
-protected:
-	Context() = default;
-	Context(const Context *node)
-		: m_parentContext{ node }
-	{
-	}
-
-	const Context *Parent()
+	Context *Parent()
 	{
 		return m_parentContext;
 	}
 
 	template<typename ContextType>
-	const ContextType *ParentAs()
+	ContextType *ParentAs()
 	{
-		return static_cast<const ContextType*>(m_parentContext);
+		return static_cast<ContextType*>(Parent());
 	}
 
 protected:
-	const Context * m_parentContext;
+	Context() = default;
+	Context(Context *node)
+		: m_parentContext{ node }
+	{
+	}
+
+protected:
+	Context * m_parentContext;
 };
 
 // Global context is the context of the entire program with
@@ -102,6 +119,18 @@ public:
 		return std::make_shared<ContextType>(this, std::forward<Args>(args)...);
 	}
 
+	template<typename CastNode>
+	std::shared_ptr<CastNode> LookupSymbol(const std::string& symbol)
+	{
+		/*auto internalMethod = std::find_if(g_internalMethod.cbegin(), g_internalMethod.cend(), [&](const InternalMethod& method) -> bool
+		{
+			return method.symbol == symbol;
+		});*/
+		throw 1;
+
+		//return nullptr;
+	}
+
 private:
 	std::list<std::shared_ptr<Context>> m_contextList;
 };
@@ -111,7 +140,7 @@ class UnitContext : public Context
 	friend class Evaluator;
 
 public:
-	UnitContext(const Context *parent, const std::string& name)
+	UnitContext(Context *parent, const std::string& name)
 		: Context{ parent }
 		, m_name{ name }
 	{
@@ -169,9 +198,9 @@ public:
 
 		// If only a function prototype was defined, let the parent context do the work
 		auto func = std::dynamic_pointer_cast<FunctionDecl>(node);
-		/*if (func->IsPrototypeDefinition()) {
+		if (func->IsPrototypeDefinition()) {
 			return ParentAs<GlobalContext>()->LookupSymbol<FunctionDecl>(symbol);
-		}*/
+		}
 
 		return func;
 	}
@@ -191,7 +220,7 @@ private:
 class CompoundContext : public Context
 {
 public:
-	CompoundContext(const Context *parent)
+	CompoundContext(Context *parent)
 		: Context{ parent }
 	{
 	}
@@ -203,12 +232,49 @@ public:
 	}
 };
 
+namespace
+{
+
+template<typename ContextType>
+struct MakeContextImpl
+{
+	Context *contex;
+	MakeContextImpl(Context *ctx, Context *)
+		: contex{ ctx }
+	{
+	}
+
+	template<typename... Args>
+	auto operator()(Args&&... args)
+	{
+		return std::make_shared<ContextType>(contex, std::forward<Args>(args)...);
+	}
+};
+
+template<>
+struct MakeContextImpl<FunctionContext>
+{
+	Context *contex;
+	MakeContextImpl(Context *, Context *ctx)
+		: contex{ ctx }
+	{
+	}
+
+	template<typename... Args>
+	auto operator()(Args&&... args)
+	{
+		return std::make_shared<FunctionContext>(contex, std::forward<Args>(args)...);
+	}
+};
+
+} // namespace
+
 class FunctionContext : public Context
 {
 	friend class Evaluator;
 
 public:
-	FunctionContext(const Context *parent, const std::string& name)
+	FunctionContext(Context *parent, const std::string& name)
 		: Context{ parent }
 		, m_name{ name }
 	{
@@ -217,15 +283,14 @@ public:
 	template<typename ContextType, typename... Args>
 	std::shared_ptr<ContextType> MakeContext(Args&&... args)
 	{
-		return std::make_shared<ContextType>(this, std::forward<Args>(args)...);
+		assert(Parent());
+		return MakeContextImpl<ContextType>{ this, Parent() }(std::forward<Args>(args)...);
 	}
 
-	/*template<typename... Args>
-	std::shared_ptr<FunctionContext> MakeContext<FunctionContext>(Args&&... args)
+	virtual void PushVar(const std::string& key, std::shared_ptr<AST::ASTNode>& node)
 	{
-		assert(Parent());
-		return std::make_shared<FunctionContext>(Parent(), std::forward<Args>(args)...);
-	}*/
+		//
+	}
 
 private:
 	std::list<std::shared_ptr<UnitContext>> m_objects;
@@ -243,8 +308,6 @@ std::shared_ptr<UnitContext> InitializeContext(AST::AST& ast, std::shared_ptr<Gl
 class Evaluator
 {
 	void Global(const TranslationUnitDecl&);
-	void Routine(const std::shared_ptr<FunctionDecl>&, std::shared_ptr<FunctionContext>&, const ArgumentList&);
-	void CallExpression(const std::shared_ptr<AST::ASTNode>&, std::shared_ptr<FunctionContext>&);
 
 public:
 	Evaluator(AST::AST&&, std::shared_ptr<GlobalContext>&);
@@ -305,120 +368,204 @@ void Evaluator::Global(const TranslationUnitDecl& node)
 	}
 }
 
-void Evaluator::CallExpression(const std::shared_ptr<AST::ASTNode>& node, std::shared_ptr<FunctionContext>& ctx)
+using Parameters = std::vector<std::shared_ptr<CoilCl::Valuedef::Value>>;
+
+class ScopedRoutine
 {
-	auto callExpr = std::static_pointer_cast<CallExpr>(node);
-	auto body = callExpr->Children();
-	assert(body.size());
-	auto declRef = std::static_pointer_cast<DeclRefExpr>(body.at(0).lock());
-	assert(declRef->IsResolved());
+	static bool HasParams(std::vector<std::weak_ptr<AST::ASTNode>>& children, std::shared_ptr<FunctionContext>& ctx, const Parameters& params)
+	{
+		CRY_UNUSED(ctx);
 
-	//{
-	//	auto it = m_unitContext->m_symbolTable.find(declRef->Identifier());
-	//	if (it == m_unitContext->m_symbolTable.end()) {
-	//		throw 1; //TODO: No matching entry point was found, exit program
-	//	}
+		assert(!children.empty());
+		auto firstNode = children.at(0).lock();
+		if (!firstNode) {
+			throw 1; //TODO
+		}
+		if (firstNode->Label() == AST::NodeID::PARAM_STMT_ID) {
+			for (const auto& parameter : params) {
+				CRY_UNUSED(parameter);
+				//ctx->PushVar(, argument);
+			}
 
-	//	auto func = it->second.lock();
-	//	if (!func) {
-	//		throw 2; //TODO:
-	//	}
-
-	//	auto funcDecl = std::dynamic_pointer_cast<FunctionDecl>(func);
-	//	if (funcDecl->IsPrototypeDefinition()) {
-	//		throw 3; //TODO: Cannot call on entry point signatures alone
-	//	}
-	//}
-
-	auto functional = ctx->MakeContext<FunctionContext>(declRef->Identifier());
-	/*Routine(std::dynamic_pointer_cast<FunctionDecl>(func), functional, args);*/
-}
-
-static bool HasParams(std::vector<std::weak_ptr<AST::ASTNode>>& children, std::shared_ptr<FunctionContext>& ctx, const ArgumentList& args)
-{
-	assert(!children.empty());
-	auto firstNode = children.at(0).lock();
-	if (!firstNode) {
-		throw 1; //TODO
-	}
-	if (firstNode->Label() == AST::NodeID::PARAM_STMT_ID) {
-		for (const auto& argument : args) {
-			//ctx->PushVar(, argument);
+			return true;
 		}
 
-		return true;
+		return false;
 	}
 
-	return false;
-}
+	static void CallExpression(const std::shared_ptr<AST::ASTNode>& node, std::shared_ptr<FunctionContext>& ctx)
+	{
+		auto callExpr = std::static_pointer_cast<CallExpr>(node);
+		auto body = callExpr->Children();
+		assert(body.size());
+		auto declRef = std::static_pointer_cast<DeclRefExpr>(body.at(0).lock());
+		assert(declRef->IsResolved());
 
-// Function scope routine operation
-void Evaluator::Routine(const std::shared_ptr<FunctionDecl>& node, std::shared_ptr<FunctionContext>& ctx, const ArgumentList& args)
-{
-	using namespace AST;
-	CRY_UNUSED(ctx);
+		auto funcNode = ctx->ParentAs<UnitContext>()->LookupSymbol<FunctionDecl>(declRef->Identifier());
+		if (!funcNode) {
+			//RequestInternalMethod(declRef->Identifier());
+		}
+		auto funcCtx = ctx->MakeContext<FunctionContext>(funcNode->Identifier());
 
-	auto body = node->Children();
-	if (!body.size()) {
-		throw 1; //TODO: no compound in function
+		// Check if call expression has arguments
+		if (body.size() > 1) {
+			auto argStmt = std::static_pointer_cast<ArgumentStmt>(body.at(1).lock());
+			if (argStmt->ChildrenCount()) {
+				auto paramDecls = funcNode->ParameterStatement()->Children();
+				if (paramDecls.size() > argStmt->ChildrenCount()) {
+					throw 1; //TODO: source.c:0:0: error: too many arguments to function 'funcNode'
+				}
+				else if (paramDecls.size() < argStmt->ChildrenCount()) {
+					throw 2; //TODO: source.c:0:0: error: too few arguments to function 'funcNode'
+				}
+
+				auto funcArgs = argStmt->Children();
+				auto itArgs = funcArgs.cbegin();
+				auto itParam = paramDecls.cbegin();
+				while (itArgs != funcArgs.cend() || itParam != paramDecls.cend()) {
+					auto paramDecl = std::dynamic_pointer_cast<ParamDecl>(itParam->lock());
+					if (paramDecl->Identifier().empty()) {
+						throw 3; //TODO: source.c:0:0: error: parameter name omitted to function 'funcNode'
+					}
+					ctx->PushVar(paramDecl->Identifier(), itArgs->lock());
+				}
+			}
+		}
+
+		auto _mx = std::make_shared<FunctionDecl>("", nullptr);
+		auto _ctx = std::make_shared<FunctionContext>(nullptr, "");
+		ScopedRoutine{}(_mx, _ctx);
 	}
 
-	// Function as arguments, commit to context
-	auto paredParam = HasParams(body, ctx, args);
-	if (paredParam && body.size() < 2) {
-		throw 1; //TODO: no compound in function
-	}
-	else if (!paredParam && body.size() < 3) {
-		throw 1; //TODO: no compound in function
-	}
+	void ProcessRoutine(std::shared_ptr<FunctionDecl>& node, std::shared_ptr<FunctionContext>& ctx, const Parameters& params)
+	{
+		using namespace AST;
+		CRY_UNUSED(ctx);
 
-	//TODO: Not sure about this one
-	if (body.at(1).lock()->Label() != NodeID::COMPOUND_STMT_ID) {
-		throw 1; //TODO: throw 1?
-	}
+		auto body = node->Children();
+		if (!body.size()) {
+			throw 1; //TODO: no compound in function
+		}
 
-	body = body.at(1).lock()->Children();
-	if (!body.size()) {
-		return; //TODO: Check if return type is void
-	}
+		// Function as arguments, commit to context
+		auto paredParam = HasParams(body, ctx, params);
+		if (paredParam && body.size() < 2) {
+			throw 1; //TODO: no compound in function
+		}
+		else if (!paredParam && body.size() < 3) {
+			throw 1; //TODO: no compound in function
+		}
 
-	for (const auto& childNode : body) {
-		auto child = childNode.lock();
-		switch (child->Label())
-		{
-		case NodeID::COMPOUND_STMT_ID:
-			puts("COMPOUND_STMT_ID");
-			break;
-		case NodeID::CALL_EXPR_ID:
-			CallExpression(child, ctx);
-			break;
-		case NodeID::DECL_STMT_ID:
-			puts("DECL_STMT_ID");
-			break;
-		case NodeID::IF_STMT_ID:
-			puts("IF_STMT_ID");
-			break;
-		case NodeID::RETURN_STMT_ID:
-			puts("RETURN_STMT_ID");
-			break;
-		default:
-			break;
+		//TODO: Not sure about this one
+		if (body.at(1).lock()->Label() != NodeID::COMPOUND_STMT_ID) {
+			throw 1; //TODO: throw 1?
+		}
+
+		body = body.at(1).lock()->Children();
+		if (!body.size()) {
+			return; //TODO: Check if return type is void
+		}
+
+		for (const auto& childNode : body) {
+			auto child = childNode.lock();
+			switch (child->Label())
+			{
+			case NodeID::COMPOUND_STMT_ID:
+				//TODO: need new scope
+				break;
+			case NodeID::CALL_EXPR_ID:
+				CallExpression(child, ctx);
+				//TODO: need neew scope
+				break;
+			case NodeID::DECL_STMT_ID:
+				ProcessDeclaration();
+				break;
+			case NodeID::IF_STMT_ID:
+				ProcessCondition();
+				break;
+			case NodeID::RETURN_STMT_ID:
+				ProcessReturn();
+				break;
+			default:
+				break;
+			}
 		}
 	}
-}
+
+	void ProcessDeclaration()
+	{
+		//
+	}
+
+	void ProcessCondition()
+	{
+		//
+	}
+
+	void ProcessReturn()
+	{
+		//
+	}
+
+public:
+	void operator()(std::shared_ptr<FunctionDecl>& node, std::shared_ptr<FunctionContext>& ctx, const Parameters& params = {})
+	{
+		ProcessRoutine(node, ctx, params);
+	}
+};
+
+namespace
+{
 
 // Convert argument list items to value definitions
-const ArgumentList& CovnertValueDef(const ArgumentList& args)
+Parameters CovnertToValueDef(const ArgumentList&& args)
 {
-	return args;
+	using namespace CoilCl::Util;
+
+	struct Converter final : public boost::static_visitor<>
+	{
+		void operator()(int i) const
+		{
+			m_paramList.push_back(MakeInt(i));
+		}
+		void operator()(std::string s) const
+		{
+			m_paramList.push_back(MakeString(s));
+		}
+
+		Converter(Parameters& params)
+			: m_paramList{ params }
+		{
+		}
+
+	private:
+		Parameters & m_paramList;
+	};
+
+	Parameters params;
+	Converter conv{ params };
+	for (const auto& arg : args) {
+		boost::apply_visitor(conv, arg);
+	}
+
+	return params;
 }
+
+const Parameters MainParameters(Parameters&& params)
+{
+	CRY_UNUSED(params);
+
+	return {};
+}
+
+} // namespace
 
 // Call program routine from external context
 Evaluator& Evaluator::CallRoutine(const std::string& symbol, const ArgumentList& args)
 {
 	auto funcNode = m_unitContext->LookupSymbol<FunctionDecl>(symbol);
 	auto funcCtx = m_unitContext->MakeContext<FunctionContext>(funcNode->Identifier());
-	Routine(funcNode, funcCtx, CovnertValueDef(args));
+	ScopedRoutine{}(funcNode, funcCtx, MainParameters(CovnertToValueDef(std::move(args))));
 
 	return (*this);
 }

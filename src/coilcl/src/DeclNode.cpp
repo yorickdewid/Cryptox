@@ -127,21 +127,13 @@ void ParamDecl::Deserialize(Serializable::Interface& pack)
 
 const std::string ParamDecl::NodeName() const
 {
-	std::string _node{ RemoveClassFromName(typeid(ParamDecl).name()) };
-	_node += " {" + std::to_string(m_state.Alteration()) + "}";
-	_node += " <line:" + std::to_string(line) + ",col:" + std::to_string(col) + "> ";
-
-	if (m_identifier.empty()) {
-		_node += "abstract";
-	}
-	else {
-		_node += m_identifier;
-	}
-
-	_node += " '" + ReturnType().TypeName() + "' ";
-	_node += ReturnType()->StorageClassName();
-
-	return _node;
+	return boost::str(boost::format("%1$s {%2$d} <line:%3$d,col:%4$d> %5% '%6%' %7%")
+		% RemoveClassFromName(typeid(ParamDecl).name())
+		% m_state.Alteration()
+		% line % col
+		% (m_identifier.empty() ? "abstract" : m_identifier)
+		% ReturnType().TypeName()
+		% ReturnType()->StorageClassName());
 }
 
 
