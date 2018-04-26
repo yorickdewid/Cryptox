@@ -776,6 +776,11 @@ public:
 		Literal::Deserialize(pack);
 	}
 
+	InternalType Type() const noexcept
+	{
+		return m_valueObj;
+	}
+
 	const std::string NodeName() const
 	{
 		std::stringstream ss;
@@ -895,15 +900,15 @@ protected:
 protected:
 	virtual ~Decl() = 0;
 
+	// Default initializer with empty identifier
+	Decl() = default;
+
 	// Constructor only available for deserialization
 	// operations. This constructor should never be called
 	// direct, and is only available to derived classes.
 	explicit Decl(Serializable::Interface&)
 	{
 	}
-
-	// Default initializer with empty identifier
-	Decl() = default;
 
 	virtual void Serialize(Serializable::Interface& pack);
 	virtual void Deserialize(Serializable::Interface& pack);
@@ -2014,12 +2019,12 @@ class ParamStmt
 	std::vector<std::shared_ptr<ASTNode>> m_param;
 
 public:
+	ParamStmt() = default;
+
 	explicit ParamStmt(Serializable::Interface& pack)
 	{
 		Deserialize(pack);
 	}
-
-	ParamStmt() = default;
 
 	void AppendParamter(const std::shared_ptr<ASTNode>& node);
 
