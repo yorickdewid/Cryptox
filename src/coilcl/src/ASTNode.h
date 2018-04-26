@@ -724,13 +724,16 @@ protected:
 namespace Detail
 {
 
-template<typename _NativTy, class _DrivTy>
+template<typename NativeType, class DerivedType>
 class LiteralImpl
 	: public Literal
-	, public SelfReference<_DrivTy>
+	, public SelfReference<DerivedType>
 {
+public:
+	using InternalType = CoilCl::Valuedef::ValueType<NativeType>;
+
 protected:
-	std::shared_ptr<CoilCl::Valuedef::ValueObject<_NativTy>> m_valueObj;
+	InternalType m_valueObj;
 
 public:
 	// Default to void type with no data
@@ -742,7 +745,7 @@ public:
 	}
 
 	// Move data object from token processor into literal object
-	LiteralImpl(std::shared_ptr<CoilCl::Valuedef::ValueObject<_NativTy>>&& object)
+	LiteralImpl(std::shared_ptr<CoilCl::Valuedef::ValueObject<NativeType>>&& object)
 		: Literal{ AST::TypeFacade{ object->DataType() } }
 		, m_valueObj{ std::move(object) }
 	{
@@ -750,7 +753,7 @@ public:
 
 	virtual void Serialize(Serializable::Interface& pack)
 	{
-		pack << _DrivTy::nodeId;
+		pack << DerivedType::nodeId;
 
 		Cry::ByteArray buffer = m_valueObj->Serialize();
 		pack << buffer;
@@ -763,12 +766,12 @@ public:
 		AST::NodeID _nodeId;
 
 		pack >> _nodeId;
-		AssertNode(_nodeId, _DrivTy::nodeId);
+		AssertNode(_nodeId, DerivedType::nodeId);
 
 		Cry::ByteArray buffer;
 		pack >> buffer;
 		//TODO: validate buffer
-		m_valueObj = CoilCl::Util::ValueFactory::MakeValue<_NativTy>(buffer);
+		m_valueObj = CoilCl::Util::ValueFactory::MakeValue<NativeType>(buffer);
 
 		Literal::Deserialize(pack);
 	}
@@ -776,7 +779,7 @@ public:
 	const std::string NodeName() const
 	{
 		std::stringstream ss;
-		ss << RemoveClassFromName(typeid(_DrivTy).name());
+		ss << RemoveClassFromName(typeid(DerivedType).name());
 		ss << " {" + std::to_string(m_state.Alteration()) + "}";
 		ss << " <line:" << line << ",col:" << col << "> ";
 		ss << "'" << ReturnType()->TypeName() << "' ";
@@ -1982,12 +1985,12 @@ class ArgumentStmt
 	std::vector<std::shared_ptr<ASTNode>> m_arg;
 
 public:
+	ArgumentStmt() = default;
+
 	explicit ArgumentStmt(Serializable::Interface& pack)
 	{
 		Deserialize(pack);
 	}
-
-	ArgumentStmt() = default;
 
 	void AppendArgument(const std::shared_ptr<ASTNode>& node);
 

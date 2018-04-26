@@ -252,40 +252,40 @@ namespace Util
 
 using namespace ::CoilCl;
 
-template<typename _NativTy, typename _ValTy>
-inline auto MakeValueObject(Typedef::BuiltinType&& type, _ValTy value)
+template<typename NativeType, typename ValueType>
+inline auto MakeValueObject(Typedef::BuiltinType&& type, ValueType value)
 {
-	return std::make_shared<Valuedef::ValueObject<_NativTy>>(std::move(type), value);
+	return std::make_shared<Valuedef::ValueObject<NativeType>>(std::move(type), value);
 }
 
-template<typename _Ty = std::string>
-inline Valuedef::ValueType<_Ty> MakeString(_Ty v)
+template<typename Type = std::string>
+inline Valuedef::ValueType<Type> MakeString(Type v)
 {
-	return MakeValueObject<_Ty>(Typedef::BuiltinType::Specifier::CHAR, std::move(v));
+	return MakeValueObject<Type>(Typedef::BuiltinType::Specifier::CHAR, std::move(v));
 }
 
-template<typename _Ty = int>
-inline Valuedef::ValueType<_Ty> MakeInt(_Ty v)
+template<typename Type = int>
+inline Valuedef::ValueType<Type> MakeInt(Type v)
 {
-	return MakeValueObject<_Ty>(Typedef::BuiltinType::Specifier::INT, std::move(v));
+	return MakeValueObject<Type>(Typedef::BuiltinType::Specifier::INT, std::move(v));
 }
 
-template<typename _Ty = double>
-inline Valuedef::ValueType<_Ty> MakeDouble(_Ty v)
+template<typename Type = double>
+inline Valuedef::ValueType<Type> MakeDouble(Type v)
 {
-	return MakeValueObject<_Ty>(Typedef::BuiltinType::Specifier::DOUBLE, std::move(v));
+	return MakeValueObject<Type>(Typedef::BuiltinType::Specifier::DOUBLE, std::move(v));
 }
 
-template<typename _Ty = char>
-inline Valuedef::ValueType<_Ty> MakeChar(_Ty v)
+template<typename Type = char>
+inline Valuedef::ValueType<Type> MakeChar(Type v)
 {
-	return MakeValueObject<_Ty>(Typedef::BuiltinType::Specifier::CHAR, v);
+	return MakeValueObject<Type>(Typedef::BuiltinType::Specifier::CHAR, v);
 }
 
-template<typename _Ty = void>
-inline Valuedef::ValueType<_Ty> MakeVoid()
+template<typename Type = void>
+inline Valuedef::ValueType<Type> MakeVoid()
 {
-	return std::make_shared<Valuedef::ValueObject<_Ty>>();
+	return std::make_shared<Valuedef::ValueObject<Type>>();
 }
 
 struct ValueFactory
