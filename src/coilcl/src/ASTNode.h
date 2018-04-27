@@ -947,6 +947,9 @@ public:
 
 	VarDecl(const std::string& name, std::shared_ptr<Typedef::TypedefBase> type, std::shared_ptr<ASTNode> node = nullptr);
 
+	bool HasExpression() const { return m_body != nullptr; }
+	auto& Expression() const { return m_body; }
+
 	void Emplace(size_t idx, const std::shared_ptr<ASTNode>&& node) override;
 
 	virtual void Serialize(Serializable::Interface& pack);

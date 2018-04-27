@@ -114,6 +114,7 @@ const Cry::ByteArray Value::Serialize() const
 namespace Util
 {
 
+//TODO: Fix
 bool EvaluateAsBoolean(std::shared_ptr<Valuedef::Value> value)
 {
 	CRY_UNUSED(value);

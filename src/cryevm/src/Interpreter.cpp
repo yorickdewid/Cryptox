@@ -12,6 +12,10 @@
 
 #include <numeric>
 
+//TODO:
+// - Stacktrace
+
+#define RETURN_VALUE 0
 #define ENTRY_SYMBOL "main"
 
 using namespace EVM;
@@ -102,6 +106,24 @@ public:
 		return static_cast<ContextType*>(Parent());
 	}
 
+public:
+	// Create and position a value in the special space
+	template<size_t Position>
+	void CreateSpecialVar(std::shared_ptr<CoilCl::Valuedef::Value> value, bool override = false)
+	{
+		if (!m_specialType[Position] || override) {
+			m_specialType[Position] = std::move(value);
+		}
+		else {
+			//TODO: maybe throw + warning?
+		}
+	}
+
+	bool HasReturnValue() const noexcept
+	{
+		return m_specialType[RETURN_VALUE] != nullptr;
+	}
+
 protected:
 	AbstractContext() = default;
 	AbstractContext(AbstractContext *node)
@@ -110,6 +132,7 @@ protected:
 	}
 
 protected:
+	std::array<std::shared_ptr<CoilCl::Valuedef::Value>, 1> m_specialType;
 	AbstractContext * m_parentContext;
 };
 
@@ -303,38 +326,47 @@ public:
 		return MakeContextImpl<ContextType>{ this, Parent() }(std::forward<Args>(args)...);
 	}
 
-	// Create and position a value in the temporary space
-	virtual void CreateTempVar(std::shared_ptr<CoilCl::Valuedef::Value> value, bool override = false)
-	{
-		if (!m_returnType || override) {
-			m_returnType = std::move(value);
-		}
-		else {
-			//TODO: maybe throw + warning?
-		}
-	}
-
-	bool HasReturnValue() const noexcept
-	{
-		return !!m_returnType;
-	}
-
 	//TODO:
-	virtual void PushVarAsCopy(const std::string& key, std::shared_ptr<AST::ASTNode>& node)
+	void PushVarAsCopy(const std::string& key, std::shared_ptr<AST::ASTNode>& node)
 	{
 		CRY_UNUSED(key);
 		CRY_UNUSED(node);
 	}
 
 	// Link value to the original value definition from the caller
-	virtual void PushVarAsPointer(const std::string& key, std::shared_ptr<AST::ASTNode>& node)
+	void PushVarAsPointer(const std::string& key, std::shared_ptr<AST::ASTNode>& node)
 	{
 		m_localObj.insert({ key, node });
 	}
 
-	virtual void PushVar(const std::string& key, std::shared_ptr<AST::ASTNode>& node)
+	//TODO: No AST node, but value
+	void PushVar(const std::string& key, std::shared_ptr<AST::ASTNode>& node)
 	{
 		PushVarAsPointer(key, node);
+	}
+
+	void PushVar(const std::string& key, std::shared_ptr<Valuedef::Value>& value)
+	{
+		m_localObj2.insert({ key, value });
+	}
+	void PushVar(const std::string&& key, std::shared_ptr<Valuedef::Value>&& value)
+	{
+		m_localObj2.insert({ std::move(key), std::move(value) });
+	}
+	void PushVar(std::pair<const std::string, std::shared_ptr<Valuedef::Value>>&& pair)
+	{
+		m_localObj2.insert(std::move(pair));
+	}
+	
+	std::shared_ptr<Valuedef::Value> LookupIdentifier(const std::string& key)
+	{
+		auto val = m_localObj2.find(key);
+		if (val == m_localObj2.end()) {
+			//TODO: search higher up
+			return nullptr;
+		}
+
+		return val->second;
 	}
 
 	virtual bool HasLocalObjects() const noexcept
@@ -343,7 +375,7 @@ public:
 	}
 
 private:
-	std::shared_ptr<CoilCl::Valuedef::Value> m_returnType;
+	std::map<std::string, std::shared_ptr<Valuedef::Value>> m_localObj2;
 	std::map<std::string, std::shared_ptr<AST::ASTNode>> m_localObj;
 	std::string m_name;
 };
@@ -450,13 +482,16 @@ class ScopedRoutine
 		return Util::MakeInt(result);
 	}
 
-	static std::shared_ptr<CoilCl::Valuedef::Value> ResolveExpression(std::shared_ptr<AST::ASTNode> node)
+	//FUTURE: Context may be broader than Context::Function
+	static std::shared_ptr<CoilCl::Valuedef::Value> ResolveExpression(std::shared_ptr<AST::ASTNode> node, Context::Function& ctx)
 	{
 		switch (node->Label())
 		{
-		//
-		// Return literal types
-		//
+			{
+				//
+				// Return literal types
+				//
+			}
 
 		case AST::NodeID::CHARACTER_LITERAL_ID: {
 			return std::dynamic_pointer_cast<CharacterLiteral>(node)->Type();
@@ -471,14 +506,15 @@ class ScopedRoutine
 			return std::dynamic_pointer_cast<FloatingLiteral>(node)->Type();
 		}
 
-		//
-		// Operators
-		//
+		{
+			//
+			// Operators
+			//
+		}
 
 		case AST::NodeID::BINARY_OPERATOR_ID: {
 			auto op = std::dynamic_pointer_cast<BinaryOperator>(node);//op->OperandFunctor<int>()
-			return BinaryOperation(std::plus<int>(), { ResolveExpression(op->LHS()), ResolveExpression(op->RHS()) });
-			break;
+			return BinaryOperation(std::plus<int>(), { ResolveExpression(op->LHS(), ctx), ResolveExpression(op->RHS(), ctx) });
 		}
 		case AST::NodeID::CONDITIONAL_OPERATOR_ID: {
 			std::dynamic_pointer_cast<ConditionalOperator>(node);
@@ -493,14 +529,28 @@ class ScopedRoutine
 			break;
 		}
 
-		//
-		// Return routine result
-		//
+		{
+			//
+			// Return routine result
+			//
+		}
 
 		case AST::NodeID::CALL_EXPR_ID: {
 			//TODO: For some reason returning from a call expression
 			// is not possible right now due to some semer bug.
+			//TODO: CallExpression();
 			break;
+		}
+
+		{
+			//
+			// Lookup symbol reference
+			//
+		}
+
+		case AST::NodeID::DECL_REF_EXPR_ID: {
+			auto declRef = std::dynamic_pointer_cast<DeclRefExpr>(node);
+			return ctx->LookupIdentifier(declRef->Identifier());
 		}
 
 		default:
@@ -510,10 +560,9 @@ class ScopedRoutine
 		throw 1; //TODO
 	}
 
-	static void CallExpression(const std::shared_ptr<AST::ASTNode>& node, Context::Function& ctx)
+	static void CallExpression(const std::shared_ptr<CallExpr>& CallNode, Context::Function& ctx)
 	{
-		auto callExpr = std::static_pointer_cast<CallExpr>(node);
-		auto body = callExpr->Children();
+		auto body = CallNode->Children();
 		assert(body.size());
 		auto declRef = std::static_pointer_cast<DeclRefExpr>(body.at(0).lock());
 		assert(declRef->IsResolved());
@@ -562,11 +611,19 @@ class ScopedRoutine
 		ScopedRoutine{}(funcNode, funcCtx);
 	}
 
-	void ProcessRoutine(std::shared_ptr<FunctionDecl>& node, Context::Function& ctx)
+	static void CreateCompound(const std::shared_ptr<AST::ASTNode>& node, Context::Function& ctx)
+	{
+		CRY_UNUSED(node);
+		CRY_UNUSED(ctx);
+		//
+	}
+
+	//TODO: cleanup messy code
+	void ProcessRoutine(std::shared_ptr<FunctionDecl>& funcNode, Context::Function& ctx)
 	{
 		using namespace AST;
 
-		auto body = node->Children();
+		auto body = funcNode->Children();
 		if (!body.size()) {
 			throw 1; //TODO: no compound in function
 		}
@@ -585,29 +642,39 @@ class ScopedRoutine
 			throw 1; //TODO: no compound in function
 		}
 
-		//TODO: Not sure about this one
-		if (body.at(1).lock()->Label() != NodeID::COMPOUND_STMT_ID) {
-			throw 1; //TODO: throw 1?
-		}
+		auto compoundNode = std::static_pointer_cast<CompoundStmt>(body.at(1).lock());
+		ProcessCompound(compoundNode, ctx);
+	}
 
-		body = body.at(1).lock()->Children();
+	void ProcessCompound(std::shared_ptr<CompoundStmt>& compoundNode, Context::Function& ctx)
+	{
+		using namespace AST;
+
+		auto body = compoundNode->Children();
 		if (!body.size()) {
 			return; //TODO: Check if return type is void
 		}
 
+		// Process each child node
 		for (const auto& childNode : body) {
 			auto child = childNode.lock();
 			switch (child->Label())
 			{
-			case NodeID::COMPOUND_STMT_ID:
-				//TODO: need new scope
+			case NodeID::COMPOUND_STMT_ID: {
+				auto node = std::static_pointer_cast<CompoundStmt>(child);
+				CreateCompound(node, ctx);
 				break;
-			case NodeID::CALL_EXPR_ID:
-				CallExpression(child, ctx);
+			}
+			case NodeID::CALL_EXPR_ID: {
+				auto node = std::static_pointer_cast<CallExpr>(child);
+				CallExpression(node, ctx);
 				break;
-			case NodeID::DECL_STMT_ID:
-				ProcessDeclaration();
+			}
+			case NodeID::DECL_STMT_ID: {
+				auto node = std::static_pointer_cast<DeclStmt>(child);
+				ProcessDeclaration(node, ctx);
 				break;
+			}
 			case NodeID::IF_STMT_ID: {
 				auto node = std::static_pointer_cast<IfStmt>(child);
 				ProcessCondition(node, ctx);
@@ -624,36 +691,45 @@ class ScopedRoutine
 		}
 	}
 
-	void ProcessDeclaration()
+	void ProcessDeclaration(std::shared_ptr<DeclStmt>& declNode, Context::Function& ctx)
 	{
-		//
+		for (const auto& child : declNode->Children()) {
+			auto node = std::static_pointer_cast<VarDecl>(child.lock());
+			if (node->HasExpression()) {
+				ctx->PushVar(node->Identifier(), ResolveExpression(node->Expression(), ctx));
+			}
+		}
 	}
 
 	void ProcessCondition(std::shared_ptr<IfStmt>& node, Context::Function& ctx)
 	{
-		auto value = ResolveExpression(node->Expression());
+		auto value = ResolveExpression(node->Expression(), ctx);
 		if (Util::EvaluateAsBoolean(value)) {
 			if (node->HasTruthCompound()) {
-				node->TruthCompound();
+				auto continueNode = node->TruthCompound();
+				auto compoundNode = std::static_pointer_cast<CompoundStmt>(continueNode);
+				ProcessCompound(compoundNode, ctx);
 			}
 		}
+		// Handle alternative path, if any
 		else if (node->HasAltCompound()) {
 			node->AltCompound();
+			auto continueNode = node->TruthCompound();
+			auto compoundNode = std::static_pointer_cast<CompoundStmt>(continueNode);
+			ProcessCompound(compoundNode, ctx);
 		}
-		
-		//
 	}
 
 	void ProcessReturn(std::shared_ptr<ReturnStmt>& node, Context::Function& ctx)
 	{
 		// Create explicit return type
 		if (!node->HasExpression()) {
-			ctx->CreateTempVar(CoilCl::Util::MakeVoid());
+			ctx->CreateSpecialVar<RETURN_VALUE>(CoilCl::Util::MakeVoid());
 			return;
 		}
 
 		// Resolve return expression
-		ctx->CreateTempVar(ResolveExpression(node->Expression()));
+		ctx->CreateSpecialVar<RETURN_VALUE>(ResolveExpression(node->Expression(), ctx));
 	}
 
 public:
@@ -701,10 +777,14 @@ Parameters ConvertToValueDef(const ArgumentList&& args)
 }
 
 //TODO:
-// Warp startup parameters in main routine format
-const Parameters MainParameters(Parameters&& params)
+// Warp startup parameters in format
+const Parameters FormatParameters(std::vector<std::string> pivot, Parameters&& params)
 {
 	CRY_UNUSED(params);
+
+	/*for (const auto& item : pivot) {
+		item
+	}*/
 
 	return {};
 }
@@ -718,15 +798,22 @@ Evaluator& Evaluator::CallRoutine(const std::string& symbol, const ArgumentList&
 	auto funcNode = m_unitContext->LookupSymbol<FunctionDecl>(symbol);
 	auto funcCtx = m_unitContext->MakeContext<FunctionContext>(funcNode->Identifier());
 
-	//MainParameters(ConvertToValueDef(std::move(args)));
+	//FormatParameters({ "argc", "argv" }, ConvertToValueDef(std::move(args)));
 
+	funcCtx->PushVar({ "argc", Util::MakeInt(3) });
 	ScopedRoutine{}(funcNode, funcCtx);
+
+	if (funcCtx->HasReturnValue()) {
+		funcCtx->Parent()->ParentAs<GlobalContext>()->CreateSpecialVar<RETURN_VALUE>(Util::MakeChar('a')); //funcCtx->ReturnValue()
+	}
 
 	return (*this);
 }
 
 int Evaluator::YieldResult()
 {
+	//TODO: Fetch result from global context, if any
+
 	return EXIT_SUCCESS; //TODO: for now
 }
 
