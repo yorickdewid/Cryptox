@@ -548,6 +548,11 @@ public:
 		Deserialize(pack);
 	}
 
+	//void Operand();
+
+	auto LHS() const noexcept { return m_lhs; }
+	auto RHS() const noexcept { return m_rhs; }
+
 	void SetRightSide(const std::shared_ptr<ASTNode>& node);
 
 	void Emplace(size_t idx, const std::shared_ptr<ASTNode>&& node) override;

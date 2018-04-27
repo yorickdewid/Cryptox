@@ -10,6 +10,8 @@
 
 //#include "../../coilcl/src/ASTNode.h"
 
+#include <numeric>
+
 #define ENTRY_SYMBOL "main"
 
 using namespace EVM;
@@ -421,47 +423,85 @@ using Parameters = std::vector<std::shared_ptr<CoilCl::Valuedef::Value>>;
 
 class ScopedRoutine
 {
+	template<typename OperandPred, typename ReturnType, typename ValueType>
+	struct OperatorAdapter
+	{
+		OperandPred predicate;
+		OperatorAdapter(OperandPred pred)
+			: predicate{ pred }
+		{
+		}
+
+		constexpr ReturnType operator()(const ReturnType acc, const ValueType& rhs) const
+		{
+			return predicate(acc, rhs->As<ReturnType>());
+		}
+	};
+
+	//FUTURE: We can do even better using C++17 static template variadic counters, overengineering FTW
+	template<typename OperandPred, typename ContainerType = std::shared_ptr<CoilCl::Valuedef::Value>>
+	static std::shared_ptr<CoilCl::Valuedef::Value> BinaryOperation(OperandPred predicate, std::initializer_list<ContainerType> values)
+	{
+		OperandPred::result_type result = std::accumulate(
+			values.begin(),
+			values.end(), 0,
+			OperatorAdapter<OperandPred, OperandPred::result_type, ContainerType>{ predicate });
+
+		return Util::MakeInt(result);
+	}
+
 	static std::shared_ptr<CoilCl::Valuedef::Value> ResolveExpression(std::shared_ptr<AST::ASTNode> node)
 	{
 		switch (node->Label())
 		{
-
 			//
 			// Return literal types
 			//
 
-		case AST::NodeID::CHARACTER_LITERAL_ID:
+		case AST::NodeID::CHARACTER_LITERAL_ID: {
 			return std::dynamic_pointer_cast<CharacterLiteral>(node)->Type();
-		case AST::NodeID::STRING_LITERAL_ID:
+		}
+		case AST::NodeID::STRING_LITERAL_ID: {
 			return std::dynamic_pointer_cast<StringLiteral>(node)->Type();
-		case AST::NodeID::INTEGER_LITERAL_ID:
+		}
+		case AST::NodeID::INTEGER_LITERAL_ID: {
 			return std::dynamic_pointer_cast<IntegerLiteral>(node)->Type();
-		case AST::NodeID::FLOAT_LITERAL_ID:
+		}
+		case AST::NodeID::FLOAT_LITERAL_ID: {
 			return std::dynamic_pointer_cast<FloatingLiteral>(node)->Type();
-		
-			//
-			// Operators
-			//
+		}
 
-		case AST::NodeID::BINARY_OPERATOR_ID:
-			std::dynamic_pointer_cast<BinaryOperator>(node);
+											//
+											// Operators
+											//
+
+		case AST::NodeID::BINARY_OPERATOR_ID: {
+			auto op = std::dynamic_pointer_cast<BinaryOperator>(node);//op->Operand()
+			return BinaryOperation(std::plus<int>(), { ResolveExpression(op->LHS()), ResolveExpression(op->RHS()) });
 			break;
-		case AST::NodeID::CONDITIONAL_OPERATOR_ID:
+		}
+		case AST::NodeID::CONDITIONAL_OPERATOR_ID: {
 			std::dynamic_pointer_cast<ConditionalOperator>(node);
 			break;
-		case AST::NodeID::UNARY_OPERATOR_ID:
+		}
+		case AST::NodeID::UNARY_OPERATOR_ID: {
 			std::dynamic_pointer_cast<AST::UnaryOperator>(node);
 			break;
-		case AST::NodeID::COMPOUND_ASSIGN_OPERATOR_ID:
+		}
+		case AST::NodeID::COMPOUND_ASSIGN_OPERATOR_ID: {
 			std::dynamic_pointer_cast<CompoundAssignOperator>(node);
 			break;
+		}
 
-			//
-			// Return routine result
-			//
+													   //
+													   // Return routine result
+													   //
 
-		case AST::NodeID::CALL_EXPR_ID:
+		case AST::NodeID::CALL_EXPR_ID: {
+			//TODO: For some reason returning from a call expression
+			// is not possible right now due to some semer bug.
 			break;
+		}
 
 		default:
 			break;
@@ -483,7 +523,7 @@ class ScopedRoutine
 			//RequestInternalMethod(declRef->Identifier());
 		}
 
-		// Create a new function contex
+		// Create a new function context
 		Context::Function funcCtx = ctx->MakeContext<FunctionContext>(funcNode->Identifier());
 		assert(!funcCtx->HasLocalObjects());
 
@@ -603,7 +643,7 @@ class ScopedRoutine
 	}
 
 public:
-	void operator()(std::shared_ptr<FunctionDecl>& node, std::shared_ptr<FunctionContext>& ctx)
+	inline void operator()(std::shared_ptr<FunctionDecl>& node, std::shared_ptr<FunctionContext>& ctx)
 	{
 		ProcessRoutine(node, ctx);
 	}
