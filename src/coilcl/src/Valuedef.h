@@ -288,6 +288,9 @@ inline Valuedef::ValueType<Type> MakeVoid()
 	return std::make_shared<Valuedef::ValueObject<Type>>();
 }
 
+// Evaluate the value as either true or false
+bool EvaluateAsBoolean(std::shared_ptr<Valuedef::Value> value);
+
 struct ValueFactory
 {
 	static std::shared_ptr<Valuedef::Value> BaseValue(Cry::ByteArray&);

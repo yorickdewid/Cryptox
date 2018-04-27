@@ -424,10 +424,10 @@ using Parameters = std::vector<std::shared_ptr<CoilCl::Valuedef::Value>>;
 class ScopedRoutine
 {
 	template<typename OperandPred, typename ReturnType, typename ValueType>
-	struct OperatorAdapter
+	struct OperatorAdapter final
 	{
 		OperandPred predicate;
-		OperatorAdapter(OperandPred pred)
+		inline OperatorAdapter(OperandPred pred)
 			: predicate{ pred }
 		{
 		}
@@ -454,9 +454,9 @@ class ScopedRoutine
 	{
 		switch (node->Label())
 		{
-			//
-			// Return literal types
-			//
+		//
+		// Return literal types
+		//
 
 		case AST::NodeID::CHARACTER_LITERAL_ID: {
 			return std::dynamic_pointer_cast<CharacterLiteral>(node)->Type();
@@ -471,12 +471,12 @@ class ScopedRoutine
 			return std::dynamic_pointer_cast<FloatingLiteral>(node)->Type();
 		}
 
-											//
-											// Operators
-											//
+		//
+		// Operators
+		//
 
 		case AST::NodeID::BINARY_OPERATOR_ID: {
-			auto op = std::dynamic_pointer_cast<BinaryOperator>(node);//op->Operand()
+			auto op = std::dynamic_pointer_cast<BinaryOperator>(node);//op->OperandFunctor<int>()
 			return BinaryOperation(std::plus<int>(), { ResolveExpression(op->LHS()), ResolveExpression(op->RHS()) });
 			break;
 		}
@@ -493,9 +493,9 @@ class ScopedRoutine
 			break;
 		}
 
-													   //
-													   // Return routine result
-													   //
+		//
+		// Return routine result
+		//
 
 		case AST::NodeID::CALL_EXPR_ID: {
 			//TODO: For some reason returning from a call expression
@@ -608,12 +608,16 @@ class ScopedRoutine
 			case NodeID::DECL_STMT_ID:
 				ProcessDeclaration();
 				break;
-			case NodeID::IF_STMT_ID:
-				ProcessCondition();
+			case NodeID::IF_STMT_ID: {
+				auto node = std::static_pointer_cast<IfStmt>(child);
+				ProcessCondition(node, ctx);
 				break;
-			case NodeID::RETURN_STMT_ID:
-				ProcessReturn(std::static_pointer_cast<ReturnStmt>(child), ctx);
+			}
+			case NodeID::RETURN_STMT_ID: {
+				auto node = std::static_pointer_cast<ReturnStmt>(child);
+				ProcessReturn(node, ctx);
 				break;
+			}
 			default:
 				break;
 			}
@@ -625,8 +629,18 @@ class ScopedRoutine
 		//
 	}
 
-	void ProcessCondition()
+	void ProcessCondition(std::shared_ptr<IfStmt>& node, Context::Function& ctx)
 	{
+		auto value = ResolveExpression(node->Expression());
+		if (Util::EvaluateAsBoolean(value)) {
+			if (node->HasTruthCompound()) {
+				node->TruthCompound();
+			}
+		}
+		else if (node->HasAltCompound()) {
+			node->AltCompound();
+		}
+		
 		//
 	}
 

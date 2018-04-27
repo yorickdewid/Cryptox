@@ -547,9 +547,6 @@ public:
 	{
 		Deserialize(pack);
 	}
-
-	//void Operand();
-
 	auto LHS() const noexcept { return m_lhs; }
 	auto RHS() const noexcept { return m_rhs; }
 
@@ -691,7 +688,7 @@ public:
 	CompoundAssignOperator(CompoundAssignOperand operand, const std::shared_ptr<DeclRefExpr>& node);
 
 	void SetRightSide(const std::shared_ptr<ASTNode>& node);
-	
+
 	virtual void Serialize(Serializable::Interface& pack);
 	virtual void Deserialize(Serializable::Interface& pack);
 
@@ -1757,6 +1754,12 @@ public:
 	}
 
 	IfStmt(std::shared_ptr<ASTNode>& eval, std::shared_ptr<ASTNode> truth = nullptr, std::shared_ptr<ASTNode> alt = nullptr);
+
+	auto& Expression() const { return m_evalNode; }
+	bool HasTruthCompound() const { return m_truthStmt != nullptr; }
+	auto& TruthCompound() const { return m_truthStmt; }
+	bool HasAltCompound() const { return m_altStmt != nullptr; }
+	auto& AltCompound() const { return m_altStmt; }
 
 	void SetTruthCompound(const std::shared_ptr<ASTNode>& node);
 	void SetAltCompound(const std::shared_ptr<ASTNode>& node);

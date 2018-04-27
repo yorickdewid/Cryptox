@@ -114,6 +114,12 @@ const Cry::ByteArray Value::Serialize() const
 namespace Util
 {
 
+bool EvaluateAsBoolean(std::shared_ptr<Valuedef::Value> value)
+{
+	CRY_UNUSED(value);
+	return false;
+}
+
 std::shared_ptr<Valuedef::Value> ValueFactory::BaseValue(Cry::ByteArray& buffer)
 {
 	buffer.StartOffset(0);
