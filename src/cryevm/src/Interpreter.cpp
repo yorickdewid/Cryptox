@@ -124,6 +124,11 @@ public:
 		return m_specialType[RETURN_VALUE] != nullptr;
 	}
 
+	auto ReturnValue() const noexcept
+	{
+		return m_specialType[RETURN_VALUE];
+	}
+
 protected:
 	AbstractContext() = default;
 	AbstractContext(AbstractContext *node)
@@ -357,7 +362,7 @@ public:
 	{
 		m_localObj2.insert(std::move(pair));
 	}
-	
+
 	std::shared_ptr<Valuedef::Value> LookupIdentifier(const std::string& key)
 	{
 		auto val = m_localObj2.find(key);
@@ -621,29 +626,12 @@ class ScopedRoutine
 	//TODO: cleanup messy code
 	void ProcessRoutine(std::shared_ptr<FunctionDecl>& funcNode, Context::Function& ctx)
 	{
-		using namespace AST;
-
-		auto body = funcNode->Children();
-		if (!body.size()) {
-			throw 1; //TODO: no compound in function
+		assert(funcNode->ChildrenCount());
+		if (funcNode->HasParameters()) {
+			//TODO: Do something?
 		}
 
-		// Function as arguments, commit to context
-		auto firstNode = body.at(0).lock();
-		if (!firstNode) {
-			throw 1; //TODO
-		}
-		if (firstNode->Label() == NodeID::PARAM_STMT_ID) {
-			if (body.size() < 2) {
-				throw 1; //TODO: no compound in function
-			}
-		}
-		else if (body.size() < 3) {
-			throw 1; //TODO: no compound in function
-		}
-
-		auto compoundNode = std::static_pointer_cast<CompoundStmt>(body.at(1).lock());
-		ProcessCompound(compoundNode, ctx);
+		ProcessCompound(const_cast<std::shared_ptr<CompoundStmt>&>(funcNode->FunctionCompound()), ctx);
 	}
 
 	void ProcessCompound(std::shared_ptr<CompoundStmt>& compoundNode, Context::Function& ctx)
@@ -803,8 +791,12 @@ Evaluator& Evaluator::CallRoutine(const std::string& symbol, const ArgumentList&
 	funcCtx->PushVar({ "argc", Util::MakeInt(3) });
 	ScopedRoutine{}(funcNode, funcCtx);
 
+	// If the function context contained a return value, set the return value as program exit
+	// code. When the program is finished, this global return value serves as the exit code.
+	// If any other functions are called within the global scope, then the last set return value
+	// determines the exit code.
 	if (funcCtx->HasReturnValue()) {
-		funcCtx->Parent()->ParentAs<GlobalContext>()->CreateSpecialVar<RETURN_VALUE>(Util::MakeChar('a')); //funcCtx->ReturnValue()
+		funcCtx->Parent()->ParentAs<GlobalContext>()->CreateSpecialVar<RETURN_VALUE>(funcCtx->ReturnValue(), true);
 	}
 
 	return (*this);
@@ -812,9 +804,19 @@ Evaluator& Evaluator::CallRoutine(const std::string& symbol, const ArgumentList&
 
 int Evaluator::YieldResult()
 {
-	//TODO: Fetch result from global context, if any
+	try {
+		auto globalCtx = m_unitContext->ParentAs<GlobalContext>();
+		if (globalCtx->HasReturnValue()) {
+			return globalCtx->ReturnValue()->As<int>();
+		}
+	}
+	// On casting faillure, return faillure all the way
+	catch (std::exception&) { //TODO: catch the boost casting error here
+		return EXIT_FAILURE;
+	}
 
-	return EXIT_SUCCESS; //TODO: for now
+	// Exit with success by no means of determine the program result
+	return EXIT_SUCCESS;
 }
 
 int Evaluator::CallFunction(AST::AST&& ast, const std::string& symbol, const ArgumentList& args)

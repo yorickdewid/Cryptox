@@ -1212,10 +1212,12 @@ public:
 
 	auto HasSignature() const { return !m_signature.empty(); }
 	auto& Signature() const { return m_signature; }
+	auto HasParameters() const { return m_params != nullptr; }
 	auto& ParameterStatement() const { return m_params; }
 	auto IsPrototypeDefinition() const { return m_isPrototype; }
 	auto HasPrototypeDefinition() const { return !m_protoRef.expired(); }
 	auto PrototypeDefinition() const { return m_protoRef.lock(); }
+	auto& FunctionCompound() const { return m_body; }
 
 	// Bind function body to prototype definition
 	void BindPrototype(const std::shared_ptr<FunctionDecl>& node);
