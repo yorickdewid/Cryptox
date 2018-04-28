@@ -20,23 +20,6 @@
 
 using namespace EVM;
 
-struct InternalMethod
-{
-	const std::string symbol;
-	const std::function<void(const char *)> functional;
-
-	InternalMethod(const std::string symbol, std::function<void(const char *)> func)
-		: symbol{ symbol }
-		, functional{ func }
-	{
-	}
-};
-
-std::array<InternalMethod, 2> g_internalMethod = std::array<InternalMethod, 2>{
-	InternalMethod{ "puts", [](const char *s) { puts(s); } },
-		InternalMethod{ "printf", [](const char *s) { printf(s); } },
-};
-
 inline bool IsTranslationUnitNode(const AST::ASTNode& node) noexcept
 {
 	return node.Label() == AST::NodeID::TRANSLATION_UNIT_DECL_ID;
@@ -368,7 +351,7 @@ public:
 		return val->second;
 	}
 
-	virtual bool HasLocalObjects() const noexcept
+	bool HasLocalObjects() const noexcept
 	{
 		return !m_localObj.empty();
 	}
@@ -379,6 +362,137 @@ private:
 };
 
 } // namespace
+
+  // FUTURE:
+  // Local methods must be replaced by the external modules to load functions. Fow now
+  // we trust on these few functions, although it is temporary and thus not complete.
+namespace LocalMethod
+{
+
+struct InternalMethod
+{
+	const std::string symbol;
+	const std::function<void(Context::Function&)> functional;
+
+	InternalMethod(const std::string symbol, std::function<void(Context::Function&)> func)
+		: symbol{ symbol }
+		, functional{ func }
+	{
+	}
+};
+
+void _puts(Context::Function& ctx)
+{
+	const auto value = ctx->LookupIdentifier("param1");
+	auto result = puts(value->As<std::string>().c_str());
+	ctx->CreateSpecialVar<RETURN_VALUE>(Util::MakeInt(result));
+}
+
+void _printf(Context::Function& ctx)
+{
+	const auto value = ctx->LookupIdentifier("param1");
+	auto result = printf(value->As<std::string>().c_str());
+	ctx->CreateSpecialVar<RETURN_VALUE>(Util::MakeInt(result));
+}
+
+const std::array<InternalMethod, 2> g_internalMethod = {
+	InternalMethod{ "puts", &_puts/*, {"param1", STR}*/ },
+	InternalMethod{ "printf", &_printf/*, { "param1", STR }*/ },
+};
+
+struct ExternalRoutine
+{
+	void ProcessRoutine(const InternalMethod *method, Context::Function& ctx)
+	{
+		method->functional(ctx);
+	}
+
+public:
+	inline void operator()(const InternalMethod *method, Context::Function& ctx)
+	{
+		assert(method);
+		ProcessRoutine(method, ctx);
+	}
+};
+
+const InternalMethod *RequestInternalMethod(const std::string& symbol)
+{
+	auto it = std::find_if(g_internalMethod.cbegin(), g_internalMethod.cend(), [&](const InternalMethod& method) {
+		return method.symbol == symbol;
+	});
+	if (it == g_internalMethod.cend()) {
+		return nullptr;
+	}
+	return &(*it);
+}
+
+} // namespace LocalMethod
+
+class Runnable
+{
+public:
+	class Parameter
+	{
+	public:
+		Parameter(const std::string& identifier)
+			: m_identifier{ identifier }
+		{
+		}
+
+		const std::string Identifier() const
+		{
+			return m_identifier;
+		}
+
+		bool Empty() const noexcept { return m_identifier.empty(); }
+
+	private:
+		const std::string m_identifier;
+	};
+
+public:
+	Runnable() = default;
+	Runnable(std::shared_ptr<FunctionDecl>& funcNode)
+		: m_functionData{ funcNode }
+	{
+		assert(funcNode);
+		assert(funcNode->ParameterStatement()->ChildrenCount());
+
+		for (const auto& child : funcNode->ParameterStatement()->Children()) {
+			auto paramDecl = std::static_pointer_cast<ParamDecl>(child.lock());
+			m_paramList.push_back(Parameter{ paramDecl->Identifier() });
+		}
+	}
+	Runnable(const LocalMethod::InternalMethod *exfuncRef)
+		: m_isExternal{ true }
+		, m_functionData{ exfuncRef }
+	{
+		/*assert(funcNode);
+		assert(funcNode->ParameterStatement()->ChildrenCount());
+
+		for (const auto& child : funcNode->ParameterStatement()->Children()) {
+			auto paramDecl = std::static_pointer_cast<ParamDecl>(child.lock());
+			m_paramList.push_back(Parameter{ paramDecl->Identifier() });
+		}*/
+	}
+
+	const Parameter& operator[](size_t idx) const
+	{
+		return m_paramList[idx];
+	}
+
+	inline size_t Size() const noexcept { return m_paramList.size(); }
+	inline bool HasArguments() const noexcept { return Size() > 0; }
+	inline bool IsExternal() const noexcept { return m_isExternal; }
+
+	template<typename CastType>
+	auto Data() const { return boost::get<CastType>(m_functionData); }
+
+private:
+	bool m_isExternal = false;
+	boost::variant<std::shared_ptr<FunctionDecl>, const LocalMethod::InternalMethod*> m_functionData;
+	std::vector<Parameter> m_paramList;
+};
 
 Context::Unit InitializeContext(AST::AST& ast, std::shared_ptr<GlobalContext>& ctx)
 {
@@ -481,27 +595,27 @@ struct OperandFactory
 		case BinaryOperator::BinOperand::MOD:
 			return std::modulus<Type>()(left, right);
 
-		/*case BinOperand::ASSGN:
-			return "=";*/
+			/*case BinOperand::ASSGN:
+				return "=";*/
 
-			//
-			// Bitwise operations
-			//
+				//
+				// Bitwise operations
+				//
 
-			//TODO: missing bit_or?
+				//TODO: missing bit_or?
 
 		case BinaryOperator::BinOperand::XOR:
 			return std::bit_xor<Type>()(left, right);
 		case BinaryOperator::BinOperand::AND:
 			return std::bit_and<Type>()(left, right);
-		/*case BinaryOperator::BinOperand::SLEFT:
-			return "<<";
-		case BinaryOperator::BinOperand::SRIGHT:
-			return ">>";*/
+			/*case BinaryOperator::BinOperand::SLEFT:
+				return "<<";
+			case BinaryOperator::BinOperand::SRIGHT:
+				return ">>";*/
 
-			//
-			// Comparisons
-			//
+				//
+				// Comparisons
+				//
 
 		case BinaryOperator::BinOperand::EQ:
 			return std::equal_to<Type>()(left, right);
@@ -527,6 +641,8 @@ struct OperandFactory
 		case BinaryOperator::BinOperand::LOR:
 			return std::logical_or<Type>()(left, right);
 		}
+
+		throw 0;
 	}
 };
 
@@ -620,58 +736,75 @@ class ScopedRoutine
 		throw 1; //TODO
 	}
 
-	static void CallExpression(const std::shared_ptr<CallExpr>& CallNode, Context::Function& ctx)
+	static void CallExpression(const std::shared_ptr<CallExpr>& callNode, Context::Function& ctx)
 	{
-		auto body = CallNode->Children();
-		assert(body.size());
-		auto declRef = std::static_pointer_cast<DeclRefExpr>(body.at(0).lock());
-		assert(declRef->IsResolved());
+		assert(callNode);
+		assert(callNode->ChildrenCount());
+		assert(callNode->FunctionReference()->IsResolved());
+		const std::string& functionIdentifier = callNode->FunctionReference()->Identifier();
+		Runnable function;
 
-		auto funcNode = ctx->ParentAs<UnitContext>()->LookupSymbol<FunctionDecl>(declRef->Identifier());
-		if (!funcNode) {
-			//RequestInternalMethod(declRef->Identifier());
-		}
-
-		// Create a new function context
-		Context::Function funcCtx = ctx->MakeContext<FunctionContext>(funcNode->Identifier());
+		// Create a new function context. Depending on the parent context the new context
+		// is a direct hierarchical or a sub-hierarchical child.
+		Context::Function funcCtx = ctx->MakeContext<FunctionContext>(functionIdentifier);
 		assert(!funcCtx->HasLocalObjects());
 
-		// Check if call expression has arguments
-		if (body.size() > 1) {
-			auto argStmt = std::static_pointer_cast<ArgumentStmt>(body.at(1).lock());
-			if (argStmt->ChildrenCount()) {
-				auto paramDecls = funcNode->ParameterStatement()->Children();
-				if (paramDecls.size() > argStmt->ChildrenCount()) {
-					throw 1; //TODO: source.c:0:0: error: too many arguments to function 'funcNode'
-				}
-				else if (paramDecls.size() < argStmt->ChildrenCount()) {
-					throw 2; //TODO: source.c:0:0: error: too few arguments to function 'funcNode'
-				}
+		// The symbol is can be found in different places. The interpreter will locate
+		// the runnable object according to the following algorithm:
+		//   1.) Look for the symbol in the current program assuming it is a local object
+		//   2.) Request the symbol as an external routine (internal or external module)
+		//   3.) Throw an symbol not found exception halting from further execution
+		if (auto funcNode = ctx->ParentAs<UnitContext>()->LookupSymbol<FunctionDecl>(functionIdentifier)) {
+			function = std::move(Runnable{ funcNode });
+		}
+		else if (auto exfuncRef = LocalMethod::RequestInternalMethod(functionIdentifier)) {
+			function = std::move(Runnable{ exfuncRef });
+		}
+		else {
+			throw 0; //TODO: symbol not found in internal or external module
+		}
 
-				// Assign function arguments to parameters
-				auto funcArgs = argStmt->Children();
-				auto itArgs = funcArgs.cbegin();
-				auto itParam = paramDecls.cbegin();
-				while (itArgs != funcArgs.cend() || itParam != paramDecls.cend()) {
-					auto paramDecl = std::dynamic_pointer_cast<ParamDecl>(itParam->lock());
-					if (paramDecl->Identifier().empty()) {
-						throw 3; //TODO: source.c:0:0: error: parameter name omitted to function 'funcNode'
-					}
-					//TODO: StringLiteral is not always the case
-					auto literal = std::static_pointer_cast<StringLiteral>(itArgs->lock());
-					auto val = std::shared_ptr<Valuedef::Value>{ literal->Type() };
-					funcCtx->PushVar(paramDecl->Identifier(), val );
-					++itArgs;
-					++itParam;
+		// Check if call expression has arguments, if so assign paramters to the arguments
+		// and commit the arguments into the function context.
+		if (callNode->HasArguments()) {
+			assert(callNode->ArgumentStatement()->ChildrenCount());
+			const auto argsDecls = callNode->ArgumentStatement()->Children();
+
+			// Sanity check, should have been done by semer
+			if (function.Size() > argsDecls.size()) {
+				throw 1; //TODO: source.c:0:0: error: too many arguments to function 'funcNode'
+			}
+			else if (function.Size() < argsDecls.size()) {
+				throw 2; //TODO: source.c:0:0: error: too few arguments to function 'funcNode'
+			}
+
+			// Assign function arguments to parameters
+			int i = 0;
+			auto itArgs = argsDecls.cbegin();
+			while (itArgs != argsDecls.cend()) {
+				if (function[i].Empty()) {
+					throw 3; //TODO: source.c:0:0: error: parameter name omitted to function 'funcNode'
 				}
+				//TODO: StringLiteral is not always the case
+				auto literal = std::static_pointer_cast<StringLiteral>(itArgs->lock());
+				auto val = std::shared_ptr<Valuedef::Value>{ literal->Type() };
+				funcCtx->PushVar(function[i].Identifier(), val);
+				++itArgs;
+				++i;
 			}
 		}
 
-		// Call the routine with a new functional context. An new instance is created intentionally
-		// to restrict context scope, and to allow the compiler to RAII all resources. The context
-		// which is provided with this call can be read one more time after completion to extract
-		// the result.
-		ScopedRoutine{}(funcNode, funcCtx);
+		// Determine whether to call internal or external routine
+		if (function.IsExternal()) {
+			LocalMethod::ExternalRoutine{}(function.Data<const LocalMethod::InternalMethod*>(), funcCtx);
+		}
+		else {
+			// Call the routine with a new functional context. An new instance is created intentionally
+			// to restrict context scope, and to allow the compiler to RAII all resources. The context
+			// which is provided with this call can be read one more time after completion to extract
+			// the result.
+			ScopedRoutine{}(function.Data<std::shared_ptr<FunctionDecl>>(), funcCtx);
+		}
 	}
 
 	static void CreateCompound(const std::shared_ptr<AST::ASTNode>& node, Context::Function& ctx)

@@ -547,7 +547,7 @@ public:
 	{
 		Deserialize(pack);
 	}
-	
+
 	auto LHS() const noexcept { return m_lhs; }
 	auto RHS() const noexcept { return m_rhs; }
 
@@ -1213,12 +1213,12 @@ public:
 	void SetSignature(std::vector<AST::TypeFacade>&& signature);
 	void SetParameterStatement(const std::shared_ptr<ParamStmt>& node);
 
-	auto HasSignature() const { return !m_signature.empty(); }
+	bool HasSignature() const noexcept { return !m_signature.empty(); }
 	auto& Signature() const { return m_signature; }
-	auto HasParameters() const { return m_params != nullptr; }
+	bool HasParameters() const noexcept { return m_params != nullptr; }
 	auto& ParameterStatement() const { return m_params; }
-	auto IsPrototypeDefinition() const { return m_isPrototype; }
-	auto HasPrototypeDefinition() const { return !m_protoRef.expired(); }
+	bool IsPrototypeDefinition() const noexcept { return m_isPrototype; }
+	bool HasPrototypeDefinition() const noexcept { return !m_protoRef.expired(); }
 	auto PrototypeDefinition() const { return m_protoRef.lock(); }
 	auto& FunctionCompound() const { return m_body; }
 
@@ -1408,6 +1408,8 @@ public:
 	LABEL();
 	const std::string NodeName() const;
 
+	auto& FunctionReference() const { return m_funcRef; }
+	bool HasArguments() const noexcept { return m_args != nullptr; }
 	auto& ArgumentStatement() const { return m_args; }
 
 	//TODO: friend
