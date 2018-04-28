@@ -114,11 +114,24 @@ const Cry::ByteArray Value::Serialize() const
 namespace Util
 {
 
-//TODO: Fix
 bool EvaluateAsBoolean(std::shared_ptr<Valuedef::Value> value)
 {
-	CRY_UNUSED(value);
+	if (IsVoid(value)) {
+		throw 1; //TODO: void value is non orthogonal
+	}
+
+	//FUTURE: this is expensive, replace try/catch
+	try {
+		return value->As<int>();
+	}
+	catch (...) {}
+
 	return false;
+}
+
+bool IsVoid(std::shared_ptr<Valuedef::Value> value)
+{
+	return value->IsVoid();
 }
 
 std::shared_ptr<Valuedef::Value> ValueFactory::BaseValue(Cry::ByteArray& buffer)

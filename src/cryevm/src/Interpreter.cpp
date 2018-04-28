@@ -332,41 +332,35 @@ public:
 	}
 
 	//TODO:
-	void PushVarAsCopy(const std::string& key, std::shared_ptr<AST::ASTNode>& node)
+	/*void PushVarAsCopy(const std::string& key, std::shared_ptr<AST::ASTNode>& node)
 	{
 		CRY_UNUSED(key);
 		CRY_UNUSED(node);
-	}
+	}*/
 
 	// Link value to the original value definition from the caller
-	void PushVarAsPointer(const std::string& key, std::shared_ptr<AST::ASTNode>& node)
+	/*void PushVarAsPointer(const std::string&& key, std::shared_ptr<Valuedef::Value>&& value)
 	{
-		m_localObj.insert({ key, node });
-	}
-
-	//TODO: No AST node, but value
-	void PushVar(const std::string& key, std::shared_ptr<AST::ASTNode>& node)
-	{
-		PushVarAsPointer(key, node);
-	}
+		m_localObj.insert({ std::move(key), std::move(value) });
+	}*/
 
 	void PushVar(const std::string& key, std::shared_ptr<Valuedef::Value>& value)
 	{
-		m_localObj2.insert({ key, value });
+		m_localObj.insert({ key, value });
 	}
 	void PushVar(const std::string&& key, std::shared_ptr<Valuedef::Value>&& value)
 	{
-		m_localObj2.insert({ std::move(key), std::move(value) });
+		m_localObj.insert({ std::move(key), std::move(value) });
 	}
 	void PushVar(std::pair<const std::string, std::shared_ptr<Valuedef::Value>>&& pair)
 	{
-		m_localObj2.insert(std::move(pair));
+		m_localObj.insert(std::move(pair));
 	}
 
 	std::shared_ptr<Valuedef::Value> LookupIdentifier(const std::string& key)
 	{
-		auto val = m_localObj2.find(key);
-		if (val == m_localObj2.end()) {
+		auto val = m_localObj.find(key);
+		if (val == m_localObj.end()) {
 			//TODO: search higher up
 			return nullptr;
 		}
@@ -380,8 +374,7 @@ public:
 	}
 
 private:
-	std::map<std::string, std::shared_ptr<Valuedef::Value>> m_localObj2;
-	std::map<std::string, std::shared_ptr<AST::ASTNode>> m_localObj;
+	std::map<std::string, std::shared_ptr<Valuedef::Value>> m_localObj;
 	std::string m_name;
 };
 
@@ -602,7 +595,10 @@ class ScopedRoutine
 					if (paramDecl->Identifier().empty()) {
 						throw 3; //TODO: source.c:0:0: error: parameter name omitted to function 'funcNode'
 					}
-					funcCtx->PushVar(paramDecl->Identifier(), itArgs->lock());
+					//TODO: StringLiteral is not always the case
+					auto literal = std::static_pointer_cast<StringLiteral>(itArgs->lock());
+					auto val = std::shared_ptr<Valuedef::Value>{ literal->Type() };
+					funcCtx->PushVar(paramDecl->Identifier(), val );
 					++itArgs;
 					++itParam;
 				}
