@@ -451,6 +451,85 @@ void Evaluator::Unit(const TranslationUnitDecl& node)
 
 using Parameters = std::vector<std::shared_ptr<CoilCl::Valuedef::Value>>;
 
+template<typename Type>
+struct OperandFactory
+{
+	using result_type = Type;
+
+	BinaryOperator::BinOperand operand;
+	OperandFactory(BinaryOperator::BinOperand operand)
+		: operand{ operand }
+	{
+	}
+
+	constexpr Type operator()(const Type& left, const Type& right) const
+	{
+		switch (operand) {
+
+			//
+			// Arithmetic operations
+			//
+
+		case BinaryOperator::BinOperand::PLUS:
+			return std::plus<Type>()(left, right);
+		case BinaryOperator::BinOperand::MINUS:
+			return std::minus<Type>()(left, right);
+		case BinaryOperator::BinOperand::MUL:
+			return std::multiplies<Type>()(left, right);
+		case BinaryOperator::BinOperand::DIV:
+			return std::divides<Type>()(left, right);
+		case BinaryOperator::BinOperand::MOD:
+			return std::modulus<Type>()(left, right);
+
+		/*case BinOperand::ASSGN:
+			return "=";*/
+
+			//
+			// Bitwise operations
+			//
+
+			//TODO: missing bit_or?
+
+		case BinaryOperator::BinOperand::XOR:
+			return std::bit_xor<Type>()(left, right);
+		case BinaryOperator::BinOperand::AND:
+			return std::bit_and<Type>()(left, right);
+		/*case BinaryOperator::BinOperand::SLEFT:
+			return "<<";
+		case BinaryOperator::BinOperand::SRIGHT:
+			return ">>";*/
+
+			//
+			// Comparisons
+			//
+
+		case BinaryOperator::BinOperand::EQ:
+			return std::equal_to<Type>()(left, right);
+		case BinaryOperator::BinOperand::NEQ:
+			return std::not_equal_to<Type>()(left, right);
+		case BinaryOperator::BinOperand::LT:
+			return std::less<Type>()(left, right);
+		case BinaryOperator::BinOperand::GT:
+			return std::greater<Type>()(left, right);
+		case BinaryOperator::BinOperand::LE:
+			return std::less_equal<Type>()(left, right);
+		case BinaryOperator::BinOperand::GE:
+			return std::greater_equal<Type>()(left, right);
+
+			//
+			// Logical operations
+			//
+
+			//TODO: missing negate?
+
+		case BinaryOperator::BinOperand::LAND:
+			return std::logical_and<Type>()(left, right);
+		case BinaryOperator::BinOperand::LOR:
+			return std::logical_or<Type>()(left, right);
+		}
+	}
+};
+
 class ScopedRoutine
 {
 	template<typename OperandPred, typename ReturnType, typename ValueType>
@@ -511,8 +590,8 @@ class ScopedRoutine
 		}
 
 		case AST::NodeID::BINARY_OPERATOR_ID: {
-			auto op = std::dynamic_pointer_cast<BinaryOperator>(node);//op->OperandFunctor<int>()
-			return BinaryOperation(std::plus<int>(), { ResolveExpression(op->LHS(), ctx), ResolveExpression(op->RHS(), ctx) });
+			auto op = std::dynamic_pointer_cast<BinaryOperator>(node);
+			return BinaryOperation(OperandFactory<int>(op->Operand()), { ResolveExpression(op->LHS(), ctx), ResolveExpression(op->RHS(), ctx) });
 		}
 		case AST::NodeID::CONDITIONAL_OPERATOR_ID: {
 			std::dynamic_pointer_cast<ConditionalOperator>(node);

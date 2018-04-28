@@ -87,6 +87,10 @@ public:
 	// Check if value is empty
 	inline bool Empty() const noexcept { return m_value.empty(); }
 
+	//FUTURE: maybe not here
+	// Check if value is void
+	inline bool IsVoid() const noexcept { return m_isVoid; }
+
 	// By default try direct cast from any
 	template<typename _Ty>
 	_Ty As() const { return boost::get<_Ty>(m_value); }
@@ -289,7 +293,9 @@ inline Valuedef::ValueType<Type> MakeVoid()
 }
 
 // Evaluate the value as either true or false
-bool EvaluateAsBoolean(std::shared_ptr<Valuedef::Value> value);
+bool EvaluateAsBoolean(std::shared_ptr<Valuedef::Value>);
+// Test if the value is a void type
+bool IsVoid(std::shared_ptr<Valuedef::Value>);
 
 struct ValueFactory
 {

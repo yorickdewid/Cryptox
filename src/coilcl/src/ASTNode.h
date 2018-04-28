@@ -547,8 +547,11 @@ public:
 	{
 		Deserialize(pack);
 	}
+	
 	auto LHS() const noexcept { return m_lhs; }
 	auto RHS() const noexcept { return m_rhs; }
+
+	BinOperand Operand() const noexcept { return m_operand; };
 
 	void SetRightSide(const std::shared_ptr<ASTNode>& node);
 
