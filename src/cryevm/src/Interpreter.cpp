@@ -532,29 +532,12 @@ struct OperandFactory
 
 class ScopedRoutine
 {
-	template<typename OperandPred, typename ReturnType, typename ValueType>
-	struct OperatorAdapter final
-	{
-		OperandPred predicate;
-		inline OperatorAdapter(OperandPred pred)
-			: predicate{ pred }
-		{
-		}
-
-		constexpr ReturnType operator()(const ReturnType acc, const ValueType& rhs) const
-		{
-			return predicate(acc, rhs->As<ReturnType>());
-		}
-	};
-
-	//FUTURE: We can do even better using C++17 static template variadic counters, overengineering FTW
 	template<typename OperandPred, typename ContainerType = std::shared_ptr<CoilCl::Valuedef::Value>>
-	static std::shared_ptr<CoilCl::Valuedef::Value> BinaryOperation(OperandPred predicate, std::initializer_list<ContainerType> values)
+	static std::shared_ptr<CoilCl::Valuedef::Value> BinaryOperation(OperandPred predicate, ContainerType&& valuesLHS, ContainerType&& valuesRHS)
 	{
-		OperandPred::result_type result = std::accumulate(
-			values.begin(),
-			values.end(), 0,
-			OperatorAdapter<OperandPred, OperandPred::result_type, ContainerType>{ predicate });
+		OperandPred::result_type result = predicate(
+			valuesLHS->As<OperandPred::result_type>(),
+			valuesRHS->As<OperandPred::result_type>());
 
 		return Util::MakeInt(result);
 	}
@@ -591,7 +574,7 @@ class ScopedRoutine
 
 		case AST::NodeID::BINARY_OPERATOR_ID: {
 			auto op = std::dynamic_pointer_cast<BinaryOperator>(node);
-			return BinaryOperation(OperandFactory<int>(op->Operand()), { ResolveExpression(op->LHS(), ctx), ResolveExpression(op->RHS(), ctx) });
+			return BinaryOperation(OperandFactory<int>(op->Operand()), ResolveExpression(op->LHS(), ctx), ResolveExpression(op->RHS(), ctx));
 		}
 		case AST::NodeID::CONDITIONAL_OPERATOR_ID: {
 			std::dynamic_pointer_cast<ConditionalOperator>(node);
