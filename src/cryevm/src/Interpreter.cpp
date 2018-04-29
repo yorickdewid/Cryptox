@@ -383,21 +383,29 @@ struct InternalMethod
 
 void _puts(Context::Function& ctx)
 {
-	const auto value = ctx->LookupIdentifier("param1");
+	const auto value = ctx->LookupIdentifier("str");
 	auto result = puts(value->As<std::string>().c_str());
 	ctx->CreateSpecialVar<RETURN_VALUE>(Util::MakeInt(result));
 }
 
 void _printf(Context::Function& ctx)
 {
-	const auto value = ctx->LookupIdentifier("param1");
+	const auto value = ctx->LookupIdentifier("fmt");
 	auto result = printf(value->As<std::string>().c_str());
 	ctx->CreateSpecialVar<RETURN_VALUE>(Util::MakeInt(result));
 }
 
-const std::array<InternalMethod, 2> g_internalMethod = {
-	InternalMethod{ "puts", &_puts/*, {"param1", STR}*/ },
-	InternalMethod{ "printf", &_printf/*, { "param1", STR }*/ },
+void _scanf(Context::Function& ctx)
+{
+	const auto value = ctx->LookupIdentifier("fmt");
+	auto result = scanf(value->As<std::string>().c_str());
+	ctx->CreateSpecialVar<RETURN_VALUE>(Util::MakeInt(result));
+}
+
+const std::array<InternalMethod, 3> g_internalMethod = {
+	InternalMethod{ "puts", &_puts/*, {"str", STR}*/ },
+	InternalMethod{ "printf", &_printf/*, { "fmt", STR }*/ },
+	InternalMethod{ "scanf", &_scanf/*, { "fmt", STR }*/ },
 };
 
 struct ExternalRoutine
@@ -434,20 +442,19 @@ public:
 	class Parameter
 	{
 	public:
-		Parameter(const std::string& identifier)
+		Parameter(const std::string& identifier, const AST::TypeFacade& type)
 			: m_identifier{ identifier }
+			, m_type{ type }
 		{
 		}
 
-		const std::string Identifier() const
-		{
-			return m_identifier;
-		}
-
-		bool Empty() const noexcept { return m_identifier.empty(); }
+		inline const std::string Identifier() const noexcept { return m_identifier; }
+		inline bool Empty() const noexcept { return m_identifier.empty(); }
+		inline AST::TypeFacade DataType() const noexcept { return m_type; }
 
 	private:
 		const std::string m_identifier;
+		const AST::TypeFacade m_type;
 	};
 
 public:
@@ -460,20 +467,15 @@ public:
 
 		for (const auto& child : funcNode->ParameterStatement()->Children()) {
 			auto paramDecl = std::static_pointer_cast<ParamDecl>(child.lock());
-			m_paramList.push_back(Parameter{ paramDecl->Identifier() });
+			assert(paramDecl->HasReturnType());
+			m_paramList.push_back(Parameter{ paramDecl->Identifier(), paramDecl->ReturnType() });
 		}
 	}
 	Runnable(const LocalMethod::InternalMethod *exfuncRef)
 		: m_isExternal{ true }
 		, m_functionData{ exfuncRef }
 	{
-		/*assert(funcNode);
-		assert(funcNode->ParameterStatement()->ChildrenCount());
-
-		for (const auto& child : funcNode->ParameterStatement()->Children()) {
-			auto paramDecl = std::static_pointer_cast<ParamDecl>(child.lock());
-			m_paramList.push_back(Parameter{ paramDecl->Identifier() });
-		}*/
+		//
 	}
 
 	const Parameter& operator[](size_t idx) const
@@ -787,6 +789,9 @@ class ScopedRoutine
 				}
 				//TODO: StringLiteral is not always the case
 				auto literal = std::static_pointer_cast<StringLiteral>(itArgs->lock());
+				if (function[i].DataType() != literal->Type()->DataType()) {
+					throw 3; //TODO: source.c:0:0: error: cannot convert argument of type 'X' to parameter type 'Y'
+				}
 				auto val = std::shared_ptr<Valuedef::Value>{ literal->Type() };
 				funcCtx->PushVar(function[i].Identifier(), val);
 				++itArgs;
@@ -794,15 +799,14 @@ class ScopedRoutine
 			}
 		}
 
-		// Determine whether to call internal or external routine
+		// Call the routine with a new functional context. An new instance is created intentionally
+		// to restrict context scope, and to allow the compiler to RAII all resources. The context
+		// which is provided with this call can be read one more time after completion to extract
+		// the result.
 		if (function.IsExternal()) {
 			LocalMethod::ExternalRoutine{}(function.Data<const LocalMethod::InternalMethod*>(), funcCtx);
 		}
 		else {
-			// Call the routine with a new functional context. An new instance is created intentionally
-			// to restrict context scope, and to allow the compiler to RAII all resources. The context
-			// which is provided with this call can be read one more time after completion to extract
-			// the result.
 			ScopedRoutine{}(function.Data<std::shared_ptr<FunctionDecl>>(), funcCtx);
 		}
 	}
