@@ -14,7 +14,7 @@
 
 namespace CoilCl
 {
-namespace AST
+namespace AST //TODO: part of Typedef
 {
 
 class TypeFacade
@@ -25,16 +25,15 @@ class TypeFacade
 public:
 	//FUTURE: maybe remove
 	TypeFacade() = default;
-
 	TypeFacade(const Typedef::BaseType& type)
 		: m_type{ type }
 	{
 	}
 
 	// Fetch type information
-	inline auto HasValue() const { return m_type != nullptr; }
-	inline auto IsPointer() const { return m_ptrCount > 0; }
-	inline auto PointerCount() const { return m_ptrCount; }
+	inline auto HasValue() const noexcept { return m_type != nullptr; }
+	inline auto IsPointer() const noexcept { return m_ptrCount > 0; }
+	inline auto PointerCount() const noexcept { return m_ptrCount; }
 	inline void SetPointer(size_t ptrCount) { m_ptrCount = ptrCount; }
 	inline auto Size() const { return m_type->UnboxedSize(); }
 

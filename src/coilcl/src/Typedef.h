@@ -31,6 +31,7 @@ using BaseType = std::shared_ptr<Typedef::TypedefBase>;
 class TypedefBase
 {
 public:
+	// Envelope helper to identify type
 	enum class TypeVariation : uint8_t
 	{
 		INVAL = 0,
@@ -60,16 +61,18 @@ public:
 		VOLATILE,
 	};
 
-	template<typename _Ty, size_t N>
+	template<typename ContainerType, size_t Size>
 	class StaticArray
 	{
 	public:
-		using InternalArray = std::array<_Ty, N>;
+		using InternalArray = std::array<ContainerType, Size>;
 
 		StaticArray() = default;
-		StaticArray(std::initializer_list<TypeQualifier>)
+		StaticArray(std::initializer_list<TypeQualifier> list)
 		{
-			//TODO
+			for (const auto& value : list) {
+				m_array.fill(value);
+			}
 		}
 
 		using value_type = typename InternalArray::value_type;
@@ -80,7 +83,7 @@ public:
 		using reverse_iterator = typename InternalArray::reverse_iterator;
 		using const_reverse_iterator = typename InternalArray::const_reverse_iterator;
 
-		bool Full() const noexcept { return m_offset >= N; }
+		bool Full() const noexcept { return m_offset >= Size; }
 		bool Empty() const noexcept { return !m_offset; }
 
 		iterator begin() { return m_array.begin(); }
@@ -201,11 +204,10 @@ public:
 
 	// Return type name string
 	const std::string TypeName() const;
-
 	// If any type options are set, allow type coalescence
 	bool AllowCoalescence() const { return m_typeOptions.any(); }
-
-	auto TypeSpecifier() const { return m_specifier; }
+	// Return the type specifier
+	Specifier TypeSpecifier() const { return m_specifier; }
 
 	size_t UnboxedSize() const;
 
@@ -239,6 +241,8 @@ public:
 	}
 
 	bool AllowCoalescence() const final { return false; }
+	// Return the record specifier
+	Specifier TypeSpecifier() const { return m_specifier; }
 
 	//TODO: quite the puzzle
 	size_t UnboxedSize() const { return 0; }
@@ -315,6 +319,8 @@ public:
 
 } // namespace Typedef
 
+//TODO: Move to Facade
+//TODO: Why pointer?
 namespace Util
 {
 
