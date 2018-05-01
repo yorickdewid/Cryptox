@@ -327,13 +327,13 @@ public:
 		m_localObj.insert({ std::move(key), std::move(value) });
 	}*/
 
-	void PushVar(const std::string& key, std::shared_ptr<Valuedef::Value>& value)
+	template<typename KeyType, typename ValueType>
+	void PushVar(KeyType&& key, ValueType&& value)
 	{
-		m_localObj.insert({ key, value });
-	}
-	void PushVar(const std::string&& key, std::shared_ptr<Valuedef::Value>&& value)
-	{
-		m_localObj.insert({ std::move(key), std::move(value) });
+		using InternalType = std::remove_cv<std::remove_reference<KeyType>::type>::type;
+		static_assert(std::is_same<InternalType, std::string>::value || 
+			std::is_same<InternalType, const char *>::value, "");
+		m_localObj.emplace(std::forward<KeyType>(key), std::forward<ValueType>(value));
 	}
 	void PushVar(std::pair<const std::string, std::shared_ptr<Valuedef::Value>>&& pair)
 	{
