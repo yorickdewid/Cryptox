@@ -233,7 +233,52 @@ public:
 		return std::make_shared<ContextType>(this, std::forward<Args>(args)...);
 	}
 
+	//TODO:
+	// Copy the original and insert the new value in the context
+	//void PushVarAsCopy(const std::string& key, std::shared_ptr<AST::ASTNode>& node);
+
+	//TODO:
+	// Link value to the original value definition from the caller
+	//void PushVarAsPointer(const std::string&& key, std::shared_ptr<Valuedef::Value>&& value);
+
+	//template<typename KeyType, typename ValueType>
+	//void PushVar(KeyType&& key, ValueType&& value)
+	//{
+	//	//FUTURE: std::remove_cvref
+	//	using InternalType = std::remove_cv<std::remove_reference<KeyType>::type>::type;
+	//	static_assert(std::is_same<InternalType, std::string>::value ||
+	//		std::is_same<InternalType, const char *>::value, "");
+	//	m_localObj.emplace(std::forward<KeyType>(key), std::forward<ValueType>(value));
+	//}
+	void PushVar(std::pair<const std::string, std::shared_ptr<Valuedef::Value>>&& pair)
+	{
+		// Static declarations are unit context scope
+		/*if (Util::IsStaticType(pair.second->DataType())) {
+			m_localObj.insert(std::move(pair));
+		}*/
+		
+		//ParentAs<GlobalContext>()->PushVar(std::move(pair));
+	}
+
+	std::shared_ptr<Valuedef::Value> LookupIdentifier(const std::string& key)
+	{
+		auto val = m_localObj.find(key);
+		if (val == m_localObj.end()) {
+			//TODO: search higher up
+			//return ParentAs<GlobalContext>()->LookupIdentifier(key);
+			return nullptr;
+		}
+
+		return val->second;
+	}
+
+	bool HasLocalObjects() const noexcept
+	{
+		return !m_localObj.empty();
+	}
+
 private:
+	std::map<std::string, std::shared_ptr<Valuedef::Value>> m_localObj;
 	//std::list<std::shared_ptr<AbstractContext>> m_objects;
 	std::map<std::string, std::weak_ptr<AST::ASTNode>> m_symbolTable;
 	std::string m_name;
@@ -315,21 +360,17 @@ public:
 	}
 
 	//TODO:
-	/*void PushVarAsCopy(const std::string& key, std::shared_ptr<AST::ASTNode>& node)
-	{
-		CRY_UNUSED(key);
-		CRY_UNUSED(node);
-	}*/
+	// Copy the original and insert the new value in the context
+	//void PushVarAsCopy(const std::string& key, std::shared_ptr<AST::ASTNode>& node);
 
+	//TODO:
 	// Link value to the original value definition from the caller
-	/*void PushVarAsPointer(const std::string&& key, std::shared_ptr<Valuedef::Value>&& value)
-	{
-		m_localObj.insert({ std::move(key), std::move(value) });
-	}*/
+	//void PushVarAsPointer(const std::string&& key, std::shared_ptr<Valuedef::Value>&& value);
 
 	template<typename KeyType, typename ValueType>
 	void PushVar(KeyType&& key, ValueType&& value)
 	{
+		//FUTURE: std::remove_cvref
 		using InternalType = std::remove_cv<std::remove_reference<KeyType>::type>::type;
 		static_assert(std::is_same<InternalType, std::string>::value || 
 			std::is_same<InternalType, const char *>::value, "");
@@ -344,8 +385,7 @@ public:
 	{
 		auto val = m_localObj.find(key);
 		if (val == m_localObj.end()) {
-			//TODO: search higher up
-			return nullptr;
+			return ParentAs<UnitContext>()->LookupIdentifier(key);
 		}
 
 		return val->second;
@@ -551,6 +591,14 @@ void Evaluator::Unit(const TranslationUnitDecl& node)
 				break;
 			}
 			case NodeID::DECL_STMT_ID: {
+				for (const auto& child : ptr->Children()) {
+					auto node = std::static_pointer_cast<VarDecl>(child.lock());
+					if (node->HasExpression()) {
+						//TODO: unit must be literal node, otherwise:
+						//THROW: initializer element is not constant
+						m_unitContext->PushVar({ node->Identifier(), Util::MakeInt(12) });
+					}
+				}
 				break;
 			}
 			case NodeID::FUNCTION_DECL_ID: {
@@ -818,7 +866,6 @@ class ScopedRoutine
 		//
 	}
 
-	//TODO: cleanup messy code
 	void ProcessRoutine(std::shared_ptr<FunctionDecl>& funcNode, Context::Function& ctx)
 	{
 		assert(funcNode->ChildrenCount());

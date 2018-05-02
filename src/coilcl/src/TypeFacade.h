@@ -72,4 +72,29 @@ private:
 };
 
 } // namespace AST
+
+namespace Util
+{
+
+inline bool IsStaticType(const AST::TypeFacade& typeFacace)
+{
+	return typeFacace->StorageClass() == Typedef::TypedefBase::StorageClassSpecifier::STATIC;
+}
+template<typename InternalType>
+inline bool IsStaticType(const InternalType& type)
+{
+	return type->StorageClass() == Typedef::TypedefBase::StorageClassSpecifier::STATIC;
+}
+
+inline bool IsExternType(const AST::TypeFacade& typeFacace)
+{
+	return typeFacace->StorageClass() == Typedef::TypedefBase::StorageClassSpecifier::EXTERN;
+}
+template<typename InternalType>
+inline bool IsExternType(const InternalType& type)
+{
+	return type->StorageClass() == Typedef::TypedefBase::StorageClassSpecifier::EXTERN;
+}
+
+} // namespace Util
 } // namespace CoilCl
