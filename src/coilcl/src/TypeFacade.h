@@ -31,11 +31,11 @@ public:
 	}
 
 	// Fetch type information
-	inline auto HasValue() const noexcept { return m_type != nullptr; }
-	inline auto IsPointer() const noexcept { return m_ptrCount > 0; }
-	inline auto PointerCount() const noexcept { return m_ptrCount; }
+	inline bool HasValue() const noexcept { return m_type != nullptr; }
+	inline bool IsPointer() const noexcept { return m_ptrCount > 0; }
+	inline size_t PointerCount() const noexcept { return m_ptrCount; }
 	inline void SetPointer(size_t ptrCount) { m_ptrCount = ptrCount; }
-	inline auto Size() const { return m_type->UnboxedSize(); }
+	inline size_t Size() const { return m_type->UnboxedSize(); }
 
 	// Concat type base name and pointer counter for convenience
 	std::string TypeName() const
@@ -56,6 +56,7 @@ public:
 	// Convert data stream into type
 	static void Deserialize(TypeFacade&, const std::vector<uint8_t>&);
 
+	//TODO: REMOVE: FIXME: DEPRECATED
 	const std::type_info& Type() const
 	{
 		if (!HasValue()) { return typeid(nullptr); }
@@ -76,33 +77,15 @@ private:
 namespace Util
 {
 
-inline bool IsTypeStatic(const AST::TypeFacade& typeFacace)
-{
-	return typeFacace->StorageClass() == Typedef::TypedefBase::StorageClassSpecifier::STATIC;
-}
 template<typename InternalType>
 inline bool IsTypeStatic(const InternalType& type)
 {
 	return type->StorageClass() == Typedef::TypedefBase::StorageClassSpecifier::STATIC;
 }
-
-inline bool IsTypeExtern(const AST::TypeFacade& typeFacace)
-{
-	return typeFacace->StorageClass() == Typedef::TypedefBase::StorageClassSpecifier::EXTERN;
-}
 template<typename InternalType>
 inline bool IsTypeExtern(const InternalType& type)
 {
 	return type->StorageClass() == Typedef::TypedefBase::StorageClassSpecifier::EXTERN;
-}
-
-inline bool IsTypeConst(const AST::TypeFacade& typeFacace)
-{
-	for (const auto& qualifier : typeFacace->TypeQualifiers()) {
-		if (qualifier == Typedef::TypedefBase::TypeQualifier::CONST_T) {
-			return true;
-		}
-	}
 }
 template<typename InternalType>
 inline bool IsTypeConst(const InternalType& type)

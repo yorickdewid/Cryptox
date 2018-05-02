@@ -35,14 +35,16 @@ class Value
 	friend struct Util::ValueFactory;
 
 protected:
-	using ValueVariant = boost::variant<int, char, double, bool, std::string>;
+	using ValueVariant = boost::variant<int, char, float, double, bool, std::string>;
+	using ValueArray = std::vector<Value>;
 
 	// The internal datastructure stores the value
 	// as close to the actual data type specifier.
 	ValueVariant m_value;
 
-	// If this counter is greater than 0, the external type is an array
-	size_t m_arraySize{ 0 };
+	// The internal datastructure stores the array
+	// as an vector of values.
+	ValueArray m_array;
 
 	// True if type is void
 	bool m_isVoid{ false };
@@ -51,8 +53,8 @@ protected:
 	{
 		std::string output;
 
-		template<typename _Ty>
-		void operator()(_Ty& value)
+		template<typename NativeType>
+		void operator()(NativeType& value)
 		{
 			output = boost::lexical_cast<std::string>(value);
 		}
@@ -78,8 +80,8 @@ public:
 	auto DataType() const { return std::dynamic_pointer_cast<_CastTy>(m_objectType); }
 
 	// Check if current storage type is array
-	inline bool IsArray() const noexcept { return m_arraySize > 0; }
-	inline size_t Size() const noexcept { return m_arraySize; }
+	inline bool IsArray() const noexcept { return m_array.size() > 0; }
+	inline size_t Size() const noexcept { return m_array.size(); }
 
 	// Check if value is empty
 	inline bool Empty() const noexcept { return m_value.empty(); }
@@ -279,6 +281,11 @@ template<typename Type = int>
 inline Valuedef::ValueType<Type> MakeInt(Type v)
 {
 	return MakeValueObject<Type>(Typedef::BuiltinType::Specifier::INT, std::move(v));
+}
+template<typename Type = float>
+inline Valuedef::ValueType<Type> MakeFloat(Type v)
+{
+	return MakeValueObject<Type>(Typedef::BuiltinType::Specifier::FLOAT, std::move(v));
 }
 template<typename Type = double>
 inline Valuedef::ValueType<Type> MakeDouble(Type v)

@@ -28,6 +28,9 @@ Value::Value(Typedef::BaseType typeBase, ValueVariant value)
 {
 }
 
+namespace
+{
+
 class TypePacker final : public boost::static_visitor<>
 {
 	enum NativeType : uint8_t
@@ -92,13 +95,15 @@ private:
 	Cry::ByteArray& m_buffer;
 };
 
+} // namespace
+
 const Cry::ByteArray Value::Serialize() const
 {
 	Cry::ByteArray buffer;
 	buffer.SetMagic(VALUE_MAGIC);
 	buffer.SetPlatformCompat();
 	buffer.SerializeAs<Cry::Byte>(m_isVoid);
-	buffer.SerializeAs<Cry::Short>(m_arraySize);//FUTURE: Limited to 16bits
+	//buffer.SerializeAs<Cry::Short>(m_arraySize);//FUTURE: Limited to 16bits
 
 	const auto type = m_objectType->TypeEnvelope();
 	buffer.SerializeAs<Cry::Short>(type.size());
@@ -175,7 +180,7 @@ std::shared_ptr<Valuedef::Value> ValueFactory::BaseValue(Cry::ByteArray& buffer)
 		}
 	}
 
-	value->m_arraySize = arraySize;
+	//value->m_arraySize = arraySize;
 	return value;
 }
 

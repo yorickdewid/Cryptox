@@ -18,6 +18,12 @@
 #define RETURN_VALUE 0
 #define ENTRY_SYMBOL "main"
 
+#define DEFAULT_MAKE_CONTEXT() \
+	template<typename ContextType, typename... Args> \
+	std::shared_ptr<ContextType> MakeContext(Args&&... args) { \
+		return std::make_shared<ContextType>(shared_from_this(), std::forward<Args>(args)...); \
+	}
+
 using namespace EVM;
 
 inline bool IsTranslationUnitNode(const AST::ASTNode& node) noexcept
@@ -63,6 +69,7 @@ using Unit = std::shared_ptr<UnitContext>;
 using Compound = std::shared_ptr<CompoundContext>;
 using Function = std::shared_ptr<FunctionContext>;
 
+// Make global context from existing context or create a new global context
 Global MakeGlobalContext(std::shared_ptr<AbstractContext> ctx = nullptr)
 {
 	if (ctx) {
@@ -73,20 +80,66 @@ Global MakeGlobalContext(std::shared_ptr<AbstractContext> ctx = nullptr)
 
 } // namespace Context
 
+struct DeclarationRegistry
+{
+	//TODO
+	//virtual PushVar() = 0;
+	//TODO:
+	// Copy the original and insert the new value in the context
+	//void PushVarAsCopy(const std::string& key, std::shared_ptr<AST::ASTNode>& node);
+	//TODO:
+	// Link value to the original value definition from the caller
+	//void PushVarAsPointer(const std::string&& key, std::shared_ptr<Valuedef::Value>&& value);
+	// Find the value by identifier, if not found null should be returned
+	virtual std::shared_ptr<Valuedef::Value> LookupIdentifier(const std::string& key) = 0;
+	// Test if there are any declarations in the current context
+	virtual bool HasLocalObjects() const noexcept
+	{
+		return !m_localObj.empty();
+	}
+	// Return number of elements in the context
+	virtual size_t LocalObjectCount() const noexcept
+	{
+		return m_localObj.size();
+	}
+
+protected:
+	std::map<std::string, std::shared_ptr<Valuedef::Value>> m_localObj;
+};
+
+struct SymbolRegistry
+{
+protected:
+	std::map<std::string, std::weak_ptr<AST::ASTNode>> m_symbolTable;
+};
+
 class AbstractContext
 {
 	friend class Evaluator;
 
 public:
-	AbstractContext * Parent()
+	std::shared_ptr<AbstractContext> Parent()
 	{
 		return m_parentContext;
 	}
 
 	template<typename ContextType>
-	ContextType *ParentAs()
+	inline std::shared_ptr<ContextType> ParentAs()
 	{
-		return static_cast<ContextType*>(Parent());
+		return std::static_pointer_cast<ContextType>(Parent());
+	}
+
+	virtual void Unregister(std::shared_ptr<AbstractContext>&) {}
+
+	template<typename ContextType>
+	std::shared_ptr<ContextType> FindContext()
+	{
+		if (std::is_same<decltype(*this), ContextType>::value) {
+			return nullptr;
+		}
+
+		// Parent()
+		return nullptr;
 	}
 
 public:
@@ -96,17 +149,19 @@ public:
 	{
 		if (!m_specialType[Position] || override) {
 			m_specialType[Position] = std::move(value);
+			return;
 		}
-		else {
-			//TODO: maybe throw + warning?
-		}
+
+		throw std::logic_error{ "cannot set special value multiple time" };
 	}
 
+	// Test if an return value is set
 	bool HasReturnValue() const noexcept
 	{
 		return m_specialType[RETURN_VALUE] != nullptr;
 	}
 
+	// Retrieve return value
 	auto ReturnValue() const noexcept
 	{
 		return m_specialType[RETURN_VALUE];
@@ -114,19 +169,23 @@ public:
 
 protected:
 	AbstractContext() = default;
-	AbstractContext(AbstractContext *node)
-		: m_parentContext{ node }
+
+	template<typename Type>
+	AbstractContext(std::shared_ptr<Type>&& parent)
+		: m_parentContext{ std::move(parent) }
 	{
 	}
 
 protected:
 	std::array<std::shared_ptr<CoilCl::Valuedef::Value>, 1> m_specialType;
-	AbstractContext * m_parentContext;
+	std::shared_ptr<AbstractContext> m_parentContext;
 };
 
 // Global context is the context of the entire program with
 // the possibility of holding multiple unit contexts.
-class GlobalContext : public AbstractContext
+class GlobalContext
+	: public AbstractContext
+	, public std::enable_shared_from_this<GlobalContext>
 {
 	friend class Evaluator;
 
@@ -134,9 +193,14 @@ public:
 	template<typename ContextType, typename... Args>
 	std::shared_ptr<ContextType> MakeContext(Args&&... args)
 	{
-		auto ctx = std::make_shared<ContextType>(this, std::forward<Args>(args)...);
+		auto ctx = std::make_shared<ContextType>(shared_from_this(), std::forward<Args>(args)...);
 		m_contextList.push_back(ctx);
 		return std::move(ctx);
+	}
+
+	virtual void Unregister(std::shared_ptr<AbstractContext>&) override
+	{
+		//
 	}
 
 	template<typename Node>
@@ -152,20 +216,44 @@ public:
 		return nullptr;
 	}
 
+	// Run predicate for each context item
+	template<typename Predicate, typename CastAsType = AbstractContext>
+	void ForEachContext(Predicate&& pred)
+	{
+		for (const auto& context : m_contextList) {
+			if (auto ptr = context.lock()) {
+				pred(std::static_pointer_cast<CastAsType>(context));
+			}
+		}
+	}
+
 private:
 	std::list<std::weak_ptr<AbstractContext>> m_contextList;
 };
 
-class UnitContext : public AbstractContext
+class UnitContext
+	: public AbstractContext
+	, public SymbolRegistry
+	, public DeclarationRegistry
+	, public std::enable_shared_from_this<UnitContext>
 {
 	friend class Evaluator;
 
 public:
-	UnitContext(AbstractContext *parent, const std::string& name)
-		: AbstractContext{ parent }
+	template<typename ContextType>
+	UnitContext(std::shared_ptr<ContextType>&& parent, const std::string& name)
+		: AbstractContext{ std::move(parent) }
 		, m_name{ name }
 	{
 	}
+
+	~UnitContext()
+	{
+		auto self = std::static_pointer_cast<AbstractContext>(shared_from_this());
+		Parent()->Unregister(self);
+	}
+
+	DEFAULT_MAKE_CONTEXT(); //TODO: some contexts should be initiated from higher up
 
 	/*template<typename Object, typename = typename std::enable_if<std::is_base_of<Context, std::decay<Object>::type>::value>::type>
 	void RegisterObject(Object&& object)
@@ -227,12 +315,6 @@ public:
 		return func;
 	}
 
-	template<typename ContextType, typename... Args>
-	std::shared_ptr<ContextType> MakeContext(Args&&... args)
-	{
-		return std::make_shared<ContextType>(this, std::forward<Args>(args)...);
-	}
-
 	//TODO:
 	// Copy the original and insert the new value in the context
 	//void PushVarAsCopy(const std::string& key, std::shared_ptr<AST::ASTNode>& node);
@@ -252,11 +334,15 @@ public:
 	//}
 	void PushVar(std::pair<const std::string, std::shared_ptr<Valuedef::Value>>&& pair)
 	{
-		// Static declarations are unit context scope
-		/*if (Util::IsStaticType(pair.second->DataType())) {
+		// Static declarations must be registered in unit scope
+		/*if (Util::IsTypeStatic(pair.second->DataType())) {
 			m_localObj.insert(std::move(pair));
 		}*/
-		
+		// External declarations must be ignored (for now)
+		/*if (Util::IsTypeExtern(pair.second->DataType())) {
+
+		}*/
+
 		//ParentAs<GlobalContext>()->PushVar(std::move(pair));
 	}
 
@@ -272,31 +358,9 @@ public:
 		return val->second;
 	}
 
-	bool HasLocalObjects() const noexcept
-	{
-		return !m_localObj.empty();
-	}
-
 private:
-	std::map<std::string, std::shared_ptr<Valuedef::Value>> m_localObj;
 	//std::list<std::shared_ptr<AbstractContext>> m_objects;
-	std::map<std::string, std::weak_ptr<AST::ASTNode>> m_symbolTable;
 	std::string m_name;
-};
-
-class CompoundContext : public AbstractContext
-{
-public:
-	CompoundContext(AbstractContext *parent)
-		: AbstractContext{ parent }
-	{
-	}
-
-	template<typename ContextType, typename... Args>
-	std::shared_ptr<ContextType> MakeContext(Args&&... args)
-	{
-		return std::make_shared<ContextType>(this, std::forward<Args>(args)...);
-	}
 };
 
 namespace Local
@@ -307,45 +371,51 @@ namespace Detail
 template<typename ContextType>
 struct MakeContextImpl
 {
-	AbstractContext *contex;
-	MakeContextImpl(AbstractContext *ctx, AbstractContext *)
-		: contex{ ctx }
+	std::shared_ptr<AbstractContext>&& contex;
+	template<typename ContextType1, typename ContextType2>
+	MakeContextImpl(std::shared_ptr<ContextType1>&& ctx, std::shared_ptr<ContextType2>&&)
+		: contex{ std::move(ctx) }
 	{
 	}
 
 	template<typename... Args>
 	auto operator()(Args&&... args)
 	{
-		return std::make_shared<ContextType>(contex, std::forward<Args>(args)...);
+		return std::make_shared<ContextType>(std::move(contex), std::forward<Args>(args)...);
 	}
 };
 
 template<>
 struct MakeContextImpl<FunctionContext>
 {
-	AbstractContext *contex;
-	MakeContextImpl(AbstractContext *, AbstractContext *ctx)
-		: contex{ ctx }
+	std::shared_ptr<AbstractContext>&& contex;
+	template<typename ContextType1, typename ContextType2>
+	MakeContextImpl(std::shared_ptr<ContextType1>&&, std::shared_ptr<ContextType2>&& ctx)
+		: contex{ std::move(ctx) }
 	{
 	}
 
 	template<typename... Args>
 	auto operator()(Args&&... args)
 	{
-		return std::make_shared<FunctionContext>(contex, std::forward<Args>(args)...);
+		return std::make_shared<FunctionContext>(std::move(contex), std::forward<Args>(args)...);
 	}
 };
 
 } // Detail namespace
 } // Local namespace
 
-class FunctionContext : public AbstractContext
+class FunctionContext
+	: public AbstractContext
+	, public DeclarationRegistry
+	, public std::enable_shared_from_this<FunctionContext>
 {
 	friend class Evaluator;
 
 public:
-	FunctionContext(AbstractContext *parent, const std::string& name)
-		: AbstractContext{ parent }
+	template<typename ContextType>
+	FunctionContext(std::shared_ptr<ContextType>&& parent, const std::string& name)
+		: AbstractContext{ std::move(parent) }
 		, m_name{ name }
 	{
 	}
@@ -356,7 +426,7 @@ public:
 		using namespace Local::Detail;
 
 		assert(Parent());
-		return MakeContextImpl<ContextType>{ this, Parent() }(std::forward<Args>(args)...);
+		return MakeContextImpl<ContextType>{ shared_from_this(), Parent() }(std::forward<Args>(args)...);
 	}
 
 	//TODO:
@@ -372,7 +442,7 @@ public:
 	{
 		//FUTURE: std::remove_cvref
 		using InternalType = std::remove_cv<std::remove_reference<KeyType>::type>::type;
-		static_assert(std::is_same<InternalType, std::string>::value || 
+		static_assert(std::is_same<InternalType, std::string>::value ||
 			std::is_same<InternalType, const char *>::value, "");
 		m_localObj.emplace(std::forward<KeyType>(key), std::forward<ValueType>(value));
 	}
@@ -391,14 +461,51 @@ public:
 		return val->second;
 	}
 
-	bool HasLocalObjects() const noexcept
+private:
+	std::string m_name;
+};
+
+class CompoundContext
+	: public AbstractContext
+	, public DeclarationRegistry
+	, public std::enable_shared_from_this<CompoundContext>
+{
+public:
+	template<typename ContextType>
+	CompoundContext(std::shared_ptr<ContextType>&& parent)
+		: AbstractContext{ std::move(parent) }
 	{
-		return !m_localObj.empty();
 	}
 
-private:
-	std::map<std::string, std::shared_ptr<Valuedef::Value>> m_localObj;
-	std::string m_name;
+	DEFAULT_MAKE_CONTEXT();
+
+	//TODO:
+	// Copy the original and insert the new value in the context
+	//void PushVarAsCopy(const std::string& key, std::shared_ptr<AST::ASTNode>& node);
+
+	//TODO:
+	// Link value to the original value definition from the caller
+	//void PushVarAsPointer(const std::string&& key, std::shared_ptr<Valuedef::Value>&& value);
+
+	template<typename KeyType, typename ValueType>
+	void PushVar(KeyType&& key, ValueType&& value)
+	{
+		//FUTURE: std::remove_cvref
+		using InternalType = std::remove_cv<std::remove_reference<KeyType>::type>::type;
+		static_assert(std::is_same<InternalType, std::string>::value ||
+			std::is_same<InternalType, const char *>::value, "");
+		m_localObj.emplace(std::forward<KeyType>(key), std::forward<ValueType>(value));
+	}
+
+	std::shared_ptr<Valuedef::Value> LookupIdentifier(const std::string& key)
+	{
+		auto val = m_localObj.find(key);
+		if (val == m_localObj.end()) {
+			return ParentAs<FunctionContext>()->LookupIdentifier(key);
+		}
+
+		return val->second;
+	}
 };
 
 } // namespace
@@ -630,9 +737,11 @@ struct OperandFactory
 	{
 		switch (operand) {
 
-			//
-			// Arithmetic operations
-			//
+			{
+				//
+				// Arithmetic operations
+				//
+			}
 
 		case BinaryOperator::BinOperand::PLUS:
 			return std::plus<Type>()(left, right);
@@ -648,11 +757,13 @@ struct OperandFactory
 			/*case BinOperand::ASSGN:
 				return "=";*/
 
+			{
 				//
 				// Bitwise operations
 				//
+			}
 
-				//TODO: missing bit_or?
+			//TODO: missing bit_or?
 
 		case BinaryOperator::BinOperand::XOR:
 			return std::bit_xor<Type>()(left, right);
@@ -663,9 +774,11 @@ struct OperandFactory
 			case BinaryOperator::BinOperand::SRIGHT:
 				return ">>";*/
 
+			{
 				//
 				// Comparisons
 				//
+			}
 
 		case BinaryOperator::BinOperand::EQ:
 			return std::equal_to<Type>()(left, right);
@@ -680,9 +793,11 @@ struct OperandFactory
 		case BinaryOperator::BinOperand::GE:
 			return std::greater_equal<Type>()(left, right);
 
-			//
-			// Logical operations
-			//
+			{
+				//
+				// Logical operations
+				//
+			}
 
 			//TODO: missing negate?
 
@@ -786,7 +901,7 @@ class ScopedRoutine
 		throw 1; //TODO
 	}
 
-	static void CallExpression(const std::shared_ptr<CallExpr>& callNode, Context::Function& ctx)
+	static void CallExpression(const std::shared_ptr<CallExpr>& callNode, Context::Compound& ctx)
 	{
 		assert(callNode);
 		assert(callNode->ChildrenCount());
@@ -859,13 +974,15 @@ class ScopedRoutine
 		}
 	}
 
-	static void CreateCompound(const std::shared_ptr<AST::ASTNode>& node, Context::Function& ctx)
+	// Create new compound context
+	void CreateCompound(const std::shared_ptr<AST::ASTNode>& node, Context::Compound& ctx)
 	{
-		CRY_UNUSED(node);
-		CRY_UNUSED(ctx);
-		//
+		auto compNode = std::static_pointer_cast<CompoundStmt>(node);
+		auto compCtx = ctx->MakeContext<CompoundContext>();
+		ProcessCompound(compNode, compCtx);
 	}
 
+	// Call internal function
 	void ProcessRoutine(std::shared_ptr<FunctionDecl>& funcNode, Context::Function& ctx)
 	{
 		assert(funcNode->ChildrenCount());
@@ -873,10 +990,12 @@ class ScopedRoutine
 			//TODO: Do something?
 		}
 
-		ProcessCompound(const_cast<std::shared_ptr<CompoundStmt>&>(funcNode->FunctionCompound()), ctx);
+		auto compCtx = ctx->MakeContext<CompoundContext>();
+		ProcessCompound(const_cast<std::shared_ptr<CompoundStmt>&>(funcNode->FunctionCompound()), compCtx);
 	}
 
-	void ProcessCompound(std::shared_ptr<CompoundStmt>& compoundNode, Context::Function& ctx)
+	// Run all nodes in the compound
+	void ProcessCompound(std::shared_ptr<CompoundStmt>& compoundNode, Context::Compound& ctx)
 	{
 		using namespace AST;
 
@@ -910,10 +1029,29 @@ class ScopedRoutine
 				ProcessCondition(node, ctx);
 				break;
 			}
+			case NodeID::SWITCH_STMT_ID: {
+				//TODO
+				break;
+			}
+			case NodeID::WHILE_STMT_ID: {
+				//TODO
+				break;
+			}
+			case NodeID::DO_STMT_ID: {
+				//TODO
+				break;
+			}
+			case NodeID::FOR_STMT_ID: {
+				//TODO
+				break;
+			}
 			case NodeID::RETURN_STMT_ID: {
 				auto node = std::static_pointer_cast<ReturnStmt>(child);
-				ProcessReturn(node, ctx);
-				break;
+				Context::Function funcCtx = ctx->FindContext<FunctionContext>();
+				//auto funCtx = std::dynamic_pointer_cast<FunctionContext>(ctx); //TODO: for now
+				ProcessReturn(node, funcCtx);
+				// No other nodes can follow after return
+				return;
 			}
 			default:
 				break;
@@ -921,19 +1059,22 @@ class ScopedRoutine
 		}
 	}
 
-	void ProcessDeclaration(std::shared_ptr<DeclStmt>& declNode, Context::Function& ctx)
+	// Register the declaration in the current context scope
+	void ProcessDeclaration(std::shared_ptr<DeclStmt>& declNode, Context::Compound& ctx)
 	{
 		for (const auto& child : declNode->Children()) {
 			auto node = std::static_pointer_cast<VarDecl>(child.lock());
 			if (node->HasExpression()) {
-				ctx->PushVar(node->Identifier(), ResolveExpression(node->Expression(), ctx));
+				Context::Function funcCtx = ctx->FindContext<FunctionContext>();
+				ctx->PushVar(node->Identifier(), ResolveExpression(node->Expression(), funcCtx));
 			}
 		}
 	}
 
-	void ProcessCondition(std::shared_ptr<IfStmt>& node, Context::Function& ctx)
+	void ProcessCondition(std::shared_ptr<IfStmt>& node, Context::Compound& ctx)
 	{
-		auto value = ResolveExpression(node->Expression(), ctx);
+		Context::Function funcCtx = ctx->FindContext<FunctionContext>();
+		auto value = ResolveExpression(node->Expression(), funcCtx);
 		if (Util::EvaluateAsBoolean(value)) {
 			if (node->HasTruthCompound()) {
 				auto continueNode = node->TruthCompound();
@@ -1008,15 +1149,15 @@ Parameters ConvertToValueDef(const ArgumentList&& args)
 
 //TODO:
 // Warp startup parameters in format
-const Parameters FormatParameters(std::vector<std::string> pivot, Parameters&& params)
+void FormatParameters(std::vector<std::string> pivot, Parameters&& params, Context::Function& ctx)
 {
 	CRY_UNUSED(params);
 
-	/*for (const auto& item : pivot) {
-		item
-	}*/
 
-	return {};
+
+	/*for (const auto& item : pivot) {
+		ctx->PushVar("kaas", );
+	}*/
 }
 
 } // namespace
@@ -1028,7 +1169,10 @@ Evaluator& Evaluator::CallRoutine(const std::string& symbol, const ArgumentList&
 	auto funcNode = m_unitContext->LookupSymbol<FunctionDecl>(symbol);
 	auto funcCtx = m_unitContext->MakeContext<FunctionContext>(funcNode->Identifier());
 
-	//FormatParameters({ "argc", "argv" }, ConvertToValueDef(std::move(args)));
+	/*FormatParameters({ "argc", "argv" }, ConvertToValueDef(std::move(args)), funcCtx, []() {
+		argc = params.size();
+		argv = params;
+	});*/
 
 	funcCtx->PushVar({ "argc", Util::MakeInt(3) });
 	ScopedRoutine{}(funcNode, funcCtx);

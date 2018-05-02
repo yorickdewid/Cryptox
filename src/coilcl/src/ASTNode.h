@@ -931,7 +931,7 @@ protected:
 	}
 
 public:
-	auto Identifier() const { return m_identifier; }
+	std::string Identifier() const noexcept { return m_identifier; }
 };
 
 class VarDecl
