@@ -35,7 +35,7 @@ class Value
 	friend struct Util::ValueFactory;
 
 protected:
-	using ValueVariant = boost::variant<int, char, double, std::string>;
+	using ValueVariant = boost::variant<int, char, double, bool, std::string>;
 
 	// The internal datastructure stores the value
 	// as close to the actual data type specifier.
@@ -47,7 +47,7 @@ protected:
 	// True if type is void
 	bool m_isVoid{ false };
 
-	struct ConvertToStringVisitor : public boost::static_visitor<>
+	struct ConvertToStringVisitor final : public boost::static_visitor<>
 	{
 		std::string output;
 
@@ -71,9 +71,6 @@ public:
 	{
 	}
 
-	// Value class is abstract and must be explicity defined
-	//virtual ~Value() = 0;
-
 	// Return the type specifier
 	Typedef::BaseType DataType() const noexcept { return m_objectType; }
 
@@ -81,8 +78,8 @@ public:
 	auto DataType() const { return std::dynamic_pointer_cast<_CastTy>(m_objectType); }
 
 	// Check if current storage type is array
-	inline auto IsArray() const noexcept { return m_arraySize > 0; }
-	inline auto Size() const noexcept { return m_arraySize; }
+	inline bool IsArray() const noexcept { return m_arraySize > 0; }
+	inline size_t Size() const noexcept { return m_arraySize; }
 
 	// Check if value is empty
 	inline bool Empty() const noexcept { return m_value.empty(); }
@@ -91,9 +88,10 @@ public:
 	// Check if value is void
 	inline bool IsVoid() const noexcept { return m_isVoid; }
 
-	// By default try direct cast from any
-	template<typename _Ty>
-	_Ty As() const { return boost::get<_Ty>(m_value); }
+	// By default try direct cast from variant, if the cast fails
+	// a bad casting exception is thrown.
+	template<typename CastType>
+	CastType As() const { return boost::get<CastType>(m_value); }
 
 	// Print value
 	virtual const std::string Print() const
@@ -251,51 +249,68 @@ public:
 
 } // namespace Valuedef
 
+// The value helper functions ease the creation and modification of the
+// value objects as well as some functions to query specific properties.
+// In any case should the helper functions be used instead of accessing
+// the value objects directly. The helper functions are designed to support
+// the most common value types as such that the caller does not need to
+// cast the value into a specific type.
+
 namespace Util
 {
 
 using namespace ::CoilCl;
 
-template<typename NativeType, typename ValueType>
+//
+// Create explicit value with automatic type
+//
+
+template<typename NativeType, typename ValueType> //TODO: FIXME: DEPRECATED
 inline auto MakeValueObject(Typedef::BuiltinType&& type, ValueType value)
 {
 	return std::make_shared<Valuedef::ValueObject<NativeType>>(std::move(type), value);
 }
-
 template<typename Type = std::string>
 inline Valuedef::ValueType<Type> MakeString(Type v)
 {
 	return MakeValueObject<Type>(Typedef::BuiltinType::Specifier::CHAR, std::move(v));
 }
-
 template<typename Type = int>
 inline Valuedef::ValueType<Type> MakeInt(Type v)
 {
 	return MakeValueObject<Type>(Typedef::BuiltinType::Specifier::INT, std::move(v));
 }
-
 template<typename Type = double>
 inline Valuedef::ValueType<Type> MakeDouble(Type v)
 {
 	return MakeValueObject<Type>(Typedef::BuiltinType::Specifier::DOUBLE, std::move(v));
 }
-
 template<typename Type = char>
 inline Valuedef::ValueType<Type> MakeChar(Type v)
 {
 	return MakeValueObject<Type>(Typedef::BuiltinType::Specifier::CHAR, v);
 }
-
+template<typename Type = bool>
+inline Valuedef::ValueType<Type> MakeBool(Type v)
+{
+	return MakeValueObject<Type>(Typedef::BuiltinType::Specifier::BOOL, v);
+}
 template<typename Type = void>
 inline Valuedef::ValueType<Type> MakeVoid()
 {
 	return std::make_shared<Valuedef::ValueObject<Type>>();
 }
 
+//
+// Query value properties
+//
+
 // Evaluate the value as either true or false
-bool EvaluateAsBoolean(std::shared_ptr<Valuedef::Value>);
+bool EvaluateAsBoolean(std::shared_ptr<Valuedef::Value>);  //TODO: rename EvaluateValueAsBoolean
 // Test if the value is a void type
-bool IsVoid(std::shared_ptr<Valuedef::Value>);
+bool IsVoid(std::shared_ptr<Valuedef::Value>); //TODO: rename IsValueVoid
+// Test if the value is array type
+bool IsValueArray(std::shared_ptr<Valuedef::Value>);
 
 struct ValueFactory
 {

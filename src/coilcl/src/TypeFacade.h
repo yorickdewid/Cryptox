@@ -76,24 +76,42 @@ private:
 namespace Util
 {
 
-inline bool IsStaticType(const AST::TypeFacade& typeFacace)
+inline bool IsTypeStatic(const AST::TypeFacade& typeFacace)
 {
 	return typeFacace->StorageClass() == Typedef::TypedefBase::StorageClassSpecifier::STATIC;
 }
 template<typename InternalType>
-inline bool IsStaticType(const InternalType& type)
+inline bool IsTypeStatic(const InternalType& type)
 {
 	return type->StorageClass() == Typedef::TypedefBase::StorageClassSpecifier::STATIC;
 }
 
-inline bool IsExternType(const AST::TypeFacade& typeFacace)
+inline bool IsTypeExtern(const AST::TypeFacade& typeFacace)
 {
 	return typeFacace->StorageClass() == Typedef::TypedefBase::StorageClassSpecifier::EXTERN;
 }
 template<typename InternalType>
-inline bool IsExternType(const InternalType& type)
+inline bool IsTypeExtern(const InternalType& type)
 {
 	return type->StorageClass() == Typedef::TypedefBase::StorageClassSpecifier::EXTERN;
+}
+
+inline bool IsTypeConst(const AST::TypeFacade& typeFacace)
+{
+	for (const auto& qualifier : typeFacace->TypeQualifiers()) {
+		if (qualifier == Typedef::TypedefBase::TypeQualifier::CONST_T) {
+			return true;
+		}
+	}
+}
+template<typename InternalType>
+inline bool IsTypeConst(const InternalType& type)
+{
+	for (const auto& qualifier : type->TypeQualifiers()) {
+		if (qualifier == Typedef::TypedefBase::TypeQualifier::CONST_T) {
+			return true;
+		}
+	}
 }
 
 } // namespace Util
