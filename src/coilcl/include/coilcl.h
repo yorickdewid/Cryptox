@@ -42,9 +42,11 @@ extern "C" {
 	// Languange standard
 	enum cil_standard
 	{
-		c89 = 0x001,
-		c99 = 0x002,
-		c11 = 0x004,
+		cil = 10,
+		c89 = 89,
+		c99 = 99,
+		c11 = 11,
+		c17 = 17,
 	};
 
 	// Optimization level
@@ -56,12 +58,24 @@ extern "C" {
 		LEVEL3,
 	};
 
+	// Code generation options
 	struct codegen
 	{
 		enum cil_standard standard;
 		enum optimization optimization;
+
+		// Disable all compiler extensions
 		int no_extension : 1;
-		int reserved : 7;
+		// Dump preprocessed source and exit
+		int dump_preproc : 1;
+		// Dump resulting section to file(s)
+		int dump_section : 1;
+		// Include comments in program tree
+		int keep_comment : 1;
+		// Prevent the removal of unused structures
+		int keep_zero_ref_cnt : 1;
+		
+		int reserved : 3;
 	};
 
 	// C compatible string structure
@@ -73,6 +87,8 @@ extern "C" {
 		const char *ptr;
 		// Boolean indicating this memory block should be freed by the backend
 		int unmanaged_res;
+		// Function pointer to be called when the object is freed by the callee
+		void(*deallocVPtr)(void *);
 	} datachunk_t;
 
 	// Source unit metadata

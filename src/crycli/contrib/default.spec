@@ -1,4 +1,5 @@
 ; Copyright (c) 2017 Quenza Inc. All rights reserved.
+; Copyright (c) 2018 Blub Corp. All Rights Reserved.
 ;
 ; This file is part of the Cryptox project.
 ;

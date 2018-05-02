@@ -6,6 +6,7 @@
 // that can be found in the LICENSE file. Content can not be 
 // copied and/or distributed without the express of the author.
 
+// Local includes
 #include "coilcl.h"
 #include "Profile.h"
 #include "Program.h"
@@ -15,11 +16,12 @@
 #include "Emitter.h"
 #include "Optimizer.h"
 #include "NonFatal.h"
-#include "UnsupportedOperationException.h" //TODO: remove
 
+// Project includes
 #include <Cry/Cry.h>
 #include <Cry/Config.h>
 
+// Language includes
 #include <string>
 #include <iostream>
 #include <functional>
@@ -49,7 +51,7 @@ class Compiler final
 	std::function<bool(const std::string&)> includeHandler;
 	std::function<std::shared_ptr<metainfo_t>()> metaHandler;
 	std::function<void(const std::string&, bool)> errorHandler;
-	void *backreferencePointer = nullptr;
+	void *backreferencePointer{ nullptr };
 
 	template<typename _Ty>
 	class StageOptions
@@ -106,6 +108,7 @@ private:
 		errorHandler(message, isFatal);
 	}
 
+	// Write all notices to error handler
 	static void PrintNoticeMessages(std::shared_ptr<Profile>& profile)
 	{
 		std::stringstream ss;
@@ -130,11 +133,11 @@ public:
 		return shared_from_this();
 	}
 
-	template<typename _Ty>
-	void CaptureBackRefPtr(_Ty ptr)
+	template<typename PointerType>
+	void CaptureBackRefPtr(PointerType ptr)
 	{
-		static_assert(std::is_pointer<_Ty>::value
-			&& std::is_pod<_Ty>::value, "Backref must be pointer to POD");
+		static_assert(std::is_pointer<PointerType>::value
+			&& std::is_pod<PointerType>::value, "Backref must be pointer to POD");
 		backreferencePointer = static_cast<void*>(ptr);
 	}
 
@@ -179,8 +182,8 @@ public:
 			Optimizer{ profile, std::move(program->Ast()) }
 				.MoveStage()
 				.TrivialReduction();
-				//.DeepInflation()
-				//.Metrics(program->FillMetrics());
+			//.DeepInflation()
+			//.Metrics(program->FillMetrics());
 
 			// For now dump contents to screen
 			program->AstPassthrough()->Print<CoilCl::AST::ASTNode::Traverse::STAGE_LAST>();
@@ -218,7 +221,7 @@ public:
 			PrintNoticeMessages(profile);
 		}
 		// Catch any leaked erros not caught in the stages
-		catch (std::exception& e) {
+		catch (const std::exception& e) {
 			compiler->Error(e.what());
 		}
 
@@ -231,29 +234,36 @@ public:
 namespace InterOpHelper
 {
 
-template<typename _Ty>
-_Ty CaptureChunk(const datachunk_t *dataPtrStrct)
+template<typename ResultType>
+ResultType CaptureChunk(const datachunk_t *dataPtrStrct)
 {
 	assert(dataPtrStrct);
-	_Ty sdata{ dataPtrStrct->ptr, dataPtrStrct->size };
-	if (static_cast<bool>(dataPtrStrct->unmanaged_res)) {
-		delete dataPtrStrct->ptr;
+	ResultType sdata{ dataPtrStrct->ptr, dataPtrStrct->size };
+	if (dataPtrStrct->unmanaged_res) {
+		if (dataPtrStrct->deallocVPtr) {
+			dataPtrStrct->deallocVPtr((void*)dataPtrStrct->ptr);
+		}
+		else {
+			delete dataPtrStrct->ptr;
+		}
 	}
 
 	delete dataPtrStrct;
 	return std::move(sdata);
 }
 
-template<typename _Ty>
-std::shared_ptr<_Ty> WrapMeta(_Ty *metaPtr)
+template<typename WrapperPointerType>
+inline auto WrapMeta(WrapperPointerType *metaPtr)
 {
-	static_assert(std::is_pod<_Ty>::value, "");
-	return std::shared_ptr<_Ty>{ metaPtr };
+	static_assert(std::is_pod<WrapperPointerType>::value, "");
+	return std::shared_ptr<WrapperPointerType>{ metaPtr };
 }
 
 // Release program pointer from managed resource
 void AssimilateProgram(program_t *out_program, Compiler::ProgramPtr&& in_program)
 {
+	assert(out_program);
+	assert(!out_program->program_ptr);
 	out_program->program_ptr = in_program.release();
 }
 
@@ -271,11 +281,11 @@ COILCLAPI void Compile(compiler_info_t *cl_info) NOTHROW
 
 	CHECK_API_VERSION(cl_info);
 
-	assert(cl_info->streamReaderVPtr != nullptr);
-	assert(cl_info->loadStreamRequestVPtr != nullptr);
-	assert(cl_info->streamMetaVPtr != nullptr);
-	assert(cl_info->errorHandler != nullptr);
-	assert(cl_info->program.program_ptr == nullptr);
+	assert(cl_info->streamReaderVPtr);
+	assert(cl_info->loadStreamRequestVPtr);
+	assert(cl_info->streamMetaVPtr);
+	assert(cl_info->errorHandler);
+	assert(!cl_info->program.program_ptr);
 
 	// Register handlers with compiler object and covnert types between API
 	// interface and managed resources. Any additional handlers should be
@@ -313,6 +323,7 @@ COILCLAPI void Compile(compiler_info_t *cl_info) NOTHROW
 
 COILCLAPI void GetResultSection(result_t *result_inquery) NOTHROW
 {
+	assert(result_inquery);
 	Program::ResultSection::Tag mTag = Program::ResultSection::COMPLEMENTARY;
 	switch (result_inquery->tag)
 	{
@@ -338,6 +349,7 @@ COILCLAPI void GetResultSection(result_t *result_inquery) NOTHROW
 	result_inquery->content.ptr = reinterpret_cast<const char *>(content.data());
 	result_inquery->content.size = static_cast<unsigned int>(content.size());
 	result_inquery->content.unmanaged_res = 0;
+	result_inquery->content.deallocVPtr = nullptr;
 }
 
 COILCLAPI void GetLibraryInfo(library_info_t *info) NOTHROW
