@@ -318,5 +318,31 @@ inline auto MakeASTNode(_Args&&... args)
 }
 
 } // namespace AST
+
+namespace Util
+{
+
+template<typename NodeType>
+inline bool IsNodeLiteral(const std::shared_ptr<NodeType>& type)
+{
+	//TODO: poor mans solution
+	switch (type->Label())
+	{
+	case AST::NodeID::CHARACTER_LITERAL_ID:
+	case AST::NodeID::STRING_LITERAL_ID:
+	case AST::NodeID::INTEGER_LITERAL_ID:
+	case AST::NodeID::FLOAT_LITERAL_ID:
+		return true;
+	}
+
+	return false;
+}
+template<typename NodeType>
+inline bool IsNodeFunction(const std::shared_ptr<NodeType>& type)
+{
+	return type->Label() == AST::NodeID::FUNCTION_DECL_ID;
+}
+
+} // namespace Util
 } // namespace CoilCl
 

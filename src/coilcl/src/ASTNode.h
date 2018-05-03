@@ -713,6 +713,9 @@ class Literal
 {
 	NODE_ID(AST::NodeID::LITERAL_ID);
 
+public:
+	virtual std::shared_ptr<CoilCl::Valuedef::Value> Type2() const noexcept = 0; //TODO: rename
+
 protected:
 	virtual ~Literal() = 0;
 
@@ -720,7 +723,7 @@ protected:
 	virtual void Deserialize(Serializable::Interface& pack);
 
 	template<typename... _VariaTy>
-	Literal(_VariaTy&&... args)
+	inline Literal(_VariaTy&&... args)
 		: Returnable{ std::forward<_VariaTy>(args)... }
 	{
 	}
@@ -781,7 +784,12 @@ public:
 		Literal::Deserialize(pack);
 	}
 
-	InternalType Type() const noexcept
+	inline InternalType Type() const noexcept
+	{
+		return m_valueObj;
+	}
+
+	virtual std::shared_ptr<CoilCl::Valuedef::Value> Type2() const noexcept
 	{
 		return m_valueObj;
 	}

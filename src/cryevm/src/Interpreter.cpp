@@ -703,7 +703,13 @@ void Evaluator::Unit(const TranslationUnitDecl& node)
 					if (node->HasExpression()) {
 						//TODO: unit must be literal node, otherwise:
 						//THROW: initializer element is not constant
-						m_unitContext->PushVar({ node->Identifier(), Util::MakeInt(12) });
+						if (Util::IsNodeLiteral(node->Expression())) {
+							auto type = std::static_pointer_cast<Literal>(node->Expression())->Type2();
+							m_unitContext->PushVar({ node->Identifier(), type });
+						}
+						else {
+							throw std::logic_error{ "initializer element is not constant" };//TODO
+						}
 					}
 				}
 				break;
