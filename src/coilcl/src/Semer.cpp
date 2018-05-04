@@ -24,14 +24,14 @@ using namespace Cry::Algorithm;
 
 class SemanticException;
 
-template<size_t _Idx = 0, typename _ConvTy, typename _ParentTy, typename _ChildTy>
-void InjectConverter(std::shared_ptr<_ParentTy> parent, std::shared_ptr<_ChildTy> child, _ConvTy baseType, _ConvTy initType)
+template<size_t Idx = 0, typename ConvertType, typename ParentType, typename ChildType>
+void InjectConverter(std::shared_ptr<ParentType> parent, std::shared_ptr<ChildType> child, ConvertType baseType, ConvertType initType)
 {
 	try {
 		Conv::Cast::Tag methodTag = Conv::Cast::Transmute(baseType, initType);
 		auto converter = AST::MakeASTNode<ImplicitConvertionExpr>(child, methodTag);
 		converter->SetReturnType(baseType);
-		parent->Emplace(_Idx, converter);
+		parent->Emplace(Idx, converter);
 	}
 	catch (Conv::ConverterException& e) {
 		throw SemanticException{ e.what(), 0, 0 };

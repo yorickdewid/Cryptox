@@ -257,7 +257,7 @@ void CastExpr::Deserialize(Serializable::Interface& pack)
 
 const std::string CastExpr::NodeName() const
 {
-	return boost::str(boost::format("%1$s {%2$d} <line:%3$d,col:%4$d> '%5%")
+	return boost::str(boost::format("%1$s {%2$d} <line:%3$d,col:%4$d>")
 		% RemoveClassFromName(typeid(ResolveRefExpr).name())
 		% m_state.Alteration()
 		% line % col);
@@ -273,18 +273,14 @@ ImplicitConvertionExpr::ImplicitConvertionExpr(std::shared_ptr<ASTNode>& node, C
 
 const std::string ImplicitConvertionExpr::NodeName() const
 {
-	std::string _node{ RemoveClassFromName(typeid(ImplicitConvertionExpr).name()) };
-	_node += " {" + std::to_string(m_state.Alteration()) + "}";
-	_node += " <line:" + std::to_string(line) + ",col:" + std::to_string(col) + "> ";
-
-	if (ReturnType().HasValue()) {
-		_node += "'" + ReturnType().TypeName() + "' ";
-		_node += ReturnType()->StorageClassName();
-	}
-
-	_node += "[" + Conv::Cast::PrintTag(m_convOp) + "]";
-
-	return _node;
+	assert(ReturnType().HasValue());
+	return boost::str(boost::format("%1$s {%2$d} <line:%3$d,col:%4$d> '%5%' %6% [%7%]")
+		% RemoveClassFromName(typeid(ImplicitConvertionExpr).name())
+		% m_state.Alteration()
+		% line % col
+		% ReturnType().TypeName()
+		% ReturnType()->StorageClassName()
+		% Conv::Cast::PrintTag(m_convOp));
 }
 
 

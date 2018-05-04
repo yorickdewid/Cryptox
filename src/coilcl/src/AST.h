@@ -322,10 +322,11 @@ inline auto MakeASTNode(_Args&&... args)
 namespace Util
 {
 
-template<typename NodeType>
-inline bool IsNodeLiteral(const std::shared_ptr<NodeType>& type)
+template<typename NodeType, typename = typename std::enable_if<std::is_convertible<NodeType, AST::ASTNode>::value
+	|| std::is_same<NodeType, AST::ASTNode>::value>::type>
+bool IsNodeLiteral(const std::shared_ptr<NodeType>& type)
 {
-	//TODO: poor mans solution
+	//TODO: poor man's solution
 	switch (type->Label())
 	{
 	case AST::NodeID::CHARACTER_LITERAL_ID:
@@ -337,7 +338,8 @@ inline bool IsNodeLiteral(const std::shared_ptr<NodeType>& type)
 
 	return false;
 }
-template<typename NodeType>
+template<typename NodeType, typename = typename std::enable_if<std::is_convertible<NodeType, AST::ASTNode>::value
+	|| std::is_same<NodeType, AST::ASTNode>::value>::type>
 inline bool IsNodeFunction(const std::shared_ptr<NodeType>& type)
 {
 	return type->Label() == AST::NodeID::FUNCTION_DECL_ID;

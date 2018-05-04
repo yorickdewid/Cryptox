@@ -1498,6 +1498,7 @@ private:
 };
 
 //TODO: converter function
+//TODO: rename ImplicitConversionExpr
 class ImplicitConvertionExpr
 	: public Expr
 	, public SelfReference<ImplicitConvertionExpr>
@@ -1507,12 +1508,12 @@ class ImplicitConvertionExpr
 	Conv::Cast::Tag m_convOp;
 
 public:
+	ImplicitConvertionExpr(std::shared_ptr<ASTNode>& node, Conv::Cast::Tag convOp);
+
 	explicit ImplicitConvertionExpr(Serializable::Interface& pack)
 	{
 		Deserialize(pack);
 	}
-
-	ImplicitConvertionExpr(std::shared_ptr<ASTNode>& node, Conv::Cast::Tag convOp);
 
 	virtual void Serialize(Serializable::Interface& pack)
 	{
