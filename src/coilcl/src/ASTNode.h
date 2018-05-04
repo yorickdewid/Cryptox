@@ -642,6 +642,10 @@ public:
 
 	UnaryOperator(UnaryOperand operand, OperandSide side, const std::shared_ptr<ASTNode>& node);
 
+	auto Expression() const noexcept { return m_body; }
+
+	UnaryOperand Operand() const noexcept { return m_operand; };
+
 	virtual void Serialize(Serializable::Interface& pack);
 	virtual void Deserialize(Serializable::Interface& pack);
 
@@ -689,6 +693,8 @@ public:
 	}
 
 	CompoundAssignOperator(CompoundAssignOperand operand, const std::shared_ptr<DeclRefExpr>& node);
+
+	CompoundAssignOperand Operand() const noexcept { return m_operand; };
 
 	void SetRightSide(const std::shared_ptr<ASTNode>& node);
 

@@ -111,6 +111,18 @@ struct DeclarationRegistry
 		return m_localObj.size();
 	}
 
+#ifdef CRY_DEBUG
+	void DumpVar(const std::string& key)
+	{
+		auto var = LookupIdentifier(key);
+		if (!var) { printf("%s -> (null)", key.c_str()); }
+		else {
+			printf("%s -> ", key.c_str());
+			DUMP_VALUE(var);
+		}
+	}
+#endif
+
 protected:
 	std::map<std::string, std::shared_ptr<Valuedef::Value>> m_localObj;
 };
@@ -917,7 +929,24 @@ class ScopedRoutine
 			break;
 		}
 		case AST::NodeID::UNARY_OPERATOR_ID: {
-			std::dynamic_pointer_cast<AST::UnaryOperator>(node);
+			auto op = std::dynamic_pointer_cast<AST::UnaryOperator>(node);
+			auto value = ResolveExpression(op->Expression(), ctx);
+			switch (op->Operand())
+			{
+			case AST::UnaryOperator::UnaryOperand::INC:
+			case AST::UnaryOperator::UnaryOperand::DEC:
+
+			case AST::UnaryOperator::UnaryOperand::INTPOS:
+			case AST::UnaryOperator::UnaryOperand::INTNEG:
+
+			case AST::UnaryOperator::UnaryOperand::ADDR:
+			case AST::UnaryOperator::UnaryOperand::PTRVAL:
+
+			case AST::UnaryOperator::UnaryOperand::BITNOT:
+			case AST::UnaryOperator::UnaryOperand::BOOLNOT:
+			default:
+				break;
+			}
 			break;
 		}
 		case AST::NodeID::COMPOUND_ASSIGN_OPERATOR_ID: {
@@ -1031,13 +1060,6 @@ class ScopedRoutine
 				else {
 					throw std::logic_error{ "initializer element is not literal" };//TODO
 				}
-				//TODO: StringLiteral is not always the case
-				//auto literal = std::static_pointer_cast<StringLiteral>(itArgs->lock());
-				//if (function[i].DataType() != literal->Type()->DataType()) {
-				//	throw 3; //TODO: source.c:0:0: error: cannot convert argument of type 'X' to parameter type 'Y'
-				//}
-				//auto val = std::shared_ptr<Valuedef::Value>{ literal->Type() };
-				//funcCtx->PushVar(function[i].Identifier(), val);
 				++itArgs;
 				++i;
 			}
@@ -1136,9 +1158,15 @@ class ScopedRoutine
 				return;
 			}
 			default:
-				break;
+				ProcessExpression(child, ctx);
 			}
 		}
+	}
+
+	// If all else fails, try the node as expression
+	void ProcessExpression(std::shared_ptr<AST::ASTNode>& node, Context::Compound& ctx)
+	{
+		ResolveExpression(node, ctx);
 	}
 
 	// Register the declaration in the current context scope
@@ -1181,6 +1209,7 @@ class ScopedRoutine
 
 		// Resolve return expression
 		ctx->CreateSpecialVar<RETURN_VALUE>(ResolveExpression(node->Expression(), ctx));
+		DUMP_VALUE(ctx->ReturnValue());
 	}
 
 public:

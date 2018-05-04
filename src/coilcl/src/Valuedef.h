@@ -18,6 +18,12 @@
 
 #include <string>
 
+#ifdef CRY_DEBUG
+#include <iostream>
+#define DUMP_VALUE(v) \
+	std::cout << v->DataType()->TypeName() << " >> " << v->Print() << std::endl;
+#endif
+
 namespace CoilCl
 {
 namespace Util
@@ -76,8 +82,8 @@ public:
 	// Return the type specifier
 	Typedef::BaseType DataType() const noexcept { return m_objectType; }
 
-	template<typename _CastTy>
-	auto DataType() const { return std::dynamic_pointer_cast<_CastTy>(m_objectType); }
+	template<typename CastType>
+	auto DataType() const { return std::dynamic_pointer_cast<CastType>(m_objectType); }
 
 	// Check if current storage type is array
 	inline bool IsArray() const noexcept { return m_array.size() > 0; }

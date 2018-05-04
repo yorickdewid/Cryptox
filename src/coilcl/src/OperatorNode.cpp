@@ -223,7 +223,7 @@ void ConditionalOperator::Deserialize(Serializable::Interface& pack)
 const std::string ConditionalOperator::NodeName() const
 {
 	return boost::str(boost::format("%1$s {%2$d} <line:%3$d,col:%4$d>")
-		% RemoveClassFromName(typeid(VarDecl).name())
+		% RemoveClassFromName(typeid(ConditionalOperator).name())
 		% m_state.Alteration()
 		% line % col);
 }
@@ -304,26 +304,8 @@ void UnaryOperator::Deserialize(Serializable::Interface& pack)
 
 const std::string UnaryOperator::NodeName() const
 {
-	//std::string _node{ RemoveClassFromName(typeid(UnaryOperator).name()) };
-	//_node += +" {" + std::to_string(m_state.Alteration()) + "}";
-	//_node += " <line:" + std::to_string(line) + ",col:" + std::to_string(col) + "> ";
-
-	//switch (m_side) {
-	//case UnaryOperator::POSTFIX:
-	//	_node += "postfix ";
-	//	break;
-	//case UnaryOperator::PREFIX:
-	//	_node += "prefix ";
-	//	break;
-	//}
-
-	//_node += "'";
-	//_node += UnaryOperandStr(m_operand);
-	//_node += "'";
-	//return _node;
-
 	return boost::str(boost::format("%1$s {%2$d} <line:%3$d,col:%4$d> %5% '%6%'")
-		% RemoveClassFromName(typeid(VarDecl).name())
+		% RemoveClassFromName(typeid(UnaryOperator).name())
 		% m_state.Alteration()
 		% line % col
 		% (m_side == UnaryOperator::POSTFIX ? "postfix" : "prefix")
@@ -420,7 +402,7 @@ void CompoundAssignOperator::Deserialize(Serializable::Interface& pack)
 const std::string CompoundAssignOperator::NodeName() const
 {
 	return boost::str(boost::format("%1$s {%2$d} <line:%3$d,col:%4$d> '%5%'")
-		% RemoveClassFromName(typeid(VarDecl).name())
+		% RemoveClassFromName(typeid(CompoundAssignOperator).name())
 		% m_state.Alteration()
 		% line % col
 		% CompoundAssignOperandStr(m_operand));
