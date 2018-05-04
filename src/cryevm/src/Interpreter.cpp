@@ -684,7 +684,7 @@ public:
 	template<typename CastType>
 	auto Data() const { return boost::get<CastType>(m_functionData); }
 
-	operator bool() const { return m_functionData.empty(); }
+	operator bool() const { return !m_functionData.empty(); }
 
 private:
 	bool m_isExternal = false;
@@ -932,10 +932,12 @@ class ScopedRoutine
 		}
 
 		case AST::NodeID::CALL_EXPR_ID: {
-			//TODO: For some reason returning from a call expression
-			// is not possible right now due to some semer bug.
-			//TODO: CallExpression();
-			break;
+			auto op = std::dynamic_pointer_cast<CallExpr>(node);
+			Context::Function funcCtx = CallExpression(op, ctx);
+			if (!funcCtx->HasReturnValue()) {
+				throw std::logic_error{ "function must return a value" }; //TODO:
+			}
+			return funcCtx->ReturnValue();
 		}
 
 		{
@@ -958,7 +960,7 @@ class ScopedRoutine
 		case AST::NodeID::IMPLICIT_CONVERTION_EXPR_ID: {
 			auto convRef = std::dynamic_pointer_cast<ImplicitConvertionExpr>(node);
 			CRY_UNUSED(convRef);
-			return Util::MakeVoid();
+			return Util::MakeVoid(); //TODO: for now
 		}
 
 		default:
@@ -968,7 +970,8 @@ class ScopedRoutine
 		throw 1; //TODO
 	}
 
-	static void CallExpression(const std::shared_ptr<CallExpr>& callNode, Context::Compound& ctx)
+	template<typename ContextType>
+	static Context::Function CallExpression(const std::shared_ptr<CallExpr>& callNode, ContextType& ctx)
 	{
 		assert(callNode);
 		assert(callNode->ChildrenCount());
@@ -1042,8 +1045,7 @@ class ScopedRoutine
 
 		// Call the routine with a new functional context. An new instance is created intentionally
 		// to restrict context scope, and to allow the compiler to RAII all resources. The context
-		// which is provided with this call can be read one more time after completion to extract
-		// the result.
+		// is returned as the result of the expression.
 		assert(function);
 		if (function.IsExternal()) {
 			LocalMethod::ExternalRoutine{}(function.Data<const LocalMethod::InternalMethod*>(), funcCtx);
@@ -1051,6 +1053,8 @@ class ScopedRoutine
 		else {
 			ScopedRoutine{}(function.Data<std::shared_ptr<FunctionDecl>>(), funcCtx);
 		}
+
+		return funcCtx;
 	}
 
 	// Create new compound context
@@ -1143,7 +1147,6 @@ class ScopedRoutine
 		for (const auto& child : declNode->Children()) {
 			auto node = std::static_pointer_cast<VarDecl>(child.lock());
 			if (node->HasExpression()) {
-				//Context::Function funcCtx = ctx->FindContext<FunctionContext>(Context::tag::FUNCTION);
 				ctx->PushVar(node->Identifier(), ResolveExpression(node->Expression(), ctx));
 			}
 		}
@@ -1151,7 +1154,6 @@ class ScopedRoutine
 
 	void ProcessCondition(std::shared_ptr<IfStmt>& node, Context::Compound& ctx)
 	{
-		//Context::Function funcCtx = ctx->FindContext<FunctionContext>(Context::tag::FUNCTION);
 		auto value = ResolveExpression(node->Expression(), ctx);
 		if (Util::EvaluateAsBoolean(value)) {
 			if (node->HasTruthCompound()) {
