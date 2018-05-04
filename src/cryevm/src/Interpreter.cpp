@@ -64,6 +64,14 @@ class FunctionContext;
 namespace Context
 {
 
+enum class tag
+{
+	GLOBAL,
+	UNIT,
+	FUNCTION,
+	COMPOUND,
+};
+
 using Global = std::shared_ptr<GlobalContext>;
 using Unit = std::shared_ptr<UnitContext>;
 using Compound = std::shared_ptr<CompoundContext>;
@@ -129,17 +137,16 @@ public:
 		return std::static_pointer_cast<ContextType>(Parent());
 	}
 
-	virtual void Unregister(std::shared_ptr<AbstractContext>&) {}
-
+	// Find context based on tag, if the context cannot be found,
+	// a nullpointer is returned instead.
 	template<typename ContextType>
-	std::shared_ptr<ContextType> FindContext()
+	std::shared_ptr<ContextType> FindContext(Context::tag tag)
 	{
-		if (std::is_same<decltype(*this), ContextType>::value) {
-			return nullptr;
+		if (m_tag == tag) {
+			return std::static_pointer_cast<ContextType>(this->GetSharedSelf());
 		}
-
-		// Parent()
-		return nullptr;
+		if (!Parent()) { return nullptr; }
+		return Parent()->FindContext<ContextType>(tag);
 	}
 
 public:
@@ -167,14 +174,24 @@ public:
 		return m_specialType[RETURN_VALUE];
 	}
 
-protected:
-	AbstractContext() = default;
+private:
+	virtual std::shared_ptr<AbstractContext> GetSharedSelf() = 0;
 
-	template<typename Type>
-	AbstractContext(std::shared_ptr<Type>&& parent)
-		: m_parentContext{ std::move(parent) }
+protected:
+	AbstractContext(Context::tag tag)
+		: m_tag{ tag }
 	{
 	}
+
+	template<typename Type>
+	AbstractContext(Context::tag tag, std::shared_ptr<Type>&& parent)
+		: m_tag{ tag }
+		, m_parentContext{ std::move(parent) }
+	{
+	}
+
+private:
+	Context::tag m_tag;
 
 protected:
 	std::array<std::shared_ptr<CoilCl::Valuedef::Value>, 1> m_specialType;
@@ -190,17 +207,17 @@ class GlobalContext
 	friend class Evaluator;
 
 public:
+	inline GlobalContext()
+		: AbstractContext{ Context::tag::GLOBAL }
+	{
+	}
+
 	template<typename ContextType, typename... Args>
 	std::shared_ptr<ContextType> MakeContext(Args&&... args)
 	{
 		auto ctx = std::make_shared<ContextType>(shared_from_this(), std::forward<Args>(args)...);
 		m_contextList.push_back(ctx);
 		return std::move(ctx);
-	}
-
-	virtual void Unregister(std::shared_ptr<AbstractContext>&) override
-	{
-		//
 	}
 
 	template<typename Node>
@@ -224,7 +241,16 @@ public:
 			if (auto ptr = context.lock()) {
 				pred(std::static_pointer_cast<CastAsType>(context));
 			}
+			else {
+				//TODO: remove from list
+			}
 		}
+	}
+
+private:
+	virtual std::shared_ptr<AbstractContext> GetSharedSelf()
+	{
+		return shared_from_this();
 	}
 
 private:
@@ -242,15 +268,9 @@ class UnitContext
 public:
 	template<typename ContextType>
 	UnitContext(std::shared_ptr<ContextType>&& parent, const std::string& name)
-		: AbstractContext{ std::move(parent) }
+		: AbstractContext{ Context::tag::UNIT, std::move(parent) }
 		, m_name{ name }
 	{
-	}
-
-	~UnitContext()
-	{
-		auto self = std::static_pointer_cast<AbstractContext>(shared_from_this());
-		Parent()->Unregister(self);
 	}
 
 	DEFAULT_MAKE_CONTEXT(); //TODO: some contexts should be initiated from higher up
@@ -359,6 +379,12 @@ public:
 	}
 
 private:
+	virtual std::shared_ptr<AbstractContext> GetSharedSelf()
+	{
+		return shared_from_this();
+	}
+
+private:
 	//std::list<std::shared_ptr<AbstractContext>> m_objects;
 	std::string m_name;
 };
@@ -371,7 +397,7 @@ namespace Detail
 template<typename ContextType>
 struct MakeContextImpl
 {
-	std::shared_ptr<AbstractContext>&& contex;
+	std::shared_ptr<AbstractContext> contex;
 	template<typename ContextType1, typename ContextType2>
 	MakeContextImpl(std::shared_ptr<ContextType1>&& ctx, std::shared_ptr<ContextType2>&&)
 		: contex{ std::move(ctx) }
@@ -388,7 +414,7 @@ struct MakeContextImpl
 template<>
 struct MakeContextImpl<FunctionContext>
 {
-	std::shared_ptr<AbstractContext>&& contex;
+	std::shared_ptr<AbstractContext> contex;
 	template<typename ContextType1, typename ContextType2>
 	MakeContextImpl(std::shared_ptr<ContextType1>&&, std::shared_ptr<ContextType2>&& ctx)
 		: contex{ std::move(ctx) }
@@ -415,7 +441,7 @@ class FunctionContext
 public:
 	template<typename ContextType>
 	FunctionContext(std::shared_ptr<ContextType>&& parent, const std::string& name)
-		: AbstractContext{ std::move(parent) }
+		: AbstractContext{ Context::tag::FUNCTION, std::move(parent) }
 		, m_name{ name }
 	{
 	}
@@ -462,6 +488,12 @@ public:
 	}
 
 private:
+	virtual std::shared_ptr<AbstractContext> GetSharedSelf()
+	{
+		return shared_from_this();
+	}
+
+private:
 	std::string m_name;
 };
 
@@ -473,11 +505,18 @@ class CompoundContext
 public:
 	template<typename ContextType>
 	CompoundContext(std::shared_ptr<ContextType>&& parent)
-		: AbstractContext{ std::move(parent) }
+		: AbstractContext{ Context::tag::COMPOUND, std::move(parent) }
 	{
 	}
 
-	DEFAULT_MAKE_CONTEXT();
+	template<typename ContextType, typename... Args>
+	std::shared_ptr<ContextType> MakeContext(Args&&... args)
+	{
+		using namespace Local::Detail;
+
+		assert(FindContext<UnitContext>(Context::tag::UNIT));
+		return MakeContextImpl<ContextType>{ shared_from_this(), FindContext<UnitContext>(Context::tag::UNIT) }(std::forward<Args>(args)...);
+	}
 
 	//TODO:
 	// Copy the original and insert the new value in the context
@@ -501,10 +540,16 @@ public:
 	{
 		auto val = m_localObj.find(key);
 		if (val == m_localObj.end()) {
-			return ParentAs<FunctionContext>()->LookupIdentifier(key);
+			return FindContext<FunctionContext>(Context::tag::FUNCTION)->LookupIdentifier(key);
 		}
 
 		return val->second;
+	}
+
+private:
+	virtual std::shared_ptr<AbstractContext> GetSharedSelf()
+	{
+		return shared_from_this();
 	}
 };
 
@@ -575,9 +620,7 @@ const InternalMethod *RequestInternalMethod(const std::string& symbol)
 	auto it = std::find_if(g_internalMethod.cbegin(), g_internalMethod.cend(), [&](const InternalMethod& method) {
 		return method.symbol == symbol;
 	});
-	if (it == g_internalMethod.cend()) {
-		return nullptr;
-	}
+	if (it == g_internalMethod.cend()) { return nullptr; }
 	return &(*it);
 }
 
@@ -606,6 +649,8 @@ public:
 
 public:
 	Runnable() = default;
+
+	// Construct runnable from function declaration
 	Runnable(std::shared_ptr<FunctionDecl>& funcNode)
 		: m_functionData{ funcNode }
 	{
@@ -618,11 +663,13 @@ public:
 			m_paramList.push_back(Parameter{ paramDecl->Identifier(), paramDecl->ReturnType() });
 		}
 	}
+
+	// Construct runnable from internal method
 	Runnable(const LocalMethod::InternalMethod *exfuncRef)
 		: m_isExternal{ true }
 		, m_functionData{ exfuncRef }
 	{
-		//
+		//TODO: Convert args to params
 	}
 
 	const Parameter& operator[](size_t idx) const
@@ -636,6 +683,8 @@ public:
 
 	template<typename CastType>
 	auto Data() const { return boost::get<CastType>(m_functionData); }
+
+	operator bool() const { return m_functionData.empty(); }
 
 private:
 	bool m_isExternal = false;
@@ -829,8 +878,8 @@ class ScopedRoutine
 		return Util::MakeInt(result);
 	}
 
-	//FUTURE: Context may be broader than Context::Function
-	static std::shared_ptr<CoilCl::Valuedef::Value> ResolveExpression(std::shared_ptr<AST::ASTNode> node, Context::Function& ctx)
+	template<typename ContextType>
+	static std::shared_ptr<CoilCl::Valuedef::Value> ResolveExpression(std::shared_ptr<AST::ASTNode> node, ContextType& ctx)
 	{
 		switch (node->Label())
 		{
@@ -900,6 +949,18 @@ class ScopedRoutine
 			return ctx->LookupIdentifier(declRef->Identifier());
 		}
 
+		{
+			//
+			// Type casting
+			//
+		}
+
+		case AST::NodeID::IMPLICIT_CONVERTION_EXPR_ID: {
+			auto convRef = std::dynamic_pointer_cast<ImplicitConvertionExpr>(node);
+			CRY_UNUSED(convRef);
+			return Util::MakeVoid();
+		}
+
 		default:
 			break;
 		}
@@ -925,7 +986,7 @@ class ScopedRoutine
 		//   1.) Look for the symbol in the current program assuming it is a local object
 		//   2.) Request the symbol as an external routine (internal or external module)
 		//   3.) Throw an symbol not found exception halting from further execution
-		if (auto funcNode = ctx->ParentAs<UnitContext>()->LookupSymbol<FunctionDecl>(functionIdentifier)) {
+		if (auto funcNode = ctx->FindContext<UnitContext>(Context::tag::UNIT)->LookupSymbol<FunctionDecl>(functionIdentifier)) {
 			function = std::move(Runnable{ funcNode });
 		}
 		else if (auto exfuncRef = LocalMethod::RequestInternalMethod(functionIdentifier)) {
@@ -956,13 +1017,24 @@ class ScopedRoutine
 				if (function[i].Empty()) {
 					throw 3; //TODO: source.c:0:0: error: parameter name omitted to function 'funcNode'
 				}
-				//TODO: StringLiteral is not always the case
-				auto literal = std::static_pointer_cast<StringLiteral>(itArgs->lock());
-				if (function[i].DataType() != literal->Type()->DataType()) {
-					throw 3; //TODO: source.c:0:0: error: cannot convert argument of type 'X' to parameter type 'Y'
+				const auto literalNode = itArgs->lock();
+				if (Util::IsNodeLiteral(literalNode)) {
+					auto type = std::static_pointer_cast<Literal>(literalNode)->Type2();
+					if (function[i].DataType() != type->DataType()) {
+						throw 3; //TODO: source.c:0:0: error: cannot convert argument of type 'X' to parameter type 'Y'
+					}
+					funcCtx->PushVar(function[i].Identifier(), type);
 				}
-				auto val = std::shared_ptr<Valuedef::Value>{ literal->Type() };
-				funcCtx->PushVar(function[i].Identifier(), val);
+				else {
+					throw std::logic_error{ "initializer element is not literal" };//TODO
+				}
+				//TODO: StringLiteral is not always the case
+				//auto literal = std::static_pointer_cast<StringLiteral>(itArgs->lock());
+				//if (function[i].DataType() != literal->Type()->DataType()) {
+				//	throw 3; //TODO: source.c:0:0: error: cannot convert argument of type 'X' to parameter type 'Y'
+				//}
+				//auto val = std::shared_ptr<Valuedef::Value>{ literal->Type() };
+				//funcCtx->PushVar(function[i].Identifier(), val);
 				++itArgs;
 				++i;
 			}
@@ -972,6 +1044,7 @@ class ScopedRoutine
 		// to restrict context scope, and to allow the compiler to RAII all resources. The context
 		// which is provided with this call can be read one more time after completion to extract
 		// the result.
+		assert(function);
 		if (function.IsExternal()) {
 			LocalMethod::ExternalRoutine{}(function.Data<const LocalMethod::InternalMethod*>(), funcCtx);
 		}
@@ -1053,10 +1126,9 @@ class ScopedRoutine
 			}
 			case NodeID::RETURN_STMT_ID: {
 				auto node = std::static_pointer_cast<ReturnStmt>(child);
-				Context::Function funcCtx = ctx->FindContext<FunctionContext>();
-				//auto funCtx = std::dynamic_pointer_cast<FunctionContext>(ctx); //TODO: for now
+				Context::Function funcCtx = ctx->FindContext<FunctionContext>(Context::tag::FUNCTION);
+				assert(funcCtx);
 				ProcessReturn(node, funcCtx);
-				// No other nodes can follow after return
 				return;
 			}
 			default:
@@ -1071,16 +1143,16 @@ class ScopedRoutine
 		for (const auto& child : declNode->Children()) {
 			auto node = std::static_pointer_cast<VarDecl>(child.lock());
 			if (node->HasExpression()) {
-				Context::Function funcCtx = ctx->FindContext<FunctionContext>();
-				ctx->PushVar(node->Identifier(), ResolveExpression(node->Expression(), funcCtx));
+				//Context::Function funcCtx = ctx->FindContext<FunctionContext>(Context::tag::FUNCTION);
+				ctx->PushVar(node->Identifier(), ResolveExpression(node->Expression(), ctx));
 			}
 		}
 	}
 
 	void ProcessCondition(std::shared_ptr<IfStmt>& node, Context::Compound& ctx)
 	{
-		Context::Function funcCtx = ctx->FindContext<FunctionContext>();
-		auto value = ResolveExpression(node->Expression(), funcCtx);
+		//Context::Function funcCtx = ctx->FindContext<FunctionContext>(Context::tag::FUNCTION);
+		auto value = ResolveExpression(node->Expression(), ctx);
 		if (Util::EvaluateAsBoolean(value)) {
 			if (node->HasTruthCompound()) {
 				auto continueNode = node->TruthCompound();
@@ -1188,7 +1260,7 @@ Evaluator& Evaluator::CallRoutine(const std::string& symbol, const ArgumentList&
 	// If any other functions are called within the global scope, then the last set return value
 	// determines the exit code.
 	if (funcCtx->HasReturnValue()) {
-		funcCtx->Parent()->ParentAs<GlobalContext>()->CreateSpecialVar<RETURN_VALUE>(funcCtx->ReturnValue(), true);
+		funcCtx->FindContext<GlobalContext>(Context::tag::GLOBAL)->CreateSpecialVar<RETURN_VALUE>(funcCtx->ReturnValue(), true);
 	}
 
 	return (*this);
