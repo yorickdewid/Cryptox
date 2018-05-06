@@ -72,11 +72,18 @@ public:
 	Value(Typedef::BaseType typeBase);
 	Value(Typedef::BaseType typeBase, ValueVariant value);
 
-	template<typename _Ty>
-	Value(Typedef::BaseType typeBase, _Ty value)
+	template<typename NativeType>
+	Value(Typedef::BaseType typeBase, NativeType&& value)
 		: m_objectType{ typeBase }
-		, m_value{ ValueVariant{ value } }
+		, m_value{ ValueVariant{ std::forward<NativeType>(value) } }
 	{
+	}
+
+	// Swap-in replacement value
+	template<typename NativeType>
+	void ReplaceValue(NativeType&& value)
+	{
+		std::swap(std::move(m_value), ValueVariant{ std::forward<NativeType>(value) });
 	}
 
 	// Return the type specifier

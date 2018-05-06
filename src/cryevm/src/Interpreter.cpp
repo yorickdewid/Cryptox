@@ -890,6 +890,29 @@ class ScopedRoutine
 		return Util::MakeInt(result);
 	}
 
+	static std::shared_ptr<CoilCl::Valuedef::Value> EvaluateInverse(std::shared_ptr<CoilCl::Valuedef::Value>&& value)
+	{
+		return Util::MakeBool(!Util::EvaluateAsBoolean(value));
+	}
+
+	//FUTURE: both operations can be improved
+	template<typename OperandPred>
+	static std::shared_ptr<CoilCl::Valuedef::Value> ValueAlteration(OperandPred predicate, AST::UnaryOperator::OperandSide side, std::shared_ptr<CoilCl::Valuedef::Value>&& value)
+	{
+		int result = predicate(value->As<int>(), 1);
+
+		// On postfix operand, copy the original first
+		if (side == AST::UnaryOperator::OperandSide::POSTFIX) {
+			auto newval = Util::MakeInt(value->As<int>());
+			value->ReplaceValue(result);
+			return newval;
+		}
+
+		// On prefix, perform the unary operand on the original
+		value->ReplaceValue(result);
+		return value;
+	}
+
 	template<typename ContextType>
 	static std::shared_ptr<CoilCl::Valuedef::Value> ResolveExpression(std::shared_ptr<AST::ASTNode> node, ContextType& ctx)
 	{
@@ -934,16 +957,26 @@ class ScopedRoutine
 			switch (op->Operand())
 			{
 			case AST::UnaryOperator::UnaryOperand::INC:
+				return ValueAlteration(std::plus<int>(), op->OperationSide(), std::move(value));
 			case AST::UnaryOperator::UnaryOperand::DEC:
+				return ValueAlteration(std::minus<int>(), op->OperationSide(), std::move(value));
 
 			case AST::UnaryOperator::UnaryOperand::INTPOS:
 			case AST::UnaryOperator::UnaryOperand::INTNEG:
+				//ValueSignedness();
+				break;
 
 			case AST::UnaryOperator::UnaryOperand::ADDR:
+				//ObjectAddress();
+				break;
 			case AST::UnaryOperator::UnaryOperand::PTRVAL:
+				//ObjectIndirection();
+				break;
 
-			case AST::UnaryOperator::UnaryOperand::BITNOT:
+				//case AST::UnaryOperator::UnaryOperand::BITNOT:
 			case AST::UnaryOperator::UnaryOperand::BOOLNOT:
+				return EvaluateInverse(std::move(value));
+
 			default:
 				break;
 			}
@@ -1209,7 +1242,6 @@ class ScopedRoutine
 
 		// Resolve return expression
 		ctx->CreateSpecialVar<RETURN_VALUE>(ResolveExpression(node->Expression(), ctx));
-		DUMP_VALUE(ctx->ReturnValue());
 	}
 
 public:

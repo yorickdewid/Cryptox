@@ -645,6 +645,7 @@ public:
 	auto Expression() const noexcept { return m_body; }
 
 	UnaryOperand Operand() const noexcept { return m_operand; };
+	OperandSide OperationSide() const noexcept { return m_side; };
 
 	virtual void Serialize(Serializable::Interface& pack);
 	virtual void Deserialize(Serializable::Interface& pack);

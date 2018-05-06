@@ -12,7 +12,7 @@ platform:
 # Build configuration
 configuration:
   - RelWithDebInfo
-  - Debug
+  # - Debug
 
 environment:
   matrix:
