@@ -572,19 +572,23 @@ class ConditionalOperator
 	, public SelfReference<ConditionalOperator>
 {
 	NODE_ID(AST::NodeID::CONDITIONAL_OPERATOR_ID);
-	std::shared_ptr<ASTNode> evalNode;
-	std::shared_ptr<ASTNode> truthStmt;
-	std::shared_ptr<ASTNode> altStmt;
+	std::shared_ptr<ASTNode> m_evalNode;
+	std::shared_ptr<ASTNode> m_truthStmt;
+	std::shared_ptr<ASTNode> m_altStmt;
 
 public:
+	ConditionalOperator(std::shared_ptr<ASTNode>& eval, std::shared_ptr<ASTNode> truth = nullptr, std::shared_ptr<ASTNode> alt = nullptr);
+
 	explicit ConditionalOperator(Serializable::Interface& pack)
 	{
 		Deserialize(pack);
 	}
 
-	ConditionalOperator(std::shared_ptr<ASTNode>& eval, std::shared_ptr<ASTNode> truth = nullptr, std::shared_ptr<ASTNode> alt = nullptr);
+	auto& Expression() const { return m_evalNode; }
+	auto& TruthStatement() const { return m_truthStmt; }
+	auto& AltStatement() const { return m_altStmt; }
 
-	void SetTruthCompound(const std::shared_ptr<ASTNode>& node);
+	void SetTruthCompound(const std::shared_ptr<ASTNode>& node); //TODO: rename to ...Statement
 	void SetAltCompound(const std::shared_ptr<ASTNode>& node);
 
 	virtual void Serialize(Serializable::Interface& pack);

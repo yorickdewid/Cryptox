@@ -145,25 +145,25 @@ const std::string BinaryOperator::NodeName() const
 
 
 ConditionalOperator::ConditionalOperator(std::shared_ptr<ASTNode>& eval, std::shared_ptr<ASTNode> truth, std::shared_ptr<ASTNode> alt)
-	: evalNode{ eval }
+	: m_evalNode{ eval }
 {
 	ASTNode::AppendChild(eval);
 
 	if (truth) {
 		ASTNode::AppendChild(truth);
-		truthStmt = truth;
+		m_truthStmt = truth;
 	}
 
 	if (alt) {
 		ASTNode::AppendChild(alt);
-		altStmt = alt;
+		m_altStmt = alt;
 	}
 }
 
 void ConditionalOperator::SetTruthCompound(const std::shared_ptr<ASTNode>& node)
 {
 	ASTNode::AppendChild(node);
-	truthStmt = node;
+	m_truthStmt = node;
 
 	ASTNode::UpdateDelegate();
 }
@@ -171,7 +171,7 @@ void ConditionalOperator::SetTruthCompound(const std::shared_ptr<ASTNode>& node)
 void ConditionalOperator::SetAltCompound(const std::shared_ptr<ASTNode>& node)
 {
 	ASTNode::AppendChild(node);
-	altStmt = node;
+	m_altStmt = node;
 
 	ASTNode::UpdateDelegate();
 }
@@ -182,15 +182,15 @@ void ConditionalOperator::Serialize(Serializable::Interface& pack)
 
 	auto group = pack.ChildGroups(3);
 	group.Size(1);
-	group << evalNode;
+	group << m_evalNode;
 
 	group++;
 	group.Size(1);
-	group << truthStmt;
+	group << m_truthStmt;
 
 	group++;
 	group.Size(1);
-	group << altStmt;
+	group << m_altStmt;
 
 	Operator::Serialize(pack);
 }
@@ -203,7 +203,7 @@ void ConditionalOperator::Deserialize(Serializable::Interface& pack)
 
 	auto group = pack.ChildGroups();
 	pack <<= {group[0], [=](const std::shared_ptr<ASTNode>& node) {
-		evalNode = node;
+		m_evalNode = node;
 		ASTNode::AppendChild(node);
 	}};
 

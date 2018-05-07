@@ -948,8 +948,14 @@ class ScopedRoutine
 			return BinaryOperation(OperandFactory<int>(op->Operand()), ResolveExpression(op->LHS(), ctx), ResolveExpression(op->RHS(), ctx));
 		}
 		case AST::NodeID::CONDITIONAL_OPERATOR_ID: {
-			std::dynamic_pointer_cast<ConditionalOperator>(node);
-			break;
+			auto op = std::dynamic_pointer_cast<ConditionalOperator>(node);
+			auto value = ResolveExpression(op->Expression(), ctx);
+			if (Util::EvaluateAsBoolean(value)) {
+				return ResolveExpression(op->TruthStatement(), ctx);
+			}
+
+			// Handle alternative path
+			return ResolveExpression(op->AltStatement(), ctx);
 		}
 		case AST::NodeID::UNARY_OPERATOR_ID: {
 			auto op = std::dynamic_pointer_cast<AST::UnaryOperator>(node);
@@ -1221,8 +1227,7 @@ class ScopedRoutine
 		}
 		// Handle alternative path, if any
 		else if (node->HasAltCompound()) {
-			node->AltCompound();
-			auto continueNode = node->TruthCompound();
+			auto continueNode = node->AltCompound();
 			auto compoundNode = std::static_pointer_cast<CompoundStmt>(continueNode);
 			ProcessCompound(compoundNode, ctx);
 		}
@@ -1284,17 +1289,19 @@ Parameters ConvertToValueDef(const ArgumentList&& args)
 	return params;
 }
 
-//TODO:
-// Warp startup parameters in format
-void FormatParameters(std::vector<std::string> pivot, Parameters&& params, Context::Function& ctx)
+// Warp startup parameters in program arguments format. To If no arguments are
+// passed to the startup the parameters are ignored. The program contract
+// defines thee parameters, respectively:
+//   1.) argc, the argument count
+//   2.) argv, an array to string literal parameters
+//   3.) envp, an array to string literal environment variables
+void FormatStartupParameters(Parameters&& params, Context::Function& ctx)
 {
-	CRY_UNUSED(params);
+	if (params.empty()) { return; }
 
-
-
-	/*for (const auto& item : pivot) {
-		ctx->PushVar("kaas", );
-	}*/
+	ctx->PushVar({ "argc", Util::MakeInt(static_cast<int>(params.size())) });
+	//ctx->PushVar({ "argv", Util::MakeArray( Util::MakeString() ) });
+	//ctx->PushVar({ "envp", Util::MakeArray( Util::MakeString() ) });
 }
 
 } // namespace
@@ -1306,12 +1313,7 @@ Evaluator& Evaluator::CallRoutine(const std::string& symbol, const ArgumentList&
 	auto funcNode = m_unitContext->LookupSymbol<FunctionDecl>(symbol);
 	auto funcCtx = m_unitContext->MakeContext<FunctionContext>(funcNode->Identifier());
 
-	/*FormatParameters({ "argc", "argv" }, ConvertToValueDef(std::move(args)), funcCtx, []() {
-		argc = params.size();
-		argv = params;
-	});*/
-
-	funcCtx->PushVar({ "argc", Util::MakeInt(3) });
+	FormatStartupParameters(ConvertToValueDef(std::move(args)), funcCtx);
 	ScopedRoutine{}(funcNode, funcCtx);
 
 	// If the function context contained a return value, set the return value as program exit
