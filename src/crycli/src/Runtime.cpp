@@ -68,9 +68,7 @@ class ExecuteAdapter final
 			break;
 		}
 
-		if (settings.args) {
-			free(settings.args);
-		}
+		FreeProgramArguments(settings.args);
 
 		//return info.program;
 	}
@@ -99,13 +97,23 @@ class ExecuteAdapter final
 			argv[i] = (datachunk_t *)malloc(sizeof(datachunk_t));
 			argv[i]->ptr = m_args[i].data();
 			argv[i]->size = m_args[i].size();
-			argv[i]->unmanaged_res = 1;
+			argv[i]->unmanaged_res = 0;
 		}
 		argv[argsz] = (datachunk_t *)malloc(sizeof(datachunk_t));
 		argv[argsz]->ptr = nullptr;
 		argv[argsz]->size = 0;
-		argv[argsz]->unmanaged_res = 1;
+		argv[argsz]->unmanaged_res = 0;
 		return const_cast<const datachunk_t **>(argv);
+	}
+
+	//TODO; still missing 1 dealloc
+	void FreeProgramArguments(const datachunk_t **args)
+	{
+		size_t i = 0;
+		for (; args[i]->ptr; ++i) {
+			free((void*)args[i]);
+		}
+		free((void*)args[i]);
 	}
 
 public:

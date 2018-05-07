@@ -17,6 +17,8 @@
 #include <memory>
 #include <iostream> // only for cerr
 
+//#define AUTO_CONVERT 1
+
 //TODO:
 // - Involve planner and determine strategy
 //    - Check if local arch compile is required
@@ -27,8 +29,40 @@
 
 using ProgramPtr = Detail::UniquePreservePtr<CoilCl::Program>;
 
-bool has_digits(const std::string& s) {
+#ifdef AUTO_CONVERT
+bool has_digits(const std::string& s)
+{
 	return s.find_first_not_of("0123456789") == std::string::npos;
+}
+#endif
+
+void ReworkArgumentList(ArgumentList& list, runtime_settings_t *runtime)
+{
+	size_t sz = 0;
+	if (!runtime->args) {
+		return;
+	}
+
+	do {
+		// Reconstruct parameters and cast to builtin type if possible
+		const datachunk_t *arg = runtime->args[sz++];
+		auto str = std::string{ arg->ptr, arg->size };
+#ifdef AUTO_CONVERT
+		if (has_digits(str)) {
+			list.emplace_back(boost::lexical_cast<int>(str));
+		}
+		else {
+			list.push_back(std::move(str));
+		}
+#else
+		list.push_back(std::move(str));
+#endif
+		if (arg->unmanaged_res) {
+			auto *tmpVal = const_cast<char*>(arg->ptr);
+			free(static_cast<void*>(tmpVal));
+			tmpVal = nullptr;
+		}
+	} while (runtime->args[sz]->ptr != nullptr);
 }
 
 // Execute program
@@ -45,28 +79,9 @@ EVMAPI int ExecuteProgram(runtime_settings_t *runtime) noexcept
 
 	try {
 		ArgumentList args;
-		// Execute the program in the designated strategy
-		if (runtime->args) {
-			size_t sz = 0;
-			do {
-				// Reconstruct parameters and cast to builtin type if possible
-				const datachunk_t *arg = runtime->args[sz++];
-				auto str = std::string{ arg->ptr, arg->size };
-				if (has_digits(str)) {
-					args.emplace_back(boost::lexical_cast<int>(str));
-				}
-				else {
-					args.push_back(std::move(str));
-				}
-				if (arg->unmanaged_res) {
-					free((void*)arg);
-				}
-			} while (runtime->args[sz]->ptr != nullptr);
-			if (runtime->args[sz]->unmanaged_res) {
-				free((void *)runtime->args[sz]);
-			}
-		}
+		ReworkArgumentList(args, runtime);
 
+		// Execute the program in the designated strategy
 		runtime->return_code = runner->Execute(runner->EntryPoint(runtime->entry_point), args);
 	}
 	// Catch any runtime errors
