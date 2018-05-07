@@ -17,6 +17,14 @@ namespace CoilCl
 namespace Valuedef
 {
 
+Value::Value(const Value& other)
+	: m_value{ other.m_value }
+	, m_array{ other.m_array }
+	, m_isVoid{ other.m_isVoid }
+	, m_objectType{ other.m_objectType }
+{
+}
+
 Value::Value(Typedef::BaseType typeBase)
 	: m_objectType{ typeBase }
 {
@@ -118,6 +126,11 @@ const Cry::ByteArray Value::Serialize() const
 
 namespace Util
 {
+
+std::shared_ptr<CoilCl::Valuedef::Value> ValueCopy(const std::shared_ptr<CoilCl::Valuedef::Value>& value)
+{
+	return std::make_shared<CoilCl::Valuedef::Value>(*value);
+}
 
 bool EvaluateAsBoolean(std::shared_ptr<Valuedef::Value> value)
 {

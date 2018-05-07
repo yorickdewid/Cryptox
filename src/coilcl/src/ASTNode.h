@@ -791,12 +791,12 @@ public:
 		Literal::Deserialize(pack);
 	}
 
-	inline InternalType Type() const noexcept
+	inline InternalType Type() const noexcept //TODO: replace with Type2
 	{
 		return m_valueObj;
 	}
 
-	virtual std::shared_ptr<CoilCl::Valuedef::Value> Type2() const noexcept
+	virtual std::shared_ptr<CoilCl::Valuedef::Value> Type2() const noexcept //TODO: rename to Value()
 	{
 		return m_valueObj;
 	}

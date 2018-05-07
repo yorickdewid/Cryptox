@@ -36,7 +36,7 @@ struct ValueFactory;
 namespace Valuedef
 {
 
-class Value
+class Value //TODO: mark each value with an unique id
 {
 	friend struct Util::ValueFactory;
 
@@ -68,7 +68,7 @@ protected:
 
 public:
 	// Special member funcion, copy constructor
-	Value(const Value& other) = default;
+	Value(const Value&);
 	Value(Typedef::BaseType typeBase);
 	Value(Typedef::BaseType typeBase, ValueVariant value);
 
@@ -99,7 +99,6 @@ public:
 	// Check if value is empty
 	inline bool Empty() const noexcept { return m_value.empty(); }
 
-	//FUTURE: maybe not here
 	// Check if value is void
 	inline bool IsVoid() const noexcept { return m_isVoid; }
 
@@ -120,7 +119,7 @@ public:
 	virtual const Cry::ByteArray Serialize() const;
 
 private:
-	Typedef::BaseType m_objectType;
+	Typedef::BaseType m_objectType; //TODO: replace with typefacade to account for pointers
 };
 
 // If string was required, try cast 'boost any' to vector and string
@@ -320,6 +319,13 @@ inline Valuedef::ValueType<Type> MakeVoid()
 {
 	return std::make_shared<Valuedef::ValueObject<Type>>();
 }
+
+//
+// Change value internals
+//
+
+// Create deep copy of value with the same contents
+std::shared_ptr<CoilCl::Valuedef::Value> ValueCopy(const std::shared_ptr<CoilCl::Valuedef::Value>&);
 
 //
 // Query value properties

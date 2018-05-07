@@ -1083,16 +1083,12 @@ class ScopedRoutine
 					throw 3; //TODO: source.c:0:0: error: parameter name omitted to function 'funcNode'
 				}
 				const auto literalNode = itArgs->lock();
-				if (Util::IsNodeLiteral(literalNode)) {
-					auto type = std::static_pointer_cast<Literal>(literalNode)->Type2();
-					if (function[i].DataType() != type->DataType()) {
-						throw 3; //TODO: source.c:0:0: error: cannot convert argument of type 'X' to parameter type 'Y'
-					}
-					funcCtx->PushVar(function[i].Identifier(), type);
+				auto value = ResolveExpression(literalNode, ctx);
+				if (function[i].DataType() != value->DataType()) {
+					throw 3; //TODO: source.c:0:0: error: cannot convert argument of type 'X' to parameter type 'Y'
 				}
-				else {
-					throw std::logic_error{ "initializer element is not literal" };//TODO
-				}
+				//TODO: check if param is pointer
+				funcCtx->PushVar(function[i].Identifier(), Util::ValueCopy(value));
 				++itArgs;
 				++i;
 			}
