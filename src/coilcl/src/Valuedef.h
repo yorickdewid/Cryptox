@@ -333,6 +333,8 @@ std::shared_ptr<CoilCl::Valuedef::Value> ValueCopy(const std::shared_ptr<CoilCl:
 
 // Evaluate the value as either true or false
 bool EvaluateAsBoolean(std::shared_ptr<Valuedef::Value>);  //TODO: rename EvaluateValueAsBoolean
+// Evaluate the value as an integer if possible
+int EvaluateValueAsInteger(std::shared_ptr<Valuedef::Value>);
 // Test if the value is a void type
 bool IsVoid(std::shared_ptr<Valuedef::Value>); //TODO: rename IsValueVoid
 // Test if the value is array type

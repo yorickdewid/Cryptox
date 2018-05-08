@@ -421,7 +421,7 @@ void DefaultStmt::Deserialize(Serializable::Interface& pack)
 
 
 CaseStmt::CaseStmt(std::shared_ptr<ASTNode>& name, std::shared_ptr<ASTNode>& body)
-	: m_name{ name }
+	: m_identifier{ name }
 	, m_body{ body }
 {
 	ASTNode::AppendChild(name);
@@ -434,7 +434,7 @@ void CaseStmt::Serialize(Serializable::Interface& pack)
 
 	auto group = pack.ChildGroups(2);
 	group.Size(1);
-	group << m_name;
+	group << m_identifier;
 
 	group++;
 	group.Size(1);
@@ -451,7 +451,7 @@ void CaseStmt::Deserialize(Serializable::Interface& pack)
 
 	auto group = pack.ChildGroups();
 	pack <<= {group[0], [=](const std::shared_ptr<ASTNode>& node) {
-		m_name = node;
+		m_identifier = node;
 		ASTNode::AppendChild(node);
 	}};
 

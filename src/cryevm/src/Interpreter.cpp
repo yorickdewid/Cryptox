@@ -366,6 +366,7 @@ public:
 	//}
 	void PushVar(std::pair<const std::string, std::shared_ptr<Valuedef::Value>>&& pair)
 	{
+		CRY_UNUSED(pair);
 		// Static declarations must be registered in unit scope
 		/*if (Util::IsTypeStatic(pair.second->DataType())) {
 			m_localObj.insert(std::move(pair));
@@ -760,13 +761,13 @@ void Evaluator::Unit(const TranslationUnitDecl& node)
 			}
 			case NodeID::DECL_STMT_ID: {
 				for (const auto& child : ptr->Children()) {
-					auto node = std::static_pointer_cast<VarDecl>(child.lock());
-					if (node->HasExpression()) {
+					auto varDecl = std::static_pointer_cast<VarDecl>(child.lock());
+					if (varDecl->HasExpression()) {
 						//TODO: unit must be literal node, otherwise:
 						//THROW: initializer element is not constant
-						if (Util::IsNodeLiteral(node->Expression())) {
-							auto type = std::static_pointer_cast<Literal>(node->Expression())->Type2();
-							m_unitContext->PushVar({ node->Identifier(), type });
+						if (Util::IsNodeLiteral(varDecl->Expression())) {
+							auto type = std::static_pointer_cast<Literal>(varDecl->Expression())->Type2();
+							m_unitContext->PushVar({ varDecl->Identifier(), type });
 						}
 						else {
 							throw std::logic_error{ "initializer element is not constant" };//TODO
@@ -973,20 +974,17 @@ class ScopedRoutine
 				break;
 
 			case AST::UnaryOperator::UnaryOperand::ADDR:
-				//ObjectAddress();
+				//ValueAddress();
 				break;
 			case AST::UnaryOperator::UnaryOperand::PTRVAL:
-				//ObjectIndirection();
+				//ValueIndirection();
 				break;
 
 				//case AST::UnaryOperator::UnaryOperand::BITNOT:
 			case AST::UnaryOperator::UnaryOperand::BOOLNOT:
 				return EvaluateInverse(std::move(value));
-
-			default:
-				break;
 			}
-			break;
+			throw 1; //TODO:
 		}
 		case AST::NodeID::COMPOUND_ASSIGN_OPERATOR_ID: {
 			std::dynamic_pointer_cast<CompoundAssignOperator>(node);
@@ -1170,7 +1168,8 @@ class ScopedRoutine
 				break;
 			}
 			case NodeID::SWITCH_STMT_ID: {
-				//TODO
+				auto node = std::static_pointer_cast<SwitchStmt>(child);
+				ProcessSwitch(node, ctx);
 				break;
 			}
 			case NodeID::WHILE_STMT_ID: {
@@ -1230,6 +1229,48 @@ class ScopedRoutine
 			auto continueNode = node->AltCompound();
 			auto compoundNode = std::static_pointer_cast<CompoundStmt>(continueNode);
 			ProcessCompound(compoundNode, ctx);
+		}
+	}
+
+	void ProcessSwitch(std::shared_ptr<SwitchStmt>& node, Context::Compound& ctx)
+	{
+		if (!node->HasBodyExpression()) { return; } //TODO: set warning about useless statement
+
+		// Body node must be compound in order to be executable
+		if (node->BodyExpression()->Label() != AST::NodeID::COMPOUND_STMT_ID) {
+			//TODO: set warning about non-executable
+			return;
+		}
+
+		auto value = ResolveExpression(node->Expression(), ctx);
+		auto compoundNode = std::static_pointer_cast<CompoundStmt>(node->BodyExpression());
+
+		// Process compound within the switch statement instead of calling process compound
+		// since the switch body compound semantically differs from a generic compound block.
+		auto compCtx = ctx->MakeContext<CompoundContext>();
+		{
+			auto body = compoundNode->Children();
+			if (!body.size()) {
+				return; //TODO: set warning: empty statement
+			}
+
+			// Process each child node
+			for (const auto& childNode : body) {
+				auto child = childNode.lock();
+				if (child->Label() != AST::NodeID::CASE_STMT_ID) {
+					continue; //TODO: set warning: statement will never be executed
+				}
+				auto caseNode = std::static_pointer_cast<CaseStmt>(child);
+				if (!Util::IsNodeLiteral(caseNode->Identifier())) {
+					throw 1; //TODO: case label must be integer constant
+				}
+				auto literal = std::static_pointer_cast<Literal>(caseNode->Identifier());
+				const int caseLabelInt = Util::EvaluateValueAsInteger(literal->Type2());
+				const int valueInt = Util::EvaluateValueAsInteger(value);
+				if (caseLabelInt == valueInt) {
+					caseNode->Expression();
+				}
+			}
 		}
 	}
 

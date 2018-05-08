@@ -135,7 +135,11 @@ std::shared_ptr<CoilCl::Valuedef::Value> ValueCopy(const std::shared_ptr<CoilCl:
 bool EvaluateAsBoolean(std::shared_ptr<Valuedef::Value> value)
 {
 	if (IsVoid(value)) {
-		throw 1; //TODO: void value is non orthogonal
+		throw 1; //TODO: void is non orthogonal
+	}
+
+	if (IsValueArray(value)) {
+		throw 1; //TODO: cannot substitute array to void
 	}
 
 	//FUTURE: this is expensive, replace try/catch
@@ -145,6 +149,26 @@ bool EvaluateAsBoolean(std::shared_ptr<Valuedef::Value> value)
 	catch (...) {}
 
 	return false;
+}
+
+int EvaluateValueAsInteger(std::shared_ptr<Valuedef::Value> value)
+{
+	if (IsVoid(value)) {
+		throw 1; //TODO: cannot cast void to integer
+	}
+
+	if (IsValueArray(value)) {
+		throw 1; //TODO: cannot substitute array to integer
+	}
+
+	//FUTURE: this is expensive, replace try/catch
+	//TODO: also cast double, float & char to int
+	try {
+		return value->As<int>();
+	}
+	catch (...) {}
+
+	throw 1; //TODO:
 }
 
 bool IsVoid(std::shared_ptr<Valuedef::Value> value)

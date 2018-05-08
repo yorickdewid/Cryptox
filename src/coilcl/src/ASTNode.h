@@ -755,18 +755,14 @@ protected:
 	InternalType m_valueObj;
 
 public:
-	// Default to void type with no data
-	// FUTURE: Make this more readable and only instantiate a single object
-	LiteralImpl()
-		: Literal{ AST::TypeFacade{ CoilCl::Util::MakeBuiltinType(CoilCl::Typedef::BuiltinType::Specifier::VOID_T) } }
-		, m_valueObj{ CoilCl::Util::MakeBuiltinType(CoilCl::Typedef::BuiltinType::Specifier::VOID_T) }
-	{
-	}
-
 	// Move data object from token processor into literal object
 	LiteralImpl(std::shared_ptr<CoilCl::Valuedef::ValueObject<NativeType>>&& object)
 		: Literal{ AST::TypeFacade{ object->DataType() } }
 		, m_valueObj{ std::move(object) }
+	{
+	}
+
+	explicit LiteralImpl(Serializable::Interface&)
 	{
 	}
 
@@ -831,6 +827,7 @@ class CharacterLiteral : public Detail::LiteralImpl<char, CharacterLiteral>
 
 public:
 	explicit CharacterLiteral(Serializable::Interface& pack)
+		: Detail::LiteralImpl<char, CharacterLiteral>{ pack }
 	{
 		Deserialize(pack);
 	}
@@ -852,6 +849,7 @@ class StringLiteral : public Detail::LiteralImpl<std::string, StringLiteral>
 
 public:
 	explicit StringLiteral(Serializable::Interface& pack)
+		: Detail::LiteralImpl<std::string, StringLiteral>{ pack }
 	{
 		Deserialize(pack);
 	}
@@ -873,6 +871,7 @@ class IntegerLiteral : public Detail::LiteralImpl<int, IntegerLiteral>
 
 public:
 	explicit IntegerLiteral(Serializable::Interface& pack)
+		: Detail::LiteralImpl<int, IntegerLiteral>{ pack }
 	{
 		Deserialize(pack);
 	}
@@ -894,6 +893,7 @@ class FloatingLiteral : public Detail::LiteralImpl<double, FloatingLiteral>
 
 public:
 	explicit FloatingLiteral(Serializable::Interface& pack)
+		: Detail::LiteralImpl<double, FloatingLiteral>{ pack }
 	{
 		Deserialize(pack);
 	}
@@ -1778,12 +1778,12 @@ class IfStmt
 	std::shared_ptr<ASTNode> m_altStmt;
 
 public:
+	IfStmt(std::shared_ptr<ASTNode>& eval, std::shared_ptr<ASTNode> truth = nullptr, std::shared_ptr<ASTNode> alt = nullptr);
+
 	explicit IfStmt(Serializable::Interface& pack)
 	{
 		Deserialize(pack);
 	}
-
-	IfStmt(std::shared_ptr<ASTNode>& eval, std::shared_ptr<ASTNode> truth = nullptr, std::shared_ptr<ASTNode> alt = nullptr);
 
 	auto& Expression() const { return m_evalNode; }
 	bool HasTruthCompound() const { return m_truthStmt != nullptr; }
@@ -1813,12 +1813,16 @@ class SwitchStmt
 	std::shared_ptr<ASTNode> m_body;
 
 public:
+	SwitchStmt(std::shared_ptr<ASTNode>& eval, std::shared_ptr<ASTNode> body = nullptr);
+
 	explicit SwitchStmt(Serializable::Interface& pack)
 	{
 		Deserialize(pack);
 	}
 
-	SwitchStmt(std::shared_ptr<ASTNode>& eval, std::shared_ptr<ASTNode> body = nullptr);
+	auto& Expression() const { return evalNode; }
+	bool HasBodyExpression() const { return m_body != nullptr; }
+	auto& BodyExpression() const { return m_body; }
 
 	void SetBody(const std::shared_ptr<ASTNode>& node);
 
@@ -1972,16 +1976,20 @@ class CaseStmt
 	, public SelfReference<CaseStmt>
 {
 	NODE_ID(AST::NodeID::CASE_STMT_ID);
-	std::shared_ptr<ASTNode> m_name;
+	std::shared_ptr<ASTNode> m_identifier;
 	std::shared_ptr<ASTNode> m_body;
 
 public:
+	CaseStmt(std::shared_ptr<ASTNode>& name, std::shared_ptr<ASTNode>& body);
+
 	explicit CaseStmt(Serializable::Interface& pack)
 	{
 		Deserialize(pack);
 	}
 
-	CaseStmt(std::shared_ptr<ASTNode>& name, std::shared_ptr<ASTNode>& body);
+	auto& Identifier() const noexcept { return m_identifier; }
+
+	auto& Expression() const { return m_body; }
 
 	virtual void Serialize(Serializable::Interface& pack);
 	virtual void Deserialize(Serializable::Interface& pack);
