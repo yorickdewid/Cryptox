@@ -344,6 +344,26 @@ inline bool IsNodeFunction(const std::shared_ptr<NodeType>& type)
 {
 	return type->Label() == AST::NodeID::FUNCTION_DECL_ID;
 }
+template<typename NodeType, typename = typename std::enable_if<std::is_convertible<NodeType, AST::ASTNode>::value
+	|| std::is_same<NodeType, AST::ASTNode>::value>::type>
+inline bool IsNodeTranslationUnit(const std::shared_ptr<NodeType>& type)
+{
+	return node.Label() == AST::NodeID::TRANSLATION_UNIT_DECL_ID;
+}
+
+template<typename CastNode>
+auto NodeCast(const std::shared_ptr<AST::ASTNode>& node)
+{
+	return std::static_pointer_cast<CastNode>(node);
+}
+template<typename CastNode>
+auto NodeCast(const std::weak_ptr<AST::ASTNode>& node)
+{
+	if (node.expired()) {
+		throw 1; //TODO: some bad ptr exception
+	}
+	return NodeCast<CastNode>(node.lock());
+}
 
 } // namespace Util
 } // namespace CoilCl

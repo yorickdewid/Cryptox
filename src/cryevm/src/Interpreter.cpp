@@ -671,7 +671,7 @@ public:
 		assert(funcNode->ParameterStatement()->ChildrenCount());
 
 		for (const auto& child : funcNode->ParameterStatement()->Children()) {
-			auto paramDecl = std::static_pointer_cast<ParamDecl>(child.lock());
+			auto paramDecl = Util::NodeCast<ParamDecl>(child);
 			assert(paramDecl->HasReturnType());
 			m_paramList.push_back(Parameter{ paramDecl->Identifier(), paramDecl->ReturnType() });
 		}
@@ -761,12 +761,12 @@ void Evaluator::Unit(const TranslationUnitDecl& node)
 			}
 			case NodeID::DECL_STMT_ID: {
 				for (const auto& child : ptr->Children()) {
-					auto varDecl = std::static_pointer_cast<VarDecl>(child.lock());
+					auto varDecl = Util::NodeCast<VarDecl>(child);
 					if (varDecl->HasExpression()) {
 						//TODO: unit must be literal node, otherwise:
 						//THROW: initializer element is not constant
 						if (Util::IsNodeLiteral(varDecl->Expression())) {
-							auto type = std::static_pointer_cast<Literal>(varDecl->Expression())->Type2();
+							auto type = Util::NodeCast<Literal>(varDecl->Expression())->Type2();
 							m_unitContext->PushVar({ varDecl->Identifier(), type });
 						}
 						else {
@@ -1115,7 +1115,7 @@ class ScopedRoutine
 	// Create new compound context
 	void CreateCompound(const std::shared_ptr<AST::ASTNode>& node, Context::Compound& ctx)
 	{
-		auto compNode = std::static_pointer_cast<CompoundStmt>(node);
+		auto compNode = Util::NodeCast<CompoundStmt>(node);
 		auto compCtx = ctx->MakeContext<CompoundContext>();
 		ProcessCompound(compNode, compCtx);
 	}
@@ -1148,27 +1148,27 @@ class ScopedRoutine
 			switch (child->Label())
 			{
 			case NodeID::COMPOUND_STMT_ID: {
-				auto node = std::static_pointer_cast<CompoundStmt>(child);
+				auto node = Util::NodeCast<CompoundStmt>(child);
 				CreateCompound(node, ctx);
 				break;
 			}
 			case NodeID::CALL_EXPR_ID: {
-				auto node = std::static_pointer_cast<CallExpr>(child);
+				auto node = Util::NodeCast<CallExpr>(child);
 				CallExpression(node, ctx);
 				break;
 			}
 			case NodeID::DECL_STMT_ID: {
-				auto node = std::static_pointer_cast<DeclStmt>(child);
+				auto node = Util::NodeCast<DeclStmt>(child);
 				ProcessDeclaration(node, ctx);
 				break;
 			}
 			case NodeID::IF_STMT_ID: {
-				auto node = std::static_pointer_cast<IfStmt>(child);
+				auto node = Util::NodeCast<IfStmt>(child);
 				ProcessCondition(node, ctx);
 				break;
 			}
 			case NodeID::SWITCH_STMT_ID: {
-				auto node = std::static_pointer_cast<SwitchStmt>(child);
+				auto node = Util::NodeCast<SwitchStmt>(child);
 				ProcessSwitch(node, ctx);
 				break;
 			}
@@ -1185,7 +1185,7 @@ class ScopedRoutine
 				break;
 			}
 			case NodeID::RETURN_STMT_ID: {
-				auto node = std::static_pointer_cast<ReturnStmt>(child);
+				auto node = Util::NodeCast<ReturnStmt>(child);
 				Context::Function funcCtx = ctx->FindContext<FunctionContext>(Context::tag::FUNCTION);
 				assert(funcCtx);
 				ProcessReturn(node, funcCtx);
@@ -1207,7 +1207,7 @@ class ScopedRoutine
 	void ProcessDeclaration(std::shared_ptr<DeclStmt>& declNode, Context::Compound& ctx)
 	{
 		for (const auto& child : declNode->Children()) {
-			auto node = std::static_pointer_cast<VarDecl>(child.lock());
+			auto node = Util::NodeCast<VarDecl>(child);
 			if (node->HasExpression()) {
 				ctx->PushVar(node->Identifier(), ResolveExpression(node->Expression(), ctx));
 			}
@@ -1220,14 +1220,14 @@ class ScopedRoutine
 		if (Util::EvaluateAsBoolean(value)) {
 			if (node->HasTruthCompound()) {
 				auto continueNode = node->TruthCompound();
-				auto compoundNode = std::static_pointer_cast<CompoundStmt>(continueNode);
+				auto compoundNode = Util::NodeCast<CompoundStmt>(continueNode);
 				ProcessCompound(compoundNode, ctx);
 			}
 		}
 		// Handle alternative path, if any
 		else if (node->HasAltCompound()) {
 			auto continueNode = node->AltCompound();
-			auto compoundNode = std::static_pointer_cast<CompoundStmt>(continueNode);
+			auto compoundNode = Util::NodeCast<CompoundStmt>(continueNode);
 			ProcessCompound(compoundNode, ctx);
 		}
 	}
@@ -1243,7 +1243,7 @@ class ScopedRoutine
 		}
 
 		auto value = ResolveExpression(node->Expression(), ctx);
-		auto compoundNode = std::static_pointer_cast<CompoundStmt>(node->BodyExpression());
+		auto compoundNode = Util::NodeCast<CompoundStmt>(node->BodyExpression());
 
 		// Process compound within the switch statement instead of calling process compound
 		// since the switch body compound semantically differs from a generic compound block.
@@ -1260,11 +1260,11 @@ class ScopedRoutine
 				if (child->Label() != AST::NodeID::CASE_STMT_ID) {
 					continue; //TODO: set warning: statement will never be executed
 				}
-				auto caseNode = std::static_pointer_cast<CaseStmt>(child);
+				auto caseNode = Util::NodeCast<CaseStmt>(child);
 				if (!Util::IsNodeLiteral(caseNode->Identifier())) {
 					throw 1; //TODO: case label must be integer constant
 				}
-				auto literal = std::static_pointer_cast<Literal>(caseNode->Identifier());
+				auto literal = Util::NodeCast<Literal>(caseNode->Identifier());
 				const int caseLabelInt = Util::EvaluateValueAsInteger(literal->Type2());
 				const int valueInt = Util::EvaluateValueAsInteger(value);
 				if (caseLabelInt == valueInt) {
@@ -1336,13 +1336,13 @@ Parameters ConvertToValueDef(const ArgumentList&& args)
 //   1.) argc, the argument count
 //   2.) argv, an array to string literal parameters
 //   3.) envp, an array to string literal environment variables
-void FormatStartupParameters(Parameters&& params, Context::Function& ctx)
+void FormatStartupParameters(std::array<std::string, 3> mapper, Parameters&& params, Context::Function& ctx)
 {
 	if (params.empty()) { return; }
 
-	ctx->PushVar({ "argc", Util::MakeInt(static_cast<int>(params.size())) });
-	//ctx->PushVar({ "argv", Util::MakeArray( Util::MakeString() ) });
-	//ctx->PushVar({ "envp", Util::MakeArray( Util::MakeString() ) });
+	ctx->PushVar({ mapper[0], Util::MakeInt(static_cast<int>(params.size())) });
+	ctx->PushVar({ mapper[1], Util::MakeFloat(872.21) }); //TODO: Util::MakeArray
+	ctx->PushVar({ mapper[2], Util::MakeBool(true) }); //TODO: Util::MakeArray
 }
 
 } // namespace
@@ -1350,11 +1350,23 @@ void FormatStartupParameters(Parameters&& params, Context::Function& ctx)
 // Call program routine from external context
 Evaluator& Evaluator::CallRoutine(const std::string& symbol, const ArgumentList& args)
 {
-	CRY_UNUSED(args);
 	auto funcNode = m_unitContext->LookupSymbol<FunctionDecl>(symbol);
 	auto funcCtx = m_unitContext->MakeContext<FunctionContext>(funcNode->Identifier());
 
-	FormatStartupParameters(ConvertToValueDef(std::move(args)), funcCtx);
+	if (funcNode->HasParameters()) {
+		std::string argv = "argv"; std::string envp = "envp";
+		std::string argc = Util::NodeCast<ParamDecl>(funcNode->ParameterStatement()->Children()[0])->Identifier();
+		if (funcNode->ParameterStatement()->ChildrenCount() > 1) {
+			argv = Util::NodeCast<ParamDecl>(funcNode->ParameterStatement()->Children()[1])->Identifier();
+		}
+		if (funcNode->ParameterStatement()->ChildrenCount() > 2) {
+			envp = Util::NodeCast<ParamDecl>(funcNode->ParameterStatement()->Children()[2])->Identifier();
+		}
+		if (funcNode->ParameterStatement()->ChildrenCount() > 3) {
+			throw 1; //TODO
+		}
+		FormatStartupParameters({ argc, argv, envp }, ConvertToValueDef(std::move(args)), funcCtx);
+	}
 	ScopedRoutine{}(funcNode, funcCtx);
 
 	// If the function context contained a return value, set the return value as program exit

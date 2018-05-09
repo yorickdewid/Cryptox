@@ -808,7 +808,7 @@ public:
 		ss << " {" + std::to_string(m_state.Alteration()) + "}";
 		ss << " <line:" << line << ",col:" << col << "> ";
 		ss << "'" << ReturnType()->TypeName() << "' ";
-		ss << m_valueObj->Print();
+		ss << "\"" << m_valueObj->Print() << "\"";
 
 		return ss.str();
 	}
@@ -1052,13 +1052,13 @@ class TypedefDecl
 	NODE_ID(AST::NodeID::TYPEDEF_DECL_ID);
 
 public:
+	TypedefDecl(const std::string& name, std::shared_ptr<Typedef::TypedefBase> type);
+
 	explicit TypedefDecl(Serializable::Interface& pack)
 		: Decl{ pack }
 	{
 		Deserialize(pack);
 	}
-
-	TypedefDecl(const std::string& name, std::shared_ptr<Typedef::TypedefBase> type);
 
 	virtual void Serialize(Serializable::Interface& pack);
 	virtual void Deserialize(Serializable::Interface& pack);
@@ -2062,7 +2062,7 @@ class ParamStmt
 	, public SelfReference<ParamStmt>
 {
 	NODE_ID(AST::NodeID::PARAM_STMT_ID);
-	std::vector<std::shared_ptr<ASTNode>> m_param;
+	std::vector<std::shared_ptr<ASTNode>> m_param; //TODO: vector of paramDecl?
 
 public:
 	ParamStmt() = default;

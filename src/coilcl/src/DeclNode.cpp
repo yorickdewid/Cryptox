@@ -177,7 +177,7 @@ void TypedefDecl::Deserialize(Serializable::Interface& pack)
 const std::string TypedefDecl::NodeName() const
 {
 	return boost::str(boost::format("%1$s {%2$d} <line:%3$d,col:%4$d> %5% '%6%' %7%")
-		% RemoveClassFromName(typeid(VarDecl).name())
+		% RemoveClassFromName(typeid(TypedefDecl).name())
 		% m_state.Alteration()
 		% line % col
 		% m_identifier
@@ -422,7 +422,7 @@ void EnumDecl::Deserialize(Serializable::Interface& pack)
 const std::string EnumDecl::NodeName() const
 {
 	return boost::str(boost::format("%1$s {%2$d} <line:%3$d,col:%4$d> %5%")
-		% RemoveClassFromName(typeid(FieldDecl).name())
+		% RemoveClassFromName(typeid(EnumDecl).name())
 		% m_state.Alteration()
 		% line % col
 		% (IsAnonymous() ? "anonymous" : m_identifier));
