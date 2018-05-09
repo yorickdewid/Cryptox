@@ -15,10 +15,10 @@
 namespace Cry
 {
 
-template<typename _ToTy, typename _FromTy>
-CSTD unique_ptr<_ToTy> static_unique_pointer_cast(CSTD unique_ptr<_FromTy>&& old)
+template<typename ToType, typename FromType>
+CSTD unique_ptr<ToType> static_unique_pointer_cast(CSTD unique_ptr<FromType>&& old)
 {
-	return CSTD unique_ptr<_ToTy>{ static_cast<_ToTy*>(old.release()) };
+	return CSTD unique_ptr<ToType>{ static_cast<ToType*>(old.release()) };
 }
 
 template<class _Ty1, typename _Ty2>

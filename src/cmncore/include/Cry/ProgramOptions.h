@@ -14,9 +14,9 @@
 #include <boost/algorithm/string.hpp>
 
 #ifdef CRY_WINDOWS
-#define CRY_CLI_DELIMITER "/"
+# define CRY_CLI_DELIMITER "/"
 #else
-#define CRY_CLI_DELIMITER "-"
+# define CRY_CLI_DELIMITER "-"
 #endif // CRY_WINDOWS
 
 #define VERSION_OPTION_LONG "version"

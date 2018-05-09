@@ -27,7 +27,7 @@ using Word = uint32_t;
 // tricks including byte reordering and structure assertion.
 class ByteArray : public std::vector<Byte>
 {
-	using _MyBase = std::vector<Byte>;
+	using BaseType = std::vector<Byte>;
 
 	const unsigned char flag0 = 1 << 0;      // 0000 0001 
 	const unsigned char flagIs64 = 1 << 1;   // 0000 0010
@@ -41,52 +41,55 @@ class ByteArray : public std::vector<Byte>
 public:
 	ByteArray() = default;
 	ByteArray(const ByteArray& other)
-		: _MyBase{ other }
+		: BaseType{ other }
 		, m_offset{ other.m_offset }
 	{
 	}
 	ByteArray(ByteArray&& other)
-		: _MyBase{ std::move(other) }
+		: BaseType{ std::move(other) }
 		, m_offset{ other.m_offset } //FIXME: this does not work
 	{
 	}
 
-	template<typename _InputIt>
-	ByteArray(_InputIt first, _InputIt last)
-		: _MyBase{ first, last }
+	template<typename InputIt>
+	inline ByteArray(InputIt first, InputIt last)
+		: BaseType{ first, last }
 	{
 	}
+
+	//
+	// Assignment operators
+	//
 
 	ByteArray& operator=(const ByteArray& other)
 	{
 		m_offset = other.m_offset;
-		_MyBase::operator=(other);
+		BaseType::operator=(other);
 		return (*this);
 	}
 	ByteArray& operator=(ByteArray&& other)
 	{
 		m_offset = other.m_offset;
-		_MyBase::operator=(std::move(other));
+		BaseType::operator=(std::move(other));
 		return (*this);
 	}
 
+	//
+	// Offset Operations
+	//
+
 	enum { AUTO = -1 };
 
-	void StartOffset(int offset)
-	{
-		m_offset = offset;
-	}
+	void StartOffset(int offset) { m_offset = offset; }
+	int Offset() const noexcept { return m_offset; }
 
-	int Offset() const noexcept
-	{
-		return m_offset;
-	}
-
+	// Set magic value
 	void SetMagic(uint8_t magic)
 	{
-		_MyBase::push_back(magic);
+		BaseType::push_back(magic);
 	}
 
+	// Validate magic value
 	bool ValidateMagic(uint8_t magic, int idx = -1)
 	{
 		if (idx == -1) {
@@ -126,7 +129,7 @@ public:
 
 	void Serialize(uint8_t i)
 	{
-		_MyBase::push_back(i);
+		BaseType::push_back(i);
 	}
 
 	void Serialize(uint16_t i)
@@ -134,8 +137,8 @@ public:
 #if CRY_LITTLE_ENDIAN
 		i = BSWAP16(i);
 #endif
-		_MyBase::push_back((i >> 0) & 0xff);
-		_MyBase::push_back((i >> 8) & 0xff);
+		BaseType::push_back((i >> 0) & 0xff);
+		BaseType::push_back((i >> 8) & 0xff);
 	}
 
 	void Serialize(uint32_t i)
@@ -143,10 +146,10 @@ public:
 #if CRY_LITTLE_ENDIAN
 		i = BSWAP32(i);
 #endif
-		_MyBase::push_back((i >> 0) & 0xff);
-		_MyBase::push_back((i >> 8) & 0xff);
-		_MyBase::push_back((i >> 16) & 0xff);
-		_MyBase::push_back((i >> 24) & 0xff);
+		BaseType::push_back((i >> 0) & 0xff);
+		BaseType::push_back((i >> 8) & 0xff);
+		BaseType::push_back((i >> 16) & 0xff);
+		BaseType::push_back((i >> 24) & 0xff);
 	}
 
 	void Serialize(uint64_t i)
@@ -154,14 +157,14 @@ public:
 #if CRY_LITTLE_ENDIAN
 		i = BSWAP64(i);
 #endif
-		_MyBase::push_back((i >> 0) & 0xff);
-		_MyBase::push_back((i >> 8) & 0xff);
-		_MyBase::push_back((i >> 16) & 0xff);
-		_MyBase::push_back((i >> 24) & 0xff);
-		_MyBase::push_back((i >> 32) & 0xff);
-		_MyBase::push_back((i >> 40) & 0xff);
-		_MyBase::push_back((i >> 48) & 0xff);
-		_MyBase::push_back((i >> 56) & 0xff);
+		BaseType::push_back((i >> 0) & 0xff);
+		BaseType::push_back((i >> 8) & 0xff);
+		BaseType::push_back((i >> 16) & 0xff);
+		BaseType::push_back((i >> 24) & 0xff);
+		BaseType::push_back((i >> 32) & 0xff);
+		BaseType::push_back((i >> 40) & 0xff);
+		BaseType::push_back((i >> 48) & 0xff);
+		BaseType::push_back((i >> 56) & 0xff);
 	}
 
 	template<typename _TyConv, typename _TyIn>

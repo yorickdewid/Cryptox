@@ -15,32 +15,6 @@ namespace Cry
 namespace Algorithm
 {
 
-template<typename ArgumentType>
-struct AllTrue
-{
-	using argument_type = ArgumentType;
-	using result_type = bool;
-
-	constexpr bool operator()(const ArgumentType& _Left) const
-	{
-		CRY_UNUSED(_Left);
-		return true;
-	}
-};
-
-template<typename ArgumentType>
-struct AllFalse
-{
-	using argument_type = ArgumentType;
-	using result_type = bool;
-
-	constexpr bool operator()(const ArgumentType& _Left) const
-	{
-		CRY_UNUSED(_Left);
-		return false;
-	}
-};
-
 // The match if algorithm will call the predicate for each element in the container
 // and when evaluated to true the callback routine is called. This combines a
 // predicate check and callback in one which is also possible with individual
@@ -55,5 +29,5 @@ void MatchIf(InputIt first, InputIt last, UnaryPredicate p, UnaryCallback c)
 	}
 }
 
-} // namespace Except
+} // namespace Algorithm
 } // namespace Cry

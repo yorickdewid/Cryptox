@@ -24,12 +24,12 @@ struct PolyConstruct
 	virtual ~PolyConstruct() {}
 };
 
-template<typename _Ty>
-struct IsPolyconstructable : std::is_base_of<PolyConstruct, _Ty>
+template<typename Type>
+struct IsPolyconstructable : std::is_base_of<PolyConstruct, Type>
 {
 };
 
-template<typename _Ty>
-constexpr bool IsPolyconstructableV = IsPolyconstructable<_Ty>::value;
+template<typename Type>
+constexpr bool IsPolyconstructableV = IsPolyconstructable<Type>::value;
 
 } // namespace Cry

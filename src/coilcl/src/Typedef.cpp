@@ -149,7 +149,7 @@ std::vector<uint8_t> BuiltinType::TypeEnvelope() const
 	std::vector<uint8_t> buffer = { m_c_internalType };
 	buffer.push_back(static_cast<uint8_t>(m_specifier));
 	const auto base = TypedefBase::TypeEnvelope();
-	buffer.insert(buffer.cend(), base.begin(), base.end());
+	buffer.insert(buffer.cend(), base.cbegin(), base.cend());
 	return buffer;
 }
 
@@ -196,10 +196,10 @@ std::vector<uint8_t> RecordType::TypeEnvelope() const
 	std::vector<uint8_t> buffer = { m_c_internalType };
 	buffer.reserve(m_name.size());
 	buffer.push_back(static_cast<uint8_t>(m_name.size())); //FUTURE: Limited to 256
-	std::copy(m_name.cbegin(), m_name.cend(), buffer.begin());
+	buffer.insert(buffer.cend(), m_name.cbegin(), m_name.cend());
 	buffer.push_back(static_cast<uint8_t>(m_specifier));
 	const auto base = TypedefBase::TypeEnvelope();
-	buffer.insert(buffer.cend(), base.begin(), base.end());
+	buffer.insert(buffer.cend(), base.cbegin(), base.cend());
 	return buffer;
 }
 
@@ -229,15 +229,15 @@ std::vector<uint8_t> TypedefType::TypeEnvelope() const
 	std::vector<uint8_t> buffer = { m_c_internalType };
 	buffer.reserve(m_name.size());
 	buffer.push_back(static_cast<uint8_t>(m_name.size())); //FUTURE: Limited to 256
-	std::copy(m_name.cbegin(), m_name.cend(), buffer.begin());
+	buffer.insert(buffer.cend(), m_name.cbegin(), m_name.cend());
 
 	if (m_resolveType) {
 		auto envelop = m_resolveType->TypeEnvelope();
-		buffer.insert(buffer.cend(), envelop.begin(), envelop.end());
+		buffer.insert(buffer.cend(), envelop.cbegin(), envelop.cend());
 	}
 
 	const auto base = TypedefBase::TypeEnvelope();
-	buffer.insert(buffer.cend(), base.begin(), base.end());
+	buffer.insert(buffer.cend(), base.cbegin(), base.cend());
 	return buffer;
 }
 
@@ -249,7 +249,7 @@ std::vector<uint8_t> VariadicType::TypeEnvelope() const
 {
 	std::vector<uint8_t> buffer = { m_c_internalType };
 	const auto base = TypedefBase::TypeEnvelope();
-	buffer.insert(buffer.cend(), base.begin(), base.end());
+	buffer.insert(buffer.cend(), base.cbegin(), base.cend());
 	return buffer;
 }
 
