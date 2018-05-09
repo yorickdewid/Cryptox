@@ -269,7 +269,7 @@ struct Serializable
 		void Previous() { --m_it; }
 
 		// Get or set element size in group
-		size_t Size(size_t sz = 0)
+		size_t Size(size_t sz = 0) //TODO: DEPRECATED: FIXME: REMOVE
 		{
 			if (sz > 0) {
 				(*m_it)->SetSize(sz);
@@ -278,6 +278,11 @@ struct Serializable
 
 			return (*m_it)->GetSize();
 		}
+
+		// Set the number of elements in this group
+		void SetSize(size_t sz) { (*m_it)->SetSize(sz); }
+		// Get the number of elements in this group
+		size_t GetSize() { return (*m_it)->GetSize(); }
 
 		std::vector<std::shared_ptr<CoilCl::AST::ASTNode>> Children() { return {}; }
 	};
@@ -1903,12 +1908,12 @@ class ForStmt
 	std::shared_ptr<ASTNode> m_body;
 
 public:
+	ForStmt(std::shared_ptr<ASTNode>& node1, std::shared_ptr<ASTNode>& node2, std::shared_ptr<ASTNode>& node3);
+
 	explicit ForStmt(Serializable::Interface& pack)
 	{
 		Deserialize(pack);
 	}
-
-	ForStmt(std::shared_ptr<ASTNode>& node1, std::shared_ptr<ASTNode>& node2, std::shared_ptr<ASTNode>& node3);
 
 	void SetBody(const std::shared_ptr<ASTNode>& node);
 
@@ -2143,12 +2148,12 @@ class CompoundStmt
 	std::list<std::shared_ptr<ASTNode>> m_children;
 
 public:
-	CompoundStmt(Serializable::Interface& pack)
+	CompoundStmt() = default;
+
+	explicit CompoundStmt(Serializable::Interface& pack)
 	{
 		Deserialize(pack);
 	}
-
-	CompoundStmt() = default;
 
 	void AppendChild(const std::shared_ptr<ASTNode>& node) final;
 

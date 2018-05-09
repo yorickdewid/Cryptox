@@ -348,7 +348,7 @@ template<typename NodeType, typename = typename std::enable_if<std::is_convertib
 	|| std::is_same<NodeType, AST::ASTNode>::value>::type>
 inline bool IsNodeTranslationUnit(const std::shared_ptr<NodeType>& type)
 {
-	return node.Label() == AST::NodeID::TRANSLATION_UNIT_DECL_ID;
+	return type.Label() == AST::NodeID::TRANSLATION_UNIT_DECL_ID;
 }
 
 template<typename CastNode>

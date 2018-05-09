@@ -15,14 +15,13 @@
 namespace Detail
 {
 
-template<typename _Ty>
-class UniquePreservePtr : private std::unique_ptr<_Ty, void(*)(_Ty *)>
+template<typename Type>
+class UniquePreservePtr : private std::unique_ptr<Type, void(*)(Type *)>
 {
-	using _MyBase = std::unique_ptr<_Ty, void(*)(_Ty *)>;
-	using _MyTy = UniquePreservePtr<_Ty>;
+	using BaseType = std::unique_ptr<Type, void(*)(Type *)>;
 
 	// Ingore deletion of object
-	static void Deleter(_Ty *ptr)
+	static void Deleter(Type *ptr)
 	{
 		CRY_UNUSED(ptr);
 	}
@@ -31,51 +30,46 @@ public:
 	UniquePreservePtr() = delete;
 	UniquePreservePtr(nullptr_t)
 	{
-		reset(nullptr);
+		this->reset(nullptr);
 	}
 
-	UniquePreservePtr(_Ty *ptr)
-		: _MyBase{ ptr, Deleter }
+	UniquePreservePtr(Type *ptr)
+		: BaseType{ ptr, Deleter }
 	{
 	}
 
-	template<typename _PTy>
-	UniquePreservePtr(_PTy *ptr)
-		: _MyBase{ _MyBase::pointer(ptr), Deleter }
+	template<typename PointerType>
+	UniquePreservePtr(PointerType *ptr)
+		: BaseType{ BaseType::pointer(ptr), Deleter }
 	{
 	}
 
 	UniquePreservePtr(const UniquePreservePtr&) = delete;
-
 	UniquePreservePtr(UniquePreservePtr&& other)
-		: _MyBase{ other.release(), Deleter }
+		: BaseType{ other.release(), Deleter }
 	{
 		other.reset();
 	}
 
-	UniquePreservePtr& operator=(const UniquePreservePtr&) = delete;
+	//
+	// Assignment operators
+	//
 
+	UniquePreservePtr& operator=(const UniquePreservePtr&) = delete;
 	UniquePreservePtr& operator=(UniquePreservePtr&& other) noexcept
 	{
-		reset(other.release());
+		this->reset(other.release());
 		other.reset();
 		return (*this);
 	}
 
-	_MyBase::pointer operator->()  const noexcept
-	{
-		return _MyBase::get();
-	}
+	//
+	// Object access
+	//
 
-	_MyBase::pointer operator*()  const noexcept
-	{
-		return _MyBase::get();
-	}
-
-	_MyBase::pointer Get() const noexcept
-	{
-		return _MyBase::get();
-	}
+	typename BaseType::pointer operator->()  const noexcept { return BaseType::get(); }
+	typename BaseType::pointer operator*()  const noexcept { return BaseType::get(); }
+	typename BaseType::pointer Get() const noexcept {return BaseType::get(); }
 };
 
 } // namespace Detail

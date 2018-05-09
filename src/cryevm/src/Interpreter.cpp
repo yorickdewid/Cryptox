@@ -480,7 +480,7 @@ public:
 	void PushVar(KeyType&& key, ValueType&& value)
 	{
 		//FUTURE: std::remove_cvref
-		using InternalType = std::remove_cv<std::remove_reference<KeyType>::type>::type;
+		using InternalType = typename std::remove_cv<typename std::remove_reference<KeyType>::type>::type;
 		static_assert(std::is_same<InternalType, std::string>::value ||
 			std::is_same<InternalType, const char *>::value, "");
 		m_localObj.emplace(std::forward<KeyType>(key), std::forward<ValueType>(value));
@@ -543,7 +543,7 @@ public:
 	void PushVar(KeyType&& key, ValueType&& value)
 	{
 		//FUTURE: std::remove_cvref
-		using InternalType = std::remove_cv<std::remove_reference<KeyType>::type>::type;
+		using InternalType = typename std::remove_cv<typename std::remove_reference<KeyType>::type>::type;
 		static_assert(std::is_same<InternalType, std::string>::value ||
 			std::is_same<InternalType, const char *>::value, "");
 		m_localObj.emplace(std::forward<KeyType>(key), std::forward<ValueType>(value));

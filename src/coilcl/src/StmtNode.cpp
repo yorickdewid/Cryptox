@@ -478,7 +478,7 @@ void DeclStmt::Serialize(Serializable::Interface& pack)
 	pack << nodeId;
 
 	auto group = pack.ChildGroups(1);
-	group.Size(m_var.size());
+	group.SetSize(m_var.size());
 	for (const auto& child : m_var) {
 		group << child;
 	}
@@ -493,7 +493,7 @@ void DeclStmt::Deserialize(Serializable::Interface& pack)
 	AssertNode(_nodeId, nodeId);
 
 	auto group = pack.ChildGroups();
-	for (size_t i = 0; i < group.Size(); ++i)
+	for (size_t i = 0; i < group.GetSize(); ++i)
 	{
 		int childNodeId = group[i];
 		pack <<= {childNodeId, [=](const std::shared_ptr<ASTNode>& node) {
@@ -530,7 +530,7 @@ void ArgumentStmt::Serialize(Serializable::Interface& pack)
 	pack << nodeId;
 
 	auto group = pack.ChildGroups(1);
-	group.Size(m_arg.size());
+	group.SetSize(m_arg.size());
 	for (const auto& child : m_arg) {
 		group << child;
 	}
@@ -545,7 +545,7 @@ void ArgumentStmt::Deserialize(Serializable::Interface& pack)
 	AssertNode(_nodeId, nodeId);
 
 	auto group = pack.ChildGroups();
-	for (size_t i = 0; i < group.Size(); ++i)
+	for (size_t i = 0; i < group.GetSize(); ++i)
 	{
 		int childNodeId = group[i];
 		pack <<= {childNodeId, [=](const std::shared_ptr<ASTNode>& node) {
@@ -570,7 +570,7 @@ void ParamStmt::Serialize(Serializable::Interface& pack)
 	pack << nodeId;
 
 	auto group = pack.ChildGroups(1);
-	group.Size(m_param.size());
+	group.SetSize(m_param.size());
 	for (const auto& child : m_param) {
 		group << child;
 	}
@@ -585,7 +585,7 @@ void ParamStmt::Deserialize(Serializable::Interface& pack)
 	AssertNode(_nodeId, nodeId);
 
 	auto group = pack.ChildGroups();
-	for (size_t i = 0; i < group.Size(); ++i)
+	for (size_t i = 0; i < group.GetSize(); ++i)
 	{
 		int childNodeId = group[i];
 		pack <<= {childNodeId, [=](const std::shared_ptr<ASTNode>& node) {
@@ -676,7 +676,7 @@ void CompoundStmt::Serialize(Serializable::Interface& pack)
 	pack << nodeId;
 
 	auto group = pack.ChildGroups(1);
-	group.Size(m_children.size());
+	group.SetSize(m_children.size());
 	for (const auto& child : m_children) {
 		group << child;
 	}
@@ -691,7 +691,7 @@ void CompoundStmt::Deserialize(Serializable::Interface& pack)
 	AssertNode(_nodeId, nodeId);
 
 	auto group = pack.ChildGroups();
-	for (size_t i = 0; i < group.Size(); ++i)
+	for (size_t i = 0; i < group.GetSize(); ++i)
 	{
 		int childNodeId = group[i];
 		pack <<= {childNodeId, [=](const std::shared_ptr<ASTNode>& node) {

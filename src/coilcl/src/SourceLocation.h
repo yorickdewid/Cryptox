@@ -10,49 +10,54 @@ namespace Detail
 {
 
 template<typename Type = int, typename = typename std::enable_if<std::is_integral<Type>::value>::type>
-struct SourceLocationImpl : public std::pair<Type, Type>
+struct SourceLocationImpl : private std::pair<Type, Type>
 {
-	using value_type = Type;
-	using _Myty = SourceLocationImpl<Type>;
-	using _Mybase = std::pair<Type, Type>;
+	using ValueType = Type;
+	using SelfType = SourceLocationImpl<Type>;
+	using BaseType = std::pair<Type, Type>;
 
 	SourceLocationImpl() = default;
-	inline SourceLocationImpl(const value_type Line, const value_type Col)
-		: _Mybase{ Line, Col }
+	inline SourceLocationImpl(const ValueType Line, const ValueType Col)
+		: BaseType{ Line, Col }
 	{
 	}
 
-	SourceLocationImpl(const _Myty& Other)
-		: _Mybase{ Other }
+	inline SourceLocationImpl(const SelfType& Other)
+		: BaseType{ Other }
 	{
 	}
 
-	SourceLocationImpl(_Myty&&)
-		: _Mybase{ std::move(_Other) }
+	inline SourceLocationImpl(SelfType&& other)
+		: BaseType{ std::move(other) }
 	{
 	}
 
-	SourceLocationImpl& operator=(const _Myty& _Other)
+	SourceLocationImpl& operator=(const SelfType& other)
 	{
-		first = _Other.first;
-		second = _Other.second;
+		this->first = other.first;
+		this->second = other.second;
 		return (*this);
 	}
 
-	SourceLocationImpl& operator=(_Myty&& _Other)
+	SourceLocationImpl& operator=(SelfType&& other)
 	{
-		first = std::move(_Other.first);
-		second = std::move(_Other.second);
+		this->first = std::move(other.first);
+		this->second = std::move(other.second);
 		return (*this);
 	}
 
-	value_type Line() const noexcept { return first; }
-	value_type Column() const noexcept { return second; }
+	//
+	// Access location properties
+	//
+
+	ValueType Line() const noexcept { return this->first; }
+	ValueType Column() const noexcept { return this->second; }
 };
 
 } // namespace Detail
 
 using SourceLocation = Detail::SourceLocationImpl<>;
+using SourceLocationLong = Detail::SourceLocationImpl<long long int>;
 
 } // namespace Util
 } // namespace CoilCl
