@@ -14,6 +14,8 @@
 
 //TODO:
 // - Stacktrace
+// - Infinite loop detection
+// - Runtime resolve
 
 #define RETURN_VALUE 0
 #define ENTRY_SYMBOL "main"
@@ -553,7 +555,9 @@ public:
 	{
 		auto val = m_localObj.find(key);
 		if (val == m_localObj.end()) {
-			return FindContext<FunctionContext>(Context::tag::FUNCTION)->LookupIdentifier(key);
+			//return FindContext<FunctionContext>(Context::tag::FUNCTION)->LookupIdentifier(key);
+			//return ParentAs<DeclarationRegistry>()->LookupIdentifier(key);
+			return std::dynamic_pointer_cast<DeclarationRegistry>(Parent())->LookupIdentifier(key);
 		}
 
 		return val->second;
@@ -668,8 +672,8 @@ public:
 		: m_functionData{ funcNode }
 	{
 		assert(funcNode);
-		assert(funcNode->ParameterStatement()->ChildrenCount());
 
+		if (!funcNode->HasParameters()) { return; }
 		for (const auto& child : funcNode->ParameterStatement()->Children()) {
 			auto paramDecl = Util::NodeCast<ParamDecl>(child);
 			assert(paramDecl->HasReturnType());
@@ -1013,8 +1017,12 @@ class ScopedRoutine
 		}
 
 		case AST::NodeID::DECL_REF_EXPR_ID: {
-			auto declRef = std::dynamic_pointer_cast<DeclRefExpr>(node);
-			return ctx->LookupIdentifier(declRef->Identifier());
+			auto declRef = Util::NodeCast<DeclRefExpr>(node);
+			auto value = ctx->LookupIdentifier(declRef->Identifier());
+			if (!value) {
+				throw std::runtime_error{ "'" + declRef->Identifier() + "' undeclared in hierarchical context" };
+			}
+			return value;
 		}
 
 		{
@@ -1133,11 +1141,10 @@ class ScopedRoutine
 	}
 
 	// Run all nodes in the compound
-	void ProcessCompound(std::shared_ptr<CompoundStmt>& compoundNode, Context::Compound& ctx)
+	template<typename Node>
+	void ProcessCompound(const std::shared_ptr<Node>& node, Context::Compound& ctx)
 	{
-		using namespace AST;
-
-		auto body = compoundNode->Children();
+		auto body = node->Children();
 		if (!body.size()) {
 			return; //TODO: Check if return type is void
 		}
@@ -1145,60 +1152,79 @@ class ScopedRoutine
 		// Process each child node
 		for (const auto& childNode : body) {
 			auto child = childNode.lock();
-			switch (child->Label())
-			{
-			case NodeID::COMPOUND_STMT_ID: {
-				auto node = Util::NodeCast<CompoundStmt>(child);
-				CreateCompound(node, ctx);
-				break;
-			}
-			case NodeID::CALL_EXPR_ID: {
-				auto node = Util::NodeCast<CallExpr>(child);
-				CallExpression(node, ctx);
-				break;
-			}
-			case NodeID::DECL_STMT_ID: {
-				auto node = Util::NodeCast<DeclStmt>(child);
-				ProcessDeclaration(node, ctx);
-				break;
-			}
-			case NodeID::IF_STMT_ID: {
-				auto node = Util::NodeCast<IfStmt>(child);
-				ProcessCondition(node, ctx);
-				break;
-			}
-			case NodeID::SWITCH_STMT_ID: {
-				auto node = Util::NodeCast<SwitchStmt>(child);
-				ProcessSwitch(node, ctx);
-				break;
-			}
-			case NodeID::WHILE_STMT_ID: {
-				//TODO
-				break;
-			}
-			case NodeID::DO_STMT_ID: {
-				//TODO
-				break;
-			}
-			case NodeID::FOR_STMT_ID: {
-				//TODO
-				break;
-			}
-			case NodeID::RETURN_STMT_ID: {
-				auto node = Util::NodeCast<ReturnStmt>(child);
-				Context::Function funcCtx = ctx->FindContext<FunctionContext>(Context::tag::FUNCTION);
-				assert(funcCtx);
-				ProcessReturn(node, funcCtx);
-				return;
-			}
-			default:
-				ProcessExpression(child, ctx);
+			if (ExecuteStatement(child, ctx) == RETURN_BREAK) {
+				throw 1; //TODO: break statement not within loop or switch
 			}
 		}
 	}
 
+	enum { RETURN_NORMAL, RETURN_BREAK, RETURN_RETURN };
+
+	int ExecuteStatement(const std::shared_ptr<AST::ASTNode>& childNode, Context::Compound& ctx)
+	{
+		using namespace AST;
+
+		switch (childNode->Label())
+		{
+		case NodeID::COMPOUND_STMT_ID: {
+			auto node = Util::NodeCast<CompoundStmt>(childNode);
+			CreateCompound(node, ctx);
+			break;
+		}
+		case NodeID::CALL_EXPR_ID: {
+			auto node = Util::NodeCast<CallExpr>(childNode);
+			CallExpression(node, ctx);
+			break;
+		}
+		case NodeID::DECL_STMT_ID: {
+			auto node = Util::NodeCast<DeclStmt>(childNode);
+			ProcessDeclaration(node, ctx);
+			break;
+		}
+		case NodeID::IF_STMT_ID: {
+			auto node = Util::NodeCast<IfStmt>(childNode);
+			ProcessCondition(node, ctx);
+			break;
+		}
+		case NodeID::SWITCH_STMT_ID: {
+			auto node = Util::NodeCast<SwitchStmt>(childNode);
+			ProcessSwitch(node, ctx);
+			break;
+		}
+		case NodeID::WHILE_STMT_ID: {
+			auto node = Util::NodeCast<WhileStmt>(childNode);
+			//ProcessWhileLoop(node, ctx);
+			break;
+		}
+		case NodeID::DO_STMT_ID: {
+			auto node = Util::NodeCast<DoStmt>(childNode);
+			ProcessDoLoop(node, ctx);
+			break;
+		}
+		case NodeID::FOR_STMT_ID: {
+			auto node = Util::NodeCast<ForStmt>(childNode);
+			//ProcessForLoop(node, ctx);
+			break;
+		}
+		case NodeID::BREAK_STMT_ID: {
+			return RETURN_BREAK;
+		}
+		case NodeID::RETURN_STMT_ID: {
+			auto node = Util::NodeCast<ReturnStmt>(childNode);
+			Context::Function funcCtx = ctx->FindContext<FunctionContext>(Context::tag::FUNCTION);
+			assert(funcCtx);
+			ProcessReturn(node, funcCtx);
+			return RETURN_RETURN;
+		}
+		default:
+			ProcessExpression(childNode, ctx);
+		}
+
+		return RETURN_NORMAL;
+	}
+
 	// If all else fails, try the node as expression
-	void ProcessExpression(std::shared_ptr<AST::ASTNode>& node, Context::Compound& ctx)
+	void ProcessExpression(const std::shared_ptr<AST::ASTNode>& node, Context::Compound& ctx)
 	{
 		ResolveExpression(node, ctx);
 	}
@@ -1268,10 +1294,24 @@ class ScopedRoutine
 				const int caseLabelInt = Util::EvaluateValueAsInteger(literal->Type2());
 				const int valueInt = Util::EvaluateValueAsInteger(value);
 				if (caseLabelInt == valueInt) {
-					caseNode->Expression();
+					switch (ExecuteStatement(caseNode->Expression(), compCtx))
+					{
+					case RETURN_BREAK:
+					case RETURN_RETURN:
+						return;
+					}
 				}
 			}
 		}
+	}
+
+	void ProcessDoLoop(std::shared_ptr<DoStmt>& node, Context::Compound& ctx)
+	{
+		do {
+			if (node->HasBodyExpression()) {
+				ExecuteStatement(node->BodyExpression(), ctx);
+			}
+		} while (Util::EvaluateAsBoolean(ResolveExpression(node->Expression(), ctx)));
 	}
 
 	void ProcessReturn(std::shared_ptr<ReturnStmt>& node, Context::Function& ctx)
