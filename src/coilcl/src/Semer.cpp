@@ -466,11 +466,18 @@ void CoilCl::Semer::CheckDataType()
 		auto func = std::dynamic_pointer_cast<FunctionDecl>(call->FuncDeclRef()->Reference());
 		assert(call->FuncDeclRef()->IsResolved());
 
-		auto arguments = call->ArgumentStatement()->Children();
+		// Early exit
+		if (!call->HasArguments() && !func->HasSignature()) {
+			return;
+		}
+
+		auto arguments = call->HasArguments()
+			? call->ArgumentStatement()->Children()
+			: std::vector<std::weak_ptr<AST::ASTNode>>{};
 
 		// Make an exception for variadic argument
 		bool canHaveTooMany = true;
-		if (func->Signature().back().Type() == typeid(Typedef::VariadicType)) {
+		if (func->HasSignature() && func->Signature().back().Type() == typeid(Typedef::VariadicType)) { //TODO: FIX
 			canHaveTooMany = false;
 		}
 
