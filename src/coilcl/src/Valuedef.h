@@ -319,6 +319,10 @@ inline Valuedef::ValueType<Type> MakeVoid()
 {
 	return std::make_shared<Valuedef::ValueObject<Type>>();
 }
+inline std::shared_ptr<Valuedef::Value> MakeUninitialized()
+{
+	return nullptr; //FUTURE: We may what to have an actual uninitialized type object
+}
 
 //
 // Change value internals

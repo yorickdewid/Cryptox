@@ -148,7 +148,7 @@ public:
 	template<typename ContextType>
 	inline std::shared_ptr<ContextType> ParentAs()
 	{
-		return std::static_pointer_cast<ContextType>(Parent());
+		return std::static_pointer_cast<ContextType>(Parent()); //TODO: dynamic_cast
 	}
 
 	// Find context based on tag, if the context cannot be found,
@@ -387,7 +387,7 @@ public:
 		if (val == m_localObj.end()) {
 			//TODO: search higher up
 			//return ParentAs<GlobalContext>()->LookupIdentifier(key);
-			return nullptr;
+			return nullptr; //TODO: why not throw, but only here. Can't continue anyway
 		}
 
 		return val->second;
@@ -555,8 +555,6 @@ public:
 	{
 		auto val = m_localObj.find(key);
 		if (val == m_localObj.end()) {
-			//return FindContext<FunctionContext>(Context::tag::FUNCTION)->LookupIdentifier(key);
-			//return ParentAs<DeclarationRegistry>()->LookupIdentifier(key);
 			return std::dynamic_pointer_cast<DeclarationRegistry>(Parent())->LookupIdentifier(key);
 		}
 
@@ -763,12 +761,19 @@ void Evaluator::Unit(const TranslationUnitDecl& node)
 				//m_unitContext->RegisterObject();
 				break;
 			}
+			case NodeID::TYPEDEF_DECL_ID: {
+				// Type definitions should already have been resolved in an earlier state
+				// and thus is error checking alone sufficient.
+				auto typedefDecl = Util::NodeCast<TypedefDecl>(ptr);
+				if (!typedefDecl->HasReturnType()) {
+					throw std::logic_error{ "type alias is empty" };//TODO
+				}
+				break;
+			}
 			case NodeID::DECL_STMT_ID: {
 				for (const auto& child : ptr->Children()) {
 					auto varDecl = Util::NodeCast<VarDecl>(child);
 					if (varDecl->HasExpression()) {
-						//TODO: unit must be literal node, otherwise:
-						//THROW: initializer element is not constant
 						if (Util::IsNodeLiteral(varDecl->Expression())) {
 							auto type = Util::NodeCast<Literal>(varDecl->Expression())->Type2();
 							m_unitContext->PushVar({ varDecl->Identifier(), type });
@@ -1234,9 +1239,9 @@ class ScopedRoutine
 	{
 		for (const auto& child : declNode->Children()) {
 			auto node = Util::NodeCast<VarDecl>(child);
-			if (node->HasExpression()) {
-				ctx->PushVar(node->Identifier(), ResolveExpression(node->Expression(), ctx));
-			}
+			ctx->PushVar(node->Identifier(), node->HasExpression()
+				? ResolveExpression(node->Expression(), ctx)
+				: Util::MakeUninitialized());
 		}
 	}
 
