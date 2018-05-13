@@ -819,6 +819,24 @@ void Evaluator::Unit(const TranslationUnitDecl& node)
 using Parameters = std::vector<std::shared_ptr<CoilCl::Valuedef::Value>>;
 
 template<typename Type>
+struct BitLeftShift
+{
+	constexpr Type operator()(const Type& left, const Type& right) const
+	{
+		return (left << right);
+	}
+};
+
+template<typename Type>
+struct BitRightShift
+{
+	constexpr Type operator()(const Type& left, const Type& right) const
+	{
+		return (left >> right);
+	}
+};
+
+template<typename Type>
 struct OperandFactory
 {
 	using result_type = Type;
@@ -862,10 +880,10 @@ struct OperandFactory
 			return std::bit_xor<Type>()(left, right);
 		case BinaryOperator::BinOperand::AND:
 			return std::bit_and<Type>()(left, right);
-			/*case BinaryOperator::BinOperand::SLEFT:
-				return "<<";
-			case BinaryOperator::BinOperand::SRIGHT:
-				return ">>";*/
+		case BinaryOperator::BinOperand::SLEFT:
+			return BitLeftShift<Type>()(left, right);
+		case BinaryOperator::BinOperand::SRIGHT:
+			return BitRightShift<Type>()(left, right);
 
 			{
 				//
@@ -913,7 +931,7 @@ class ScopedRoutine
 			valuesLHS->As<OperandPred::result_type>(),
 			valuesRHS->As<OperandPred::result_type>());
 
-		return Util::MakeInt(result);
+		return Util::MakeInt(result); //TODO: not always an integer
 	}
 
 	static void AssignmentOperation(std::shared_ptr<CoilCl::Valuedef::Value> assign, std::shared_ptr<CoilCl::Valuedef::Value> value)
