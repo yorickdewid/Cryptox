@@ -360,7 +360,7 @@ template<typename NodeType, typename = typename std::enable_if<std::is_convertib
 template<typename CastNode>
 auto NodeCast(const std::shared_ptr<AST::ASTNode>& node)
 {
-	return std::static_pointer_cast<CastNode>(node);
+	return std::dynamic_pointer_cast<CastNode>(node);
 }
 template<typename CastNode>
 auto NodeCast(const std::weak_ptr<AST::ASTNode>& node)

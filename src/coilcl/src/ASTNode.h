@@ -1850,12 +1850,16 @@ class WhileStmt
 	std::shared_ptr<ASTNode> m_body;
 
 public:
+	WhileStmt(std::shared_ptr<ASTNode>& eval, std::shared_ptr<ASTNode> body = nullptr);
+
 	explicit WhileStmt(Serializable::Interface& pack)
 	{
 		Deserialize(pack);
 	}
 
-	WhileStmt(std::shared_ptr<ASTNode>& eval, std::shared_ptr<ASTNode> body = nullptr);
+	auto& Expression() const { return evalNode; }
+	bool HasBodyExpression() const { return m_body != nullptr; }
+	auto& BodyExpression() const { return m_body; }
 
 	void SetBody(const std::shared_ptr<ASTNode>& node);
 
@@ -1878,12 +1882,12 @@ class DoStmt
 	std::shared_ptr<ASTNode> m_body;
 
 public:
+	DoStmt(std::shared_ptr<ASTNode>& body, std::shared_ptr<ASTNode> eval = nullptr);
+
 	explicit DoStmt(Serializable::Interface& pack)
 	{
 		Deserialize(pack);
 	}
-
-	DoStmt(std::shared_ptr<ASTNode>& body, std::shared_ptr<ASTNode> eval = nullptr);
 
 	auto& Expression() const { return evalNode; }
 	bool HasBodyExpression() const { return m_body != nullptr; }
@@ -1918,6 +1922,12 @@ public:
 	{
 		Deserialize(pack);
 	}
+
+	auto& Declaration() const { return m_node1; }
+	auto& Expression() const { return m_node2; }
+	auto& FinishStatement() const { return m_node3; }
+	bool HasBodyExpression() const { return m_body != nullptr; }
+	auto& BodyExpression() const { return m_body; }
 
 	void SetBody(const std::shared_ptr<ASTNode>& node);
 

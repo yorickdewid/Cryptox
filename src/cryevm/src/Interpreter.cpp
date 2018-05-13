@@ -8,6 +8,8 @@
 
 #include "Interpreter.h"
 
+#include "Cry/Except.h"
+
 //#include "../../coilcl/src/ASTNode.h"
 
 #include <numeric>
@@ -32,6 +34,23 @@ inline bool IsTranslationUnitNode(const AST::ASTNode& node) noexcept
 {
 	return node.Label() == AST::NodeID::TRANSLATION_UNIT_DECL_ID;
 }
+
+class IdentifierNotFoundException : public std::exception
+{
+public:
+	IdentifierNotFoundException(const std::string& identifier)
+		: m_msg{ "identifier '" + identifier + "' undeclared in hierarchical context" }
+	{
+	}
+
+	virtual const char *what() const noexcept
+	{
+		return m_msg.c_str();
+	}
+
+private:
+	std::string m_msg;
+};
 
 Interpreter::Interpreter(Planner& planner)
 	: Strategy{ planner }
@@ -315,12 +334,12 @@ public:
 	{
 		auto it = m_symbolTable.find(symbol);
 		if (it == m_symbolTable.end()) {
-			throw 1; //TODO: No matching entry point was found, exit program
+			CryImplExcept(); //TODO: No matching entry point was found, exit program
 		}
 
 		auto node = it->second.lock();
 		if (!node) {
-			throw 2; //TODO:
+			CryImplExcept(); //TODO:
 		}
 
 		return node;
@@ -332,12 +351,12 @@ public:
 		assert(Parent());
 		auto it = m_symbolTable.find(symbol);
 		if (it == m_symbolTable.end()) {
-			throw 1; //TODO: No matching entry point was found, exit program
+			CryImplExcept(); //TODO: No matching entry point was found, exit program
 		}
 
 		auto node = it->second.lock();
 		if (!node) {
-			throw 2; //TODO:
+			CryImplExcept(); //TODO:
 		}
 
 		// If only a function prototype was defined, let the parent context do the work
@@ -387,7 +406,7 @@ public:
 		if (val == m_localObj.end()) {
 			//TODO: search higher up
 			//return ParentAs<GlobalContext>()->LookupIdentifier(key);
-			return nullptr; //TODO: why not throw, but only here. Can't continue anyway
+			throw IdentifierNotFoundException{ key };
 		}
 
 		return val->second;
@@ -791,7 +810,7 @@ void Evaluator::Unit(const TranslationUnitDecl& node)
 				break;
 			}
 			default:
-				throw 1; //TODO: Throw something usefull
+				CryImplExcept(); //TODO: Throw something usefull
 			}
 		}
 	}
@@ -830,9 +849,6 @@ struct OperandFactory
 			return std::divides<Type>()(left, right);
 		case BinaryOperator::BinOperand::MOD:
 			return std::modulus<Type>()(left, right);
-
-			/*case BinOperand::ASSGN:
-				return "=";*/
 
 			{
 				//
@@ -884,7 +900,7 @@ struct OperandFactory
 			return std::logical_or<Type>()(left, right);
 		}
 
-		throw 0;
+		CryImplExcept();
 	}
 };
 
@@ -893,11 +909,16 @@ class ScopedRoutine
 	template<typename OperandPred, typename ContainerType = std::shared_ptr<CoilCl::Valuedef::Value>>
 	static std::shared_ptr<CoilCl::Valuedef::Value> BinaryOperation(OperandPred predicate, ContainerType&& valuesLHS, ContainerType&& valuesRHS)
 	{
-		OperandPred::result_type result = predicate(
+		typename OperandPred::result_type result = predicate(
 			valuesLHS->As<OperandPred::result_type>(),
 			valuesRHS->As<OperandPred::result_type>());
 
 		return Util::MakeInt(result);
+	}
+
+	static void AssignmentOperation(std::shared_ptr<CoilCl::Valuedef::Value> assign, std::shared_ptr<CoilCl::Valuedef::Value> value)
+	{
+		assign->ReplaceValueWithValue(*(value.get()));
 	}
 
 	static std::shared_ptr<CoilCl::Valuedef::Value> EvaluateInverse(std::shared_ptr<CoilCl::Valuedef::Value>&& value)
@@ -955,6 +976,11 @@ class ScopedRoutine
 
 		case AST::NodeID::BINARY_OPERATOR_ID: {
 			auto op = std::dynamic_pointer_cast<BinaryOperator>(node);
+			if (op->Operand() == BinaryOperator::BinOperand::ASSGN) {
+				auto assignValue = ResolveExpression(op->LHS(), ctx);
+				AssignmentOperation(assignValue, ResolveExpression(op->RHS(), ctx));
+				return assignValue;
+			}
 			return BinaryOperation(OperandFactory<int>(op->Operand()), ResolveExpression(op->LHS(), ctx), ResolveExpression(op->RHS(), ctx));
 		}
 		case AST::NodeID::CONDITIONAL_OPERATOR_ID: {
@@ -993,10 +1019,10 @@ class ScopedRoutine
 			case AST::UnaryOperator::UnaryOperand::BOOLNOT:
 				return EvaluateInverse(std::move(value));
 			}
-			throw 1; //TODO:
+			CryImplExcept(); //TODO:
 		}
 		case AST::NodeID::COMPOUND_ASSIGN_OPERATOR_ID: {
-			std::dynamic_pointer_cast<CompoundAssignOperator>(node);
+			Util::NodeCast<CompoundAssignOperator>(node);
 			break;
 		}
 
@@ -1007,7 +1033,7 @@ class ScopedRoutine
 		}
 
 		case AST::NodeID::CALL_EXPR_ID: {
-			auto op = std::dynamic_pointer_cast<CallExpr>(node);
+			auto op = Util::NodeCast<CallExpr>(node);
 			Context::Function funcCtx = CallExpression(op, ctx);
 			if (!funcCtx->HasReturnValue()) {
 				throw std::logic_error{ "function must return a value" }; //TODO:
@@ -1023,11 +1049,7 @@ class ScopedRoutine
 
 		case AST::NodeID::DECL_REF_EXPR_ID: {
 			auto declRef = Util::NodeCast<DeclRefExpr>(node);
-			auto value = ctx->LookupIdentifier(declRef->Identifier());
-			if (!value) {
-				throw std::runtime_error{ "'" + declRef->Identifier() + "' undeclared in hierarchical context" };
-			}
-			return value;
+			return ctx->LookupIdentifier(declRef->Identifier());
 		}
 
 		{
@@ -1037,7 +1059,7 @@ class ScopedRoutine
 		}
 
 		case AST::NodeID::IMPLICIT_CONVERTION_EXPR_ID: {
-			auto convRef = std::dynamic_pointer_cast<ImplicitConvertionExpr>(node);
+			auto convRef = Util::NodeCast<ImplicitConvertionExpr>(node);
 			CRY_UNUSED(convRef);
 			return Util::MakeVoid(); //TODO: for now
 		}
@@ -1046,7 +1068,7 @@ class ScopedRoutine
 			break;
 		}
 
-		throw 1; //TODO
+		CryImplExcept(); //TODO
 	}
 
 	template<typename ContextType>
@@ -1075,7 +1097,7 @@ class ScopedRoutine
 			function = std::move(Runnable{ exfuncRef });
 		}
 		else {
-			throw 0; //TODO: symbol not found in internal or external module
+			CryImplExcept(); //TODO: symbol not found in internal or external module
 		}
 
 		// Check if call expression has arguments, if so assign paramters to the arguments
@@ -1086,10 +1108,10 @@ class ScopedRoutine
 
 			// Sanity check, should have been done by semer
 			if (function.Size() > argsDecls.size()) {
-				throw 1; //TODO: source.c:0:0: error: too many arguments to function 'funcNode'
+				CryImplExcept(); //TODO: source.c:0:0: error: too many arguments to function 'funcNode'
 			}
 			else if (function.Size() < argsDecls.size()) {
-				throw 2; //TODO: source.c:0:0: error: too few arguments to function 'funcNode'
+				CryImplExcept(); //TODO: source.c:0:0: error: too few arguments to function 'funcNode'
 			}
 
 			// Assign function arguments to parameters
@@ -1097,12 +1119,12 @@ class ScopedRoutine
 			auto itArgs = argsDecls.cbegin();
 			while (itArgs != argsDecls.cend()) {
 				if (function[i].Empty()) {
-					throw 3; //TODO: source.c:0:0: error: parameter name omitted to function 'funcNode'
+					CryImplExcept(); //TODO: source.c:0:0: error: parameter name omitted to function 'funcNode'
 				}
 				const auto literalNode = itArgs->lock();
 				auto value = ResolveExpression(literalNode, ctx);
 				if (function[i].DataType() != value->DataType()) {
-					throw 3; //TODO: source.c:0:0: error: cannot convert argument of type 'X' to parameter type 'Y'
+					CryImplExcept(); //TODO: source.c:0:0: error: cannot convert argument of type 'X' to parameter type 'Y'
 				}
 				//TODO: check if param is pointer
 				funcCtx->PushVar(function[i].Identifier(), Util::ValueCopy(value));
@@ -1158,7 +1180,7 @@ class ScopedRoutine
 		for (const auto& childNode : body) {
 			auto child = childNode.lock();
 			if (ExecuteStatement(child, ctx) == RETURN_BREAK) {
-				throw 1; //TODO: break statement not within loop or switch
+				CryImplExcept(); //TODO: break statement not within loop or switch
 			}
 		}
 	}
@@ -1198,7 +1220,7 @@ class ScopedRoutine
 		}
 		case NodeID::WHILE_STMT_ID: {
 			auto node = Util::NodeCast<WhileStmt>(childNode);
-			//ProcessWhileLoop(node, ctx);
+			ProcessWhileLoop(node, ctx);
 			break;
 		}
 		case NodeID::DO_STMT_ID: {
@@ -1208,7 +1230,7 @@ class ScopedRoutine
 		}
 		case NodeID::FOR_STMT_ID: {
 			auto node = Util::NodeCast<ForStmt>(childNode);
-			//ProcessForLoop(node, ctx);
+			ProcessForLoop(node, ctx);
 			break;
 		}
 		case NodeID::BREAK_STMT_ID: {
@@ -1293,7 +1315,7 @@ class ScopedRoutine
 				}
 				auto caseNode = Util::NodeCast<CaseStmt>(child);
 				if (!Util::IsNodeLiteral(caseNode->Identifier())) {
-					throw 1; //TODO: case label must be integer constant
+					CryImplExcept(); //TODO: case label must be integer constant
 				}
 				auto literal = Util::NodeCast<Literal>(caseNode->Identifier());
 				const int caseLabelInt = Util::EvaluateValueAsInteger(literal->Type2());
@@ -1310,15 +1332,36 @@ class ScopedRoutine
 		}
 	}
 
+	// Execute body statement as long as expression is true
+	void ProcessWhileLoop(std::shared_ptr<WhileStmt>& node, Context::Compound& ctx)
+	{
+		if (!node->HasBodyExpression()) { return; }
+		while (Util::EvaluateAsBoolean(ResolveExpression(node->Expression(), ctx))) {
+			ExecuteStatement(node->BodyExpression(), ctx);
+		}
+	}
+
+	// Execute body statement once and then as long as expression is true
 	void ProcessDoLoop(std::shared_ptr<DoStmt>& node, Context::Compound& ctx)
 	{
+		if (!node->HasBodyExpression()) { return; }
 		do {
-			if (node->HasBodyExpression()) {
-				ExecuteStatement(node->BodyExpression(), ctx);
-			}
+			ExecuteStatement(node->BodyExpression(), ctx);
 		} while (Util::EvaluateAsBoolean(ResolveExpression(node->Expression(), ctx)));
 	}
 
+	// Loop over statement unil expression is false
+	void ProcessForLoop(std::shared_ptr<ForStmt>& node, Context::Compound& ctx)
+	{
+		if (!node->HasBodyExpression()) { return; }
+		for (ExecuteStatement(node->Declaration(), ctx);
+			Util::EvaluateAsBoolean(ResolveExpression(node->Expression(), ctx));
+			node->FinishStatement()) {
+			ExecuteStatement(node->BodyExpression(), ctx);
+		}
+	}
+
+	// Return from function with either special value or none
 	void ProcessReturn(std::shared_ptr<ReturnStmt>& node, Context::Function& ctx)
 	{
 		// Create explicit return type
@@ -1408,7 +1451,7 @@ Evaluator& Evaluator::CallRoutine(const std::string& symbol, const ArgumentList&
 			envp = Util::NodeCast<ParamDecl>(funcNode->ParameterStatement()->Children()[2])->Identifier();
 		}
 		if (funcNode->ParameterStatement()->ChildrenCount() > 3) {
-			throw 1; //TODO
+			CryImplExcept(); //TODO
 		}
 		FormatStartupParameters({ argc, argv, envp }, ConvertToValueDef(std::move(args)), funcCtx);
 	}
@@ -1454,7 +1497,7 @@ void Interpreter::PreliminaryCheck(const std::string& entry)
 	assert(!Program()->Ast().Empty());
 	assert(Program()->HasSymbols());
 	if (!Program()->MatchSymbol(entry)) {
-		throw 1;
+		CryImplExcept();
 	}
 }
 
