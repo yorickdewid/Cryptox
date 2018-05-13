@@ -361,10 +361,6 @@ inline auto MakeVariadicType()
 {
 	return std::make_shared<Typedef::VariadicType>();
 }
-inline auto MakeNilType()
-{
-	return std::make_shared<Typedef::NilType>();
-}
 
 // Create type definition based on byte array.
 Typedef::BaseType MakeType(std::vector<uint8_t>&&);

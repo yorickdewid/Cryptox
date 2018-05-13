@@ -1141,7 +1141,8 @@ class ScopedRoutine
 			LocalMethod::ExternalRoutine{}(function.Data<const LocalMethod::InternalMethod*>(), funcCtx);
 		}
 		else {
-			ScopedRoutine{}(function.Data<std::shared_ptr<FunctionDecl>>(), funcCtx);
+			auto func = function.Data<std::shared_ptr<FunctionDecl>>();
+			ScopedRoutine{}(func, funcCtx);
 		}
 
 		return funcCtx;
@@ -1261,9 +1262,16 @@ class ScopedRoutine
 	{
 		for (const auto& child : declNode->Children()) {
 			auto node = Util::NodeCast<VarDecl>(child);
-			ctx->PushVar(node->Identifier(), node->HasExpression()
-				? ResolveExpression(node->Expression(), ctx)
-				: Util::MakeUninitialized());
+
+			//TODO: Super ugly & wrong. Create the value fromt he valDecl return type,
+			//      then optionally initialize the value with an expression.
+			auto value = std::make_shared<Valuedef::Value>(Util::MakeBuiltinType(Typedef::BuiltinType::Specifier::INT));
+			if (node->HasExpression()) {
+				auto initializerValue = ResolveExpression(node->Expression(), ctx);
+				value->ReplaceValueWithValue(*initializerValue.get());
+			}
+
+			ctx->PushVar(node->Identifier(), value);
 		}
 	}
 

@@ -198,7 +198,7 @@ std::shared_ptr<Valuedef::Value> ValueFactory::BaseValue(Cry::ByteArray& buffer)
 	}
 
 	bool isVoid = buffer.Deserialize<Cry::Byte>(Cry::ByteArray::AUTO);
-	size_t arraySize = buffer.Deserialize<Cry::Short>(Cry::ByteArray::AUTO);
+	//size_t arraySize = buffer.Deserialize<Cry::Short>(Cry::ByteArray::AUTO);
 
 	Cry::ByteArray type;
 	size_t evSize = buffer.Deserialize<Cry::Short>(Cry::ByteArray::AUTO);

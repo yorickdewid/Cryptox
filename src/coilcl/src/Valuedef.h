@@ -84,7 +84,7 @@ public:
 	template<typename NativeType>
 	void ReplaceValue(NativeType&& value)
 	{
-		std::swap(std::move(m_value), ValueVariant{ std::forward<NativeType>(value) });
+		m_value = ValueVariant{ std::forward<NativeType>(value) };
 	}
 	// Copy value from another value
 	void ReplaceValueWithValue(const Value& other)
@@ -324,10 +324,10 @@ inline Valuedef::ValueType<Type> MakeVoid()
 {
 	return std::make_shared<Valuedef::ValueObject<Type>>();
 }
-inline std::shared_ptr<Valuedef::Value> MakeUninitialized()
-{
-	return std::make_shared<Valuedef::Value>(Util::MakeNilType());
-}
+//inline std::shared_ptr<Valuedef::Value> MakeUninitialized()
+//{
+//	return nullptr; /*std::make_shared<Valuedef::Value>(Util::MakeNilType());*/
+//}
 
 //
 // Change value internals

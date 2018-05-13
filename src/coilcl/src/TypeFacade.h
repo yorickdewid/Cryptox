@@ -19,7 +19,7 @@ namespace AST //TODO: part of Typedef
 
 class TypeFacade
 {
-	Typedef::BaseType m_type;
+	Typedef::BaseType m_type; //TODO: Remove pointer if possible at all
 	size_t m_ptrCount = 0;
 
 public:

@@ -315,10 +315,6 @@ Typedef::BaseType MakeType(std::vector<uint8_t>&& in)
 		type = MakeVariadicType();
 		break;
 	}
-	case TypedefBase::TypeVariation::UNINIT: {
-		type = MakeNilType();
-		break;
-	}
 	case TypedefBase::TypeVariation::INVAL:
 	default:
 		throw 1; //TODO: or something else
