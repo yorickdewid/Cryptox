@@ -181,6 +181,11 @@ bool IsValueArray(std::shared_ptr<Valuedef::Value> value)
 	return value->IsArray();
 }
 
+bool IsValueInitialized(std::shared_ptr<Valuedef::Value> value)
+{
+	return !value->Empty();
+}
+
 std::shared_ptr<Valuedef::Value> ValueFactory::BaseValue(Cry::ByteArray& buffer)
 {
 	buffer.StartOffset(0);

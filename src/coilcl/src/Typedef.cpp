@@ -253,6 +253,18 @@ std::vector<uint8_t> VariadicType::TypeEnvelope() const
 	return buffer;
 }
 
+//
+// NilType
+//
+
+std::vector<uint8_t> NilType::TypeEnvelope() const
+{
+	std::vector<uint8_t> buffer = { m_c_internalType };
+	const auto base = TypedefBase::TypeEnvelope();
+	buffer.insert(buffer.cend(), base.cbegin(), base.cend());
+	return buffer;
+}
+
 } // namespace Typedef
 
 namespace Util
@@ -301,6 +313,10 @@ Typedef::BaseType MakeType(std::vector<uint8_t>&& in)
 	}
 	case TypedefBase::TypeVariation::VARIADIC: {
 		type = MakeVariadicType();
+		break;
+	}
+	case TypedefBase::TypeVariation::UNINIT: {
+		type = MakeNilType();
 		break;
 	}
 	case TypedefBase::TypeVariation::INVAL:

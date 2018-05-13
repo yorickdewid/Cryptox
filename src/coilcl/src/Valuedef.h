@@ -52,6 +52,7 @@ protected:
 	// as an vector of values.
 	ValueArray m_array;
 
+	//FUTURE: May need to move to derived class
 	// True if type is void
 	bool m_isVoid{ false };
 
@@ -79,11 +80,16 @@ public:
 	{
 	}
 
-	// Swap-in replacement value
+	// Swap-in native replacement value
 	template<typename NativeType>
 	void ReplaceValue(NativeType&& value)
 	{
 		std::swap(std::move(m_value), ValueVariant{ std::forward<NativeType>(value) });
+	}
+	// Copy value from another value
+	void ReplaceValueWithValue(const Value& other)
+	{
+		m_value = other.m_value;
 	}
 
 	// Return the type specifier
@@ -98,7 +104,6 @@ public:
 
 	// Check if value is empty
 	inline bool Empty() const noexcept { return m_value.empty(); }
-
 	// Check if value is void
 	inline bool IsVoid() const noexcept { return m_isVoid; }
 
@@ -321,7 +326,7 @@ inline Valuedef::ValueType<Type> MakeVoid()
 }
 inline std::shared_ptr<Valuedef::Value> MakeUninitialized()
 {
-	return nullptr; //FUTURE: We may what to have an actual uninitialized type object
+	return std::make_shared<Valuedef::Value>(Util::MakeNilType());
 }
 
 //
@@ -343,6 +348,8 @@ int EvaluateValueAsInteger(std::shared_ptr<Valuedef::Value>);
 bool IsVoid(std::shared_ptr<Valuedef::Value>); //TODO: rename IsValueVoid
 // Test if the value is array type
 bool IsValueArray(std::shared_ptr<Valuedef::Value>);
+// Check if value is set
+bool IsValueInitialized(std::shared_ptr<Valuedef::Value>);
 
 struct ValueFactory
 {

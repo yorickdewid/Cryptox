@@ -39,6 +39,7 @@ public:
 		RECORD,
 		TYPEDEF,
 		VARIADIC,
+		UNINIT,
 	};
 
 public:
@@ -309,11 +310,31 @@ public:
 
 	std::vector<uint8_t> TypeEnvelope() const override;
 
-	void Consolidate(BaseType& type)
+	void Consolidate(BaseType&)
 	{
-		CRY_UNUSED(type);
-
 		throw Cry::Except::UnsupportedOperationException{ "VariadicType::Consolidate" };
+	}
+};
+
+class NilType : public TypedefBase
+{
+	REGISTER_TYPE(UNINIT);
+
+public:
+	const std::string TypeName() const final { return "(nil)"; }
+	bool AllowCoalescence() const final { return false; }
+	size_t UnboxedSize() const { return 0; }
+
+	bool Equals(TypedefBase* other) const
+	{
+		return dynamic_cast<NilType*>(other) != nullptr;
+	}
+
+	std::vector<uint8_t> TypeEnvelope() const override;
+
+	void Consolidate(BaseType&)
+	{
+		throw Cry::Except::UnsupportedOperationException{ "NilType::Consolidate" };
 	}
 };
 
@@ -328,20 +349,21 @@ inline auto MakeBuiltinType(Typedef::BuiltinType::Specifier specifier)
 {
 	return std::make_shared<Typedef::BuiltinType>(specifier);
 }
-
 inline auto MakeRecordType(const std::string& name, Typedef::RecordType::Specifier specifier)
 {
 	return std::make_shared<Typedef::RecordType>(name, specifier);
 }
-
 inline auto MakeTypedefType(const std::string& name, Typedef::BaseType& type)
 {
 	return std::make_shared<Typedef::TypedefType>(name, type);
 }
-
 inline auto MakeVariadicType()
 {
 	return std::make_shared<Typedef::VariadicType>();
+}
+inline auto MakeNilType()
+{
+	return std::make_shared<Typedef::NilType>();
 }
 
 // Create type definition based on byte array.
