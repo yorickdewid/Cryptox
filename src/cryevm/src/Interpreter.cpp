@@ -711,8 +711,8 @@ public:
 		return m_paramList[idx];
 	}
 
-	inline size_t Size() const noexcept { return m_paramList.size(); }
-	inline bool HasArguments() const noexcept { return Size() > 0; }
+	inline size_t ArgumentSize() const noexcept { return m_paramList.size(); }
+	inline bool HasArguments() const noexcept { return ArgumentSize() > 0; }
 	inline bool IsExternal() const noexcept { return m_isExternal; }
 
 	template<typename CastType>
@@ -1125,10 +1125,10 @@ class ScopedRoutine
 			const auto argsDecls = callNode->ArgumentStatement()->Children();
 
 			// Sanity check, should have been done by semer
-			if (function.Size() > argsDecls.size()) {
+			if (function.ArgumentSize() > argsDecls.size()) {
 				CryImplExcept(); //TODO: source.c:0:0: error: too many arguments to function 'funcNode'
 			}
-			else if (function.Size() < argsDecls.size()) {
+			else if (function.ArgumentSize() < argsDecls.size()) {
 				CryImplExcept(); //TODO: source.c:0:0: error: too few arguments to function 'funcNode'
 			}
 

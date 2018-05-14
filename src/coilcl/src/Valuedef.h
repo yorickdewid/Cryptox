@@ -12,8 +12,9 @@
 
 #include <Cry/Serialize.h>
 
-#include <boost/any.hpp>
+#include <boost/any.hpp> //TODO: Why?
 #include <boost/variant.hpp>
+#include <boost/optional.hpp>
 #include <boost/lexical_cast.hpp>
 
 #include <string>
@@ -47,6 +48,7 @@ protected:
 	// The internal datastructure stores the value
 	// as close to the actual data type specifier.
 	ValueVariant m_value;
+	boost::optional<ValueVariant> m_value2;
 
 	// The internal datastructure stores the array
 	// as an vector of values.
@@ -82,12 +84,12 @@ public:
 
 	// Swap-in native replacement value
 	template<typename NativeType>
-	void ReplaceValue(NativeType&& value)
+	void ReplaceValue(NativeType&& value) //TODO: fix name & allowed types
 	{
 		m_value = ValueVariant{ std::forward<NativeType>(value) };
 	}
 	// Copy value from another value
-	void ReplaceValueWithValue(const Value& other)
+	void ReplaceValueWithValue(const Value& other) //TODO: fix name
 	{
 		m_value = other.m_value;
 	}
@@ -103,7 +105,7 @@ public:
 	inline size_t Size() const noexcept { return m_array.size(); }
 
 	// Check if value is empty
-	inline bool Empty() const noexcept { return m_value.empty(); }
+	inline bool Empty() const noexcept { return !m_value2; }
 	// Check if value is void
 	inline bool IsVoid() const noexcept { return m_isVoid; }
 
@@ -126,6 +128,9 @@ public:
 private:
 	Typedef::BaseType m_objectType; //TODO: replace with typefacade to account for pointers
 };
+
+//namespace Detail
+//{
 
 // If string was required, try cast 'boost any' to vector and string
 //template<>
@@ -265,6 +270,8 @@ public:
 		return std::make_shared<Valuedef::ValueObject<void>>();
 	}
 };
+
+//} // namespace Detail
 
 } // namespace Valuedef
 
