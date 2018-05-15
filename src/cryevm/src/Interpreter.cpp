@@ -673,39 +673,46 @@ struct InternalMethod
 {
 	const std::string symbol;
 	const std::function<void(Context::Function&)> functional;
+	const std::shared_ptr<ParamStmt> params;
 
-	InternalMethod(const std::string symbol, std::function<void(Context::Function&)> func)
+	bool HasParameters() const noexcept { return params != nullptr; }
+
+	InternalMethod(const std::string symbol, std::function<void(Context::Function&)> func, std::shared_ptr<ParamStmt> params = {})
 		: symbol{ symbol }
 		, functional{ func }
+		, params{ params }
 	{
 	}
 };
 
+//#define NATIVE_WRAPPER()
+#define GET_DEFAULT_ARG(i) ctx->LookupIdentifier("__arg0__")
+
 void _puts(Context::Function& ctx)
 {
-	const auto value = ctx->LookupIdentifier("str");
+	const auto value = GET_DEFAULT_ARG(0);
 	auto result = puts(value->As<std::string>().c_str());
 	ctx->CreateSpecialVar<RETURN_VALUE>(Util::MakeInt(result));
 }
 
 void _printf(Context::Function& ctx)
 {
-	const auto value = ctx->LookupIdentifier("fmt");
+	const auto value = ctx->LookupIdentifier("__arg0__");
 	auto result = printf(value->As<std::string>().c_str());
 	ctx->CreateSpecialVar<RETURN_VALUE>(Util::MakeInt(result));
 }
 
 void _scanf(Context::Function& ctx)
 {
-	const auto value = ctx->LookupIdentifier("fmt");
+	const auto value = ctx->LookupIdentifier("__arg0__");
 	auto result = scanf(value->As<std::string>().c_str());
 	ctx->CreateSpecialVar<RETURN_VALUE>(Util::MakeInt(result));
 }
 
 const std::array<InternalMethod, 3> g_internalMethod = {
-	InternalMethod{ "puts", &_puts/*, {"str", STR}*/ },
-	InternalMethod{ "printf", &_printf/*, { "fmt", STR }*/ },
-	InternalMethod{ "scanf", &_scanf/*, { "fmt", STR }*/ },
+	InternalMethod{ "puts", &_puts, PACKED_PARAM_DECL("s") },
+	InternalMethod{ "printf", &_printf, PACKED_PARAM_DECL("sV") },
+	InternalMethod{ "scanf", &_scanf, PACKED_PARAM_DECL("s") },
 };
 
 struct ExternalRoutine
@@ -777,7 +784,16 @@ public:
 		: m_isExternal{ true }
 		, m_functionData{ exfuncRef }
 	{
-		//TODO: Convert args to params
+		assert(exfuncRef);
+
+		int counter = 0;
+		if (!exfuncRef->HasParameters()) { return; }
+		for (const auto& child : exfuncRef->params->Children()) {
+			auto paramDecl = Util::NodeCast<ParamDecl>(child);
+			assert(paramDecl->HasReturnType());
+			std::string autoArg{ "__arg" + std::to_string(counter++) + "__" };
+			m_paramList.push_back(Parameter{ autoArg, paramDecl->ReturnType() });
+		}
 	}
 
 	const Parameter& operator[](size_t idx) const
@@ -916,7 +932,7 @@ struct OperandFactory
 	using result_type = Type;
 
 	BinaryOperator::BinOperand operand;
-	OperandFactory(BinaryOperator::BinOperand operand)
+	inline OperandFactory(BinaryOperator::BinOperand operand)
 		: operand{ operand }
 	{
 	}
