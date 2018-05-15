@@ -31,6 +31,7 @@ add_library(${PROJECT_NAME} SHARED
 	"../coilcl/src/ASTNode.cpp"
 	"../coilcl/src/DeclNode.cpp"
 	"../coilcl/src/LiteralNode.cpp"
+	"../coilcl/src/StmtNode.cpp"
 	"../coilcl/src/Valuedef.cpp"
 	"../coilcl/src/Typedef.cpp"
 	"../coilcl/src/TypeFacade.cpp"

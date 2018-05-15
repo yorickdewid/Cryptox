@@ -595,6 +595,80 @@ private:
 namespace LocalMethod
 {
 
+class SolidParameterFormat
+{
+	std::shared_ptr<ParamStmt> stmt{ AST::MakeASTNode<ParamStmt>() };
+
+public:
+	std::shared_ptr<ParamStmt> Parameters() const { return stmt; };
+
+	SolidParameterFormat& Parse(const char str[])
+	{
+		for (size_t i = 0; i < strlen(str); ++i) {
+			assert(i < 100);
+			switch (str[i]) {
+			case 'i': {
+				auto decl = AST::MakeASTNode<ParamDecl>(Util::MakeBuiltinType(Typedef::BuiltinType::Specifier::INT));
+				stmt->AppendParamter(decl);
+				break;
+			}
+			case 's': {
+				auto decl = AST::MakeASTNode<ParamDecl>(Util::MakeBuiltinType(Typedef::BuiltinType::Specifier::CHAR));
+				stmt->AppendParamter(decl);
+				break;
+			}
+			case 'f': {
+				auto decl = AST::MakeASTNode<ParamDecl>(Util::MakeBuiltinType(Typedef::BuiltinType::Specifier::FLOAT));
+				stmt->AppendParamter(decl);
+				break;
+			}
+			case 'b': {
+				auto decl = AST::MakeASTNode<ParamDecl>(Util::MakeBuiltinType(Typedef::BuiltinType::Specifier::BOOL));
+				stmt->AppendParamter(decl);
+				break;
+			}
+			case 'd': {
+				auto decl = AST::MakeASTNode<ParamDecl>(Util::MakeBuiltinType(Typedef::BuiltinType::Specifier::DOUBLE));
+				stmt->AppendParamter(decl);
+				break;
+			}
+			case 'L': {
+				auto decl = AST::MakeASTNode<ParamDecl>(Util::MakeBuiltinType(Typedef::BuiltinType::Specifier::LONG));
+				stmt->AppendParamter(decl);
+				break;
+			}
+			case 'S': {
+				auto decl = AST::MakeASTNode<ParamDecl>(Util::MakeBuiltinType(Typedef::BuiltinType::Specifier::SHORT));
+				stmt->AppendParamter(decl);
+				break;
+			}
+			case 'U': {
+				auto decl = AST::MakeASTNode<ParamDecl>(Util::MakeBuiltinType(Typedef::BuiltinType::Specifier::UNSIGNED));
+				stmt->AppendParamter(decl);
+				break;
+			}
+			case 'G': {
+				auto decl = AST::MakeASTNode<ParamDecl>(Util::MakeBuiltinType(Typedef::BuiltinType::Specifier::SIGNED));
+				stmt->AppendParamter(decl);
+				break;
+			}
+			case 'v': {
+				auto decl = AST::MakeASTNode<ParamDecl>(Util::MakeBuiltinType(Typedef::BuiltinType::Specifier::VOID_T));
+				stmt->AppendParamter(decl);
+				break;
+			}
+			case 'V': { // Variadic
+				break;
+			}
+			}
+		}
+
+		return (*this);
+	}
+};
+
+#define PACKED_PARAM_DECL(s) SolidParameterFormat{}.Parse(s).Parameters()
+
 struct InternalMethod
 {
 	const std::string symbol;
