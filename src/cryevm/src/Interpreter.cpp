@@ -657,7 +657,9 @@ public:
 				stmt->AppendParamter(decl);
 				break;
 			}
-			case 'V': { // Variadic
+			case 'V': {
+				auto decl = AST::MakeASTNode<VariadicDecl>();
+				stmt->AppendParamter(decl);
 				break;
 			}
 			}
@@ -685,34 +687,50 @@ struct InternalMethod
 	}
 };
 
-//#define NATIVE_WRAPPER()
-#define GET_DEFAULT_ARG(i) ctx->LookupIdentifier("__arg0__")
+#define NATIVE_WRAPPER(c) void _##c(Context::Function& ctx)
+#define GET_DEFAULT_ARG(i) ctx->LookupIdentifier("__arg" #i "__")
 
-void _puts(Context::Function& ctx)
+NATIVE_WRAPPER(puts)
 {
 	const auto value = GET_DEFAULT_ARG(0);
-	auto result = puts(value->As<std::string>().c_str());
+	assert(value);
+	const auto arg0 = value->As<std::string>();
+	auto result = puts(arg0.c_str());
 	ctx->CreateSpecialVar<RETURN_VALUE>(Util::MakeInt(result));
 }
 
-void _printf(Context::Function& ctx)
+NATIVE_WRAPPER(putchar)
 {
-	const auto value = ctx->LookupIdentifier("__arg0__");
-	auto result = printf(value->As<std::string>().c_str());
+	const auto value = GET_DEFAULT_ARG(0);
+	assert(value);
+	const auto arg0 = value->As<int>();
+	auto result = putchar(arg0);
 	ctx->CreateSpecialVar<RETURN_VALUE>(Util::MakeInt(result));
 }
 
-void _scanf(Context::Function& ctx)
+NATIVE_WRAPPER(printf)
 {
-	const auto value = ctx->LookupIdentifier("__arg0__");
-	auto result = scanf(value->As<std::string>().c_str());
+	const auto value = GET_DEFAULT_ARG(0);
+	assert(value);
+	const auto arg0 = value->As<std::string>();
+	auto result = printf(arg0.c_str());
 	ctx->CreateSpecialVar<RETURN_VALUE>(Util::MakeInt(result));
 }
 
-const std::array<InternalMethod, 3> g_internalMethod = {
+NATIVE_WRAPPER(scanf)
+{
+	const auto value = GET_DEFAULT_ARG(0);
+	assert(value);
+	const auto arg0 = value->As<std::string>();
+	auto result = scanf(arg0.c_str());
+	ctx->CreateSpecialVar<RETURN_VALUE>(Util::MakeInt(result));
+}
+
+const std::array<InternalMethod, 4> g_internalMethod = {
 	InternalMethod{ "puts", &_puts, PACKED_PARAM_DECL("s") },
+	InternalMethod{ "putchar", &_putchar, PACKED_PARAM_DECL("i") },
 	InternalMethod{ "printf", &_printf, PACKED_PARAM_DECL("sV") },
-	InternalMethod{ "scanf", &_scanf, PACKED_PARAM_DECL("s") },
+	InternalMethod{ "scanf", &_scanf, PACKED_PARAM_DECL("sV") },
 };
 
 struct ExternalRoutine
