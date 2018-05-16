@@ -30,7 +30,10 @@ public:
 	{
 	}
 
+	//
 	// Fetch type information
+	//
+
 	inline bool HasValue() const noexcept { return m_type != nullptr; }
 	inline bool IsPointer() const noexcept { return m_ptrCount > 0; }
 	inline size_t PointerCount() const noexcept { return m_ptrCount; }
@@ -95,6 +98,11 @@ inline bool IsTypeConst(const InternalType& type)
 			return true;
 		}
 	}
+}
+template<typename InternalType>
+inline bool IsTypePointer(const InternalType& type)
+{
+	return type.IsPointer();
 }
 
 } // namespace Util

@@ -252,11 +252,9 @@ public:
 
 	std::vector<uint8_t> TypeEnvelope() const override;
 
-	void Consolidate(BaseType& type)
+	void Consolidate(BaseType&)
 	{
-		CRY_UNUSED(type);
-
-		throw Cry::Except::UnsupportedOperationException{ "TypedefType::Consolidate" };
+		throw Cry::Except::UnsupportedOperationException{ "RecordType::Consolidate" };
 	}
 
 private:
@@ -286,10 +284,8 @@ public:
 
 	std::vector<uint8_t> TypeEnvelope() const override;
 
-	void Consolidate(BaseType& type)
+	void Consolidate(BaseType&)
 	{
-		CRY_UNUSED(type);
-
 		throw Cry::Except::UnsupportedOperationException{ "TypedefType::Consolidate" };
 	}
 };

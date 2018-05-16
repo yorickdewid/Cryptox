@@ -771,11 +771,19 @@ public:
 		{
 		}
 
+		explicit Parameter(const std::string& identifier)
+			: m_identifier{ identifier }
+			, m_isVariadic{ true }
+		{
+		}
+
 		inline const std::string Identifier() const noexcept { return m_identifier; }
 		inline bool Empty() const noexcept { return m_identifier.empty(); }
 		inline AST::TypeFacade DataType() const noexcept { return m_type; }
+		inline bool IsVariadic() const noexcept { return m_isVariadic; }
 
 	private:
+		const bool m_isVariadic{ false }; //TODO: incorporate in datatype
 		const std::string m_identifier;
 		const AST::TypeFacade m_type;
 	};
@@ -791,9 +799,16 @@ public:
 
 		if (!funcNode->HasParameters()) { return; }
 		for (const auto& child : funcNode->ParameterStatement()->Children()) {
-			auto paramDecl = Util::NodeCast<ParamDecl>(child);
-			assert(paramDecl->HasReturnType());
-			m_paramList.push_back(Parameter{ paramDecl->Identifier(), paramDecl->ReturnType() });
+			if (child.lock()->Label() == AST::NodeID::VARIADIC_DECL_ID) {
+				std::string autoArg{ "__va_list__" };
+				break;
+				m_paramList.push_back(Parameter{ autoArg });
+			}
+			else {
+				auto paramDecl = Util::NodeCast<ParamDecl>(child);
+				assert(paramDecl->HasReturnType());
+				m_paramList.push_back(Parameter{ paramDecl->Identifier(), paramDecl->ReturnType() });
+			}
 		}
 	}
 
@@ -807,20 +822,34 @@ public:
 		int counter = 0;
 		if (!exfuncRef->HasParameters()) { return; }
 		for (const auto& child : exfuncRef->params->Children()) {
-			auto paramDecl = Util::NodeCast<ParamDecl>(child);
-			assert(paramDecl->HasReturnType());
-			std::string autoArg{ "__arg" + std::to_string(counter++) + "__" };
-			m_paramList.push_back(Parameter{ autoArg, paramDecl->ReturnType() });
+			if (child.lock()->Label() == AST::NodeID::VARIADIC_DECL_ID) {
+				std::string autoArg{ "__va_list__" };
+				m_paramList.push_back(Parameter{ autoArg });
+				break;
+			}
+			else {
+				auto paramDecl = Util::NodeCast<ParamDecl>(child);
+				assert(paramDecl->HasReturnType());
+				std::string autoArg{ "__arg" + std::to_string(counter++) + "__" };
+				m_paramList.push_back(Parameter{ autoArg, paramDecl->ReturnType() });
+			}
 		}
 	}
 
+	//TODO: confusing call
 	const Parameter& operator[](size_t idx) const
 	{
 		return m_paramList[idx];
 	}
 
+	const Parameter& Front() const { return m_paramList.front(); }
+	const Parameter& Back() const { return m_paramList.back(); }
+
+	// Query argument size
 	inline size_t ArgumentSize() const noexcept { return m_paramList.size(); }
+	// Query if runnable has arguments
 	inline bool HasArguments() const noexcept { return ArgumentSize() > 0; }
+	// Query if runnable is external method
 	inline bool IsExternal() const noexcept { return m_isExternal; }
 
 	template<typename CastType>
@@ -1228,7 +1257,7 @@ class ScopedRoutine
 
 		// Check if call expression has arguments, if so assign paramters to the arguments
 		// and commit the arguments into the function context.
-		if (callNode->HasArguments()) {
+		if (callNode->HasArguments() && function.HasArguments()) {
 			assert(callNode->ArgumentStatement()->ChildrenCount());
 			const auto argsDecls = callNode->ArgumentStatement()->Children();
 
@@ -1236,7 +1265,7 @@ class ScopedRoutine
 			if (function.ArgumentSize() > argsDecls.size()) {
 				CryImplExcept(); //TODO: source.c:0:0: error: too many arguments to function 'funcNode'
 			}
-			else if (function.ArgumentSize() < argsDecls.size()) {
+			else if (function.ArgumentSize() < argsDecls.size() && !function.Back().IsVariadic()) {
 				CryImplExcept(); //TODO: source.c:0:0: error: too few arguments to function 'funcNode'
 			}
 
@@ -1247,9 +1276,8 @@ class ScopedRoutine
 				if (function[i].Empty()) {
 					CryImplExcept(); //TODO: source.c:0:0: error: parameter name omitted to function 'funcNode'
 				}
-				const auto literalNode = itArgs->lock();
-				auto value = ResolveExpression(literalNode, ctx);
-				if (function[i].DataType() != value->DataType()) {
+				const auto value = ResolveExpression(itArgs->lock(), ctx);
+				if (!function[i].IsVariadic() && function[i].DataType() != value->DataType()) {
 					CryImplExcept(); //TODO: source.c:0:0: error: cannot convert argument of type 'X' to parameter type 'Y'
 				}
 				//TODO: check if param is pointer

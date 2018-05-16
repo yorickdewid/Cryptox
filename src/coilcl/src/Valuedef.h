@@ -58,6 +58,10 @@ protected:
 	// True if type is void
 	bool m_isVoid{ false };
 
+	//FUTURE: May need to move to derived class
+	// Pointer to another value
+	std::unique_ptr<Value> m_pointerValue;
+
 	struct ConvertToStringVisitor final : public boost::static_visitor<>
 	{
 		std::string output;
