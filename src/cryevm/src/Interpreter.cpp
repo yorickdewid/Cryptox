@@ -131,6 +131,13 @@ struct DeclarationRegistry
 	{
 		return m_localObj.size();
 	}
+	// Access local storage object directly without hirarchiecal lookup
+	virtual void ForEachObject(std::function<void(std::shared_ptr<Valuedef::Value>)> delegate) const
+	{
+		for (const auto& item : m_localObj) {
+			delegate(item.second);
+		}
+	}
 
 #ifdef CRY_DEBUG
 	void DumpVar(const std::string& key)
@@ -689,6 +696,7 @@ struct InternalMethod
 
 #define NATIVE_WRAPPER(c) void _##c(Context::Function& ctx)
 #define GET_DEFAULT_ARG(i) ctx->LookupIdentifier("__arg" #i "__")
+#define GET_VA_LIST_ARG(i) ctx->LookupIdentifier("__va_arg" #i "__")
 
 NATIVE_WRAPPER(puts)
 {
@@ -708,12 +716,16 @@ NATIVE_WRAPPER(putchar)
 	ctx->CreateSpecialVar<RETURN_VALUE>(Util::MakeInt(result));
 }
 
+//TODO: create full string format wrapper
 NATIVE_WRAPPER(printf)
 {
 	const auto value = GET_DEFAULT_ARG(0);
+	const auto value2 = GET_VA_LIST_ARG(0);
 	assert(value);
+	assert(value2);
 	const auto arg0 = value->As<std::string>();
-	auto result = printf(arg0.c_str());
+	const auto arg1 = value2->As<int>();
+	auto result = printf(arg0.c_str(), arg1);
 	ctx->CreateSpecialVar<RETURN_VALUE>(Util::MakeInt(result));
 }
 
@@ -1276,14 +1288,26 @@ class ScopedRoutine
 				if (function[i].Empty()) {
 					CryImplExcept(); //TODO: source.c:0:0: error: parameter name omitted to function 'funcNode'
 				}
-				const auto value = ResolveExpression(itArgs->lock(), ctx);
-				if (!function[i].IsVariadic() && function[i].DataType() != value->DataType()) {
-					CryImplExcept(); //TODO: source.c:0:0: error: cannot convert argument of type 'X' to parameter type 'Y'
+				if (function[i].IsVariadic()) {
+					int v_i = 0;
+					while (itArgs != argsDecls.cend()) {
+						const auto value = ResolveExpression(itArgs->lock(), ctx);
+						std::string autoVA{ "__va_arg" + std::to_string(v_i++) + "__" };
+						funcCtx->PushVar(autoVA, Util::ValueCopy(value));
+						++itArgs;
+					}
+					break;
 				}
-				//TODO: check if param is pointer
-				funcCtx->PushVar(function[i].Identifier(), Util::ValueCopy(value));
-				++itArgs;
-				++i;
+				else {
+					const auto value = ResolveExpression(itArgs->lock(), ctx);
+					if (function[i].DataType() != value->DataType()) {
+						CryImplExcept(); //TODO: source.c:0:0: error: cannot convert argument of type 'X' to parameter type 'Y'
+					}
+					//TODO: check if param is pointer
+					funcCtx->PushVar(function[i].Identifier(), Util::ValueCopy(value));
+					++itArgs;
+					++i;
+				}
 			}
 		}
 
