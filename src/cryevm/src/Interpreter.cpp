@@ -738,11 +738,23 @@ NATIVE_WRAPPER(scanf)
 	ctx->CreateSpecialVar<RETURN_VALUE>(Util::MakeInt(result));
 }
 
-const std::array<InternalMethod, 4> g_internalMethod = {
+NATIVE_WRAPPER(error)
+{
+	const auto value = GET_DEFAULT_ARG(0);
+	const auto value2 = GET_VA_LIST_ARG(0);
+	assert(value);
+	assert(value2);
+	const auto arg0 = value->As<int>();
+	const auto arg1 = value->As<std::string>();
+	throw arg0; //TODO: or something
+}
+
+const std::array<InternalMethod, 5> g_internalMethod = {
 	InternalMethod{ "puts", &_puts, PACKED_PARAM_DECL("s") },
 	InternalMethod{ "putchar", &_putchar, PACKED_PARAM_DECL("i") },
 	InternalMethod{ "printf", &_printf, PACKED_PARAM_DECL("sV") },
 	InternalMethod{ "scanf", &_scanf, PACKED_PARAM_DECL("sV") },
+	InternalMethod{ "error", &_error, PACKED_PARAM_DECL("is") },
 };
 
 struct ExternalRoutine
