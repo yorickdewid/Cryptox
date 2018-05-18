@@ -13,14 +13,13 @@
 
 #include <boost/test/unit_test.hpp>
 
-struct CEXEnvironment
-{
-	//~CEXEnvironment()
-	//{
-	//	// Cleanup any left over test files
-	//	boost::filesystem::remove(cexTestFileName);
-	//}
-};
+//
+// Test        : Compiler systemtest
+// Type        : system
+// Description : Test the entire system from compiler input to virtual machine
+//               output. The purpose of this system test is to signal if any
+//               of the sub-units break.
+//
 
 class CompilerHelper
 {
@@ -83,6 +82,7 @@ class CompilerHelper
 		m_program = info.program;
 	}
 
+	// Call the VM
 	void CallVM()
 	{
 		runtime_settings_t settings;
@@ -131,7 +131,7 @@ private:
 	std::string m_source;
 };
 
-BOOST_FIXTURE_TEST_SUITE(Compiler, CEXEnvironment)
+BOOST_AUTO_TEST_SUITE(Compiler)
 
 BOOST_AUTO_TEST_CASE(ClSysSimpleSource)
 {

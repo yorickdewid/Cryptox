@@ -49,7 +49,7 @@ build_script:
   - cmake --build . --config %CONFIGURATION%
 
 test_script:
-  - ctest -V --repeat-until-fail 2 --build-config %CONFIGURATION%
+  - ctest -V --build-config %CONFIGURATION%
 
 # Disable artefacts as there is a storage limit
 # artifacts:
