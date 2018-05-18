@@ -28,7 +28,6 @@ class CompilerHelper
 	static datachunk_t *GetSource(void *user_data)
 	{
 		CompilerHelper *compiler = static_cast<CompilerHelper *>(user_data);
-
 		if (compiler->m_done) {
 			return nullptr;
 		}
@@ -60,7 +59,7 @@ class CompilerHelper
 		return meta_info;
 	}
 
-	/* This callback is invoked when the backend encounters an error */
+	// Throw any errors as an exception so we can catch it
 	static void ErrorHandler(void *user_data, const char *message, int fatal)
 	{
 		CRY_UNUSED(user_data);
@@ -148,6 +147,36 @@ BOOST_AUTO_TEST_CASE(ClSysSimpleSource)
 	compiler.RunVirtualMachine();
 	BOOST_REQUIRE_EQUAL(compiler.VMResult(), 0);
 	BOOST_REQUIRE_EQUAL(compiler.ExecutionResult(), 0);
+}
+
+BOOST_AUTO_TEST_CASE(ClSysBasicSource)
+{
+	const std::string source = ""
+		"#define CONSTANT 1\n"
+		"\n"
+		"/* Prints a string to stdout. */\n"
+		"int puts(const char *str);\n"
+		"\n"
+		"int return_val() {\n"
+		"	return 8172;\n"
+		"}\n"
+		"\n"
+		"int main() {\n"
+		"	int i = CONSTANT;\n"
+		"	if (i >= 1) {\n"
+		"		puts(\"string\");\n"
+		"	}\n"
+		"\n"
+		"	return return_val();\n"
+		"}";
+
+	CompilerHelper compiler{ source };
+	compiler.RunCompiler();
+	BOOST_REQUIRE(!compiler.IsProgramEmpty());
+
+	compiler.RunVirtualMachine();
+	BOOST_REQUIRE_EQUAL(compiler.VMResult(), 0);
+	BOOST_REQUIRE_EQUAL(compiler.ExecutionResult(), 8172);
 }
 
 BOOST_AUTO_TEST_SUITE_END()
