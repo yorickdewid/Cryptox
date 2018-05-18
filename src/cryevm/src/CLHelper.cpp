@@ -9,17 +9,17 @@
 #include <string>
 #include <vector>
 
-// The intrinsic module extends the standard library and offers
-// tools for debugging, trouble-shooting and diagnostics. The
-// functions can only be called from an CIL source unit as the
-// behaviour is compiler specific.
+// The compiler helper module extends the standard library and
+// offers tools for debugging, trouble-shooting and diagnostics.
+// The functions can only be called from an CIL source unit as
+// the behaviour is compiler specific.
 
 //
 // Language extensions
 //
 
-int EvalString(const std::string&) {}
-int CompileString(const std::string&) {}
+int EvalString(const std::string&) { return 1; }
+int CompileString(const std::string&) { return 1; }
 void ThrowException(int) {}
 
 //
