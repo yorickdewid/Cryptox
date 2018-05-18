@@ -18,6 +18,8 @@ include(ProjectPrep)
 # External includes
 include_directories(${PfBase_INCLUDE_DIRS})
 include_directories(${CoilCEX_INCLUDE_DIRS})
+include_directories(${CoilCl_INCLUDE_DIRS})
+include_directories(${CryEVM_INCLUDE_DIRS})
 
 # Ignore security checks
 enable_unsecure_crt()
@@ -49,6 +51,8 @@ endif()
 target_link_libraries(${PROJECT_NAME}
 	PfBase
 	CoilCEX
+	CoilCl
+	CryEVM
 	${Boost_UNIT_TEST_FRAMEWORK_LIBRARY}
 	${Boost_LIBRARIES}
 )

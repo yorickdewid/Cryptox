@@ -1699,9 +1699,9 @@ void Interpreter::PreliminaryCheck(const std::string& entry)
 	}
 }
 
-std::string Interpreter::EntryPoint(const std::string entry)
+std::string Interpreter::EntryPoint(const char *entry)
 {
-	if (entry.empty()) {
+	if (!entry) {
 		return ENTRY_SYMBOL;
 	}
 	return entry;

@@ -14,6 +14,7 @@
 #endif
 
 #include <program.h>
+#include <data.h>
 
 #ifdef _WIN32
 # if defined(COILCL_EXPORTS) || defined(CoilCl_EXPORTS)
@@ -77,19 +78,6 @@ extern "C" {
 		
 		int reserved : 3;
 	};
-
-	// C compatible string structure
-	typedef struct
-	{
-		// Size of the data chunk
-		unsigned int size;
-		// Pointer to data location
-		const char *ptr;
-		// Boolean indicating this memory block should be freed by the backend
-		int unmanaged_res;
-		// Function pointer to be called when the object is freed by the callee
-		void(*deallocVPtr)(void *);
-	} datachunk_t;
 
 	// Source unit metadata
 	typedef struct

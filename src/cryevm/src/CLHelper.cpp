@@ -18,8 +18,8 @@
 // Language extensions
 //
 
-int EvalString(const std::string&) { return 1; }
-int CompileString(const std::string&) { return 1; }
+int EvalString(const std::string&) { return 0; }
+int CompileString(const std::string&) { return 0; }
 void ThrowException(int) {}
 
 //

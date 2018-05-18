@@ -21,7 +21,7 @@ public:
 	// Check if strategy can run the program
 	virtual bool IsRunnable() const noexcept;
 	// Program entry point
-	virtual std::string EntryPoint(const std::string);
+	virtual std::string EntryPoint(const char *);
 	// Run the program with current strategy
 	virtual ReturnCode Execute(const std::string entry = {}, const ArgumentList args = {});
 

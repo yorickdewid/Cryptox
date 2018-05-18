@@ -1,0 +1,153 @@
+// Copyright (c) 2017 Quenza Inc. All rights reserved.
+//
+// This file is part of the Cryptox project.
+//
+// Use of this source code is governed by a private license
+// that can be found in the LICENSE file. Content can not be 
+// copied and/or distributed without the express of the author.
+
+#include <coilcl.h>
+#include <evm.h>
+
+#include <Cry/Cry.h>
+
+#include <boost/test/unit_test.hpp>
+
+struct CEXEnvironment
+{
+	//~CEXEnvironment()
+	//{
+	//	// Cleanup any left over test files
+	//	boost::filesystem::remove(cexTestFileName);
+	//}
+};
+
+class CompilerHelper
+{
+	// Read the source in one go, this operation does not need to be efficient
+	static datachunk_t *GetSource(void *user_data)
+	{
+		CompilerHelper *compiler = static_cast<CompilerHelper *>(user_data);
+
+		if (compiler->m_done) {
+			return nullptr;
+		}
+
+		datachunk_t *buffer = (datachunk_t*)malloc(sizeof(datachunk_t));
+		buffer->size = compiler->m_source.size();
+		buffer->ptr = compiler->m_source.data();
+		buffer->unmanaged_res = 0;
+		compiler->m_done = true;
+		return buffer;
+	}
+
+	static int Load(void *user_data, const char *source)
+	{
+		CRY_UNUSED(user_data);
+		CRY_UNUSED(source);
+		return 0;
+	}
+
+	static metainfo_t *TestInfo(void *user_data)
+	{
+		CRY_UNUSED(user_data);
+		metainfo_t *meta_info = (metainfo_t*)malloc(sizeof(metainfo_t));
+
+		std::string meta = "test";
+		CRY_MEMZERO(meta_info->name, sizeof(meta_info->name));
+		std::copy(meta.begin(), meta.end(), meta_info->name);
+		meta_info->size = meta.size();
+		return meta_info;
+	}
+
+	/* This callback is invoked when the backend encounters an error */
+	static void ErrorHandler(void *user_data, const char *message, int fatal)
+	{
+		CRY_UNUSED(user_data);
+		throw std::runtime_error{ message };
+	}
+
+	// Call the compiler
+	void CallCompiler()
+	{
+		compiler_info_t info;
+		info.apiVer = COILCLAPIVER;
+		info.code_opt.standard = cil_standard::cil;
+		info.code_opt.optimization = optimization::NONE;
+		info.streamReaderVPtr = &CompilerHelper::GetSource;
+		info.loadStreamRequestVPtr = &CompilerHelper::Load;
+		info.streamMetaVPtr = &CompilerHelper::TestInfo;
+		info.errorHandler = &CompilerHelper::ErrorHandler;
+		info.program.program_ptr = nullptr;
+		info.user_data = this;
+		Compile(&info);
+		m_program = info.program;
+	}
+
+	void CallVM()
+	{
+		runtime_settings_t settings;
+		settings.apiVer = EVMAPIVER;
+		settings.entry_point = nullptr;
+		settings.return_code = EXIT_FAILURE;
+		settings.error_handler = &CompilerHelper::ErrorHandler;
+		settings.program = m_program;
+		settings.args = nullptr;
+		settings.user_data = this;
+		m_vmResult = ExecuteProgram(&settings);
+		m_programResult = settings.return_code;
+	}
+
+public:
+	CompilerHelper(const std::string& source)
+		: m_source{ source }
+	{
+	}
+
+	CompilerHelper& RunCompiler()
+	{
+		CallCompiler();
+		return (*this);
+	}
+
+	CompilerHelper& RunVirtualMachine()
+	{
+		CallVM();
+		return (*this);
+	}
+
+	bool IsProgramEmpty()
+	{
+		return m_program.program_ptr == nullptr;
+	}
+
+	int VMResult() const { return m_vmResult; }
+	int ExecutionResult() const { return m_programResult; }
+
+private:
+	int m_vmResult{ -1 };
+	int m_programResult{ -1 };
+	bool m_done{ false };
+	program_t m_program;
+	std::string m_source;
+};
+
+BOOST_FIXTURE_TEST_SUITE(Compiler, CEXEnvironment)
+
+BOOST_AUTO_TEST_CASE(ClSysSimpleSource)
+{
+	const std::string source = ""
+		"int main() {"
+		"	return 0;"
+		"}";
+
+	CompilerHelper compiler{ source };
+	compiler.RunCompiler();
+	BOOST_REQUIRE(!compiler.IsProgramEmpty());
+
+	compiler.RunVirtualMachine();
+	BOOST_REQUIRE_EQUAL(compiler.VMResult(), 0);
+	BOOST_REQUIRE_EQUAL(compiler.ExecutionResult(), 0);
+}
+
+BOOST_AUTO_TEST_SUITE_END()
