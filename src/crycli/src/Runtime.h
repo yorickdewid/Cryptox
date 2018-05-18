@@ -23,7 +23,7 @@ class VMContract
 	friend class ExecutionEnv;
 
 	// Run compiler.
-	virtual void Execute() = 0;
+	virtual std::pair<int, int> Execute() = 0;
 	// Set commandline arguments to the program.
 	virtual void CommandLineArgs(const ArgumentList&) = 0;
 	// Set symbol as entry point.
@@ -33,6 +33,13 @@ class VMContract
 class ExecutionEnv
 {
 public:
+	struct RunResult
+	{
+		int vmExitCode;
+		int programExitCode;
+	};
+
+public:
 	ExecutionEnv(void *programPtr);
 	~ExecutionEnv();
 
@@ -41,7 +48,7 @@ public:
 	// Provide program main entry point.
 	ExecutionEnv& EntryPoint(const std::string&);
 	// Run the program.
-	void ExecuteProgram(const ArgumentList = {});
+	RunResult ExecuteProgram(const ArgumentList = {});
 
 private:
 	VMContract * m_virtualMachine = nullptr;

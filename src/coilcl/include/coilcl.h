@@ -132,7 +132,7 @@ extern "C" {
 		// and exception which cannot be caught by the frontend, the backend
 		// must be granted a method to report errors back to the frontend. This
 		// is an required function and *must* be set by the frontend.
-		void(*errorHandler)(void *, const char *, char);
+		void(*errorHandler)(void *, const char *, int);
 
 		// Compiler resulting output. This structure is set by the compiler
 		// interface and should be freed by the caller. The structure cannot

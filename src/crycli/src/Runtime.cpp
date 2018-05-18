@@ -39,55 +39,51 @@ protected:
 
 namespace {
 
-static void CCBErrorHandler(void *, const char *, char);
+static void CCBErrorHandler(void *, const char *, int);
 
 class ExecuteAdapter final
 	: public VMContract
 	, private Cry::NonCopyable
 {
-	void Compose()
+	std::pair<int, int> Compose()
 	{
 		runtime_settings_t settings;
 		settings.apiVer = EVMAPIVER;
 		settings.entry_point = entrySymbol;
-		settings.return_code = EXIT_SUCCESS;
-		settings.errorHandler = &CCBErrorHandler;
+		settings.return_code = EXIT_FAILURE;
+		settings.error_handler = &CCBErrorHandler;
 		settings.program = m_program;
 		settings.args = ConvertProgramArguments();
 		settings.user_data = static_cast<void*>(this);
 
 		// Invoke compiler with environment and compiler settings
-		switch (ExecuteProgram(&settings))
-		{
-		case RETURN_NOT_RUNNABLE: // Program was not runnable.
-			break;
-		case RETURN_OK: // Execution done.
-			//TODO: Check return code
-			break;
-		default:
-			break;
-		}
+		int vmResult = ExecuteProgram(&settings);
 
+		// Free allocated program arguments
 		FreeProgramArguments(settings.args);
 
-		//return info.program;
+		// Return the vm and program result
+		return { vmResult, settings.return_code };
 	}
 
-	void Execute()
+	std::pair<int, int> Execute()
 	{
 		return Compose();
 	}
 
+	// Set program arguments
 	void CommandLineArgs(const ArgumentList& args)
 	{
 		m_args = args;
 	}
 
+	// Set program entry symbol
 	void SetEntryPoint(const char *str)
 	{
 		entrySymbol = str;
 	}
 
+	// Convert arguments from the arguments list into an plain array
 	const datachunk_t **ConvertProgramArguments()
 	{
 		size_t argsz = m_args.size();
@@ -117,7 +113,7 @@ class ExecuteAdapter final
 	}
 
 public:
-	ExecuteAdapter(program_t program)
+	explicit ExecuteAdapter(program_t program)
 	{
 		std::swap(program, m_program);
 	}
@@ -128,7 +124,7 @@ private:
 	const char *entrySymbol = nullptr;
 };
 
-void CCBErrorHandler(void *user_data, const char *message, char fatal)
+void CCBErrorHandler(void *user_data, const char *message, int fatal)
 {
 	CRY_UNUSED(user_data);
 	CRY_UNUSED(fatal);
@@ -161,10 +157,11 @@ ExecutionEnv& ExecutionEnv::EntryPoint(const std::string& str)
 	return (*this);
 }
 
-void ExecutionEnv::ExecuteProgram(const ArgumentList args)
+ExecutionEnv::RunResult ExecutionEnv::ExecuteProgram(const ArgumentList args)
 {
 	if (!args.empty()) {
 		m_virtualMachine->CommandLineArgs(args);
 	}
-	m_virtualMachine->Execute();
+	auto result = m_virtualMachine->Execute();
+	return { result.first, result.second };
 }

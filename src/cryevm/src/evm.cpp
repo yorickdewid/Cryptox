@@ -86,8 +86,7 @@ EVMAPI int ExecuteProgram(runtime_settings_t *runtime) noexcept
 	}
 	// Catch any runtime errors
 	catch (const std::exception& e) {
-		//FIXME:
-		std::cerr << e.what() << std::endl;
+		runtime->error_handler(runtime->user_data, e.what(), true);
 	}
 
 	return RETURN_OK;

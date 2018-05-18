@@ -44,7 +44,7 @@ namespace {
 static datachunk_t *CCBFetchChunk(void *);
 static metainfo_t *CCBMetaInfo(void *);
 static int CCBLoadExternalSource(void *, const char *);
-static void CCBErrorHandler(void *, const char *, char);
+static void CCBErrorHandler(void *, const char *, int);
 
 // Adapter between different reader implementations. The adapter will prepare
 // all settings for compiler calls and return the appropriate datastructures
@@ -177,7 +177,7 @@ metainfo_t *CCBMetaInfo(void *user_data)
 	return metablock;
 }
 
-void CCBErrorHandler(void *user_data, const char *message, char fatal)
+void CCBErrorHandler(void *user_data, const char *message, int fatal)
 {
 	CRY_UNUSED(user_data);
 
