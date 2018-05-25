@@ -10,8 +10,6 @@
 
 #include "Cry.h"
 
-#include <ctime>
-#include <cassert>
 #include <cstring>
 
 // Abstract native C std calls to provide a platform
@@ -50,22 +48,7 @@ extern "C" {
 // Unused argument protector
 #define CRY_UNUSED(p) ((void)p)
 
-static inline void __LocalTime(struct tm *timeinfo)
-{
-	time_t rawtime;
-
-	time(&rawtime);
-	assert(rawtime);
-
-#if _WIN32
-	errno_t ret = localtime_s(timeinfo, &rawtime);
-	assert(ret == 0);
-	assert(timeinfo);
-#else
-	*timeinfo = *localtime(&rawtime);
-	assert(timeinfo);
-#endif
-}
+void __LocalTime(struct tm *timeinfo);
 
 #define CRY_LOCALTIME(t) __LocalTime(t)
 

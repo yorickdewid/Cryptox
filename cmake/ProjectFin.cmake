@@ -31,6 +31,12 @@ else()
 	message(FATAL_ERROR "Unknown target ${PROJECT_TARGET_TYPE}")
 endif()
 
+if(NOT ${PROJECT_NAME} STREQUAL CommonCore)
+	target_link_libraries(${PROJECT_NAME}
+		CommonCore
+	)
+endif()
+
 install(TARGETS ${PROJECT_NAME}
 	RUNTIME DESTINATION bin
 	LIBRARY DESTINATION lib

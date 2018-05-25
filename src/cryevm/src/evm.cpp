@@ -15,7 +15,6 @@
 #include <boost/lexical_cast.hpp>
 
 #include <memory>
-#include <iostream> // only for cerr
 
 //#define AUTO_CONVERT 1
 

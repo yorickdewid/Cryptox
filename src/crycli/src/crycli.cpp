@@ -37,7 +37,7 @@ int main(int argc, const char *argv[])
 			("spec", po::value<std::string>()->value_name("<file>"), "Load specifications from file")
 			("plugin", po::value<std::string>()->value_name("<plugin>"), "Load compiler plugin")
 			("run", "Compile and execute")
-			("v", "Compiler version information");
+			("version", "Compiler version information");
 
 		// Compiler options
 		po::options_description codegen{ "\nCompiler options" };
