@@ -37,6 +37,7 @@ int main(int argc, const char *argv[])
 			("spec", po::value<std::string>()->value_name("<file>"), "Load specifications from file")
 			("plugin", po::value<std::string>()->value_name("<plugin>"), "Load compiler plugin")
 			("run", "Compile and execute")
+			("args", po::value<std::vector<std::string>>()->value_name("<arg>"), "Runner arguments")
 			("version", "Compiler version information");
 
 		// Compiler options
@@ -117,7 +118,10 @@ int main(int argc, const char *argv[])
 				env.SetImageName(file);
 			}
 			if (vm.count("run")) {
-				RunSourceFile(env, file);
+				const std::vector<std::string> vmArguments = vm.count("args")
+					? vm["args"].as<std::vector<std::string>>()
+					: std::vector<std::string>{};
+				RunSourceFile(env, file, vmArguments);
 			}
 			else {
 				CompileSourceFile(env, file);

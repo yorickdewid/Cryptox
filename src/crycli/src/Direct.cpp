@@ -81,41 +81,42 @@ public:
 	{
 	}
 
-	void Run()
+	void Run(const std::vector<std::string>& arguments)
 	{
 		m_execEnv.Setup()
 			.EntryPoint("main")
-			.ExecuteProgram({ "arg", "opt2", "2" });
+			.ExecuteProgram(arguments);
 	}
 };
 
 // Direct API call to run a single file
-void RunSourceFile(Env& env, const std::string& m_sourceFile)
+void RunSourceFile(Env& env, const std::string& sourceFile, const std::vector<std::string>& arguments)
 {
 	CRY_UNUSED(env);
-	BaseReader reader = MakeReader<FileReader>(m_sourceFile);
+	BaseReader reader = MakeReader<FileReader>(sourceFile);
 	auto program = CompilerAbstraction{ std::move(reader) }.Start();
-	Executor{ std::move(program) }.Run();
+	Executor{ std::move(program) }.Run(arguments);
 }
 
 //FUTURE: Implement
 // Direct API call to run a multiple files in order
-void RunSourceFile(Env& env, const std::vector<std::string>& sourceFiles)
+void RunSourceFile(Env& env, const std::vector<std::string>& sourceFiles, const std::vector<std::string>& arguments)
 {
 	CRY_UNUSED(env);
 	CRY_UNUSED(sourceFiles);
+	CRY_UNUSED(arguments);
 	/*BaseReader reader = MakeReader<FileReader>(m_sourceFile);
 	auto program = CompilerAbstraction{ std::move(reader) }.Start();
-	Executor{ std::move(program) }.Run();*/
+	Executor{ std::move(program) }.Run(arguments);*/
 }
 
 // Direct API call to run source from memory
-void RunMemoryString(Env& env, const std::string& content)
+void RunMemoryString(Env& env, const std::string& content, const std::vector<std::string>& arguments)
 {
 	CRY_UNUSED(env);
 	BaseReader reader = MakeReader<StringReader>(content);
 	auto program = CompilerAbstraction{ std::move(reader) }.SetBuffer(256).Start();
-	Executor{ std::move(program) }.Run();
+	Executor{ std::move(program) }.Run(arguments);
 }
 
 //
@@ -149,9 +150,9 @@ public:
 };
 
 // Direct API call to compile a single file
-void CompileSourceFile(Env& env, const std::string& m_sourceFile)
+void CompileSourceFile(Env& env, const std::string& sourceFile)
 {
-	BaseReader reader = MakeReader<FileReader>(m_sourceFile);
+	BaseReader reader = MakeReader<FileReader>(sourceFile);
 	auto program = CompilerAbstraction{ std::move(reader) }.Start();
 	CEXWriter{ env.ImageName(), std::move(program) };
 }

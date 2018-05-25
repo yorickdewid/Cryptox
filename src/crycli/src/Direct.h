@@ -14,11 +14,11 @@
 class Env;
 
 // Compile and run single source file.
-void RunSourceFile(Env&, const std::string&);
+void RunSourceFile(Env&, const std::string&, const std::vector<std::string>&);
 // Compile and run multiple source files.
-void RunSourceFile(Env&, const std::vector<std::string>&);
+void RunSourceFile(Env&, const std::vector<std::string>&, const std::vector<std::string>&);
 // Compile and run memory stream.
-void RunMemoryString(Env&, const std::string&);
+void RunMemoryString(Env&, const std::string&, const std::vector<std::string>&);
 
 // Compile source file from source file.
 void CompileSourceFile(Env&, const std::string&);
