@@ -1581,7 +1581,7 @@ class ScopedRoutine
 		if (!node->HasBodyExpression()) { return; }
 		for (ExecuteStatement(node->Declaration(), ctx);
 			Util::EvaluateAsBoolean(ResolveExpression(node->Expression(), ctx));
-			node->FinishStatement()) {
+			ExecuteStatement(node->FinishStatement(), ctx)) {
 			ExecuteStatement(node->BodyExpression(), ctx);
 		}
 	}

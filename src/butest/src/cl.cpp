@@ -206,4 +206,25 @@ BOOST_AUTO_TEST_CASE(ClSysSwitchStmt)
 	BOOST_REQUIRE_EQUAL(compiler.ExecutionResult(), 67235);
 }
 
+BOOST_AUTO_TEST_CASE(ClSysForLoop)
+{
+	const std::string source = ""
+		"int main() {\n"
+		"	int j = 126;\n"
+		"	for (int i = 0; i<10; i++) {\n"
+		"		j = j + i;\n"
+		"	}\n"
+		"\n"
+		"	return j;\n"
+		"}";
+
+	CompilerHelper compiler{ source };
+	compiler.RunCompiler();
+	BOOST_REQUIRE(!compiler.IsProgramEmpty());
+
+	compiler.RunVirtualMachine();
+	BOOST_REQUIRE_EQUAL(compiler.VMResult(), 0);
+	BOOST_REQUIRE_EQUAL(compiler.ExecutionResult(), 171);
+}
+
 BOOST_AUTO_TEST_SUITE_END()
