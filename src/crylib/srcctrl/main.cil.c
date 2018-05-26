@@ -8,7 +8,7 @@
  * permission of the author.
  */
 
-#include "D:\Projects\Cryptox\src\crylib\srcctrl\main.cil.h"
+#include "main.cil.h"
 
 #define CONSTANT    1
 #define RETURN_OK   0

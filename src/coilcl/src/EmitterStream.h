@@ -109,6 +109,13 @@ public:
 	using MemoryPool = std::vector<uint8_t>;
 
 public:
+	enum struct AccessControl
+	{
+		READ_WRITE,
+		READ_ONLY,
+	};
+
+public:
 	MemoryBlock(size_t capacity = 0)
 		: m_block{ new MemoryPool{} }
 		, m_doFree{ true }
@@ -148,9 +155,20 @@ public:
 	// Check if stream is depleted
 	inline bool IsEoS() const noexcept { return m_readOffset == m_block->size(); }
 
+	// Lock the memory block from buffer alteration
+	void WriteDone()
+	{
+		Shrink();
+		m_acl = AccessControl::READ_ONLY;
+	}
+
 	// Write data stream to memory block
 	virtual void Write(uint8_t *vector, size_t sz)
 	{
+		if (m_acl != AccessControl::READ_WRITE) {
+			CryImplExcept(); //TODO
+		}
+
 		if (sz < 1) { return; }
 		m_block->insert(m_block->end(), vector, vector + sz);
 		if (m_block->size() >= (m_block->capacity() * 0.1)) {
@@ -172,6 +190,7 @@ public:
 		m_readOffset += sz;
 	}
 
+	// Copy entire memory block
 	std::shared_ptr<MemoryBlock> DeepCopy()
 	{
 		auto ptr = std::make_shared<MemoryBlock>(this->m_block->size());
@@ -183,6 +202,7 @@ private:
 	bool m_doFree;
 	size_t m_readOffset = 0;
 	MemoryPool *m_block = nullptr;
+	AccessControl m_acl{ AccessControl::READ_WRITE };
 };
 
 } // namespace Stream

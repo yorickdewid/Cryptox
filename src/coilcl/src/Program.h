@@ -60,7 +60,11 @@ public:
 
 	class ResultSection
 	{
-		Cry::ByteArray m_content;
+		using SizeType = size_t;
+		using BufferType = Cry::ByteArray;
+
+	private:
+		BufferType m_content;
 
 	public:
 		enum Tag
@@ -77,15 +81,8 @@ public:
 		{
 		}
 
-		inline size_t Size() const noexcept
-		{
-			return m_content.size();
-		}
-
-		Cry::ByteArray& Data()
-		{
-			return m_content;
-		}
+		inline SizeType Size() const noexcept { return m_content.size(); }
+		inline BufferType& Data() { return m_content; }
 	};
 
 public:
