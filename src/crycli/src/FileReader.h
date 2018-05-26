@@ -15,11 +15,12 @@
 
 #include <stack>
 
+namespace fs = boost::filesystem;
+
 class FileReader : public Reader
 {
 public:
 	FileReader() = default;
-
 	FileReader(const std::string& filename)
 	{
 		AppendFileToList(filename);
@@ -39,7 +40,7 @@ public:
 	// Implement interface meta info request
 	virtual std::string FetchMetaInfo()
 	{
-		return m_unitList.top()->Name();
+		return UnitSourceName();
 	}
 
 	// Implement interface, switch to source
@@ -49,15 +50,7 @@ public:
 	}
 
 protected:
-	void AppendFileToList(const std::string& filename)
-	{
-		//XXX: Switch to C++17
-		if (!boost::filesystem::exists(filename)) {
-			throw std::system_error{ std::make_error_code(std::errc::no_such_file_or_directory) };
-		}
-
-		m_unitList.push(std::make_unique<SourceUnit>(SourceUnit{ filename }));
-	}
+	void AppendFileToList(const std::string&);
 
 	// Append source unit to unit stack
 	void AppendFileToList(SourceUnit&& unit)
@@ -65,7 +58,12 @@ protected:
 		m_unitList.push(std::make_unique<SourceUnit>(std::move(unit)));
 	}
 
+	size_t UnitSourceSize() const { return m_unitList.top()->Size(); }
+	std::string UnitSourceName() const { return m_unitList.top()->Name(); }
+	bool IsFirstUnit() const { return m_unitList.empty(); }
+
 private:
 	std::stack<std::unique_ptr<SourceUnit>> m_unitList;
+	std::deque<fs::path> m_sourcePaths;
 };
 
