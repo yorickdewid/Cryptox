@@ -115,11 +115,10 @@ public:
 		return (*this);
 	}
 
-	bool IsProgramEmpty()
+	bool IsProgramEmpty() const noexcept
 	{
 		return m_program.program_ptr == nullptr;
 	}
-
 	int VMResult() const { return m_vmResult; }
 	int ExecutionResult() const { return m_programResult; }
 
@@ -177,6 +176,34 @@ BOOST_AUTO_TEST_CASE(ClSysBasicSource)
 	compiler.RunVirtualMachine();
 	BOOST_REQUIRE_EQUAL(compiler.VMResult(), 0);
 	BOOST_REQUIRE_EQUAL(compiler.ExecutionResult(), 8172);
+}
+
+BOOST_AUTO_TEST_CASE(ClSysSwitchStmt)
+{
+	const std::string source = ""
+		"int main() {\n"
+		"	int j = 67234;\n"
+		"	switch (j) {\n"
+		"		case 10:\n"
+		"			break;\n"
+		"		case 2934:\n"
+		"			return j + 1;\n"
+		"		case 67234:\n"
+		"			return j + 1;\n"
+		"		case 726481:\n"
+		"			return j + 1;\n"
+		"	}\n"
+		"\n"
+		"	return 1;\n"
+		"}";
+
+	CompilerHelper compiler{ source };
+	compiler.RunCompiler();
+	BOOST_REQUIRE(!compiler.IsProgramEmpty());
+
+	compiler.RunVirtualMachine();
+	BOOST_REQUIRE_EQUAL(compiler.VMResult(), 0);
+	BOOST_REQUIRE_EQUAL(compiler.ExecutionResult(), 67235);
 }
 
 BOOST_AUTO_TEST_SUITE_END()
