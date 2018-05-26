@@ -45,16 +45,16 @@ struct ModuleInterface
 	virtual void Invoke(AST::AST) = 0;
 };
 
-template<typename _SeqTy>
+template<typename SequnecTy>
 class Module : public ModuleInterface
 {
 	friend Module<Sequencer::Interface>;
 
-	using _MyTy = Module<_SeqTy>;
+	using _MyTy = Module<SequnecTy>;
 
 	std::vector<std::shared_ptr<Stream::OutputStream>> m_streamOut;
 	std::shared_ptr<Stream::InputStream> m_streamIn;
-	std::shared_ptr<_SeqTy> m_sequencer;
+	std::shared_ptr<SequnecTy> m_sequencer;
 
 public:
 	Module()
@@ -66,7 +66,7 @@ public:
 			this->RelayInput(data, sz);
 		};
 
-		m_sequencer = std::make_shared<_SeqTy>(std::move(out), std::move(in));
+		m_sequencer = std::make_shared<SequnecTy>(std::move(out), std::move(in));
 	}
 
 	// Only add stream to list of output streams
@@ -83,8 +83,8 @@ public:
 		}
 	}
 
-	template<typename _StreamTy>
-	void AddStream(std::shared_ptr<_StreamTy>& ptr)
+	template<typename StreamTy>
+	void AddStream(std::shared_ptr<StreamTy>& ptr)
 	{
 		AddStreamOut(std::dynamic_pointer_cast<Stream::OutputStream>(ptr));
 		AddStreamIn(std::dynamic_pointer_cast<Stream::InputStream>(ptr));

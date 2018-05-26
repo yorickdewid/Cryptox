@@ -124,12 +124,18 @@ public:
 
 	operator bool() const noexcept { return !!m_ast; }
 
-	template<typename... _ArgsTy>
-	static void Bind(std::unique_ptr<Program>&& program, _ArgsTy&&... args)
+	template<typename... ArgsTy>
+	static void Bind(std::unique_ptr<Program>&& program, ArgsTy&&... args)
 	{
 		auto ptr = program.release();
-		program = std::make_unique<Program>(std::move(*(ptr)), std::forward<_ArgsTy>(args)...);
+		program = std::make_unique<Program>(std::move(*(ptr)), std::forward<ArgsTy>(args)...);
 		delete ptr;
+	}
+
+	template<typename... ArgsTy>
+	static std::unique_ptr<Program> MakeProgram(ArgsTy&&... args)
+	{
+		return std::make_unique<Program>(std::forward<ArgsTy>(args)...);
 	}
 
 private:

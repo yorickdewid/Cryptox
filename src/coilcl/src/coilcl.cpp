@@ -148,7 +148,7 @@ public:
 		auto profile = std::dynamic_pointer_cast<Profile>(compiler);
 
 		// Create an empty program for the first stage
-		ProgramPtr program = std::make_unique<Program>();
+		ProgramPtr program = Program::MakeProgram();
 
 		try {
 			// The frontend will not perform any substitutions, but instead

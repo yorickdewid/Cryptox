@@ -174,7 +174,17 @@ public:
 	template<typename ContextType>
 	inline std::shared_ptr<ContextType> ParentAs()
 	{
-		return std::static_pointer_cast<ContextType>(Parent()); //TODO: dynamic_cast
+		return std::static_pointer_cast<ContextType>(Parent());
+	}
+	template<typename ToContextType, typename FromContextType>
+	static inline std::shared_ptr<ToContextType> CastUpAs(std::shared_ptr<FromContextType>& ctx)
+	{
+		return std::static_pointer_cast<ToContextType>(ctx);
+	}
+	template<typename ToContextType, typename FromContextType>
+	static inline std::shared_ptr<ToContextType> CastDownAs(std::shared_ptr<FromContextType>& ctx)
+	{
+		return std::dynamic_pointer_cast<ToContextType>(ctx);
 	}
 
 	// Find context based on tag, if the context cannot be found,
@@ -518,10 +528,20 @@ public:
 		m_localObj.insert(std::move(pair));
 	}
 
+	void AttachCompound(Context::Compound& ctx)
+	{
+		assert(!m_bodyContext);
+		m_bodyContext = ctx;
+	}
+
 	std::shared_ptr<Valuedef::Value> LookupIdentifier(const std::string& key)
 	{
 		auto val = m_localObj.find(key);
 		if (val == m_localObj.end()) {
+			auto compoundVal = CastDownAs<DeclarationRegistry>(m_bodyContext)->LookupIdentifier(key);
+			if (compoundVal) {
+				return compoundVal;
+			}
 			return ParentAs<UnitContext>()->LookupIdentifier(key);
 		}
 
@@ -535,6 +555,7 @@ private:
 	}
 
 private:
+	Context::Compound m_bodyContext;
 	std::string m_name;
 };
 
@@ -1355,6 +1376,7 @@ class ScopedRoutine
 		}
 
 		auto compCtx = ctx->MakeContext<CompoundContext>();
+		ctx->AttachCompound(compCtx);
 		ProcessCompound(const_cast<std::shared_ptr<CompoundStmt>&>(funcNode->FunctionCompound()), compCtx);
 	}
 
@@ -1370,10 +1392,16 @@ class ScopedRoutine
 		// Process each child node
 		for (const auto& childNode : body) {
 			auto child = childNode.lock();
-			if (ExecuteStatement(child, ctx) == RETURN_BREAK) {
+			auto returnType = ExecuteStatement(child, ctx);
+			switch (returnType)
+			{
+			case RETURN_RETURN:
+				goto done;
+			case RETURN_BREAK:
 				CryImplExcept(); //TODO: break statement not within loop or switch
 			}
 		}
+	done: {}
 	}
 
 	enum { RETURN_NORMAL, RETURN_BREAK, RETURN_RETURN };
@@ -1406,7 +1434,9 @@ class ScopedRoutine
 		}
 		case NodeID::SWITCH_STMT_ID: {
 			auto node = Util::NodeCast<SwitchStmt>(childNode);
-			ProcessSwitch(node, ctx);
+			if (ProcessSwitch(node, ctx) == RETURN_RETURN) {
+				return RETURN_RETURN;
+			}
 			break;
 		}
 		case NodeID::WHILE_STMT_ID: {
@@ -1483,14 +1513,14 @@ class ScopedRoutine
 		}
 	}
 
-	void ProcessSwitch(std::shared_ptr<SwitchStmt>& node, Context::Compound& ctx)
+	int ProcessSwitch(std::shared_ptr<SwitchStmt>& node, Context::Compound& ctx)
 	{
-		if (!node->HasBodyExpression()) { return; } //TODO: set warning about useless statement
+		if (!node->HasBodyExpression()) { return RETURN_NORMAL; } //TODO: set warning about useless statement
 
 		// Body node must be compound in order to be executable
 		if (node->BodyExpression()->Label() != AST::NodeID::COMPOUND_STMT_ID) {
 			//TODO: set warning about non-executable
-			return;
+			return RETURN_NORMAL;
 		}
 
 		auto value = ResolveExpression(node->Expression(), ctx);
@@ -1502,7 +1532,7 @@ class ScopedRoutine
 		{
 			auto body = compoundNode->Children();
 			if (!body.size()) {
-				return; //TODO: set warning: empty statement
+				return RETURN_NORMAL; //TODO: set warning: empty statement
 			}
 
 			// Process each child node
@@ -1519,15 +1549,12 @@ class ScopedRoutine
 				const int caseLabelInt = Util::EvaluateValueAsInteger(literal->Type2());
 				const int valueInt = Util::EvaluateValueAsInteger(value);
 				if (caseLabelInt == valueInt) {
-					switch (ExecuteStatement(caseNode->Expression(), compCtx))
-					{
-					case RETURN_BREAK:
-					case RETURN_RETURN:
-						return;
-					}
+					return ExecuteStatement(caseNode->Expression(), compCtx);
 				}
 			}
 		}
+
+		return RETURN_NORMAL;
 	}
 
 	// Execute body statement as long as expression is true
