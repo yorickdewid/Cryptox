@@ -245,4 +245,30 @@ BOOST_AUTO_TEST_CASE(ClSysLoop)
 	BOOST_REQUIRE_EQUAL(compiler.ExecutionResult(), 171);
 }
 
+BOOST_AUTO_TEST_CASE(ClSysForFunctionCall)
+{
+	const std::string source = ""
+		"int plus(int i, int k) {\n"
+		"	if (k==99) return 2;\n"
+		"	return 9;\n"
+		"}\n"
+		"\n"
+		"int main() {\n"
+		"	int x = 8971;\n"
+		"	for (int i = 0; i<100; ++i) {\n"
+		"		x = plus(x, i);\n"
+		"	}\n"
+		"\n"
+		"	return x;\n"
+		"}\n";
+
+	CompilerHelper compiler{ source };
+	compiler.RunCompiler();
+	BOOST_REQUIRE(!compiler.IsProgramEmpty());
+
+	compiler.RunVirtualMachine();
+	BOOST_REQUIRE_EQUAL(compiler.VMResult(), 0);
+	BOOST_REQUIRE_EQUAL(compiler.ExecutionResult(), 2);
+}
+
 BOOST_AUTO_TEST_SUITE_END()

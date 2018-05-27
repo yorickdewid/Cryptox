@@ -1429,7 +1429,9 @@ class ScopedRoutine
 		}
 		case NodeID::IF_STMT_ID: {
 			auto node = Util::NodeCast<IfStmt>(childNode);
-			ProcessCondition(node, ctx);
+			if (ProcessCondition(node, ctx) == RETURN_RETURN) {
+				return RETURN_RETURN;
+			}
 			break;
 		}
 		case NodeID::SWITCH_STMT_ID: {
@@ -1495,22 +1497,36 @@ class ScopedRoutine
 		}
 	}
 
-	void ProcessCondition(std::shared_ptr<IfStmt>& node, Context::Compound& ctx)
+	int ProcessCondition(std::shared_ptr<IfStmt>& node, Context::Compound& ctx)
 	{
 		auto value = ResolveExpression(node->Expression(), ctx);
 		if (Util::EvaluateAsBoolean(value)) {
 			if (node->HasTruthCompound()) {
 				auto continueNode = node->TruthCompound();
-				auto compoundNode = Util::NodeCast<CompoundStmt>(continueNode);
-				ProcessCompound(compoundNode, ctx);
+				if (Util::IsNodeCompound(continueNode)) {
+					auto compoundNode = Util::NodeCast<CompoundStmt>(continueNode);
+					ProcessCompound(compoundNode, ctx);
+				}
+				else {
+					auto compoundNode = Util::NodeCast<AST::ASTNode>(continueNode);
+					return ExecuteStatement(compoundNode, ctx);
+				}
 			}
 		}
 		// Handle alternative path, if any
 		else if (node->HasAltCompound()) {
 			auto continueNode = node->AltCompound();
-			auto compoundNode = Util::NodeCast<CompoundStmt>(continueNode);
-			ProcessCompound(compoundNode, ctx);
+			if (Util::IsNodeCompound(continueNode)) {
+				auto compoundNode = Util::NodeCast<CompoundStmt>(continueNode);
+				ProcessCompound(compoundNode, ctx);
+			}
+			else {
+				auto compoundNode = Util::NodeCast<AST::ASTNode>(continueNode);
+				return ExecuteStatement(compoundNode, ctx);
+			}
 		}
+
+		return RETURN_NORMAL;
 	}
 
 	int ProcessSwitch(std::shared_ptr<SwitchStmt>& node, Context::Compound& ctx)

@@ -18,6 +18,11 @@
  * @license     GPL, Version 3
  */
 
+/** />> TEST SECTION
+ * @output       Hello, World
+ * @return_code  0
+ * /<< END SECTION */
+
 #include <stdio.h>
 
 int main(int argc, char *argv[]) {

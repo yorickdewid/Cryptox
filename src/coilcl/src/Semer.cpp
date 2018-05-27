@@ -505,7 +505,7 @@ void CoilCl::Semer::CheckDataType()
 	});
 
 	// Inject type converter in operator
-	AST::Compare::Derived<Operator> eqOp;
+	AST::Compare::Derived<BinaryOperator> eqOp;
 	MatchIf(m_ast.begin(), m_ast.end(), eqOp, [](AST::AST::iterator itr)
 	{
 		enum
@@ -514,7 +514,7 @@ void CoilCl::Semer::CheckDataType()
 			OperatorRHS = 1,
 		};
 
-		auto opr = std::dynamic_pointer_cast<Operator>(itr.shared_ptr());
+		auto opr = std::dynamic_pointer_cast<BinaryOperator>(itr.shared_ptr());
 		AST::TypeFacade baseType = opr->ReturnType();
 
 		auto intializerLHS = opr->Children().front().lock();
