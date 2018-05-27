@@ -14,6 +14,10 @@
       <level>1</level>
       <title>Statement was never executed</title>
    </event>
+   <event id="1001">
+      <level>2</level>
+      <title>End of program reached</title>
+   </event>
    <event id="1002">
       <level>2</level>
       <title>Symbol not found in internal or external module</title>
