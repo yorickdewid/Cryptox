@@ -85,6 +85,7 @@ set(${${PROJECT_NAME}_ID}_RELEASE_ADD CACHE STRING "Version extension")
 option(${${PROJECT_NAME}_ID}_RELEASE_CE "Build community release" OFF)
 option(${${PROJECT_NAME}_ID}_BUILD_BUTEST "Build Boost Unit Test" ON)
 option(${${PROJECT_NAME}_ID}_BUILD_LZ4XX "Build with LZ4" ON)
+option(${${PROJECT_NAME}_ID}_BUILD_MSGGEN "Build event message generator" ON)
 option(${${PROJECT_NAME}_ID}_BUILD_WALL "Build with all warning options" OFF)
 set(${${PROJECT_NAME}_ID}_BRAND_NAME "Cryptox" CACHE STRING "Product name")
 set(${${PROJECT_NAME}_ID}_BRAND_NAME_FULL "Cryptox Cryptography Suite" CACHE STRING "Product full description name")
@@ -268,6 +269,10 @@ endif()
 
 if (${${PROJECT_NAME}_ID}_BUILD_LZ4XX)
 	add_subdirectory(third_party/lz4xx)
+endif()
+
+if (${${PROJECT_NAME}_ID}_BUILD_MSGGEN)
+	add_subdirectory(third_party/msggen)
 endif()
 
 install(DIRECTORY DESTINATION "redist")

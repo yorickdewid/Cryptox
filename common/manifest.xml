@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<manifest version="1">
+ <levels>
+   <level id="1" code="W">Warning</level>
+   <level id="2" code="E">Error</level>
+   <level id="3" code="I">Hint</level>
+ </levels>
+ <events>
+   <event id="1000">
+      <level>1</level>
+      <description>Statement was never executed</description>
+   </event>
+   <event id="1002">
+      <level>2</level>
+      <description>Symbol not found in internal or external module</description>
+   </event>
+  </events>
+</manifest>
