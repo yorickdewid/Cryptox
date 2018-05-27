@@ -5,14 +5,19 @@
    <level id="2" code="E">Error</level>
    <level id="3" code="I">Hint</level>
  </levels>
+ <group>
+   <tag id="1">Compiler</tag>
+   <tag id="2">Virtual Machine</tag>
+ </group>
  <events>
    <event id="1000">
       <level>1</level>
-      <description>Statement was never executed</description>
+      <title>Statement was never executed</title>
    </event>
    <event id="1002">
       <level>2</level>
-      <description>Symbol not found in internal or external module</description>
+      <title>Symbol not found in internal or external module</title>
+      <description>Symbol was not found in the current program or an external program</description>
    </event>
   </events>
 </manifest>
