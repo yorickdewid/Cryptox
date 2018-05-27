@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<manifest version="1">
+ <levels>
+   <level id="1" code="Q">Level1</level>
+   <level id="2" code="P">Level2</level>
+   <level id="3" code="V">Level3</level>
+ </levels>
+ <events>
+   <event id="10">
+      <level>1</level>
+      <title>Event 1</title>
+   </event>
+   <event id="100">
+      <level>2</level>
+      <title>Event 2</title>
+   </event>
+   <event id="1000">
+      <level>3</level>
+      <title>Event 3</title>
+      <description>Description 3</description>
+   </event>
+  </events>
+</manifest>
