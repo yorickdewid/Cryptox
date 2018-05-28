@@ -6,6 +6,9 @@
 // that can be found in the LICENSE file. Content can not be 
 // copied and/or distributed without the express of the author.
 
+#include <Cry/Cry.h>
+#include <Cry/Config.h>
+
 #include <boost/format.hpp>
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/xml_parser.hpp>
@@ -16,7 +19,6 @@
 #include <iostream>
 #include <stdexcept>
 
-#define VERSION 1
 #define DEFUALT_VERSION 1
 #define DEFAULT_NAMESPACE ""
 
@@ -74,7 +76,7 @@ struct EventLevel
 
 struct EventItem final
 {
-	EventLevel::Level level{ EventLevel::Warning };
+	EventLevel::Level level{ EventLevel::%s };
 	const int errorCode;
 	const std::string title;
 	const std::string desc;
@@ -254,6 +256,7 @@ private:
 	int MaximumId();
 	std::string EventLevelLevelStub();
 	std::string EventLevelGetCharCodeStub();
+	std::string EventLevelDefaultValue();
 	std::string ItemListStub();
 };
 
@@ -289,6 +292,11 @@ std::string Manifest::EventLevelGetCharCodeStub()
 		out += "\n\t\tcase " + level.second.name + ": return '" + level.second.shortHand + "';";
 	}
 	return out;
+}
+
+std::string Manifest::EventLevelDefaultValue()
+{
+	return m_levels.begin()->second.name;
 }
 
 std::string Manifest::ItemListStub()
@@ -337,6 +345,13 @@ void Manifest::Load(const std::string& filename)
 		const auto& levelObject = m_levels[resolveLevel];
 		m_events.emplace(std::pair<int, Manifest::Event>(id, { levelObject, title }));
 	}
+
+	if (m_levels.empty()) {
+		throw std::runtime_error{ "Specify at least one level" };
+	}
+	if (m_events.empty()) {
+		throw std::runtime_error{ "Specify at least one event" };
+	}
 }
 
 void Manifest::Dump(const std::string& inFile, const std::string& outFile)
@@ -352,6 +367,7 @@ void Manifest::Dump(const std::string& inFile, const std::string& outFile)
 		% MaximumId()
 		% EventLevelLevelStub()
 		% EventLevelGetCharCodeStub()
+		% EventLevelDefaultValue()
 		% m_events.size()
 		% m_events.size()
 		% ItemListStub()
@@ -362,8 +378,7 @@ void Manifest::Dump(const std::string& inFile, const std::string& outFile)
 int main(int argc, char *argv[])
 {
 	if (argc < 3) {
-		std::cerr << "Cryptox Event Generator - version " << VERSION << std::endl;
-		std::cerr << "Copyright(C) 2018 Blub Corp. All rights reserved." << std::endl << std::endl;
+		std::cerr << PROGRAM_UTIL_HEADER << std::endl << std::endl;
 		std::cerr << argv[0] << ": MANIFEST OUTFILE" << std::endl;
 		return 1;
 	}
