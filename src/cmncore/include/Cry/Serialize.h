@@ -19,6 +19,7 @@ namespace Cry
 using Byte = uint8_t;
 using Short = uint16_t;
 using Word = uint32_t;
+using DoubleWord = uint64_t;
 
 // Byte container with multiplatform and multi archtitecture
 // support. The bytearray can be used to write builtin datatypes
@@ -29,7 +30,7 @@ class ByteArray : public std::vector<Byte>
 {
 	using BaseType = std::vector<Byte>;
 
-	const unsigned char flag0 = 1 << 0;      // 0000 0001 
+	const unsigned char flag0 = 1 << 0;      // 0000 0001
 	const unsigned char flagIs64 = 1 << 1;   // 0000 0010
 	const unsigned char flagIsWin = 1 << 2;  // 0000 0100
 	const unsigned char flagIsUnix = 1 << 3; // 0000 1000
@@ -84,24 +85,25 @@ public:
 	int Offset() const noexcept { return m_offset; }
 
 	// Set magic value
-	void SetMagic(uint8_t magic)
+	void SetMagic(Byte magic)
 	{
 		BaseType::push_back(magic);
 	}
 
 	// Validate magic value
-	bool ValidateMagic(uint8_t magic, int idx = -1)
+	bool ValidateMagic(Byte magic, int idx = -1)
 	{
 		if (idx == -1) {
 			idx = m_offset;
 		}
-		m_offset += sizeof(uint8_t);
+		m_offset += sizeof(Byte);
 		return at(idx) == magic;
 	}
 
+	// Encode platform characteristics
 	void SetPlatformCompat()
 	{
-		uint8_t flags = 0;
+		Byte flags = 0;
 #ifdef CRY_ARCH64
 		flags |= flagIs64;
 #endif // CRY_ARCH64
@@ -120,19 +122,15 @@ public:
 		Serialize(flags);
 	}
 
-	bool IsPlatformCompat()
-	{
-		//FUTURE: Do something with flags
-		Deserialize<uint8_t>(AUTO);
-		return true;
-	}
+	// Check if current platform is compatible
+	bool IsPlatformCompat();
 
-	void Serialize(uint8_t i)
+	void Serialize(Byte i)
 	{
 		BaseType::push_back(i);
 	}
 
-	void Serialize(uint16_t i)
+	void Serialize(Short i)
 	{
 #if CRY_LITTLE_ENDIAN
 		i = BSWAP16(i);
@@ -141,7 +139,7 @@ public:
 		BaseType::push_back((i >> 8) & 0xff);
 	}
 
-	void Serialize(uint32_t i)
+	void Serialize(Word i)
 	{
 #if CRY_LITTLE_ENDIAN
 		i = BSWAP32(i);
@@ -152,7 +150,7 @@ public:
 		BaseType::push_back((i >> 24) & 0xff);
 	}
 
-	void Serialize(uint64_t i)
+	void Serialize(DoubleWord i)
 	{
 #if CRY_LITTLE_ENDIAN
 		i = BSWAP64(i);
@@ -167,88 +165,95 @@ public:
 		BaseType::push_back((i >> 56) & 0xff);
 	}
 
-	template<typename _TyConv, typename _TyIn>
-	void SerializeAs(_TyIn i)
+	template<typename ToConversionType, typename FromIntegerType>
+	void SerializeAs(FromIntegerType i)
 	{
-		Serialize(static_cast<_TyConv>(i));
+		Serialize(static_cast<ToConversionType>(i));
 	}
 
-	template<typename _Ty>
-	_Ty Deserialize(int idx);
-
-	template<>
-	uint8_t Deserialize(int idx)
-	{
-		if (idx == -1) {
-			idx = m_offset;
-		}
-
-		m_offset += sizeof(uint8_t);
-		return at(idx);
-	}
-
-	template<>
-	uint16_t Deserialize(int idx)
-	{
-		if (idx == -1) {
-			idx = m_offset;
-		}
-
-		uint16_t i = at(idx)
-			| at(idx + 1) << 8;
-
-#if CRY_LITTLE_ENDIAN
-		i = BSWAP16(i);
-#endif
-		m_offset += sizeof(uint16_t);
-		return i;
-	}
-
-	template<>
-	uint32_t Deserialize(int idx)
-	{
-		if (idx == -1) {
-			idx = m_offset;
-		}
-
-		uint32_t i = at(idx)
-			| at(idx + 1) << 8
-			| at(idx + 2) << 16
-			| at(idx + 3) << 24;
-
-#if CRY_LITTLE_ENDIAN
-		i = BSWAP32(i);
-#endif
-		m_offset += sizeof(uint32_t);
-		return i;
-	}
-
-	template<>
-	uint64_t Deserialize(int idx)
-	{
-		if (idx == -1) {
-			idx = m_offset;
-		}
-
-		uint64_t i = 0;
-		i |= (uint64_t)at(idx) << 0;
-		i |= (uint64_t)at(idx + 1) << 8;
-		i |= (uint64_t)at(idx + 2) << 16;
-		i |= (uint64_t)at(idx + 3) << 24;
-		i |= (uint64_t)at(idx + 4) << 32;
-		i |= (uint64_t)at(idx + 5) << 40;
-		i |= (uint64_t)at(idx + 6) << 48;
-		i |= (uint64_t)at(idx + 7) << 56;
-
-#if CRY_LITTLE_ENDIAN
-		i = BSWAP64(i);
-#endif
-		m_offset += sizeof(uint64_t);
-		return i;
-	}
+	template<typename IntegerType>
+	IntegerType Deserialize(int idx);
 
 private:
 	int m_offset = 0;
 };
+
+template<>
+inline Byte ByteArray::Deserialize(int idx)
+{
+	if (idx == -1) {
+		idx = m_offset;
+	}
+
+	m_offset += sizeof(Byte);
+	return at(idx);
+}
+
+template<>
+inline Short ByteArray::Deserialize(int idx)
+{
+	if (idx == -1) {
+		idx = m_offset;
+	}
+
+	Short i = at(idx)
+		| at(idx + 1) << 8;
+
+#if CRY_LITTLE_ENDIAN
+	i = BSWAP16(i);
+#endif
+	m_offset += sizeof(Short);
+	return i;
+}
+
+template<>
+inline Word ByteArray::Deserialize(int idx)
+{
+	if (idx == -1) {
+		idx = m_offset;
+	}
+
+	Word i = at(idx)
+		| at(idx + 1) << 8
+		| at(idx + 2) << 16
+		| at(idx + 3) << 24;
+
+#if CRY_LITTLE_ENDIAN
+	i = BSWAP32(i);
+#endif
+	m_offset += sizeof(Word);
+	return i;
+}
+
+template<>
+inline DoubleWord ByteArray::Deserialize(int idx)
+{
+	if (idx == -1) {
+		idx = m_offset;
+	}
+
+	DoubleWord i = 0;
+	i |= (DoubleWord)at(idx) << 0;
+	i |= (DoubleWord)at(idx + 1) << 8;
+	i |= (DoubleWord)at(idx + 2) << 16;
+	i |= (DoubleWord)at(idx + 3) << 24;
+	i |= (DoubleWord)at(idx + 4) << 32;
+	i |= (DoubleWord)at(idx + 5) << 40;
+	i |= (DoubleWord)at(idx + 6) << 48;
+	i |= (DoubleWord)at(idx + 7) << 56;
+
+#if CRY_LITTLE_ENDIAN
+	i = BSWAP64(i);
+#endif
+	m_offset += sizeof(DoubleWord);
+	return i;
+}
+
+inline bool ByteArray::IsPlatformCompat()
+{
+	//FUTURE: Do something with flags
+	Deserialize<Byte>(AUTO);
+	return true;
+}
 
 } // namespace Cry

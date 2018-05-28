@@ -16,16 +16,16 @@
 
 #ifdef CRY_DEBUG
 # if defined(_MSC_VER)
-# define CryImplExcept() DebugBreak()
+#  define CryImplExcept() {DebugBreak();throw(-1);}
 # else
 #  if defined(__ppc64__) || defined(__ppc__)
 #   define CryImplExcept() \
-	__asm__("li r0, 20\nsc\nnop\nli r0, 37\nli r4, 2\nsc\nnop\n" \
-		: : : "memory","r0","r3","r4" );
+	{__asm__("li r0, 20\nsc\nnop\nli r0, 37\nli r4, 2\nsc\nnop\n" \
+		: : : "memory","r0","r3","r4" );throw(-1);}
 #  else
-#   define CryImplExcept() __asm__("int $3\n" : : )
+#   define CryImplExcept() {__asm__("int $3\n" : : );throw(-1);}
 #  endif
 # endif
 #else
-# define CryImplExcept() { printf("UNIMPL EXCEPT %s:%d", __FILE__,__LINE__); CSTD abort(); };
+# define CryImplExcept() {printf("UNIMPL EXCEPT %s:%d", __FILE__,__LINE__);CSTD abort();throw(-1);}
 #endif // CRY_DEBUG

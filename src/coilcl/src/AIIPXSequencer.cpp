@@ -75,7 +75,7 @@ class Visitor : public Serializable::Interface
 	{
 		// If stream is empty, redirect read to callback
 		if (!ss.rdbuf()->in_avail()) {
-			inputCallback(reinterpret_cast<uint8_t *>(str), count);
+			inputCallback(reinterpret_cast<uint8_t *>(str), static_cast<size_t>(count));
 			return;
 		}
 

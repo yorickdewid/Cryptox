@@ -741,7 +741,7 @@ NATIVE_WRAPPER(putchar)
 NATIVE_WRAPPER(printf)
 {
 	const auto value = GET_DEFAULT_ARG(0);
-	const auto value2 = GET_VA_LIST_ARG(0);
+	const auto value2 = GET_VA_LIST_ARG(1);
 	assert(value);
 	assert(value2);
 	const auto arg0 = value->As<std::string>();
@@ -762,7 +762,7 @@ NATIVE_WRAPPER(scanf)
 NATIVE_WRAPPER(error)
 {
 	const auto value = GET_DEFAULT_ARG(0);
-	const auto value2 = GET_VA_LIST_ARG(0);
+	const auto value2 = GET_VA_LIST_ARG(1);
 	assert(value);
 	assert(value2);
 	const auto arg0 = value->As<int>();

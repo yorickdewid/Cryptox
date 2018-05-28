@@ -220,7 +220,7 @@ static std::string DateTime()
 {
 	auto t = std::time(nullptr);
 	struct tm tm;
-	localtime_s(&tm, &t);
+	CRY_LOCALTIME(&tm);
 
 	std::ostringstream oss;
 	oss << std::put_time(&tm, "%d-%m-%Y %H:%M:%S");
