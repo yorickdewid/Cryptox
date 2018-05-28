@@ -40,13 +40,14 @@ if(POLICY CMP0067)
 endif()
 
 # Include modules
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/")
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_SOURCE_DIR}/cmake/)
 
 # Find the host operating system and architecture
 include(Util)
 include(CPack)
 include(CTest)
 include(FindOS)
+include(FindGit)
 include(CheckCXXCompilerFlag)
 
 # Force build type
@@ -99,6 +100,10 @@ else()
 	set(${PROJECT_NAME}_COPYRIGHT "Copyright (C) ${${PROJECT_NAME}_YEAR} ${${${PROJECT_NAME}_ID}_BRAND_AUTHOR} All rights reserved.")
 endif()
 
+# -------------------------------
+# Project version control
+# -------------------------------
+
 # Set version
 set(${PROJECT_NAME}_VERSION_MAJOR 0)
 set(${PROJECT_NAME}_VERSION_MINOR 19)
@@ -114,15 +119,13 @@ if($ENV{APPVEYOR_BUILD_NUMBER})
 	message(STATUS "Build nr ${${PROJECT_NAME}_VERSION_BUILD}")
 endif()
 
-# Find source control reference
-find_program(GIT_EXE NAMES git)
-if(GIT_EXE)
-    execute_process(
-		WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-        COMMAND ${GIT_EXE} name-rev HEAD --tags --name-only --no-undefined --always
-        OUTPUT_VARIABLE ${PROJECT_NAME}_VERSION_REV
-        OUTPUT_STRIP_TRAILING_WHITESPACE)
-endif()
+# Get source control reference
+execute_process(
+	WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+	COMMAND ${GIT_EXE} name-rev HEAD --tags --name-only --no-undefined --always
+	OUTPUT_VARIABLE ${PROJECT_NAME}_VERSION_REV
+	OUTPUT_STRIP_TRAILING_WHITESPACE
+)
 message(STATUS "Build rev ${${PROJECT_NAME}_VERSION_REV}")
 
 # Static config exports
@@ -158,6 +161,10 @@ endif()
 message(STATUS "${${${PROJECT_NAME}_ID}_BRAND_NAME_FULL} rel ${${PROJECT_NAME}_VERSION}")
 message(STATUS ${${PROJECT_NAME}_COPYRIGHT})
 
+# -------------------------------
+# Installation package settings
+# -------------------------------
+
 # Set package details
 set(CPACK_PACKAGE_NAME ${PRODUCT_BRAND_NAME})
 set(CPACK_PACKAGE_VENDOR ${PRODUCT_BRAND_AUTHOR})
@@ -177,9 +184,9 @@ SET(CPACK_RESOURCE_FILE_README "${CMAKE_SOURCE_DIR}/README.md")
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 set_property(GLOBAL PROPERTY PREDEFINED_TARGETS_FOLDER "CMake Targets")
 
-if (WIN32)
-	set(CMAKE_SHARED_LIBRARY_PREFIX "")
-endif ()
+# -------------------------------
+# External package configuration
+# -------------------------------
 
 # Boost options
 if(WIN32)
@@ -206,6 +213,18 @@ endif()
 #if(wxWidgets_FOUND)
 #	include(${wxWidgets_USE_FILE})
 #endif()
+
+# -------------------------------
+# Compiler options
+# -------------------------------
+
+# Make settings
+#set(CMAKE_VERBOSE_MAKEFILE ON)
+set(CMAKE_COLOR_MAKEFILE ON)
+
+if (WIN32)
+	set(CMAKE_SHARED_LIBRARY_PREFIX "")
+endif ()
 
 # Compiler flags
 if(COMPILER_SUPPORTS_CXX17)
@@ -234,13 +253,32 @@ if(MSVC)
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /sdl")
 endif()
 
-#set(CMAKE_VERBOSE_MAKEFILE ON)
-set(CMAKE_COLOR_MAKEFILE ON)
+# -------------------------------
+# Location settings
+# -------------------------------
 
 # Direct output to certain directories
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+
+# Top level source directories
+set(COMMON_DIR ${CMAKE_SOURCE_DIR}/common)
+set(CONTRIB_DIR ${CMAKE_SOURCE_DIR}/contrib)
+set(3RD_PROJECT_DIR ${CMAKE_SOURCE_DIR}/third_party)
+
+# Fing Message Event Generator
+include(FindMsgGen)
+
+# Generate the event logging header
+file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/include)
+execute_process(
+	COMMAND ${MSGGEN_EXE} ${COMMON_DIR}/manifest.xml ${CMAKE_BINARY_DIR}/include/event_log.h
+)
+
+# -------------------------------
+# Include subprojects
+# -------------------------------
 
 # Project consists of multiple subprojects
 add_subdirectory(src/cmncore)
