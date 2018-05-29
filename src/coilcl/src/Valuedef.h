@@ -8,7 +8,8 @@
 
 #pragma once
 
-#include "Typedef.h"
+#include "TypeFacade.h"
+#include "Typedef.h" //TODO: remove
 
 #include <Cry/Serialize.h>
 
@@ -24,6 +25,11 @@
 #define DUMP_VALUE(v) \
 	std::cout << v->DataType()->TypeName() << " >> " << v->Print() << std::endl;
 #endif
+
+//TODO:
+// - Array value
+// - Pointer value
+// - Void value
 
 namespace CoilCl
 {
@@ -41,13 +47,33 @@ class Value //TODO: mark each value with an unique id
 {
 	friend struct Util::ValueFactory;
 
-protected:
+public:
 	using ValueVariant = boost::variant<int, char, float, double, bool, std::string>;
 	using ValueArray = std::vector<Value>;
 
+	//
+	// Local exceptions
+	//
+
+	struct InvalidTypeCastException : public std::runtime_error
+	{
+		InvalidTypeCastException()
+			: runtime_error{ "" }
+		{
+		}
+	};
+	struct UninitializedValueException : public std::runtime_error
+	{
+		UninitializedValueException()
+			: runtime_error{ "" }
+		{
+		}
+	};
+
+protected:
 	// The internal datastructure stores the value
 	// as close to the actual data type specifier.
-	ValueVariant m_value;
+	ValueVariant m_value; //OBSOLETE: REMOVE: TODO:
 	boost::optional<ValueVariant> m_value2;
 
 	// The internal datastructure stores the array
@@ -86,6 +112,19 @@ public:
 	{
 	}
 
+	// New version
+	// Value declaration without initialization
+	Value(int, AST::TypeFacade typeBase)
+		: m_internalType{ typeBase }
+	{
+	}
+	// Value declaration and initialization
+	Value(int, AST::TypeFacade typeBase, ValueVariant&& value)
+		: m_internalType{ typeBase }
+		, m_value2{ std::move(value) }
+	{
+	}
+
 	// Swap-in native replacement value
 	template<typename NativeType>
 	void ReplaceValue(NativeType&& value) //TODO: fix name & allowed types
@@ -103,6 +142,8 @@ public:
 
 	template<typename CastType>
 	auto DataType() const { return std::dynamic_pointer_cast<CastType>(m_objectType); }
+	// Access type information
+	AST::TypeFacade Type() const { return m_internalType; }
 
 	// Check if current storage type is array
 	inline bool IsArray() const noexcept { return m_array.size() > 0; }
@@ -117,7 +158,21 @@ public:
 	// a bad casting exception is thrown.
 	template<typename CastType>
 	CastType As() const { return boost::get<CastType>(m_value); }
+	template<typename CastType>
+	CastType As2() const
+	{
+		if (!m_value2) {
+			throw UninitializedValueException{};
+		}
+		try {
+			return boost::get<CastType>(m_value2.get());
+		}
+		catch (const boost::bad_get&) {
+			throw InvalidTypeCastException{};
+		}
+	}
 
+	//TODO: replace with global Cry::ToString()
 	// Print value
 	virtual const std::string Print() const
 	{
@@ -131,6 +186,7 @@ public:
 
 private:
 	Typedef::BaseType m_objectType; //TODO: replace with typefacade to account for pointers
+	AST::TypeFacade m_internalType;
 };
 
 //namespace Detail
@@ -303,7 +359,7 @@ inline auto MakeValueObject(Typedef::BuiltinType&& type, ValueType value)
 template<typename Type = std::string>
 inline Valuedef::ValueType<Type> MakeString(Type v)
 {
-	return MakeValueObject<Type>(Typedef::BuiltinType::Specifier::CHAR, std::move(v));
+	return MakeValueObject<Type>(Typedef::BuiltinType::Specifier::CHAR, v);
 }
 template<typename Type = int>
 inline Valuedef::ValueType<Type> MakeInt(Type v)
@@ -335,10 +391,37 @@ inline Valuedef::ValueType<Type> MakeVoid()
 {
 	return std::make_shared<Valuedef::ValueObject<Type>>();
 }
-//inline std::shared_ptr<Valuedef::Value> MakeUninitialized()
-//{
-//	return nullptr; /*std::make_shared<Valuedef::Value>(Util::MakeNilType());*/
-//}
+
+inline auto MakeString2(std::string&& v)
+{
+	auto builtin = Util::MakeBuiltinType(Typedef::BuiltinType::Specifier::CHAR);
+	return Valuedef::Value{ 0, AST::TypeFacade{ builtin }, Valuedef::Value::ValueVariant{ std::move(v) } };
+}
+inline auto MakeInt2(int v)
+{
+	auto builtin = Util::MakeBuiltinType(Typedef::BuiltinType::Specifier::INT);
+	return Valuedef::Value{ 0, AST::TypeFacade{ builtin }, Valuedef::Value::ValueVariant{ std::move(v) } };
+}
+inline auto MakeFloat2(float v)
+{
+	auto builtin = Util::MakeBuiltinType(Typedef::BuiltinType::Specifier::FLOAT);
+	return Valuedef::Value{ 0, AST::TypeFacade{ builtin }, Valuedef::Value::ValueVariant{ std::move(v) } };
+}
+inline auto MakeDouble2(double v)
+{
+	auto builtin = Util::MakeBuiltinType(Typedef::BuiltinType::Specifier::DOUBLE);
+	return Valuedef::Value{ 0, AST::TypeFacade{ builtin }, Valuedef::Value::ValueVariant{ std::move(v) } };
+}
+inline auto MakeChar2(char v)
+{
+	auto builtin = Util::MakeBuiltinType(Typedef::BuiltinType::Specifier::CHAR);
+	return Valuedef::Value{ 0, AST::TypeFacade{ builtin }, Valuedef::Value::ValueVariant{ std::move(v) } };
+}
+inline auto MakeBool2(bool v)
+{
+	auto builtin = Util::MakeBuiltinType(Typedef::BuiltinType::Specifier::BOOL);
+	return Valuedef::Value{ 0, AST::TypeFacade{ builtin }, Valuedef::Value::ValueVariant{ std::move(v) } };
+}
 
 //
 // Change value internals
