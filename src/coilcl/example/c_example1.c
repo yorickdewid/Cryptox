@@ -54,7 +54,7 @@ void file_write(datachunk_t *data, const char *out)
 }
 
 /* This callback is invoked when the backend encounters an error */
-static void error_handler(void *user_data, const char *message, char fatal)
+static void error_handler(void *user_data, const char *message, int fatal)
 {
 	if (!fatal) {
 		fprintf(stderr, "Compiler warning: %s\n", message);

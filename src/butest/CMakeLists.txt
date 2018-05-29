@@ -32,6 +32,9 @@ add_executable(${PROJECT_NAME}
 	${${PROJECT_NAME}_h}
 	${${PROJECT_NAME}_rel}
 	${${PROJECT_NAME}_res}
+	"../coilcl/src/Valuedef.cpp"
+	"../coilcl/src/Typedef.cpp"
+	"../coilcl/src/TypeFacade.cpp"
 )
 
 # Define output directories

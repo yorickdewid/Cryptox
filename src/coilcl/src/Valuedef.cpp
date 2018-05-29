@@ -135,7 +135,7 @@ std::shared_ptr<CoilCl::Valuedef::Value> ValueCopy(const std::shared_ptr<CoilCl:
 
 bool EvaluateAsBoolean(std::shared_ptr<Valuedef::Value> value)
 {
-	if (IsVoid(value)) {
+	if (IsValueVoid(value)) {
 		CryImplExcept(); //TODO: void is non orthogonal
 	}
 
@@ -156,7 +156,7 @@ bool EvaluateAsBoolean(std::shared_ptr<Valuedef::Value> value)
 
 int EvaluateValueAsInteger(std::shared_ptr<Valuedef::Value> value)
 {
-	if (IsVoid(value)) {
+	if (IsValueVoid(value)) {
 		CryImplExcept(); //TODO: cannot cast void to integer
 	}
 
@@ -174,7 +174,7 @@ int EvaluateValueAsInteger(std::shared_ptr<Valuedef::Value> value)
 	throw 1; //TODO:
 }
 
-bool IsVoid(std::shared_ptr<Valuedef::Value> value)
+bool IsValueVoid(std::shared_ptr<Valuedef::Value> value)
 {
 	return value->IsVoid();
 }

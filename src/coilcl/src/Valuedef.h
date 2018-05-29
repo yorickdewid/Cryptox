@@ -356,7 +356,7 @@ bool EvaluateAsBoolean(std::shared_ptr<Valuedef::Value>);  //TODO: rename Evalua
 // Evaluate the value as an integer if possible
 int EvaluateValueAsInteger(std::shared_ptr<Valuedef::Value>);
 // Test if the value is a void type
-bool IsVoid(std::shared_ptr<Valuedef::Value>); //TODO: rename IsValueVoid
+bool IsValueVoid(std::shared_ptr<Valuedef::Value>);
 // Test if the value is array type
 bool IsValueArray(std::shared_ptr<Valuedef::Value>);
 // Check if value is set

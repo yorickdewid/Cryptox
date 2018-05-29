@@ -12,6 +12,7 @@ find_program(MSGGEN_EXE msggen
         ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/*
         ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/*
 )
+# TODO: select x64 or x32 based on arch
 if(NOT MSGGEN_EXE)
     find_program(MSGGEN_EXE msggen
         NAMES msggen_x64
