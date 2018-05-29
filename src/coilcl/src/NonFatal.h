@@ -91,42 +91,42 @@ public:
 	}
 };
 
-template<size_t _Count, typename _Ty = NonFatalNotice>
-class NoticeDeque : private std::deque<_Ty>
+template<size_t _Count, typename NoticeType = NonFatalNotice>
+class NoticeDeque : private std::deque<NoticeType>
 {
-	using _Myty = std::deque<_Ty>;
+	using _Myty = std::deque<NoticeType>;
 
 	// Push items on the deque until the deque is full. If the
 	// deque is full pop the first items of the deque. The container
 	// can never grow beyond the given size.
-	void Enqueue(_Ty&& item)
+	void Enqueue(NoticeType&& item)
 	{
 		if (IsFull())
 		{
-			pop_front();
+			this->pop_front();
 		}
-		push_back(std::move(item));
+		this->push_back(std::move(item));
 	}
 
 public:
-	using iterator = _Myty::iterator;
-	using const_iterator = _Myty::const_iterator;
+	using iterator = typename _Myty::iterator;
+	using const_iterator = typename _Myty::const_iterator;
 
 public:
-	void Push(_Ty& item)
+	void Push(NoticeType& item)
 	{
 		Enqueue(std::move(item));
 	}
 
-	void Push(_Ty&& item)
+	void Push(NoticeType&& item)
 	{
 		Enqueue(std::move(item));
 	}
 
-	template<typename... _ArgsTy>
-	void Emplace(_ArgsTy... Args)
+	template<typename... ArgsType>
+	void Emplace(ArgsType... Args)
 	{
-		Enqueue(std::move(_Ty{ std::forward<_ArgsTy>(Args)... }));
+		Enqueue(std::move(NoticeType{ std::forward<ArgsType>(Args)... }));
 	}
 
 	iterator begin() noexcept { return _Myty::begin(); }
@@ -135,7 +135,7 @@ public:
 	const_iterator end() const noexcept { return _Myty::end(); }
 
 	inline void Empty() { Empty(); }
-	inline bool IsFull() const noexcept { return size() == _Count; }
+	inline bool IsFull() const noexcept { return this->size() == _Count; }
 };
 
 using DefaultNoticeList = NoticeDeque<MAX_NOTICES>;
@@ -149,12 +149,10 @@ void EnlistNotice(const std::string& msg, std::pair<int, int> location = {})
 {
 	g_warningQueue.Emplace(msg, location);
 }
-
 void EnlistNoticeWarning(const std::string& msg, std::pair<int, int> location = {})
 {
 	g_warningQueue.Emplace(msg, location, NonFatalNotice::E_WARNING);
 }
-
 void EnlistNoticeHint(const std::string& msg, std::pair<int, int> location = {})
 {
 	g_warningQueue.Emplace(msg, location, NonFatalNotice::E_HINT);

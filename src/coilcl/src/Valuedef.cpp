@@ -8,6 +8,7 @@
 
 #include "Valuedef.h"
 
+#include <Cry/Cry.h>
 #include <Cry/ByteOrder.h>
 
 #define VALUE_MAGIC 0x7a
@@ -95,7 +96,7 @@ public:
 			return std::make_shared<Valuedef::Value>(std::move(base), std::move(buffer));
 		}
 		default:
-			throw 1;
+			CryImplExcept();
 		}
 	}
 
@@ -118,7 +119,7 @@ const Cry::ByteArray Value::Serialize() const
 	buffer.insert(buffer.cend(), type.begin(), type.end());
 
 	TypePacker visitor{ buffer };
-	m_value.apply_visitor(TypePacker{ visitor });
+	m_value.apply_visitor(visitor);
 	return buffer;
 }
 
@@ -135,18 +136,20 @@ std::shared_ptr<CoilCl::Valuedef::Value> ValueCopy(const std::shared_ptr<CoilCl:
 bool EvaluateAsBoolean(std::shared_ptr<Valuedef::Value> value)
 {
 	if (IsVoid(value)) {
-		throw 1; //TODO: void is non orthogonal
+		CryImplExcept(); //TODO: void is non orthogonal
 	}
 
 	if (IsValueArray(value)) {
-		throw 1; //TODO: cannot substitute array to void
+		CryImplExcept(); //TODO: cannot substitute array to void
 	}
 
 	//FUTURE: this is expensive, replace try/catch
 	try {
 		return value->As<int>();
 	}
-	catch (...) {}
+	catch (...) {
+		CryImplExcept();
+	}
 
 	return false;
 }
@@ -154,11 +157,11 @@ bool EvaluateAsBoolean(std::shared_ptr<Valuedef::Value> value)
 int EvaluateValueAsInteger(std::shared_ptr<Valuedef::Value> value)
 {
 	if (IsVoid(value)) {
-		throw 1; //TODO: cannot cast void to integer
+		CryImplExcept(); //TODO: cannot cast void to integer
 	}
 
 	if (IsValueArray(value)) {
-		throw 1; //TODO: cannot substitute array to integer
+		CryImplExcept(); //TODO: cannot substitute array to integer
 	}
 
 	//FUTURE: this is expensive, replace try/catch
@@ -190,11 +193,11 @@ std::shared_ptr<Valuedef::Value> ValueFactory::BaseValue(Cry::ByteArray& buffer)
 {
 	buffer.StartOffset(0);
 	if (!buffer.ValidateMagic(VALUE_MAGIC)) {
-		throw 1; //TODO
+		CryImplExcept(); //TODO
 	}
 
 	if (!buffer.IsPlatformCompat()) {
-		throw 2;//TODO
+		CryImplExcept(); //TODO
 	}
 
 	bool isVoid = buffer.Deserialize<Cry::Byte>(Cry::ByteArray::AUTO);
@@ -206,7 +209,7 @@ std::shared_ptr<Valuedef::Value> ValueFactory::BaseValue(Cry::ByteArray& buffer)
 	std::copy(buffer.cbegin() + buffer.Offset(), buffer.cbegin() + buffer.Offset() + evSize, type.begin());
 	Typedef::BaseType ptr = Util::MakeType(std::move(type));
 	if (!ptr) {
-		throw 1;
+		CryImplExcept();
 	}
 
 	std::shared_ptr<Valuedef::Value> value;
@@ -218,7 +221,7 @@ std::shared_ptr<Valuedef::Value> ValueFactory::BaseValue(Cry::ByteArray& buffer)
 		Valuedef::TypePacker visitor{ subBuffer };
 		value = visitor.Unpack(ptr);
 		if (!value) {
-			throw 1;
+			CryImplExcept();
 		}
 	}
 
