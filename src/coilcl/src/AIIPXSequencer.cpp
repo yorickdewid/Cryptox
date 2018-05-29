@@ -40,36 +40,8 @@ class Visitor : public Serializable::Interface
 		ss.write(str, count);
 	}
 
-	template<typename _Ty>
-	void WriteProxy(const _Ty& value);
-
-	template<>
-	void WriteProxy(const double& value)
-	{
-		WriteProxy(reinterpret_cast<const char *>(&value), sizeof(double));
-	}
-
-	template<>
-	void WriteProxy(const bool& value)
-	{
-		WriteProxy(reinterpret_cast<const char *>(&value), sizeof(bool));
-	}
-
-	template<>
-	void WriteProxy(const std::string& value)
-	{
-		size_t sz = value.size();
-		WriteProxy(reinterpret_cast<const char *>(&sz), sizeof(uint32_t));
-		ss << value;
-	}
-
-	template<>
-	void WriteProxy(const std::vector<uint8_t>& value)
-	{
-		size_t sz = value.size();
-		WriteProxy(reinterpret_cast<const char *>(&sz), sizeof(uint32_t));
-		WriteProxy(reinterpret_cast<const char *>(value.data()), value.size());
-	}
+	template<typename NativeType>
+	void WriteProxy(const NativeType& value);
 
 	void ReadProxy(std::stringstream::char_type *str, std::streamsize count)
 	{
@@ -82,69 +54,8 @@ class Visitor : public Serializable::Interface
 		ss.read(str, count);
 	}
 
-	template<typename _Ty>
-	void ReadProxy(_Ty& value);
-
-	template<>
-	void ReadProxy(double& value)
-	{
-		// If stream is empty, redirect read to callback
-		if (!ss.rdbuf()->in_avail()) {
-			ReadProxy(reinterpret_cast<char *>(&value), sizeof(double));
-			return;
-		}
-
-		ss >> value;
-	}
-
-	template<>
-	void ReadProxy(bool& value)
-	{
-		// If stream is empty, redirect read to callback
-		if (!ss.rdbuf()->in_avail()) {
-			ReadProxy(reinterpret_cast<char *>(&value), sizeof(bool));
-			return;
-		}
-
-		ss >> value;
-	}
-
-	template<>
-	void ReadProxy(std::string& value)
-	{
-		// If stream is empty, redirect read to callback
-		if (!ss.rdbuf()->in_avail()) {
-			size_t sz = 0;
-			ReadProxy(reinterpret_cast<char *>(&sz), sizeof(uint32_t));
-			if (!sz) { return; }
-			value.resize(sz);
-			inputCallback(reinterpret_cast<uint8_t *>(&value[0]), sz);
-			return;
-		}
-
-		size_t sz = 0;
-		ReadProxy(reinterpret_cast<char *>(&sz), sizeof(uint32_t));
-		ss >> value;
-	}
-
-	template<>
-	void ReadProxy(std::vector<uint8_t>& value)
-	{
-		// If stream is empty, redirect read to callback
-		if (!ss.rdbuf()->in_avail()) {
-			size_t sz = 0;
-			ReadProxy(reinterpret_cast<char *>(&sz), sizeof(uint32_t));
-			if (!sz) { return; }
-			value.resize(sz);
-			inputCallback(reinterpret_cast<uint8_t *>(&value[0]), sz);
-			return;
-		}
-
-		size_t sz = 0;
-		ReadProxy(reinterpret_cast<char *>(&sz), sizeof(uint32_t));
-		value.resize(sz);
-		ReadProxy(reinterpret_cast<char *>(value.data()), sz);
-	}
+	template<typename NativeType>
+	void ReadProxy(NativeType& value);
 
 public:
 	// Default constructor
@@ -176,20 +87,20 @@ public:
 	virtual void FireDependencies(std::shared_ptr<AST::ASTNode>&);
 
 	// Stream node data into visitor
-	virtual void operator<<(int i) { WriteProxy(reinterpret_cast<const char *>(&i), sizeof(uint32_t)); }
-	virtual void operator<<(double d) { WriteProxy(d); }
-	virtual void operator<<(bool b) { WriteProxy(b); }
-	virtual void operator<<(AST::NodeID n) { WriteProxy(reinterpret_cast<const char *>(&n), sizeof(AST::NodeID)); }
-	virtual void operator<<(std::string s) { WriteProxy(s); }
-	virtual void operator<<(std::vector<uint8_t> b) { WriteProxy(b); }
+	virtual void operator<<(int);
+	virtual void operator<<(double);
+	virtual void operator<<(bool);
+	virtual void operator<<(AST::NodeID);
+	virtual void operator<<(std::string);
+	virtual void operator<<(std::vector<uint8_t>);
 
 	// Stream node data from visitor
-	virtual void operator>>(int& i) { ReadProxy(reinterpret_cast<char *>(&i), sizeof(uint32_t)); }
-	virtual void operator>>(double& d) { ReadProxy(d); }
-	virtual void operator>>(bool& b) { ReadProxy(b); }
-	virtual void operator>>(AST::NodeID& n) { ReadProxy(reinterpret_cast<char *>(&n), sizeof(AST::NodeID)); }
-	virtual void operator>>(std::string& s) { ReadProxy(s); }
-	virtual void operator>>(std::vector<uint8_t>& b) { ReadProxy(b); }
+	virtual void operator>>(int&);
+	virtual void operator>>(double&);
+	virtual void operator>>(bool&);
+	virtual void operator>>(AST::NodeID&);
+	virtual void operator>>(std::string&);
+	virtual void operator>>(std::vector<uint8_t>&);
 
 	// Callback operations
 	virtual void operator<<=(std::pair<int, std::function<void(const std::shared_ptr<AST::ASTNode>&)>>);
@@ -199,6 +110,109 @@ public:
 	// Write output to streaming backend
 	void WriteOutput(std::function<void(std::vector<uint8_t>&)>& outputCallback);
 };
+
+template<>
+void Visitor::WriteProxy(const double& value)
+{
+	WriteProxy(reinterpret_cast<const char *>(&value), sizeof(double));
+}
+
+template<>
+void Visitor::WriteProxy(const bool& value)
+{
+	WriteProxy(reinterpret_cast<const char *>(&value), sizeof(bool));
+}
+
+template<>
+void Visitor::WriteProxy(const std::string& value)
+{
+	const size_t sz = value.size();
+	WriteProxy(reinterpret_cast<const char *>(&sz), sizeof(uint32_t));
+	ss << value;
+}
+
+template<>
+void Visitor::WriteProxy(const std::vector<uint8_t>& value)
+{
+	const size_t sz = value.size();
+	WriteProxy(reinterpret_cast<const char *>(&sz), sizeof(uint32_t));
+	WriteProxy(reinterpret_cast<const char *>(value.data()), value.size());
+}
+
+template<>
+void Visitor::ReadProxy(double& value)
+{
+	// If stream is empty, redirect read to callback
+	if (!ss.rdbuf()->in_avail()) {
+		ReadProxy(reinterpret_cast<char *>(&value), sizeof(double));
+		return;
+	}
+
+	ss >> value;
+}
+
+template<>
+void Visitor::ReadProxy(bool& value)
+{
+	// If stream is empty, redirect read to callback
+	if (!ss.rdbuf()->in_avail()) {
+		ReadProxy(reinterpret_cast<char *>(&value), sizeof(bool));
+		return;
+	}
+
+	ss >> value;
+}
+
+template<>
+void Visitor::ReadProxy(std::string& value)
+{
+	// If stream is empty, redirect read to callback
+	if (!ss.rdbuf()->in_avail()) {
+		size_t sz = 0;
+		ReadProxy(reinterpret_cast<char *>(&sz), sizeof(uint32_t));
+		if (!sz) { return; }
+		value.resize(sz);
+		inputCallback(reinterpret_cast<uint8_t *>(&value[0]), sz);
+		return;
+	}
+
+	size_t sz = 0;
+	ReadProxy(reinterpret_cast<char *>(&sz), sizeof(uint32_t));
+	ss >> value;
+}
+
+template<>
+void Visitor::ReadProxy(std::vector<uint8_t>& value)
+{
+	// If stream is empty, redirect read to callback
+	if (!ss.rdbuf()->in_avail()) {
+		size_t sz = 0;
+		ReadProxy(reinterpret_cast<char *>(&sz), sizeof(uint32_t));
+		if (!sz) { return; }
+		value.resize(sz);
+		inputCallback(reinterpret_cast<uint8_t *>(&value[0]), sz);
+		return;
+	}
+
+	size_t sz = 0;
+	ReadProxy(reinterpret_cast<char *>(&sz), sizeof(uint32_t));
+	value.resize(sz);
+	ReadProxy(reinterpret_cast<char *>(value.data()), sz);
+}
+
+void Visitor::operator<<(int i) { WriteProxy(reinterpret_cast<const char *>(&i), sizeof(uint32_t)); }
+void Visitor::operator<<(double d) { WriteProxy(d); }
+void Visitor::operator<<(bool b) { WriteProxy(b); }
+void Visitor::operator<<(AST::NodeID n) { WriteProxy(reinterpret_cast<const char *>(&n), sizeof(AST::NodeID)); }
+void Visitor::operator<<(std::string s) { WriteProxy(s); }
+void Visitor::operator<<(std::vector<uint8_t> b) { WriteProxy(b); }
+
+void Visitor::operator>>(int& i) { ReadProxy(reinterpret_cast<char *>(&i), sizeof(uint32_t)); }
+void Visitor::operator>>(double& d) { ReadProxy(d); }
+void Visitor::operator>>(bool& b) { ReadProxy(b); }
+void Visitor::operator>>(AST::NodeID& n) { ReadProxy(reinterpret_cast<char *>(&n), sizeof(AST::NodeID)); }
+void Visitor::operator>>(std::string& s) { ReadProxy(s); }
+void Visitor::operator>>(std::vector<uint8_t>& b) { ReadProxy(b); }
 
 class ChildGroup : public Serializable::ChildGroupInterface
 {

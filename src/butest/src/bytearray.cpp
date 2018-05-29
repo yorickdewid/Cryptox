@@ -15,7 +15,9 @@
 // Test        : ByteArray unittest
 // Type        : unit
 // Description : Test the possible combinations and common
-//               usage of the ByteArray structure.
+//               usage of the ByteArray structure. The ByteArray
+//               should be used throughout the project whenever
+//               data serialization is required.
 //
 
 BOOST_AUTO_TEST_SUITE(ByteArray)
@@ -91,7 +93,7 @@ BOOST_AUTO_TEST_CASE(BAOSCompatibleWithString)
 	std::copy(buffer2.cbegin() + buffer2.Offset(), buffer2.cbegin() + buffer2.Offset() + testStr.size(), std::back_inserter(testStr2));
 	BOOST_REQUIRE_EQUAL(testStr, testStr2);
 
-	buffer2.StartOffset(buffer2.Offset() + testStr.size());
+	buffer2.StartOffset(static_cast<int>(buffer2.Offset() + testStr.size()));
 	BOOST_REQUIRE_EQUAL(var_2, buffer2.Deserialize<Cry::Short>(Cry::ByteArray::AUTO));
 	BOOST_REQUIRE_EQUAL(var_3, buffer2.Deserialize<Cry::Byte>(Cry::ByteArray::AUTO));
 }
@@ -112,6 +114,42 @@ BOOST_AUTO_TEST_CASE(BADecodeError)
 	buffer.StartOffset(0);
 	BOOST_REQUIRE(buffer.ValidateMagic(254, 4));
 	BOOST_REQUIRE_NE(var_3, buffer.Deserialize<Cry::Byte>(Cry::ByteArray::AUTO));
+}
+
+BOOST_AUTO_TEST_CASE(BAInBA)
+{
+	static const Cry::Word var_1 = 510238712;
+	static const Cry::Word var_2 = 107389278;
+	static const Cry::Word var_3 = 718281581;
+
+	Cry::ByteArray buffer_inner;
+	buffer_inner.SetMagic(9);
+	buffer_inner.SetPlatformCompat();
+	buffer_inner.Serialize(var_3);
+
+	Cry::ByteArray buffer;
+	buffer.SetMagic(199);
+	buffer.SetPlatformCompat();
+	buffer.Serialize(var_1);
+	buffer.Serialize(var_2);
+	buffer.SerializeAs<Cry::Short>(buffer_inner.size());
+	buffer.insert(buffer.cend(), buffer_inner.begin(), buffer_inner.end());
+
+	Cry::ByteArray buffer2;
+	buffer2.resize(buffer.size());
+	std::copy(buffer.cbegin(), buffer.cend(), buffer2.begin());
+
+	BOOST_REQUIRE(buffer2.ValidateMagic(199));
+	BOOST_REQUIRE(buffer2.IsPlatformCompat());
+	BOOST_REQUIRE_EQUAL(var_1, buffer2.Deserialize<Cry::Word>(Cry::ByteArray::AUTO));
+	BOOST_REQUIRE_EQUAL(var_2, buffer2.Deserialize<Cry::Word>(Cry::ByteArray::AUTO));
+
+	Cry::ByteArray buffer_inner2;
+	size_t buffer_inner2_size = buffer2.Deserialize<Cry::Short>(Cry::ByteArray::AUTO);
+	std::copy(buffer2.cbegin() + buffer2.Offset(), buffer2.cbegin() + buffer2.Offset() + buffer_inner2_size, std::back_inserter(buffer_inner2));
+	BOOST_REQUIRE(buffer_inner2.ValidateMagic(9));
+	BOOST_REQUIRE(buffer_inner2.IsPlatformCompat());
+	BOOST_REQUIRE_EQUAL(var_3, buffer_inner2.Deserialize<Cry::Word>(Cry::ByteArray::AUTO));
 }
 
 BOOST_AUTO_TEST_SUITE_END()
