@@ -46,6 +46,7 @@ public:
 	// Storage class specifier
 	enum class StorageClassSpecifier
 	{
+		// TODO: rename to use _T
 		NONE,
 		AUTO,
 		STATIC,
@@ -57,6 +58,7 @@ public:
 	// Type qualifier
 	enum class TypeQualifier
 	{
+		// TODO: rename to use _T
 		NONE,
 		CONST_T,
 		VOLATILE,
@@ -180,6 +182,7 @@ private:
 public:
 	enum class Specifier
 	{
+		// TODO: rename to use _T
 		VOID_T,
 		CHAR,
 		SHORT,

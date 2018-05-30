@@ -26,6 +26,8 @@
 	std::cout << v->DataType()->TypeName() << " >> " << v->Print() << std::endl;
 #endif
 
+#define CaptureValue(s) Util::CaptureValueRaw(std::move(s))
+
 //TODO:
 // - Array value
 // - Pointer value
@@ -49,6 +51,7 @@ class Value //TODO: mark each value with an unique id
 
 public:
 	using ValueVariant = boost::variant<int, char, float, double, bool, std::string>;
+	using ValueVariant2 = boost::variant<int, char, float, double, bool, Value>;
 	using ValueArray = std::vector<Value>;
 
 	//
@@ -86,7 +89,7 @@ protected:
 
 	//FUTURE: May need to move to derived class
 	// Pointer to another value
-	std::unique_ptr<Value> m_pointerValue;
+	//std::unique_ptr<Value> m_pointerValue;
 
 	struct ConvertToStringVisitor final : public boost::static_visitor<>
 	{
@@ -101,7 +104,8 @@ protected:
 
 public:
 	// Special member funcion, copy constructor
-	Value(const Value&);
+	Value(const Value&) = default;
+	Value(Value&&) = default;
 	Value(Typedef::BaseType typeBase);
 	Value(Typedef::BaseType typeBase, ValueVariant value);
 
@@ -158,6 +162,8 @@ public:
 	// a bad casting exception is thrown.
 	template<typename CastType>
 	CastType As() const { return boost::get<CastType>(m_value); }
+	
+	// Try cast or throw predefined exception
 	template<typename CastType>
 	CastType As2() const
 	{
@@ -188,6 +194,22 @@ private:
 	Typedef::BaseType m_objectType; //TODO: replace with typefacade to account for pointers
 	AST::TypeFacade m_internalType;
 };
+
+//struct ValueDeductor
+//{
+//	template<typename PlainType>
+//	void kaas(PlainType value)
+//	{
+//		static_assert(std::is_same<PlainType, char>::value, "");
+//	}
+//
+//public:
+//	template<typename NativeType>
+//	ValueDeductor(NativeType value)
+//	{
+//		kaas<std::decay<NativeType>::type>(value);
+//	}
+//};
 
 //namespace Detail
 //{
@@ -333,6 +355,77 @@ public:
 
 //} // namespace Detail
 
+namespace Detail
+{
+
+struct ValueDeductor
+{
+	template<Typedef::BuiltinType::Specifier Specifier, typename NativeRawType>
+	Valuedef::Value MakeValue(NativeRawType value)
+	{
+		const auto internalType = AST::TypeFacade{ Util::MakeBuiltinType(Specifier) };
+		return Valuedef::Value{ 0, internalType, Valuedef::Value::ValueVariant{ value } };
+	}
+
+	template<typename PlainType>
+	Valuedef::Value ConvertNativeType(PlainType value);
+
+	template<>
+	Valuedef::Value ConvertNativeType(int value)
+	{
+		return MakeValue<Typedef::BuiltinType::Specifier::INT>(value);
+	}
+
+	template<>
+	Valuedef::Value ConvertNativeType(char value)
+	{
+		return MakeValue<Typedef::BuiltinType::Specifier::CHAR>(value);
+	}
+
+	template<>
+	Valuedef::Value ConvertNativeType(float value)
+	{
+		return MakeValue<Typedef::BuiltinType::Specifier::FLOAT>(value);
+	}
+
+	template<>
+	Valuedef::Value ConvertNativeType(double value)
+	{
+		return MakeValue<Typedef::BuiltinType::Specifier::DOUBLE>(value);
+	}
+
+	template<>
+	Valuedef::Value ConvertNativeType(bool value)
+	{
+		return MakeValue<Typedef::BuiltinType::Specifier::BOOL>(value);
+	}
+
+	template<typename NativeType>
+	void DeduceTypeQualifier(Valuedef::Value internalValue, NativeType&&)
+	{
+		if (std::is_const<NativeType>::value) {
+			internalValue.Type()->SetQualifier(Typedef::TypedefBase::TypeQualifier::CONST_T);
+		}
+		if (std::is_volatile<NativeType>::value) {
+			internalValue.Type()->SetQualifier(Typedef::TypedefBase::TypeQualifier::VOLATILE);
+		}
+	}
+
+public:
+	template<typename NativeType>
+	using RawType = typename std::decay<NativeType>::type;
+
+	template<typename NativeType>
+	auto operator()(NativeType&& value)
+	{
+		const auto internalValue = ConvertNativeType<RawType<NativeType>>(value);
+		DeduceTypeQualifier(internalValue, std::forward<NativeType>(value));
+		return internalValue;
+	}
+};
+
+} // namespace Detail
+
 } // namespace Valuedef
 
 // The value helper functions ease the creation and modification of the
@@ -356,32 +449,32 @@ inline auto MakeValueObject(Typedef::BuiltinType&& type, ValueType value)
 {
 	return std::make_shared<Valuedef::ValueObject<NativeType>>(std::move(type), value);
 }
-template<typename Type = std::string>
+template<typename Type = std::string> //TODO: FIXME: DEPRECATED
 inline Valuedef::ValueType<Type> MakeString(Type v)
 {
 	return MakeValueObject<Type>(Typedef::BuiltinType::Specifier::CHAR, v);
 }
-template<typename Type = int>
+template<typename Type = int> //TODO: FIXME: DEPRECATED
 inline Valuedef::ValueType<Type> MakeInt(Type v)
 {
 	return MakeValueObject<Type>(Typedef::BuiltinType::Specifier::INT, std::move(v));
 }
-template<typename Type = float>
+template<typename Type = float> //TODO: FIXME: DEPRECATED
 inline Valuedef::ValueType<Type> MakeFloat(Type v)
 {
 	return MakeValueObject<Type>(Typedef::BuiltinType::Specifier::FLOAT, std::move(v));
 }
-template<typename Type = double>
+template<typename Type = double> //TODO: FIXME: DEPRECATED
 inline Valuedef::ValueType<Type> MakeDouble(Type v)
 {
 	return MakeValueObject<Type>(Typedef::BuiltinType::Specifier::DOUBLE, std::move(v));
 }
-template<typename Type = char>
+template<typename Type = char> //TODO: FIXME: DEPRECATED
 inline Valuedef::ValueType<Type> MakeChar(Type v)
 {
 	return MakeValueObject<Type>(Typedef::BuiltinType::Specifier::CHAR, v);
 }
-template<typename Type = bool>
+template<typename Type = bool> //TODO: FIXME: DEPRECATED
 inline Valuedef::ValueType<Type> MakeBool(Type v)
 {
 	return MakeValueObject<Type>(Typedef::BuiltinType::Specifier::BOOL, v);
@@ -392,34 +485,40 @@ inline Valuedef::ValueType<Type> MakeVoid()
 	return std::make_shared<Valuedef::ValueObject<Type>>();
 }
 
+template<typename NativeType>
+inline Valuedef::Value CaptureValueRaw(NativeType&& v)
+{
+	return Valuedef::Detail::ValueDeductor{}(std::forward<NativeType>(v));
+}
+
 inline auto MakeString2(std::string&& v)
 {
-	auto builtin = Util::MakeBuiltinType(Typedef::BuiltinType::Specifier::CHAR);
+	auto builtin = MakeBuiltinType(Typedef::BuiltinType::Specifier::CHAR);
 	return Valuedef::Value{ 0, AST::TypeFacade{ builtin }, Valuedef::Value::ValueVariant{ std::move(v) } };
 }
 inline auto MakeInt2(int v)
 {
-	auto builtin = Util::MakeBuiltinType(Typedef::BuiltinType::Specifier::INT);
+	auto builtin = MakeBuiltinType(Typedef::BuiltinType::Specifier::INT);
 	return Valuedef::Value{ 0, AST::TypeFacade{ builtin }, Valuedef::Value::ValueVariant{ std::move(v) } };
 }
 inline auto MakeFloat2(float v)
 {
-	auto builtin = Util::MakeBuiltinType(Typedef::BuiltinType::Specifier::FLOAT);
+	auto builtin = MakeBuiltinType(Typedef::BuiltinType::Specifier::FLOAT);
 	return Valuedef::Value{ 0, AST::TypeFacade{ builtin }, Valuedef::Value::ValueVariant{ std::move(v) } };
 }
 inline auto MakeDouble2(double v)
 {
-	auto builtin = Util::MakeBuiltinType(Typedef::BuiltinType::Specifier::DOUBLE);
+	auto builtin = MakeBuiltinType(Typedef::BuiltinType::Specifier::DOUBLE);
 	return Valuedef::Value{ 0, AST::TypeFacade{ builtin }, Valuedef::Value::ValueVariant{ std::move(v) } };
 }
 inline auto MakeChar2(char v)
 {
-	auto builtin = Util::MakeBuiltinType(Typedef::BuiltinType::Specifier::CHAR);
+	auto builtin = MakeBuiltinType(Typedef::BuiltinType::Specifier::CHAR);
 	return Valuedef::Value{ 0, AST::TypeFacade{ builtin }, Valuedef::Value::ValueVariant{ std::move(v) } };
 }
 inline auto MakeBool2(bool v)
 {
-	auto builtin = Util::MakeBuiltinType(Typedef::BuiltinType::Specifier::BOOL);
+	auto builtin = MakeBuiltinType(Typedef::BuiltinType::Specifier::BOOL);
 	return Valuedef::Value{ 0, AST::TypeFacade{ builtin }, Valuedef::Value::ValueVariant{ std::move(v) } };
 }
 

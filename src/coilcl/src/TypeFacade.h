@@ -91,6 +91,11 @@ inline bool IsTypeExtern(const InternalType& type)
 	return type->StorageClass() == Typedef::TypedefBase::StorageClassSpecifier::EXTERN;
 }
 template<typename InternalType>
+inline bool IsTypeRegister(const InternalType& type)
+{
+	return type->StorageClass() == Typedef::TypedefBase::StorageClassSpecifier::REGISTER;
+}
+template<typename InternalType>
 inline bool IsTypeConst(const InternalType& type)
 {
 	for (const auto& qualifier : type->TypeQualifiers()) {
@@ -98,6 +103,17 @@ inline bool IsTypeConst(const InternalType& type)
 			return true;
 		}
 	}
+	return false;
+}
+template<typename InternalType>
+inline bool IsTypeVolatile(const InternalType& type)
+{
+	for (const auto& qualifier : type->TypeQualifiers()) {
+		if (qualifier == Typedef::TypedefBase::TypeQualifier::VOLATILE) {
+			return true;
+		}
+	}
+	return false;
 }
 template<typename InternalType>
 inline bool IsTypePointer(const InternalType& type)

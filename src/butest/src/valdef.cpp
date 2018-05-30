@@ -61,6 +61,9 @@ BOOST_AUTO_TEST_CASE(ValDefLegacyReplace)
 
 BOOST_AUTO_TEST_CASE(ValDefBasicReworkDissected)
 {
+	static_assert(std::is_copy_constructible<Valuedef::Value>::value, "Valuedef::Value lacks special member function: copy");
+	static_assert(std::is_move_constructible<Valuedef::Value>::value, "Valuedef::Value lacks special member function: move");
+
 	{
 		auto builtin = Util::MakeBuiltinType(Typedef::BuiltinType::Specifier::INT);
 		AST::TypeFacade facade{ builtin };
@@ -92,7 +95,7 @@ BOOST_AUTO_TEST_CASE(ValDefReworkDeclaration)
 {
 	auto valStr = Util::MakeString2("teststring");
 	auto valInt = Util::MakeInt2(12);
-	auto valFloat = Util::MakeFloat2(92.123);
+	auto valFloat = Util::MakeFloat2(92.123f);
 	auto valDouble = Util::MakeDouble2(87341);
 	auto valChar = Util::MakeChar2('K');
 	auto valBool = Util::MakeBool2(true);
@@ -110,6 +113,38 @@ BOOST_AUTO_TEST_CASE(ValDefReworkDeclaration)
 	BOOST_REQUIRE_EQUAL(87341, valDouble.As2<double>());
 	BOOST_REQUIRE_EQUAL('K', valChar.As2<char>());
 	BOOST_REQUIRE_EQUAL(true, valBool.As2<bool>());
+}
+
+BOOST_AUTO_TEST_CASE(ValDefReworkCaptureValue)
+{
+	int _valInt = 8712;
+	float _valFloat = 7812.8612f;
+	double _valDouble = 91.72634813;
+	char _valChar = 'J';
+	bool _valBool = false;
+
+	volatile float _valFloat2 = 7812.8612f;
+	const char _valChar2 = 'J';
+
+	auto valInt = CaptureValue(_valInt);
+	auto valFloat = CaptureValue(_valFloat);
+	auto valDouble = CaptureValue(_valDouble);
+	auto valChar = CaptureValue(_valChar);
+	auto valBool = CaptureValue(_valBool);
+
+	auto valFloat2 = CaptureValue(_valFloat2);
+	auto valChar2 = CaptureValue(_valChar2);
+
+	BOOST_REQUIRE_EQUAL(_valInt, valInt.As2<int>());
+	BOOST_REQUIRE_EQUAL(_valFloat, valFloat.As2<float>());
+	BOOST_REQUIRE_EQUAL(_valDouble, valDouble.As2<double>());
+	BOOST_REQUIRE_EQUAL(_valChar, valChar.As2<char>());
+	BOOST_REQUIRE_EQUAL(_valBool, valBool.As2<bool>());
+
+	BOOST_REQUIRE(Util::IsTypeVolatile(valFloat2.Type()));
+	BOOST_REQUIRE(Util::IsTypeConst(valChar2.Type()));
+	BOOST_REQUIRE_EQUAL(_valFloat2, valFloat2.As2<float>());
+	BOOST_REQUIRE_EQUAL(_valChar2, valChar2.As2<char>());
 }
 
 BOOST_AUTO_TEST_SUITE_END()
