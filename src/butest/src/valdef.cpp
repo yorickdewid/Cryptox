@@ -67,7 +67,7 @@ BOOST_AUTO_TEST_CASE(ValDefBasicReworkDissected)
 	{
 		auto builtin = Util::MakeBuiltinType(Typedef::BuiltinType::Specifier::INT);
 		AST::TypeFacade facade{ builtin };
-		Valuedef::Value val{ 0, facade, Valuedef::Value::ValueVariant{ 8612 } };
+		Valuedef::Value val{ 0, facade, Valuedef::Value::ValueVariant2{ 8612 } };
 
 		BOOST_CHECK(!val.Empty());
 		BOOST_REQUIRE_EQUAL(8612, val.As2<int>());
@@ -75,7 +75,7 @@ BOOST_AUTO_TEST_CASE(ValDefBasicReworkDissected)
 
 	{
 		auto builtin = Util::MakeBuiltinType(Typedef::BuiltinType::Specifier::INT);
-		Valuedef::Value val{ 0, AST::TypeFacade{ builtin }, Valuedef::Value::ValueVariant{ 919261 } };
+		Valuedef::Value val{ 0, AST::TypeFacade{ builtin }, Valuedef::Value::ValueVariant2{ 919261 } };
 
 		BOOST_CHECK(!val.Empty());
 		BOOST_REQUIRE_NO_THROW(val.As2<int>());
@@ -93,21 +93,21 @@ BOOST_AUTO_TEST_CASE(ValDefBasicReworkDissected)
 
 BOOST_AUTO_TEST_CASE(ValDefReworkDeclaration)
 {
-	auto valStr = Util::MakeString2("teststring");
+	//auto valStr = Util::MakeString2("teststring");
 	auto valInt = Util::MakeInt2(12);
 	auto valFloat = Util::MakeFloat2(92.123f);
 	auto valDouble = Util::MakeDouble2(87341);
 	auto valChar = Util::MakeChar2('K');
 	auto valBool = Util::MakeBool2(true);
 
-	BOOST_CHECK(!valStr.Empty());
+	//BOOST_CHECK(!valStr.Empty());
 	BOOST_CHECK(!valInt.Empty());
 	BOOST_CHECK(!valFloat.Empty());
 	BOOST_CHECK(!valDouble.Empty());
 	BOOST_CHECK(!valChar.Empty());
 	BOOST_CHECK(!valBool.Empty());
 
-	BOOST_REQUIRE_EQUAL("teststring", valStr.As2<std::string>());
+	//BOOST_REQUIRE_EQUAL("teststring", valStr.As2<std::string>());
 	BOOST_REQUIRE_EQUAL(12, valInt.As2<int>());
 	BOOST_REQUIRE_EQUAL(92.123f, valFloat.As2<float>());
 	BOOST_REQUIRE_EQUAL(87341, valDouble.As2<double>());
@@ -145,6 +145,27 @@ BOOST_AUTO_TEST_CASE(ValDefReworkCaptureValue)
 	BOOST_REQUIRE(Util::IsTypeConst(valChar2.Type()));
 	BOOST_REQUIRE_EQUAL(_valFloat2, valFloat2.As2<float>());
 	BOOST_REQUIRE_EQUAL(_valChar2, valChar2.As2<char>());
+
+	/*{
+		auto valSomeInt = CaptureValue(72641);
+
+		auto w = Util::MakePointer(valSomeInt);
+	}*/
+
+	{
+		std::vector<int> a{ 8612, 812, 2383, 96, 12 };
+
+		Valuedef::Value val{ 0
+			, AST::TypeFacade{ Util::MakeBuiltinType(Typedef::BuiltinType::Specifier::INT) }
+			, Valuedef::Value::ValueVariant3{ a } };
+
+		BOOST_CHECK(!val.Empty());
+		BOOST_CHECK(val.IsArray());
+
+		std::vector<int> b = val.As2<std::vector<int>>();
+
+		BOOST_REQUIRE(a == b);
+	}
 }
 
 BOOST_AUTO_TEST_SUITE_END()

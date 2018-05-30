@@ -35,9 +35,15 @@ Value::Value(int, AST::TypeFacade typeBase)
 {
 }
 // Value declaration and initialization
-Value::Value(int, AST::TypeFacade typeBase, ValueVariant&& value)
+Value::Value(int, AST::TypeFacade typeBase, ValueVariant2&& value)
 	: m_internalType{ typeBase }
-	, m_value2{ std::move(value) }
+	, m_value3{ ValueSelect{ std::move(value) } }
+{
+}
+// Value declaration and initialization
+Value::Value(int, AST::TypeFacade typeBase, ValueVariant3&& value)
+	: m_internalType{ typeBase }
+	, m_value3{ ValueSelect{ std::move(value) } }
 {
 }
 

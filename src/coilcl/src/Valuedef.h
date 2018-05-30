@@ -51,8 +51,12 @@ class Value //TODO: mark each value with an unique id
 
 public:
 	using ValueVariant = boost::variant<int, char, float, double, bool, std::string>;
-	using ValueVariant2 = boost::variant<int, char, float, double, bool, Value>;
-	using ValueArray = std::vector<Value>;
+	using ValueVariant2 = boost::variant<int, char, float, double, bool>;
+	using ValueVariant3 = boost::variant<std::vector<int>
+		, std::vector<char>
+		, std::vector<float>
+		, std::vector<double>
+		, std::vector<bool>>;
 
 	//
 	// Local exceptions
@@ -77,15 +81,43 @@ protected:
 	// The internal datastructure stores the value
 	// as close to the actual data type specifier.
 	ValueVariant m_value; //OBSOLETE: REMOVE: TODO:
-	boost::optional<ValueVariant> m_value2;
+	//boost::optional<ValueVariant2> m_value2;
+
+	struct ValueSelect
+	{
+		ValueSelect() = default; //TODO: for now
+		ValueSelect(ValueVariant2 value)
+			: singleValue{ value }
+		{
+		}
+
+		ValueSelect(ValueVariant3 value)
+			: multiValue{ value }
+		{
+		}
+
+		ValueSelect(Value&& value)
+			: referenceValue{ std::make_shared<Value>(value) }
+		{
+		}
+
+		bool Empty() const noexcept
+		{
+			return !singleValue && !multiValue && !referenceValue;
+		}
+
+		boost::optional<ValueVariant2> singleValue;
+		boost::optional<ValueVariant3> multiValue;
+		std::shared_ptr<Value> referenceValue; //TODO: at some point should be unique_ptr
+	} m_value3;
 
 	// The internal datastructure stores the array
 	// as an vector of values.
-	ValueArray m_array;
+	//ValueVariant2 m_array;
 
 	//FUTURE: May need to move to derived class
 	// True if type is void
-	bool m_isVoid{ false };
+	bool m_isVoid{ false }; //TODO: why?
 
 	//FUTURE: May need to move to derived class
 	// Pointer to another value
@@ -119,7 +151,9 @@ public:
 	// Value declaration without initialization
 	Value(int, AST::TypeFacade);
 	// Value declaration and initialization
-	Value(int, AST::TypeFacade, ValueVariant&&);
+	Value(int, AST::TypeFacade, ValueVariant2&&);
+	// Value declaration and initialization
+	Value(int, AST::TypeFacade, ValueVariant3&&);
 
 	// Swap-in native replacement value
 	template<typename NativeType>
@@ -142,13 +176,13 @@ public:
 	AST::TypeFacade Type() const { return m_internalType; }
 
 	// Check if current storage type is array
-	inline bool IsArray() const noexcept { return m_array.size() > 0; }
-	inline size_t Size() const noexcept { return m_array.size(); }
+	inline bool IsArray() const { return !!m_value3.multiValue; }
+	inline size_t Size() const noexcept { return 0; /* m_array.size();*/ }
 
 	// Check if value is empty
-	inline bool Empty() const noexcept { return !m_value2; }
+	inline bool Empty() const noexcept { return m_value3.Empty(); }
 	// Check if value is void
-	inline bool IsVoid() const noexcept { return m_isVoid; }
+	inline bool IsVoid() const noexcept { return m_isVoid; } //TODO: remove
 
 	// By default try direct cast from variant, if the cast fails
 	// a bad casting exception is thrown.
@@ -159,11 +193,34 @@ public:
 	template<typename CastType>
 	CastType As2() const
 	{
-		if (!m_value2) {
-			throw UninitializedValueException{};
-		}
 		try {
-			return boost::get<CastType>(m_value2.get());
+			if (m_value3.singleValue) {
+				return boost::get<CastType>(m_value3.singleValue.get());
+			}
+			else if (m_value3.referenceValue) {
+				CryImplExcept();
+				//TODO: deal with pointer
+			}
+			else {
+				throw UninitializedValueException{};
+			}
+		}
+		catch (const boost::bad_get&) {
+			throw InvalidTypeCastException{};
+		}
+	}
+
+	// Try cast or throw predefined exception
+	template<>
+	std::vector<int> As2() const
+	{
+		try {
+			if (m_value3.multiValue) {
+				return boost::get<std::vector<int>>(m_value3.multiValue.get());
+			}
+			else {
+				throw UninitializedValueException{};
+			}
 		}
 		catch (const boost::bad_get&) {
 			throw InvalidTypeCastException{};
@@ -271,7 +328,7 @@ struct ValueDeductor
 	{
 		return Valuedef::Value{ 0
 			, AST::TypeFacade{ Util::MakeBuiltinType(Specifier) }
-			, Valuedef::Value::ValueVariant{ value } };
+			, Valuedef::Value::ValueVariant2{ value } };
 	}
 
 	template<typename PlainType>
@@ -329,8 +386,7 @@ inline Valuedef::Value ValueDeductor::ConvertNativeType(bool value)
 template<>
 inline Valuedef::Value ValueDeductor::ConvertNativeType(Valuedef::Value value)
 {
-	Valuedef::Value::ValueVariant2{ value };
-	return Valuedef::Value{ 0, AST::TypeFacade{ Util::MakePointerType() }, Valuedef::Value::ValueVariant{ 12 } };
+	return Valuedef::Value{ 0, AST::TypeFacade{ Util::MakePointerType() }, Valuedef::Value::ValueVariant2{ 12 } };
 }
 
 } // namespace Detail
@@ -399,45 +455,44 @@ inline Valuedef::ValueType<Type> MakeVoid()
 // Version 2.0
 //
 
-inline auto MakeString2(std::string&& v)
-{
-	const auto builtin = MakeBuiltinType(Typedef::BuiltinType::Specifier::CHAR);
-	return Valuedef::Value{ 0, AST::TypeFacade{ builtin }, Valuedef::Value::ValueVariant{ std::move(v) } };
-}
+//inline auto MakeString2(std::string&& v)
+//{
+//	const auto builtin = MakeBuiltinType(Typedef::BuiltinType::Specifier::CHAR);
+//	return Valuedef::Value{ 0, AST::TypeFacade{ builtin }, Valuedef::Value::ValueVariant2{ std::move(v) } };
+//}
 inline auto MakeInt2(int v)
 {
 	const auto builtin = MakeBuiltinType(Typedef::BuiltinType::Specifier::INT);
-	return Valuedef::Value{ 0, AST::TypeFacade{ builtin }, Valuedef::Value::ValueVariant{ std::move(v) } };
+	return Valuedef::Value{ 0, AST::TypeFacade{ builtin }, Valuedef::Value::ValueVariant2{ std::move(v) } };
 }
 inline auto MakeFloat2(float v)
 {
 	const auto builtin = MakeBuiltinType(Typedef::BuiltinType::Specifier::FLOAT);
-	return Valuedef::Value{ 0, AST::TypeFacade{ builtin }, Valuedef::Value::ValueVariant{ std::move(v) } };
+	return Valuedef::Value{ 0, AST::TypeFacade{ builtin }, Valuedef::Value::ValueVariant2{ std::move(v) } };
 }
 inline auto MakeDouble2(double v)
 {
 	const auto builtin = MakeBuiltinType(Typedef::BuiltinType::Specifier::DOUBLE);
-	return Valuedef::Value{ 0, AST::TypeFacade{ builtin }, Valuedef::Value::ValueVariant{ std::move(v) } };
+	return Valuedef::Value{ 0, AST::TypeFacade{ builtin }, Valuedef::Value::ValueVariant2{ std::move(v) } };
 }
 inline auto MakeChar2(char v)
 {
 	const auto builtin = MakeBuiltinType(Typedef::BuiltinType::Specifier::CHAR);
-	return Valuedef::Value{ 0, AST::TypeFacade{ builtin }, Valuedef::Value::ValueVariant{ std::move(v) } };
+	return Valuedef::Value{ 0, AST::TypeFacade{ builtin }, Valuedef::Value::ValueVariant2{ std::move(v) } };
 }
 inline auto MakeBool2(bool v)
 {
 	const auto builtin = MakeBuiltinType(Typedef::BuiltinType::Specifier::BOOL);
-	return Valuedef::Value{ 0, AST::TypeFacade{ builtin }, Valuedef::Value::ValueVariant{ std::move(v) } };
+	return Valuedef::Value{ 0, AST::TypeFacade{ builtin }, Valuedef::Value::ValueVariant2{ std::move(v) } };
 }
 inline auto MakePointer(Valuedef::Value v)
 {
-	Valuedef::Value::ValueVariant2{ std::move(v) };
-	return Valuedef::Value{ 0, AST::TypeFacade{ MakePointerType() }, Valuedef::Value::ValueVariant{ 12 } };
+	//Valuedef::Value::ValueVariant2{ std::move(v) };
+	return Valuedef::Value{ 0, AST::TypeFacade{ MakePointerType() }, Valuedef::Value::ValueVariant2{ 12 } };
 }
 inline auto MakePointer(Valuedef::Value&& v)
 {
-	Valuedef::Value::ValueVariant2{ std::move(v) };
-	return Valuedef::Value{ 0, AST::TypeFacade{ MakePointerType() }, Valuedef::Value::ValueVariant{ 12 } };
+	return Valuedef::Value{ 0, AST::TypeFacade{ MakePointerType() }, Valuedef::Value::ValueVariant2{ 12 } };
 }
 
 //
