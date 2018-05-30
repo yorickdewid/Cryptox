@@ -18,15 +18,6 @@ namespace CoilCl
 namespace Valuedef
 {
 
-//Value::Value(const Value& other)
-//	: m_value{ other.m_value }
-//	, m_value2{ other.m_value2 }
-//	, m_array{ other.m_array }
-//	, m_isVoid{ other.m_isVoid }
-//	, m_objectType{ other.m_objectType }
-//{
-//}
-
 Value::Value(Typedef::BaseType typeBase)
 	: m_objectType{ typeBase }
 {
@@ -35,6 +26,18 @@ Value::Value(Typedef::BaseType typeBase)
 Value::Value(Typedef::BaseType typeBase, ValueVariant value)
 	: m_objectType{ typeBase }
 	, m_value{ value }
+{
+}
+
+// Value declaration without initialization
+Value::Value(int, AST::TypeFacade typeBase)
+	: m_internalType{ typeBase }
+{
+}
+// Value declaration and initialization
+Value::Value(int, AST::TypeFacade typeBase, ValueVariant&& value)
+	: m_internalType{ typeBase }
+	, m_value2{ std::move(value) }
 {
 }
 

@@ -39,7 +39,7 @@ public:
 		RECORD,
 		TYPEDEF,
 		VARIADIC,
-		UNINIT,
+		POINTER,
 	};
 
 public:
@@ -315,25 +315,25 @@ public:
 	}
 };
 
-class NilType : public TypedefBase
+class PointerType : public TypedefBase
 {
-	REGISTER_TYPE(UNINIT);
+	REGISTER_TYPE(POINTER);
 
 public:
-	const std::string TypeName() const final { return "(nil)"; }
+	const std::string TypeName() const final { return "(ptr)"; }
 	bool AllowCoalescence() const final { return false; }
-	size_t UnboxedSize() const { return 0; }
+	size_t UnboxedSize() const { return sizeof(int); } //TODO: not quite
 
 	bool Equals(TypedefBase* other) const
 	{
-		return dynamic_cast<NilType*>(other) != nullptr;
+		return dynamic_cast<PointerType*>(other) != nullptr;
 	}
 
 	std::vector<uint8_t> TypeEnvelope() const override;
 
 	void Consolidate(BaseType&)
 	{
-		throw Cry::Except::UnsupportedOperationException{ "NilType::Consolidate" };
+		throw Cry::Except::UnsupportedOperationException{ "PointerType::Consolidate" };
 	}
 };
 
@@ -359,6 +359,10 @@ inline auto MakeTypedefType(const std::string& name, Typedef::BaseType& type)
 inline auto MakeVariadicType()
 {
 	return std::make_shared<Typedef::VariadicType>();
+}
+inline auto MakePointerType()
+{
+	return std::make_shared<Typedef::PointerType>();
 }
 
 // Create type definition based on byte array.

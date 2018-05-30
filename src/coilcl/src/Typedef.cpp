@@ -254,10 +254,10 @@ std::vector<uint8_t> VariadicType::TypeEnvelope() const
 }
 
 //
-// NilType
+// PointerType
 //
 
-std::vector<uint8_t> NilType::TypeEnvelope() const
+std::vector<uint8_t> PointerType::TypeEnvelope() const
 {
 	std::vector<uint8_t> buffer = { m_c_internalType };
 	const auto base = TypedefBase::TypeEnvelope();
@@ -313,6 +313,9 @@ Typedef::BaseType MakeType(std::vector<uint8_t>&& in)
 	}
 	case TypedefBase::TypeVariation::VARIADIC: {
 		type = MakeVariadicType();
+		break;
+	}
+	case TypedefBase::TypeVariation::POINTER: {
 		break;
 	}
 	case TypedefBase::TypeVariation::INVAL:
