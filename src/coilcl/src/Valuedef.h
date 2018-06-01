@@ -45,6 +45,42 @@ struct ValueFactory;
 namespace Valuedef
 {
 
+namespace Trait {
+
+template<typename Type>
+struct IsAllowedType
+{
+	constexpr static const bool value = (std::is_fundamental<Type>::value
+		|| std::is_same<Valuedef::Value, Type>::value)
+		&& !std::is_void<Type>::value && !std::is_function<Type>::value;
+};
+
+template<typename Type>
+struct IsNativeSingleType
+{
+	constexpr static const bool value = std::is_fundamental<Type>::value;
+};
+
+template<typename Type>
+struct IsNativeMultiType
+{
+	constexpr static const bool value = std::is_class<Type>::value;
+};
+
+} // namespace Trait
+
+static_assert(Trait::IsNativeSingleType<int>::value, "");
+static_assert(Trait::IsNativeSingleType<char>::value, "");
+static_assert(Trait::IsNativeSingleType<float>::value, "");
+static_assert(Trait::IsNativeSingleType<double>::value, "");
+static_assert(Trait::IsNativeSingleType<bool>::value, "");
+
+static_assert(Trait::IsNativeMultiType<std::vector<int>>::value, "");
+static_assert(Trait::IsNativeMultiType<std::vector<char>>::value, "");
+static_assert(Trait::IsNativeMultiType<std::vector<float>>::value, "");
+static_assert(Trait::IsNativeMultiType<std::vector<double>>::value, "");
+static_assert(Trait::IsNativeMultiType<std::vector<bool>>::value, "");
+
 class Value //TODO: mark each value with an unique id
 {
 	friend struct Util::ValueFactory;
@@ -81,7 +117,6 @@ protected:
 	// The internal datastructure stores the value
 	// as close to the actual data type specifier.
 	ValueVariant m_value; //OBSOLETE: REMOVE: TODO:
-	//boost::optional<ValueVariant2> m_value2;
 
 	struct ValueSelect
 	{
@@ -108,7 +143,7 @@ protected:
 
 		boost::optional<ValueVariant2> singleValue;
 		boost::optional<ValueVariant3> multiValue;
-		std::shared_ptr<Value> referenceValue; //TODO: at some point should be unique_ptr
+		std::shared_ptr<Value> referenceValue;
 	} m_value3;
 
 	// The internal datastructure stores the array
@@ -118,10 +153,6 @@ protected:
 	//FUTURE: May need to move to derived class
 	// True if type is void
 	bool m_isVoid{ false }; //TODO: why?
-
-	//FUTURE: May need to move to derived class
-	// Pointer to another value
-	//std::unique_ptr<Value> m_pointerValue;
 
 	struct ConvertToStringVisitor final : public boost::static_visitor<>
 	{
@@ -133,6 +164,48 @@ protected:
 			output = boost::lexical_cast<std::string>(value);
 		}
 	};
+
+private:
+	template<typename CastTypePart>
+	CastTypePart ValueCastImp(...) const;
+
+	// Try cast on native types or throw predefined exception
+	template<typename ValueCastImp, typename std::enable_if<Trait::IsNativeSingleType<ValueCastImp>::value>::type* = nullptr>
+	ValueCastImp ValueCastImp(int) const
+	{
+		try {
+			if (m_value3.singleValue) {
+				return boost::get<ValueCastImp>(m_value3.singleValue.get());
+			}
+			else if (m_value3.referenceValue) {
+				CryImplExcept();
+				//TODO: deal with pointer
+			}
+			else {
+				throw UninitializedValueException{};
+			}
+		}
+		catch (const boost::bad_get&) {
+			throw InvalidTypeCastException{};
+		}
+	}
+
+	// Try cast on container types throw predefined exception
+	template<typename ValueCastImp, typename std::enable_if<Trait::IsNativeMultiType<ValueCastImp>::value>::type* = nullptr>
+	ValueCastImp ValueCastImp(int) const
+	{
+		try {
+			if (m_value3.multiValue) {
+				return boost::get<ValueCastImp>(m_value3.multiValue.get());
+			}
+			else {
+				throw UninitializedValueException{};
+			}
+		}
+		catch (const boost::bad_get&) {
+			throw InvalidTypeCastException{};
+		}
+	}
 
 public:
 	// Special member funcion, copy constructor
@@ -189,42 +262,10 @@ public:
 	template<typename CastType>
 	CastType As() const { return boost::get<CastType>(m_value); }
 
-	// Try cast or throw predefined exception
 	template<typename CastType>
-	CastType As2() const
+	inline CastType As2() const
 	{
-		try {
-			if (m_value3.singleValue) {
-				return boost::get<CastType>(m_value3.singleValue.get());
-			}
-			else if (m_value3.referenceValue) {
-				CryImplExcept();
-				//TODO: deal with pointer
-			}
-			else {
-				throw UninitializedValueException{};
-			}
-		}
-		catch (const boost::bad_get&) {
-			throw InvalidTypeCastException{};
-		}
-	}
-
-	// Try cast or throw predefined exception
-	template<>
-	std::vector<int> As2() const
-	{
-		try {
-			if (m_value3.multiValue) {
-				return boost::get<std::vector<int>>(m_value3.multiValue.get());
-			}
-			else {
-				throw UninitializedValueException{};
-			}
-		}
-		catch (const boost::bad_get&) {
-			throw InvalidTypeCastException{};
-		}
+		return ValueCastImp<CastType>(int{});
 	}
 
 	//TODO: replace with global Cry::ToString()
@@ -243,18 +284,6 @@ private:
 	Typedef::BaseType m_objectType; //TODO: replace with typefacade to account for pointers
 	AST::TypeFacade m_internalType;
 };
-
-namespace Trait {
-
-template<typename Type>
-struct IsAllowedType
-{
-	static const bool value = (std::is_fundamental<Type>::value
-		|| std::is_same<Valuedef::Value, Type>::value)
-		&& !std::is_void<Type>::value && !std::is_function<Type>::value;
-};
-
-} // namespace Trait
 
 template<typename _Ty, typename _ = void>
 class ValueObject;
@@ -488,10 +517,12 @@ inline auto MakeBool2(bool v)
 inline auto MakePointer(Valuedef::Value v)
 {
 	//Valuedef::Value::ValueVariant2{ std::move(v) };
+	CRY_UNUSED(v);
 	return Valuedef::Value{ 0, AST::TypeFacade{ MakePointerType() }, Valuedef::Value::ValueVariant2{ 12 } };
 }
 inline auto MakePointer(Valuedef::Value&& v)
 {
+	CRY_UNUSED(v);
 	return Valuedef::Value{ 0, AST::TypeFacade{ MakePointerType() }, Valuedef::Value::ValueVariant2{ 12 } };
 }
 

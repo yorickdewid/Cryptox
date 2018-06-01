@@ -146,12 +146,6 @@ BOOST_AUTO_TEST_CASE(ValDefReworkCaptureValue)
 	BOOST_REQUIRE_EQUAL(_valFloat2, valFloat2.As2<float>());
 	BOOST_REQUIRE_EQUAL(_valChar2, valChar2.As2<char>());
 
-	/*{
-		auto valSomeInt = CaptureValue(72641);
-
-		auto w = Util::MakePointer(valSomeInt);
-	}*/
-
 	{
 		std::vector<int> a{ 8612, 812, 2383, 96, 12 };
 
