@@ -1736,6 +1736,11 @@ bool Parser::SelectionStatement()
 			if (MATCH_TOKEN(TK_ELSE)) {
 				NextToken();
 				Statement();
+
+				if (m_elementDescentPipe.size() > 0) {
+					stmt->SetAltCompound(m_elementDescentPipe.next());
+					m_elementDescentPipe.pop();
+				}
 			}
 		}
 
