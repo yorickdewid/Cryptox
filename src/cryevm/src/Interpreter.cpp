@@ -538,9 +538,14 @@ public:
 	{
 		auto val = m_localObj.find(key);
 		if (val == m_localObj.end()) {
-			auto compoundVal = CastDownAs<DeclarationRegistry>(m_bodyContext)->LookupIdentifier(key);
-			if (compoundVal) {
-				return compoundVal;
+			// If a function compound context was set, then search the context for an identifier. On
+			// all program defined functions the context is attached. External modules may define
+			// functions that do not set compounds, and thus the body context can by empty.
+			if (m_bodyContext) {
+				auto compoundVal = CastDownAs<DeclarationRegistry>(m_bodyContext)->LookupIdentifier(key);
+				if (compoundVal) {
+					return compoundVal;
+				}
 			}
 			return ParentAs<UnitContext>()->LookupIdentifier(key);
 		}
@@ -602,6 +607,7 @@ public:
 	{
 		auto val = m_localObj.find(key);
 		if (val == m_localObj.end()) {
+			assert(Parent());
 			return std::dynamic_pointer_cast<DeclarationRegistry>(Parent())->LookupIdentifier(key);
 		}
 
@@ -741,7 +747,7 @@ NATIVE_WRAPPER(putchar)
 NATIVE_WRAPPER(printf)
 {
 	const auto value = GET_DEFAULT_ARG(0);
-	const auto value2 = GET_VA_LIST_ARG(1);
+	const auto value2 = GET_VA_LIST_ARG(0);
 	assert(value);
 	assert(value2);
 	const auto arg0 = value->As<std::string>();
@@ -762,7 +768,7 @@ NATIVE_WRAPPER(scanf)
 NATIVE_WRAPPER(error)
 {
 	const auto value = GET_DEFAULT_ARG(0);
-	const auto value2 = GET_VA_LIST_ARG(1);
+	const auto value2 = GET_VA_LIST_ARG(0);
 	assert(value);
 	assert(value2);
 	const auto arg0 = value->As<int>();
