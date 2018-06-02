@@ -202,7 +202,31 @@ BOOST_AUTO_TEST_CASE(ValDefReworkCaptureValue)
 
 BOOST_AUTO_TEST_CASE(ValDefReworkCaptureMultiValue)
 {
-	//
+	std::vector<int> _valIntArray{ 12, 89, 761, 86712, 7, 71, 99 };
+	std::vector<float> _valFloatArray{ 12.341f, 99.1672f, 1184.812f, 1.7263f };
+	std::vector<double> _valDoubleArray{ 923, 1192.23, 7.873123, 9.716289 };
+	std::vector<bool> _valBoolArray{ false, false, false, false, true, false, true };
+
+	volatile std::vector<float> _valFloatArray2 = { 9.812f, 87234.21f, 12.1872f, 9.2873f, 7.71628f };
+	const std::vector<bool> _valBoolArray2 = { true, true, false, false, true, false, true };
+
+	auto valIntArray = CaptureValue(_valIntArray);
+	auto valFloatArray = CaptureValue(_valFloatArray);
+	auto valDoubleArray = CaptureValue(_valDoubleArray);
+	auto valBoolArray = CaptureValue(_valBoolArray);
+
+	auto valFloatArray2 = CaptureValue(_valFloatArray2);
+	auto valBoolArray2 = CaptureValue(_valBoolArray2);
+
+	BOOST_REQUIRE(_valIntArray == valIntArray.As2<std::vector<int>>());
+	BOOST_REQUIRE(_valFloatArray == valFloatArray.As2<std::vector<float>>());
+	BOOST_REQUIRE(_valDoubleArray == valDoubleArray.As2<std::vector<double>>());
+	BOOST_REQUIRE(_valBoolArray == valBoolArray.As2<std::vector<bool>>());
+
+	BOOST_REQUIRE(Util::IsTypeVolatile(valFloatArray2.Type()));
+	BOOST_REQUIRE(Util::IsTypeConst(valBoolArray2.Type()));
+	BOOST_REQUIRE(const_cast<std::vector<float>&>(_valFloatArray2) == valFloatArray2.As2<std::vector<float>>());
+	BOOST_REQUIRE(_valBoolArray2 == valBoolArray2.As2<std::vector<bool>>());
 }
 
 BOOST_AUTO_TEST_SUITE_END()

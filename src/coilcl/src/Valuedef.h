@@ -51,7 +51,8 @@ template<typename Type>
 struct IsAllowedType
 {
 	constexpr static const bool value = (std::is_fundamental<Type>::value
-		|| std::is_same<Valuedef::Value, Type>::value)
+		|| std::is_same<Valuedef::Value, Type>::value
+		|| std::is_class<Type>::value) //TODO: scope down to container
 		&& !std::is_void<Type>::value && !std::is_function<Type>::value;
 };
 
@@ -363,6 +364,14 @@ struct ValueDeductor
 			, Valuedef::Value::ValueVariant2{ value } };
 	}
 
+	template<Typedef::BuiltinType::Specifier Specifier, typename NativeRawType>
+	Valuedef::Value MakeMultiValue(NativeRawType&& value)
+	{
+		return Valuedef::Value{ 0
+			, AST::TypeFacade{ Util::MakeBuiltinType(Specifier) }
+			, Valuedef::Value::ValueVariant3{ std::move(value) } };
+	}
+
 	template<typename PlainType>
 	Valuedef::Value ConvertNativeType(PlainType value);
 
@@ -384,7 +393,7 @@ public:
 	template<typename NativeType, typename = typename std::enable_if<Valuedef::Trait::IsAllowedType<NativeType>::value>::type>
 	auto operator()(NativeType&& value)
 	{
-		const auto internalValue = ConvertNativeType<RawType<NativeType>>(value);
+		const auto internalValue = ConvertNativeType<RawType<NativeType>>(const_cast<RawType<NativeType>&>(value));
 		DeduceTypeQualifier(internalValue, std::forward<NativeType>(value));
 		return internalValue;
 	}
@@ -418,7 +427,31 @@ inline Valuedef::Value ValueDeductor::ConvertNativeType(bool value)
 template<>
 inline Valuedef::Value ValueDeductor::ConvertNativeType(Valuedef::Value value)
 {
+	CRY_UNUSED(value);
 	return Valuedef::Value{ 0, AST::TypeFacade{ Util::MakePointerType() }, Valuedef::Value::ValueVariant2{ 12 } };
+}
+
+//
+
+template<>
+inline Valuedef::Value ValueDeductor::ConvertNativeType(std::vector<int> value)
+{
+	return MakeMultiValue<Typedef::BuiltinType::Specifier::INT>(value);
+}
+template<>
+inline Valuedef::Value ValueDeductor::ConvertNativeType(std::vector<float> value)
+{
+	return MakeMultiValue<Typedef::BuiltinType::Specifier::FLOAT>(value);
+}
+template<>
+inline Valuedef::Value ValueDeductor::ConvertNativeType(std::vector<double> value)
+{
+	return MakeMultiValue<Typedef::BuiltinType::Specifier::DOUBLE>(value);
+}
+template<>
+inline Valuedef::Value ValueDeductor::ConvertNativeType(std::vector<bool> value)
+{
+	return MakeMultiValue<Typedef::BuiltinType::Specifier::BOOL>(value);
 }
 
 } // namespace Detail
@@ -530,6 +563,10 @@ inline auto MakePointer(Valuedef::Value&& v)
 	CRY_UNUSED(v);
 	return Valuedef::Value{ 0, AST::TypeFacade{ MakePointerType() }, Valuedef::Value::ValueVariant2{ 12 } };
 }
+
+//
+// Create explicit array value with automatic type
+//
 
 inline auto MakeIntArray(int v[])
 {
