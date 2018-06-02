@@ -86,7 +86,7 @@ class Value //TODO: mark each value with an unique id
 	friend struct Util::ValueFactory;
 
 public:
-	using ValueVariant = boost::variant<int, char, float, double, bool, std::string>;
+	using ValueVariant = boost::variant<int, char, float, double, bool, std::string>; //OBSOLETE: REMOVE: TODO:
 	using ValueVariant2 = boost::variant<int, char, float, double, bool>;
 	using ValueVariant3 = boost::variant<std::vector<int>
 		, std::vector<char>
@@ -145,10 +145,6 @@ protected:
 		boost::optional<ValueVariant3> multiValue;
 		std::shared_ptr<Value> referenceValue;
 	} m_value3;
-
-	// The internal datastructure stores the array
-	// as an vector of values.
-	//ValueVariant2 m_array;
 
 	//FUTURE: May need to move to derived class
 	// True if type is void
@@ -266,6 +262,13 @@ public:
 	inline CastType As2() const
 	{
 		return ValueCastImp<CastType>(int{});
+	}
+
+	template<>
+	std::string As2() const
+	{
+		const auto value = ValueCastImp<std::vector<char>>(int{});
+		return std::string{ value.cbegin(), value.cend() };
 	}
 
 	//TODO: replace with global Cry::ToString()
@@ -484,11 +487,13 @@ inline Valuedef::ValueType<Type> MakeVoid()
 // Version 2.0
 //
 
-//inline auto MakeString2(std::string&& v)
-//{
-//	const auto builtin = MakeBuiltinType(Typedef::BuiltinType::Specifier::CHAR);
-//	return Valuedef::Value{ 0, AST::TypeFacade{ builtin }, Valuedef::Value::ValueVariant2{ std::move(v) } };
-//}
+inline auto MakeString2(const std::string& v)
+{
+	std::vector<char> ve(v.begin(), v.end());
+	ve.shrink_to_fit();
+	const auto builtin = MakeBuiltinType(Typedef::BuiltinType::Specifier::CHAR);
+	return Valuedef::Value{ 0, AST::TypeFacade{ builtin }, Valuedef::Value::ValueVariant3{ std::move(ve) } };
+}
 inline auto MakeInt2(int v)
 {
 	const auto builtin = MakeBuiltinType(Typedef::BuiltinType::Specifier::INT);
@@ -524,6 +529,33 @@ inline auto MakePointer(Valuedef::Value&& v)
 {
 	CRY_UNUSED(v);
 	return Valuedef::Value{ 0, AST::TypeFacade{ MakePointerType() }, Valuedef::Value::ValueVariant2{ 12 } };
+}
+
+inline auto MakeIntArray(int v[])
+{
+	const auto builtin = MakeBuiltinType(Typedef::BuiltinType::Specifier::INT);
+	std::vector<int> ve(v, v + sizeof(v) / sizeof(v[0]));
+	return Valuedef::Value{ 0, AST::TypeFacade{ builtin }, Valuedef::Value::ValueVariant3{ std::move(ve) } };
+}
+inline auto MakeIntArray(std::vector<int> v)
+{
+	const auto builtin = MakeBuiltinType(Typedef::BuiltinType::Specifier::INT);
+	return Valuedef::Value{ 0, AST::TypeFacade{ builtin }, Valuedef::Value::ValueVariant3{ v } };
+}
+inline auto MakeFloatArray(std::vector<float> v)
+{
+	const auto builtin = MakeBuiltinType(Typedef::BuiltinType::Specifier::FLOAT);
+	return Valuedef::Value{ 0, AST::TypeFacade{ builtin }, Valuedef::Value::ValueVariant3{ v } };
+}
+inline auto MakeDoubleArray(std::vector<double> v)
+{
+	const auto builtin = MakeBuiltinType(Typedef::BuiltinType::Specifier::DOUBLE);
+	return Valuedef::Value{ 0, AST::TypeFacade{ builtin }, Valuedef::Value::ValueVariant3{ v } };
+}
+inline auto MakeBoolArray(std::vector<bool> v)
+{
+	const auto builtin = MakeBuiltinType(Typedef::BuiltinType::Specifier::BOOL);
+	return Valuedef::Value{ 0, AST::TypeFacade{ builtin }, Valuedef::Value::ValueVariant3{ v } };
 }
 
 //

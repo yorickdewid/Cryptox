@@ -89,30 +89,83 @@ BOOST_AUTO_TEST_CASE(ValDefBasicReworkDissected)
 		BOOST_CHECK(val.Empty());
 		BOOST_CHECK_THROW(val.As2<char>(), Valuedef::Value::UninitializedValueException);
 	}
+
+	{
+		std::vector<int> a{ 8612, 812, 2383, 96, 12 };
+
+		Valuedef::Value val{ 0
+			, AST::TypeFacade{ Util::MakeBuiltinType(Typedef::BuiltinType::Specifier::INT) }
+			, Valuedef::Value::ValueVariant3{ a } };
+
+		BOOST_CHECK(!val.Empty());
+		BOOST_CHECK(val.IsArray());
+
+		std::vector<int> b = val.As2<std::vector<int>>();
+
+		BOOST_REQUIRE(a == b);
+	}
+
+	{
+		std::vector<char> a{ 'X', 'O', 'A', 'N', 'B' };
+
+		Valuedef::Value val{ 0
+			, AST::TypeFacade{ Util::MakeBuiltinType(Typedef::BuiltinType::Specifier::CHAR) }
+			, Valuedef::Value::ValueVariant3{ a } };
+
+		BOOST_CHECK(!val.Empty());
+		BOOST_CHECK(val.IsArray());
+
+		std::vector<char> b = val.As2<std::vector<char>>();
+
+		BOOST_REQUIRE(a == b);
+	}
 }
 
 BOOST_AUTO_TEST_CASE(ValDefReworkDeclaration)
 {
-	//auto valStr = Util::MakeString2("teststring");
+	auto valStr = Util::MakeString2("teststring");
 	auto valInt = Util::MakeInt2(12);
 	auto valFloat = Util::MakeFloat2(92.123f);
 	auto valDouble = Util::MakeDouble2(87341);
 	auto valChar = Util::MakeChar2('K');
 	auto valBool = Util::MakeBool2(true);
 
-	//BOOST_CHECK(!valStr.Empty());
+	BOOST_CHECK(!valStr.Empty());
 	BOOST_CHECK(!valInt.Empty());
 	BOOST_CHECK(!valFloat.Empty());
 	BOOST_CHECK(!valDouble.Empty());
 	BOOST_CHECK(!valChar.Empty());
 	BOOST_CHECK(!valBool.Empty());
 
-	//BOOST_REQUIRE_EQUAL("teststring", valStr.As2<std::string>());
+	BOOST_REQUIRE_EQUAL("teststring", valStr.As2<std::string>());
 	BOOST_REQUIRE_EQUAL(12, valInt.As2<int>());
 	BOOST_REQUIRE_EQUAL(92.123f, valFloat.As2<float>());
 	BOOST_REQUIRE_EQUAL(87341, valDouble.As2<double>());
 	BOOST_REQUIRE_EQUAL('K', valChar.As2<char>());
 	BOOST_REQUIRE_EQUAL(true, valBool.As2<bool>());
+}
+
+BOOST_AUTO_TEST_CASE(ValDefReworkDeclarationArray)
+{
+	std::vector<int> _valIntArray{ 9, 12, 7612, 8, 112, 8 };
+	std::vector<float> _valFloatArray{ 125.233f, 1.9812f, 89.8612f };
+	std::vector<double> _valDoubleArray{ 1.8712, 873.655, 891.87316, 8712.8213 };
+	std::vector<bool> _valBoolArray{ true, true, false, true, false, false };
+
+	auto valIntArray = Util::MakeIntArray(_valIntArray);
+	auto valFloatArray = Util::MakeFloatArray({ 125.233f, 1.9812f, 89.8612f });
+	auto valDoubleArray = Util::MakeDoubleArray({ 1.8712, 873.655, 891.87316, 8712.8213 });
+	auto valBoolArray = Util::MakeBoolArray({ true, true, false, true, false, false });
+
+	BOOST_CHECK(valIntArray.IsArray());
+	BOOST_CHECK(valFloatArray.IsArray());
+	BOOST_CHECK(valDoubleArray.IsArray());
+	BOOST_CHECK(valBoolArray.IsArray());
+
+	BOOST_REQUIRE(_valIntArray == valIntArray.As2<std::vector<int>>());
+	BOOST_REQUIRE(_valFloatArray == valFloatArray.As2<std::vector<float>>());
+	BOOST_REQUIRE(_valDoubleArray == valDoubleArray.As2<std::vector<double>>());
+	BOOST_REQUIRE(_valBoolArray == valBoolArray.As2<std::vector<bool>>());
 }
 
 BOOST_AUTO_TEST_CASE(ValDefReworkCaptureValue)
@@ -145,21 +198,11 @@ BOOST_AUTO_TEST_CASE(ValDefReworkCaptureValue)
 	BOOST_REQUIRE(Util::IsTypeConst(valChar2.Type()));
 	BOOST_REQUIRE_EQUAL(_valFloat2, valFloat2.As2<float>());
 	BOOST_REQUIRE_EQUAL(_valChar2, valChar2.As2<char>());
+}
 
-	{
-		std::vector<int> a{ 8612, 812, 2383, 96, 12 };
-
-		Valuedef::Value val{ 0
-			, AST::TypeFacade{ Util::MakeBuiltinType(Typedef::BuiltinType::Specifier::INT) }
-			, Valuedef::Value::ValueVariant3{ a } };
-
-		BOOST_CHECK(!val.Empty());
-		BOOST_CHECK(val.IsArray());
-
-		std::vector<int> b = val.As2<std::vector<int>>();
-
-		BOOST_REQUIRE(a == b);
-	}
+BOOST_AUTO_TEST_CASE(ValDefReworkCaptureMultiValue)
+{
+	//
 }
 
 BOOST_AUTO_TEST_SUITE_END()
