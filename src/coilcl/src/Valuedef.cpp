@@ -46,6 +46,11 @@ Value::Value(int, AST::TypeFacade typeBase, ValueVariant3&& value)
 	, m_value3{ ValueSelect{ std::move(value) } }
 {
 }
+Value::Value(int, AST::TypeFacade typeBase, Value&& value)
+	: m_internalType{ typeBase }
+	, m_value3{ ValueSelect{ std::move(value) } }
+{
+}
 
 namespace
 {

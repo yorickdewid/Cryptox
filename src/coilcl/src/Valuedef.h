@@ -29,9 +29,9 @@
 #define CaptureValue(s) Util::CaptureValueRaw(std::move(s))
 
 //TODO:
-// - Array value
-// - Pointer value
 // - Void value
+// - struct/union value
+// - Cleanup old obsolete code
 
 namespace CoilCl
 {
@@ -44,6 +44,8 @@ struct ValueFactory;
 
 namespace Valuedef
 {
+
+class Value;
 
 namespace Trait {
 
@@ -65,22 +67,23 @@ struct IsNativeSingleType
 template<typename Type>
 struct IsNativeMultiType
 {
-	constexpr static const bool value = std::is_class<Type>::value;
+	constexpr static const bool value = std::is_class<Type>::value
+		&& !std::is_same<Type, Value>::value;
 };
 
 } // namespace Trait
 
-static_assert(Trait::IsNativeSingleType<int>::value, "");
-static_assert(Trait::IsNativeSingleType<char>::value, "");
-static_assert(Trait::IsNativeSingleType<float>::value, "");
-static_assert(Trait::IsNativeSingleType<double>::value, "");
-static_assert(Trait::IsNativeSingleType<bool>::value, "");
+static_assert(Trait::IsNativeSingleType<int>::value, "IsNativeSingleType failed");
+static_assert(Trait::IsNativeSingleType<char>::value, "IsNativeSingleType failed");
+static_assert(Trait::IsNativeSingleType<float>::value, "IsNativeSingleType failed");
+static_assert(Trait::IsNativeSingleType<double>::value, "IsNativeSingleType failed");
+static_assert(Trait::IsNativeSingleType<bool>::value, "IsNativeSingleType failed");
 
-static_assert(Trait::IsNativeMultiType<std::vector<int>>::value, "");
-static_assert(Trait::IsNativeMultiType<std::vector<char>>::value, "");
-static_assert(Trait::IsNativeMultiType<std::vector<float>>::value, "");
-static_assert(Trait::IsNativeMultiType<std::vector<double>>::value, "");
-static_assert(Trait::IsNativeMultiType<std::vector<bool>>::value, "");
+static_assert(Trait::IsNativeMultiType<std::vector<int>>::value, "IsNativeMultiType failed");
+static_assert(Trait::IsNativeMultiType<std::vector<char>>::value, "IsNativeMultiType failed");
+static_assert(Trait::IsNativeMultiType<std::vector<float>>::value, "IsNativeMultiType failed");
+static_assert(Trait::IsNativeMultiType<std::vector<double>>::value, "IsNativeMultiType failed");
+static_assert(Trait::IsNativeMultiType<std::vector<bool>>::value, "IsNativeMultiType failed");
 
 class Value //TODO: mark each value with an unique id
 {
@@ -174,10 +177,6 @@ private:
 			if (m_value3.singleValue) {
 				return boost::get<ValueCastImp>(m_value3.singleValue.get());
 			}
-			else if (m_value3.referenceValue) {
-				CryImplExcept();
-				//TODO: deal with pointer
-			}
 			else {
 				throw UninitializedValueException{};
 			}
@@ -204,15 +203,32 @@ private:
 		}
 	}
 
+	// Try cast on container types throw predefined exception
+	template<typename ValueCastImp, typename std::enable_if<std::is_same<ValueCastImp, Value>::value>::type* = nullptr>
+	ValueCastImp ValueCastImp(int) const
+	{
+		try {
+			if (m_value3.referenceValue) {
+				return (*m_value3.referenceValue.get());
+			}
+			else {
+				throw UninitializedValueException{};
+			}
+		}
+		catch (const boost::bad_get&) {
+			throw InvalidTypeCastException{};
+		}
+	}
+
 public:
 	// Special member funcion, copy constructor
 	Value(const Value&) = default;
 	Value(Value&&) = default;
-	Value(Typedef::BaseType typeBase);
-	Value(Typedef::BaseType typeBase, ValueVariant value);
+	Value(Typedef::BaseType typeBase); //TODO: remove obsolete
+	Value(Typedef::BaseType typeBase, ValueVariant value); //TODO: remove obsolete
 
 	template<typename NativeType>
-	Value(Typedef::BaseType typeBase, NativeType&& value)
+	Value(Typedef::BaseType typeBase, NativeType&& value) //TODO: remove obsolete
 		: m_objectType{ typeBase }
 		, m_value{ ValueVariant{ std::forward<NativeType>(value) } }
 	{
@@ -224,6 +240,8 @@ public:
 	Value(int, AST::TypeFacade, ValueVariant2&&);
 	// Value declaration and initialization
 	Value(int, AST::TypeFacade, ValueVariant3&&);
+	// Pointer value declaration and initialization
+	Value(int, AST::TypeFacade, Value&&);
 
 	// Swap-in native replacement value
 	template<typename NativeType>
@@ -246,8 +264,9 @@ public:
 	AST::TypeFacade Type() const { return m_internalType; }
 
 	// Check if current storage type is array
-	inline bool IsArray() const { return !!m_value3.multiValue; }
-	inline size_t Size() const noexcept { return 0; /* m_array.size();*/ }
+	inline bool IsArray() const { return !!m_value3.multiValue; } //TODO: refactor
+	inline bool IsReference() const { return !!m_value3.referenceValue; } //TODO: refactor
+	inline size_t Size() const noexcept { return 0; /* m_array.size();*/ } //TOOD:
 
 	// Check if value is empty
 	inline bool Empty() const noexcept { return m_value3.Empty(); }
@@ -271,6 +290,13 @@ public:
 		const auto value = ValueCastImp<std::vector<char>>(int{});
 		return std::string{ value.cbegin(), value.cend() };
 	}
+
+	//template<>
+	//Value As2() const
+	//{
+	//	const auto value = ValueCastImp<Value>(int{});
+	//	//return std::string{ value.cbegin(), value.cend() };
+	//}
 
 	//TODO: replace with global Cry::ToString()
 	// Print value
@@ -552,16 +578,9 @@ inline auto MakeBool2(bool v)
 	const auto builtin = MakeBuiltinType(Typedef::BuiltinType::Specifier::BOOL);
 	return Valuedef::Value{ 0, AST::TypeFacade{ builtin }, Valuedef::Value::ValueVariant2{ std::move(v) } };
 }
-inline auto MakePointer(Valuedef::Value v)
-{
-	//Valuedef::Value::ValueVariant2{ std::move(v) };
-	CRY_UNUSED(v);
-	return Valuedef::Value{ 0, AST::TypeFacade{ MakePointerType() }, Valuedef::Value::ValueVariant2{ 12 } };
-}
 inline auto MakePointer(Valuedef::Value&& v)
 {
-	CRY_UNUSED(v);
-	return Valuedef::Value{ 0, AST::TypeFacade{ MakePointerType() }, Valuedef::Value::ValueVariant2{ 12 } };
+	return Valuedef::Value{ 0, AST::TypeFacade{ MakePointerType() }, std::move(v) };
 }
 
 //

@@ -231,4 +231,13 @@ BOOST_AUTO_TEST_CASE(ValDefReworkCaptureMultiValue)
 	BOOST_REQUIRE(_valBoolArray2 == valBoolArray2.As2<std::vector<bool>>());
 }
 
+BOOST_AUTO_TEST_CASE(ValDefReworkPointer)
+{
+	auto valInt = Util::MakeInt2(1547483642);
+	auto valPtr = Util::MakePointer(std::move(valInt));
+
+	BOOST_REQUIRE(valPtr.IsReference());
+	BOOST_REQUIRE_EQUAL(1547483642, valPtr.As2<Valuedef::Value>().As2<int>());
+}
+
 BOOST_AUTO_TEST_SUITE_END()
