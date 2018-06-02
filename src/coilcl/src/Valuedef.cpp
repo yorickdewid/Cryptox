@@ -127,7 +127,7 @@ const Cry::ByteArray Value::Serialize() const
 	Cry::ByteArray buffer;
 	buffer.SetMagic(VALUE_MAGIC);
 	buffer.SetPlatformCompat();
-	buffer.SerializeAs<Cry::Byte>(m_isVoid);
+	//buffer.SerializeAs<Cry::Byte>(m_isVoid);
 	//buffer.SerializeAs<Cry::Short>(m_arraySize);//FUTURE: Limited to 16bits
 
 	const auto type = m_objectType->TypeEnvelope();
@@ -151,9 +151,9 @@ std::shared_ptr<CoilCl::Valuedef::Value> ValueCopy(const std::shared_ptr<CoilCl:
 
 bool EvaluateAsBoolean(std::shared_ptr<Valuedef::Value> value)
 {
-	if (IsValueVoid(value)) {
-		CryImplExcept(); //TODO: void is non orthogonal
-	}
+	//if (IsValueVoid(value)) {
+	//	CryImplExcept(); //TODO: void is non orthogonal
+	//}
 
 	if (IsValueArray(value)) {
 		CryImplExcept(); //TODO: cannot substitute array to void
@@ -172,9 +172,9 @@ bool EvaluateAsBoolean(std::shared_ptr<Valuedef::Value> value)
 
 int EvaluateValueAsInteger(std::shared_ptr<Valuedef::Value> value)
 {
-	if (IsValueVoid(value)) {
-		CryImplExcept(); //TODO: cannot cast void to integer
-	}
+	//if (IsValueVoid(value)) {
+	//	CryImplExcept(); //TODO: cannot cast void to integer
+	//}
 
 	if (IsValueArray(value)) {
 		CryImplExcept(); //TODO: cannot substitute array to integer
@@ -188,11 +188,6 @@ int EvaluateValueAsInteger(std::shared_ptr<Valuedef::Value> value)
 	catch (...) {}
 
 	throw 1; //TODO:
-}
-
-bool IsValueVoid(std::shared_ptr<Valuedef::Value> value)
-{
-	return value->IsVoid();
 }
 
 bool IsValueArray(std::shared_ptr<Valuedef::Value> value)

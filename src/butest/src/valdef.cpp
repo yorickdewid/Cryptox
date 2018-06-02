@@ -23,15 +23,16 @@ using namespace CoilCl;
 
 BOOST_AUTO_TEST_SUITE(ValueDefinition)
 
+// NOTE: Legacy testcases are obsolete and therefore disabled. They only
+//       served as regression tests when refactoring the value system.
+// NOTE: Float and string fail, and are thus not present in the testcases.
 BOOST_AUTO_TEST_CASE(ValDefLegacyBasic)
 {
-	//NOTE: Float and string fail
-
 	auto valInt = Util::MakeInt(12);
 	auto valDouble = Util::MakeDouble(7123.7263812);
 	auto valChar = Util::MakeChar('x');
 	auto valBool = Util::MakeBool(true);
-	auto valVoid = Util::MakeVoid();
+	//auto valVoid = Util::MakeVoid();
 
 	BOOST_CHECK(!Util::IsValueArray(valInt));
 	BOOST_CHECK(!Util::IsValueArray(valDouble));
@@ -43,9 +44,11 @@ BOOST_AUTO_TEST_CASE(ValDefLegacyBasic)
 	BOOST_REQUIRE_EQUAL('x', valChar->As<char>());
 	BOOST_REQUIRE_EQUAL(true, valBool->As<bool>());
 
-	BOOST_CHECK(Util::IsValueVoid(valVoid));
+	//BOOST_CHECK(Util::IsValueVoid(valVoid));
 }
 
+// NOTE: Legacy testcases are obsolete and therefore disabled. They only
+//       served as regression tests when refactoring the value system.
 BOOST_AUTO_TEST_CASE(ValDefLegacyReplace)
 {
 	{
@@ -238,8 +241,21 @@ BOOST_AUTO_TEST_CASE(ValDefReworkPointer)
 		auto valInt = Util::MakeInt2(1547483642);
 		auto valPtr = Util::MakePointer(std::move(valInt));
 
+		BOOST_CHECK(!valPtr.Empty());
 		BOOST_REQUIRE(valPtr.IsReference());
 		BOOST_REQUIRE_EQUAL(1547483642, valPtr.As2<Valuedef::Value>().As2<int>());
+	}
+
+	{
+		std::vector<double> _valDoubleArray{ 923, 1192.23, 7.873123, 9.716289 };
+		auto valDoubleArray = CaptureValue(_valDoubleArray);
+		auto valPtr = Util::MakePointer(std::move(valDoubleArray));
+
+		BOOST_CHECK(!valPtr.Empty());
+		BOOST_REQUIRE(valPtr.IsReference());
+		BOOST_REQUIRE(!valPtr.IsArray());
+		BOOST_REQUIRE(valPtr.As2<Valuedef::Value>().IsArray());
+		BOOST_REQUIRE(_valDoubleArray == valPtr.As2<Valuedef::Value>().As2<std::vector<double>>());
 	}
 }
 

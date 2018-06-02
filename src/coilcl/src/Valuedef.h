@@ -150,10 +150,6 @@ protected:
 		std::shared_ptr<Value> referenceValue;
 	} m_value3;
 
-	//FUTURE: May need to move to derived class
-	// True if type is void
-	bool m_isVoid{ false }; //TODO: why?
-
 	struct ConvertToStringVisitor final : public boost::static_visitor<>
 	{
 		std::string output;
@@ -270,8 +266,6 @@ public:
 
 	// Check if value is empty
 	inline bool Empty() const noexcept { return m_value3.Empty(); }
-	// Check if value is void
-	inline bool IsVoid() const noexcept { return m_isVoid; } //TODO: remove
 
 	// By default try direct cast from variant, if the cast fails
 	// a bad casting exception is thrown.
@@ -356,7 +350,6 @@ public:
 	ValueObject()
 		: Value{ Util::MakeBuiltinType(Specifier::VOID_T) }
 	{
-		m_isVoid = true;
 		static_assert(sizeof(_Myty) == sizeof(Value), "");
 	}
 

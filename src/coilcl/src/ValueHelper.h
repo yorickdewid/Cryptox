@@ -188,8 +188,6 @@ std::shared_ptr<Value> ValueCopy(const std::shared_ptr<Value>&); //TODO: rewrite
 bool EvaluateAsBoolean(std::shared_ptr<Value>);  //TODO: rename EvaluateValueAsBoolean
 // Evaluate the value as an integer if possible
 int EvaluateValueAsInteger(std::shared_ptr<Value>);
-// Test if the value is a void type
-bool IsValueVoid(std::shared_ptr<Value>);
 // Test if the value is array type
 bool IsValueArray(std::shared_ptr<Value>);
 // Check if value is set
