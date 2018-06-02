@@ -11,6 +11,7 @@
 #include "Cry/Except.h"
 
 //#include "../../coilcl/src/ASTNode.h"
+#include "../../coilcl/src/ValueHelper.h"
 
 #include <numeric>
 

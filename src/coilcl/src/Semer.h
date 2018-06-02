@@ -10,6 +10,8 @@
 
 #include "Profile.h"
 #include "Stage.h"
+#include "AST.h"
+#include "ASTNode.h"
 //#include "Optimizer.h"
 
 #include <map>

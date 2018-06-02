@@ -10,9 +10,8 @@
 
 #include <boost/format.hpp>
 
-#include "AST.h"
-#include "ASTNode.h"
 #include "Semer.h"
+#include "ValueHelper.h"
 #include "Converter.h"
 
 #define PTR_NATIVE(p) (*(p).get())

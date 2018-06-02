@@ -11,6 +11,7 @@
 #include "Profile.h"
 #include "Tokenizer.h"
 #include "Valuedef.h"
+#include "ValueHelper.h"
 
 #include <stack>
 #include <string>

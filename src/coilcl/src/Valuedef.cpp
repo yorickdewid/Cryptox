@@ -7,6 +7,7 @@
 // copied and/or distributed without the express of the author.
 
 #include "Valuedef.h"
+#include "ValueHelper.h"
 
 #include <Cry/Cry.h>
 #include <Cry/ByteOrder.h>

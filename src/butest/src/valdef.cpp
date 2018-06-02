@@ -7,6 +7,7 @@
 // copied and/or distributed without the express of the author.
 
 #include "../src/Valuedef.h"
+#include "../src/ValueHelper.h"
 
 #include <boost/test/unit_test.hpp>
 
@@ -233,11 +234,13 @@ BOOST_AUTO_TEST_CASE(ValDefReworkCaptureMultiValue)
 
 BOOST_AUTO_TEST_CASE(ValDefReworkPointer)
 {
-	auto valInt = Util::MakeInt2(1547483642);
-	auto valPtr = Util::MakePointer(std::move(valInt));
+	{
+		auto valInt = Util::MakeInt2(1547483642);
+		auto valPtr = Util::MakePointer(std::move(valInt));
 
-	BOOST_REQUIRE(valPtr.IsReference());
-	BOOST_REQUIRE_EQUAL(1547483642, valPtr.As2<Valuedef::Value>().As2<int>());
+		BOOST_REQUIRE(valPtr.IsReference());
+		BOOST_REQUIRE_EQUAL(1547483642, valPtr.As2<Valuedef::Value>().As2<int>());
+	}
 }
 
 BOOST_AUTO_TEST_SUITE_END()
