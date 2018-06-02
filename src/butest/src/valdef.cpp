@@ -13,7 +13,9 @@
 //
 // Test        : Value definition unitttest
 // Type        : unit
-// Description : -
+// Description : Unit test of the value type system. Since the value definition 
+//               system is the backbone of the compiler it demands for almost
+//               full test coverage.
 //
 
 using namespace CoilCl;

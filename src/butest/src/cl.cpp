@@ -32,7 +32,7 @@ class CompilerHelper
 		}
 
 		datachunk_t *buffer = (datachunk_t*)malloc(sizeof(datachunk_t));
-		buffer->size = compiler->m_source.size();
+		buffer->size = static_cast<unsigned int>(compiler->m_source.size());
 		buffer->ptr = compiler->m_source.data();
 		buffer->unmanaged_res = 0;
 		compiler->m_done = true;
@@ -54,7 +54,7 @@ class CompilerHelper
 		std::string meta = "test";
 		CRY_MEMZERO(meta_info->name, sizeof(meta_info->name));
 		std::copy(meta.begin(), meta.end(), meta_info->name);
-		meta_info->size = meta.size();
+		meta_info->size = static_cast<unsigned int>(meta.size());
 		return meta_info;
 	}
 
@@ -62,6 +62,7 @@ class CompilerHelper
 	static void ErrorHandler(void *user_data, const char *message, int fatal)
 	{
 		CRY_UNUSED(user_data);
+		CRY_UNUSED(fatal);
 		throw std::runtime_error{ message };
 	}
 
@@ -269,6 +270,60 @@ BOOST_AUTO_TEST_CASE(ClSysForFunctionCall)
 	compiler.RunVirtualMachine();
 	BOOST_REQUIRE_EQUAL(compiler.VMResult(), 0);
 	BOOST_REQUIRE_EQUAL(compiler.ExecutionResult(), 2);
+}
+
+BOOST_AUTO_TEST_CASE(ClSysIfConditionTrue)
+{
+	const std::string source = ""
+		"#define CONSTANT_INT    1\n"
+		"#define RETURN_OK       0\n"
+		"\n"
+		"/* Prints a string to stdout. */\n"
+		"int puts(const char *str);\n"
+		"\n"
+		"int main() {\n"
+		"	int i = CONSTANT_INT;\n"
+		"	if (i > 0) {\n"
+		"		puts(\"statement true\");\n"
+		"	} else {\n"
+		"		puts(\"statement false\");\n"
+		"	}\n"
+		"\n"
+		"	return RETURN_OK;\n"
+		"}";
+
+	CompilerHelper compiler{ source };
+	compiler.RunCompiler();
+	BOOST_REQUIRE(!compiler.IsProgramEmpty());
+
+	compiler.RunVirtualMachine();
+	BOOST_REQUIRE_EQUAL(compiler.VMResult(), 0);
+	BOOST_REQUIRE_EQUAL(compiler.ExecutionResult(), 0);
+}
+
+BOOST_AUTO_TEST_CASE(ClSysIfConditionFalse)
+{
+	const std::string source = ""
+		"/* Prints a string to stdout. */\n"
+		"int puts(const char *str);\n"
+		"\n"
+		"int main() {\n"
+		"	if (100 != 100) {\n"
+		"		puts(\"statement true\");\n"
+		"	} else {\n"
+		"		puts(\"statement false\");\n"
+		"	}\n"
+		"\n"
+		"	return 617538;\n"
+		"}";
+
+	CompilerHelper compiler{ source };
+	compiler.RunCompiler();
+	BOOST_REQUIRE(!compiler.IsProgramEmpty());
+
+	compiler.RunVirtualMachine();
+	BOOST_REQUIRE_EQUAL(compiler.VMResult(), 0);
+	BOOST_REQUIRE_EQUAL(compiler.ExecutionResult(), 617538);
 }
 
 BOOST_AUTO_TEST_SUITE_END()
