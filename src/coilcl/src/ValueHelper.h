@@ -172,9 +172,9 @@ inline auto MakePointer(Value&& v)
 // Create explicit record value with automatic type
 //
 
-inline auto MakeStruct(RecordValue&& v)
+inline auto MakeStruct(RecordValue&& v, const std::string structName = {})
 {
-	const std::string name = v.HasRecordName() ? v.RecordName() : "";
+	const std::string name = v.HasRecordName() ? v.RecordName() : structName;
 	return Value{ 0, AST::TypeFacade{ MakeRecordType(name, Typedef::RecordType::Specifier::STRUCT) }, std::move(v) };
 }
 

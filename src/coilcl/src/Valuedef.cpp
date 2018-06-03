@@ -147,6 +147,26 @@ const Cry::ByteArray Value::Serialize() const
 	return buffer;
 }
 
+// Comparison equal operator
+bool Value::operator==(const Value& other) const
+{
+	return Empty() == other.Empty()
+		&& m_value3 == other.m_value3
+		&& m_internalType == other.m_internalType;
+}
+
+// Comparison not equal operator
+bool Value::operator!=(const Value& other) const
+{
+	return !operator==(other);
+}
+
+std::ostream& operator<<(std::ostream& os, const Value& value)
+{
+	os << value.Print();
+	return os;
+}
+
 } // namespace Valuedef
 
 namespace Util

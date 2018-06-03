@@ -67,6 +67,7 @@ template<typename Type>
 struct IsNativeMultiType
 {
 	constexpr static const bool value = std::is_class<Type>::value
+		&& !std::is_same<Type, RecordValue>::value
 		&& !std::is_same<Type, Value>::value;
 };
 
@@ -152,6 +153,23 @@ protected:
 				&& !referenceValue;
 		}
 
+		// Comparison equal operator
+		bool operator==(const ValueSelect& other) const
+		{
+			return singleValue == other.singleValue
+				&& multiValue == other.multiValue
+				&& recordValue == other.recordValue
+				&& referenceValue == other.referenceValue;
+		}
+		// Comparison not equal operator
+		bool operator!=(const ValueSelect& other) const
+		{
+			return !operator==(other);
+		}
+		
+		// Check if an value was set
+		operator bool() const { return !Empty(); }
+
 		boost::optional<ValueVariant2> singleValue;
 		boost::optional<ValueVariant3> multiValue;
 		boost::optional<RecordValue> recordValue;
@@ -197,6 +215,23 @@ private:
 		try {
 			if (m_value3.multiValue) {
 				return boost::get<ValueCastImp>(m_value3.multiValue.get());
+			}
+			else {
+				throw UninitializedValueException{};
+			}
+		}
+		catch (const boost::bad_get&) {
+			throw InvalidTypeCastException{};
+		}
+	}
+
+	// Try cast on container types throw predefined exception
+	template<typename ValueCastImp, typename std::enable_if<std::is_same<ValueCastImp, RecordValue>::value>::type* = nullptr>
+	ValueCastImp ValueCastImp(int) const
+	{
+		try {
+			if (m_value3.recordValue) {
+				return boost::get<ValueCastImp>(m_value3.recordValue.get());
 			}
 			else {
 				throw UninitializedValueException{};
@@ -295,13 +330,6 @@ public:
 		return std::string{ value.cbegin(), value.cend() };
 	}
 
-	//template<>
-	//Value As2() const
-	//{
-	//	const auto value = ValueCastImp<Value>(int{});
-	//	//return std::string{ value.cbegin(), value.cend() };
-	//}
-
 	//TODO: replace with global Cry::ToString()
 	// Print value
 	virtual const std::string Print() const
@@ -314,10 +342,21 @@ public:
 	// Serialize the value into byte array
 	virtual const Cry::ByteArray Serialize() const;
 
+	// Comparison equal operator
+	bool operator==(const Value&) const;
+	// Comparison not equal operator
+	bool operator!=(const Value&) const;
+
+	// Check if an value was set
+	operator bool() const { return !Empty(); }
+
+	friend std::ostream& operator<<(std::ostream&, const Value&);
+
 private:
 	Typedef::BaseType m_objectType; //TODO: replace with typefacade to account for pointers
 	AST::TypeFacade m_internalType;
 };
+
 
 //TODO: OBSOLETE: REMOVE:
 template<typename _Ty>

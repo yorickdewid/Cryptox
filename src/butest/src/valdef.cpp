@@ -67,9 +67,6 @@ BOOST_AUTO_TEST_CASE(ValDefLegacyReplace)
 
 BOOST_AUTO_TEST_CASE(ValDefBasicReworkDissected)
 {
-	static_assert(std::is_copy_constructible<Valuedef::Value>::value, "Valuedef::Value lacks special member function: copy");
-	static_assert(std::is_move_constructible<Valuedef::Value>::value, "Valuedef::Value lacks special member function: move");
-
 	{
 		auto builtin = Util::MakeBuiltinType(Typedef::BuiltinType::Specifier::INT);
 		AST::TypeFacade facade{ builtin };
@@ -124,6 +121,29 @@ BOOST_AUTO_TEST_CASE(ValDefBasicReworkDissected)
 		std::vector<char> b = val.As2<std::vector<char>>();
 
 		BOOST_REQUIRE(a == b);
+	}
+
+	{
+		Valuedef::Value val1{ 0
+			, AST::TypeFacade{ Util::MakeBuiltinType(Typedef::BuiltinType::Specifier::CHAR) }
+			, Valuedef::Value::ValueVariant2{ 19 } };
+
+		BOOST_CHECK(val1);
+
+		Valuedef::Value val2{ 0
+			, AST::TypeFacade{ Util::MakeBuiltinType(Typedef::BuiltinType::Specifier::CHAR) }
+			, Valuedef::Value::ValueVariant2{ 12 } };
+
+		BOOST_CHECK(val2);
+
+		Valuedef::Value val3{ 0
+			, AST::TypeFacade{ Util::MakeBuiltinType(Typedef::BuiltinType::Specifier::CHAR) }
+		, Valuedef::Value::ValueVariant2{ 19 } };
+
+		BOOST_CHECK(val3);
+
+		BOOST_REQUIRE_NE(val1, val2);
+		BOOST_REQUIRE_EQUAL(val1, val3);
 	}
 }
 
@@ -289,8 +309,14 @@ BOOST_AUTO_TEST_CASE(ValDefReworkRecord)
 		auto valStruct = Util::MakeStruct(std::move(record));
 
 		BOOST_CHECK(!valStruct.Empty());
-		//valStruct.As2<Valuedef::RecordValue>();
+		auto q = valStruct.As2<Valuedef::RecordValue>();
 	}
+}
+
+BOOST_AUTO_TEST_CASE(ValDefReworkMisc)
+{
+	static_assert(std::is_copy_constructible<Valuedef::Value>::value, "Valuedef::Value lacks special member function: copy");
+	static_assert(std::is_move_constructible<Valuedef::Value>::value, "Valuedef::Value lacks special member function: move");
 }
 
 BOOST_AUTO_TEST_SUITE_END()

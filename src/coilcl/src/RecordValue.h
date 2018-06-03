@@ -38,6 +38,7 @@ public:
 	{
 	}
 
+	// Add field to record
 	void AddField(std::pair<std::string, std::shared_ptr<Value>>&& val)
 	{
 		if (HasField(val.first)) {
@@ -46,6 +47,7 @@ public:
 		m_fields.push_back(std::move(val));
 	}
 
+	// Add field to record directly
 	template<typename... ArgsType>
 	void EmplaceField(ArgsType&&... args)
 	{
@@ -70,6 +72,12 @@ public:
 		{
 			return pair.first == name;
 		});
+	}
+
+	bool operator==(const RecordValue& other) const
+	{
+		return m_name == other.m_name
+			&& m_fields == other.m_fields;
 	}
 
 	template<typename Type>
