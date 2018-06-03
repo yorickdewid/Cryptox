@@ -1268,7 +1268,7 @@ class ScopedRoutine
 		case AST::NodeID::IMPLICIT_CONVERTION_EXPR_ID: {
 			auto convRef = Util::NodeCast<ImplicitConvertionExpr>(node);
 			CRY_UNUSED(convRef);
-			return Util::MakeVoid(); //TODO: for now
+			return Util::MakeInt(12); //TODO: for now
 		}
 
 		default:
@@ -1614,7 +1614,8 @@ class ScopedRoutine
 	{
 		// Create explicit return type
 		if (!node->HasExpression()) {
-			ctx->CreateSpecialVar<RETURN_VALUE>(CoilCl::Util::MakeVoid());
+			//TODO: Why not empty?
+			//ctx->CreateSpecialVar<RETURN_VALUE>(CoilCl::Util::MakeVoid());
 			return;
 		}
 

@@ -316,6 +316,7 @@ Typedef::BaseType MakeType(std::vector<uint8_t>&& in)
 		break;
 	}
 	case TypedefBase::TypeVariation::POINTER: {
+		//TODO:
 		break;
 	}
 	case TypedefBase::TypeVariation::INVAL:

@@ -10,6 +10,7 @@
 
 #include "TypeFacade.h"
 #include "Typedef.h" //TODO: remove
+#include "RecordValue.h"
 
 #include <Cry/Serialize.h>
 
@@ -29,8 +30,8 @@
 #define CaptureValue(s) Util::CaptureValueRaw(std::move(s))
 
 //TODO:
-// - Void value
 // - struct/union value
+// - Serialize/Deserialize
 // - Cleanup old obsolete code
 
 namespace CoilCl
@@ -44,8 +45,6 @@ struct ValueFactory;
 
 namespace Valuedef
 {
-
-class Value;
 
 namespace Trait {
 
@@ -91,8 +90,8 @@ class Value //TODO: mark each value with an unique id
 
 public:
 	using ValueVariant = boost::variant<int, char, float, double, bool, std::string>; //OBSOLETE: REMOVE: TODO:
-	using ValueVariant2 = boost::variant<int, char, float, double, bool>;
-	using ValueVariant3 = boost::variant<std::vector<int>
+	using ValueVariant2 = boost::variant<int, char, float, double, bool>; //TODO: rename
+	using ValueVariant3 = boost::variant<std::vector<int> //TODO: rename
 		, std::vector<char>
 		, std::vector<float>
 		, std::vector<double>
@@ -122,7 +121,7 @@ protected:
 	// as close to the actual data type specifier.
 	ValueVariant m_value; //OBSOLETE: REMOVE: TODO:
 
-	struct ValueSelect
+	struct ValueSelect final
 	{
 		ValueSelect() = default; //TODO: for now
 		ValueSelect(ValueVariant2 value)
@@ -135,6 +134,11 @@ protected:
 		{
 		}
 
+		ValueSelect(RecordValue value)
+			: recordValue{ value }
+		{
+		}
+
 		ValueSelect(Value&& value)
 			: referenceValue{ std::make_shared<Value>(value) }
 		{
@@ -142,11 +146,15 @@ protected:
 
 		bool Empty() const noexcept
 		{
-			return !singleValue && !multiValue && !referenceValue;
+			return !singleValue
+				&& !multiValue
+				&& !recordValue
+				&& !referenceValue;
 		}
 
 		boost::optional<ValueVariant2> singleValue;
 		boost::optional<ValueVariant3> multiValue;
+		boost::optional<RecordValue> recordValue;
 		std::shared_ptr<Value> referenceValue;
 	} m_value3;
 
@@ -236,6 +244,8 @@ public:
 	Value(int, AST::TypeFacade, ValueVariant2&&);
 	// Value declaration and initialization
 	Value(int, AST::TypeFacade, ValueVariant3&&);
+	// Value declaration and initialization
+	Value(int, AST::TypeFacade, RecordValue&&);
 	// Pointer value declaration and initialization
 	Value(int, AST::TypeFacade, Value&&);
 
@@ -309,14 +319,9 @@ private:
 	AST::TypeFacade m_internalType;
 };
 
-template<typename _Ty, typename _ = void>
-class ValueObject;
-
+//TODO: OBSOLETE: REMOVE:
 template<typename _Ty>
-using ValueType = std::shared_ptr<ValueObject<_Ty>>;
-
-template<typename _Ty>
-class ValueObject<_Ty, /*Trait::IsBuiltinType<_Ty>*/ void>
+class ValueObject
 	: public Value
 {
 	using _Myty = ValueObject<_Ty>;
@@ -340,35 +345,9 @@ public:
 	}
 };
 
-template<>
-class ValueObject<void, void> : public Value
-{
-	using Specifier = Typedef::BuiltinType::Specifier;
-	using _Myty = ValueObject<void>;
-
-public:
-	ValueObject()
-		: Value{ Util::MakeBuiltinType(Specifier::VOID_T) }
-	{
-		static_assert(sizeof(_Myty) == sizeof(Value), "");
-	}
-
-	virtual const std::string Print() const override
-	{
-		return typeid(void).name();
-	}
-
-	friend std::ostream& operator<<(std::ostream& os, const _Myty& value)
-	{
-		os << value.Print();
-		return os;
-	}
-
-	static ValueType<void> Deserialize(Cry::ByteArray&)
-	{
-		return std::make_shared<Valuedef::ValueObject<void>>();
-	}
-};
+//TODO: OBSOLETE: REMOVE:
+template<typename _Ty>
+using ValueType = std::shared_ptr<ValueObject<_Ty>>;
 
 namespace Detail
 {
@@ -446,8 +425,7 @@ inline Valuedef::Value ValueDeductor::ConvertNativeType(bool value)
 template<>
 inline Valuedef::Value ValueDeductor::ConvertNativeType(Valuedef::Value value)
 {
-	CRY_UNUSED(value);
-	return Valuedef::Value{ 0, AST::TypeFacade{ Util::MakePointerType() }, Valuedef::Value::ValueVariant2{ 12 } };
+	return Valuedef::Value{ 0, AST::TypeFacade{ Util::MakePointerType() }, std::move(value) };
 }
 
 //

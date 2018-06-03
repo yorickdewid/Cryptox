@@ -127,10 +127,6 @@ inline auto MakeBool2(bool v)
 	const auto builtin = MakeBuiltinType(Typedef::BuiltinType::Specifier::BOOL);
 	return Value{ 0, AST::TypeFacade{ builtin }, Value::ValueVariant2{ std::move(v) } };
 }
-inline auto MakePointer(Value&& v)
-{
-	return Value{ 0, AST::TypeFacade{ MakePointerType() }, std::move(v) };
-}
 
 //
 // Create explicit array value with automatic type
@@ -161,6 +157,24 @@ inline auto MakeBoolArray(std::vector<bool> v)
 {
 	const auto builtin = MakeBuiltinType(Typedef::BuiltinType::Specifier::BOOL);
 	return Value{ 0, AST::TypeFacade{ builtin }, Value::ValueVariant3{ v } };
+}
+
+//
+// Create pointer to another value
+//
+
+inline auto MakePointer(Value&& v)
+{
+	return Value{ 0, AST::TypeFacade{ MakePointerType() }, std::move(v) };
+}
+
+//
+// Create explicit record value with automatic type
+//
+
+inline auto MakeStruct(const std::string& name, RecordValue&& v)
+{
+	return Value{ 0, AST::TypeFacade{ MakeRecordType(name, Typedef::RecordType::Specifier::STRUCT) }, std::move(v) };
 }
 
 //

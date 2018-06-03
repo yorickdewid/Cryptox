@@ -237,7 +237,7 @@ public:
 	};
 
 public:
-	RecordType(const std::string& name, Specifier specifier);
+	RecordType(const std::string& name, Specifier specifier = Specifier::STRUCT);
 
 	const std::string TypeName() const final
 	{

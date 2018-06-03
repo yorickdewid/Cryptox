@@ -47,6 +47,14 @@ Value::Value(int, AST::TypeFacade typeBase, ValueVariant3&& value)
 	, m_value3{ ValueSelect{ std::move(value) } }
 {
 }
+
+// Value declaration and initialization
+Value::Value(int, AST::TypeFacade typeBase, RecordValue&& value)
+	: m_internalType{ typeBase }
+	, m_value3{ ValueSelect{ std::move(value) } }
+{
+}
+// Value declaration and initialization
 Value::Value(int, AST::TypeFacade typeBase, Value&& value)
 	: m_internalType{ typeBase }
 	, m_value3{ ValueSelect{ std::move(value) } }
@@ -151,10 +159,6 @@ std::shared_ptr<CoilCl::Valuedef::Value> ValueCopy(const std::shared_ptr<CoilCl:
 
 bool EvaluateAsBoolean(std::shared_ptr<Valuedef::Value> value)
 {
-	//if (IsValueVoid(value)) {
-	//	CryImplExcept(); //TODO: void is non orthogonal
-	//}
-
 	if (IsValueArray(value)) {
 		CryImplExcept(); //TODO: cannot substitute array to void
 	}
@@ -172,10 +176,6 @@ bool EvaluateAsBoolean(std::shared_ptr<Valuedef::Value> value)
 
 int EvaluateValueAsInteger(std::shared_ptr<Valuedef::Value> value)
 {
-	//if (IsValueVoid(value)) {
-	//	CryImplExcept(); //TODO: cannot cast void to integer
-	//}
-
 	if (IsValueArray(value)) {
 		CryImplExcept(); //TODO: cannot substitute array to integer
 	}
@@ -211,7 +211,7 @@ std::shared_ptr<Valuedef::Value> ValueFactory::BaseValue(Cry::ByteArray& buffer)
 		CryImplExcept(); //TODO
 	}
 
-	bool isVoid = buffer.Deserialize<Cry::Byte>(Cry::ByteArray::AUTO);
+	//bool isVoid = buffer.Deserialize<Cry::Byte>(Cry::ByteArray::AUTO);
 	//size_t arraySize = buffer.Deserialize<Cry::Short>(Cry::ByteArray::AUTO);
 
 	Cry::ByteArray type;
@@ -224,17 +224,17 @@ std::shared_ptr<Valuedef::Value> ValueFactory::BaseValue(Cry::ByteArray& buffer)
 	}
 
 	std::shared_ptr<Valuedef::Value> value;
-	if (isVoid) {
+	/*if (isVoid) {
 		value = MakeVoid();
 	}
-	else {
-		Cry::ByteArray subBuffer{ buffer.cbegin() + buffer.Offset() + evSize, buffer.cend() };
-		Valuedef::TypePacker visitor{ subBuffer };
-		value = visitor.Unpack(ptr);
-		if (!value) {
-			CryImplExcept();
-		}
+	else {*/
+	Cry::ByteArray subBuffer{ buffer.cbegin() + buffer.Offset() + evSize, buffer.cend() };
+	Valuedef::TypePacker visitor{ subBuffer };
+	value = visitor.Unpack(ptr);
+	if (!value) {
+		CryImplExcept();
 	}
+	//}
 
 	//value->m_arraySize = arraySize;
 	return value;

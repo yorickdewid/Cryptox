@@ -249,13 +249,29 @@ BOOST_AUTO_TEST_CASE(ValDefReworkPointer)
 	{
 		std::vector<double> _valDoubleArray{ 923, 1192.23, 7.873123, 9.716289 };
 		auto valDoubleArray = CaptureValue(_valDoubleArray);
-		auto valPtr = Util::MakePointer(std::move(valDoubleArray));
+		auto valPtr = CaptureValue(valDoubleArray);
 
 		BOOST_CHECK(!valPtr.Empty());
 		BOOST_REQUIRE(valPtr.IsReference());
 		BOOST_REQUIRE(!valPtr.IsArray());
 		BOOST_REQUIRE(valPtr.As2<Valuedef::Value>().IsArray());
 		BOOST_REQUIRE(_valDoubleArray == valPtr.As2<Valuedef::Value>().As2<std::vector<double>>());
+	}
+}
+
+BOOST_AUTO_TEST_CASE(ValDefReworkRecord)
+{
+	{
+		auto valInt = Util::MakeInt2(1547483642);
+		auto valFloatArray = Util::MakeFloatArray({ 125.233f, 1.9812f, 89.8612f });
+
+		Valuedef::RecordValue record;
+		record.AddField({ "i", std::make_shared<Valuedef::Value>(valInt) });
+		record.AddField({ "j", std::make_shared<Valuedef::Value>(valFloatArray) });
+
+		auto valStruct = Util::MakeStruct("somename", std::move(record));
+
+		BOOST_CHECK(!valStruct.Empty());
 	}
 }
 
