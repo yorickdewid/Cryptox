@@ -262,16 +262,34 @@ BOOST_AUTO_TEST_CASE(ValDefReworkPointer)
 BOOST_AUTO_TEST_CASE(ValDefReworkRecord)
 {
 	{
-		auto valInt = Util::MakeInt2(1547483642);
+		Valuedef::RecordValue anonRecord;
+		anonRecord.EmplaceField("field", Valuedef::RecordValue::Value(Util::MakeInt2(12)));
+
+		BOOST_REQUIRE(!anonRecord.HasRecordName());
+		BOOST_REQUIRE_EQUAL(anonRecord.Size(), 1);
+	}
+
+	{
+		auto value = Valuedef::RecordValue::Value(Util::MakeInt2(81827));
+
+		Valuedef::RecordValue record{ "record" };
+		record.AddField({ "i", value });
+
+		BOOST_REQUIRE_THROW(record.AddField({ "i", value }), Valuedef::RecordValue::FieldExistException);
+	}
+
+	{
+		auto valInt = Util::MakeInt2(4234761);
 		auto valFloatArray = Util::MakeFloatArray({ 125.233f, 1.9812f, 89.8612f });
 
-		Valuedef::RecordValue record;
-		record.AddField({ "i", std::make_shared<Valuedef::Value>(valInt) });
-		record.AddField({ "j", std::make_shared<Valuedef::Value>(valFloatArray) });
+		Valuedef::RecordValue record{ "somestruct" };
+		record.AddField({ "i", Valuedef::RecordValue::Value(valInt) });
+		record.AddField({ "j", Valuedef::RecordValue::Value(valFloatArray) });
 
-		auto valStruct = Util::MakeStruct("somename", std::move(record));
+		auto valStruct = Util::MakeStruct(std::move(record));
 
 		BOOST_CHECK(!valStruct.Empty());
+		//valStruct.As2<Valuedef::RecordValue>();
 	}
 }
 

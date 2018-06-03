@@ -18,48 +18,65 @@ namespace Valuedef
 
 class Value;
 
-//template<class Type>
-//class ucp_ptr {
-//	std::unique_ptr<Type> m_ptr;
-//
-//public:
-//	ucp_ptr() = default;
-//	ucp_ptr(const ucp_ptr& other)
-//	{
-//		//m_ptr = std::move(other.m_ptr);
-//	};
-//	ucp_ptr(ucp_ptr&&) = default;
-//	
-//	ucp_ptr(Type *ptr)
-//		: m_ptr{ ptr }
-//	{
-//	};
-//	ucp_ptr(std::unique_ptr<Type>&& other)
-//		: m_ptr(std::move(other))
-//	{
-//	};
-//
-//	Type& operator*() { return m_ptr.get(); }
-//	const Type& operator*() const { return m_ptr.get(); }
-//
-//	Type* operator->() { return m_ptr.get(); }
-//	const Type* operator->() const { return m_ptr.get(); }
-//};
-
-//static_assert(std::is_copy_constructible<ucp_ptr<int>>::value, "!is_copy_constructible");
-//static_assert(std::is_move_constructible<ucp_ptr<int>>::value, "!is_move_constructible");
-
+// Pointer to the value since value is not yet defined. The fields are kept in
+// a vector since the order of fields is important.
 class RecordValue
 {
+	const std::string m_name;
 	std::vector<std::pair<std::string, std::shared_ptr<Value>>> m_fields;
 
 public:
+	struct FieldExistException : public std::exception
+	{
+		//
+	};
+
+public:
+	RecordValue() = default;
+	RecordValue(const std::string& name)
+		: m_name{ name }
+	{
+	}
+
 	void AddField(std::pair<std::string, std::shared_ptr<Value>>&& val)
 	{
+		if (HasField(val.first)) {
+			throw FieldExistException{};
+		}
 		m_fields.push_back(std::move(val));
 	}
 
+	template<typename... ArgsType>
+	void EmplaceField(ArgsType&&... args)
+	{
+		m_fields.emplace_back(std::forward<ArgsType>(args)...);
+	}
+	
+	// Check if record has name
+	bool HasRecordName() const noexcept { return !m_name.empty(); }
+	// Get record name
+	std::string RecordName() const noexcept { return m_name; }
+	// Return number of fields
 	size_t Size() const noexcept { return m_fields.size(); }
+	// Get the value by index
+	std::shared_ptr<Value> At(size_t idx) const { m_fields.at(idx).second; }
+	// Get the value by index
+	std::shared_ptr<Value> operator[](size_t idx) const { return m_fields.at(idx).second; }
+
+	// Check if field with name already exists in this record
+	bool HasField(const std::string& name) const
+	{
+		return std::any_of(m_fields.cbegin(), m_fields.cend(), [=](const decltype(m_fields)::value_type& pair)
+		{
+			return pair.first == name;
+		});
+	}
+
+	template<typename Type>
+	inline static auto Value(Type val) -> std::shared_ptr<Type>
+	{
+		return std::make_shared<Type>(val);
+	}
 };
 
 } // namespace Valuedef
