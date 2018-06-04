@@ -89,6 +89,7 @@ BOOST_AUTO_TEST_CASE(ValDefBasicReworkDissected)
 		auto builtin = Util::MakeBuiltinType(Typedef::BuiltinType::Specifier::SHORT);
 		Valuedef::Value val{ 0, AST::TypeFacade{ builtin } };
 
+		BOOST_CHECK(!val);
 		BOOST_CHECK(val.Empty());
 		BOOST_CHECK_THROW(val.As2<char>(), Valuedef::Value::UninitializedValueException);
 	}
@@ -282,11 +283,16 @@ BOOST_AUTO_TEST_CASE(ValDefReworkPointer)
 BOOST_AUTO_TEST_CASE(ValDefReworkRecord)
 {
 	{
+		auto valInt = Util::MakeInt2(12);
 		Valuedef::RecordValue anonRecord;
-		anonRecord.EmplaceField("field", Valuedef::RecordValue::Value(Util::MakeInt2(12)));
+		anonRecord.EmplaceField("field", Valuedef::RecordValue::Value(valInt));
 
 		BOOST_REQUIRE(!anonRecord.HasRecordName());
 		BOOST_REQUIRE_EQUAL(anonRecord.Size(), 1);
+
+		Valuedef::RecordValue anonRecord2;
+		anonRecord2.EmplaceField("field", Valuedef::RecordValue::Value(valInt));
+		BOOST_REQUIRE_EQUAL(anonRecord, anonRecord2);
 	}
 
 	{

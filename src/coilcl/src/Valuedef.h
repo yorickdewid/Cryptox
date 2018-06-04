@@ -348,7 +348,9 @@ public:
 	bool operator!=(const Value&) const;
 
 	// Check if an value was set
-	operator bool() const { return !Empty(); }
+	inline operator bool() const { return !Empty(); }
+	// Check if an value was set
+	inline bool operator!() const { return Empty(); }
 
 	friend std::ostream& operator<<(std::ostream&, const Value&);
 

@@ -53,7 +53,7 @@ public:
 	{
 		m_fields.emplace_back(std::forward<ArgsType>(args)...);
 	}
-	
+
 	// Check if record has name
 	bool HasRecordName() const noexcept { return !m_name.empty(); }
 	// Get record name
@@ -76,8 +76,25 @@ public:
 
 	bool operator==(const RecordValue& other) const
 	{
-		return m_name == other.m_name
-			&& m_fields == other.m_fields;
+		if (m_name != other.m_name) { return false; }
+		if (m_fields.size() != other.m_fields.size()) { return false; }
+		if (m_fields.empty() || other.m_fields.empty()) {
+			return m_fields.empty() == other.m_fields.empty();
+		}
+
+		return std::equal(m_fields.cbegin(), m_fields.cend()
+			, other.m_fields.cbegin(), other.m_fields.cend()
+			, [](decltype(m_fields)::value_type itFirst, decltype(other.m_fields)::value_type itEnd)
+		{
+			return itFirst.first == itEnd.first;
+			//&& itFirst.second.get() == itEnd.second.get();
+		});
+	}
+
+	friend std::ostream& operator<<(std::ostream& os, const RecordValue& other)
+	{
+		os << other.HasRecordName() ? other.m_name : "<anonymous record>";
+		return os;
 	}
 
 	template<typename Type>
