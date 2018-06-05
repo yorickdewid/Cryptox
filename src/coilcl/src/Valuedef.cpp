@@ -194,6 +194,11 @@ bool EvaluateAsBoolean(std::shared_ptr<Valuedef::Value> value)
 	return false;
 }
 
+bool EvaluateValueAsBoolean(const Value& value)
+{
+	CryImplExcept();
+}
+
 int EvaluateValueAsInteger(std::shared_ptr<Valuedef::Value> value)
 {
 	if (IsValueArray(value)) {
@@ -210,14 +215,29 @@ int EvaluateValueAsInteger(std::shared_ptr<Valuedef::Value> value)
 	throw 1; //TODO:
 }
 
+int EvaluateValueAsInteger(const Value& value)
+{
+	CryImplExcept();
+}
+
 bool IsValueArray(std::shared_ptr<Valuedef::Value> value)
 {
 	return value->IsArray();
 }
 
+bool IsArray(const Value& value)
+{
+	return value.IsArray();
+}
+
 bool IsValueInitialized(std::shared_ptr<Valuedef::Value> value)
 {
 	return !value->Empty();
+}
+
+bool IsInitialized(const Value& value)
+{
+	return !value.Empty();
 }
 
 std::shared_ptr<Valuedef::Value> ValueFactory::BaseValue(Cry::ByteArray& buffer)

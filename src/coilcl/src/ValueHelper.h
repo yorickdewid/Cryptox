@@ -193,16 +193,36 @@ inline Value CaptureValueRaw(NativeType&& v)
 //
 
 // Create deep copy of value with the same contents
-std::shared_ptr<Value> ValueCopy(const std::shared_ptr<Value>&); //TODO: rewrite
+std::shared_ptr<Value> ValueCopy(const std::shared_ptr<Value>&); //TODO: rewrite //OBSOLTE: value can be copied without helper
 
 //
 // Query value properties
 //
 
+inline bool IsVoid(const Value&) { CryImplExcept(); }
+inline bool IsIntegral(const Value&) { CryImplExcept(); }
+inline bool IsFloatingPoint(const Value&) { CryImplExcept(); }
+bool IsArray(const Value&);
+inline bool IsEnum(const Value&) { CryImplExcept(); }
+inline bool IsUnion(const Value&) { CryImplExcept(); }
+inline bool IsPointer(const Value&) { CryImplExcept(); }
+
+inline bool IsConst(const Value&) { CryImplExcept(); }
+inline bool IsVolatile(const Value&) { CryImplExcept(); }
+
+inline bool IsSigned(const Value&) { CryImplExcept(); }
+inline bool IsUnsigned(const Value&) { CryImplExcept(); }
+
+inline bool IsSame(const Value&) { CryImplExcept(); }
+
+bool IsInitialized(const Value&);
+
 // Evaluate the value as either true or false
 bool EvaluateAsBoolean(std::shared_ptr<Value>);  //TODO: rename EvaluateValueAsBoolean
+bool EvaluateValueAsBoolean(const Value&);
 // Evaluate the value as an integer if possible
 int EvaluateValueAsInteger(std::shared_ptr<Value>);
+int EvaluateValueAsInteger(const Value&);
 // Test if the value is array type
 bool IsValueArray(std::shared_ptr<Value>);
 // Check if value is set
