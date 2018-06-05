@@ -125,6 +125,8 @@ protected:
 	struct ValueSelect final
 	{
 		ValueSelect() = default; //TODO: for now
+		ValueSelect(const ValueSelect&) = default;
+		ValueSelect(ValueSelect&&) = default;
 		ValueSelect(ValueVariant2 value)
 			: singleValue{ value }
 		{
@@ -169,6 +171,7 @@ protected:
 		}
 
 		ValueSelect& operator=(const ValueSelect&);
+		ValueSelect& operator=(ValueSelect&&);
 
 		// Check if an value was set
 		operator bool() const { return !Empty(); }

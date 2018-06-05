@@ -88,6 +88,25 @@ Value::ValueSelect& Value::ValueSelect::operator=(const ValueSelect& other)
 	return (*this);
 }
 
+Value::ValueSelect& Value::ValueSelect::operator=(ValueSelect&& other)
+{
+	if (other.singleValue) {
+		singleValue = std::move(other.singleValue);
+	}
+	if (other.multiValue) {
+		multiValue = std::move(other.multiValue);
+	}
+	if (other.recordValue) {
+		recordValue.emplace(other.recordValue.get());
+	}
+	if (referenceValue) {
+		referenceValue = std::move(other.referenceValue);
+	}
+
+	other.Clear();
+	return (*this);
+}
+
 namespace
 {
 
@@ -184,8 +203,7 @@ Value& Value::operator=(const Value& other)
 // Move other value into this value
 Value& Value::operator=(Value&& other)
 {
-	//m_value3 = std::move(other.m_value3);
-	other.m_value3.Clear();
+	m_value3 = std::move(other.m_value3);
 	return (*this);
 }
 

@@ -323,7 +323,18 @@ BOOST_AUTO_TEST_CASE(ValDefReworkRecord)
 
 BOOST_AUTO_TEST_CASE(ValDefReworkMisc)
 {
-	
+	{
+		auto valInt = Util::MakeInt2(982734);
+		valInt = Util::MakeInt2(17);
+		BOOST_REQUIRE_EQUAL(17, valInt.As2<int>());
+	}
+
+	{
+		auto valDouble = CaptureValue(8273.87123);
+		Valuedef::Value val2 = valDouble;
+		BOOST_CHECK(valDouble);
+		BOOST_REQUIRE_EQUAL(8273.87123, val2.As2<double>());
+	}
 }
 
 BOOST_AUTO_TEST_SUITE_END()
