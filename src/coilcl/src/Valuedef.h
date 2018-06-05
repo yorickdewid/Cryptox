@@ -145,6 +145,7 @@ protected:
 		{
 		}
 
+		// Check if all of the values are empty
 		bool Empty() const noexcept
 		{
 			return !singleValue
@@ -166,9 +167,14 @@ protected:
 		{
 			return !operator==(other);
 		}
-		
+
+		ValueSelect& operator=(const ValueSelect&);
+
 		// Check if an value was set
 		operator bool() const { return !Empty(); }
+
+		// Clear any values
+		void Clear();
 
 		boost::optional<ValueVariant2> singleValue;
 		boost::optional<ValueVariant3> multiValue;
@@ -342,6 +348,11 @@ public:
 	// Serialize the value into byte array
 	virtual const Cry::ByteArray Serialize() const;
 
+	// Copy other value into this value
+	Value& operator=(const Value&);
+	// Move other value into this value
+	Value& operator=(Value&&);
+
 	// Comparison equal operator
 	bool operator==(const Value&) const;
 	// Comparison not equal operator
@@ -359,6 +370,10 @@ private:
 	AST::TypeFacade m_internalType;
 };
 
+static_assert(std::is_copy_constructible<Value>::value, "Value !is_copy_constructible");
+static_assert(std::is_move_constructible<Value>::value, "Value !is_move_constructible");
+static_assert(std::is_copy_assignable<Value>::value, "Value !is_copy_assignable");
+static_assert(std::is_move_assignable<Value>::value, "Value !is_move_assignable");
 
 //TODO: OBSOLETE: REMOVE:
 template<typename _Ty>

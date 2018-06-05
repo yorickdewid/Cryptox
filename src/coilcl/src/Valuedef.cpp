@@ -61,6 +61,33 @@ Value::Value(int, AST::TypeFacade typeBase, Value&& value)
 {
 }
 
+void Value::ValueSelect::Clear()
+{
+	singleValue = boost::none;
+	multiValue = boost::none;
+	recordValue = boost::none;
+	referenceValue.reset();
+	assert(Empty());
+}
+
+Value::ValueSelect& Value::ValueSelect::operator=(const ValueSelect& other)
+{
+	if (other.singleValue) {
+		singleValue = other.singleValue;
+	}
+	if (other.multiValue) {
+		multiValue = other.multiValue;
+	}
+	if (other.recordValue) {
+		recordValue.emplace(other.recordValue.get());
+	}
+	if (referenceValue) {
+		referenceValue = other.referenceValue;
+	}
+
+	return (*this);
+}
+
 namespace
 {
 
@@ -147,6 +174,21 @@ const Cry::ByteArray Value::Serialize() const
 	return buffer;
 }
 
+// Copy other value into this value
+Value& Value::operator=(const Value& other)
+{
+	m_value3 = other.m_value3;
+	return (*this);
+}
+
+// Move other value into this value
+Value& Value::operator=(Value&& other)
+{
+	//m_value3 = std::move(other.m_value3);
+	other.m_value3.Clear();
+	return (*this);
+}
+
 // Comparison equal operator
 bool Value::operator==(const Value& other) const
 {
@@ -194,7 +236,7 @@ bool EvaluateAsBoolean(std::shared_ptr<Valuedef::Value> value)
 	return false;
 }
 
-bool EvaluateValueAsBoolean(const Value& value)
+bool EvaluateValueAsBoolean(const Value& /*value*/)
 {
 	CryImplExcept();
 }

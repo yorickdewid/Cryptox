@@ -312,17 +312,18 @@ BOOST_AUTO_TEST_CASE(ValDefReworkRecord)
 		record.AddField({ "i", Valuedef::RecordValue::Value(valInt) });
 		record.AddField({ "j", Valuedef::RecordValue::Value(valFloatArray) });
 
+		Valuedef::RecordValue record2{ record };
+
 		auto valStruct = Util::MakeStruct(std::move(record));
 
 		BOOST_CHECK(!valStruct.Empty());
-		auto q = valStruct.As2<Valuedef::RecordValue>();
+		BOOST_REQUIRE_EQUAL(record2, valStruct.As2<Valuedef::RecordValue>());
 	}
 }
 
 BOOST_AUTO_TEST_CASE(ValDefReworkMisc)
 {
-	static_assert(std::is_copy_constructible<Valuedef::Value>::value, "Valuedef::Value lacks special member function: copy");
-	static_assert(std::is_move_constructible<Valuedef::Value>::value, "Valuedef::Value lacks special member function: move");
+	
 }
 
 BOOST_AUTO_TEST_SUITE_END()

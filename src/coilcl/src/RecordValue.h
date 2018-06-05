@@ -104,5 +104,8 @@ public:
 	}
 };
 
+static_assert(std::is_copy_constructible<RecordValue>::value, "RecordValue !is_copy_constructible");
+static_assert(std::is_move_constructible<RecordValue>::value, "RecordValue !is_move_constructible");
+
 } // namespace Valuedef
 } // namespace CoilCl
