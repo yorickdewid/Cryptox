@@ -30,7 +30,6 @@
 #define CaptureValue(s) Util::CaptureValueRaw(std::move(s))
 
 //TODO:
-// - struct/union value
 // - Serialize/Deserialize
 // - Cleanup old obsolete code
 
@@ -270,8 +269,10 @@ private:
 
 public:
 	// Special member funcion, copy constructor
+	Value() {}
 	Value(const Value&) = default;
 	Value(Value&&) = default;
+
 	Value(Typedef::BaseType typeBase); //TODO: remove obsolete
 	Value(Typedef::BaseType typeBase, ValueVariant value); //TODO: remove obsolete
 
@@ -295,12 +296,12 @@ public:
 
 	// Swap-in native replacement value
 	template<typename NativeType>
-	void ReplaceValue(NativeType&& value) //TODO: fix name & allowed types
+	void ReplaceValue(NativeType&& value) //TODO: OBSOLETE: remove
 	{
 		m_value = ValueVariant{ std::forward<NativeType>(value) };
 	}
 	// Copy value from another value
-	void ReplaceValueWithValue(const Value& other) //TODO: fix name
+	void ReplaceValueWithValue(const Value& other) //TODO: OBSOLETE: remove
 	{
 		m_value = other.m_value;
 	}
@@ -330,13 +331,6 @@ public:
 	inline CastType As2() const
 	{
 		return ValueCastImp<CastType>(int{});
-	}
-
-	template<>
-	std::string As2() const
-	{
-		const auto value = ValueCastImp<std::vector<char>>(int{});
-		return std::string{ value.cbegin(), value.cend() };
 	}
 
 	//TODO: replace with global Cry::ToString()
@@ -372,6 +366,13 @@ private:
 	Typedef::BaseType m_objectType; //TODO: replace with typefacade to account for pointers
 	AST::TypeFacade m_internalType;
 };
+
+template<>
+inline std::string Value::As2() const
+{
+	const auto value = ValueCastImp<std::vector<char>>(int{});
+	return std::string{ value.cbegin(), value.cend() };
+}
 
 static_assert(std::is_copy_constructible<Value>::value, "Value !is_copy_constructible");
 static_assert(std::is_move_constructible<Value>::value, "Value !is_move_constructible");

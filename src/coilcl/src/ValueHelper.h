@@ -177,6 +177,11 @@ inline auto MakeStruct(RecordValue&& v, const std::string structName = {})
 	const std::string name = v.HasRecordName() ? v.RecordName() : structName;
 	return Value{ 0, AST::TypeFacade{ MakeRecordType(name, Typedef::RecordType::Specifier::STRUCT) }, std::move(v) };
 }
+inline auto MakeUnion(RecordValue&& v, const std::string structName = {})
+{
+	const std::string name = v.HasRecordName() ? v.RecordName() : structName;
+	return Value{ 0, AST::TypeFacade{ MakeRecordType(name, Typedef::RecordType::Specifier::UNION) }, std::move(v) };
+}
 
 //
 // Create implicit value with automatic type
