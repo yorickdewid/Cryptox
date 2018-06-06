@@ -35,6 +35,7 @@ add_library(${PROJECT_NAME} SHARED
 	"../coilcl/src/Valuedef.cpp"
 	"../coilcl/src/Typedef.cpp"
 	"../coilcl/src/TypeFacade.cpp"
+	"../coilcl/src/RecordValue.cpp"
 )
 
 # Define output directories

@@ -192,6 +192,11 @@ inline Value CaptureValueRaw(NativeType&& v)
 {
 	return Detail::ValueDeductor{}(std::forward<NativeType>(v));
 }
+//template<typename NativeType>
+//inline Value MakeUninitialized()
+//{
+//	return Detail::ValueDeductor{}(std::forward<NativeType>());
+//}
 
 //
 // Change value internals
@@ -201,24 +206,25 @@ inline Value CaptureValueRaw(NativeType&& v)
 std::shared_ptr<Value> ValueCopy(const std::shared_ptr<Value>&); //TODO: rewrite //OBSOLTE: value can be copied without helper
 
 //
-// Query value properties
+// Query value and type properties
 //
 
-inline bool IsVoid(const Value&) { CryImplExcept(); }
-inline bool IsIntegral(const Value&) { CryImplExcept(); }
-inline bool IsFloatingPoint(const Value&) { CryImplExcept(); }
+bool IsVoid(const Value&);
+bool IsIntegral(const Value&);
+bool IsFloatingPoint(const Value&);
 bool IsArray(const Value&);
-inline bool IsEnum(const Value&) { CryImplExcept(); }
-inline bool IsUnion(const Value&) { CryImplExcept(); }
-inline bool IsPointer(const Value&) { CryImplExcept(); }
+bool IsEnum(const Value&);
+bool IsStruct(const Value&);
+bool IsUnion(const Value&);
+bool IsPointer(const Value&);
 
-inline bool IsConst(const Value&) { CryImplExcept(); }
-inline bool IsVolatile(const Value&) { CryImplExcept(); }
+bool IsConst(const Value&);
+bool IsVolatile(const Value&);
 
-inline bool IsSigned(const Value&) { CryImplExcept(); }
-inline bool IsUnsigned(const Value&) { CryImplExcept(); }
+bool IsSigned(const Value&);
+bool IsUnsigned(const Value&);
 
-inline bool IsSame(const Value&) { CryImplExcept(); }
+bool IsSame(const Value&, const Value&);
 
 bool IsInitialized(const Value&);
 

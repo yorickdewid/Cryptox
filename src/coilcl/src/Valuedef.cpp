@@ -292,11 +292,6 @@ bool IsValueArray(std::shared_ptr<Valuedef::Value> value)
 	return value->IsArray();
 }
 
-bool IsArray(const Value& value)
-{
-	return value.IsArray();
-}
-
 bool IsValueInitialized(std::shared_ptr<Valuedef::Value> value)
 {
 	return !value->Empty();
@@ -306,6 +301,68 @@ bool IsInitialized(const Value& value)
 {
 	return !value.Empty();
 }
+
+//
+// Query value and type properties
+//
+
+bool IsVoid(const Value& value)
+{
+	//value.Type()->
+	CryImplExcept();
+}
+bool IsIntegral(const Value& value)
+{
+	CryImplExcept();
+}
+bool IsFloatingPoint(const Value& value)
+{
+	CryImplExcept();
+}
+bool IsArray(const Value& value)
+{
+	return value.IsArray();
+}
+bool IsEnum(const Value& value)
+{
+	CryImplExcept();
+}
+bool IsStruct(const Value& value)
+{
+	CryImplExcept();
+}
+bool IsUnion(const Value& value)
+{
+	CryImplExcept();
+}
+bool IsPointer(const Value& value)
+{
+	return value.IsReference();
+}
+bool IsConst(const Value&)
+{
+	CryImplExcept();
+}
+bool IsVolatile(const Value&)
+{
+	CryImplExcept();
+}
+bool IsSigned(const Value&)
+{
+	CryImplExcept();
+}
+bool IsUnsigned(const Value&)
+{
+	CryImplExcept();
+}
+bool IsSame(const Value& lhs, const Value& rhs)
+{
+	return lhs == rhs;
+}
+
+//
+// /
+//
 
 std::shared_ptr<Valuedef::Value> ValueFactory::BaseValue(Cry::ByteArray& buffer)
 {

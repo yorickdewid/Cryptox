@@ -10,6 +10,8 @@
 
 #include <vector>
 #include <memory>
+#include <ostream>
+#include <string>
 
 namespace CoilCl
 {
@@ -81,11 +83,11 @@ public:
 		return Compare(other);
 	}
 
-	/*friend std::ostream& operator<<(std::ostream& os, const RecordValue& other)
+	friend std::ostream& operator<<(std::ostream& os, const RecordValue& other)
 	{
 		os << (other.HasRecordName() ? other.m_name : "<anonymous record>");
 		return os;
-	}*/
+	}
 
 	template<typename Type>
 	inline static auto Value(Type val) -> std::shared_ptr<Type>
