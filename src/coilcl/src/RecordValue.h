@@ -25,10 +25,18 @@ class RecordValue
 	const std::string m_name;
 	std::vector<std::pair<std::string, std::shared_ptr<Value>>> m_fields;
 
+	bool Compare(const RecordValue&) const;
+
 public:
 	struct FieldExistException : public std::exception
 	{
-		//
+		const std::string m_field;
+		FieldExistException(const std::string& field)
+			: m_field{ field }
+		{
+		}
+
+		inline std::string Field() const noexcept { return m_field; }
 	};
 
 public:
@@ -42,7 +50,7 @@ public:
 	void AddField(std::pair<std::string, std::shared_ptr<Value>>&& val)
 	{
 		if (HasField(val.first)) {
-			throw FieldExistException{};
+			throw FieldExistException{ val.first };
 		}
 		m_fields.push_back(std::move(val));
 	}
@@ -66,36 +74,18 @@ public:
 	std::shared_ptr<Value> operator[](size_t idx) const { return m_fields.at(idx).second; }
 
 	// Check if field with name already exists in this record
-	bool HasField(const std::string& name) const
-	{
-		return std::any_of(m_fields.cbegin(), m_fields.cend(), [=](const decltype(m_fields)::value_type& pair)
-		{
-			return pair.first == name;
-		});
-	}
+	bool HasField(const std::string&) const;
 
 	bool operator==(const RecordValue& other) const
 	{
-		if (m_name != other.m_name) { return false; }
-		if (m_fields.size() != other.m_fields.size()) { return false; }
-		if (m_fields.empty() || other.m_fields.empty()) {
-			return m_fields.empty() == other.m_fields.empty();
-		}
-
-		return std::equal(m_fields.cbegin(), m_fields.cend()
-			, other.m_fields.cbegin(), other.m_fields.cend()
-			, [](decltype(m_fields)::value_type itFirst, decltype(other.m_fields)::value_type itEnd)
-		{
-			return itFirst.first == itEnd.first;
-			//&& itFirst.second.get() == itEnd.second.get();
-		});
+		return Compare(other);
 	}
 
-	friend std::ostream& operator<<(std::ostream& os, const RecordValue& other)
+	/*friend std::ostream& operator<<(std::ostream& os, const RecordValue& other)
 	{
-		os << other.HasRecordName() ? other.m_name : "<anonymous record>";
+		os << (other.HasRecordName() ? other.m_name : "<anonymous record>");
 		return os;
-	}
+	}*/
 
 	template<typename Type>
 	inline static auto Value(Type val) -> std::shared_ptr<Type>
