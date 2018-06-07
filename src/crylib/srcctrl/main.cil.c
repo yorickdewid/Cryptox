@@ -16,7 +16,7 @@
 int main() {
     
     /* My first program in C. */
-    printf("Hello, %s!\n", "world");
+    printf("Hello, %d!\n", 12);
     
     int i = CONSTANT;
     if (i >= 1) {

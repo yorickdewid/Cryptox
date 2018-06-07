@@ -296,6 +296,17 @@ BOOST_AUTO_TEST_CASE(ValDefReworkRecord)
 	}
 
 	{
+		auto valDouble = Util::MakeDouble2(8723.7612);
+		Valuedef::RecordValue record{ "testrec" };
+		record.EmplaceField("i", Valuedef::RecordValue::Value(valDouble));
+
+		auto valDouble2 = Util::MakeDouble2(81.7213);
+		Valuedef::RecordValue record2{ "testrec" };
+		record2.EmplaceField("i", Valuedef::RecordValue::Value(valDouble2));
+		BOOST_REQUIRE_NE(record, record2);
+	}
+
+	{
 		auto value = Valuedef::RecordValue::Value(Util::MakeInt2(81827));
 
 		Valuedef::RecordValue record{ "record" };

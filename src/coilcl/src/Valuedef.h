@@ -21,17 +21,10 @@
 
 #include <string>
 
-#ifdef CRY_DEBUG
-#include <iostream>
-#define DUMP_VALUE(v) \
-	std::cout << v->DataType()->TypeName() << " >> " << v->Print() << std::endl;
-#endif
-
-#define CaptureValue(s) Util::CaptureValueRaw(std::move(s))
-
 //TODO:
 // - Serialize/Deserialize
 // - Cleanup old obsolete code
+// - IsConvertable/Converter
 
 namespace CoilCl
 {

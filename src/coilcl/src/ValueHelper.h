@@ -10,13 +10,6 @@
 
 #include "Valuedef.h"
 
-//#include <boost/any.hpp> //TODO: Why?
-//#include <boost/variant.hpp>
-//#include <boost/optional.hpp>
-//#include <boost/lexical_cast.hpp>
-
-//#include <string>
-
 #ifdef CRY_DEBUG
 #include <iostream>
 #define DUMP_VALUE(v) \
@@ -24,11 +17,6 @@
 #endif
 
 #define CaptureValue(s) Util::CaptureValueRaw(std::move(s))
-
-//TODO:
-// - Void value
-// - struct/union value
-// - Cleanup old obsolete code
 
 namespace CoilCl
 {

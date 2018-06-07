@@ -34,6 +34,6 @@ bool RecordValue::Compare(const RecordValue& other) const
 		, [](decltype(m_fields)::value_type itFirst, decltype(other.m_fields)::value_type itEnd)
 	{
 		return itFirst.first == itEnd.first
-			&& itFirst.second.get() == itEnd.second.get();
+			&& ((*itFirst.second) == (*itEnd.second));
 	});
 }
