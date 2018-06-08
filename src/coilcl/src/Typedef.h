@@ -21,12 +21,21 @@
 
 namespace CoilCl
 {
+
+namespace AST
+{
+
+class TypeFacade;
+
+} // namespace AST
+
 namespace Typedef
 {
 
 class TypedefBase;
 
 using BaseType = std::shared_ptr<Typedef::TypedefBase>;
+using BaseType2 = std::shared_ptr<AST::TypeFacade>;
 
 class TypedefBase
 {
@@ -240,11 +249,19 @@ public:
 
 public:
 	RecordType(const std::string& name, Specifier specifier = Specifier::STRUCT);
+	//RecordType(const std::string& name, Specifier specifier, size_t elements, BaseType type);
 
 	const std::string TypeName() const final
 	{
 		return (m_specifier == Specifier::UNION ? "union " : "struct ") + m_name;
 	}
+
+	void AddField(const std::string& field, const BaseType2& type)
+	{
+		m_fields.push_back({ field, type });
+	}
+
+	inline size_t FieldSize() const noexcept { return m_fields.size(); }
 
 	bool AllowCoalescence() const final { return false; }
 	// Return the record specifier
@@ -265,6 +282,7 @@ public:
 private:
 	std::string m_name;
 	Specifier m_specifier;
+	std::vector<std::pair<std::string, BaseType2>> m_fields;
 };
 
 class TypedefType : public TypedefBase
@@ -317,6 +335,7 @@ public:
 	}
 };
 
+//TODO: How about no?
 class PointerType : public TypedefBase
 {
 	REGISTER_TYPE(POINTER);

@@ -308,12 +308,16 @@ public:
 	AST::TypeFacade Type() const { return m_internalType; }
 
 	// Check if current storage type is array
-	inline bool IsArray() const { return !!m_value3.multiValue; } //TODO: refactor
-	inline bool IsReference() const { return !!m_value3.referenceValue; } //TODO: refactor
-	inline size_t Size() const noexcept { return 0; /* m_array.size();*/ } //TOOD:
-
+	//inline bool IsArray() const { return !!m_value3.multiValue; } //TODO: refactor & remove
+	//inline size_t Size() const noexcept { return 0; /* m_array.size();*/ } //TOOD:
+	
+	// Check if current value is an pointer
+	inline bool IsReference() const { return !!m_value3.referenceValue; } //TODO: refactor & remove in lieu of Typedef
 	// Check if value is empty
 	inline bool Empty() const noexcept { return m_value3.Empty(); }
+
+	//TODO: REMOVE: OBSOLETE:
+	inline bool IsArray() const noexcept { return false; }
 
 	// By default try direct cast from variant, if the cast fails
 	// a bad casting exception is thrown.

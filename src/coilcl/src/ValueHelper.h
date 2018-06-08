@@ -197,20 +197,12 @@ std::shared_ptr<Value> ValueCopy(const std::shared_ptr<Value>&); //TODO: rewrite
 // Query value and type properties
 //
 
-bool IsArray(const Value&);
-
-bool IsInitialized(const Value&);
-
 // Evaluate the value as either true or false
-bool EvaluateAsBoolean(std::shared_ptr<Value>);  //TODO: rename EvaluateValueAsBoolean
+bool EvaluateAsBoolean(std::shared_ptr<Value>); //TODO: OBSOLETE: REMOVE:
 bool EvaluateValueAsBoolean(const Value&);
 // Evaluate the value as an integer if possible
 int EvaluateValueAsInteger(std::shared_ptr<Value>);
 int EvaluateValueAsInteger(const Value&);
-// Test if the value is array type
-bool IsValueArray(std::shared_ptr<Value>);
-// Check if value is set
-bool IsValueInitialized(std::shared_ptr<Value>);
 
 } // namespace Util
 } // namespace CoilCl

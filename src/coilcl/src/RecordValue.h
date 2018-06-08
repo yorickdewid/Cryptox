@@ -70,8 +70,10 @@ public:
 	std::string RecordName() const noexcept { return m_name; }
 	// Return number of fields
 	size_t Size() const noexcept { return m_fields.size(); }
+	// Get the fieldname by index
+	const std::string FieldName(size_t idx) const { return m_fields.at(idx).first; }
 	// Get the value by index
-	std::shared_ptr<Value> At(size_t idx) const { m_fields.at(idx).second; }
+	std::shared_ptr<Value> At(size_t idx) const { return m_fields.at(idx).second; }
 	// Get the value by index
 	std::shared_ptr<Value> operator[](size_t idx) const { return m_fields.at(idx).second; }
 

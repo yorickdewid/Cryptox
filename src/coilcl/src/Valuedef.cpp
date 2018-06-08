@@ -46,6 +46,7 @@ Value::Value(int, AST::TypeFacade typeBase, ValueVariant3&& value)
 	: m_internalType{ typeBase }
 	, m_value3{ ValueSelect{ std::move(value) } }
 {
+	m_internalType.SetArraySize(1);
 }
 
 // Value declaration and initialization
@@ -53,6 +54,15 @@ Value::Value(int, AST::TypeFacade typeBase, RecordValue&& value)
 	: m_internalType{ typeBase }
 	, m_value3{ ValueSelect{ std::move(value) } }
 {
+	auto *record = dynamic_cast<Typedef::RecordType *>(m_internalType.operator->());
+	assert(record);
+
+	//FUTURE: improve this structure and copy the record with transform to recordtype
+	const auto recordValue = As2<RecordValue>();
+	for (size_t i = 0; i < recordValue.Size(); ++i) {
+		const auto fieldTypeFacade = std::make_shared<AST::TypeFacade>(recordValue.At(i)->Type());
+		record->AddField(recordValue.FieldName(i), fieldTypeFacade);
+	}
 }
 // Value declaration and initialization
 Value::Value(int, AST::TypeFacade typeBase, Value&& value)
@@ -246,9 +256,9 @@ std::shared_ptr<CoilCl::Valuedef::Value> ValueCopy(const std::shared_ptr<CoilCl:
 
 bool EvaluateAsBoolean(std::shared_ptr<Valuedef::Value> value)
 {
-	if (IsValueArray(value)) {
-		CryImplExcept(); //TODO: cannot substitute array to void
-	}
+	//if (IsValueArray(value)) {
+	//	CryImplExcept(); //TODO: cannot substitute array to void
+	//}
 
 	//FUTURE: this is expensive, replace try/catch
 	try {
@@ -268,9 +278,9 @@ bool EvaluateValueAsBoolean(const Value& /*value*/)
 
 int EvaluateValueAsInteger(std::shared_ptr<Valuedef::Value> value)
 {
-	if (IsValueArray(value)) {
-		CryImplExcept(); //TODO: cannot substitute array to integer
-	}
+	//if (IsValueArray(value)) {
+	//	CryImplExcept(); //TODO: cannot substitute array to integer
+	//}
 
 	//FUTURE: this is expensive, replace try/catch
 	//TODO: also cast double, float & char to int
@@ -282,82 +292,13 @@ int EvaluateValueAsInteger(std::shared_ptr<Valuedef::Value> value)
 	throw 1; //TODO:
 }
 
-int EvaluateValueAsInteger(const Value& value)
+int EvaluateValueAsInteger(const Value& /*value*/)
 {
 	CryImplExcept();
 }
 
-bool IsValueArray(std::shared_ptr<Valuedef::Value> value)
-{
-	return value->IsArray();
-}
-
-bool IsValueInitialized(std::shared_ptr<Valuedef::Value> value)
-{
-	return !value->Empty();
-}
-
-bool IsInitialized(const Value& value)
-{
-	return !value.Empty();
-}
-
 //
-// Query value and type properties
-//
-
-//bool IsVoid(const Value& value)
-//{
-//	//value.Type()->
-//	CryImplExcept();
-//}
-//bool IsIntegral(const Value& value)
-//{
-//	CryImplExcept();
-//}
-//bool IsFloatingPoint(const Value& value)
-//{
-//	CryImplExcept();
-//}
-bool IsArray(const Value& value)
-{
-	return value.IsArray();
-}
-//bool IsEnum(const Value& value)
-//{
-//	CryImplExcept();
-//}
-//bool IsStruct(const Value& value)
-//{
-//	CryImplExcept();
-//}
-//bool IsUnion(const Value& value)
-//{
-//	CryImplExcept();
-//}
-//bool IsPointer(const Value& value)
-//{
-//	return value.IsReference();
-//}
-//bool IsConst(const Value&)
-//{
-//	CryImplExcept();
-//}
-//bool IsVolatile(const Value&)
-//{
-//	CryImplExcept();
-//}
-//bool IsSigned(const Value&)
-//{
-//	CryImplExcept();
-//}
-//bool IsUnsigned(const Value&)
-//{
-//	CryImplExcept();
-//}
-
-//
-// /
+// ...
 //
 
 std::shared_ptr<Valuedef::Value> ValueFactory::BaseValue(Cry::ByteArray& buffer)
@@ -372,7 +313,6 @@ std::shared_ptr<Valuedef::Value> ValueFactory::BaseValue(Cry::ByteArray& buffer)
 	}
 
 	//bool isVoid = buffer.Deserialize<Cry::Byte>(Cry::ByteArray::AUTO);
-	//size_t arraySize = buffer.Deserialize<Cry::Short>(Cry::ByteArray::AUTO);
 
 	Cry::ByteArray type;
 	size_t evSize = buffer.Deserialize<Cry::Short>(Cry::ByteArray::AUTO);
@@ -396,7 +336,6 @@ std::shared_ptr<Valuedef::Value> ValueFactory::BaseValue(Cry::ByteArray& buffer)
 	}
 	//}
 
-	//value->m_arraySize = arraySize;
 	return value;
 }
 

@@ -180,6 +180,12 @@ RecordType::RecordType(const std::string& name, Specifier specifier)
 {
 }
 
+//RecordType::RecordType(const std::string& name, Specifier specifier, size_t elements, BaseType type);
+//	: m_name{ name }
+//	, m_specifier{ specifier }
+//{
+//}
+
 bool RecordType::Equals(TypedefBase* other) const
 {
 	auto self = dynamic_cast<RecordType*>(other);

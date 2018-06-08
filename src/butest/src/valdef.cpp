@@ -34,10 +34,10 @@ BOOST_AUTO_TEST_CASE(ValDefLegacyBasic)
 	auto valBool = Util::MakeBool(true);
 	//auto valVoid = Util::MakeVoid();
 
-	BOOST_CHECK(!Util::IsValueArray(valInt));
-	BOOST_CHECK(!Util::IsValueArray(valDouble));
-	BOOST_CHECK(!Util::IsValueArray(valChar));
-	BOOST_CHECK(!Util::IsValueArray(valBool));
+	//BOOST_CHECK(!Util::IsValueArray(valInt));
+	//BOOST_CHECK(!Util::IsValueArray(valDouble));
+	//BOOST_CHECK(!Util::IsValueArray(valChar));
+	//BOOST_CHECK(!Util::IsValueArray(valBool));
 
 	BOOST_REQUIRE_EQUAL(12, valInt->As<int>());
 	BOOST_REQUIRE_EQUAL(7123.7263812, valDouble->As<double>());
