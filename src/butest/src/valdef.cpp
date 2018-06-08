@@ -102,7 +102,7 @@ BOOST_AUTO_TEST_CASE(ValDefBasicReworkDissected)
 			, Valuedef::Value::ValueVariant3{ a } };
 
 		BOOST_CHECK(!val.Empty());
-		BOOST_CHECK(val.IsArray());
+		BOOST_CHECK(Util::IsArray(val.Type()));
 
 		std::vector<int> b = val.As2<std::vector<int>>();
 
@@ -117,7 +117,7 @@ BOOST_AUTO_TEST_CASE(ValDefBasicReworkDissected)
 			, Valuedef::Value::ValueVariant3{ a } };
 
 		BOOST_CHECK(!val.Empty());
-		BOOST_CHECK(val.IsArray());
+		BOOST_CHECK(Util::IsArray(val.Type()));
 
 		std::vector<char> b = val.As2<std::vector<char>>();
 
@@ -184,10 +184,10 @@ BOOST_AUTO_TEST_CASE(ValDefReworkDeclarationArray)
 	auto valDoubleArray = Util::MakeDoubleArray({ 1.8712, 873.655, 891.87316, 8712.8213 });
 	auto valBoolArray = Util::MakeBoolArray({ true, true, false, true, false, false });
 
-	BOOST_CHECK(valIntArray.IsArray());
-	BOOST_CHECK(valFloatArray.IsArray());
-	BOOST_CHECK(valDoubleArray.IsArray());
-	BOOST_CHECK(valBoolArray.IsArray());
+	BOOST_CHECK(Util::IsArray(valIntArray.Type()));
+	BOOST_CHECK(Util::IsArray(valFloatArray.Type()));
+	BOOST_CHECK(Util::IsArray(valDoubleArray.Type()));
+	BOOST_CHECK(Util::IsArray(valBoolArray.Type()));
 
 	BOOST_REQUIRE(_valIntArray == valIntArray.As2<std::vector<int>>());
 	BOOST_REQUIRE(_valFloatArray == valFloatArray.As2<std::vector<float>>());
@@ -275,7 +275,7 @@ BOOST_AUTO_TEST_CASE(ValDefReworkPointer)
 		BOOST_CHECK(!valPtr.Empty());
 		BOOST_REQUIRE(valPtr.IsReference());
 		BOOST_REQUIRE(!valPtr.IsArray());
-		BOOST_REQUIRE(valPtr.As2<Valuedef::Value>().IsArray());
+		BOOST_REQUIRE(Util::IsArray(valPtr.As2<Valuedef::Value>().Type()));
 		BOOST_REQUIRE(_valDoubleArray == valPtr.As2<Valuedef::Value>().As2<std::vector<double>>());
 	}
 }

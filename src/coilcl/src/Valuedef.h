@@ -262,7 +262,7 @@ private:
 
 public:
 	// Special member funcion, copy constructor
-	Value() {}
+	Value();
 	Value(const Value&) = default;
 	Value(Value&&) = default;
 
@@ -307,10 +307,6 @@ public:
 	// Access type information
 	AST::TypeFacade Type() const { return m_internalType; }
 
-	// Check if current storage type is array
-	//inline bool IsArray() const { return !!m_value3.multiValue; } //TODO: refactor & remove
-	//inline size_t Size() const noexcept { return 0; /* m_array.size();*/ } //TOOD:
-	
 	// Check if current value is an pointer
 	inline bool IsReference() const { return !!m_value3.referenceValue; } //TODO: refactor & remove in lieu of Typedef
 	// Check if value is empty

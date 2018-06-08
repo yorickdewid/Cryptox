@@ -320,7 +320,11 @@ class VariadicType : public TypedefBase
 public:
 	const std::string TypeName() const final { return "..."; }
 	bool AllowCoalescence() const final { return false; }
-	size_t UnboxedSize() const { return 0; }
+
+	size_t UnboxedSize() const
+	{
+		throw Cry::Except::UnsupportedOperationException{ "VariadicType::UnboxedSize" };
+	}
 
 	bool Equals(TypedefBase* other) const
 	{

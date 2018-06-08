@@ -19,6 +19,11 @@ namespace CoilCl
 namespace Valuedef
 {
 
+Value::Value()
+	: m_objectType{ Util::MakeBuiltinType(Typedef::BuiltinType::Specifier::INT) }
+{
+}
+
 Value::Value(Typedef::BaseType typeBase)
 	: m_objectType{ typeBase }
 {
@@ -64,6 +69,7 @@ Value::Value(int, AST::TypeFacade typeBase, RecordValue&& value)
 		record->AddField(recordValue.FieldName(i), fieldTypeFacade);
 	}
 }
+
 // Value declaration and initialization
 Value::Value(int, AST::TypeFacade typeBase, Value&& value)
 	: m_internalType{ typeBase }
