@@ -199,8 +199,6 @@ std::shared_ptr<Value> ValueCopy(const std::shared_ptr<Value>&); //TODO: rewrite
 
 bool IsArray(const Value&);
 
-bool IsSame(const Value&, const Value&);
-
 bool IsInitialized(const Value&);
 
 // Evaluate the value as either true or false

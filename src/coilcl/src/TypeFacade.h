@@ -22,6 +22,7 @@ class TypeFacade
 	Typedef::BaseType m_type; //TODO: Remove pointer if possible at all
 	//Typedef::TypedefBase& m_type2;
 	size_t m_ptrCount = 0;
+	size_t m_arrayElement = 0;
 
 public:
 	//FUTURE: maybe remove
@@ -39,6 +40,9 @@ public:
 	inline bool IsPointer() const noexcept { return m_ptrCount > 0; }
 	inline size_t PointerCount() const noexcept { return m_ptrCount; }
 	inline void SetPointer(size_t ptrCount) { m_ptrCount = ptrCount; }
+	inline bool IsArray() const noexcept { return m_arrayElement > 0; }
+	inline size_t ArraySize() const noexcept { return m_arrayElement; }
+	inline void SetArraySize(size_t element) { m_arrayElement = element; }
 	inline size_t Size() const { return m_type->UnboxedSize(); }
 
 	// Concat type base name and pointer counter for convenience
@@ -83,19 +87,25 @@ namespace Util
 
 inline bool IsVoid(const AST::TypeFacade& other)
 {
-	return false;
+	const auto *builtin = dynamic_cast<Typedef::BuiltinType *>(other.operator->());
+	if (!builtin) { return false; }
+	return builtin->TypeSpecifier() == Typedef::BuiltinType::Specifier::VOID_T;
 }
 inline bool IsIntegral(const AST::TypeFacade& other)
 {
-	return false;
+	const auto *builtin = dynamic_cast<Typedef::BuiltinType *>(other.operator->());
+	if (!builtin) { return false; }
+	return builtin->TypeSpecifier() == Typedef::BuiltinType::Specifier::INT;
 }
-inline bool IsFloatingPoint(const AST::TypeFacade& other)
+inline bool IsFloatingPoint(const AST::TypeFacade& other) noexcept
 {
-	return false;
+	const auto *builtin = dynamic_cast<Typedef::BuiltinType *>(other.operator->());
+	if (!builtin) { return false; }
+	return builtin->TypeSpecifier() == Typedef::BuiltinType::Specifier::FLOAT;
 }
 inline bool IsArray(const AST::TypeFacade& other)
 {
-	return false;
+	return other.IsArray();
 }
 inline bool IsEnum(const AST::TypeFacade& other)
 {
@@ -103,11 +113,15 @@ inline bool IsEnum(const AST::TypeFacade& other)
 }
 inline bool IsStruct(const AST::TypeFacade& other)
 {
-	return false;
+	const auto *record = dynamic_cast<Typedef::RecordType *>(other.operator->());
+	if (!record) { return false; }
+	return record->TypeSpecifier() == Typedef::RecordType::Specifier::STRUCT;
 }
 inline bool IsUnion(const AST::TypeFacade& other)
 {
-	return false;
+	const auto *record = dynamic_cast<Typedef::RecordType *>(other.operator->());
+	if (!record) { return false; }
+	return record->TypeSpecifier() == Typedef::RecordType::Specifier::UNION;
 }
 inline bool IsPointer(const AST::TypeFacade& other)
 {
