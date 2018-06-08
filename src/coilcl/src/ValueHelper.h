@@ -197,20 +197,7 @@ std::shared_ptr<Value> ValueCopy(const std::shared_ptr<Value>&); //TODO: rewrite
 // Query value and type properties
 //
 
-bool IsVoid(const Value&);
-bool IsIntegral(const Value&);
-bool IsFloatingPoint(const Value&);
 bool IsArray(const Value&);
-bool IsEnum(const Value&);
-bool IsStruct(const Value&);
-bool IsUnion(const Value&);
-bool IsPointer(const Value&);
-
-bool IsConst(const Value&);
-bool IsVolatile(const Value&);
-
-bool IsSigned(const Value&);
-bool IsUnsigned(const Value&);
 
 bool IsSame(const Value&, const Value&);
 

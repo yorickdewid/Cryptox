@@ -20,6 +20,7 @@ namespace AST //TODO: part of Typedef
 class TypeFacade
 {
 	Typedef::BaseType m_type; //TODO: Remove pointer if possible at all
+	//Typedef::TypedefBase& m_type2;
 	size_t m_ptrCount = 0;
 
 public:
@@ -80,46 +81,114 @@ private:
 namespace Util
 {
 
-template<typename InternalType>
-inline bool IsTypeStatic(const InternalType& type)
+inline bool IsVoid(const AST::TypeFacade& other)
 {
-	return type->StorageClass() == Typedef::TypedefBase::StorageClassSpecifier::STATIC;
+	return false;
 }
-template<typename InternalType>
-inline bool IsTypeExtern(const InternalType& type)
+inline bool IsIntegral(const AST::TypeFacade& other)
 {
-	return type->StorageClass() == Typedef::TypedefBase::StorageClassSpecifier::EXTERN;
+	return false;
 }
-template<typename InternalType>
-inline bool IsTypeRegister(const InternalType& type)
+inline bool IsFloatingPoint(const AST::TypeFacade& other)
 {
-	return type->StorageClass() == Typedef::TypedefBase::StorageClassSpecifier::REGISTER;
+	return false;
 }
-template<typename InternalType>
-inline bool IsTypeConst(const InternalType& type)
+inline bool IsArray(const AST::TypeFacade& other)
 {
-	for (const auto& qualifier : type->TypeQualifiers()) {
+	return false;
+}
+inline bool IsEnum(const AST::TypeFacade& other)
+{
+	return false;
+}
+inline bool IsStruct(const AST::TypeFacade& other)
+{
+	return false;
+}
+inline bool IsUnion(const AST::TypeFacade& other)
+{
+	return false;
+}
+inline bool IsPointer(const AST::TypeFacade& other)
+{
+	return other.IsPointer();
+}
+inline bool IsInline(const AST::TypeFacade& other)
+{
+	const auto *builtin = dynamic_cast<Typedef::BuiltinType *>(other.operator->());
+	if (!builtin) { return false; }
+	return builtin->IsInline();
+}
+inline bool IsStatic(const AST::TypeFacade& other)
+{
+	return other->StorageClass() == Typedef::TypedefBase::StorageClassSpecifier::STATIC;
+}
+inline bool IsExtern(const AST::TypeFacade& other)
+{
+	return other->StorageClass() == Typedef::TypedefBase::StorageClassSpecifier::EXTERN;
+}
+inline bool IsRegister(const AST::TypeFacade& other)
+{
+	return other->StorageClass() == Typedef::TypedefBase::StorageClassSpecifier::REGISTER;
+}
+inline bool IsConst(const AST::TypeFacade& other)
+{
+	for (const auto& qualifier : other->TypeQualifiers()) {
 		if (qualifier == Typedef::TypedefBase::TypeQualifier::CONST_T) {
 			return true;
 		}
 	}
 	return false;
 }
-template<typename InternalType>
-inline bool IsTypeVolatile(const InternalType& type)
+inline bool IsVolatile(const AST::TypeFacade& other)
 {
-	for (const auto& qualifier : type->TypeQualifiers()) {
+	for (const auto& qualifier : other->TypeQualifiers()) {
 		if (qualifier == Typedef::TypedefBase::TypeQualifier::VOLATILE) {
 			return true;
 		}
 	}
 	return false;
 }
-template<typename InternalType>
-inline bool IsTypePointer(const InternalType& type)
+inline bool IsSigned(const AST::TypeFacade& other)
 {
-	return type.IsPointer();
+	const auto *builtin = dynamic_cast<Typedef::BuiltinType *>(other.operator->());
+	if (!builtin) { return false; }
+	return builtin->Unsigned();
 }
+inline bool IsUnsigned(const AST::TypeFacade& other)
+{
+	return !IsSigned(other);
+}
+
+//TODO: Why pointer? Reference possible?
+
+//
+// Helpers to create types
+//
+
+inline auto MakeBuiltinType(Typedef::BuiltinType::Specifier specifier)
+{
+	return std::make_shared<Typedef::BuiltinType>(specifier);
+}
+inline auto MakeRecordType(const std::string& name, Typedef::RecordType::Specifier specifier)
+{
+	return std::make_shared<Typedef::RecordType>(name, specifier);
+}
+inline auto MakeTypedefType(const std::string& name, Typedef::BaseType& type)
+{
+	return std::make_shared<Typedef::TypedefType>(name, type);
+}
+inline auto MakeVariadicType()
+{
+	return std::make_shared<Typedef::VariadicType>();
+}
+inline auto MakePointerType()
+{
+	return std::make_shared<Typedef::PointerType>();
+}
+
+// Create type definition based on byte array.
+Typedef::BaseType MakeType(std::vector<uint8_t>&&);
 
 } // namespace Util
 } // namespace CoilCl

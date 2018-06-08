@@ -285,7 +285,7 @@ Typedef::BaseType MakeType(std::vector<uint8_t>&& in)
 		assert(in.size() > 1);
 		const auto spec = static_cast<BuiltinType::Specifier>(in.at(1));
 		envelopeOffset = 2;
-		type = MakeBuiltinType(spec);
+		type = std::make_shared<Typedef::BuiltinType>(spec);
 		break;
 	}
 	case TypedefBase::TypeVariation::RECORD: {
@@ -296,7 +296,7 @@ Typedef::BaseType MakeType(std::vector<uint8_t>&& in)
 		CRY_MEMCPY(static_cast<void*>(&(name[0])), name.size(), &(in.at(2)), nameSize);
 		//TODO: m_specifier
 		//TODO: envelopeOffset = 99;
-		type = MakeRecordType(name, RecordType::Specifier::STRUCT);
+		type = std::make_shared<Typedef::RecordType>(name, RecordType::Specifier::STRUCT);
 		break;
 	}
 	case TypedefBase::TypeVariation::TYPEDEF: {
@@ -307,12 +307,12 @@ Typedef::BaseType MakeType(std::vector<uint8_t>&& in)
 		CRY_MEMCPY(static_cast<void*>(&(name[0])), name.size(), &(in.at(2)), nameSize);
 		//TODO: m_resolveType
 		//TODO: envelopeOffset = 99;
-		std::shared_ptr<TypedefBase> q = MakeVariadicType();
-		type = MakeTypedefType(name, q);
+		std::shared_ptr<TypedefBase> q = std::make_shared<Typedef::VariadicType>();
+		type = std::make_shared<Typedef::TypedefType>(name, q);
 		break;
 	}
 	case TypedefBase::TypeVariation::VARIADIC: {
-		type = MakeVariadicType();
+		type = std::make_shared<Typedef::VariadicType>();
 		break;
 	}
 	case TypedefBase::TypeVariation::POINTER: {

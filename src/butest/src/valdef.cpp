@@ -221,8 +221,8 @@ BOOST_AUTO_TEST_CASE(ValDefReworkCaptureValue)
 	BOOST_REQUIRE_EQUAL(_valChar, valChar.As2<char>());
 	BOOST_REQUIRE_EQUAL(_valBool, valBool.As2<bool>());
 
-	BOOST_REQUIRE(Util::IsTypeVolatile(valFloat2.Type()));
-	BOOST_REQUIRE(Util::IsTypeConst(valChar2.Type()));
+	BOOST_REQUIRE(Util::IsVolatile(valFloat2.Type()));
+	BOOST_REQUIRE(Util::IsConst(valChar2.Type()));
 	BOOST_REQUIRE_EQUAL(_valFloat2, valFloat2.As2<float>());
 	BOOST_REQUIRE_EQUAL(_valChar2, valChar2.As2<char>());
 }
@@ -250,8 +250,8 @@ BOOST_AUTO_TEST_CASE(ValDefReworkCaptureMultiValue)
 	BOOST_REQUIRE(_valDoubleArray == valDoubleArray.As2<std::vector<double>>());
 	BOOST_REQUIRE(_valBoolArray == valBoolArray.As2<std::vector<bool>>());
 
-	BOOST_REQUIRE(Util::IsTypeVolatile(valFloatArray2.Type()));
-	BOOST_REQUIRE(Util::IsTypeConst(valBoolArray2.Type()));
+	BOOST_REQUIRE(Util::IsVolatile(valFloatArray2.Type()));
+	BOOST_REQUIRE(Util::IsConst(valBoolArray2.Type()));
 	BOOST_REQUIRE(const_cast<std::vector<float>&>(_valFloatArray2) == valFloatArray2.As2<std::vector<float>>());
 	BOOST_REQUIRE(_valBoolArray2 == valBoolArray2.As2<std::vector<bool>>());
 }

@@ -101,6 +101,7 @@ public:
 			return m_array[idx];
 		}
 
+		// Push item on the array
 		void PushBack(value_type tq)
 		{
 			if (!Full()) {
@@ -108,6 +109,7 @@ public:
 			}
 		}
 
+		// Push item on the array
 		void PushBack(value_type&& tq)
 		{
 			if (!Full()) {
@@ -338,35 +340,4 @@ public:
 };
 
 } // namespace Typedef
-
-//TODO: Move to Facade
-//TODO: Why pointer?
-namespace Util
-{
-
-inline auto MakeBuiltinType(Typedef::BuiltinType::Specifier specifier)
-{
-	return std::make_shared<Typedef::BuiltinType>(specifier);
-}
-inline auto MakeRecordType(const std::string& name, Typedef::RecordType::Specifier specifier)
-{
-	return std::make_shared<Typedef::RecordType>(name, specifier);
-}
-inline auto MakeTypedefType(const std::string& name, Typedef::BaseType& type)
-{
-	return std::make_shared<Typedef::TypedefType>(name, type);
-}
-inline auto MakeVariadicType()
-{
-	return std::make_shared<Typedef::VariadicType>();
-}
-inline auto MakePointerType()
-{
-	return std::make_shared<Typedef::PointerType>();
-}
-
-// Create type definition based on byte array.
-Typedef::BaseType MakeType(std::vector<uint8_t>&&);
-
-} // namespace Util
 } // namespace CoilCl
