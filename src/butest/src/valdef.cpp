@@ -326,6 +326,7 @@ BOOST_AUTO_TEST_CASE(ValDefReworkRecord)
 		Valuedef::RecordValue record2{ record };
 
 		auto valStruct = Util::MakeStruct(std::move(record));
+		BOOST_REQUIRE(Util::IsStruct(valStruct.Type()));
 
 		BOOST_CHECK(!valStruct.Empty());
 		BOOST_REQUIRE_EQUAL(record2, valStruct.As2<Valuedef::RecordValue>());
@@ -347,6 +348,15 @@ BOOST_AUTO_TEST_CASE(ValDefReworkReplace)
 		valDouble = Valuedef::Value{};
 		BOOST_CHECK(!valDouble);
 		BOOST_REQUIRE_EQUAL(8273.87123, val2.As2<double>());
+	}
+}
+
+BOOST_AUTO_TEST_CASE(ValDefReworkMisc)
+{
+	{
+		BOOST_REQUIRE(Util::IsIntegral(Util::MakeInt2(722).Type()));
+		BOOST_REQUIRE(!Util::IsIntegral(Util::MakeFloat2(8.851283).Type()));
+		BOOST_REQUIRE(Util::IsFloatingPoint(Util::MakeFloat2(8.851283).Type()));
 	}
 }
 

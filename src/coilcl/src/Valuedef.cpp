@@ -97,7 +97,7 @@ Value::ValueSelect& Value::ValueSelect::operator=(const ValueSelect& other)
 	else if (other.recordValue) {
 		recordValue.emplace(other.recordValue.get());
 	}
-	else if (referenceValue) {
+	else if (other.referenceValue) {
 		referenceValue = other.referenceValue;
 	}
 	else {
@@ -118,7 +118,7 @@ Value::ValueSelect& Value::ValueSelect::operator=(ValueSelect&& other)
 	else if (other.recordValue) {
 		recordValue.emplace(other.recordValue.get());
 	}
-	else if (referenceValue) {
+	else if (other.referenceValue) {
 		referenceValue = std::move(other.referenceValue);
 	}
 	else {

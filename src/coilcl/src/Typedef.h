@@ -168,6 +168,7 @@ constexpr uint8_t SetInteralType(TypedefBase::TypeVariation type)
 #define REGISTER_TYPE(t)\
 	const uint8_t m_c_internalType = SetInteralType(TypedefBase::TypeVariation::t); \
 
+// Builtin types
 class BuiltinType : public TypedefBase
 {
 	// Additional type options
@@ -236,6 +237,7 @@ private:
 	Specifier m_specifier;
 };
 
+// Record types are types that consist of multiple types mapped to a name
 class RecordType : public TypedefBase
 {
 	REGISTER_TYPE(RECORD);
