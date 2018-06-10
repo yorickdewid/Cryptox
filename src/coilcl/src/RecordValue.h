@@ -8,6 +8,9 @@
 
 #pragma once
 
+#include <Cry/Cry.h>
+#include <Cry/Serialize.h>
+
 #include <vector>
 #include <memory>
 #include <ostream>
@@ -24,7 +27,7 @@ class Value;
 // a vector since the order of fields is important.
 class RecordValue
 {
-	const std::string m_name;
+	std::string m_name;
 	std::vector<std::pair<std::string, std::shared_ptr<Value>>> m_fields;
 
 	bool Compare(const RecordValue&) const;
@@ -80,6 +83,11 @@ public:
 	// Check if field with name already exists in this record
 	bool HasField(const std::string&) const;
 
+	// Convert record value into data stream
+	static void Serialize(const RecordValue&, Cry::ByteArray&);
+	// Convert data stream into record value
+	static void Deserialize(RecordValue&, Cry::ByteArray&);
+
 	bool operator==(const RecordValue& other) const
 	{
 		return Compare(other);
@@ -100,6 +108,8 @@ public:
 
 static_assert(std::is_copy_constructible<RecordValue>::value, "RecordValue !is_copy_constructible");
 static_assert(std::is_move_constructible<RecordValue>::value, "RecordValue !is_move_constructible");
+static_assert(std::is_copy_assignable<RecordValue>::value, "RecordValue !is_copy_assignable");
+static_assert(std::is_move_assignable<RecordValue>::value, "RecordValue !is_move_assignable");
 
 } // namespace Valuedef
 } // namespace CoilCl
