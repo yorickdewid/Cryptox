@@ -74,10 +74,10 @@ void RecordValue::Serialize(const RecordValue& value, Cry::ByteArray& buffer)
 		// Field name
 		buffer.SerializeAs<Cry::Word>(field.first.size());
 		buffer.insert(buffer.cend(), field.first.cbegin(), field.first.cend());
+
 		// Field value
-		//Value::Serialize((*field.second), buffer);
+		Value::Serialize((*field.second), buffer);
 	}
-	//std::vector<std::pair<std::string, std::shared_ptr<Value>>> m_fields;
 }
 
 // Convert data stream into record value. The passed buffer must be a subbuffer
@@ -89,27 +89,31 @@ void RecordValue::Deserialize(RecordValue& value, Cry::ByteArray& buffer)
 			CryImplExcept(); //TODO
 		}
 	}
-	
+
 	// Read the record name
 	std::string name;
-	size_t nameSize = buffer.Deserialize<Cry::Word>(Cry::ByteArray::AUTO);
+	const size_t nameSize = buffer.Deserialize<Cry::Word>(Cry::ByteArray::AUTO);
 	if (nameSize) {
 		std::copy(buffer.cbegin() + buffer.Offset(), buffer.cbegin() + buffer.Offset() + nameSize, std::back_inserter(name));
-		buffer.StartOffset(buffer.Offset() + nameSize); //TODO: Make ByteArray do this automatically
+		buffer.SetOffset(static_cast<int>(nameSize)); //TODO: Make ByteArray do this automatically
 	}
 
 	// Create temporary record
 	RecordValue tmpRec{ name };
 
-	size_t fieldSize = buffer.Deserialize<Cry::Word>(Cry::ByteArray::AUTO);
-	if (fieldSize) {
+	const size_t fieldSize = buffer.Deserialize<Cry::Word>(Cry::ByteArray::AUTO);
+	for (size_t i = 0; i < fieldSize; ++i) {
 		// Field name
 		std::string fieldName;
-		size_t fieldNameSize = buffer.Deserialize<Cry::Word>(Cry::ByteArray::AUTO);
-		std::copy(buffer.cbegin() + buffer.Offset(), buffer.cbegin() + buffer.Offset() + nameSize, std::back_inserter(fieldName));
+		const size_t fieldNameSize = buffer.Deserialize<Cry::Word>(Cry::ByteArray::AUTO);
+		std::copy(buffer.cbegin() + buffer.Offset(), buffer.cbegin() + buffer.Offset() + fieldNameSize, std::back_inserter(fieldName));
+		buffer.SetOffset(static_cast<int>(fieldNameSize)); //TODO: Make ByteArray do this automatically
 
-		//tmpRec.AddField();
+		// Field value
+		Valuedef::Value tmp;
+		Value::Deserialize(tmp, buffer);
+		tmpRec.AddField({ fieldName, RecordValue::Value(tmp) });
 	}
 
-	std::swap(value, RecordValue{ name });
+	std::swap(value, tmpRec);
 }

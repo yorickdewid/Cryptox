@@ -282,55 +282,20 @@ BOOST_AUTO_TEST_CASE(ValDefReworkPointer)
 
 BOOST_AUTO_TEST_CASE(ValDefReworkRecord)
 {
-	{
-		auto valInt = Util::MakeInt2(12);
-		Valuedef::RecordValue anonRecord;
-		anonRecord.EmplaceField("field", Valuedef::RecordValue::Value(valInt));
+	auto valInt = Util::MakeInt2(4234761);
+	auto valFloatArray = Util::MakeFloatArray({ 125.233f, 1.9812f, 89.8612f });
 
-		BOOST_REQUIRE(!anonRecord.HasRecordName());
-		BOOST_REQUIRE_EQUAL(anonRecord.Size(), 1);
+	Valuedef::RecordValue record{ "somestruct" };
+	record.AddField({ "i", Valuedef::RecordValue::Value(valInt) });
+	record.AddField({ "j", Valuedef::RecordValue::Value(valFloatArray) });
 
-		Valuedef::RecordValue anonRecord2;
-		anonRecord2.EmplaceField("field", Valuedef::RecordValue::Value(valInt));
-		BOOST_REQUIRE_EQUAL(anonRecord, anonRecord2);
-	}
+	Valuedef::RecordValue record2{ record };
 
-	{
-		auto valDouble = Util::MakeDouble2(8723.7612);
-		Valuedef::RecordValue record{ "testrec" };
-		record.EmplaceField("i", Valuedef::RecordValue::Value(valDouble));
+	auto valStruct = Util::MakeStruct(std::move(record));
+	BOOST_REQUIRE(Util::IsStruct(valStruct.Type()));
 
-		auto valDouble2 = Util::MakeDouble2(81.7213);
-		Valuedef::RecordValue record2{ "testrec" };
-		record2.EmplaceField("i", Valuedef::RecordValue::Value(valDouble2));
-		BOOST_REQUIRE_NE(record, record2);
-	}
-
-	{
-		auto value = Valuedef::RecordValue::Value(Util::MakeInt2(81827));
-
-		Valuedef::RecordValue record{ "record" };
-		record.AddField({ "i", value });
-
-		BOOST_REQUIRE_THROW(record.AddField({ "i", value }), Valuedef::RecordValue::FieldExistException);
-	}
-
-	{
-		auto valInt = Util::MakeInt2(4234761);
-		auto valFloatArray = Util::MakeFloatArray({ 125.233f, 1.9812f, 89.8612f });
-
-		Valuedef::RecordValue record{ "somestruct" };
-		record.AddField({ "i", Valuedef::RecordValue::Value(valInt) });
-		record.AddField({ "j", Valuedef::RecordValue::Value(valFloatArray) });
-
-		Valuedef::RecordValue record2{ record };
-
-		auto valStruct = Util::MakeStruct(std::move(record));
-		BOOST_REQUIRE(Util::IsStruct(valStruct.Type()));
-
-		BOOST_CHECK(!valStruct.Empty());
-		BOOST_REQUIRE_EQUAL(record2, valStruct.As2<Valuedef::RecordValue>());
-	}
+	BOOST_CHECK(!valStruct.Empty());
+	BOOST_REQUIRE_EQUAL(record2, valStruct.As2<Valuedef::RecordValue>());
 }
 
 BOOST_AUTO_TEST_CASE(ValDefReworkReplace)
@@ -355,8 +320,34 @@ BOOST_AUTO_TEST_CASE(ValDefReworkMisc)
 {
 	{
 		BOOST_REQUIRE(Util::IsIntegral(Util::MakeInt2(722).Type()));
-		BOOST_REQUIRE(!Util::IsIntegral(Util::MakeFloat2(8.851283).Type()));
-		BOOST_REQUIRE(Util::IsFloatingPoint(Util::MakeFloat2(8.851283).Type()));
+		BOOST_REQUIRE(!Util::IsIntegral(Util::MakeFloat2(8.851283f).Type()));
+		BOOST_REQUIRE(Util::IsFloatingPoint(Util::MakeFloat2(8.851283f).Type()));
+	}
+}
+
+BOOST_AUTO_TEST_CASE(ValDefReworkSerialize)
+{
+	using namespace Valuedef;
+	using namespace Util;
+
+	/*{
+		const Value val = CaptureValue(7962193);
+		Cry::ByteArray buffer = val.Serialize(int{});
+
+		const Value val2 = ValueFactory::MakeValue(int{}, buffer);
+		BOOST_REQUIRE_EQUAL(val, val2);
+	}*/
+
+	{
+		const Value valIntA = MakeIntArray({ 722, 81, 86131, 71 });
+		Cry::ByteArray buffer = valIntA.Serialize(int{});
+
+		const Value valIntA2 = ValueFactory::MakeValue(int{}, buffer);
+		BOOST_REQUIRE_EQUAL(valIntA, valIntA2);
+	}
+
+	{
+		//
 	}
 }
 
