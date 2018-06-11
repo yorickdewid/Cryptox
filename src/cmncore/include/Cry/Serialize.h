@@ -81,7 +81,11 @@ public:
 
 	enum { AUTO = -1 };
 
+	// Set start offset
+	void SetOffset(int offset) { m_offset += offset; }
+	// Set start offset
 	void StartOffset(int offset) { m_offset = offset; }
+	// Get current offset
 	int Offset() const noexcept { return m_offset; }
 
 	// Set magic value
@@ -172,7 +176,7 @@ public:
 	}
 
 	template<typename IntegerType>
-	IntegerType Deserialize(int idx);
+	IntegerType Deserialize(int idx = -1);
 
 private:
 	int m_offset = 0;

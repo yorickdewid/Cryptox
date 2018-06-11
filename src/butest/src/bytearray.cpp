@@ -114,6 +114,8 @@ BOOST_AUTO_TEST_CASE(BADecodeError)
 	buffer.StartOffset(0);
 	BOOST_REQUIRE(buffer.ValidateMagic(254, 4));
 	BOOST_REQUIRE_NE(var_3, buffer.Deserialize<Cry::Byte>(Cry::ByteArray::AUTO));
+	BOOST_REQUIRE_NE(var_3, buffer.Deserialize<Cry::Byte>(4));
+	BOOST_REQUIRE_EQUAL(var_3, buffer.Deserialize<Cry::Byte>(5));
 }
 
 BOOST_AUTO_TEST_CASE(BAInBA)
@@ -150,6 +152,66 @@ BOOST_AUTO_TEST_CASE(BAInBA)
 	BOOST_REQUIRE(buffer_inner2.ValidateMagic(9));
 	BOOST_REQUIRE(buffer_inner2.IsPlatformCompat());
 	BOOST_REQUIRE_EQUAL(var_3, buffer_inner2.Deserialize<Cry::Word>(Cry::ByteArray::AUTO));
+}
+
+BOOST_AUTO_TEST_CASE(BAContainer)
+{
+	static const Cry::Word var_1 = 712361582;
+	static const Cry::Word var_2 = 812785362;
+	static const Cry::Word var_3 = 761836176;
+
+	std::vector<int> v = { 12, 82, 781, 22 };
+
+	Cry::ByteArray buffer;
+	buffer.SetMagic(241);
+	buffer.SetPlatformCompat();
+	buffer.Serialize(var_1);
+	buffer.Serialize(var_2);
+	buffer.SerializeAs<Cry::Short>(v.size());
+	buffer.insert(buffer.cend(), v.cbegin(), v.cend());
+	buffer.Serialize(var_3);
+	
+	buffer.StartOffset(0);
+	BOOST_REQUIRE(buffer.ValidateMagic(241));
+	BOOST_REQUIRE(buffer.IsPlatformCompat());
+	BOOST_REQUIRE_EQUAL(var_1, buffer.Deserialize<Cry::Word>());
+	BOOST_REQUIRE_EQUAL(var_2, buffer.Deserialize<Cry::Word>());
+
+	std::vector<int> v2;
+	size_t v2_size = buffer.Deserialize<Cry::Short>();
+	std::copy(buffer.cbegin() + buffer.Offset(), buffer.cbegin() + buffer.Offset() + v2_size, std::back_inserter(v2));
+	buffer.SetOffset(static_cast<int>(v2_size));
+
+	BOOST_REQUIRE_EQUAL(v2.size(), v.size());
+	BOOST_REQUIRE_EQUAL(var_3, buffer.Deserialize<Cry::Word>());
+}
+
+BOOST_AUTO_TEST_CASE(BAOperators)
+{
+	{
+		Cry::ByteArray buffer;
+		buffer.SetMagic(0x2f);
+		buffer.SetPlatformCompat();
+		buffer.SerializeAs<Cry::Word>(897128934);
+
+		Cry::ByteArray buffer2;
+		buffer2.SetMagic(0x2f);
+		buffer2.SetPlatformCompat();
+		buffer2.SerializeAs<Cry::Word>(897128934);
+
+		BOOST_REQUIRE(buffer == buffer2);
+	}
+
+	{
+		Cry::ByteArray buffer;
+		buffer.SetMagic(0x2f);
+		buffer.SerializeAs<Cry::Word>(872);
+		buffer.SerializeAs<Cry::Byte>('X');
+		buffer.StartOffset(1);
+
+		BOOST_REQUIRE_EQUAL(872, buffer.Deserialize<Cry::Word>());
+		BOOST_REQUIRE_EQUAL('X', buffer.Deserialize<Cry::Byte>());
+	}
 }
 
 BOOST_AUTO_TEST_SUITE_END()
