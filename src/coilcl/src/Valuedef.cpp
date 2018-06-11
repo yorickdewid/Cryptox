@@ -132,6 +132,245 @@ Value::ValueSelect& Value::ValueSelect::operator=(ValueSelect&& other)
 namespace
 {
 
+struct ValuePacker : public boost::static_visitor<>
+{
+	enum NativeValueType : Cry::Byte
+	{
+		INT = 100, CHAR, FLOAT, DOUBLE, BOOL,
+		INTA, CHARA, FLOATA, DOUBLEA, BOOLA,
+	};
+
+	ValuePacker(Cry::ByteArray& buffer)
+		: m_buffer{ buffer }
+	{
+	}
+
+protected:
+	Cry::ByteArray& m_buffer;
+};
+
+struct ValuePackerSingular final : public ValuePacker
+{
+	ValuePackerSingular(Cry::ByteArray& buffer)
+		: ValuePacker{ buffer }
+	{
+	}
+
+	void operator()(int v) const
+	{
+		m_buffer.SerializeAs<Cry::Byte>(NativeValueType::INT);
+		m_buffer.SerializeAs<Cry::Word>(v);
+	}
+
+	void operator()(char v) const
+	{
+		m_buffer.SerializeAs<Cry::Byte>(NativeValueType::CHAR);
+		m_buffer.SerializeAs<Cry::Byte>(v);
+	}
+
+	void operator()(float v) const
+	{
+		m_buffer.SerializeAs<Cry::Byte>(NativeValueType::FLOAT);
+		m_buffer.SerializeAs<Cry::Word>(v);
+	}
+
+	void operator()(double v) const
+	{
+		m_buffer.SerializeAs<Cry::Byte>(NativeValueType::DOUBLE);
+		m_buffer.SerializeAs<Cry::DoubleWord>(v);
+	}
+
+	void operator()(bool v) const
+	{
+		m_buffer.SerializeAs<Cry::Byte>(NativeValueType::BOOL);
+		m_buffer.SerializeAs<Cry::Byte>(v);
+	}
+
+	Value::ValueVariant2 Load() const
+	{
+		switch (static_cast<NativeValueType>(m_buffer.Deserialize<Cry::Byte>(Cry::ByteArray::AUTO)))
+		{
+		case NativeValueType::INT:
+			return static_cast<int>(m_buffer.Deserialize<Cry::Word>(Cry::ByteArray::AUTO));
+		case NativeValueType::CHAR:
+			return static_cast<char>(m_buffer.Deserialize<Cry::Byte>(Cry::ByteArray::AUTO));
+		case NativeValueType::FLOAT:
+			return static_cast<float>(m_buffer.Deserialize<Cry::Word>(Cry::ByteArray::AUTO));
+		case NativeValueType::DOUBLE:
+			return static_cast<double>(m_buffer.Deserialize<Cry::DoubleWord>(Cry::ByteArray::AUTO));
+		case NativeValueType::BOOL: {
+			return static_cast<bool>(m_buffer.Deserialize<Cry::Byte>(Cry::ByteArray::AUTO));
+		}
+		default:
+			CryImplExcept();
+		}
+	}
+};
+
+struct ValuePackerMulti final : public ValuePacker
+{
+	ValuePackerMulti(Cry::ByteArray& buffer)
+		: ValuePacker{ buffer }
+	{
+	}
+
+	void operator()(const std::vector<int>& v) const
+	{
+		m_buffer.SerializeAs<Cry::Byte>(NativeValueType::INTA);
+		m_buffer.SerializeAs<Cry::Word>(v.size());
+		for (const auto element : v) {
+			m_buffer.SerializeAs<Cry::Word>(element);
+		}
+	}
+
+	void operator()(const std::vector<char>& v) const
+	{
+		m_buffer.SerializeAs<Cry::Byte>(NativeValueType::CHARA);
+		m_buffer.SerializeAs<Cry::Word>(v.size());
+		for (const auto element : v) {
+			m_buffer.SerializeAs<Cry::Byte>(element);
+		}
+	}
+
+	void operator()(const std::vector<float>& v) const
+	{
+		m_buffer.SerializeAs<Cry::Byte>(NativeValueType::FLOATA);
+		m_buffer.SerializeAs<Cry::Word>(v.size());
+		for (const auto element : v) {
+			m_buffer.SerializeAs<Cry::Word>(element);
+		}
+	}
+
+	void operator()(const std::vector<double>& v) const
+	{
+		m_buffer.SerializeAs<Cry::Byte>(NativeValueType::DOUBLEA);
+		m_buffer.SerializeAs<Cry::Word>(v.size());
+		for (const auto element : v) {
+			m_buffer.SerializeAs<Cry::DoubleWord>(element);
+		}
+	}
+
+	void operator()(const std::vector<bool>& v) const
+	{
+		m_buffer.SerializeAs<Cry::Byte>(NativeValueType::BOOLA);
+		m_buffer.SerializeAs<Cry::Word>(v.size());
+		for (const auto element : v) {
+			m_buffer.SerializeAs<Cry::Byte>(element);
+		}
+	}
+
+	Value::ValueVariant3 Load() const
+	{
+		NativeValueType select = static_cast<NativeValueType>(m_buffer.Deserialize<Cry::Byte>(Cry::ByteArray::AUTO));
+		size_t arraySize = m_buffer.Deserialize<Cry::Word>(Cry::ByteArray::AUTO);
+		switch (select)
+		{
+		case NativeValueType::INTA: {
+			std::vector<int> v;
+			for (size_t i = 0; i < arraySize; ++i) {
+				v.push_back(static_cast<int>(m_buffer.Deserialize<Cry::Word>(Cry::ByteArray::AUTO)));
+			}
+			return v;
+		}
+		case NativeValueType::CHARA: {
+			std::vector<char> v;
+			for (size_t i = 0; i < arraySize; ++i) {
+				v.push_back(static_cast<char>(m_buffer.Deserialize<Cry::Byte>(Cry::ByteArray::AUTO)));
+			}
+			return v;
+		}
+		case NativeValueType::FLOATA: {
+			std::vector<float> v;
+			for (size_t i = 0; i < arraySize; ++i) {
+				v.push_back(static_cast<float>(m_buffer.Deserialize<Cry::Word>(Cry::ByteArray::AUTO)));
+			}
+			return v;
+		}
+		case NativeValueType::DOUBLEA: {
+			std::vector<double> v;
+			for (size_t i = 0; i < arraySize; ++i) {
+				v.push_back(static_cast<double>(m_buffer.Deserialize<Cry::DoubleWord>(Cry::ByteArray::AUTO)));
+			}
+			return v;
+		}
+		case NativeValueType::BOOLA: {
+			std::vector<bool> v;
+			for (size_t i = 0; i < arraySize; ++i) {
+				v.push_back(static_cast<bool>(m_buffer.Deserialize<Cry::Byte>(Cry::ByteArray::AUTO)));
+			}
+			return v;
+		}
+		default:
+			CryImplExcept();
+		}
+	}
+};
+
+} // namespace
+
+enum ValueSelectType
+{
+	SINGLE = 10,
+	MULTI,
+	RECORD,
+	REFERENCE,
+};
+
+// Convert value into byte stream
+void Value::ValueSelect::Pack(const ValueSelect& value, Cry::ByteArray& buffer)
+{
+	if (value.singleValue) {
+		buffer.SerializeAs<Cry::Byte>(ValueSelectType::SINGLE);
+		ValuePackerSingular valueVisitor{ buffer };
+		value.singleValue->apply_visitor(valueVisitor);
+	}
+	else if (value.multiValue) {
+		buffer.SerializeAs<Cry::Byte>(ValueSelectType::MULTI);
+		ValuePackerMulti valueVisitor{ buffer };
+		value.multiValue->apply_visitor(valueVisitor);
+	}
+	else if (value.recordValue) {
+		buffer.SerializeAs<Cry::Byte>(ValueSelectType::RECORD);
+		RecordValue::Serialize(value.recordValue.get(), buffer);
+	}
+	else if (value.referenceValue) {
+		buffer.SerializeAs<Cry::Byte>(ValueSelectType::REFERENCE);
+		//TODO
+	}
+}
+
+// Convert byte stream into value
+void Value::ValueSelect::Unpack(ValueSelect& value, Cry::ByteArray& buffer)
+{
+	switch (static_cast<ValueSelectType>(buffer.Deserialize<Cry::Byte>(Cry::ByteArray::AUTO)))
+	{
+	case ValueSelectType::SINGLE: {
+		ValuePackerSingular valueVisitor{ buffer };
+		value = ValueSelect{ valueVisitor.Load() };
+		break;
+	}
+	case ValueSelectType::MULTI: {
+		ValuePackerMulti valueVisitor{ buffer };
+		value = ValueSelect{ valueVisitor.Load() };
+		break;
+	}
+	case ValueSelectType::RECORD: {
+		RecordValue recordVal;
+		RecordValue::Deserialize(recordVal, buffer);
+		value = ValueSelect{ recordVal };
+		break;
+	}
+	case ValueSelectType::REFERENCE:
+		break;
+	default:
+		break;
+	}
+}
+
+namespace
+{
+
+//TODO: OBSOLETE: REMOVE:
 class TypePacker final : public boost::static_visitor<>
 {
 	enum NativeType : uint8_t
@@ -198,6 +437,7 @@ private:
 
 } // namespace
 
+//TODO: OBSOLETE: REMOVE:
 const Cry::ByteArray Value::Serialize() const
 {
 	Cry::ByteArray buffer;
@@ -215,6 +455,56 @@ const Cry::ByteArray Value::Serialize() const
 	return buffer;
 }
 
+// Serialize the value into byte array
+Cry::ByteArray Value::Serialize(int) const
+{
+	Cry::ByteArray buffer;
+	Serialize((*this), buffer);
+	return buffer;
+}
+
+void Value::Serialize(const Value& value, Cry::ByteArray& buffer)
+{
+	buffer.SetMagic(VALUE_MAGIC);
+	buffer.SetPlatformCompat();
+
+	// Serialzie type
+	AST::TypeFacade::Serialize(value.m_internalType, buffer);
+
+	// Serialzie value
+	if (!value.m_value3.Empty()) {
+		ValueSelect::Pack(value.m_value3, buffer);
+	}
+}
+
+void Value::Deserialize(Value& value, Cry::ByteArray& buffer)
+{
+	//buffer.StartOffset(0);
+	if (!buffer.ValidateMagic(VALUE_MAGIC)) {
+		CryImplExcept(); //TODO
+	}
+
+	if (!buffer.IsPlatformCompat()) {
+		CryImplExcept(); //TODO
+	}
+
+	// Convert stream to type
+	AST::TypeFacade::Deserialize(value.m_internalType, buffer);
+
+	/*Cry::ByteArray type;
+	size_t evSize = buffer.Deserialize<Cry::Short>(Cry::ByteArray::AUTO);
+	type.resize(evSize);
+	std::copy(buffer.cbegin() + buffer.Offset(), buffer.cbegin() + buffer.Offset() + evSize, type.begin());
+	buffer.SetOffset(evSize);
+	Typedef::BaseType ptr = Util::MakeType(std::move(type));
+	if (!ptr) {
+		CryImplExcept();
+	}*/
+
+	// Convert stream into value
+	ValueSelect::Unpack(value.m_value3, buffer);
+}
+
 // Copy other value into this value
 Value& Value::operator=(const Value& other)
 {
@@ -226,7 +516,6 @@ Value& Value::operator=(const Value& other)
 Value& Value::operator=(Value&& other)
 {
 	m_value3 = std::move(other.m_value3);
-	//m_value3 = other.m_value3;
 	return (*this);
 }
 
@@ -307,6 +596,7 @@ int EvaluateValueAsInteger(const Value& /*value*/)
 // ...
 //
 
+//TODO: OBSOLETE: REMOVE:
 std::shared_ptr<Valuedef::Value> ValueFactory::BaseValue(Cry::ByteArray& buffer)
 {
 	buffer.StartOffset(0);
@@ -342,6 +632,13 @@ std::shared_ptr<Valuedef::Value> ValueFactory::BaseValue(Cry::ByteArray& buffer)
 	}
 	//}
 
+	return value;
+}
+
+Valuedef::Value ValueFactory::MakeValue(int, Cry::ByteArray& buffer)
+{
+	Valuedef::Value value;
+	Valuedef::Value::Deserialize(value, buffer);
 	return value;
 }
 

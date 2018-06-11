@@ -84,7 +84,24 @@ BOOST_AUTO_TEST_CASE(ValRecSerialize)
 
 		Valuedef::RecordValue record2;
 		Valuedef::RecordValue::Deserialize(record2, buffer);
+		
 		BOOST_REQUIRE_EQUAL(record, record2);
+	}
+
+	{
+		Cry::ByteArray buffer;
+		Valuedef::RecordValue record;
+		record.AddField({ "x", Valuedef::RecordValue::Value(Util::MakeInt2(834)) });
+		record.AddField({ "y", Valuedef::RecordValue::Value(Util::MakeChar2('Y')) });
+		record.AddField({ "z", Valuedef::RecordValue::Value(Util::MakeInt2(0)) });
+		Valuedef::RecordValue::Serialize(record, buffer);
+
+		Valuedef::RecordValue record2;
+		Valuedef::RecordValue::Deserialize(record2, buffer);
+
+		BOOST_REQUIRE_EQUAL(3, record2.Size());
+		//TODO: Enable when value is serializable
+		//BOOST_REQUIRE_EQUAL(record, record2);
 	}
 }
 

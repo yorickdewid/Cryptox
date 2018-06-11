@@ -31,7 +31,7 @@ namespace CoilCl
 namespace Util
 {
 
-struct ValueFactory;
+class ValueFactory;
 
 } // namespace Util
 
@@ -79,7 +79,7 @@ static_assert(Trait::IsNativeMultiType<std::vector<bool>>::value, "IsNativeMulti
 
 class Value //TODO: mark each value with an unique id
 {
-	friend struct Util::ValueFactory;
+	friend class Util::ValueFactory;
 
 public:
 	using ValueVariant = boost::variant<int, char, float, double, bool, std::string>; //OBSOLETE: REMOVE: TODO:
@@ -162,8 +162,15 @@ protected:
 			return !operator==(other);
 		}
 
+		// Compare ValueSelect
 		ValueSelect& operator=(const ValueSelect&);
+		// Compare ValueSelect
 		ValueSelect& operator=(ValueSelect&&);
+
+		// Convert value into byte stream
+		static void Pack(const ValueSelect&, Cry::ByteArray&);
+		// Convert byte stream into value
+		static void Unpack(ValueSelect&, Cry::ByteArray&);
 
 		// Check if an value was set
 		operator bool() const { return !Empty(); }
@@ -300,10 +307,10 @@ public:
 	}
 
 	// Return the type specifier
-	Typedef::BaseType DataType() const noexcept { return m_objectType; }
+	Typedef::BaseType DataType() const noexcept { return m_objectType; } //TODO: OBSOLETE: remove
 
 	template<typename CastType>
-	auto DataType() const { return std::dynamic_pointer_cast<CastType>(m_objectType); }
+	auto DataType() const { return std::dynamic_pointer_cast<CastType>(m_objectType); } //TODO: OBSOLETE: remove
 	// Access type information
 	AST::TypeFacade Type() const { return m_internalType; }
 
@@ -337,6 +344,13 @@ public:
 
 	// Serialize the value into byte array
 	virtual const Cry::ByteArray Serialize() const;
+	// Serialize the value into byte array
+	Cry::ByteArray Serialize(int) const;
+	
+	// Serialize the value into byte array
+	static void Serialize(const Value&, Cry::ByteArray&);
+	// Serialize byte array into value
+	static void Deserialize(Value&, Cry::ByteArray&);
 
 	// Copy other value into this value
 	Value& operator=(const Value&);
@@ -513,16 +527,19 @@ namespace Util
 
 using namespace ::CoilCl;
 
-struct ValueFactory
+class ValueFactory
 {
 	static std::shared_ptr<Valuedef::Value> BaseValue(Cry::ByteArray&);
 
+public:
 	template<typename _Ty>
 	static std::shared_ptr<CoilCl::Valuedef::ValueObject<_Ty>> MakeValue(Cry::ByteArray& buffer)
 	{
 		auto basePtr = BaseValue(buffer);
 		return std::static_pointer_cast<CoilCl::Valuedef::ValueObject<_Ty>>(basePtr);
 	}
+
+	static Valuedef::Value MakeValue(int, Cry::ByteArray&);
 };
 
 } // namespace Util
