@@ -330,13 +330,13 @@ BOOST_AUTO_TEST_CASE(ValDefReworkSerialize)
 	using namespace Valuedef;
 	using namespace Util;
 
-	/*{
+	 {
 		const Value val = CaptureValue(7962193);
 		Cry::ByteArray buffer = val.Serialize(int{});
 
 		const Value val2 = ValueFactory::MakeValue(int{}, buffer);
 		BOOST_REQUIRE_EQUAL(val, val2);
-	}*/
+	}
 
 	{
 		const Value valIntA = MakeIntArray({ 722, 81, 86131, 71 });

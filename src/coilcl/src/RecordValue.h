@@ -16,6 +16,9 @@
 #include <ostream>
 #include <string>
 
+//FUTURE:
+// - Field class
+
 namespace CoilCl
 {
 namespace Valuedef

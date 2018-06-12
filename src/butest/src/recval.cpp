@@ -6,18 +6,17 @@
 // that can be found in the LICENSE file. Content can not be 
 // copied and/or distributed without the express of the author.
 
-//#include "../src/Valuedef.h"
 #include "../src/ValueHelper.h"
 #include "../src/RecordValue.h"
 
 #include <boost/test/unit_test.hpp>
 
 //
-// Test        : Value definition unitttest
+// Test        : Record value unitttest
 // Type        : unit
-// Description : Unit test of the value type system. Since the value definition 
-//               system is the backbone of the compiler it demands for almost
-//               full test coverage.
+// Description : Test cases for the record value system. The Record
+//               value is a special value type for composite structures.
+//               The unit test should test most functionality.
 //
 
 using namespace CoilCl;

@@ -37,11 +37,36 @@ void TypeFacade::Deserialize(TypeFacade& out, const std::vector<uint8_t>& in)
 	type.resize(in.size() - 2);
 	std::copy(in.begin() + 2, in.cend(), type.begin());
 	Typedef::BaseType ptr = Util::MakeType(std::move(type));
-	
+
 	// Set type facade options
 	TypeFacade tmp{ ptr };
 	tmp.SetPointer(ptrCount);
 	out = tmp;
+}
+
+// Convert type into data stream
+void TypeFacade::Serialize(int, const TypeFacade& type, Cry::ByteArray& buffer)
+{
+	const auto typePack = type->TypeEnvelope();
+	buffer.SerializeAs<Cry::Byte>(type.PointerCount());
+	buffer.SerializeAs<Cry::Word>(typePack.size());
+	buffer.insert(buffer.cend(), typePack.begin(), typePack.end());
+}
+
+// Convert data stream into type
+void TypeFacade::Deserialize(int, TypeFacade& type, Cry::ByteArray& buffer)
+{
+	size_t ptrCount = buffer.Deserialize<Cry::Byte>();
+	size_t typePackSize = buffer.Deserialize<Cry::Word>();
+
+	Cry::ByteArray tempBuffer;
+	std::copy(buffer.cbegin() + buffer.Offset(), buffer.cbegin() + buffer.Offset() + typePackSize, std::back_inserter(tempBuffer));
+	buffer.SetOffset(typePackSize);
+	Typedef::BaseType ptr = Util::MakeType(std::move(tempBuffer));
+
+	// Set type facade options
+	type = TypeFacade{ ptr };
+	type.SetPointer(ptrCount);
 }
 
 std::string TypeFacade::PointerName() const

@@ -469,17 +469,14 @@ void Value::Serialize(const Value& value, Cry::ByteArray& buffer)
 	buffer.SetPlatformCompat();
 
 	// Serialzie type
-	AST::TypeFacade::Serialize(value.m_internalType, buffer);
+	AST::TypeFacade::Serialize(int{}, value.m_internalType, buffer);
 
 	// Serialzie value
-	if (!value.m_value3.Empty()) {
-		ValueSelect::Pack(value.m_value3, buffer);
-	}
+	ValueSelect::Pack(value.m_value3, buffer);
 }
 
 void Value::Deserialize(Value& value, Cry::ByteArray& buffer)
 {
-	//buffer.StartOffset(0);
 	if (!buffer.ValidateMagic(VALUE_MAGIC)) {
 		CryImplExcept(); //TODO
 	}
@@ -489,17 +486,7 @@ void Value::Deserialize(Value& value, Cry::ByteArray& buffer)
 	}
 
 	// Convert stream to type
-	AST::TypeFacade::Deserialize(value.m_internalType, buffer);
-
-	/*Cry::ByteArray type;
-	size_t evSize = buffer.Deserialize<Cry::Short>(Cry::ByteArray::AUTO);
-	type.resize(evSize);
-	std::copy(buffer.cbegin() + buffer.Offset(), buffer.cbegin() + buffer.Offset() + evSize, type.begin());
-	buffer.SetOffset(evSize);
-	Typedef::BaseType ptr = Util::MakeType(std::move(type));
-	if (!ptr) {
-		CryImplExcept();
-	}*/
+	AST::TypeFacade::Deserialize(int{}, value.m_internalType, buffer);
 
 	// Convert stream into value
 	ValueSelect::Unpack(value.m_value3, buffer);

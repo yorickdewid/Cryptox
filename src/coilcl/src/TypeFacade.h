@@ -10,6 +10,8 @@
 
 #include "Typedef.h"
 
+#include <Cry/Serialize.h>
+
 #include <vector>
 
 namespace CoilCl
@@ -63,6 +65,11 @@ public:
 	static void Serialize(const TypeFacade&, std::vector<uint8_t>&);
 	// Convert data stream into type
 	static void Deserialize(TypeFacade&, const std::vector<uint8_t>&);
+
+	// Convert type into data stream
+	static void Serialize(int,const TypeFacade&, Cry::ByteArray&);
+	// Convert data stream into type
+	static void Deserialize(int,TypeFacade&, Cry::ByteArray&);
 
 	//TODO: REMOVE: FIXME: DEPRECATED
 	const std::type_info& Type() const
