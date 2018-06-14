@@ -330,7 +330,7 @@ BOOST_AUTO_TEST_CASE(ValDefReworkSerialize)
 	using namespace Valuedef;
 	using namespace Util;
 
-	 {
+	{
 		const Value val = CaptureValue(7962193);
 		Cry::ByteArray buffer = val.Serialize(int{});
 
@@ -339,15 +339,41 @@ BOOST_AUTO_TEST_CASE(ValDefReworkSerialize)
 	}
 
 	{
-		const Value valIntA = MakeIntArray({ 722, 81, 86131, 71 });
-		Cry::ByteArray buffer = valIntA.Serialize(int{});
+		const Value val = CaptureValue('O');
+		Cry::ByteArray buffer = val.Serialize(int{});
 
-		const Value valIntA2 = ValueFactory::MakeValue(int{}, buffer);
-		BOOST_REQUIRE_EQUAL(valIntA, valIntA2);
+		const Value val2 = ValueFactory::MakeValue(int{}, buffer);
+		BOOST_REQUIRE_EQUAL(val, val2);
 	}
 
 	{
-		//
+		const Value val = MakeIntArray({ 722, 81, 86131, 71 });
+		Cry::ByteArray buffer = val.Serialize(int{});
+
+		const Value val2 = ValueFactory::MakeValue(int{}, buffer);
+		BOOST_REQUIRE_EQUAL(val, val2);
+	}
+
+	{
+		const Value val = Util::MakeString2("teststring");
+		Cry::ByteArray buffer = val.Serialize(int{});
+
+		const Value val2 = ValueFactory::MakeValue(int{}, buffer);
+		BOOST_REQUIRE_EQUAL("teststring", val2.As2<std::string>());
+	}
+
+	{
+		Valuedef::RecordValue record{ "struct" };
+		record.AddField({ "o", Valuedef::RecordValue::Value(Util::MakeInt2(82371)) });
+		record.AddField({ "p", Valuedef::RecordValue::Value(Util::MakeInt2(19)) });
+
+		Valuedef::RecordValue record2{ record };
+
+		auto val = Util::MakeStruct(std::move(record));
+		Cry::ByteArray buffer = val.Serialize(int{});
+
+		const Value val2 = ValueFactory::MakeValue(int{}, buffer);
+		BOOST_REQUIRE_EQUAL(val, val2);
 	}
 }
 

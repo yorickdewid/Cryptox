@@ -89,6 +89,9 @@ void RecordValue::Deserialize(RecordValue& value, Cry::ByteArray& buffer)
 			CryImplExcept(); //TODO
 		}
 	}
+	else {
+		--buffer;
+	}
 
 	// Read the record name
 	std::string name;

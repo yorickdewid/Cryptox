@@ -90,6 +90,17 @@ public:
 	// Get current offset
 	int Offset() const noexcept { return m_offset; }
 
+	ByteArray& operator++()
+	{
+		m_offset++;
+		return (*this);
+	}
+	ByteArray& operator--()
+	{
+		m_offset--;
+		return (*this);
+	}
+
 	// Set magic value
 	void SetMagic(Byte magic)
 	{
