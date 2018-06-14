@@ -36,6 +36,24 @@ BOOST_AUTO_TEST_CASE(BASimpleEnDecode)
 	BOOST_REQUIRE_EQUAL(char_2, buffer.Deserialize<Cry::Short>(Cry::ByteArray::AUTO));
 }
 
+BOOST_AUTO_TEST_CASE(BACheckpoint)
+{
+	static const char char_1 = 'A';
+	static const int char_2 = 16276;
+
+	Cry::ByteArray buffer;
+	buffer.MakeCheckpoint();
+	buffer.SerializeAs<Cry::Byte>(char_1);
+	buffer.SerializeAs<Cry::Short>(char_2);
+
+	Cry::ByteArray buffer2;
+	std::copy(buffer.cbegin(), buffer.cend(), std::back_inserter(buffer2));
+
+	BOOST_REQUIRE(buffer2.ValidateCheckpoint());
+	BOOST_REQUIRE_EQUAL(char_1, buffer2.Deserialize<Cry::Byte>(Cry::ByteArray::AUTO));
+	BOOST_REQUIRE_EQUAL(char_2, buffer2.Deserialize<Cry::Short>(Cry::ByteArray::AUTO));
+}
+
 BOOST_AUTO_TEST_CASE(BAMagicCheck)
 {
 	static const Cry::Byte magic = static_cast<Cry::Byte>('\xe2');

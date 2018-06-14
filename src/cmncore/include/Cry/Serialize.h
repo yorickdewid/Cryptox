@@ -13,6 +13,8 @@
 
 #include <vector>
 
+#define CHECKPOINT_TAG 0xd69b
+
 namespace Cry
 {
 
@@ -102,6 +104,22 @@ public:
 		}
 		m_offset += sizeof(Byte);
 		return at(idx) == magic;
+	}
+
+	void MakeCheckpoint()
+	{
+		//CHECKPOINT_TAG
+		BaseType::insert(this->cend(), { 0xd6, 0x9b });
+	}
+
+	bool ValidateCheckpoint(int idx = -1)
+	{
+		if (idx == -1) {
+			idx = m_offset;
+		}
+		m_offset += (sizeof(Byte) * 2);
+		return at(idx) == 0xd6
+			&& at(idx + 1) == 0x9b;
 	}
 
 	// Encode platform characteristics
