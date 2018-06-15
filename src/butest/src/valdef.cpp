@@ -375,6 +375,16 @@ BOOST_AUTO_TEST_CASE(ValDefReworkSerialize)
 		const Value val2 = ValueFactory::MakeValue(int{}, buffer);
 		BOOST_REQUIRE_EQUAL(val, val2);
 	}
+
+	{
+		auto valInt = Util::MakeInt2(796162);
+		auto val = Util::MakePointer(std::move(valInt));
+		Cry::ByteArray buffer = val.Serialize(int{});
+
+		const Value val2 = ValueFactory::MakeValue(int{}, buffer);
+		BOOST_REQUIRE(val2.IsReference());
+		BOOST_REQUIRE_EQUAL(796162, val2.As2<Valuedef::Value>().As2<int>());
+	}
 }
 
 BOOST_AUTO_TEST_SUITE_END()

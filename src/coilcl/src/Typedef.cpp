@@ -322,7 +322,7 @@ Typedef::BaseType MakeType(std::vector<uint8_t>&& in)
 		break;
 	}
 	case TypedefBase::TypeVariation::POINTER: {
-		//TODO:
+		type = std::make_shared<Typedef::PointerType>();
 		break;
 	}
 	case TypedefBase::TypeVariation::INVAL:

@@ -97,10 +97,22 @@ public:
 		m_offset++;
 		return (*this);
 	}
+	ByteArray& operator++(int)
+	{
+		ByteArray copy{ (*this) };
+		m_offset++;
+		return copy;
+	}
 	ByteArray& operator--()
 	{
 		m_offset--;
 		return (*this);
+	}
+	ByteArray& operator--(int)
+	{
+		ByteArray copy{ (*this) };
+		m_offset--;
+		return copy;
 	}
 
 	// Set magic value
