@@ -306,6 +306,21 @@ struct ValuePackerMulti final : public ValuePacker
 	}
 };
 
+void PointerPacker(const std::shared_ptr<Value>& pointer, Cry::ByteArray& buffer)
+{
+	buffer.Serialize(pointer ? Cry::Byte{ 1 } : Cry::Byte{ 0 });
+	if (pointer) {
+		Value::Serialize((*pointer), buffer);
+	}
+}
+
+void PointerUnpacker(Value& pointer, Cry::ByteArray& buffer)
+{
+	if (buffer.Deserialize<Cry::Byte>()) {
+		Value::Deserialize(pointer, buffer);
+	}
+}
+
 } // namespace
 
 enum ValueSelectType
@@ -335,7 +350,7 @@ void Value::ValueSelect::Pack(const ValueSelect& value, Cry::ByteArray& buffer)
 	}
 	else if (value.referenceValue) {
 		buffer.SerializeAs<Cry::Byte>(ValueSelectType::REFERENCE);
-		//TODO
+		PointerPacker(value.referenceValue, buffer);
 	}
 }
 
@@ -360,8 +375,12 @@ void Value::ValueSelect::Unpack(ValueSelect& value, Cry::ByteArray& buffer)
 		value = ValueSelect{ recordVal };
 		break;
 	}
-	case ValueSelectType::REFERENCE:
+	case ValueSelectType::REFERENCE: {
+		Value refVal;
+		PointerUnpacker(refVal, buffer);
+		value = ValueSelect{ std::move(refVal) };
 		break;
+	}
 	default:
 		break;
 	}
