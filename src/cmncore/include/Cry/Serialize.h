@@ -30,8 +30,6 @@ using DoubleWord = uint64_t;
 // tricks including byte reordering and structure assertion.
 class ByteArray : public std::vector<Byte>
 {
-	using BaseType = std::vector<Byte>;
-
 	const unsigned char flag0 = 1 << 0;      // 0000 0001
 	const unsigned char flagIs64 = 1 << 1;   // 0000 0010
 	const unsigned char flagIsWin = 1 << 2;  // 0000 0100
@@ -40,6 +38,10 @@ class ByteArray : public std::vector<Byte>
 	const unsigned char flag5 = 1 << 5;      // 0010 0000
 	const unsigned char flag6 = 1 << 6;      // 0100 0000
 	const unsigned char flagIsLE = 1 << 7;   // 1000 0000
+
+protected:
+	using BaseType = std::vector<Byte>;
+	using OffsetType = int;
 
 public:
 	ByteArray() = default;
@@ -208,7 +210,7 @@ public:
 	IntegerType Deserialize(int idx = -1);
 
 private:
-	int m_offset = 0;
+	OffsetType m_offset = 0;
 };
 
 template<>

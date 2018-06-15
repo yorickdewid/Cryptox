@@ -1,0 +1,121 @@
+// Copyright (c) 2017 Quenza Inc. All rights reserved.
+//
+// This file is part of the Cryptox project.
+//
+// Use of this source code is governed by a private license
+// that can be found in the LICENSE file. Content can not be 
+// copied and/or distributed without the express of the author.
+
+#pragma once
+
+#include "Cry.h"
+#include "Serialize.h"
+
+//TODO:
+// - string
+// - vectors
+
+namespace Cry
+{
+
+class ByteInStream : virtual public ByteArray
+{
+	//
+
+public:
+	using Type = ByteArray::BaseType::value_type;
+	using PositionType = ByteArray::OffsetType;
+	using OffsetType = ByteArray::OffsetType;
+
+	ByteInStream& operator>>(short&);
+	ByteInStream& operator>>(unsigned short&);
+	ByteInStream& operator>>(int&);
+	ByteInStream& operator>>(unsigned int&);
+	ByteInStream& operator>>(long&);
+	ByteInStream& operator>>(unsigned long&);
+	ByteInStream& operator>>(long long&);
+	ByteInStream& operator>>(unsigned long long&);
+	ByteInStream& operator>>(float&);
+	ByteInStream& operator>>(double&);
+	ByteInStream& operator>>(long double&);
+	ByteInStream& operator>>(bool&);
+	ByteInStream& operator>>(ByteInStream&);
+
+	PositionType Tell() const { return this->Offset(); }
+
+	ByteInStream& Seek(PositionType pos)
+	{
+		this->StartOffset(pos);
+		return (*this);
+	}
+
+	template<typename Type>
+	ByteInStream& Read(Type /**s*/, std::streamsize /*count*/)
+	{
+		return (*this);
+	}
+
+	ByteArray Buffer()
+	{
+		return dynamic_cast<ByteArray&>(*this);
+	}
+};
+
+class ByteOutStream : virtual public ByteArray
+{
+	//
+
+public:
+	using Type = ByteArray::BaseType::value_type;
+	using PositionType = ByteArray::OffsetType;
+	using OffsetType = ByteArray::OffsetType;
+
+	ByteOutStream& operator<<(short);
+	ByteOutStream& operator<<(unsigned short);
+	ByteOutStream& operator<<(int);
+	ByteOutStream& operator<<(unsigned int);
+	ByteOutStream& operator<<(long);
+	ByteOutStream& operator<<(unsigned long);
+	ByteOutStream& operator<<(long long);
+	ByteOutStream& operator<<(unsigned long long);
+	ByteOutStream& operator<<(float);
+	ByteOutStream& operator<<(double);
+	ByteOutStream& operator<<(long double);
+	ByteOutStream& operator<<(bool);
+	ByteOutStream& operator<<(ByteOutStream);
+
+	PositionType Tell() const { return this->Offset(); }
+
+	ByteOutStream& Seek(PositionType pos)
+	{
+		this->StartOffset(pos);
+		return (*this);
+	}
+
+	template<typename Type>
+	ByteOutStream& Put(Type /*ch*/)
+	{
+		return (*this);
+	}
+
+	template<typename Type>
+	ByteOutStream& Write(const Type /**s*/, std::streamsize /*count*/)
+	{
+		return (*this);
+	}
+
+	ByteArray Buffer()
+	{
+		return dynamic_cast<ByteArray&>(*this);
+	}
+};
+
+class ByteStream
+	: public ByteInStream
+	, public ByteOutStream
+{
+public:
+	//
+};
+
+} // namespace Cry
