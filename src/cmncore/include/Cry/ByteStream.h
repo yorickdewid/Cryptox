@@ -11,6 +11,8 @@
 #include "Cry.h"
 #include "Serialize.h"
 
+#include <string>
+
 //TODO:
 // - string
 // - vectors
@@ -18,7 +20,22 @@
 namespace Cry
 {
 
-class ByteInStream : virtual public ByteArray
+class ByteIOBase : public ByteArray
+{
+public:
+	using Type = ByteArray::BaseType::value_type;
+	using PositionType = ByteArray::OffsetType;
+	using OffsetType = ByteArray::OffsetType;
+
+	PositionType Tell() const { return this->Offset(); }
+
+	ByteArray Buffer()
+	{
+		return dynamic_cast<ByteArray&>(*this);
+	}
+};
+
+class ByteInStream : virtual public ByteIOBase
 {
 	//
 
@@ -41,8 +58,6 @@ public:
 	ByteInStream& operator>>(bool&);
 	ByteInStream& operator>>(ByteInStream&);
 
-	PositionType Tell() const { return this->Offset(); }
-
 	ByteInStream& Seek(PositionType pos)
 	{
 		this->StartOffset(pos);
@@ -54,14 +69,9 @@ public:
 	{
 		return (*this);
 	}
-
-	ByteArray Buffer()
-	{
-		return dynamic_cast<ByteArray&>(*this);
-	}
 };
 
-class ByteOutStream : virtual public ByteArray
+class ByteOutStream : virtual public ByteIOBase
 {
 	//
 
@@ -84,8 +94,6 @@ public:
 	ByteOutStream& operator<<(bool);
 	ByteOutStream& operator<<(ByteOutStream);
 
-	PositionType Tell() const { return this->Offset(); }
-
 	ByteOutStream& Seek(PositionType pos)
 	{
 		this->StartOffset(pos);
@@ -103,11 +111,6 @@ public:
 	{
 		return (*this);
 	}
-
-	ByteArray Buffer()
-	{
-		return dynamic_cast<ByteArray&>(*this);
-	}
 };
 
 class ByteStream
@@ -116,6 +119,19 @@ class ByteStream
 {
 public:
 	//
+};
+
+class FileStream
+	: public ByteInStream
+	, public ByteOutStream
+{
+public:
+	bool IsOpen() { return false; }
+	void Open(const char *filename) {}
+	void Open(const std::string& filename) {}
+	void Close() {}
+
+	bool operator!() { return !IsOpen(); }
 };
 
 } // namespace Cry

@@ -45,18 +45,22 @@ BOOST_AUTO_TEST_CASE(BSSimpleIO)
 	{
 		bs << 186721583;
 		bs << 'X';
+		bs << 896127l;
 	}
 
 	BOOST_REQUIRE(!bs.empty());
-	BOOST_REQUIRE_EQUAL(bs.size(), 8);
+	BOOST_REQUIRE_EQUAL(bs.size(), 12);
 
 	{
 		int i, j;
+		long x;
 		bs >> i;
 		bs >> j;
+		bs >> x;
 
 		BOOST_REQUIRE_EQUAL(186721583, i);
 		BOOST_REQUIRE_EQUAL('X', j);
+		BOOST_REQUIRE_EQUAL(896127l, x);
 	}
 }
 

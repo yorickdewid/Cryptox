@@ -35,12 +35,14 @@ ByteInStream& ByteInStream::operator>>(unsigned int& v)
 	v = static_cast<unsigned int>(this->Deserialize<Word>());
 	return (*this);
 }
-ByteInStream& ByteInStream::operator>>(long&)
+ByteInStream& ByteInStream::operator>>(long& v)
 {
+	v = static_cast<long>(this->Deserialize<Word>());
 	return (*this);
 }
-ByteInStream& ByteInStream::operator>>(unsigned long&)
+ByteInStream& ByteInStream::operator>>(unsigned long& v)
 {
+	v = static_cast<unsigned long>(this->Deserialize<Word>());
 	return (*this);
 }
 ByteInStream& ByteInStream::operator>>(long long&)
@@ -99,10 +101,12 @@ ByteOutStream& ByteOutStream::operator<<(unsigned int v)
 }
 ByteOutStream& ByteOutStream::operator<<(long v)
 {
+	this->SerializeAs<Cry::Word>(v);
 	return (*this);
 }
 ByteOutStream& ByteOutStream::operator<<(unsigned long v)
 {
+	this->SerializeAs<Cry::Word>(v);
 	return (*this);
 }
 ByteOutStream& ByteOutStream::operator<<(long long /*v*/)
