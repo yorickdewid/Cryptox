@@ -115,7 +115,7 @@ void RecordValue::Deserialize(RecordValue& value, Cry::ByteArray& buffer)
 		// Field value
 		Valuedef::Value tmp;
 		Value::Deserialize(tmp, buffer);
-		tmpRec.AddField({ fieldName, RecordValue::Value(tmp) });
+		tmpRec.AddField({ fieldName, RecordValue::AutoValue(tmp) });
 	}
 
 	std::swap(value, tmpRec);

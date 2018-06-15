@@ -22,7 +22,6 @@
 #include <string>
 
 //TODO:
-// - Serialize/Deserialize
 // - Cleanup old obsolete code
 // - IsConvertable/Converter
 

@@ -286,8 +286,8 @@ BOOST_AUTO_TEST_CASE(ValDefReworkRecord)
 	auto valFloatArray = Util::MakeFloatArray({ 125.233f, 1.9812f, 89.8612f });
 
 	Valuedef::RecordValue record{ "somestruct" };
-	record.AddField({ "i", Valuedef::RecordValue::Value(valInt) });
-	record.AddField({ "j", Valuedef::RecordValue::Value(valFloatArray) });
+	record.AddField({ "i", Valuedef::RecordValue::AutoValue(valInt) });
+	record.AddField({ "j", Valuedef::RecordValue::AutoValue(valFloatArray) });
 
 	Valuedef::RecordValue record2{ record };
 
@@ -364,8 +364,8 @@ BOOST_AUTO_TEST_CASE(ValDefReworkSerialize)
 
 	{
 		Valuedef::RecordValue record{ "struct" };
-		record.AddField({ "o", Valuedef::RecordValue::Value(Util::MakeInt2(82371)) });
-		record.AddField({ "p", Valuedef::RecordValue::Value(Util::MakeInt2(19)) });
+		record.AddField({ "o", Valuedef::RecordValue::AutoValue(Util::MakeInt2(82371)) });
+		record.AddField({ "p", Valuedef::RecordValue::AutoValue(Util::MakeInt2(19)) });
 
 		Valuedef::RecordValue record2{ record };
 

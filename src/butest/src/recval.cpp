@@ -31,7 +31,7 @@ BOOST_AUTO_TEST_CASE(ValRecBasic)
 
 	{
 		Valuedef::RecordValue record{ "struct" };
-		record.EmplaceField("f", Valuedef::RecordValue::Value(Util::MakeInt2(12)));
+		record.EmplaceField("f", Valuedef::RecordValue::AutoValue(Util::MakeInt2(12)));
 		
 		BOOST_REQUIRE(record.HasRecordName());
 		BOOST_REQUIRE_EQUAL(record.Size(), 1);
@@ -40,24 +40,24 @@ BOOST_AUTO_TEST_CASE(ValRecBasic)
 	{
 		auto valInt = Util::MakeInt2(12);
 		Valuedef::RecordValue anonRecord;
-		anonRecord.EmplaceField("field", Valuedef::RecordValue::Value(valInt));
+		anonRecord.EmplaceField("field", Valuedef::RecordValue::AutoValue(valInt));
 
 		BOOST_REQUIRE(!anonRecord.HasRecordName());
 		BOOST_REQUIRE_EQUAL(anonRecord.Size(), 1);
 
 		Valuedef::RecordValue anonRecord2;
-		anonRecord2.EmplaceField("field", Valuedef::RecordValue::Value(valInt));
+		anonRecord2.EmplaceField("field", Valuedef::RecordValue::AutoValue(valInt));
 		BOOST_REQUIRE_EQUAL(anonRecord, anonRecord2);
 	}
 
 	{
 		auto valDouble = Util::MakeDouble2(8723.7612);
 		Valuedef::RecordValue record{ "testrec" };
-		record.EmplaceField("i", Valuedef::RecordValue::Value(valDouble));
+		record.EmplaceField("i", Valuedef::RecordValue::AutoValue(valDouble));
 
 		auto valDouble2 = Util::MakeDouble2(81.7213);
 		Valuedef::RecordValue record2{ "testrec" };
-		record2.EmplaceField("i", Valuedef::RecordValue::Value(valDouble2));
+		record2.EmplaceField("i", Valuedef::RecordValue::AutoValue(valDouble2));
 		BOOST_REQUIRE_NE(record, record2);
 	}
 }
@@ -65,7 +65,7 @@ BOOST_AUTO_TEST_CASE(ValRecBasic)
 BOOST_AUTO_TEST_CASE(ValRecError)
 {
 	{
-		auto value = Valuedef::RecordValue::Value(Util::MakeInt2(81827));
+		auto value = Valuedef::RecordValue::AutoValue(Util::MakeInt2(81827));
 
 		Valuedef::RecordValue record{ "record" };
 		record.AddField({ "i", value });
@@ -90,9 +90,9 @@ BOOST_AUTO_TEST_CASE(ValRecSerialize)
 	{
 		Cry::ByteArray buffer;
 		Valuedef::RecordValue record;
-		record.AddField({ "x", Valuedef::RecordValue::Value(Util::MakeInt2(834)) });
-		record.AddField({ "y", Valuedef::RecordValue::Value(Util::MakeChar2('Y')) });
-		record.AddField({ "z", Valuedef::RecordValue::Value(Util::MakeInt2(0)) });
+		record.AddField({ "x", Valuedef::RecordValue::AutoValue(Util::MakeInt2(834)) });
+		record.AddField({ "y", Valuedef::RecordValue::AutoValue(Util::MakeChar2('Y')) });
+		record.AddField({ "z", Valuedef::RecordValue::AutoValue(Util::MakeInt2(0)) });
 		Valuedef::RecordValue::Serialize(record, buffer);
 
 		Valuedef::RecordValue record2;

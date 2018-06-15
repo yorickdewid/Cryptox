@@ -11,6 +11,7 @@
 #include "Cry.h"
 #include "ByteOrder.h"
 
+#include <stdint.h>
 #include <vector>
 
 #define CHECKPOINT_TAG 0xd69b
@@ -99,9 +100,9 @@ public:
 	}
 	ByteArray& operator++(int)
 	{
-		ByteArray copy{ (*this) };
+		ByteArray *copy = this;
 		m_offset++;
-		return copy;
+		return (*copy);
 	}
 	ByteArray& operator--()
 	{
@@ -110,9 +111,9 @@ public:
 	}
 	ByteArray& operator--(int)
 	{
-		ByteArray copy{ (*this) };
+		ByteArray *copy = this;
 		m_offset--;
-		return copy;
+		return (*copy);
 	}
 
 	// Set magic value

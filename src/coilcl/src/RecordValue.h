@@ -103,7 +103,7 @@ public:
 	}
 
 	template<typename Type>
-	inline static auto Value(Type val) -> std::shared_ptr<Type>
+	inline static auto AutoValue(Type val) -> std::shared_ptr<Type>
 	{
 		return std::make_shared<Type>(val);
 	}

@@ -127,8 +127,8 @@ class FileStream
 {
 public:
 	bool IsOpen() { return false; }
-	void Open(const char *filename) {}
-	void Open(const std::string& filename) {}
+	void Open(const char */*filename*/) {}
+	void Open(const std::string& /*filename*/) {}
 	void Close() {}
 
 	bool operator!() { return !IsOpen(); }
