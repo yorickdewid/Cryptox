@@ -135,7 +135,7 @@ void IsConversionRequired(std::shared_ptr<_ParentTy> parent, std::shared_ptr<_Ch
 	}
 
 	if (auto ret = std::dynamic_pointer_cast<Returnable>(child)) {
-		const AST::TypeFacade& initType = ret->ReturnType();
+		const Typedef::TypeFacade& initType = ret->ReturnType();
 
 		assert(initType.HasValue());
 		if (baseType != initType) {
@@ -338,7 +338,7 @@ void CoilCl::Semer::DeduceTypes()
 	AST::Compare::Equal<VariadicDecl> eqVaria;
 	MatchIf(m_ast.begin(), m_ast.end(), eqOp, [&eqVaria](AST::AST::iterator itr)
 	{
-		std::vector<AST::TypeFacade> paramTypeList;
+		std::vector<Typedef::TypeFacade> paramTypeList;
 
 		auto func = std::dynamic_pointer_cast<FunctionDecl>(itr.shared_ptr());
 		if (func->ParameterStatement() == nullptr || func->HasSignature()) {
@@ -427,7 +427,7 @@ void CoilCl::Semer::DeduceTypes()
 		}
 		else {
 			auto integer = std::dynamic_pointer_cast<Typedef::TypedefBase>(Util::MakeBuiltinType(Typedef::BuiltinType::Specifier::INT));
-			enumDecl->SetReturnType(AST::TypeFacade{ integer });
+			enumDecl->SetReturnType(Typedef::TypeFacade{ integer });
 		}
 	});
 }
@@ -494,7 +494,7 @@ void CoilCl::Semer::CheckDataType()
 	MatchIf(m_ast.begin(), m_ast.end(), eqVar, [](AST::AST::iterator itr)
 	{
 		auto decl = std::dynamic_pointer_cast<VarDecl>(itr.shared_ptr());
-		AST::TypeFacade baseType = decl->ReturnType();
+		Typedef::TypeFacade baseType = decl->ReturnType();
 
 		for (const auto& wIntializer : decl->Children()) {
 			if (auto intializer = wIntializer.lock()) {
@@ -514,7 +514,7 @@ void CoilCl::Semer::CheckDataType()
 		};
 
 		auto opr = std::dynamic_pointer_cast<BinaryOperator>(itr.shared_ptr());
-		AST::TypeFacade baseType = opr->ReturnType();
+		Typedef::TypeFacade baseType = opr->ReturnType();
 
 		auto intializerLHS = opr->Children().front().lock();
 		if (intializerLHS) {

@@ -18,7 +18,7 @@ void Decl::Serialize(Serializable::Interface& pack)
 	if (HasReturnType()) {
 		pack << true;
 		std::vector<uint8_t> buffer;
-		AST::TypeFacade::Serialize(ReturnType(), buffer);
+		Typedef::TypeFacade::Serialize(ReturnType(), buffer);
 		pack << buffer;
 	}
 	else {
@@ -41,7 +41,7 @@ void Decl::Deserialize(Serializable::Interface& pack)
 	if (hasReturn) {
 		Cry::ByteArray buffer;
 		pack >> buffer;
-		AST::TypeFacade::Deserialize(UpdateReturnType(), buffer);
+		Typedef::TypeFacade::Deserialize(UpdateReturnType(), buffer);
 	}
 
 	ASTNode::Deserialize(pack);
@@ -453,7 +453,7 @@ void FunctionDecl::SetCompound(const std::shared_ptr<CompoundStmt>& node)
 	ASTNode::UpdateDelegate();
 }
 
-void FunctionDecl::SetSignature(std::vector<AST::TypeFacade>&& signature)
+void FunctionDecl::SetSignature(std::vector<Typedef::TypeFacade>&& signature)
 {
 	assert(!signature.empty());
 
@@ -498,7 +498,7 @@ void FunctionDecl::Serialize(Serializable::Interface& pack)
 	pack << static_cast<int>(m_signature.size());
 	for (const auto& signature : m_signature) {
 		Cry::ByteArray buffer;
-		AST::TypeFacade::Serialize(signature, buffer);
+		Typedef::TypeFacade::Serialize(signature, buffer);
 		pack << buffer;
 	}
 
@@ -538,8 +538,8 @@ void FunctionDecl::Deserialize(Serializable::Interface& pack)
 		Cry::ByteArray buffer;
 		pack >> buffer;
 
-		AST::TypeFacade type;
-		AST::TypeFacade::Deserialize(type, buffer);
+		Typedef::TypeFacade type;
+		Typedef::TypeFacade::Deserialize(type, buffer);
 		m_signature.push_back(std::move(type));
 	}
 

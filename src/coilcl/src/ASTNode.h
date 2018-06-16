@@ -127,7 +127,7 @@ private:
 
 class Returnable
 {
-	AST::TypeFacade m_returnType;
+	Typedef::TypeFacade m_returnType;
 
 protected:
 	// Take no return type by default. The caller can query this
@@ -135,16 +135,16 @@ protected:
 	Returnable() = default;
 
 	// Initialize object with return type
-	Returnable(AST::TypeFacade type)
+	Returnable(Typedef::TypeFacade type)
 		: m_returnType{ type }
 	{
 	}
 
 public:
 	virtual bool HasReturnType() const { return m_returnType.HasValue(); }
-	virtual void SetReturnType(AST::TypeFacade type) { m_returnType = type; }
-	virtual const AST::TypeFacade& ReturnType() const { return m_returnType; }
-	virtual AST::TypeFacade& UpdateReturnType() { return m_returnType; }
+	virtual void SetReturnType(Typedef::TypeFacade type) { m_returnType = type; }
+	virtual const Typedef::TypeFacade& ReturnType() const { return m_returnType; }
+	virtual Typedef::TypeFacade& UpdateReturnType() { return m_returnType; }
 };
 
 struct Serializable
@@ -762,7 +762,7 @@ protected:
 public:
 	// Move data object from token processor into literal object
 	LiteralImpl(std::shared_ptr<CoilCl::Valuedef::ValueObject<NativeType>>&& object)
-		: Literal{ AST::TypeFacade{ object->DataType() } }
+		: Literal{ Typedef::TypeFacade{ object->DataType() } }
 		, m_valueObj{ std::move(object) }
 	{
 	}
@@ -949,7 +949,7 @@ protected:
 	}
 
 	Decl(const std::string& name, const std::shared_ptr<Typedef::TypedefBase>& specifier)
-		: Returnable{ AST::TypeFacade{ specifier } }
+		: Returnable{ Typedef::TypeFacade{ specifier } }
 		, m_identifier{ name }
 	{
 	}
@@ -1214,7 +1214,7 @@ class FunctionDecl
 	std::shared_ptr<ParamStmt> m_params;
 	std::shared_ptr<CompoundStmt> m_body;
 	std::weak_ptr<FunctionDecl> m_protoRef;
-	std::vector<AST::TypeFacade> m_signature;
+	std::vector<Typedef::TypeFacade> m_signature;
 
 	bool m_isPrototype = true;
 
@@ -1234,7 +1234,7 @@ public:
 
 	// If function declaration has a body, its not a prototype
 	void SetCompound(const std::shared_ptr<CompoundStmt>& node);
-	void SetSignature(std::vector<AST::TypeFacade>&& signature);
+	void SetSignature(std::vector<Typedef::TypeFacade>&& signature);
 	void SetParameterStatement(const std::shared_ptr<ParamStmt>& node);
 
 	bool HasSignature() const noexcept { return !m_signature.empty(); }
@@ -1382,11 +1382,11 @@ public:
 	bool HasReturnType() const override;
 
 	// 
-	void SetReturnType(AST::TypeFacade type) override;
+	void SetReturnType(Typedef::TypeFacade type) override;
 
-	const AST::TypeFacade& ReturnType() const override;
+	const Typedef::TypeFacade& ReturnType() const override;
 
-	AST::TypeFacade& UpdateReturnType() override;
+	Typedef::TypeFacade& UpdateReturnType() override;
 
 	virtual void Serialize(Serializable::Interface& pack);
 	virtual void Deserialize(Serializable::Interface& pack);
@@ -1451,7 +1451,7 @@ class BuiltinExpr final
 {
 	NODE_ID(AST::NodeID::BUILTIN_EXPR_ID);
 	std::shared_ptr<ASTNode> m_expr;
-	AST::TypeFacade m_typenameType;
+	Typedef::TypeFacade m_typenameType;
 
 public:
 	//TODO:?

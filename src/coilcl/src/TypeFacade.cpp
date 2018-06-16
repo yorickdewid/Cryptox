@@ -8,7 +8,7 @@
 
 #include "TypeFacade.h"
 
-using namespace CoilCl::AST;
+using namespace CoilCl::Typedef;
 
 // Serialize type into byte stream
 void TypeFacade::Serialize(const TypeFacade& in, std::vector<uint8_t>& out)

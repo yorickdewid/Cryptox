@@ -17,7 +17,7 @@ void Literal::Serialize(Serializable::Interface& pack)
 	if (HasReturnType()) {
 		pack << true;
 		std::vector<uint8_t> buffer;
-		AST::TypeFacade::Serialize(ReturnType(), buffer);
+		Typedef::TypeFacade::Serialize(ReturnType(), buffer);
 		pack << buffer;
 	}
 	else {
@@ -38,7 +38,7 @@ void Literal::Deserialize(Serializable::Interface& pack)
 	if (hasReturn) {
 		std::vector<uint8_t> buffer;
 		pack >> buffer;
-		AST::TypeFacade::Deserialize(UpdateReturnType(), buffer);
+		Typedef::TypeFacade::Deserialize(UpdateReturnType(), buffer);
 	}
 
 	ASTNode::Deserialize(pack);

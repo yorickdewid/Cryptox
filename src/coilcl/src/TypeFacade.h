@@ -16,7 +16,7 @@
 
 namespace CoilCl
 {
-namespace AST //TODO: part of Typedef
+namespace Typedef
 {
 
 class TypeFacade
@@ -61,8 +61,10 @@ public:
 		return m_type.get();
 	}
 
+	//TODO: OBSOLETE: REMOVE:
 	// Convert type into data stream
 	static void Serialize(const TypeFacade&, std::vector<uint8_t>&);
+	//TODO: OBSOLETE: REMOVE:
 	// Convert data stream into type
 	static void Deserialize(TypeFacade&, const std::vector<uint8_t>&);
 
@@ -92,67 +94,69 @@ private:
 namespace Util
 {
 
-inline bool IsVoid(const AST::TypeFacade& other) noexcept
+using namespace Typedef;
+
+inline bool IsVoid(const TypeFacade& other) noexcept
 {
-	const auto *builtin = dynamic_cast<Typedef::BuiltinType *>(other.operator->());
+	const auto *builtin = dynamic_cast<BuiltinType *>(other.operator->());
 	if (!builtin) { return false; }
-	return builtin->TypeSpecifier() == Typedef::BuiltinType::Specifier::VOID_T;
+	return builtin->TypeSpecifier() == BuiltinType::Specifier::VOID_T;
 }
-inline bool IsIntegral(const AST::TypeFacade& other) noexcept
+inline bool IsIntegral(const TypeFacade& other) noexcept
 {
-	const auto *builtin = dynamic_cast<Typedef::BuiltinType *>(other.operator->());
+	const auto *builtin = dynamic_cast<BuiltinType *>(other.operator->());
 	if (!builtin) { return false; }
-	return builtin->TypeSpecifier() == Typedef::BuiltinType::Specifier::INT;
+	return builtin->TypeSpecifier() == BuiltinType::Specifier::INT;
 }
-inline bool IsFloatingPoint(const AST::TypeFacade& other) noexcept
+inline bool IsFloatingPoint(const TypeFacade& other) noexcept
 {
-	const auto *builtin = dynamic_cast<Typedef::BuiltinType *>(other.operator->());
+	const auto *builtin = dynamic_cast<BuiltinType *>(other.operator->());
 	if (!builtin) { return false; }
-	return builtin->TypeSpecifier() == Typedef::BuiltinType::Specifier::FLOAT;
+	return builtin->TypeSpecifier() == BuiltinType::Specifier::FLOAT;
 }
-inline bool IsArray(const AST::TypeFacade& other) noexcept
+inline bool IsArray(const TypeFacade& other) noexcept
 {
 	return other.IsArray();
 }
-inline bool IsEnum(const AST::TypeFacade& other) noexcept
+inline bool IsEnum(const TypeFacade& /*other*/) noexcept
 {
 	return false;
 }
-inline bool IsStruct(const AST::TypeFacade& other) noexcept
+inline bool IsStruct(const TypeFacade& other) noexcept
 {
 	const auto *record = dynamic_cast<Typedef::RecordType *>(other.operator->());
 	if (!record) { return false; }
 	return record->TypeSpecifier() == Typedef::RecordType::Specifier::STRUCT;
 }
-inline bool IsUnion(const AST::TypeFacade& other) noexcept
+inline bool IsUnion(const TypeFacade& other) noexcept
 {
 	const auto *record = dynamic_cast<Typedef::RecordType *>(other.operator->());
 	if (!record) { return false; }
 	return record->TypeSpecifier() == Typedef::RecordType::Specifier::UNION;
 }
-inline bool IsPointer(const AST::TypeFacade& other) noexcept
+inline bool IsPointer(const TypeFacade& other) noexcept
 {
 	return other.IsPointer();
 }
-inline bool IsInline(const AST::TypeFacade& other) noexcept
+inline bool IsInline(const TypeFacade& other) noexcept
 {
 	const auto *builtin = dynamic_cast<Typedef::BuiltinType *>(other.operator->());
 	if (!builtin) { return false; }
 	return builtin->IsInline();
 }
-inline bool IsStatic(const AST::TypeFacade& other) noexcept
+inline bool IsStatic(const TypeFacade& other) noexcept
 {
 	return other->StorageClass() == Typedef::TypedefBase::StorageClassSpecifier::STATIC;
 }
-inline bool IsExtern(const AST::TypeFacade& other) noexcept
+inline bool IsExtern(const TypeFacade& other) noexcept
 {
 	return other->StorageClass() == Typedef::TypedefBase::StorageClassSpecifier::EXTERN;
 }
-inline bool IsRegister(const AST::TypeFacade& other) noexcept
+inline bool IsRegister(const TypeFacade& other) noexcept
 {
 	return other->StorageClass() == Typedef::TypedefBase::StorageClassSpecifier::REGISTER;
 }
-inline bool IsConst(const AST::TypeFacade& other) noexcept
+inline bool IsConst(const TypeFacade& other) noexcept
 {
 	for (const auto& qualifier : other->TypeQualifiers()) {
 		if (qualifier == Typedef::TypedefBase::TypeQualifier::CONST_T) {
@@ -161,7 +165,7 @@ inline bool IsConst(const AST::TypeFacade& other) noexcept
 	}
 	return false;
 }
-inline bool IsVolatile(const AST::TypeFacade& other) noexcept
+inline bool IsVolatile(const TypeFacade& other) noexcept
 {
 	for (const auto& qualifier : other->TypeQualifiers()) {
 		if (qualifier == Typedef::TypedefBase::TypeQualifier::VOLATILE) {
@@ -170,13 +174,13 @@ inline bool IsVolatile(const AST::TypeFacade& other) noexcept
 	}
 	return false;
 }
-inline bool IsSigned(const AST::TypeFacade& other) noexcept
+inline bool IsSigned(const TypeFacade& other) noexcept
 {
 	const auto *builtin = dynamic_cast<Typedef::BuiltinType *>(other.operator->());
 	if (!builtin) { return false; }
 	return builtin->Unsigned();
 }
-inline bool IsUnsigned(const AST::TypeFacade& other) noexcept
+inline bool IsUnsigned(const TypeFacade& other) noexcept
 {
 	return !IsSigned(other);
 }
@@ -187,15 +191,15 @@ inline bool IsUnsigned(const AST::TypeFacade& other) noexcept
 // Helpers to create types
 //
 
-inline auto MakeBuiltinType(Typedef::BuiltinType::Specifier specifier)
+inline auto MakeBuiltinType(BuiltinType::Specifier specifier)
 {
-	return std::make_shared<Typedef::BuiltinType>(specifier);
+	return std::make_shared<BuiltinType>(specifier);
 }
-inline auto MakeRecordType(const std::string& name, Typedef::RecordType::Specifier specifier)
+inline auto MakeRecordType(const std::string& name, RecordType::Specifier specifier)
 {
 	return std::make_shared<Typedef::RecordType>(name, specifier);
 }
-inline auto MakeTypedefType(const std::string& name, Typedef::BaseType& type)
+inline auto MakeTypedefType(const std::string& name, BaseType& type)
 {
 	return std::make_shared<Typedef::TypedefType>(name, type);
 }

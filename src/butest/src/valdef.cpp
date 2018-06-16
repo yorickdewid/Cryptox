@@ -69,7 +69,7 @@ BOOST_AUTO_TEST_CASE(ValDefBasicReworkDissected)
 {
 	{
 		auto builtin = Util::MakeBuiltinType(Typedef::BuiltinType::Specifier::INT);
-		AST::TypeFacade facade{ builtin };
+		Typedef::TypeFacade facade{ builtin };
 		Valuedef::Value val{ 0, facade, Valuedef::Value::ValueVariant2{ 8612 } };
 
 		BOOST_CHECK(!val.Empty());
@@ -78,7 +78,7 @@ BOOST_AUTO_TEST_CASE(ValDefBasicReworkDissected)
 
 	{
 		auto builtin = Util::MakeBuiltinType(Typedef::BuiltinType::Specifier::INT);
-		Valuedef::Value val{ 0, AST::TypeFacade{ builtin }, Valuedef::Value::ValueVariant2{ 919261 } };
+		Valuedef::Value val{ 0, Typedef::TypeFacade{ builtin }, Valuedef::Value::ValueVariant2{ 919261 } };
 
 		BOOST_CHECK(!val.Empty());
 		BOOST_REQUIRE_NO_THROW(val.As2<int>());
@@ -87,7 +87,7 @@ BOOST_AUTO_TEST_CASE(ValDefBasicReworkDissected)
 
 	{
 		auto builtin = Util::MakeBuiltinType(Typedef::BuiltinType::Specifier::SHORT);
-		Valuedef::Value val{ 0, AST::TypeFacade{ builtin } };
+		Valuedef::Value val{ 0, Typedef::TypeFacade{ builtin } };
 
 		BOOST_CHECK(!val);
 		BOOST_CHECK(val.Empty());
@@ -98,7 +98,7 @@ BOOST_AUTO_TEST_CASE(ValDefBasicReworkDissected)
 		std::vector<int> a{ 8612, 812, 2383, 96, 12 };
 
 		Valuedef::Value val{ 0
-			, AST::TypeFacade{ Util::MakeBuiltinType(Typedef::BuiltinType::Specifier::INT) }
+			, Typedef::TypeFacade{ Util::MakeBuiltinType(Typedef::BuiltinType::Specifier::INT) }
 			, Valuedef::Value::ValueVariant3{ a } };
 
 		BOOST_CHECK(!val.Empty());
@@ -113,7 +113,7 @@ BOOST_AUTO_TEST_CASE(ValDefBasicReworkDissected)
 		std::vector<char> a{ 'X', 'O', 'A', 'N', 'B' };
 
 		Valuedef::Value val{ 0
-			, AST::TypeFacade{ Util::MakeBuiltinType(Typedef::BuiltinType::Specifier::CHAR) }
+			, Typedef::TypeFacade{ Util::MakeBuiltinType(Typedef::BuiltinType::Specifier::CHAR) }
 			, Valuedef::Value::ValueVariant3{ a } };
 
 		BOOST_CHECK(!val.Empty());
@@ -126,19 +126,19 @@ BOOST_AUTO_TEST_CASE(ValDefBasicReworkDissected)
 
 	{
 		Valuedef::Value val1{ 0
-			, AST::TypeFacade{ Util::MakeBuiltinType(Typedef::BuiltinType::Specifier::CHAR) }
+			, Typedef::TypeFacade{ Util::MakeBuiltinType(Typedef::BuiltinType::Specifier::CHAR) }
 			, Valuedef::Value::ValueVariant2{ 19 } };
 
 		BOOST_CHECK(val1);
 
 		Valuedef::Value val2{ 0
-			, AST::TypeFacade{ Util::MakeBuiltinType(Typedef::BuiltinType::Specifier::CHAR) }
+			, Typedef::TypeFacade{ Util::MakeBuiltinType(Typedef::BuiltinType::Specifier::CHAR) }
 			, Valuedef::Value::ValueVariant2{ 12 } };
 
 		BOOST_CHECK(val2);
 
 		Valuedef::Value val3{ 0
-			, AST::TypeFacade{ Util::MakeBuiltinType(Typedef::BuiltinType::Specifier::CHAR) }
+			, Typedef::TypeFacade{ Util::MakeBuiltinType(Typedef::BuiltinType::Specifier::CHAR) }
 		, Valuedef::Value::ValueVariant2{ 19 } };
 
 		BOOST_CHECK(val3);

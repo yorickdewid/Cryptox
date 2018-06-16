@@ -817,7 +817,7 @@ public:
 	class Parameter
 	{
 	public:
-		Parameter(const std::string& identifier, const AST::TypeFacade& type)
+		Parameter(const std::string& identifier, const Typedef::TypeFacade& type)
 			: m_identifier{ identifier }
 			, m_type{ type }
 		{
@@ -831,13 +831,13 @@ public:
 
 		inline const std::string Identifier() const noexcept { return m_identifier; }
 		inline bool Empty() const noexcept { return m_identifier.empty(); }
-		inline AST::TypeFacade DataType() const noexcept { return m_type; }
+		inline Typedef::TypeFacade DataType() const noexcept { return m_type; }
 		inline bool IsVariadic() const noexcept { return m_isVariadic; }
 
 	private:
 		const bool m_isVariadic{ false }; //TODO: incorporate in datatype
 		const std::string m_identifier;
-		const AST::TypeFacade m_type;
+		const Typedef::TypeFacade m_type;
 	};
 
 public:

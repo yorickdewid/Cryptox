@@ -53,19 +53,19 @@ bool DeclRefExpr::HasReturnType() const
 	return IsResolved();
 }
 
-void DeclRefExpr::SetReturnType(AST::TypeFacade type)
+void DeclRefExpr::SetReturnType(Typedef::TypeFacade type)
 {
 	assert(IsResolved());
 	return Reference()->SetReturnType(type);
 }
 
-const AST::TypeFacade& DeclRefExpr::ReturnType() const
+const Typedef::TypeFacade& DeclRefExpr::ReturnType() const
 {
 	assert(IsResolved());
 	return Reference()->ReturnType();
 }
 
-AST::TypeFacade& DeclRefExpr::UpdateReturnType()
+Typedef::TypeFacade& DeclRefExpr::UpdateReturnType()
 {
 	assert(IsResolved());
 	return Reference()->UpdateReturnType();

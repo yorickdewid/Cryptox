@@ -21,21 +21,14 @@
 
 namespace CoilCl
 {
-
-namespace AST
-{
-
-class TypeFacade;
-
-} // namespace AST
-
 namespace Typedef
 {
 
+class TypeFacade;
 class TypedefBase;
 
 using BaseType = std::shared_ptr<Typedef::TypedefBase>;
-using BaseType2 = std::shared_ptr<AST::TypeFacade>;
+using BaseType2 = std::shared_ptr<TypeFacade>;
 
 class TypedefBase
 {

@@ -14,7 +14,6 @@
 
 #include <Cry/Serialize.h>
 
-#include <boost/any.hpp> //TODO: Why?
 #include <boost/variant.hpp>
 #include <boost/optional.hpp>
 #include <boost/lexical_cast.hpp>
@@ -283,15 +282,15 @@ public:
 	}
 
 	// Value declaration without initialization
-	Value(int, AST::TypeFacade);
+	Value(int, Typedef::TypeFacade);
 	// Value declaration and initialization
-	Value(int, AST::TypeFacade, ValueVariant2&&);
+	Value(int, Typedef::TypeFacade, ValueVariant2&&);
 	// Value declaration and initialization
-	Value(int, AST::TypeFacade, ValueVariant3&&);
+	Value(int, Typedef::TypeFacade, ValueVariant3&&);
 	// Value declaration and initialization
-	Value(int, AST::TypeFacade, RecordValue&&);
+	Value(int, Typedef::TypeFacade, RecordValue&&);
 	// Pointer value declaration and initialization
-	Value(int, AST::TypeFacade, Value&&);
+	Value(int, Typedef::TypeFacade, Value&&);
 
 	// Swap-in native replacement value
 	template<typename NativeType>
@@ -311,7 +310,7 @@ public:
 	template<typename CastType>
 	auto DataType() const { return std::dynamic_pointer_cast<CastType>(m_objectType); } //TODO: OBSOLETE: remove
 	// Access type information
-	AST::TypeFacade Type() const { return m_internalType; }
+	Typedef::TypeFacade Type() const { return m_internalType; }
 
 	// Check if current value is an pointer
 	inline bool IsReference() const { return !!m_value3.referenceValue; } //TODO: refactor & remove in lieu of Typedef
@@ -370,7 +369,7 @@ public:
 
 private:
 	Typedef::BaseType m_objectType; //TODO: replace with typefacade to account for pointers
-	AST::TypeFacade m_internalType;
+	Typedef::TypeFacade m_internalType;
 };
 
 template<>
@@ -418,21 +417,23 @@ using ValueType = std::shared_ptr<ValueObject<_Ty>>;
 namespace Detail
 {
 
+using namespace Typedef;
+
 struct ValueDeductor
 {
-	template<Typedef::BuiltinType::Specifier Specifier, typename NativeRawType>
+	template<BuiltinType::Specifier Specifier, typename NativeRawType>
 	Valuedef::Value MakeValue(NativeRawType value)
 	{
 		return Valuedef::Value{ 0
-			, AST::TypeFacade{ Util::MakeBuiltinType(Specifier) }
+			, TypeFacade{ Util::MakeBuiltinType(Specifier) }
 			, Valuedef::Value::ValueVariant2{ value } };
 	}
 
-	template<Typedef::BuiltinType::Specifier Specifier, typename NativeRawType>
+	template<BuiltinType::Specifier Specifier, typename NativeRawType>
 	Valuedef::Value MakeMultiValue(NativeRawType&& value)
 	{
 		return Valuedef::Value{ 0
-			, AST::TypeFacade{ Util::MakeBuiltinType(Specifier) }
+			, TypeFacade{ Util::MakeBuiltinType(Specifier) }
 			, Valuedef::Value::ValueVariant3{ std::move(value) } };
 	}
 
@@ -443,10 +444,10 @@ struct ValueDeductor
 	void DeduceTypeQualifier(Valuedef::Value internalValue, NativeType&&)
 	{
 		if (std::is_const<NativeType>::value) {
-			internalValue.Type()->SetQualifier(Typedef::TypedefBase::TypeQualifier::CONST_T);
+			internalValue.Type()->SetQualifier(TypedefBase::TypeQualifier::CONST_T);
 		}
 		if (std::is_volatile<NativeType>::value) {
-			internalValue.Type()->SetQualifier(Typedef::TypedefBase::TypeQualifier::VOLATILE);
+			internalValue.Type()->SetQualifier(TypedefBase::TypeQualifier::VOLATILE);
 		}
 	}
 
@@ -466,32 +467,32 @@ public:
 template<>
 inline Valuedef::Value ValueDeductor::ConvertNativeType(int value)
 {
-	return MakeValue<Typedef::BuiltinType::Specifier::INT>(value);
+	return MakeValue<BuiltinType::Specifier::INT>(value);
 }
 template<>
 inline Valuedef::Value ValueDeductor::ConvertNativeType(char value)
 {
-	return MakeValue<Typedef::BuiltinType::Specifier::CHAR>(value);
+	return MakeValue<BuiltinType::Specifier::CHAR>(value);
 }
 template<>
 inline Valuedef::Value ValueDeductor::ConvertNativeType(float value)
 {
-	return MakeValue<Typedef::BuiltinType::Specifier::FLOAT>(value);
+	return MakeValue<BuiltinType::Specifier::FLOAT>(value);
 }
 template<>
 inline Valuedef::Value ValueDeductor::ConvertNativeType(double value)
 {
-	return MakeValue<Typedef::BuiltinType::Specifier::DOUBLE>(value);
+	return MakeValue<BuiltinType::Specifier::DOUBLE>(value);
 }
 template<>
 inline Valuedef::Value ValueDeductor::ConvertNativeType(bool value)
 {
-	return MakeValue<Typedef::BuiltinType::Specifier::BOOL>(value);
+	return MakeValue<BuiltinType::Specifier::BOOL>(value);
 }
 template<>
 inline Valuedef::Value ValueDeductor::ConvertNativeType(Valuedef::Value value)
 {
-	return Valuedef::Value{ 0, AST::TypeFacade{ Util::MakePointerType() }, std::move(value) };
+	return Valuedef::Value{ 0, TypeFacade{ Util::MakePointerType() }, std::move(value) };
 }
 
 //
@@ -499,22 +500,22 @@ inline Valuedef::Value ValueDeductor::ConvertNativeType(Valuedef::Value value)
 template<>
 inline Valuedef::Value ValueDeductor::ConvertNativeType(std::vector<int> value)
 {
-	return MakeMultiValue<Typedef::BuiltinType::Specifier::INT>(value);
+	return MakeMultiValue<BuiltinType::Specifier::INT>(value);
 }
 template<>
 inline Valuedef::Value ValueDeductor::ConvertNativeType(std::vector<float> value)
 {
-	return MakeMultiValue<Typedef::BuiltinType::Specifier::FLOAT>(value);
+	return MakeMultiValue<BuiltinType::Specifier::FLOAT>(value);
 }
 template<>
 inline Valuedef::Value ValueDeductor::ConvertNativeType(std::vector<double> value)
 {
-	return MakeMultiValue<Typedef::BuiltinType::Specifier::DOUBLE>(value);
+	return MakeMultiValue<BuiltinType::Specifier::DOUBLE>(value);
 }
 template<>
 inline Valuedef::Value ValueDeductor::ConvertNativeType(std::vector<bool> value)
 {
-	return MakeMultiValue<Typedef::BuiltinType::Specifier::BOOL>(value);
+	return MakeMultiValue<BuiltinType::Specifier::BOOL>(value);
 }
 
 } // namespace Detail

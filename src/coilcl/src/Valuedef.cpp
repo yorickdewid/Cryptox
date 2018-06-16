@@ -36,18 +36,18 @@ Value::Value(Typedef::BaseType typeBase, ValueVariant value)
 }
 
 // Value declaration without initialization
-Value::Value(int, AST::TypeFacade typeBase)
+Value::Value(int, Typedef::TypeFacade typeBase)
 	: m_internalType{ typeBase }
 {
 }
 // Value declaration and initialization
-Value::Value(int, AST::TypeFacade typeBase, ValueVariant2&& value)
+Value::Value(int, Typedef::TypeFacade typeBase, ValueVariant2&& value)
 	: m_internalType{ typeBase }
 	, m_value3{ ValueSelect{ std::move(value) } }
 {
 }
 // Value declaration and initialization
-Value::Value(int, AST::TypeFacade typeBase, ValueVariant3&& value)
+Value::Value(int, Typedef::TypeFacade typeBase, ValueVariant3&& value)
 	: m_internalType{ typeBase }
 	, m_value3{ ValueSelect{ std::move(value) } }
 {
@@ -55,7 +55,7 @@ Value::Value(int, AST::TypeFacade typeBase, ValueVariant3&& value)
 }
 
 // Value declaration and initialization
-Value::Value(int, AST::TypeFacade typeBase, RecordValue&& value)
+Value::Value(int, Typedef::TypeFacade typeBase, RecordValue&& value)
 	: m_internalType{ typeBase }
 	, m_value3{ ValueSelect{ std::move(value) } }
 {
@@ -65,13 +65,13 @@ Value::Value(int, AST::TypeFacade typeBase, RecordValue&& value)
 	//FUTURE: improve this structure and copy the record with transform to recordtype
 	const auto recordValue = As2<RecordValue>();
 	for (size_t i = 0; i < recordValue.Size(); ++i) {
-		const auto fieldTypeFacade = std::make_shared<AST::TypeFacade>(recordValue.At(i)->Type());
+		const auto fieldTypeFacade = std::make_shared<Typedef::TypeFacade>(recordValue.At(i)->Type());
 		record->AddField(recordValue.FieldName(i), fieldTypeFacade);
 	}
 }
 
 // Value declaration and initialization
-Value::Value(int, AST::TypeFacade typeBase, Value&& value)
+Value::Value(int, Typedef::TypeFacade typeBase, Value&& value)
 	: m_internalType{ typeBase }
 	, m_value3{ ValueSelect{ std::move(value) } }
 {
@@ -488,7 +488,7 @@ void Value::Serialize(const Value& value, Cry::ByteArray& buffer)
 	buffer.SetPlatformCompat();
 
 	// Serialzie type
-	AST::TypeFacade::Serialize(int{}, value.m_internalType, buffer);
+	Typedef::TypeFacade::Serialize(int{}, value.m_internalType, buffer);
 
 	// Serialzie value
 	ValueSelect::Pack(value.m_value3, buffer);
@@ -505,7 +505,7 @@ void Value::Deserialize(Value& value, Cry::ByteArray& buffer)
 	}
 
 	// Convert stream to type
-	AST::TypeFacade::Deserialize(int{}, value.m_internalType, buffer);
+	Typedef::TypeFacade::Deserialize(int{}, value.m_internalType, buffer);
 
 	// Convert stream into value
 	ValueSelect::Unpack(value.m_value3, buffer);

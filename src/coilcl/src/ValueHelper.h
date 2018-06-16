@@ -31,46 +31,47 @@ namespace CoilCl
 namespace Util
 {
 
-using namespace ::CoilCl::Valuedef;
+using namespace Valuedef;
+using namespace Typedef;
 
 //
 // Create explicit value with automatic type
 //
 
 template<typename NativeType, typename ValueType> //TODO: FIXME: DEPRECATED
-inline auto MakeValueObject(Typedef::BuiltinType&& type, ValueType value)
+inline auto MakeValueObject(BuiltinType&& type, ValueType value)
 {
 	return std::make_shared<ValueObject<NativeType>>(std::move(type), value);
 }
 template<typename Type = std::string> //TODO: FIXME: DEPRECATED
 inline ValueType<Type> MakeString(Type v)
 {
-	return MakeValueObject<Type>(Typedef::BuiltinType::Specifier::CHAR, v);
+	return MakeValueObject<Type>(BuiltinType::Specifier::CHAR, v);
 }
 template<typename Type = int> //TODO: FIXME: DEPRECATED
 inline ValueType<Type> MakeInt(Type v)
 {
-	return MakeValueObject<Type>(Typedef::BuiltinType::Specifier::INT, std::move(v));
+	return MakeValueObject<Type>(BuiltinType::Specifier::INT, std::move(v));
 }
 template<typename Type = float> //TODO: FIXME: DEPRECATED
 inline ValueType<Type> MakeFloat(Type v)
 {
-	return MakeValueObject<Type>(Typedef::BuiltinType::Specifier::FLOAT, std::move(v));
+	return MakeValueObject<Type>(BuiltinType::Specifier::FLOAT, std::move(v));
 }
 template<typename Type = double> //TODO: FIXME: DEPRECATED
 inline ValueType<Type> MakeDouble(Type v)
 {
-	return MakeValueObject<Type>(Typedef::BuiltinType::Specifier::DOUBLE, std::move(v));
+	return MakeValueObject<Type>(BuiltinType::Specifier::DOUBLE, std::move(v));
 }
 template<typename Type = char> //TODO: FIXME: DEPRECATED
 inline ValueType<Type> MakeChar(Type v)
 {
-	return MakeValueObject<Type>(Typedef::BuiltinType::Specifier::CHAR, v);
+	return MakeValueObject<Type>(BuiltinType::Specifier::CHAR, v);
 }
 template<typename Type = bool> //TODO: FIXME: DEPRECATED
 inline ValueType<Type> MakeBool(Type v)
 {
-	return MakeValueObject<Type>(Typedef::BuiltinType::Specifier::BOOL, v);
+	return MakeValueObject<Type>(BuiltinType::Specifier::BOOL, v);
 }
 template<typename Type = void> //TODO: why?
 inline ValueType<Type> MakeVoid()
@@ -87,33 +88,33 @@ inline auto MakeString2(const std::string& v)
 {
 	std::vector<char> ve(v.begin(), v.end());
 	ve.shrink_to_fit();
-	const auto builtin = MakeBuiltinType(Typedef::BuiltinType::Specifier::CHAR);
-	return Value{ 0, AST::TypeFacade{ builtin }, Value::ValueVariant3{ std::move(ve) } };
+	const auto builtin = MakeBuiltinType(BuiltinType::Specifier::CHAR);
+	return Value{ 0, TypeFacade{ builtin }, Value::ValueVariant3{ std::move(ve) } };
 }
 inline auto MakeInt2(int v)
 {
-	const auto builtin = MakeBuiltinType(Typedef::BuiltinType::Specifier::INT);
-	return Value{ 0, AST::TypeFacade{ builtin }, Value::ValueVariant2{ std::move(v) } };
+	const auto builtin = MakeBuiltinType(BuiltinType::Specifier::INT);
+	return Value{ 0, TypeFacade{ builtin }, Value::ValueVariant2{ std::move(v) } };
 }
 inline auto MakeFloat2(float v)
 {
-	const auto builtin = MakeBuiltinType(Typedef::BuiltinType::Specifier::FLOAT);
-	return Value{ 0, AST::TypeFacade{ builtin }, Value::ValueVariant2{ std::move(v) } };
+	const auto builtin = MakeBuiltinType(BuiltinType::Specifier::FLOAT);
+	return Value{ 0, TypeFacade{ builtin }, Value::ValueVariant2{ std::move(v) } };
 }
 inline auto MakeDouble2(double v)
 {
-	const auto builtin = MakeBuiltinType(Typedef::BuiltinType::Specifier::DOUBLE);
-	return Value{ 0, AST::TypeFacade{ builtin }, Value::ValueVariant2{ std::move(v) } };
+	const auto builtin = MakeBuiltinType(BuiltinType::Specifier::DOUBLE);
+	return Value{ 0, TypeFacade{ builtin }, Value::ValueVariant2{ std::move(v) } };
 }
 inline auto MakeChar2(char v)
 {
-	const auto builtin = MakeBuiltinType(Typedef::BuiltinType::Specifier::CHAR);
-	return Value{ 0, AST::TypeFacade{ builtin }, Value::ValueVariant2{ std::move(v) } };
+	const auto builtin = MakeBuiltinType(BuiltinType::Specifier::CHAR);
+	return Value{ 0, TypeFacade{ builtin }, Value::ValueVariant2{ std::move(v) } };
 }
 inline auto MakeBool2(bool v)
 {
-	const auto builtin = MakeBuiltinType(Typedef::BuiltinType::Specifier::BOOL);
-	return Value{ 0, AST::TypeFacade{ builtin }, Value::ValueVariant2{ std::move(v) } };
+	const auto builtin = MakeBuiltinType(BuiltinType::Specifier::BOOL);
+	return Value{ 0, TypeFacade{ builtin }, Value::ValueVariant2{ std::move(v) } };
 }
 
 //
@@ -122,29 +123,29 @@ inline auto MakeBool2(bool v)
 
 inline auto MakeIntArray(int v[])
 {
-	const auto builtin = MakeBuiltinType(Typedef::BuiltinType::Specifier::INT);
+	const auto builtin = MakeBuiltinType(BuiltinType::Specifier::INT);
 	std::vector<int> ve(v, v + sizeof(v) / sizeof(v[0]));
-	return Value{ 0, AST::TypeFacade{ builtin }, Value::ValueVariant3{ std::move(ve) } };
+	return Value{ 0, TypeFacade{ builtin }, Value::ValueVariant3{ std::move(ve) } };
 }
 inline auto MakeIntArray(std::vector<int> v)
 {
-	const auto builtin = MakeBuiltinType(Typedef::BuiltinType::Specifier::INT);
-	return Value{ 0, AST::TypeFacade{ builtin }, Value::ValueVariant3{ v } };
+	const auto builtin = MakeBuiltinType(BuiltinType::Specifier::INT);
+	return Value{ 0, TypeFacade{ builtin }, Value::ValueVariant3{ v } };
 }
 inline auto MakeFloatArray(std::vector<float> v)
 {
-	const auto builtin = MakeBuiltinType(Typedef::BuiltinType::Specifier::FLOAT);
-	return Value{ 0, AST::TypeFacade{ builtin }, Value::ValueVariant3{ v } };
+	const auto builtin = MakeBuiltinType(BuiltinType::Specifier::FLOAT);
+	return Value{ 0, TypeFacade{ builtin }, Value::ValueVariant3{ v } };
 }
 inline auto MakeDoubleArray(std::vector<double> v)
 {
-	const auto builtin = MakeBuiltinType(Typedef::BuiltinType::Specifier::DOUBLE);
-	return Value{ 0, AST::TypeFacade{ builtin }, Value::ValueVariant3{ v } };
+	const auto builtin = MakeBuiltinType(BuiltinType::Specifier::DOUBLE);
+	return Value{ 0, TypeFacade{ builtin }, Value::ValueVariant3{ v } };
 }
 inline auto MakeBoolArray(std::vector<bool> v)
 {
-	const auto builtin = MakeBuiltinType(Typedef::BuiltinType::Specifier::BOOL);
-	return Value{ 0, AST::TypeFacade{ builtin }, Value::ValueVariant3{ v } };
+	const auto builtin = MakeBuiltinType(BuiltinType::Specifier::BOOL);
+	return Value{ 0, TypeFacade{ builtin }, Value::ValueVariant3{ v } };
 }
 
 //
@@ -153,7 +154,7 @@ inline auto MakeBoolArray(std::vector<bool> v)
 
 inline auto MakePointer(Value&& v)
 {
-	return Value{ 0, AST::TypeFacade{ MakePointerType() }, std::move(v) };
+	return Value{ 0, TypeFacade{ MakePointerType() }, std::move(v) };
 }
 
 //
@@ -163,12 +164,12 @@ inline auto MakePointer(Value&& v)
 inline auto MakeStruct(RecordValue&& v, const std::string structName = {})
 {
 	const std::string name = v.HasRecordName() ? v.RecordName() : structName;
-	return Value{ 0, AST::TypeFacade{ MakeRecordType(name, Typedef::RecordType::Specifier::STRUCT) }, std::move(v) };
+	return Value{ 0, TypeFacade{ MakeRecordType(name, RecordType::Specifier::STRUCT) }, std::move(v) };
 }
 inline auto MakeUnion(RecordValue&& v, const std::string structName = {})
 {
 	const std::string name = v.HasRecordName() ? v.RecordName() : structName;
-	return Value{ 0, AST::TypeFacade{ MakeRecordType(name, Typedef::RecordType::Specifier::UNION) }, std::move(v) };
+	return Value{ 0, TypeFacade{ MakeRecordType(name, RecordType::Specifier::UNION) }, std::move(v) };
 }
 
 //
