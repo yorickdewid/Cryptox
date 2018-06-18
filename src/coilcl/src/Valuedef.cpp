@@ -88,6 +88,7 @@ void Value::ValueSelect::Clear()
 
 Value::ValueSelect& Value::ValueSelect::operator=(const ValueSelect& other)
 {
+	Clear();
 	if (other.singleValue) {
 		singleValue = other.singleValue;
 	}
@@ -100,15 +101,13 @@ Value::ValueSelect& Value::ValueSelect::operator=(const ValueSelect& other)
 	else if (other.referenceValue) {
 		referenceValue = other.referenceValue;
 	}
-	else {
-		Clear();
-	}
 
 	return (*this);
 }
 
 Value::ValueSelect& Value::ValueSelect::operator=(ValueSelect&& other)
 {
+	Clear();
 	if (other.singleValue) {
 		singleValue = std::move(other.singleValue);
 	}
@@ -120,9 +119,6 @@ Value::ValueSelect& Value::ValueSelect::operator=(ValueSelect&& other)
 	}
 	else if (other.referenceValue) {
 		referenceValue = std::move(other.referenceValue);
-	}
-	else {
-		Clear();
 	}
 
 	other.Clear();

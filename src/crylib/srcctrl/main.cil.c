@@ -20,7 +20,7 @@ int main() {
     
     int i = CONSTANT;
     if (i >= 1) {
-        puts("statement true");
+        puts("statement true");                                 
     } else {
         puts("statement false");
     }
