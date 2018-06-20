@@ -43,9 +43,10 @@ BOOST_AUTO_TEST_CASE(BSSimpleIO)
 	Cry::ByteStream bs;
 
 	{
-		bs << 186721583;
-		bs << 'X';
-		bs << 896127l;
+		bs << (int)186721583;
+		bs << (char)'X';
+		bs << (long)896127l;
+		bs << (short)896127;
 	}
 
 	BOOST_REQUIRE(!bs.empty());
@@ -54,13 +55,42 @@ BOOST_AUTO_TEST_CASE(BSSimpleIO)
 	{
 		int i, j;
 		long x;
+		short s;
 		bs >> i;
 		bs >> j;
 		bs >> x;
+		bs >> s;
 
 		BOOST_REQUIRE_EQUAL(186721583, i);
 		BOOST_REQUIRE_EQUAL('X', j);
 		BOOST_REQUIRE_EQUAL(896127l, x);
+		BOOST_REQUIRE_EQUAL((short)896127, s);
+	}
+}
+
+BOOST_AUTO_TEST_CASE(BSMethods)
+{
+	Cry::ByteStream bs;
+
+	{
+		int k[] = { 121,23,12,34 };
+		bs.Write(k, sizeof(k) / sizeof(k[0]));
+		bs.Put((short)8672);
+
+		BOOST_REQUIRE_EQUAL(bs.size(), 18);
+	}
+
+	{
+		int x[] = { 0,0,0,0 };
+		bs.Read(&x, sizeof(x) / sizeof(x[0]));
+		short s;
+		bs.Get(s);
+		
+		BOOST_REQUIRE_EQUAL(121, x[0]);
+		BOOST_REQUIRE_EQUAL(23, x[1]);
+		BOOST_REQUIRE_EQUAL(12, x[2]);
+		BOOST_REQUIRE_EQUAL(34, x[3]);
+		BOOST_REQUIRE_EQUAL((short)8672, s);
 	}
 }
 

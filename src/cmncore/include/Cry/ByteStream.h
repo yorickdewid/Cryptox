@@ -64,9 +64,19 @@ public:
 		return (*this);
 	}
 
-	template<typename Type>
-	ByteInStream& Read(Type /**s*/, std::streamsize /*count*/)
+	template<typename NativeType>
+	ByteInStream& Get(NativeType& s)
 	{
+		this->operator>>(s);
+		return (*this);
+	}
+
+	template<typename NativeType>
+	ByteInStream& Read(NativeType *s, std::streamsize count)
+	{
+		for (std::streamsize i = 0; i < count; ++i) {
+			this->operator>>((*s)[i]);
+		}
 		return (*this);
 	}
 };
@@ -100,15 +110,19 @@ public:
 		return (*this);
 	}
 
-	template<typename Type>
-	ByteOutStream& Put(Type /*ch*/)
+	template<typename NativeType>
+	ByteOutStream& Put(NativeType s)
 	{
+		this->operator<<(s);
 		return (*this);
 	}
 
-	template<typename Type>
-	ByteOutStream& Write(const Type /**s*/, std::streamsize /*count*/)
+	template<typename NativeType>
+	ByteOutStream& Write(const NativeType *s, std::streamsize count)
 	{
+		for (std::streamsize i = 0; i < count; ++i) {
+			this->operator<<(s[i]);
+		}
 		return (*this);
 	}
 };
@@ -127,7 +141,7 @@ class FileStream
 {
 public:
 	bool IsOpen() { return false; }
-	void Open(const char */*filename*/) {}
+	void Open(const char /*filename*/) {}
 	void Open(const std::string& /*filename*/) {}
 	void Close() {}
 
