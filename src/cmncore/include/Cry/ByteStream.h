@@ -17,6 +17,8 @@
 //TODO:
 // - string
 // - vectors
+// - custom objects
+// - iterators
 
 namespace Cry
 {

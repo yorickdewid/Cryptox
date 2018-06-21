@@ -45,12 +45,14 @@ ByteInStream& ByteInStream::operator>>(unsigned long& v)
 	v = static_cast<unsigned long>(this->Deserialize<Word>());
 	return (*this);
 }
-ByteInStream& ByteInStream::operator>>(long long&)
+ByteInStream& ByteInStream::operator>>(long long& v)
 {
+	v = static_cast<long long>(this->Deserialize<DoubleWord>());
 	return (*this);
 }
-ByteInStream& ByteInStream::operator>>(unsigned long long&)
+ByteInStream& ByteInStream::operator>>(unsigned long long& v)
 {
+	v = static_cast<unsigned long long>(this->Deserialize<DoubleWord>());
 	return (*this);
 }
 ByteInStream& ByteInStream::operator>>(float& v)
@@ -65,8 +67,10 @@ ByteInStream& ByteInStream::operator>>(double& v)
 	v = static_cast<double>(reinterpret_cast<double&>(w));
 	return (*this);
 }
-ByteInStream& ByteInStream::operator>>(long double&)
+ByteInStream& ByteInStream::operator>>(long double& v)
 {
+	DoubleWord w = this->Deserialize<DoubleWord>();
+	v = static_cast<double>(reinterpret_cast<double&>(w));
 	return (*this);
 }
 ByteInStream& ByteInStream::operator>>(bool& v)
@@ -74,8 +78,11 @@ ByteInStream& ByteInStream::operator>>(bool& v)
 	v = static_cast<bool>(this->Deserialize<Byte>());
 	return (*this);
 }
-ByteInStream& ByteInStream::operator>>(ByteInStream&)
+ByteInStream& ByteInStream::operator>>(ByteInStream& v)
 {
+	size_t vsz = static_cast<size_t>(this->Deserialize<Word>());
+	std::copy(this->begin() + this->Offset(), this->begin() + this->Offset() + vsz, std::back_inserter(v));
+	//TODO: fix offset
 	return (*this);
 }
 
@@ -113,12 +120,14 @@ ByteOutStream& ByteOutStream::operator<<(unsigned long v)
 	this->SerializeAs<Cry::Word>(v);
 	return (*this);
 }
-ByteOutStream& ByteOutStream::operator<<(long long /*v*/)
+ByteOutStream& ByteOutStream::operator<<(long long v)
 {
+	this->SerializeAs<Cry::DoubleWord>(v);
 	return (*this);
 }
-ByteOutStream& ByteOutStream::operator<<(unsigned long long /*v*/)
+ByteOutStream& ByteOutStream::operator<<(unsigned long long v)
 {
+	this->SerializeAs<Cry::DoubleWord>(v);
 	return (*this);
 }
 ByteOutStream& ByteOutStream::operator<<(float v)
@@ -131,18 +140,20 @@ ByteOutStream& ByteOutStream::operator<<(double v)
 	this->Serialize(reinterpret_cast<DoubleWord&>(v));
 	return (*this);
 }
-ByteOutStream& ByteOutStream::operator<<(long double /*v*/)
+ByteOutStream& ByteOutStream::operator<<(long double v)
 {
+	this->Serialize(reinterpret_cast<DoubleWord&>(v));
 	return (*this);
 }
 ByteOutStream& ByteOutStream::operator<<(bool v)
 {
-	this->SerializeAs<Cry::Byte>(v);
+	this->SerializeAs<Byte>(v);
 	return (*this);
 }
-ByteOutStream& ByteOutStream::operator<<(ByteOutStream /*v*/)
+ByteOutStream& ByteOutStream::operator<<(ByteOutStream v)
 {
-	//TODO
+	this->SerializeAs<Word>(v.size());
+	this->insert(this->cend(), v.cbegin(), v.cend());
 	return (*this);
 }
 

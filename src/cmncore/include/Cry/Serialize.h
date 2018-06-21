@@ -14,7 +14,8 @@
 #include <stdint.h>
 #include <vector>
 
-#define CHECKPOINT_TAG 0xd69b
+#define CHECKPOINT_TAG_1 0xd6
+#define CHECKPOINT_TAG_2 0x9b
 
 namespace Cry
 {
@@ -134,8 +135,7 @@ public:
 
 	void MakeCheckpoint()
 	{
-		//CHECKPOINT_TAG
-		BaseType::insert(this->cend(), { 0xd6, 0x9b });
+		BaseType::insert(this->cend(), { CHECKPOINT_TAG_1, CHECKPOINT_TAG_2 });
 	}
 
 	bool ValidateCheckpoint(int idx = -1)
@@ -144,8 +144,8 @@ public:
 			idx = m_offset;
 		}
 		m_offset += (sizeof(Byte) * 2);
-		return at(idx) == 0xd6
-			&& at(idx + 1) == 0x9b;
+		return at(idx) == CHECKPOINT_TAG_1
+			&& at(idx + 1) == CHECKPOINT_TAG_2;
 	}
 
 	// Encode platform characteristics
