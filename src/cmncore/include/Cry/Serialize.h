@@ -304,4 +304,7 @@ inline bool ByteArray::IsPlatformCompat()
 	return true;
 }
 
+//using ByteArray = BasicArrayBuffer<std::vector<Byte>>;
+//using WordArray = BasicArrayBuffer<std::vector<Word>>;
+
 } // namespace Cry

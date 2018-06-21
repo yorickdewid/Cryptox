@@ -50,7 +50,7 @@ BOOST_AUTO_TEST_CASE(BSSimpleIO)
 	}
 
 	BOOST_REQUIRE(!bs.empty());
-	BOOST_REQUIRE_EQUAL(bs.size(), 12);
+	BOOST_REQUIRE_EQUAL(bs.size(), 14);
 
 	{
 		int i, j;
@@ -65,6 +65,31 @@ BOOST_AUTO_TEST_CASE(BSSimpleIO)
 		BOOST_REQUIRE_EQUAL('X', j);
 		BOOST_REQUIRE_EQUAL(896127l, x);
 		BOOST_REQUIRE_EQUAL((short)896127, s);
+	}
+}
+
+BOOST_AUTO_TEST_CASE(BSSimpleFloat)
+{
+	{
+		Cry::ByteStream bs;
+
+		bs << 129.872f;
+
+		float f;
+		bs >> f;
+
+		BOOST_REQUIRE_EQUAL(129.872f, f);
+	}
+
+	{
+		Cry::ByteStream bs;
+
+		bs << 612873.71536272997;
+
+		double d;
+		bs >> d;
+
+		BOOST_REQUIRE_EQUAL(612873.715362729971, d);
 	}
 }
 

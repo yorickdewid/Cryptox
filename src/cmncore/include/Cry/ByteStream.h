@@ -11,6 +11,7 @@
 #include "Cry.h"
 #include "Serialize.h"
 
+#include <fstream>
 #include <string>
 
 //TODO:
@@ -19,6 +20,34 @@
 
 namespace Cry
 {
+
+#if 0
+namespace Detail
+{
+
+struct BasicIOBuffer {};
+
+class ByteArrayBuffer
+	: public BasicIOBuffer
+{
+	ByteArray ba;
+
+public:
+	ByteArrayBuffer() = default;
+};
+
+class FileWriteBuffer
+	: public BasicIOBuffer
+{
+	ByteArray ba;
+	std::fstream m_stream;
+
+public:
+	FileWriteBuffer() = default;
+};
+
+}
+#endif
 
 class ByteIOBase : public ByteArray
 {
@@ -140,12 +169,21 @@ class FileStream
 	, public ByteOutStream
 {
 public:
-	bool IsOpen() { return false; }
-	void Open(const char /*filename*/) {}
-	void Open(const std::string& /*filename*/) {}
-	void Close() {}
+	FileStream(const char *filename);
+	FileStream(const std::string filename);
+
+	FileStream(FileStream&& other) = default;
+	FileStream(const FileStream&) = delete;
+
+	bool IsOpen() { return m_stream.is_open(); }
+	void Open(const char *filename) { m_stream.open(filename); }
+	void Open(const std::string& filename) { m_stream.open(filename); }
+	void Close() { m_stream.close(); }
 
 	bool operator!() { return !IsOpen(); }
+
+private:
+	std::fstream m_stream;
 };
 
 } // namespace Cry

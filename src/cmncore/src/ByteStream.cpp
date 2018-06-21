@@ -53,12 +53,16 @@ ByteInStream& ByteInStream::operator>>(unsigned long long&)
 {
 	return (*this);
 }
-ByteInStream& ByteInStream::operator>>(float&)
+ByteInStream& ByteInStream::operator>>(float& v)
 {
+	Word w = this->Deserialize<Word>();
+	v = static_cast<float>(reinterpret_cast<float&>(w));
 	return (*this);
 }
-ByteInStream& ByteInStream::operator>>(double&)
+ByteInStream& ByteInStream::operator>>(double& v)
 {
+	DoubleWord w = this->Deserialize<DoubleWord>();
+	v = static_cast<double>(reinterpret_cast<double&>(w));
 	return (*this);
 }
 ByteInStream& ByteInStream::operator>>(long double&)
@@ -117,12 +121,14 @@ ByteOutStream& ByteOutStream::operator<<(unsigned long long /*v*/)
 {
 	return (*this);
 }
-ByteOutStream& ByteOutStream::operator<<(float /*v*/)
+ByteOutStream& ByteOutStream::operator<<(float v)
 {
+	this->Serialize(reinterpret_cast<Word&>(v));
 	return (*this);
 }
-ByteOutStream& ByteOutStream::operator<<(double /*v*/)
+ByteOutStream& ByteOutStream::operator<<(double v)
 {
+	this->Serialize(reinterpret_cast<DoubleWord&>(v));
 	return (*this);
 }
 ByteOutStream& ByteOutStream::operator<<(long double /*v*/)
@@ -138,4 +144,15 @@ ByteOutStream& ByteOutStream::operator<<(ByteOutStream /*v*/)
 {
 	//TODO
 	return (*this);
+}
+
+FileStream::FileStream(const char *filename)
+	: m_stream{ filename }
+{
+	//
+}
+FileStream::FileStream(const std::string filename)
+	: m_stream{ filename }
+{
+	//
 }
