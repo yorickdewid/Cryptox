@@ -134,13 +134,53 @@ BOOST_AUTO_TEST_CASE(BSMethods)
 		bs.Read(&x, sizeof(x) / sizeof(x[0]));
 		short s;
 		bs.Get(s);
-		
+
 		BOOST_REQUIRE_EQUAL(121, x[0]);
 		BOOST_REQUIRE_EQUAL(23, x[1]);
 		BOOST_REQUIRE_EQUAL(12, x[2]);
 		BOOST_REQUIRE_EQUAL(34, x[3]);
 		BOOST_REQUIRE_EQUAL((short)8672, s);
 	}
+}
+
+class MyClass
+{
+public:
+	MyClass(int i)
+		: m_i{ i }
+	{
+	}
+
+	explicit MyClass(Cry::ByteStream& bs)
+	{
+		bs >> m_i;
+	}
+
+	friend Cry::ByteStream& operator<<(Cry::ByteStream& s, const MyClass& other)
+	{
+		s << other.m_i << other.m_c;
+		return s;
+	}
+
+	bool operator==(const MyClass& other)
+	{
+		return m_i == other.m_i
+			&& m_c == other.m_c;
+	}
+
+private:
+	int m_i;
+	char m_c{ 'Y' };
+};
+
+BOOST_AUTO_TEST_CASE(BSCustomObject)
+{
+	Cry::ByteStream bs;
+	MyClass myclass{ 17 };
+
+	bs << myclass;
+
+	BOOST_REQUIRE(myclass == MyClass{ bs });
 }
 
 BOOST_AUTO_TEST_SUITE_END()
