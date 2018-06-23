@@ -26,25 +26,26 @@ BOOST_AUTO_TEST_SUITE(ValueDefinition)
 // NOTE: Legacy testcases are obsolete and therefore disabled. They only
 //       served as regression tests when refactoring the value system.
 // NOTE: Float and string fail, and are thus not present in the testcases.
+#if TEST_LEGACY
 BOOST_AUTO_TEST_CASE(ValDefLegacyBasic)
 {
 	auto valInt = Util::MakeInt(12);
 	auto valDouble = Util::MakeDouble(7123.7263812);
 	auto valChar = Util::MakeChar('x');
 	auto valBool = Util::MakeBool(true);
-	//auto valVoid = Util::MakeVoid();
+	auto valVoid = Util::MakeVoid();
 
-	//BOOST_CHECK(!Util::IsValueArray(valInt));
-	//BOOST_CHECK(!Util::IsValueArray(valDouble));
-	//BOOST_CHECK(!Util::IsValueArray(valChar));
-	//BOOST_CHECK(!Util::IsValueArray(valBool));
+	BOOST_CHECK(!Util::IsValueArray(valInt));
+	BOOST_CHECK(!Util::IsValueArray(valDouble));
+	BOOST_CHECK(!Util::IsValueArray(valChar));
+	BOOST_CHECK(!Util::IsValueArray(valBool));
 
 	BOOST_REQUIRE_EQUAL(12, valInt->As<int>());
 	BOOST_REQUIRE_EQUAL(7123.7263812, valDouble->As<double>());
 	BOOST_REQUIRE_EQUAL('x', valChar->As<char>());
 	BOOST_REQUIRE_EQUAL(true, valBool->As<bool>());
 
-	//BOOST_CHECK(Util::IsValueVoid(valVoid));
+	BOOST_CHECK(Util::IsValueVoid(valVoid));
 }
 
 // NOTE: Legacy testcases are obsolete and therefore disabled. They only
@@ -64,6 +65,7 @@ BOOST_AUTO_TEST_CASE(ValDefLegacyReplace)
 		BOOST_REQUIRE_EQUAL('X', valChar->As<char>());
 	}
 }
+#endif
 
 BOOST_AUTO_TEST_CASE(ValDefBasicReworkDissected)
 {
@@ -139,7 +141,7 @@ BOOST_AUTO_TEST_CASE(ValDefBasicReworkDissected)
 
 		Valuedef::Value val3{ 0
 			, Typedef::TypeFacade{ Util::MakeBuiltinType(Typedef::BuiltinType::Specifier::CHAR) }
-		, Valuedef::Value::ValueVariant2{ 19 } };
+			, Valuedef::Value::ValueVariant2{ 19 } };
 
 		BOOST_CHECK(val3);
 
@@ -310,8 +312,6 @@ BOOST_AUTO_TEST_CASE(ValDefReworkReplace)
 		auto valDouble = CaptureValue(8273.87123);
 		Valuedef::Value val2 = valDouble;
 		BOOST_CHECK(valDouble);
-		valDouble = Valuedef::Value{};
-		BOOST_CHECK(!valDouble);
 		BOOST_REQUIRE_EQUAL(8273.87123, val2.As2<double>());
 	}
 }

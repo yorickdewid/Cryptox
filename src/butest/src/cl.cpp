@@ -14,11 +14,13 @@
 #include <boost/test/unit_test.hpp>
 
 //
+// Key         : Cl
 // Test        : Compiler systemtest
-// Type        : system
+// Type        : system, regression
 // Description : Test the entire system from compiler input to virtual machine
 //               output. The purpose of this system test is to signal if any
-//               of the sub-units break.
+//               of the sub-units break. If a system wide bug is found and fixed
+//               a testcase for the specific bug should be created.
 //
 
 class CompilerHelper
@@ -283,7 +285,7 @@ BOOST_AUTO_TEST_CASE(ClSysIfConditionTrue)
 		"\n"
 		"int main() {\n"
 		"	int i = CONSTANT_INT;\n"
-		"	if (i > 0) {\n"
+		"	if (i == 1) {\n"
 		"		puts(\"statement true\");\n"
 		"	} else {\n"
 		"		puts(\"statement false\");\n"
