@@ -185,7 +185,7 @@ private:
 	template<typename CastTypePart>
 	CastTypePart ValueCastImp(...) const;
 
-	// Try cast on native types or throw predefined exception
+	// Try cast on native types or throw predefined exception.
 	template<typename ValueCastImp, typename std::enable_if<Trait::IsNativeSingleType<ValueCastImp>::value>::type* = nullptr>
 	ValueCastImp ValueCastImp(int) const
 	{
@@ -202,7 +202,7 @@ private:
 		}
 	}
 
-	// Try cast on container types throw predefined exception
+	// Try cast on container types throw predefined exception.
 	template<typename ValueCastImp, typename std::enable_if<Trait::IsNativeMultiType<ValueCastImp>::value>::type* = nullptr>
 	ValueCastImp ValueCastImp(int) const
 	{
@@ -219,7 +219,7 @@ private:
 		}
 	}
 
-	// Try cast on container types throw predefined exception
+	// Try cast on container types throw predefined exception.
 	template<typename ValueCastImp, typename std::enable_if<std::is_same<ValueCastImp, RecordValue>::value>::type* = nullptr>
 	ValueCastImp ValueCastImp(int) const
 	{
@@ -236,7 +236,7 @@ private:
 		}
 	}
 
-	// Try cast on container types throw predefined exception
+	// Try cast on container types throw predefined exception.
 	template<typename ValueCastImp, typename std::enable_if<std::is_same<ValueCastImp, Value>::value>::type* = nullptr>
 	ValueCastImp ValueCastImp(int) const
 	{
@@ -257,23 +257,23 @@ public:
 	Value(const Value&) = default;
 	Value(Value&&) = default;
 
-	// Value declaration without initialization
-	Value(int, Typedef::TypeFacade);
-	// Value declaration and initialization
-	Value(int, Typedef::TypeFacade, ValueVariant2&&);
-	// Value declaration and initialization
-	Value(int, Typedef::TypeFacade, ValueVariant3&&);
-	// Value declaration and initialization
-	Value(int, Typedef::TypeFacade, RecordValue&&);
-	// Pointer value declaration and initialization
-	Value(int, Typedef::TypeFacade, Value&&);
+	// Value declaration without initialization.
+	Value(Typedef::TypeFacade);
+	// Value declaration and initialization.
+	Value(Typedef::TypeFacade, ValueVariant2&&);
+	// Value declaration and initialization.
+	Value(Typedef::TypeFacade, ValueVariant3&&);
+	// Value declaration and initialization.
+	Value(Typedef::TypeFacade, RecordValue&&);
+	// Pointer value declaration and initialization.
+	Value(Typedef::TypeFacade, Value&&);
 
-	// Access type information
+	// Access type information.
 	Typedef::TypeFacade Type() const { return m_internalType; }
 
-	// Check if current value is an pointer
+	// Check if current value is an pointer.
 	inline bool IsReference() const { return !!m_value3.referenceValue; } //TODO: refactor & remove in lieu of Typedef
-	// Check if value is empty
+	// Check if value is empty.
 	inline bool Empty() const noexcept { return m_value3.Empty(); }
 
 	//TODO: REMOVE: OBSOLETE:
@@ -286,36 +286,38 @@ public:
 		return ValueCastImp<CastType>(int{});
 	}
 
-	//TODO: replace with global Cry::ToString()
-	// Print value
+	//FUTURE: replace with global Cry::ToString()
+	//TODO: replace with ToString();
+	// Return value as string.
 	virtual const std::string Print() const
 	{
 		return m_value3.ToString();
 	}
 
-	// Serialize the value into byte array
-	Cry::ByteArray Serialize(int) const;
+	// Serialize the value into byte array.
+	Cry::ByteArray Serialize() const;
 
-	// Serialize the value into byte array
+	// Serialize the value into byte array.
 	static void Serialize(const Value&, Cry::ByteArray&);
-	// Serialize byte array into value
+	// Serialize byte array into value.
 	static void Deserialize(Value&, Cry::ByteArray&);
 
-	// Copy other value into this value
+	// Copy other value into this value.
 	Value& operator=(const Value&);
-	// Move other value into this value
+	// Move other value into this value.
 	Value& operator=(Value&&);
 
-	// Comparison equal operator
+	// Comparison equal operator.
 	bool operator==(const Value&) const;
-	// Comparison not equal operator
+	// Comparison not equal operator.
 	bool operator!=(const Value&) const;
 
-	// Check if an value was set
+	// Check if an value was set.
 	inline operator bool() const { return !Empty(); }
-	// Check if an value was set
+	// Check if an value was set.
 	inline bool operator!() const { return Empty(); }
 
+	// Stream value to ostream.
 	friend std::ostream& operator<<(std::ostream&, const Value&);
 
 private:
@@ -323,7 +325,7 @@ private:
 };
 
 template<>
-inline std::string Value::As() const //TODO: rename
+inline std::string Value::As() const
 {
 	const auto value = ValueCastImp<std::vector<char>>(int{});
 	return std::string{ value.cbegin(), value.cend() };
@@ -344,16 +346,14 @@ struct ValueDeductor
 	template<BuiltinType::Specifier Specifier, typename NativeRawType>
 	Valuedef::Value MakeValue(NativeRawType value)
 	{
-		return Valuedef::Value{ 0
-			, TypeFacade{ Util::MakeBuiltinType(Specifier) }
+		return Valuedef::Value{TypeFacade{ Util::MakeBuiltinType(Specifier) }
 			, Valuedef::Value::ValueVariant2{ value } };
 	}
 
 	template<BuiltinType::Specifier Specifier, typename NativeRawType>
 	Valuedef::Value MakeMultiValue(NativeRawType&& value)
 	{
-		return Valuedef::Value{ 0
-			, TypeFacade{ Util::MakeBuiltinType(Specifier) }
+		return Valuedef::Value{TypeFacade{ Util::MakeBuiltinType(Specifier) }
 			, Valuedef::Value::ValueVariant3{ std::move(value) } };
 	}
 
@@ -412,7 +412,7 @@ inline Valuedef::Value ValueDeductor::ConvertNativeType(bool value)
 template<>
 inline Valuedef::Value ValueDeductor::ConvertNativeType(Valuedef::Value value)
 {
-	return Valuedef::Value{ 0, TypeFacade{ Util::MakePointerType() }, std::move(value) };
+	return Valuedef::Value{ TypeFacade{ Util::MakePointerType() }, std::move(value) };
 }
 
 //
@@ -449,7 +449,7 @@ using namespace ::CoilCl;
 
 struct ValueFactory
 {
-	static Valuedef::Value MakeValue(int, Cry::ByteArray&);
+	static Valuedef::Value MakeValue(Cry::ByteArray&);
 };
 
 } // namespace Util

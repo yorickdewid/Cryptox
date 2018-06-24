@@ -853,7 +853,7 @@ public:
 		for (const auto& child : funcNode->ParameterStatement()->Children()) {
 			if (child.lock()->Label() == AST::NodeID::VARIADIC_DECL_ID) {
 				std::string autoArg{ "__va_list__" };
-				break;
+				break; //TODO: fix
 				m_paramList.push_back(Parameter{ autoArg });
 			}
 			else {
@@ -1498,9 +1498,8 @@ class ScopedRoutine
 
 			//TODO: Super ugly & wrong. Create the value fromt he valDecl return type,
 			//      then optionally initialize the value with an expression.
-			//auto value = std::make_shared<Valuedef::Value>(Util::MakeBuiltinType(Typedef::BuiltinType::Specifier::INT));
 			const auto builtin = Util::MakeBuiltinType(Typedef::BuiltinType::Specifier::INT);
-			auto value = Valuedef::Value{ 0, Typedef::TypeFacade{ builtin } };
+			auto value = Valuedef::Value{ Typedef::TypeFacade{ builtin } };
 			if (node->HasExpression()) {
 				value = ResolveExpression(node->Expression(), ctx);
 			}

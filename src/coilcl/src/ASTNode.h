@@ -766,7 +766,7 @@ protected:
 	{
 		pack << NodeId;
 
-		Cry::ByteArray buffer = m_value.Serialize(int{});
+		Cry::ByteArray buffer = m_value.Serialize();
 		pack << buffer;
 
 		Literal::Serialize(pack);
@@ -783,7 +783,7 @@ protected:
 		Cry::ByteArray buffer;
 		pack >> buffer;
 		//TODO: validate buffer
-		m_value = Util::ValueFactory::MakeValue(int{}, buffer);
+		m_value = Util::ValueFactory::MakeValue(buffer);
 
 		Literal::Deserialize(pack);
 	}

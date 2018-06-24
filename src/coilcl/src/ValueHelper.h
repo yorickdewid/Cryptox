@@ -43,32 +43,32 @@ inline auto MakeString(const std::string& v)
 	std::vector<char> ve(v.begin(), v.end());
 	ve.shrink_to_fit();
 	const auto builtin = MakeBuiltinType(BuiltinType::Specifier::CHAR);
-	return Value{ 0, TypeFacade{ builtin }, Value::ValueVariant3{ std::move(ve) } };
+	return Value{ TypeFacade{ builtin }, Value::ValueVariant3{ std::move(ve) } };
 }
 inline auto MakeInt(int v)
 {
 	const auto builtin = MakeBuiltinType(BuiltinType::Specifier::INT);
-	return Value{ 0, TypeFacade{ builtin }, Value::ValueVariant2{ std::move(v) } };
+	return Value{ TypeFacade{ builtin }, Value::ValueVariant2{ std::move(v) } };
 }
 inline auto MakeFloat(float v)
 {
 	const auto builtin = MakeBuiltinType(BuiltinType::Specifier::FLOAT);
-	return Value{ 0, TypeFacade{ builtin }, Value::ValueVariant2{ std::move(v) } };
+	return Value{ TypeFacade{ builtin }, Value::ValueVariant2{ std::move(v) } };
 }
 inline auto MakeDouble(double v)
 {
 	const auto builtin = MakeBuiltinType(BuiltinType::Specifier::DOUBLE);
-	return Value{ 0, TypeFacade{ builtin }, Value::ValueVariant2{ std::move(v) } };
+	return Value{ TypeFacade{ builtin }, Value::ValueVariant2{ std::move(v) } };
 }
 inline auto MakeChar(char v)
 {
 	const auto builtin = MakeBuiltinType(BuiltinType::Specifier::CHAR);
-	return Value{ 0, TypeFacade{ builtin }, Value::ValueVariant2{ std::move(v) } };
+	return Value{ TypeFacade{ builtin }, Value::ValueVariant2{ std::move(v) } };
 }
 inline auto MakeBool(bool v)
 {
 	const auto builtin = MakeBuiltinType(BuiltinType::Specifier::BOOL);
-	return Value{ 0, TypeFacade{ builtin }, Value::ValueVariant2{ std::move(v) } };
+	return Value{ TypeFacade{ builtin }, Value::ValueVariant2{ std::move(v) } };
 }
 
 //
@@ -79,27 +79,27 @@ inline auto MakeIntArray(int v[])
 {
 	const auto builtin = MakeBuiltinType(BuiltinType::Specifier::INT);
 	std::vector<int> ve(v, v + sizeof(v) / sizeof(v[0]));
-	return Value{ 0, TypeFacade{ builtin }, Value::ValueVariant3{ std::move(ve) } };
+	return Value{ TypeFacade{ builtin }, Value::ValueVariant3{ std::move(ve) } };
 }
 inline auto MakeIntArray(std::vector<int> v)
 {
 	const auto builtin = MakeBuiltinType(BuiltinType::Specifier::INT);
-	return Value{ 0, TypeFacade{ builtin }, Value::ValueVariant3{ v } };
+	return Value{ TypeFacade{ builtin }, Value::ValueVariant3{ v } };
 }
 inline auto MakeFloatArray(std::vector<float> v)
 {
 	const auto builtin = MakeBuiltinType(BuiltinType::Specifier::FLOAT);
-	return Value{ 0, TypeFacade{ builtin }, Value::ValueVariant3{ v } };
+	return Value{ TypeFacade{ builtin }, Value::ValueVariant3{ v } };
 }
 inline auto MakeDoubleArray(std::vector<double> v)
 {
 	const auto builtin = MakeBuiltinType(BuiltinType::Specifier::DOUBLE);
-	return Value{ 0, TypeFacade{ builtin }, Value::ValueVariant3{ v } };
+	return Value{ TypeFacade{ builtin }, Value::ValueVariant3{ v } };
 }
 inline auto MakeBoolArray(std::vector<bool> v)
 {
 	const auto builtin = MakeBuiltinType(BuiltinType::Specifier::BOOL);
-	return Value{ 0, TypeFacade{ builtin }, Value::ValueVariant3{ v } };
+	return Value{ TypeFacade{ builtin }, Value::ValueVariant3{ v } };
 }
 
 //
@@ -108,7 +108,7 @@ inline auto MakeBoolArray(std::vector<bool> v)
 
 inline auto MakePointer(Value&& v)
 {
-	return Value{ 0, TypeFacade{ MakePointerType() }, std::move(v) };
+	return Value{ TypeFacade{ MakePointerType() }, std::move(v) };
 }
 
 //
@@ -118,12 +118,12 @@ inline auto MakePointer(Value&& v)
 inline auto MakeStruct(RecordValue&& v, const std::string structName = {})
 {
 	const std::string name = v.HasRecordName() ? v.RecordName() : structName;
-	return Value{ 0, TypeFacade{ MakeRecordType(name, RecordType::Specifier::STRUCT) }, std::move(v) };
+	return Value{ TypeFacade{ MakeRecordType(name, RecordType::Specifier::STRUCT) }, std::move(v) };
 }
 inline auto MakeUnion(RecordValue&& v, const std::string structName = {})
 {
 	const std::string name = v.HasRecordName() ? v.RecordName() : structName;
-	return Value{ 0, TypeFacade{ MakeRecordType(name, RecordType::Specifier::UNION) }, std::move(v) };
+	return Value{ TypeFacade{ MakeRecordType(name, RecordType::Specifier::UNION) }, std::move(v) };
 }
 
 //
@@ -141,10 +141,6 @@ inline Value CaptureValueRaw(NativeType&& v)
 //{
 //	return Detail::ValueDeductor{}(std::forward<NativeType>());
 //}
-
-//
-// Change value internals
-//
 
 //
 // Query value and type properties

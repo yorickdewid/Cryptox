@@ -20,18 +20,18 @@ namespace Valuedef
 {
 
 // Value declaration without initialization
-Value::Value(int, Typedef::TypeFacade typeBase)
+Value::Value(Typedef::TypeFacade typeBase)
 	: m_internalType{ typeBase }
 {
 }
 // Value declaration and initialization
-Value::Value(int, Typedef::TypeFacade typeBase, ValueVariant2&& value)
+Value::Value(Typedef::TypeFacade typeBase, ValueVariant2&& value)
 	: m_internalType{ typeBase }
 	, m_value3{ ValueSelect{ std::move(value) } }
 {
 }
 // Value declaration and initialization
-Value::Value(int, Typedef::TypeFacade typeBase, ValueVariant3&& value)
+Value::Value(Typedef::TypeFacade typeBase, ValueVariant3&& value)
 	: m_internalType{ typeBase }
 	, m_value3{ ValueSelect{ std::move(value) } }
 {
@@ -39,7 +39,7 @@ Value::Value(int, Typedef::TypeFacade typeBase, ValueVariant3&& value)
 }
 
 // Value declaration and initialization.
-Value::Value(int, Typedef::TypeFacade typeBase, RecordValue&& value)
+Value::Value(Typedef::TypeFacade typeBase, RecordValue&& value)
 	: m_internalType{ typeBase }
 	, m_value3{ ValueSelect{ std::move(value) } }
 {
@@ -55,7 +55,7 @@ Value::Value(int, Typedef::TypeFacade typeBase, RecordValue&& value)
 }
 
 // Value declaration and initialization.
-Value::Value(int, Typedef::TypeFacade typeBase, Value&& value)
+Value::Value(Typedef::TypeFacade typeBase, Value&& value)
 	: m_internalType{ typeBase }
 	, m_value3{ ValueSelect{ std::move(value) } }
 {
@@ -416,7 +416,7 @@ std::string Value::ValueSelect::ToString() const
 }
 
 // Serialize the value into byte array.
-Cry::ByteArray Value::Serialize(int) const
+Cry::ByteArray Value::Serialize() const
 {
 	Cry::ByteArray buffer;
 	Serialize((*this), buffer);
@@ -511,7 +511,7 @@ int EvaluateValueAsInteger(const Value& value)
 	return value.As<int>();
 }
 
-Valuedef::Value ValueFactory::MakeValue(int, Cry::ByteArray& buffer)
+Valuedef::Value ValueFactory::MakeValue(Cry::ByteArray& buffer)
 {
 	Valuedef::Value value = Util::MakeInt(0); //TODO: Make uninitialized
 	Valuedef::Value::Deserialize(value, buffer);

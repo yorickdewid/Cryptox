@@ -29,7 +29,7 @@ BOOST_AUTO_TEST_CASE(ValDefBasicReworkDissected)
 	{
 		auto builtin = Util::MakeBuiltinType(Typedef::BuiltinType::Specifier::INT);
 		Typedef::TypeFacade facade{ builtin };
-		Valuedef::Value val{ 0, facade, Valuedef::Value::ValueVariant2{ 8612 } };
+		Valuedef::Value val{ facade, Valuedef::Value::ValueVariant2{ 8612 } };
 
 		BOOST_CHECK(!val.Empty());
 		BOOST_REQUIRE_EQUAL(8612, val.As<int>());
@@ -37,7 +37,7 @@ BOOST_AUTO_TEST_CASE(ValDefBasicReworkDissected)
 
 	{
 		auto builtin = Util::MakeBuiltinType(Typedef::BuiltinType::Specifier::INT);
-		Valuedef::Value val{ 0, Typedef::TypeFacade{ builtin }, Valuedef::Value::ValueVariant2{ 919261 } };
+		Valuedef::Value val{ Typedef::TypeFacade{ builtin }, Valuedef::Value::ValueVariant2{ 919261 } };
 
 		BOOST_CHECK(!val.Empty());
 		BOOST_REQUIRE_NO_THROW(val.As<int>());
@@ -46,7 +46,7 @@ BOOST_AUTO_TEST_CASE(ValDefBasicReworkDissected)
 
 	{
 		auto builtin = Util::MakeBuiltinType(Typedef::BuiltinType::Specifier::SHORT);
-		Valuedef::Value val{ 0, Typedef::TypeFacade{ builtin } };
+		Valuedef::Value val{ Typedef::TypeFacade{ builtin } };
 
 		BOOST_CHECK(!val);
 		BOOST_CHECK(val.Empty());
@@ -56,8 +56,7 @@ BOOST_AUTO_TEST_CASE(ValDefBasicReworkDissected)
 	{
 		std::vector<int> a{ 8612, 812, 2383, 96, 12 };
 
-		Valuedef::Value val{ 0
-			, Typedef::TypeFacade{ Util::MakeBuiltinType(Typedef::BuiltinType::Specifier::INT) }
+		Valuedef::Value val{Typedef::TypeFacade{ Util::MakeBuiltinType(Typedef::BuiltinType::Specifier::INT) }
 			, Valuedef::Value::ValueVariant3{ a } };
 
 		BOOST_CHECK(!val.Empty());
@@ -71,8 +70,7 @@ BOOST_AUTO_TEST_CASE(ValDefBasicReworkDissected)
 	{
 		std::vector<char> a{ 'X', 'O', 'A', 'N', 'B' };
 
-		Valuedef::Value val{ 0
-			, Typedef::TypeFacade{ Util::MakeBuiltinType(Typedef::BuiltinType::Specifier::CHAR) }
+		Valuedef::Value val{Typedef::TypeFacade{ Util::MakeBuiltinType(Typedef::BuiltinType::Specifier::CHAR) }
 			, Valuedef::Value::ValueVariant3{ a } };
 
 		BOOST_CHECK(!val.Empty());
@@ -84,20 +82,17 @@ BOOST_AUTO_TEST_CASE(ValDefBasicReworkDissected)
 	}
 
 	{
-		Valuedef::Value val1{ 0
-			, Typedef::TypeFacade{ Util::MakeBuiltinType(Typedef::BuiltinType::Specifier::CHAR) }
+		Valuedef::Value val1{Typedef::TypeFacade{ Util::MakeBuiltinType(Typedef::BuiltinType::Specifier::CHAR) }
 			, Valuedef::Value::ValueVariant2{ 19 } };
 
 		BOOST_CHECK(val1);
 
-		Valuedef::Value val2{ 0
-			, Typedef::TypeFacade{ Util::MakeBuiltinType(Typedef::BuiltinType::Specifier::CHAR) }
+		Valuedef::Value val2{Typedef::TypeFacade{ Util::MakeBuiltinType(Typedef::BuiltinType::Specifier::CHAR) }
 			, Valuedef::Value::ValueVariant2{ 12 } };
 
 		BOOST_CHECK(val2);
 
-		Valuedef::Value val3{ 0
-			, Typedef::TypeFacade{ Util::MakeBuiltinType(Typedef::BuiltinType::Specifier::CHAR) }
+		Valuedef::Value val3{Typedef::TypeFacade{ Util::MakeBuiltinType(Typedef::BuiltinType::Specifier::CHAR) }
 			, Valuedef::Value::ValueVariant2{ 19 } };
 
 		BOOST_CHECK(val3);
@@ -287,8 +282,6 @@ BOOST_AUTO_TEST_CASE(ValDefReworkMisc)
 	{
 		BOOST_REQUIRE(Util::EvaluateValueAsBoolean(Util::MakeInt(722)));
 		BOOST_REQUIRE(!Util::EvaluateValueAsBoolean(Util::MakeInt(0)));
-		BOOST_REQUIRE(!Util::EvaluateValueAsBoolean(Util::MakeBool(false)));
-		BOOST_REQUIRE(Util::EvaluateValueAsBoolean(Util::MakeBool(true)));
 		BOOST_REQUIRE_EQUAL(762386, Util::EvaluateValueAsInteger(Util::MakeInt(762386)));
 		BOOST_REQUIRE_EQUAL(0, Util::EvaluateValueAsInteger(Util::MakeInt(0)));
 		BOOST_REQUIRE_THROW(Util::EvaluateValueAsInteger(Util::MakeIntArray({ 12,23 })), Valuedef::Value::UninitializedValueException);
@@ -303,33 +296,33 @@ BOOST_AUTO_TEST_CASE(ValDefReworkSerialize)
 
 	{
 		const Value val = CaptureValue(7962193);
-		Cry::ByteArray buffer = val.Serialize(int{});
+		Cry::ByteArray buffer = val.Serialize();
 
-		const Value val2 = ValueFactory::MakeValue(int{}, buffer);
+		const Value val2 = ValueFactory::MakeValue(buffer);
 		BOOST_REQUIRE_EQUAL(val, val2);
 	}
 
 	{
 		const Value val = CaptureValue('O');
-		Cry::ByteArray buffer = val.Serialize(int{});
+		Cry::ByteArray buffer = val.Serialize();
 
-		const Value val2 = ValueFactory::MakeValue(int{}, buffer);
+		const Value val2 = ValueFactory::MakeValue(buffer);
 		BOOST_REQUIRE_EQUAL(val, val2);
 	}
 
 	{
 		const Value val = MakeIntArray({ 722, 81, 86131, 71 });
-		Cry::ByteArray buffer = val.Serialize(int{});
+		Cry::ByteArray buffer = val.Serialize();
 
-		const Value val2 = ValueFactory::MakeValue(int{}, buffer);
+		const Value val2 = ValueFactory::MakeValue(buffer);
 		BOOST_REQUIRE_EQUAL(val, val2);
 	}
 
 	{
 		const Value val = Util::MakeString("teststring");
-		Cry::ByteArray buffer = val.Serialize(int{});
+		Cry::ByteArray buffer = val.Serialize();
 
-		const Value val2 = ValueFactory::MakeValue(int{}, buffer);
+		const Value val2 = ValueFactory::MakeValue(buffer);
 		BOOST_REQUIRE_EQUAL("teststring", val2.As<std::string>());
 	}
 
@@ -341,18 +334,18 @@ BOOST_AUTO_TEST_CASE(ValDefReworkSerialize)
 		Valuedef::RecordValue record2{ record };
 
 		auto val = Util::MakeStruct(std::move(record));
-		Cry::ByteArray buffer = val.Serialize(int{});
+		Cry::ByteArray buffer = val.Serialize();
 
-		const Value val2 = ValueFactory::MakeValue(int{}, buffer);
+		const Value val2 = ValueFactory::MakeValue(buffer);
 		BOOST_REQUIRE_EQUAL(val, val2);
 	}
 
 	{
 		auto valInt = Util::MakeInt(796162);
 		auto val = Util::MakePointer(std::move(valInt));
-		Cry::ByteArray buffer = val.Serialize(int{});
+		Cry::ByteArray buffer = val.Serialize();
 
-		const Value val2 = ValueFactory::MakeValue(int{}, buffer);
+		const Value val2 = ValueFactory::MakeValue(buffer);
 		BOOST_REQUIRE(val2.IsReference());
 		BOOST_REQUIRE_EQUAL(796162, val2.As<Valuedef::Value>().As<int>());
 	}
