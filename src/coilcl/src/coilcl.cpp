@@ -6,7 +6,7 @@
 // that can be found in the LICENSE file. Content can not be 
 // copied and/or distributed without the express of the author.
 
-// Local includes
+// Local includes.
 #include "coilcl.h"
 #include "Profile.h"
 #include "Program.h"
@@ -17,11 +17,11 @@
 #include "Optimizer.h"
 #include "NonFatal.h"
 
-// Project includes
+// Project includes.
 #include <Cry/Cry.h>
 #include <Cry/Config.h>
 
-// Language includes
+// Language includes.
 #include <string>
 #include <iostream>
 #include <functional>
@@ -30,6 +30,10 @@
 // - No support for K&R function declarations
 // - Singe translation unit
 // - Lexer does not check on end of literal char or end of string literal
+
+#ifdef CRY_DEBUG
+# define CRY_DEBUG_COMPILER 1
+#endif
 
 #define SET_HANDLER(n,c) \
 	Compiler& Set##n##Handler(decltype(c) callback) \
@@ -53,15 +57,15 @@ class Compiler final
 	std::function<void(const std::string&, bool)> errorHandler;
 	void *backreferencePointer{ nullptr };
 
-	template<typename _Ty>
+	template<typename StructAccessor>
 	class StageOptions
 	{
-		_Ty opt;
+		const StructAccessor opt;
 
 	public:
-		const _Ty *operator->() const
+		const StructAccessor *operator->() const noexcept
 		{
-			return &opt;
+			return (&opt);
 		}
 	};
 
@@ -72,43 +76,43 @@ private:
 	StageOptions<codegen> stageOne;
 
 private:
-	// Read new input from source provider
+	// Read new input from source provider.
 	virtual std::string ReadInput()
 	{
 		return readHandler();
 	}
 
-	// Ask for include soruce
+	// Ask for include source.
 	virtual bool Include(const std::string& source)
 	{
 		return includeHandler(source);
 	}
 
-	// Request meta data from provider
+	// Request meta data from provider.
 	virtual std::shared_ptr<metainfo_t> MetaInfo()
 	{
 		return metaHandler();
 	}
 
-	// Write warning to error handler and continue execution
+	// Write warning to error handler and continue execution.
 	inline void Warning(const std::string& message)
 	{
 		errorHandler(message, false);
 	}
 
-	// Write error to error handler and continue execution
+	// Write error to error handler and continue execution.
 	inline void Error(const std::string& message)
 	{
 		errorHandler(message, false);
 	}
 
-	// Write error to error handler and stop execution
+	// Write error to error handler and stop execution.
 	virtual inline void Error(const std::string& message, bool isFatal)
 	{
 		errorHandler(message, isFatal);
 	}
 
-	// Write all notices to error handler
+	// Write all notices to error handler.
 	static void PrintNoticeMessages(std::shared_ptr<Profile>& profile)
 	{
 		std::stringstream ss;
@@ -166,8 +170,10 @@ public:
 			// Compose definitive program structure
 			Program::Bind(std::move(program), std::move(ast));
 
+#ifdef CRY_DEBUG_COMPILER
 			// For now dump contents to screen
 			program->AstPassthrough()->Print<CoilCl::AST::ASTNode::Traverse::STAGE_FIRST>();
+#endif
 
 			// Semantic analysis
 			Semer{ profile, std::move(program->Ast()) }
@@ -185,14 +191,16 @@ public:
 			//.DeepInflation()
 			//.Metrics(program->FillMetrics());
 
+			Emit::Module<Emit::Sequencer::AIIPX> AIIPXMod;
+
+#ifdef CRY_DEBUG_COMPILER
 			// For now dump contents to screen
 			program->AstPassthrough()->Print<CoilCl::AST::ASTNode::Traverse::STAGE_LAST>();
-
-			Emit::Module<Emit::Sequencer::AIIPX> AIIPXMod;
 
 			// Add console output stream to module
 			auto consoleStream = std::make_shared<Emit::Stream::Console>();
 			AIIPXMod.AddStream(consoleStream);
+#endif
 
 			// Add program memory block to module
 			auto& aiipxResult = program->GetResultSection(Program::ResultSection::AIIPX);
@@ -224,6 +232,9 @@ public:
 		catch (const std::exception& e) {
 			compiler->Error(e.what());
 		}
+
+		// Clear all warnings for this session.
+		g_warningQueue.Clear();
 
 		return program;
 	}
@@ -259,7 +270,7 @@ inline auto WrapMeta(WrapperPointerType *metaPtr)
 	return std::shared_ptr<WrapperPointerType>{ metaPtr };
 }
 
-// Release program pointer from managed resource
+// Release program pointer from managed resource.
 void AssimilateProgram(program_t *out_program, Compiler::ProgramPtr&& in_program)
 {
 	assert(out_program);

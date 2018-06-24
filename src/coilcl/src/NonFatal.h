@@ -134,6 +134,7 @@ public:
 	iterator end() noexcept { return _Myty::end(); }
 	const_iterator end() const noexcept { return _Myty::end(); }
 
+	inline void Clear() { this->clear(); }
 	inline void Empty() { Empty(); }
 	inline bool IsFull() const noexcept { return this->size() == _Count; }
 };
