@@ -8,6 +8,7 @@
 
 #include "RecordValue.h"
 #include "Valuedef.h"
+#include "ValueHelper.h"
 
 #include <algorithm>
 
@@ -113,7 +114,7 @@ void RecordValue::Deserialize(RecordValue& value, Cry::ByteArray& buffer)
 		buffer.SetOffset(static_cast<int>(fieldNameSize)); //TODO: Make ByteArray do this automatically
 
 		// Field value
-		Valuedef::Value tmp;
+		Valuedef::Value tmp = Util::MakeInt2(0);
 		Value::Deserialize(tmp, buffer);
 		tmpRec.AddField({ fieldName, RecordValue::AutoValue(tmp) });
 	}

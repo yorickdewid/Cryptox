@@ -13,6 +13,8 @@
 #include "Valuedef.h"
 #include "ValueHelper.h"
 
+#include <boost/optional.hpp>
+
 #include <stack>
 #include <string>
 #include <memory>
@@ -163,7 +165,7 @@ public:
 
 	// Implementing interface
 	virtual bool HasData() const { return !!m_data; }
-	virtual ValuePointer Data() { return m_data; }
+	virtual ValuePointer Data() { return m_data.get(); }
 
 	// Source location methods
 	virtual int TokenLine() const { return m_context.top().m_currentLine; }
@@ -255,7 +257,7 @@ protected:
 
 protected:
 	std::shared_ptr<CoilCl::Profile>& m_profile;
-	std::shared_ptr<CoilCl::Valuedef::Value> m_data;
+	boost::optional<CoilCl::Valuedef::Value> m_data;
 	std::stack<AnalysisContext> m_context;
 	bool m_isEndofInput = false;
 };

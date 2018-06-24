@@ -102,6 +102,11 @@ public:
 		return os;
 	}
 
+	std::string ToString() const
+	{
+		return HasRecordName() ? m_name : "<anonymous record>";
+	}
+
 	template<typename Type>
 	inline static auto AutoValue(Type val) -> std::shared_ptr<Type>
 	{

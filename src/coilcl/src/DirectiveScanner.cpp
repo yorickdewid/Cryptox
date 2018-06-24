@@ -114,6 +114,7 @@ TokenProcessor::TokenDataPair<TokenProcessor::TokenType, const TokenProcessor::D
 	return pair;
 }
 
+//TODO: Too much magic, refactor
 template<typename _Ty>
 int TokenProcessorProxy<_Ty>::operator()(
 	std::function<int()> lexerLexCall,
@@ -149,7 +150,7 @@ int TokenProcessorProxy<_Ty>::operator()(
 			continue;
 		}
 
-		// Newline is end of directive line, if no line continuations were found
+		// Newline is end of directive line, if no line continuations were found.
 		case TK_LINE_NEW:
 		{
 			if (!skipNewline && onPreprocLine) {
@@ -168,20 +169,27 @@ int TokenProcessorProxy<_Ty>::operator()(
 
 		skipNewline = false;
 
+		//TODO: the optional is a temporary measure
 		// If token contains data, get data pointer.
-		Tokenizer::ValuePointer dataPtr = lexerHasDataCall() ? std::move(lexerDataCall()) : nullptr;
+		/*boost::optional<Tokenizer::ValuePointer> data;
+		if (lexerHasDataCall()) {
+			data = std::move(lexerDataCall());
+		}*/
 
 		// Before returning back to the frontend caller process present the token and data to the
 		// hooked methods. Since token processors can hook onto any token they are allowed
 		// to change the token and/or data before continuing downwards. If the hooked methods reset
 		// the token, we skip all further operations and continue on with a new token.
-		TokenProcessor::DefaultTokenDataPair preprocPair{ token, dataPtr };
+		auto preprocPair = lexerHasDataCall()
+			? (TokenProcessor::DefaultTokenDataPair{ token, std::move(lexerDataCall()) })
+			: (TokenProcessor::DefaultTokenDataPair{ token });
 		tokenProcessor.Propagate(onPreprocLine, preprocPair);
 
 		// If the token processor cleared the token, we must not return and request
 		// next token instead. This allows the token processor to skip over tokens.
 		if (!preprocPair.HasToken()) { continue; }
 
+		// Replace token if changed.
 		if (preprocPair.HasTokenChanged()) {
 			token = preprocPair.Token();
 		}
@@ -203,7 +211,10 @@ int TokenProcessorProxy<_Ty>::operator()(
 		}
 
 		// Call token processor if any of the token conditions was met.
-		tokenProcessor.Dispatch(token, dataPtr);
+		auto dispatchPair = lexerHasDataCall()
+			? (TokenProcessor::DefaultTokenDataPair{ token, std::move(lexerDataCall()) })
+			: (TokenProcessor::DefaultTokenDataPair{ token });
+		tokenProcessor.Dispatch(dispatchPair);
 	} while (true);
 
 	return token;
@@ -252,10 +263,10 @@ int DirectiveScanner::Lex()
 	// Setup proxy between directive scanner and token processor.
 	return m_proxy([this]() { return this->LexWrapper(); },
 		[this]() { return this->HasData(); },
-		[this]() { return m_data; },
+		[this]() { return m_data.get(); },
 		[this](const Tokenizer::ValuePointer& dataPtr)
 	{
-		m_data = Tokenizer::ValuePointer{ dataPtr };
+		m_data = dataPtr;
 	});
 }
 

@@ -26,10 +26,10 @@ AST::NodeID GetNodeId(Serializable::Interface *visitor)
 	return _nodeId;
 }
 
-template<typename _Ty, typename = typename std::enable_if<std::is_base_of<ASTNode, _Ty>::value>::type>
+template<typename NodeType, typename = typename std::enable_if<std::is_base_of<ASTNode, NodeType>::value>::type>
 std::shared_ptr<ASTNode> ReturnNode(Serializable::Interface *visitor)
 {
-	std::shared_ptr<ASTNode> node = std::shared_ptr<_Ty>{ new _Ty{ (*visitor) } };
+	std::shared_ptr<ASTNode> node = std::shared_ptr<NodeType>{ new NodeType{ (*visitor) } };
 	visitor->FireDependencies(node);
 	return std::move(node);
 }

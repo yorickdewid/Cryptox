@@ -15,20 +15,23 @@
 #include "Stage.h"
 #include "LockPipe.h"
 
+#include <boost/optional.hpp>
+
 #include <deque>
 #include <stack>
 #include <map>
 
 using namespace CoilCl::Valuedef;
 
-template<typename _Ty>
+//TODO: move to cry/functional
+template<typename Type>
 struct is_stack : public std::false_type {};
 
-template<typename _Ty, typename _Alloc>
-struct is_stack<std::stack<_Ty, _Alloc>> : public std::true_type {};
+template<typename Type, typename Alloc>
+struct is_stack<std::stack<Type, Alloc>> : public std::true_type {};
 
-template<typename _Ty, class = typename std::enable_if<is_stack<_Ty>::value>::type>
-inline void ClearStack(_Ty& c)
+template<typename Type, class = typename std::enable_if<is_stack<Type>::value>::type>
+inline void ClearStack(Type& c)
 {
 	while (!c.empty()) { c.pop(); }
 }
@@ -37,12 +40,21 @@ inline void ClearStack(_Ty& c)
 class TokenState
 {
 	Token m_currentToken;
-	std::shared_ptr<Value> m_currentData;
-	int m_line;
-	int m_column;
+	boost::optional<Value> m_currentData;
+	int m_line{ 0 }; //TODO: remplac with location thing
+	int m_column{ 0 };  //TODO: remplac with location thing
 
 public:
-	TokenState(Token currentToken, std::shared_ptr<Value>& currentData, int line = 0, int column = 0)
+	using TokenType = decltype(m_currentToken);
+	using ValueType = decltype(m_currentData)::value_type;
+
+public:
+	TokenState(Token currentToken)
+		: m_currentToken{ currentToken }
+	{
+	}
+
+	TokenState(Token currentToken, Value& currentData, int line = 0, int column = 0)
 		: m_currentToken{ currentToken }
 		, m_currentData{ currentData }
 		, m_line{ line }
@@ -50,16 +62,8 @@ public:
 	{
 	}
 
-	TokenState(int currentToken, std::shared_ptr<Value>& currentData, int line = 0, int column = 0)
-		: m_currentToken{ static_cast<Token>(currentToken) }
-		, m_currentData{ currentData }
-		, m_line{ line }
-		, m_column{ column }
-	{
-	}
-
-	TokenState(int currentToken, std::shared_ptr<Value>&& currentData, std::pair<int, int>&& location)
-		: m_currentToken{ static_cast<Token>(currentToken) }
+	TokenState(Token currentToken, Value&& currentData, std::pair<int, int>&& location)
+		: m_currentToken{ currentToken }
 		, m_currentData{ std::move(currentData) }
 		, m_line{ location.first }
 		, m_column{ location.second }
@@ -73,7 +77,7 @@ public:
 	inline bool HasData() const { return (!!m_currentData); }
 
 	// Fetch data from current token state
-	inline const std::shared_ptr<Value>& FetchData() { return m_currentData; }
+	inline const Value& FetchData() { return m_currentData.get(); }
 
 	// Fetch token from current token state
 	inline auto FetchToken() const { return m_currentToken; }
@@ -88,12 +92,15 @@ public:
 	inline auto FetchLocation() const { return std::make_pair(m_line, m_column); }
 };
 
-template<typename _Ty>
+//TODO: iterator, check StateType
+template<typename StateType>
 class StateContainer
 {
+	using OffsetType = size_t;
+
 	std::stack<size_t> m_snapshopList;
-	std::vector<_Ty> m_tokenList;
-	mutable size_t index = 0;
+	std::vector<StateType> m_tokenList;
+	mutable OffsetType index{ 0 };
 
 public:
 	StateContainer(size_t reserved_elements = 10)
@@ -101,44 +108,61 @@ public:
 		m_tokenList.reserve(reserved_elements);
 	}
 
-	// Prevent all forms of data transfer from this object
+	//
+	// Prevent transfer from this object.
+	//
+
 	StateContainer(const StateContainer&) = delete;
 	StateContainer(StateContainer&&) = delete;
 	StateContainer& operator=(const StateContainer&) = delete;
 	StateContainer& operator=(StateContainer&&) = delete;
 
-	void Push(_Ty&& state)
+	// Push state on the list.
+	void Push(StateType&& state)
 	{
 		m_tokenList.push_back(std::move(state));
-		index++;
+		++index;
 	}
 
+	// Emplace state at the end of list.
+	template<typename... ArgTypes>
+	void Emplace(ArgTypes&&... args)
+	{
+		m_tokenList.emplace_back(std::forward<ArgTypes>(args));
+		++index;
+	}
+
+	// Get previous state.
 	inline auto& Previous() { return m_tokenList[index > 1 ? (index - 1) : index]; }
+	// Get current state.
 	inline auto& Current() { return m_tokenList[index - 1]; }
 
-	// Take snapshot of current index
+	// Take snapshot of current index.
 	inline void Snapshot()
 	{
 		m_snapshopList.push(index);
 	}
 
-	// Revert to last snapshot
+	// Revert to last snapshot.
 	inline void Revert()
 	{
 		index = m_snapshopList.top();
 		m_snapshopList.pop();
 	}
 
-	// Dispose last snapshot
+	// Dispose last snapshot.
 	inline void DisposeSnapshot()
 	{
 		m_snapshopList.pop();
 	}
 
-	// Check if the next item is the last item
+	// Check if snapshots exist.
+	inline bool HasSnapshots() const noexcept { return !m_snapshopList.empty(); }
+
+	// Check if the next item is the last item.
 	inline auto IsIndexHead() const { return index == m_tokenList.size(); }
 
-	// Take one step forward
+	// Take one step forward.
 	inline void ShiftForward() const
 	{
 		if (m_tokenList.size() > index) {
@@ -146,7 +170,7 @@ public:
 		}
 	}
 
-	// Take one step back, but preserve the list
+	// Take one step back, but preserve the list.
 	inline void ShiftBackward() const
 	{
 		if (index > 0) {
@@ -154,20 +178,25 @@ public:
 		}
 	}
 
-	// Access token at random position
+	// Access token at random position.
 	inline auto& operator[](size_t idx) const
 	{
 		return m_tokenList[idx];
 	}
 
-	// Remove all snapshots, and restore index
+	// Remove all snapshots, and restore index.
 	void Reset()
 	{
 		index = m_tokenList.size();
 		ClearStack(m_snapshopList);
 	}
 
-	// Clear the token and snapshot list, this action will free all allocated memory
+	// Get container size.
+	inline size_t Size() const noexcept { return m_tokenList.size(); }
+	// Check if container is empty.
+	inline bool Empty() const noexcept { return m_tokenList.empty(); }
+
+	// Clear the token and snapshot list, this action will free all allocated memory.
 	void Clear()
 	{
 		index = 0;
@@ -176,7 +205,7 @@ public:
 	}
 
 	// If the next item is the last item, clear the list
-	// and copy the last element back in the container
+	// and copy the last element back in the container.
 	void TryClear()
 	{
 		if (IsIndexHead()) {

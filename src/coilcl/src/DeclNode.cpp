@@ -17,8 +17,8 @@ void Decl::Serialize(Serializable::Interface& pack)
 
 	if (HasReturnType()) {
 		pack << true;
-		std::vector<uint8_t> buffer;
-		Typedef::TypeFacade::Serialize(ReturnType(), buffer);
+		Cry::ByteArray buffer;
+		Typedef::TypeFacade::Serialize(int{}, ReturnType(), buffer);
 		pack << buffer;
 	}
 	else {
@@ -41,7 +41,7 @@ void Decl::Deserialize(Serializable::Interface& pack)
 	if (hasReturn) {
 		Cry::ByteArray buffer;
 		pack >> buffer;
-		Typedef::TypeFacade::Deserialize(UpdateReturnType(), buffer);
+		Typedef::TypeFacade::Deserialize(int{}, UpdateReturnType(), buffer);
 	}
 
 	ASTNode::Deserialize(pack);
@@ -498,7 +498,7 @@ void FunctionDecl::Serialize(Serializable::Interface& pack)
 	pack << static_cast<int>(m_signature.size());
 	for (const auto& signature : m_signature) {
 		Cry::ByteArray buffer;
-		Typedef::TypeFacade::Serialize(signature, buffer);
+		Typedef::TypeFacade::Serialize(int{}, signature, buffer);
 		pack << buffer;
 	}
 
@@ -539,7 +539,7 @@ void FunctionDecl::Deserialize(Serializable::Interface& pack)
 		pack >> buffer;
 
 		Typedef::TypeFacade type;
-		Typedef::TypeFacade::Deserialize(type, buffer);
+		Typedef::TypeFacade::Deserialize(int{}, type, buffer);
 		m_signature.push_back(std::move(type));
 	}
 

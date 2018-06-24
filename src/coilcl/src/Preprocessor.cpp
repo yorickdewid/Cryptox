@@ -26,7 +26,7 @@
 
 #define DEFINE_MACRO_STR(k,v) \
 	{ \
-		TokenProcessor::DataType m_data = std::make_shared<Valuedef::ValueObject<std::string>>(std::move(Typedef::BuiltinType::Specifier::CHAR), v); \
+		TokenProcessor::DataType m_data = Util::MakeString2(v); \
 		std::vector<Preprocessor::TokenDataPair<TokenProcessor::TokenType, const TokenProcessor::DataType>> m_definitionBody; \
 		m_definitionBody.push_back({ 20, m_data }); \
 		g_definitionList.insert({ k, std::move(m_definitionBody) }); \
@@ -34,7 +34,7 @@
 
 #define DEFINE_MACRO_INT(k,v) \
 	{ \
-		TokenProcessor::DataType m_data = std::make_shared<Valuedef::ValueObject<int>>(std::move(Typedef::BuiltinType::Specifier::INT), v); \
+		TokenProcessor::DataType m_data = Util::MakeInt2(v); \
 		std::vector<Preprocessor::TokenDataPair<TokenProcessor::TokenType, const TokenProcessor::DataType>> m_definitionBody; \
 		m_definitionBody.push_back({ 20, m_data }); \
 		g_definitionList.insert({ k, std::move(m_definitionBody) }); \
@@ -58,15 +58,15 @@ TokenProcessor::DataType DynamicTime();
 } // namespace MacroHelper
 } // namespace CoilCl
 
-static std::set<std::string> g_sourceGuardList;
-static std::map<std::string, std::vector<Preprocessor::TokenDataPair<TokenProcessor::TokenType, const TokenProcessor::DataType>>> g_definitionList;
+static std::set<std::string> g_sourceGuardList; //TODO: should not be global
+static std::map<std::string, std::vector<Preprocessor::TokenDataPair<TokenProcessor::TokenType, const TokenProcessor::DataType>>> g_definitionList; //TODO: should not be global
 static std::map<std::string, std::function<TokenProcessor::DataType()>> g_macroList = {
-	{ "__func__", []() { return nullptr; } },
+	//{ "__func__", []() { CryImplExcept(); } },
 	{ "__FILE__", CoilCl::MacroHelper::DynamicSourceFile },
 	{ "__LINE__", CoilCl::MacroHelper::DynamicSourceLine },
 	{ "__DATE__", CoilCl::MacroHelper::DynamicDate },
 	{ "__TIME__", CoilCl::MacroHelper::DynamicTime },
-	{ "__STDC__", []() { return nullptr; } },
+	//{ "__STDC__", []() { CryImplExcept(); } },
 	{ "__COUNTER__", CoilCl::MacroHelper::DynamicGlobalCounter },
 };
 
@@ -165,6 +165,7 @@ constexpr int ProgramCounterId()
 		+ (PRODUCT_VERSION_LOCAL);
 }
 
+//TODO: register some marcros in the frontend
 void RegisterMacros()
 {
 	DEFINE_MACRO_STR("__VERSION__", PROGRAM_VERSION);
@@ -234,7 +235,7 @@ class AbstractDirective
 public:
 	AbstractDirective() = default;
 	virtual void Yield() {}
-	virtual void Dispence(TokenProcessor::TokenType token, const TokenProcessor::DataType data) = 0;
+	virtual void Dispence(TokenProcessor::DefaultTokenDataPair&) = 0;
 
 protected:
 	class DirectiveException : public std::runtime_error
@@ -260,10 +261,10 @@ protected:
 		}
 	};
 
-	template<typename _Ty>
-	static inline _Ty ConvertDataAs(const TokenProcessor::DataType& data)
+	template<typename CastType>
+	static inline CastType ConvertDataAs(const TokenProcessor::DataType& data)
 	{
-		return data->As<_Ty>();
+		return data.As2<CastType>();
 	}
 
 	void RequireToken(int expectedToken, int token)
@@ -274,10 +275,10 @@ protected:
 		}
 	}
 
-	void RequireData(const TokenProcessor::DataType& data)
+	void RequireData(const TokenProcessor::DefaultTokenDataPair& tokenData)
 	{
 		// Data was expected, throw if not found
-		if (!data) {
+		if (!tokenData.HasData()) {
 			throw DirectiveException{ "expected constant" };
 		}
 	}
@@ -302,9 +303,9 @@ public:
 	{
 	}
 
-	void Dispence(TokenProcessor::TokenType token, const TokenProcessor::DataType data)
+	void Dispence(TokenProcessor::DefaultTokenDataPair& tokenData)
 	{
-		switch (token) {
+		switch (tokenData.Token()) {
 		case TK_LESS_THAN: // Global includes begin
 			hasBegin = true;
 			break;
@@ -313,15 +314,15 @@ public:
 			Import(tempSource);
 			break;
 		case TK_CONSTANT: // Local include
-			RequireData(data);
-			Import(ConvertDataAs<std::string>(data));
+			RequireData(tokenData);
+			Import(ConvertDataAs<std::string>(tokenData.Data()));
 			break;
 		default:
 			if (hasBegin) {
-				if (!data) {
+				if (!tokenData.HasData()) {
 					//FUTURE: Each token must be able to fetch its characteral representation
 					//TODO: This list not complete
-					switch (token) {
+					switch (tokenData.Token()) {
 					case TK_DOT:
 						tempSource.push_back('.');
 						break;
@@ -334,7 +335,7 @@ public:
 					break;
 				}
 
-				tempSource.append(ConvertDataAs<std::string>(data));
+				tempSource.append(ConvertDataAs<std::string>(tokenData.Data()));
 				break;
 			}
 
@@ -351,12 +352,12 @@ class DefinitionTag : public AbstractDirective
 	std::vector<Preprocessor::TokenDataPair<TokenProcessor::TokenType, const TokenProcessor::DataType>> m_definitionBody;
 
 public:
-	void Dispence(TokenProcessor::TokenType token, const TokenProcessor::DataType data)
+	void Dispence(TokenProcessor::DefaultTokenDataPair& tokenData)
 	{
 		// First item must be the definition name
 		if (m_definitionName.empty()) {
-			RequireData(data);
-			const auto definitionName = ConvertDataAs<std::string>(data);
+			RequireData(tokenData);
+			const auto definitionName = ConvertDataAs<std::string>(tokenData.Data());
 			if (g_definitionList.find(definitionName) != g_definitionList.end()) {
 				throw DirectiveException{ "define", "'" + definitionName + "' already defined" };
 			}
@@ -366,7 +367,7 @@ public:
 		}
 
 		// Save token with optional data on the vector
-		m_definitionBody.push_back({ token, data });
+		m_definitionBody.push_back({ tokenData.Token(), tokenData.Data() });
 	}
 
 	// If the data matches a definition in the global definition list, replace it
@@ -395,9 +396,14 @@ public:
 			return;
 		}
 
+		DUMP_VALUE(it->second.at(0).Data());
+		DUMP_VALUE(dataPair.Data());
+
 		// Always assign first token and optional data
 		dataPair.AssignToken(it->second.at(0).Token());
 		dataPair.AssignData(it->second.at(0).Data());
+
+		DUMP_VALUE(dataPair.Data());
 
 		// When multiple tokens are registered for this definition, create a token queue
 		if (it->second.size() > 1) {
@@ -427,12 +433,10 @@ public:
 class DefinitionUntag : public AbstractDirective
 {
 public:
-	void Dispence(TokenProcessor::TokenType token, const TokenProcessor::DataType data)
+	void Dispence(TokenProcessor::DefaultTokenDataPair& tokenData)
 	{
-		CRY_UNUSED(token);
-
-		RequireData(data);
-		auto it = g_definitionList.find(ConvertDataAs<std::string>(data));
+		RequireData(tokenData);
+		auto it = g_definitionList.find(ConvertDataAs<std::string>(tokenData.Data()));
 		if (it == g_definitionList.end()) { return; }
 
 		// Remove definition from global define list
@@ -513,18 +517,18 @@ class ConditionalStatement : public AbstractDirective
 			case TK_CONSTANT:
 			{
 				assert(it->HasData());
-				switch (it->Data()->DataType<CoilCl::Typedef::BuiltinType>()->TypeSpecifier()) {
+				switch (it->Data().Type().DataType<CoilCl::Typedef::BuiltinType>()->TypeSpecifier()) {
 				case CoilCl::Typedef::BuiltinType::Specifier::INT:
 				{
-					stack[0] = it->Data()->As<int>();
+					stack[0] = it->Data().As2<int>();
 					consensusAction.Consolidate(stack[0]);
 					break;
 				}
 				case CoilCl::Typedef::BuiltinType::Specifier::CHAR:
 				{
-					const std::string definition = it->Data()->IsArray()
-						? it->Data()->As<std::string>()
-						: std::string{ it->Data()->As<char>() };
+					const std::string definition = Util::IsArray(it->Data().Type())
+						? it->Data().As2<std::string>()
+						: std::string{ it->Data().As2<char>() };
 					bool hasDefinition = g_definitionList.find(definition) != g_definitionList.end();
 					consensusAction.Consolidate(hasDefinition);
 					break;
@@ -550,7 +554,7 @@ class ConditionalStatement : public AbstractDirective
 						throw ConditionalStatementException{ "expected identifier" };
 					}
 					assert(it->HasData());
-					const std::string definition = it->Data()->As<std::string>();
+					const std::string definition = it->Data().As2<std::string>();
 					++it;
 					if (it->Token() != TK_PARENTHESE_CLOSE) {
 						throw ConditionalStatementException{ "expected )" };
@@ -562,7 +566,7 @@ class ConditionalStatement : public AbstractDirective
 					throw ConditionalStatementException{ "expected identifier" };
 				}
 				assert(it->HasData());
-				const std::string definition = it->Data()->As<std::string>();
+				const std::string definition = it->Data().As2<std::string>();
 				consensusAction.Consolidate(g_definitionList.find(definition) != g_definitionList.end());
 				continue;
 			}
@@ -588,7 +592,7 @@ class ConditionalStatement : public AbstractDirective
 			++it; \
 			if (it->Token() != TK_CONSTANT) {  throw ConditionalStatementException{ "expected constant" }; } \
 			assert(it->HasData()); \
-			stack[1] = it->Data()->As<int>(); \
+			stack[1] = it->Data().As2<int>(); \
 			consensusAction.Consolidate(stack[0] o stack[1]); \
 			stack[0] = 0; stack[1] = 0;
 
@@ -628,7 +632,7 @@ class ConditionalStatement : public AbstractDirective
 			++it; \
 			if (it->Token() != TK_CONSTANT) { throw ConditionalStatementException{ "expected constant" }; } \
 			assert(it->HasData()); \
-			stack[0] = stack[0] o it->Data()->As<int>();
+			stack[0] = stack[0] o it->Data().As2<int>();
 
 			// Integral arithmetic
 			case TK_PLUS:
@@ -665,22 +669,22 @@ class ConditionalStatement : public AbstractDirective
 public:
 	ConditionalStatement() = default;
 
-	template<typename _TokenTy>
-	ConditionalStatement(_TokenTy token)
+	template<typename TokenType>
+	ConditionalStatement(TokenType token)
 	{
-		m_statementBody.push_back({ token, nullptr });
+		m_statementBody.push_back({ token });
 	}
 
-	template<typename _TokenTy, typename... _ArgsTy>
-	ConditionalStatement(_TokenTy token, _ArgsTy... args)
+	template<typename TokenType, typename... _ArgsTy>
+	ConditionalStatement(TokenType token, _ArgsTy... args)
 		: ConditionalStatement{ args... }
 	{
-		m_statementBody.push_back({ token, nullptr });
+		m_statementBody.push_back({ token });
 	}
 
-	void Dispence(TokenProcessor::TokenType token, const TokenProcessor::DataType data)
+	void Dispence(TokenProcessor::DefaultTokenDataPair& tokenData)
 	{
-		m_statementBody.push_back({ token, data });
+		m_statementBody.push_back({ tokenData.Token(), tokenData.Data() });
 	}
 
 	void Yield() override
@@ -795,10 +799,10 @@ class CompilerDialect : public AbstractDirective
 	}
 
 public:
-	void Dispence(TokenProcessor::TokenType token, const TokenProcessor::DataType data)
+	void Dispence(TokenProcessor::DefaultTokenDataPair& tokenData)
 	{
-		RequireToken(TK_IDENTIFIER, token);
-		if (HandleTrivialCase(ConvertDataAs<std::string>(data))) { return; }
+		RequireToken(TK_IDENTIFIER, tokenData.Token());
+		if (HandleTrivialCase(ConvertDataAs<std::string>(tokenData.Data()))) { return; }
 	}
 };
 
@@ -806,10 +810,9 @@ public:
 class FixLocation : public AbstractDirective
 {
 public:
-	void Dispence(TokenProcessor::TokenType token, const TokenProcessor::DataType data)
+	void Dispence(TokenProcessor::DefaultTokenDataPair& tokenData)
 	{
-		CRY_UNUSED(token);
-		CRY_UNUSED(data);
+		CRY_UNUSED(tokenData);
 
 		//TODO: We have no clue what to do with #line
 	}
@@ -819,14 +822,14 @@ public:
 class CompilerMessage : public AbstractDirective
 {
 public:
-	void Dispence(TokenProcessor::TokenType token, const TokenProcessor::DataType data)
+	void Dispence(TokenProcessor::DefaultTokenDataPair& tokenData)
 	{
-		if (token != TK_CONSTANT) {
+		if (tokenData.Token() != TK_CONSTANT) {
 			throw DirectiveException{ "message", "expected constant after 'message'" };
 		}
 
 		// For now print to terminal
-		std::cout << ConvertDataAs<std::string>(data) << std::endl;
+		std::cout << ConvertDataAs<std::string>(tokenData.Data()) << std::endl;
 	}
 };
 
@@ -841,15 +844,15 @@ public:
 	{
 	}
 
-	void Dispence(TokenProcessor::TokenType token, const TokenProcessor::DataType data)
+	void Dispence(TokenProcessor::DefaultTokenDataPair& tokenData)
 	{
-		if (token != TK_CONSTANT) {
+		if (tokenData.Token() != TK_CONSTANT) {
 			throw DirectiveException{ "error", "expected constant after 'error'" };
 		}
 
 		// Throw if message was fatal, this wil halt all operations
 		if (m_isFatal) {
-			throw DirectiveException{ ConvertDataAs<std::string>(data) };
+			throw DirectiveException{ ConvertDataAs<std::string>(tokenData.Data()) };
 		}
 	}
 };
@@ -873,10 +876,11 @@ Preprocessor::Preprocessor(std::shared_ptr<CoilCl::Profile>& profile)
 	g_tokenSubscription.SubscribeOnToken(TK_IDENTIFIER, &CoilCl::LocalMethod::DefinitionTag::OnPropagateCallback);
 }
 
-template<typename _Ty, typename... _ArgsTy>
-auto MakeMethod(_ArgsTy... args) -> std::shared_ptr<_Ty>
+//TODO: Why not use references?
+template<typename DirectiveType, typename... ArgTypes>
+auto MakeMethod(ArgTypes... args) -> std::shared_ptr<DirectiveType>
 {
-	return std::make_shared<_Ty>(std::forward<_ArgsTy>(args)...);
+	return std::make_shared<DirectiveType>(std::forward<ArgTypes>(args)...);
 }
 
 void Preprocessor::MethodFactory(TokenType token)
@@ -927,20 +931,20 @@ void Preprocessor::MethodFactory(TokenType token)
 
 void Preprocessor::Propagate(bool isDirective, DefaultTokenDataPair& tokenData)
 {
-	assert(tokenData.HasToken() && tokenData.HasData());
+	assert(tokenData.HasToken() /*&& tokenData.HasData()*/);
 
 	g_tokenSubscription.CallAnyOf(isDirective, tokenData);
 }
 
-void Preprocessor::Dispatch(TokenType token, const DataType data)
+void Preprocessor::Dispatch(DefaultTokenDataPair& tokenData)
 {
 	// Call the method factory and store the next method as continuation
 	if (!m_method) {
-		return MethodFactory(token);
+		return MethodFactory(tokenData.Token());
 	}
 
 	// If continuation is set, continue on
-	m_method->Dispence(token, data);
+	m_method->Dispence(tokenData);
 }
 
 void Preprocessor::EndOfLine()

@@ -309,10 +309,10 @@ private:
 	std::shared_ptr<ASTNode> m_tree;
 };
 
-template<typename _Ty, typename... _Args>
-inline auto MakeASTNode(_Args&&... args)
+template<typename NodeType, typename... ArgTypes>
+inline auto MakeASTNode(ArgTypes&&... args)
 {
-	auto ptr = std::make_shared<_Ty>(std::forward<_Args>(args)...);
+	auto ptr = std::make_shared<NodeType>(std::forward<ArgTypes>(args)...);
 	ptr->UpdateDelegate();
 	return ptr;
 }

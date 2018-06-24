@@ -37,27 +37,40 @@ struct TokenProcessor
 	using TokenType = int;
 	using DataType = Tokenizer::ValuePointer;
 
-	template<typename _TokenTy, typename _DataTy>
+	template<typename TokenType, typename DataType>
 	struct TokenDataPair
 	{
-		using token_type = _TokenTy;
-		using data_type = _DataTy;
+		//TODO: already defined
+		using token_type = TokenType;
+		using data_type = DataType;
 
-		constexpr TokenDataPair(_TokenTy token, _DataTy data)
+		constexpr TokenDataPair(token_type token)
+			: m_token{ token }
+		{
+		}
+
+		constexpr TokenDataPair(token_type token, data_type data)
 			: m_token{ token }
 			, m_data{ data }
 		{
 		}
 
+		//
+		// Query properties
+		//
+
 		inline bool HasToken() const { return m_token.is_initialized(); }
 		inline bool HasData() const { return m_data.is_initialized(); }
 		inline bool HasTokenQueue() const { return m_tokenQueue.operator bool(); }
-
 		inline bool HasTokenChanged() const noexcept { return tokenChangeCounter; }
 		inline bool HasDataChanged() const noexcept { return dataChangeCounter; }
 
-		inline void ResetToken() { m_token = boost::optional<_TokenTy>{}; }
-		inline void ResetData() { m_data = boost::optional<_DataTy>{}; }
+		//
+		// Reset values
+		//
+
+		inline void ResetToken() { m_token = boost::none; }
+		inline void ResetData() { m_data = boost::none; }
 
 		void AssignToken(token_type token) noexcept
 		{
@@ -91,8 +104,8 @@ struct TokenProcessor
 		std::unique_ptr<std::deque<TokenDataPair<token_type, const data_type>>> m_tokenQueue;
 		int tokenChangeCounter = 0;
 		int dataChangeCounter = 0;
-		boost::optional<_TokenTy> m_token;
-		boost::optional<_DataTy> m_data;
+		boost::optional<token_type> m_token; //TODO: token is never optional?
+		boost::optional<data_type> m_data;
 	};
 
 	// Default token and data pair for most methods.
@@ -104,10 +117,11 @@ struct TokenProcessor
 	// receive tokens.
 	virtual void Propagate(bool, DefaultTokenDataPair&) {}
 
+	//TODO: accept DefaultTokenDataPair instead
 	// At the heart of the processor is the dispatch
 	// method. Called on preprocessor directive and
 	// can therefore not be ignored.
-	virtual void Dispatch(TokenType token, const DataType data) = 0;
+	virtual void Dispatch(DefaultTokenDataPair&) = 0;
 
 	// When end of preprocessor directive line is
 	// reached, this method is called to signal end
@@ -134,7 +148,7 @@ public:
 	Preprocessor& CheckCompatibility();
 
 	virtual void Propagate(bool isDirective, DefaultTokenDataPair& tokeData) override;
-	virtual void Dispatch(TokenType token, const DataType data);
+	virtual void Dispatch(DefaultTokenDataPair& tokenData);
 	virtual void EndOfLine() override;
 
 private:

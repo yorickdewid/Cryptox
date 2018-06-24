@@ -61,12 +61,15 @@ public:
 		return m_type.get();
 	}
 
+	template<typename CastType>
+	auto DataType() const { return std::dynamic_pointer_cast<CastType>(m_type); }
+
 	//TODO: OBSOLETE: REMOVE:
 	// Convert type into data stream
-	static void Serialize(const TypeFacade&, std::vector<uint8_t>&);
-	//TODO: OBSOLETE: REMOVE:
-	// Convert data stream into type
-	static void Deserialize(TypeFacade&, const std::vector<uint8_t>&);
+	//static void Serialize(const TypeFacade&, std::vector<uint8_t>&);
+	////TODO: OBSOLETE: REMOVE:
+	//// Convert data stream into type
+	//static void Deserialize(TypeFacade&, const std::vector<uint8_t>&);
 
 	// Convert type into data stream
 	static void Serialize(int,const TypeFacade&, Cry::ByteArray&);

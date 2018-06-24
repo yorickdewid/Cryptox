@@ -9,7 +9,6 @@
 #pragma once
 
 #include "TypeFacade.h"
-#include "Typedef.h" //TODO: remove
 #include "RecordValue.h"
 
 #include <Cry/Serialize.h>
@@ -110,7 +109,7 @@ public:
 protected:
 	// The internal datastructure stores the value
 	// as close to the actual data type specifier.
-	ValueVariant m_value; //OBSOLETE: REMOVE: TODO:
+	//ValueVariant m_value; //OBSOLETE: REMOVE: TODO:
 
 	struct ValueSelect final
 	{
@@ -169,6 +168,9 @@ protected:
 		static void Pack(const ValueSelect&, Cry::ByteArray&);
 		// Convert byte stream into value
 		static void Unpack(ValueSelect&, Cry::ByteArray&);
+
+		// Return value as string
+		std::string ToString() const;
 
 		// Check if an value was set
 		operator bool() const { return !Empty(); }
@@ -267,19 +269,19 @@ private:
 
 public:
 	// Special member funcion, copy constructor
-	Value();
+	//Value();
 	Value(const Value&) = default;
 	Value(Value&&) = default;
 
-	Value(Typedef::BaseType typeBase); //TODO: remove obsolete
-	Value(Typedef::BaseType typeBase, ValueVariant value); //TODO: remove obsolete
+	//Value(Typedef::BaseType typeBase); //TODO: remove obsolete
+	//Value(Typedef::BaseType typeBase, ValueVariant value); //TODO: remove obsolete
 
-	template<typename NativeType>
-	Value(Typedef::BaseType typeBase, NativeType&& value) //TODO: remove obsolete
-		: m_objectType{ typeBase }
-		, m_value{ ValueVariant{ std::forward<NativeType>(value) } }
-	{
-	}
+	//template<typename NativeType>
+	//Value(Typedef::BaseType typeBase, NativeType&& value) //TODO: remove obsolete
+	//	: m_objectType{ typeBase }
+	//	, m_value{ ValueVariant{ std::forward<NativeType>(value) } }
+	//{
+	//}
 
 	// Value declaration without initialization
 	Value(int, Typedef::TypeFacade);
@@ -293,22 +295,22 @@ public:
 	Value(int, Typedef::TypeFacade, Value&&);
 
 	// Swap-in native replacement value
-	template<typename NativeType>
-	void ReplaceValue(NativeType&& value) //TODO: OBSOLETE: remove
-	{
-		m_value = ValueVariant{ std::forward<NativeType>(value) };
-	}
-	// Copy value from another value
-	void ReplaceValueWithValue(const Value& other) //TODO: OBSOLETE: remove
-	{
-		m_value = other.m_value;
-	}
+	//template<typename NativeType>
+	//void ReplaceValue(NativeType&& value) //TODO: OBSOLETE: remove
+	//{
+	//	m_value = ValueVariant{ std::forward<NativeType>(value) };
+	//}
+	//// Copy value from another value
+	//void ReplaceValueWithValue(const Value& other) //TODO: OBSOLETE: remove
+	//{
+	//	m_value = other.m_value;
+	//}
 
 	// Return the type specifier
-	Typedef::BaseType DataType() const noexcept { return m_objectType; } //TODO: OBSOLETE: remove
+	//Typedef::BaseType DataType() const noexcept { return m_objectType; } //TODO: OBSOLETE: remove
+	//template<typename CastType>
+	//auto DataType() const { return std::dynamic_pointer_cast<CastType>(m_objectType); } //TODO: OBSOLETE: remove
 
-	template<typename CastType>
-	auto DataType() const { return std::dynamic_pointer_cast<CastType>(m_objectType); } //TODO: OBSOLETE: remove
 	// Access type information
 	Typedef::TypeFacade Type() const { return m_internalType; }
 
@@ -322,8 +324,8 @@ public:
 
 	// By default try direct cast from variant, if the cast fails
 	// a bad casting exception is thrown.
-	template<typename CastType>
-	CastType As() const { return boost::get<CastType>(m_value); }
+	/*template<typename CastType>
+	CastType As() const { return boost::get<CastType>(m_value); }*/
 
 	template<typename CastType>
 	inline CastType As2() const
@@ -335,13 +337,14 @@ public:
 	// Print value
 	virtual const std::string Print() const
 	{
-		ConvertToStringVisitor conv;
+		/*ConvertToStringVisitor conv;
 		m_value.apply_visitor(conv);
-		return conv.output;
+		return conv.output;*/
+		return m_value3.ToString();
 	}
 
 	// Serialize the value into byte array
-	virtual const Cry::ByteArray Serialize() const;
+	//virtual const Cry::ByteArray Serialize() const;
 	// Serialize the value into byte array
 	Cry::ByteArray Serialize(int) const;
 	
@@ -368,12 +371,11 @@ public:
 	friend std::ostream& operator<<(std::ostream&, const Value&);
 
 private:
-	Typedef::BaseType m_objectType; //TODO: replace with typefacade to account for pointers
 	Typedef::TypeFacade m_internalType;
 };
 
 template<>
-inline std::string Value::As2() const
+inline std::string Value::As2() const //TODO: rename
 {
 	const auto value = ValueCastImp<std::vector<char>>(int{});
 	return std::string{ value.cbegin(), value.cend() };
@@ -385,34 +387,34 @@ static_assert(std::is_copy_assignable<Value>::value, "Value !is_copy_assignable"
 static_assert(std::is_move_assignable<Value>::value, "Value !is_move_assignable");
 
 //TODO: OBSOLETE: REMOVE:
-template<typename _Ty>
-class ValueObject
-	: public Value
-{
-	using _Myty = ValueObject<_Ty>;
-
-public:
-	ValueObject(Typedef::BuiltinType&& type, _Ty value)
-		: Value{ std::make_shared<Typedef::BuiltinType>(type), value }
-	{
-		static_assert(sizeof(_Myty) == sizeof(Value), "");
-	}
-
-	virtual const std::string Print() const override
-	{
-		return boost::lexical_cast<std::string>(Value::As<_Ty>());
-	}
-
-	friend std::ostream& operator<<(std::ostream& os, const _Myty& value)
-	{
-		os << value.Print();
-		return os;
-	}
-};
+//template<typename _Ty>
+//class ValueObject
+//	: public Value
+//{
+//	using _Myty = ValueObject<_Ty>;
+//
+//public:
+//	ValueObject(Typedef::BuiltinType&& type, _Ty value)
+//		: Value{ std::make_shared<Typedef::BuiltinType>(type), value }
+//	{
+//		static_assert(sizeof(_Myty) == sizeof(Value), "");
+//	}
+//
+//	virtual const std::string Print() const override
+//	{
+//		return boost::lexical_cast<std::string>(Value::As<_Ty>());
+//	}
+//
+//	friend std::ostream& operator<<(std::ostream& os, const _Myty& value)
+//	{
+//		os << value.Print();
+//		return os;
+//	}
+//};
 
 //TODO: OBSOLETE: REMOVE:
-template<typename _Ty>
-using ValueType = std::shared_ptr<ValueObject<_Ty>>;
+//template<typename _Ty>
+//using ValueType = std::shared_ptr<ValueObject<_Ty>>;
 
 namespace Detail
 {
@@ -532,12 +534,12 @@ class ValueFactory
 	static std::shared_ptr<Valuedef::Value> BaseValue(Cry::ByteArray&);
 
 public:
-	template<typename _Ty>
+	/*template<typename _Ty>
 	static std::shared_ptr<CoilCl::Valuedef::ValueObject<_Ty>> MakeValue(Cry::ByteArray& buffer)
 	{
 		auto basePtr = BaseValue(buffer);
 		return std::static_pointer_cast<CoilCl::Valuedef::ValueObject<_Ty>>(basePtr);
-	}
+	}*/
 
 	static Valuedef::Value MakeValue(int, Cry::ByteArray&);
 };

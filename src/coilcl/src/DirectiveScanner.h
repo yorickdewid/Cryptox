@@ -64,14 +64,17 @@ private:
 	PreprocessorToken m_token;
 };
 
-template<typename _Ty>
+//TODO:
+// - Include the proxy in the DirectiveScanner
+// - Allow multiple preprocessors
+template<typename PreprocessorClass>
 class TokenProcessorProxy
 {
 	class ProfileWrapper;
 	
 	std::set<int> m_subscribedTokens;
 	std::shared_ptr<Profile> m_profile;
-	_Ty tokenProcessor;
+	PreprocessorClass tokenProcessor;
 
 private:
 	std::unique_ptr<std::deque<TokenProcessor::TokenDataPair<TokenProcessor::TokenType, const TokenProcessor::DataType>>> m_tokenBacklog;
@@ -90,7 +93,7 @@ public:
 				   std::function<void(const Tokenizer::ValuePointer&)>);
 
 	// Token processor must accede token processor contract.
-	static_assert(std::is_base_of<TokenProcessor, _Ty>::value, "");
+	static_assert(std::is_base_of<TokenProcessor, PreprocessorClass>::value, "");
 };
 
 // The directive scanner is an extension on the default lexer

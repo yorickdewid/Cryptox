@@ -9,6 +9,7 @@
 #pragma once
 
 #include "Valuedef.h"
+#include "ValueHelper.h"
 #include "TypeFacade.h"
 #include "Converter.h"
 #include "RefCount.h"
@@ -730,186 +731,269 @@ class Literal
 	NODE_ID(AST::NodeID::LITERAL_ID);
 
 public:
-	virtual std::shared_ptr<CoilCl::Valuedef::Value> Type2() const noexcept = 0; //TODO: rename
+	//virtual std::shared_ptr<CoilCl::Valuedef::Value> Type2() const noexcept = 0; //TODO: rename
+	const Valuedef::Value& Value() const noexcept
+	{
+		return m_value;
+	}
+
+	//TODO: protected?
+	virtual void Serialize(Serializable::Interface& pack);
+	virtual void Deserialize(Serializable::Interface& pack);
 
 protected:
 	virtual ~Literal() = 0;
 
-	virtual void Serialize(Serializable::Interface& pack);
-	virtual void Deserialize(Serializable::Interface& pack);
-
-	template<typename... _VariaTy>
-	inline Literal(_VariaTy&&... args)
-		: Returnable{ std::forward<_VariaTy>(args)... }
-	{
-	}
-};
-
-namespace Detail
-{
-
-template<typename NativeType, class DerivedType>
-class LiteralImpl
-	: public Literal
-	, public SelfReference<DerivedType>
-{
-public:
-	using InternalType = CoilCl::Valuedef::ValueType<NativeType>;
-
-protected:
-	InternalType m_valueObj;
-
-public:
-	// Move data object from token processor into literal object
-	LiteralImpl(std::shared_ptr<CoilCl::Valuedef::ValueObject<NativeType>>&& object)
-		: Literal{ Typedef::TypeFacade{ object->DataType() } }
-		, m_valueObj{ std::move(object) }
+	Literal(const Valuedef::Value& value)
+		: Returnable{ value.Type() }
+		, m_value{ value }
 	{
 	}
 
-	explicit LiteralImpl(Serializable::Interface&)
+	Literal(Valuedef::Value&& value)
+		: Returnable{ value.Type() }
+		, m_value{ std::move(value) }
 	{
 	}
 
-	virtual void Serialize(Serializable::Interface& pack)
+	explicit Literal(Serializable::Interface&)
+		: m_value{ Util::MakeInt2(0) } //TOOD: temporary fix
 	{
-		pack << DerivedType::nodeId;
+	}
 
-		Cry::ByteArray buffer = m_valueObj->Serialize();
+	template<AST::NodeID NodeId>
+	void SerializeImpl(Serializable::Interface& pack)
+	{
+		pack << NodeId;
+
+		Cry::ByteArray buffer = m_value.Serialize(int{});
 		pack << buffer;
 
 		Literal::Serialize(pack);
 	}
 
-	virtual void Deserialize(Serializable::Interface& pack)
+	template<AST::NodeID NodeId>
+	void DeserializeImpl(Serializable::Interface& pack)
 	{
 		AST::NodeID _nodeId;
 
 		pack >> _nodeId;
-		AssertNode(_nodeId, DerivedType::nodeId);
+		AssertNode(_nodeId, NodeId);
 
 		Cry::ByteArray buffer;
 		pack >> buffer;
 		//TODO: validate buffer
-		m_valueObj = CoilCl::Util::ValueFactory::MakeValue<NativeType>(buffer);
+		m_value = Util::ValueFactory::MakeValue(int{}, buffer);
 
 		Literal::Deserialize(pack);
 	}
 
-	inline InternalType Type() const noexcept //TODO: replace with Type2
-	{
-		return m_valueObj;
-	}
-
-	virtual std::shared_ptr<CoilCl::Valuedef::Value> Type2() const noexcept //TODO: rename to Value()
-	{
-		return m_valueObj;
-	}
-
-	const std::string NodeName() const
+	template<typename DerivedType>
+	const std::string NodeNameImpl() const
 	{
 		std::stringstream ss;
 		ss << RemoveClassFromName(typeid(DerivedType).name());
 		ss << " {" + std::to_string(m_state.Alteration()) + "}";
 		ss << " <line:" << line << ",col:" << col << "> ";
 		ss << "'" << ReturnType()->TypeName() << "' ";
-		ss << "\"" << m_valueObj->Print() << "\"";
+		ss << "\"" << m_value.Print() << "\"";
 
 		return ss.str();
 	}
+
+	Valuedef::Value m_value;
+};
+
+class CharacterLiteral
+	: public Literal
+	, public SelfReference<CharacterLiteral>
+{
+	NODE_ID(AST::NodeID::CHARACTER_LITERAL_ID);
+
+public:
+	explicit CharacterLiteral(Serializable::Interface& pack)
+		: Literal{ pack }
+	{
+		Deserialize(pack);
+	}
+
+	CharacterLiteral(const Valuedef::Value& value)
+		: Literal{ value }
+	{
+	}
+
+	CharacterLiteral(Valuedef::Value&& value)
+		: Literal{ std::move(value) }
+	{
+	}
+
+	CharacterLiteral(char value)
+		: Literal{ Util::MakeChar2(value) }
+	{
+	}
+
+	virtual void Serialize(Serializable::Interface& pack)
+	{
+		SerializeImpl<AST::NodeID::CHARACTER_LITERAL_ID>(pack);
+	}
+	virtual void Deserialize(Serializable::Interface& pack)
+	{
+		DeserializeImpl<AST::NodeID::CHARACTER_LITERAL_ID>(pack);
+	}
+
+	const std::string NodeName() const
+	{
+		return NodeNameImpl<CharacterLiteral>();
+	}
+
+	LABEL();
 
 private:
 	POLY_IMPL();
 };
 
-} // namespace Detail
-
-class CharacterLiteral : public Detail::LiteralImpl<char, CharacterLiteral>
-{
-	NODE_ID(AST::NodeID::CHARACTER_LITERAL_ID);
-
-	friend class Detail::LiteralImpl<char, CharacterLiteral>;
-
-public:
-	explicit CharacterLiteral(Serializable::Interface& pack)
-		: Detail::LiteralImpl<char, CharacterLiteral>{ pack }
-	{
-		Deserialize(pack);
-	}
-
-	template<typename _Ty>
-	CharacterLiteral(_Ty&& value)
-		: LiteralImpl{ std::forward<_Ty>(value) }
-	{
-	}
-
-	LABEL();
-};
-
-class StringLiteral : public Detail::LiteralImpl<std::string, StringLiteral>
+class StringLiteral
+	: public Literal
+	, public SelfReference<StringLiteral>
 {
 	NODE_ID(AST::NodeID::STRING_LITERAL_ID);
 
-	friend class Detail::LiteralImpl<std::string, StringLiteral>;
-
 public:
 	explicit StringLiteral(Serializable::Interface& pack)
-		: Detail::LiteralImpl<std::string, StringLiteral>{ pack }
+		: Literal{ pack }
 	{
 		Deserialize(pack);
 	}
 
-	template<typename _Ty>
-	StringLiteral(_Ty&& value)
-		: LiteralImpl{ std::forward<_Ty>(value) }
+	StringLiteral(const Valuedef::Value& value)
+		: Literal{ value }
 	{
 	}
 
+	StringLiteral(Valuedef::Value&& value)
+		: Literal{ std::move(value) }
+	{
+	}
+
+	StringLiteral(const std::string& value)
+		: Literal{ Util::MakeString2(value) }
+	{
+	}
+
+	virtual void Serialize(Serializable::Interface& pack)
+	{
+		SerializeImpl<AST::NodeID::STRING_LITERAL_ID>(pack);
+	}
+	virtual void Deserialize(Serializable::Interface& pack)
+	{
+		DeserializeImpl<AST::NodeID::STRING_LITERAL_ID>(pack);
+	}
+
+	const std::string NodeName() const
+	{
+		return NodeNameImpl<StringLiteral>();
+	}
+
 	LABEL();
+
+private:
+	POLY_IMPL();
 };
 
-class IntegerLiteral : public Detail::LiteralImpl<int, IntegerLiteral>
+class IntegerLiteral
+	: public Literal
+	, public SelfReference<IntegerLiteral>
 {
 	NODE_ID(AST::NodeID::INTEGER_LITERAL_ID);
 
-	friend class Detail::LiteralImpl<int, IntegerLiteral>;
-
 public:
 	explicit IntegerLiteral(Serializable::Interface& pack)
-		: Detail::LiteralImpl<int, IntegerLiteral>{ pack }
+		: Literal{ pack }
 	{
 		Deserialize(pack);
 	}
 
-	template<typename _Ty>
-	IntegerLiteral(_Ty&& value)
-		: LiteralImpl{ std::forward<_Ty>(value) }
+	IntegerLiteral(const Valuedef::Value& value)
+		: Literal{ value }
 	{
 	}
 
+	IntegerLiteral(Valuedef::Value&& value)
+		: Literal{ std::move(value) }
+	{
+	}
+
+	IntegerLiteral(int value)
+		: Literal{ Util::MakeInt2(value) }
+	{
+	}
+
+	virtual void Serialize(Serializable::Interface& pack)
+	{
+		SerializeImpl<AST::NodeID::INTEGER_LITERAL_ID>(pack);
+	}
+	virtual void Deserialize(Serializable::Interface& pack)
+	{
+		DeserializeImpl<AST::NodeID::INTEGER_LITERAL_ID>(pack);
+	}
+
+	const std::string NodeName() const
+	{
+		return NodeNameImpl<IntegerLiteral>();
+	}
+
 	LABEL();
+
+private:
+	POLY_IMPL();
 };
 
-class FloatingLiteral : public Detail::LiteralImpl<double, FloatingLiteral>
+class FloatingLiteral
+	: public Literal
+	, public SelfReference<FloatingLiteral>
 {
 	NODE_ID(AST::NodeID::FLOAT_LITERAL_ID);
 
-	friend class Detail::LiteralImpl<double, FloatingLiteral>;
-
 public:
 	explicit FloatingLiteral(Serializable::Interface& pack)
-		: Detail::LiteralImpl<double, FloatingLiteral>{ pack }
+		: Literal{ pack }
 	{
 		Deserialize(pack);
 	}
 
-	template<typename _Ty>
-	FloatingLiteral(_Ty&& value)
-		: LiteralImpl{ std::forward<_Ty>(value) }
+	FloatingLiteral(const Valuedef::Value& value)
+		: Literal{ value }
 	{
 	}
 
+	FloatingLiteral(Valuedef::Value&& value)
+		: Literal{ std::move(value) }
+	{
+	}
+
+	FloatingLiteral(float value)
+		: Literal{ Util::MakeFloat2(value) }
+	{
+	}
+
+	virtual void Serialize(Serializable::Interface& pack)
+	{
+		SerializeImpl<AST::NodeID::FLOAT_LITERAL_ID>(pack);
+	}
+	virtual void Deserialize(Serializable::Interface& pack)
+	{
+		DeserializeImpl<AST::NodeID::FLOAT_LITERAL_ID>(pack);
+	}
+
+	const std::string NodeName() const
+	{
+		return NodeNameImpl<FloatingLiteral>();
+	}
+
 	LABEL();
+
+private:
+	POLY_IMPL();
 };
 
 //

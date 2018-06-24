@@ -26,19 +26,19 @@ namespace MacroHelper
 TokenProcessor::DataType DynamicGlobalCounter()
 {
 	int counter = g_staticTokenProcessorCounter++;
-	return Util::MakeValueObject<int>(Typedef::BuiltinType::Specifier::INT, static_cast<int>(counter));
+	return CaptureValue(counter);
 }
 
 TokenProcessor::DataType DynamicSourceFile()
 {
 	//TODO:
-	return Util::MakeValueObject<std::string>(Typedef::BuiltinType::Specifier::CHAR, "somefile.c");
+	return Util::MakeString2("somefile.c");
 }
 
 TokenProcessor::DataType DynamicSourceLine()
 {
 	//TODO:
-	return Util::MakeValueObject<int>(Typedef::BuiltinType::Specifier::INT, 0);
+	return Util::MakeInt2(0);
 }
 
 // Return the current local date
@@ -49,7 +49,7 @@ TokenProcessor::DataType DynamicDate()
 	char buffer[12];
 
 	strftime(buffer, sizeof(buffer), CIL_DATE_FORMAT, &timeinfo);
-	return Util::MakeValueObject<std::string>(Typedef::BuiltinType::Specifier::CHAR, buffer);
+	return Util::MakeString2(buffer);
 }
 
 // Return the current local time
@@ -60,7 +60,7 @@ TokenProcessor::DataType DynamicTime()
 	char buffer[12];
 
 	strftime(buffer, sizeof(buffer), CIL_TIME_FORMAT, &timeinfo);
-	return Util::MakeValueObject<std::string>(Typedef::BuiltinType::Specifier::CHAR, buffer);
+	return Util::MakeString2(buffer);
 }
 
 } // namespace MacroHelper

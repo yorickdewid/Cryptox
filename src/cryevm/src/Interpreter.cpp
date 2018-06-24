@@ -121,7 +121,7 @@ struct DeclarationRegistry
 	// Link value to the original value definition from the caller
 	//void PushVarAsPointer(const std::string&& key, std::shared_ptr<Valuedef::Value>&& value);
 	// Find the value by identifier, if not found null should be returned
-	virtual std::shared_ptr<Valuedef::Value> LookupIdentifier(const std::string& key) = 0;
+	virtual Valuedef::Value& LookupIdentifier(const std::string& key) = 0;
 	// Test if there are any declarations in the current context
 	virtual bool HasLocalObjects() const noexcept
 	{
@@ -133,7 +133,7 @@ struct DeclarationRegistry
 		return m_localObj.size();
 	}
 	// Access local storage object directly without hirarchiecal lookup
-	virtual void ForEachObject(std::function<void(std::shared_ptr<Valuedef::Value>)> delegate) const
+	virtual void ForEachObject(std::function<void(Valuedef::Value)> delegate) const
 	{
 		for (const auto& item : m_localObj) {
 			delegate(item.second);
@@ -153,7 +153,7 @@ struct DeclarationRegistry
 #endif
 
 protected:
-	std::map<std::string, std::shared_ptr<Valuedef::Value>> m_localObj;
+	std::map<std::string, Valuedef::Value> m_localObj;
 };
 
 struct SymbolRegistry
@@ -203,7 +203,7 @@ public:
 public:
 	// Create and position a value in the special space
 	template<size_t Position>
-	void CreateSpecialVar(std::shared_ptr<CoilCl::Valuedef::Value> value, bool override = false)
+	void CreateSpecialVar(CoilCl::Valuedef::Value value, bool override = false)
 	{
 		if (!m_specialType[Position] || override) {
 			m_specialType[Position] = std::move(value);
@@ -216,13 +216,13 @@ public:
 	// Test if an return value is set
 	bool HasReturnValue() const noexcept
 	{
-		return m_specialType[RETURN_VALUE] != nullptr;
+		return (!!m_specialType[RETURN_VALUE]);
 	}
 
 	// Retrieve return value
 	auto ReturnValue() const noexcept
 	{
-		return m_specialType[RETURN_VALUE];
+		return m_specialType[RETURN_VALUE].get();
 	}
 
 private:
@@ -245,7 +245,7 @@ private:
 	Context::tag m_tag;
 
 protected:
-	std::array<std::shared_ptr<CoilCl::Valuedef::Value>, 1> m_specialType;
+	std::array<boost::optional<CoilCl::Valuedef::Value>, 1> m_specialType;
 	std::shared_ptr<AbstractContext> m_parentContext;
 };
 
@@ -403,7 +403,7 @@ public:
 	//		std::is_same<InternalType, const char *>::value, "");
 	//	m_localObj.emplace(std::forward<KeyType>(key), std::forward<ValueType>(value));
 	//}
-	void PushVar(std::pair<const std::string, std::shared_ptr<Valuedef::Value>>&& pair)
+	void PushVar(std::pair<const std::string, Valuedef::Value>&& pair)
 	{
 		CRY_UNUSED(pair);
 		// Static declarations must be registered in unit scope
@@ -418,7 +418,7 @@ public:
 		//ParentAs<GlobalContext>()->PushVar(std::move(pair));
 	}
 
-	std::shared_ptr<Valuedef::Value> LookupIdentifier(const std::string& key)
+	Valuedef::Value& LookupIdentifier(const std::string& key)
 	{
 		auto val = m_localObj.find(key);
 		if (val == m_localObj.end()) {
@@ -524,7 +524,7 @@ public:
 			std::is_same<InternalType, const char *>::value, "");
 		m_localObj.emplace(std::forward<KeyType>(key), std::forward<ValueType>(value));
 	}
-	void PushVar(std::pair<const std::string, std::shared_ptr<Valuedef::Value>>&& pair)
+	void PushVar(std::pair<const std::string, Valuedef::Value>&& pair)
 	{
 		m_localObj.insert(std::move(pair));
 	}
@@ -535,7 +535,7 @@ public:
 		m_bodyContext = ctx;
 	}
 
-	std::shared_ptr<Valuedef::Value> LookupIdentifier(const std::string& key)
+	Valuedef::Value& LookupIdentifier(const std::string& key)
 	{
 		auto val = m_localObj.find(key);
 		if (val == m_localObj.end()) {
@@ -543,7 +543,7 @@ public:
 			// all program defined functions the context is attached. External modules may define
 			// functions that do not set compounds, and thus the body context can by empty.
 			if (m_bodyContext) {
-				auto compoundVal = CastDownAs<DeclarationRegistry>(m_bodyContext)->LookupIdentifier(key);
+				auto& compoundVal = CastDownAs<DeclarationRegistry>(m_bodyContext)->LookupIdentifier(key);
 				if (compoundVal) {
 					return compoundVal;
 				}
@@ -604,7 +604,7 @@ public:
 		m_localObj.emplace(std::forward<KeyType>(key), std::forward<ValueType>(value));
 	}
 
-	std::shared_ptr<Valuedef::Value> LookupIdentifier(const std::string& key)
+	Valuedef::Value& LookupIdentifier(const std::string& key)
 	{
 		auto val = m_localObj.find(key);
 		if (val == m_localObj.end()) {
@@ -728,52 +728,52 @@ struct InternalMethod
 
 NATIVE_WRAPPER(puts)
 {
-	const auto value = GET_DEFAULT_ARG(0);
+	const auto& value = GET_DEFAULT_ARG(0);
 	assert(value);
-	const auto arg0 = value->As<std::string>();
+	const auto arg0 = value.As2<std::string>();
 	auto result = puts(arg0.c_str());
-	ctx->CreateSpecialVar<RETURN_VALUE>(Util::MakeInt(result));
+	ctx->CreateSpecialVar<RETURN_VALUE>(Util::MakeInt2(result));
 }
 
 NATIVE_WRAPPER(putchar)
 {
-	const auto value = GET_DEFAULT_ARG(0);
+	const auto& value = GET_DEFAULT_ARG(0);
 	assert(value);
-	const auto arg0 = value->As<int>();
+	const auto arg0 = value.As2<int>();
 	auto result = putchar(arg0);
-	ctx->CreateSpecialVar<RETURN_VALUE>(Util::MakeInt(result));
+	ctx->CreateSpecialVar<RETURN_VALUE>(Util::MakeInt2(result));
 }
 
 //TODO: create full string format wrapper
 NATIVE_WRAPPER(printf)
 {
-	const auto value = GET_DEFAULT_ARG(0);
-	const auto value2 = GET_VA_LIST_ARG(0);
+	const auto& value = GET_DEFAULT_ARG(0);
+	const auto& value2 = GET_VA_LIST_ARG(0);
 	assert(value);
 	assert(value2);
-	const auto arg0 = value->As<std::string>();
-	const auto arg1 = value2->As<int>();
+	const auto arg0 = value.As2<std::string>();
+	const auto arg1 = value2.As2<int>();
 	auto result = printf(arg0.c_str(), arg1);
-	ctx->CreateSpecialVar<RETURN_VALUE>(Util::MakeInt(result));
+	ctx->CreateSpecialVar<RETURN_VALUE>(Util::MakeInt2(result));
 }
 
 NATIVE_WRAPPER(scanf)
 {
-	const auto value = GET_DEFAULT_ARG(0);
+	const auto& value = GET_DEFAULT_ARG(0);
 	assert(value);
-	const auto arg0 = value->As<std::string>();
+	const auto arg0 = value.As2<std::string>();
 	auto result = scanf(arg0.c_str());
-	ctx->CreateSpecialVar<RETURN_VALUE>(Util::MakeInt(result));
+	ctx->CreateSpecialVar<RETURN_VALUE>(Util::MakeInt2(result));
 }
 
 NATIVE_WRAPPER(error)
 {
-	const auto value = GET_DEFAULT_ARG(0);
-	const auto value2 = GET_VA_LIST_ARG(0);
+	const auto& value = GET_DEFAULT_ARG(0);
+	const auto& value2 = GET_VA_LIST_ARG(0);
 	assert(value);
 	assert(value2);
-	const auto arg0 = value->As<int>();
-	const auto arg1 = value->As<std::string>();
+	const auto arg0 = value.As2<int>();
+	const auto arg1 = value.As2<std::string>();
 	throw arg0; //TODO: or something
 }
 
@@ -983,7 +983,7 @@ void Evaluator::Unit(const TranslationUnitDecl& node)
 					auto varDecl = Util::NodeCast<VarDecl>(child);
 					if (varDecl->HasExpression()) {
 						if (Util::IsNodeLiteral(varDecl->Expression())) {
-							auto type = Util::NodeCast<Literal>(varDecl->Expression())->Type2();
+							auto type = Util::NodeCast<Literal>(varDecl->Expression())->Value();
 							m_unitContext->PushVar({ varDecl->Identifier(), type });
 						}
 						else {
@@ -1005,7 +1005,7 @@ void Evaluator::Unit(const TranslationUnitDecl& node)
 	}
 }
 
-using Parameters = std::vector<std::shared_ptr<CoilCl::Valuedef::Value>>;
+using Parameters = std::vector<CoilCl::Valuedef::Value>;
 
 template<typename Type>
 struct BitLeftShift
@@ -1113,46 +1113,42 @@ struct OperandFactory
 
 class ScopedRoutine
 {
-	template<typename OperandPred, typename ContainerType = std::shared_ptr<CoilCl::Valuedef::Value>>
-	static std::shared_ptr<CoilCl::Valuedef::Value> BinaryOperation(OperandPred predicate, ContainerType&& valuesLHS, ContainerType&& valuesRHS)
+	template<typename OperandPred, typename ContainerType = CoilCl::Valuedef::Value>
+	static CoilCl::Valuedef::Value BinaryOperation(OperandPred predicate, ContainerType&& valuesLHS, ContainerType&& valuesRHS)
 	{
 		typename OperandPred::result_type result = predicate(
-			valuesLHS->As<OperandPred::result_type>(),
-			valuesRHS->As<OperandPred::result_type>());
+			valuesLHS.As2<OperandPred::result_type>(),
+			valuesRHS.As2<OperandPred::result_type>());
 
-		return Util::MakeInt(result); //TODO: not always an integer
+		return Util::MakeInt2(result); //TODO: not always an integer
 	}
 
-	static void AssignmentOperation(std::shared_ptr<CoilCl::Valuedef::Value> assign, std::shared_ptr<CoilCl::Valuedef::Value> value)
+	static CoilCl::Valuedef::Value EvaluateInverse(const CoilCl::Valuedef::Value& value)
 	{
-		assign->ReplaceValueWithValue(*(value.get()));
-	}
-
-	static std::shared_ptr<CoilCl::Valuedef::Value> EvaluateInverse(std::shared_ptr<CoilCl::Valuedef::Value>&& value)
-	{
-		return Util::MakeBool(!Util::EvaluateAsBoolean(value));
+		return Util::MakeBool2(!Util::EvaluateValueAsBoolean(value));
 	}
 
 	//FUTURE: both operations can be improved
-	template<typename OperandPred>
-	static std::shared_ptr<CoilCl::Valuedef::Value> ValueAlteration(OperandPred predicate, AST::UnaryOperator::OperandSide side, std::shared_ptr<CoilCl::Valuedef::Value>&& value)
+	template<typename OperandPred, typename ContextType>
+	static CoilCl::Valuedef::Value ValueAlteration(OperandPred predicate, AST::UnaryOperator::OperandSide side, std::shared_ptr<DeclRefExpr> declRef, ContextType& ctx)
 	{
-		int result = predicate(value->As<int>(), 1);
+		CoilCl::Valuedef::Value& value = ctx->LookupIdentifier(declRef->Identifier());
+		int result = predicate(value.As2<int>(), 1);
 
 		// On postfix operand, copy the original first
 		if (side == AST::UnaryOperator::OperandSide::POSTFIX) {
-			auto newval = Util::MakeInt(value->As<int>());
-			value->ReplaceValue(result);
-			return newval;
+			auto origvalue = CoilCl::Valuedef::Value{ value };
+			value = Util::MakeInt2(result);
+			return origvalue;
 		}
 
 		// On prefix, perform the unary operand on the original
-		value->ReplaceValue(result);
+		value = Util::MakeInt2(result);
 		return value;
 	}
 
 	template<typename ContextType>
-	static std::shared_ptr<CoilCl::Valuedef::Value> ResolveExpression(std::shared_ptr<AST::ASTNode> node, ContextType& ctx)
+	static CoilCl::Valuedef::Value ResolveExpression(std::shared_ptr<AST::ASTNode> node, ContextType& ctx)
 	{
 		switch (node->Label())
 		{
@@ -1163,16 +1159,16 @@ class ScopedRoutine
 			}
 
 		case AST::NodeID::CHARACTER_LITERAL_ID: {
-			return std::dynamic_pointer_cast<CharacterLiteral>(node)->Type();
+			return std::dynamic_pointer_cast<CharacterLiteral>(node)->Value();
 		}
 		case AST::NodeID::STRING_LITERAL_ID: {
-			return std::dynamic_pointer_cast<StringLiteral>(node)->Type();
+			return std::dynamic_pointer_cast<StringLiteral>(node)->Value();
 		}
 		case AST::NodeID::INTEGER_LITERAL_ID: {
-			return std::dynamic_pointer_cast<IntegerLiteral>(node)->Type();
+			return std::dynamic_pointer_cast<IntegerLiteral>(node)->Value();
 		}
 		case AST::NodeID::FLOAT_LITERAL_ID: {
-			return std::dynamic_pointer_cast<FloatingLiteral>(node)->Type();
+			return std::dynamic_pointer_cast<FloatingLiteral>(node)->Value();
 		}
 
 		{
@@ -1182,18 +1178,25 @@ class ScopedRoutine
 		}
 
 		case AST::NodeID::BINARY_OPERATOR_ID: {
-			auto op = std::dynamic_pointer_cast<BinaryOperator>(node);
+			const auto op = std::dynamic_pointer_cast<BinaryOperator>(node);
+			// If the binary operand is an assignment do it right now.
 			if (op->Operand() == BinaryOperator::BinOperand::ASSGN) {
-				auto assignValue = ResolveExpression(op->LHS(), ctx);
-				AssignmentOperation(assignValue, ResolveExpression(op->RHS(), ctx));
+				// The left hand side must be a lvalue and thus can be converted into an declaration
+				// reference. The declaration reference value is altered when the new value is assigned
+				// and as a consequence updates the declaration table entry.
+				auto declRef = Util::NodeCast<DeclRefExpr>(op->LHS());
+				CoilCl::Valuedef::Value& assignValue = ctx->LookupIdentifier(declRef->Identifier());
+				assignValue = ResolveExpression(op->RHS(), ctx);
 				return assignValue;
 			}
-			return BinaryOperation(OperandFactory<int>(op->Operand()), ResolveExpression(op->LHS(), ctx), ResolveExpression(op->RHS(), ctx));
+			return BinaryOperation(OperandFactory<int>(op->Operand())
+				, ResolveExpression(op->LHS(), ctx)
+				, ResolveExpression(op->RHS(), ctx));
 		}
 		case AST::NodeID::CONDITIONAL_OPERATOR_ID: {
-			auto op = std::dynamic_pointer_cast<ConditionalOperator>(node);
+			const auto op = std::dynamic_pointer_cast<ConditionalOperator>(node);
 			auto value = ResolveExpression(op->Expression(), ctx);
-			if (Util::EvaluateAsBoolean(value)) {
+			if (Util::EvaluateValueAsBoolean(value)) {
 				return ResolveExpression(op->TruthStatement(), ctx);
 			}
 
@@ -1201,14 +1204,14 @@ class ScopedRoutine
 			return ResolveExpression(op->AltStatement(), ctx);
 		}
 		case AST::NodeID::UNARY_OPERATOR_ID: {
-			auto op = std::dynamic_pointer_cast<AST::UnaryOperator>(node);
-			auto value = ResolveExpression(op->Expression(), ctx);
+			const auto op = std::dynamic_pointer_cast<AST::UnaryOperator>(node);
+			//auto value = ResolveExpression(op->Expression(), ctx);
 			switch (op->Operand())
 			{
 			case AST::UnaryOperator::UnaryOperand::INC:
-				return ValueAlteration(std::plus<int>(), op->OperationSide(), std::move(value));
+				return ValueAlteration(std::plus<int>(), op->OperationSide(), Util::NodeCast<DeclRefExpr>(op->Expression()), ctx);
 			case AST::UnaryOperator::UnaryOperand::DEC:
-				return ValueAlteration(std::minus<int>(), op->OperationSide(), std::move(value));
+				return ValueAlteration(std::minus<int>(), op->OperationSide(), Util::NodeCast<DeclRefExpr>(op->Expression()), ctx);
 
 			case AST::UnaryOperator::UnaryOperand::INTPOS:
 			case AST::UnaryOperator::UnaryOperand::INTNEG:
@@ -1224,7 +1227,7 @@ class ScopedRoutine
 
 				//case AST::UnaryOperator::UnaryOperand::BITNOT:
 			case AST::UnaryOperator::UnaryOperand::BOOLNOT:
-				return EvaluateInverse(std::move(value));
+				return EvaluateInverse(ResolveExpression(op->Expression(), ctx));
 			}
 			CryImplExcept(); //TODO:
 		}
@@ -1268,7 +1271,7 @@ class ScopedRoutine
 		case AST::NodeID::IMPLICIT_CONVERTION_EXPR_ID: {
 			auto convRef = Util::NodeCast<ImplicitConvertionExpr>(node);
 			CRY_UNUSED(convRef);
-			return Util::MakeInt(12); //TODO: for now
+			return Util::MakeInt2(12); //TODO: for now
 		}
 
 		default:
@@ -1331,20 +1334,20 @@ class ScopedRoutine
 				if (function[i].IsVariadic()) {
 					int v_i = 0;
 					while (itArgs != argsDecls.cend()) {
-						const auto value = ResolveExpression(itArgs->lock(), ctx);
+						auto value = ResolveExpression(itArgs->lock(), ctx);
 						std::string autoVA{ "__va_arg" + std::to_string(v_i++) + "__" };
-						funcCtx->PushVar(autoVA, Util::ValueCopy(value));
+						funcCtx->PushVar(autoVA, Valuedef::Value{ value });
 						++itArgs;
 					}
 					break;
 				}
 				else {
-					const auto value = ResolveExpression(itArgs->lock(), ctx);
-					if (function[i].DataType() != value->DataType()) {
+					auto value = ResolveExpression(itArgs->lock(), ctx);
+					if (function[i].DataType() != value.Type()) {
 						CryImplExcept(); //TODO: source.c:0:0: error: cannot convert argument of type 'X' to parameter type 'Y'
 					}
 					//TODO: check if param is pointer
-					funcCtx->PushVar(function[i].Identifier(), Util::ValueCopy(value));
+					funcCtx->PushVar(function[i].Identifier(), Valuedef::Value{ value });
 					++itArgs;
 					++i;
 				}
@@ -1483,6 +1486,7 @@ class ScopedRoutine
 	// If all else fails, try the node as expression
 	void ProcessExpression(const std::shared_ptr<AST::ASTNode>& node, Context::Compound& ctx)
 	{
+		// Only execute the expression and ignore the result
 		ResolveExpression(node, ctx);
 	}
 
@@ -1494,10 +1498,11 @@ class ScopedRoutine
 
 			//TODO: Super ugly & wrong. Create the value fromt he valDecl return type,
 			//      then optionally initialize the value with an expression.
-			auto value = std::make_shared<Valuedef::Value>(Util::MakeBuiltinType(Typedef::BuiltinType::Specifier::INT));
+			//auto value = std::make_shared<Valuedef::Value>(Util::MakeBuiltinType(Typedef::BuiltinType::Specifier::INT));
+			const auto builtin = Util::MakeBuiltinType(Typedef::BuiltinType::Specifier::INT);
+			auto value = Valuedef::Value{ 0, Typedef::TypeFacade{ builtin } };
 			if (node->HasExpression()) {
-				auto initializerValue = ResolveExpression(node->Expression(), ctx);
-				value->ReplaceValueWithValue(*initializerValue.get());
+				value = ResolveExpression(node->Expression(), ctx);
 			}
 
 			ctx->PushVar(node->Identifier(), value);
@@ -1507,7 +1512,7 @@ class ScopedRoutine
 	int ProcessCondition(std::shared_ptr<IfStmt>& node, Context::Compound& ctx)
 	{
 		auto value = ResolveExpression(node->Expression(), ctx);
-		if (Util::EvaluateAsBoolean(value)) {
+		if (Util::EvaluateValueAsBoolean(value)) {
 			if (node->HasTruthCompound()) {
 				auto continueNode = node->TruthCompound();
 				if (Util::IsNodeCompound(continueNode)) {
@@ -1569,7 +1574,7 @@ class ScopedRoutine
 					CryImplExcept(); //TODO: case label must be integer constant
 				}
 				auto literal = Util::NodeCast<Literal>(caseNode->Identifier());
-				const int caseLabelInt = Util::EvaluateValueAsInteger(literal->Type2());
+				const int caseLabelInt = Util::EvaluateValueAsInteger(literal->Value());
 				const int valueInt = Util::EvaluateValueAsInteger(value);
 				if (caseLabelInt == valueInt) {
 					return ExecuteStatement(caseNode->Expression(), compCtx);
@@ -1584,7 +1589,7 @@ class ScopedRoutine
 	void ProcessWhileLoop(std::shared_ptr<WhileStmt>& node, Context::Compound& ctx)
 	{
 		if (!node->HasBodyExpression()) { return; }
-		while (Util::EvaluateAsBoolean(ResolveExpression(node->Expression(), ctx))) {
+		while (Util::EvaluateValueAsBoolean(ResolveExpression(node->Expression(), ctx))) {
 			ExecuteStatement(node->BodyExpression(), ctx);
 		}
 	}
@@ -1595,7 +1600,7 @@ class ScopedRoutine
 		if (!node->HasBodyExpression()) { return; }
 		do {
 			ExecuteStatement(node->BodyExpression(), ctx);
-		} while (Util::EvaluateAsBoolean(ResolveExpression(node->Expression(), ctx)));
+		} while (Util::EvaluateValueAsBoolean(ResolveExpression(node->Expression(), ctx)));
 	}
 
 	// Loop over statement unil expression is false
@@ -1603,7 +1608,7 @@ class ScopedRoutine
 	{
 		if (!node->HasBodyExpression()) { return; }
 		for (ExecuteStatement(node->Declaration(), ctx);
-			Util::EvaluateAsBoolean(ResolveExpression(node->Expression(), ctx));
+			Util::EvaluateValueAsBoolean(ResolveExpression(node->Expression(), ctx));
 			ExecuteStatement(node->FinishStatement(), ctx)) {
 			ExecuteStatement(node->BodyExpression(), ctx);
 		}
@@ -1642,11 +1647,11 @@ Parameters ConvertToValueDef(const ArgumentList&& args)
 	{
 		void operator()(int i) const
 		{
-			m_paramList.push_back(MakeInt(i));
+			m_paramList.push_back(MakeInt2(i));
 		}
 		void operator()(std::string s) const
 		{
-			m_paramList.push_back(MakeString(s));
+			m_paramList.push_back(MakeString2(s));
 		}
 
 		Converter(Parameters& params)
@@ -1677,9 +1682,9 @@ void FormatStartupParameters(std::array<std::string, 3> mapper, Parameters&& par
 {
 	if (params.empty()) { return; }
 
-	ctx->PushVar({ mapper[0], Util::MakeInt(static_cast<int>(params.size())) });
-	ctx->PushVar({ mapper[1], Util::MakeFloat(872.21) }); //TODO: Util::MakeArray
-	ctx->PushVar({ mapper[2], Util::MakeBool(true) }); //TODO: Util::MakeArray
+	ctx->PushVar({ mapper[0], Util::MakeInt2(static_cast<int>(params.size())) });
+	ctx->PushVar({ mapper[1], Util::MakeFloat2(872.21f) }); //TODO: Util::MakeArray
+	ctx->PushVar({ mapper[2], Util::MakeBool2(true) }); //TODO: Util::MakeArray
 }
 
 } // namespace
@@ -1722,7 +1727,7 @@ int Evaluator::YieldResult()
 	try {
 		auto globalCtx = m_unitContext->ParentAs<GlobalContext>();
 		if (globalCtx->HasReturnValue()) {
-			return globalCtx->ReturnValue()->As<int>();
+			return globalCtx->ReturnValue().As2<int>();
 		}
 	}
 	// On casting faillure, return faillure all the way

@@ -391,7 +391,7 @@ int Lexer::DefaultLexSet(char lexChar)
 
 int Lexer::Lex()
 {
-	m_data.reset();
+	m_data = boost::none;
 	auto& context = CONTEXT();
 	context.m_lastTokenLine = context.m_currentLine;
 	while (context.m_currentChar != END_OF_UNIT) {
@@ -461,13 +461,11 @@ int Lexer::ReadString(int ndelim)
 		if (len == 0) { Error("empty constant"); }
 		if (len > 1) { Error("constant too long"); }
 
-		auto _cvalue = _longstr[0];
-		m_data = Util::MakeValueObject<decltype(_cvalue)>(Typedef::BuiltinType::Specifier::CHAR, _cvalue);
+		m_data = Util::MakeChar2(_longstr[0]);
 		return Token::TK_CONSTANT;
 	}
 
-	std::string _svalue = _longstr;
-	m_data = Util::MakeValueObject<decltype(_svalue)>(Typedef::BuiltinType::Specifier::CHAR, _svalue);
+	m_data = Util::MakeString2(_longstr);
 	return Token::TK_CONSTANT;
 }
 
@@ -488,11 +486,21 @@ int Lexer::ReadID()
 	}
 
 	// Save string as identifier
-	auto _svalue = _longstr;
-	m_data = Util::MakeValueObject<decltype(_svalue)>(Typedef::BuiltinType::Specifier::CHAR, _svalue);
+	m_data = Util::MakeString2(_longstr);
 	return Token::TK_IDENTIFIER;
 }
 
+bool IsODigit(int c)
+{
+	return c >= '0' && c <= '7';
+};
+
+bool IsExponent(int c)
+{
+	return c == 'e' || c == 'E';
+};
+
+//TODO: boost::lexical_cast maybe throws?
 int Lexer::LexScalar()
 {
 	enum
@@ -506,21 +514,17 @@ int Lexer::LexScalar()
 
 	auto& context = CONTEXT();
 	const int firstchar = context.m_currentChar;
-
-	const auto isodigit = [](int c) -> bool { return c >= '0' && c <= '7'; };
-	const auto isexponent = [](int c) -> bool { return c == 'e' || c == 'E'; };
-
-	std::string _longstr;
+	std::string tmpStr;
 
 	Next();
 
 	// Check if we dealing with an octal or hex. If not then we know it is some integer
 	if (firstchar == '0' && (std::toupper(static_cast<int>(context.m_currentChar)) == 'X'
 		|| isdigit(static_cast<int>(context.m_currentChar)))) {
-		if (isodigit(context.m_currentChar)) {
+		if (IsODigit(context.m_currentChar)) {
 			ScalarType = OCTAL;
-			while (isodigit(context.m_currentChar)) {
-				_longstr.push_back(context.m_currentChar);
+			while (IsODigit(context.m_currentChar)) {
+				tmpStr.push_back(context.m_currentChar);
 				Next();
 			}
 			if (std::isdigit(static_cast<int>(context.m_currentChar))) {
@@ -531,10 +535,10 @@ int Lexer::LexScalar()
 			Next();
 			ScalarType = HEX;
 			while (isxdigit(static_cast<int>(context.m_currentChar))) {
-				_longstr.push_back(context.m_currentChar);
+				tmpStr.push_back(context.m_currentChar);
 				Next();
 			}
-			if (_longstr.size() > sizeof(int) * 2) {
+			if (tmpStr.size() > sizeof(int) * 2) {
 				Error("too many digits for an Hex number");
 			}
 		}
@@ -542,22 +546,22 @@ int Lexer::LexScalar()
 	else {
 		// At this point we know the temporary buffer contains an integer.
 		ScalarType = INT;
-		_longstr.push_back(static_cast<char>(const_cast<int&>(firstchar)));
+		tmpStr.push_back(static_cast<char>(const_cast<int&>(firstchar)));
 		while (context.m_currentChar == '.' || std::isdigit(static_cast<int>(context.m_currentChar))
-			|| isexponent(static_cast<int>(context.m_currentChar))) {
-			if (context.m_currentChar == '.' || isexponent(context.m_currentChar)) {
+			|| IsExponent(static_cast<int>(context.m_currentChar))) {
+			if (context.m_currentChar == '.' || IsExponent(context.m_currentChar)) {
 				ScalarType = DOUBLE;
 			}
-			if (isexponent(context.m_currentChar)) {
+			if (IsExponent(context.m_currentChar)) {
 				if (ScalarType != DOUBLE) {
 					Error("invalid numeric format");
 				}
 
 				ScalarType = SCIENTIFIC;
-				_longstr.push_back(context.m_currentChar);
+				tmpStr.push_back(context.m_currentChar);
 				Next();
 				if (context.m_currentChar == '+' || context.m_currentChar == '-') {
-					_longstr.push_back(context.m_currentChar);
+					tmpStr.push_back(context.m_currentChar);
 					Next();
 				}
 				if (!std::isdigit(static_cast<int>(context.m_currentChar))) {
@@ -565,7 +569,7 @@ int Lexer::LexScalar()
 				}
 			}
 
-			_longstr.push_back(context.m_currentChar);
+			tmpStr.push_back(context.m_currentChar);
 			Next();
 		}
 	}
@@ -574,21 +578,31 @@ int Lexer::LexScalar()
 	case SCIENTIFIC:
 	case DOUBLE:
 	{
-		auto _fvalue = boost::lexical_cast<double>(_longstr);
-		m_data = Util::MakeValueObject<decltype(_fvalue)>(Typedef::BuiltinType::Specifier::DOUBLE, _fvalue);
-		return TK_CONSTANT;
+		try {
+			auto _fvalue = boost::lexical_cast<double>(tmpStr);
+			m_data = Util::MakeDouble2(_fvalue);
+			return TK_CONSTANT;
+		}
+		catch (boost::bad_lexical_cast) {
+			Error("invalid numeric format");
+		}
 	}
 	case OCTAL:
 	case INT:
 	{
-		auto _nvalue = boost::lexical_cast<int>(_longstr);
-		m_data = Util::MakeValueObject<decltype(_nvalue)>(Typedef::BuiltinType::Specifier::INT, _nvalue);
-		return TK_CONSTANT;
+		try {
+			auto _nvalue = boost::lexical_cast<int>(tmpStr);
+			m_data = Util::MakeInt2(_nvalue);
+			return TK_CONSTANT;
+		}
+		catch (boost::bad_lexical_cast) {
+			Error("invalid numeric format");
+		}
 	}
 	case HEX:
 	{
-		int _nvalue = std::stoul(_longstr, nullptr, 16);
-		m_data = Util::MakeValueObject<decltype(_nvalue)>(Typedef::BuiltinType::Specifier::INT, _nvalue);
+		int _nvalue = std::stoul(tmpStr, nullptr, 16);
+		m_data = Util::MakeInt2(_nvalue);
 		return TK_CONSTANT;
 	}
 	}
@@ -599,15 +613,15 @@ int Lexer::LexScalar()
 Lexer::Lexer(std::shared_ptr<Profile>& profile)
 	: m_profile{ profile }
 {
-	// Register all tokenized keywords
+	// Register all tokenized keywords.
 	InitKeywords();
 
-	// Create initial context
+	// Create initial context.
 	m_context.emplace();
 
-	// Fetch first datachunk
+	// Fetch first datachunk.
 	ConsumeNextChunk();
 
-	// Push the first character into the current character variable
+	// Push the first character into the current character variable.
 	Next();
 }

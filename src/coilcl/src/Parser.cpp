@@ -171,18 +171,16 @@ void Parser::Error(const char* err, Token token)
 void Parser::NextToken()
 {
 	if (m_comm.IsIndexHead()) {
-		int itok = lex->Lex();
+		Token itok = static_cast<Token>(lex->Lex());
 		auto location = std::make_pair(lex->TokenLine(), lex->TokenColumn());
 
-		// Tokenizer will return a pointer to the value data block and the parser
+		//TODO:
+		// Tokenizer will return a value data block and the parser
 		// must take care of the freeing processing once the data is done with.
 		// Wrap the data pointer in a shared ptr to handle object lifetime.
-		std::shared_ptr<Value> value;
-		if (lex->HasData()) {
-			value = lex->Data();
-		}
 
-		m_comm.Push(TokenState(itok, std::move(value), std::move(location)));
+		auto state = lex->HasData() ? TokenState{ itok , std::move(lex->Data()), std::move(location) } : TokenState{ itok };
+		m_comm.Push(std::move(state));
 	}
 	else {
 		m_comm.ShiftForward();
@@ -399,7 +397,7 @@ bool Parser::DeclarationSpecifiers()
 bool Parser::TypenameSpecifier()
 {
 	if (MATCH_TOKEN(TK_IDENTIFIER)) {
-		const auto& name = CURRENT_DATA()->As<std::string>();
+		const auto& name = CURRENT_DATA().As2<std::string>();
 
 		auto& res = m_typedefList[name];
 		if (res == nullptr) {
@@ -431,7 +429,7 @@ bool Parser::StructOrUnionSpecifier()
 
 	std::string name;
 	if (MATCH_TOKEN(TK_IDENTIFIER)) {
-		name = CURRENT_DATA()->As<std::string>();
+		name = CURRENT_DATA().As2<std::string>();
 		NextToken();
 	}
 
@@ -540,7 +538,7 @@ bool Parser::EnumSpecifier()
 		enm->SetLocation(CURRENT_LOCATION());
 
 		if (MATCH_TOKEN(TK_IDENTIFIER)) {
-			enm->SetName(CURRENT_DATA()->As<std::string>());
+			enm->SetName(CURRENT_DATA().As2<std::string>());
 			NextToken();
 		}
 
@@ -549,7 +547,7 @@ bool Parser::EnumSpecifier()
 				NextToken();
 
 				if (MATCH_TOKEN(TK_IDENTIFIER)) {
-					auto enmConst = CoilCl::AST::MakeASTNode<EnumConstantDecl>(CURRENT_DATA()->As<std::string>());
+					auto enmConst = CoilCl::AST::MakeASTNode<EnumConstantDecl>(CURRENT_DATA().As2<std::string>());
 					enmConst->SetLocation(CURRENT_LOCATION());
 
 					NextToken();
@@ -841,32 +839,35 @@ void Parser::PrimaryExpression()
 
 	switch (CURRENT_TOKEN()) {
 	case TK_IDENTIFIER:
-		m_identifierStack.push(CURRENT_DATA()->As<std::string>());
+		m_identifierStack.push(CURRENT_DATA().As2<std::string>());
 		NextToken();
 		break;
 
 	case TK_CONSTANT:
-		switch (CURRENT_DATA()->DataType<BuiltinType>()->TypeSpecifier()) {
+		switch (CURRENT_DATA().Type().DataType<BuiltinType>()->TypeSpecifier()) {
 		case BuiltinType::Specifier::INT:
 		{
-			auto object = std::dynamic_pointer_cast<ValueObject<int>>(CURRENT_DATA());
-			auto literal = CoilCl::AST::MakeASTNode<IntegerLiteral>(std::move(object));
+			//auto object = std::dynamic_pointer_cast<ValueObject<int>>(CURRENT_DATA());
+			//auto literal = CoilCl::AST::MakeASTNode<IntegerLiteral>(std::move(object));
+			auto literal = CoilCl::AST::MakeASTNode<IntegerLiteral>(std::move(CURRENT_DATA()));
 			literal->SetLocation(CURRENT_LOCATION());
 			m_elementDescentPipe.push(literal);
 			break;
 		}
 		case BuiltinType::Specifier::DOUBLE:
 		{
-			auto object = std::dynamic_pointer_cast<ValueObject<double>>(CURRENT_DATA());
-			auto literal = CoilCl::AST::MakeASTNode<FloatingLiteral>(std::move(object));
+			//auto object = std::dynamic_pointer_cast<ValueObject<double>>(CURRENT_DATA());
+			//auto literal = CoilCl::AST::MakeASTNode<FloatingLiteral>(std::move(object));
+			auto literal = CoilCl::AST::MakeASTNode<FloatingLiteral>(std::move(CURRENT_DATA()));
 			literal->SetLocation(CURRENT_LOCATION());
 			m_elementDescentPipe.push(literal);
 			break;
 		}
 		case BuiltinType::Specifier::CHAR:
 		{
-			auto object = std::dynamic_pointer_cast<ValueObject<std::string>>(CURRENT_DATA());
-			auto literal = CoilCl::AST::MakeASTNode<StringLiteral>(std::move(object));
+			//auto object = std::dynamic_pointer_cast<ValueObject<std::string>>(CURRENT_DATA());
+			//auto literal = CoilCl::AST::MakeASTNode<StringLiteral>(std::move(object));
+			auto literal = CoilCl::AST::MakeASTNode<StringLiteral>(CURRENT_DATA());
 			literal->SetLocation(CURRENT_LOCATION());
 			m_elementDescentPipe.push(literal);
 			break;
@@ -1012,7 +1013,7 @@ void Parser::PostfixExpression()
 		NextToken();
 		//ExpectIdentifier();
 
-		auto member = CURRENT_DATA()->As<std::string>();
+		auto member = CURRENT_DATA().As2<std::string>();
 		auto expr = CoilCl::AST::MakeASTNode<MemberExpr>(MemberExpr::MemberType::REFERENCE, member, resv);
 		expr->SetLocation(CURRENT_LOCATION());
 		m_elementDescentPipe.push(expr);
@@ -1027,7 +1028,7 @@ void Parser::PostfixExpression()
 		NextToken();
 		//ExpectIdentifier();
 
-		auto member = CURRENT_DATA()->As<std::string>();
+		auto member = CURRENT_DATA().As2<std::string>();
 		auto expr = CoilCl::AST::MakeASTNode<MemberExpr>(MemberExpr::MemberType::POINTER, member, resv);
 		expr->SetLocation(CURRENT_LOCATION());
 		m_elementDescentPipe.push(expr);
@@ -1554,7 +1555,7 @@ bool Parser::JumpStatement()
 
 		//ExpectIdentifier();//XXX: possible optimization
 
-		auto stmt = CoilCl::AST::MakeASTNode<GotoStmt>(CURRENT_DATA()->As<std::string>());
+		auto stmt = CoilCl::AST::MakeASTNode<GotoStmt>(CURRENT_DATA().As2<std::string>());
 		stmt->SetLocation(CURRENT_LOCATION());
 		m_elementDescentPipe.push(stmt);
 		NextToken();
@@ -1824,7 +1825,7 @@ bool Parser::LabeledStatement()
 		// Snapshot current state in case of rollback
 		m_comm.Snapshot();
 		try {
-			auto lblName = CURRENT_DATA()->As<std::string>();
+			auto lblName = CURRENT_DATA().As2<std::string>();
 			NextToken();
 			ExpectToken(TK_COLON);
 
@@ -1981,7 +1982,7 @@ void Parser::Declaration()
 
 void Parser::InitDeclaratorList()
 {
-	auto cont = false;
+	bool cont = false;
 	do {
 		cont = false;
 		if (!Declarator()) {
@@ -2178,7 +2179,7 @@ bool Parser::DirectDeclarator()
 	auto foundDecl = false;
 
 	if (MATCH_TOKEN(TK_IDENTIFIER)) {
-		auto name = CURRENT_DATA()->As<std::string>();
+		auto name = CURRENT_DATA().As2<std::string>();
 		m_identifierStack.push(name);
 		foundDecl = true;
 		NextToken();

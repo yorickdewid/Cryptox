@@ -13,7 +13,7 @@
 #ifdef CRY_DEBUG
 #include <iostream>
 #define DUMP_VALUE(v) \
-	std::cout << v->DataType()->TypeName() << " >> " << v->Print() << std::endl;
+	std::cout << v.Type()->TypeName() << " >> " << v.Print() << std::endl;
 #endif
 
 #define CaptureValue(s) Util::CaptureValueRaw(std::move(s))
@@ -38,46 +38,46 @@ using namespace Typedef;
 // Create explicit value with automatic type
 //
 
-template<typename NativeType, typename ValueType> //TODO: FIXME: DEPRECATED
-inline auto MakeValueObject(BuiltinType&& type, ValueType value)
-{
-	return std::make_shared<ValueObject<NativeType>>(std::move(type), value);
-}
-template<typename Type = std::string> //TODO: FIXME: DEPRECATED
-inline ValueType<Type> MakeString(Type v)
-{
-	return MakeValueObject<Type>(BuiltinType::Specifier::CHAR, v);
-}
-template<typename Type = int> //TODO: FIXME: DEPRECATED
-inline ValueType<Type> MakeInt(Type v)
-{
-	return MakeValueObject<Type>(BuiltinType::Specifier::INT, std::move(v));
-}
-template<typename Type = float> //TODO: FIXME: DEPRECATED
-inline ValueType<Type> MakeFloat(Type v)
-{
-	return MakeValueObject<Type>(BuiltinType::Specifier::FLOAT, std::move(v));
-}
-template<typename Type = double> //TODO: FIXME: DEPRECATED
-inline ValueType<Type> MakeDouble(Type v)
-{
-	return MakeValueObject<Type>(BuiltinType::Specifier::DOUBLE, std::move(v));
-}
-template<typename Type = char> //TODO: FIXME: DEPRECATED
-inline ValueType<Type> MakeChar(Type v)
-{
-	return MakeValueObject<Type>(BuiltinType::Specifier::CHAR, v);
-}
-template<typename Type = bool> //TODO: FIXME: DEPRECATED
-inline ValueType<Type> MakeBool(Type v)
-{
-	return MakeValueObject<Type>(BuiltinType::Specifier::BOOL, v);
-}
-template<typename Type = void> //TODO: why?
-inline ValueType<Type> MakeVoid()
-{
-	return std::make_shared<ValueObject<Type>>();
-}
+//template<typename NativeType, typename ValueType> //TODO: FIXME: DEPRECATED
+//inline auto MakeValueObject(BuiltinType&& type, ValueType value)
+//{
+//	return std::make_shared<ValueObject<NativeType>>(std::move(type), value);
+//}
+//template<typename Type = std::string> //TODO: FIXME: DEPRECATED
+//inline ValueType<Type> MakeString(Type v)
+//{
+//	return MakeValueObject<Type>(BuiltinType::Specifier::CHAR, v);
+//}
+//template<typename Type = int> //TODO: FIXME: DEPRECATED
+//inline ValueType<Type> MakeInt(Type v)
+//{
+//	return MakeValueObject<Type>(BuiltinType::Specifier::INT, std::move(v));
+//}
+//template<typename Type = float> //TODO: FIXME: DEPRECATED
+//inline ValueType<Type> MakeFloat(Type v)
+//{
+//	return MakeValueObject<Type>(BuiltinType::Specifier::FLOAT, std::move(v));
+//}
+//template<typename Type = double> //TODO: FIXME: DEPRECATED
+//inline ValueType<Type> MakeDouble(Type v)
+//{
+//	return MakeValueObject<Type>(BuiltinType::Specifier::DOUBLE, std::move(v));
+//}
+//template<typename Type = char> //TODO: FIXME: DEPRECATED
+//inline ValueType<Type> MakeChar(Type v)
+//{
+//	return MakeValueObject<Type>(BuiltinType::Specifier::CHAR, v);
+//}
+//template<typename Type = bool> //TODO: FIXME: DEPRECATED
+//inline ValueType<Type> MakeBool(Type v)
+//{
+//	return MakeValueObject<Type>(BuiltinType::Specifier::BOOL, v);
+//}
+//template<typename Type = void> //TODO: why?
+//inline ValueType<Type> MakeVoid()
+//{
+//	return std::make_shared<ValueObject<Type>>();
+//}
 
 //
 // Create explicit value with automatic type
@@ -181,6 +181,7 @@ inline Value CaptureValueRaw(NativeType&& v)
 {
 	return Detail::ValueDeductor{}(std::forward<NativeType>(v));
 }
+//TODO:
 //template<typename NativeType>
 //inline Value MakeUninitialized()
 //{
@@ -199,10 +200,10 @@ std::shared_ptr<Value> ValueCopy(const std::shared_ptr<Value>&); //TODO: rewrite
 //
 
 // Evaluate the value as either true or false
-bool EvaluateAsBoolean(std::shared_ptr<Value>); //TODO: OBSOLETE: REMOVE:
+//bool EvaluateAsBoolean(std::shared_ptr<Value>); //TODO: OBSOLETE: REMOVE:
 bool EvaluateValueAsBoolean(const Value&);
 // Evaluate the value as an integer if possible
-int EvaluateValueAsInteger(std::shared_ptr<Value>);
+//int EvaluateValueAsInteger(std::shared_ptr<Value>);
 int EvaluateValueAsInteger(const Value&);
 
 } // namespace Util

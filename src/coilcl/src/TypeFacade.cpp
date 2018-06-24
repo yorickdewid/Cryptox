@@ -10,39 +10,41 @@
 
 using namespace CoilCl::Typedef;
 
+//TODO: OBSOLETE: REMOVE:
 // Serialize type into byte stream
-void TypeFacade::Serialize(const TypeFacade& in, std::vector<uint8_t>& out)
-{
-	using Typedef::BuiltinType;
-
-	const auto typePack = in->TypeEnvelope();
-	out.reserve(typePack.size());
-	out.push_back(static_cast<uint8_t>(in.PointerCount()));
-	out.push_back(static_cast<uint8_t>(typePack.size()));
-	out.insert(out.cend(), typePack.begin(), typePack.end());
-	out.shrink_to_fit();
-}
-
-// Deserialize byte stream into type
-void TypeFacade::Deserialize(TypeFacade& out, const std::vector<uint8_t>& in)
-{
-	using Typedef::BuiltinType;
-
-	auto ptrCount = static_cast<size_t>(in.at(0));
-	const auto sizeOfEnvelope = static_cast<size_t>(in.at(1));
-	assert(sizeOfEnvelope + 2 == in.size());
-
-	//FUTURE: Replace copy by move
-	std::vector<uint8_t> type;
-	type.resize(in.size() - 2);
-	std::copy(in.begin() + 2, in.cend(), type.begin());
-	Typedef::BaseType ptr = Util::MakeType(std::move(type));
-
-	// Set type facade options
-	TypeFacade tmp{ ptr };
-	tmp.SetPointer(ptrCount);
-	out = tmp;
-}
+//void TypeFacade::Serialize(const TypeFacade& in, std::vector<uint8_t>& out)
+//{
+//	using Typedef::BuiltinType;
+//
+//	const auto typePack = in->TypeEnvelope();
+//	out.reserve(typePack.size());
+//	out.push_back(static_cast<uint8_t>(in.PointerCount()));
+//	out.push_back(static_cast<uint8_t>(typePack.size()));
+//	out.insert(out.cend(), typePack.begin(), typePack.end());
+//	out.shrink_to_fit();
+//}
+//
+////TODO: OBSOLETE: REMOVE:
+//// Deserialize byte stream into type
+//void TypeFacade::Deserialize(TypeFacade& out, const std::vector<uint8_t>& in)
+//{
+//	using Typedef::BuiltinType;
+//
+//	auto ptrCount = static_cast<size_t>(in.at(0));
+//	const auto sizeOfEnvelope = static_cast<size_t>(in.at(1));
+//	assert(sizeOfEnvelope + 2 == in.size());
+//
+//	//FUTURE: Replace copy by move
+//	std::vector<uint8_t> type;
+//	type.resize(in.size() - 2);
+//	std::copy(in.begin() + 2, in.cend(), type.begin());
+//	Typedef::BaseType ptr = Util::MakeType(std::move(type));
+//
+//	// Set type facade options
+//	TypeFacade tmp{ ptr };
+//	tmp.SetPointer(ptrCount);
+//	out = tmp;
+//}
 
 // Convert type into data stream
 void TypeFacade::Serialize(int, const TypeFacade& type, Cry::ByteArray& buffer)

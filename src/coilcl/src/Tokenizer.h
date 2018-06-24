@@ -24,7 +24,7 @@ struct Tokenizer
 	using ErrorHandler = std::function<void(const std::string& msg, char token, int line, int column)>;
 	
 	// Pointer type to data object.
-	using ValuePointer = std::shared_ptr<Valuedef::Value>;
+	using ValuePointer = Valuedef::Value;
 
 	// Register error handler.
 	inline void RegisterErrorHandler(const ErrorHandler errHandler) { errHandlerFunc = errHandler; }

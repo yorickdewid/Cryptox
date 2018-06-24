@@ -111,25 +111,25 @@ CoilCl::Semer& CoilCl::Semer::CheckCompatibility()
 namespace
 {
 
-template<typename _Ty>
-std::shared_ptr<_Ty> Closest(std::shared_ptr<CoilCl::AST::ASTNode>& node)
+template<typename NodeType>
+std::shared_ptr<NodeType> Closest(std::shared_ptr<CoilCl::AST::ASTNode>& node)
 {
-	AST::Compare::Equal<_Ty> eqOp;
+	AST::Compare::Equal<NodeType> eqOp;
 	if (auto parent = node->Parent().lock()) {
 		if (!eqOp(PTR_NATIVE(parent))) {
-			return Closest<_Ty>(parent);
+			return Closest<NodeType>(parent);
 		}
 
-		return std::dynamic_pointer_cast<_Ty>(parent);
+		return std::dynamic_pointer_cast<NodeType>(parent);
 	}
 
 	return nullptr;
 }
 
-template<size_t _Idx = 0, typename _ConvTy, typename _ParentTy, typename _ChildTy>
+template<size_t Idx = 0, typename _ConvTy, typename _ParentTy, typename _ChildTy>
 void IsConversionRequired(std::shared_ptr<_ParentTy> parent, std::shared_ptr<_ChildTy> child, _ConvTy baseType)
 {
-	// Skip if an converter is already in place
+	// Skip if an converter is already injected.
 	if (std::dynamic_pointer_cast<ImplicitConvertionExpr>(child) != nullptr) {
 		return;
 	}
@@ -139,7 +139,7 @@ void IsConversionRequired(std::shared_ptr<_ParentTy> parent, std::shared_ptr<_Ch
 
 		assert(initType.HasValue());
 		if (baseType != initType) {
-			InjectConverter<_Idx>(parent, child, baseType, initType);
+			InjectConverter<Idx>(parent, child, baseType, initType);
 		}
 	}
 }
@@ -167,8 +167,9 @@ CoilCl::Semer& CoilCl::Semer::StaticResolve()
 			// No expression, use typename
 			else {
 				// Replace static builtin operation with integer result
-				auto builtinSize = static_cast<int>(builtinExpr->TypeName().Size());
-				auto m_data = Util::MakeValueObject<int>(Typedef::BuiltinType::Specifier::INT, builtinSize);
+				//int builtinSize = static_cast<int>(builtinExpr->TypeName().Size());
+				//auto m_data = CaptureValue(builtinSize);
+				auto m_data = Util::MakeInt2(static_cast<int>(builtinExpr->TypeName().Size()));
 				auto literal = CoilCl::AST::MakeASTNode<IntegerLiteral>(std::move(m_data));
 
 				// Emplace current object on existing
@@ -527,7 +528,7 @@ void CoilCl::Semer::CheckDataType()
 		}
 	});
 
-	// Check function return type
+	// Check function return type.
 	AST::Compare::Equal<ReturnStmt> eqRet;
 	MatchIf(m_ast.begin(), m_ast.end(), eqRet, [&eqFuncOp](AST::AST::iterator itr)
 	{
@@ -535,28 +536,28 @@ void CoilCl::Semer::CheckDataType()
 		auto stmt = std::dynamic_pointer_cast<ReturnStmt>(node);
 		auto func = Closest<FunctionDecl>(node);
 
-		// No function found at return parent
-		if (func == nullptr) {
+		// No function found at return parent.
+		if (!func) {
 			throw SemanticException{ "return must be scoped by function declaration", 0, 0 };
 		}
 
-		// Function expected type from return
+		// Function expected type from return while void was returned.
 		if (!stmt->HasExpression() && !func->ReturnType()->Equals(Util::MakeBuiltinType(Typedef::BuiltinType::Specifier::VOID_T).get())) {
 			throw SemanticException{ "function declaration expected expression on return", 0, 0 };
 		}
 
-		// Function expects no returning type
+		// Function expects no returning type while value was returned.
 		if (stmt->HasExpression() && func->ReturnType()->Equals(Util::MakeBuiltinType(Typedef::BuiltinType::Specifier::VOID_T).get())) {
 			throw SemanticException{ "unexpected expression on return", 0, 0 };
 		}
-		// If type is void and expresion is empty, continue
+		// If type is void and expresion is empty, continue.
 		else if (func->ReturnType()->Equals(Util::MakeBuiltinType(Typedef::BuiltinType::Specifier::VOID_T).get())) {
 			return;
 		}
 
-		auto intializer = stmt->Expression();
-
-		AST::Compare::MultiDerive<Operator, Expr, IntegerLiteral> baseNodeOp;
+		// Return type must be either operator, expression or literal.
+		const auto intializer = stmt->Expression();
+		AST::Compare::MultiDerive<Operator, Expr, Literal> baseNodeOp;
 		if (!baseNodeOp(PTR_NATIVE(intializer))) {
 			throw SemanticException{ "expected operator, expression or literal", 0, 0 };
 		}
