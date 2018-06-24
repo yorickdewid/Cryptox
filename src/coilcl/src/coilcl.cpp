@@ -33,6 +33,7 @@
 
 #ifdef CRY_DEBUG
 # define CRY_DEBUG_COMPILER 1
+//# define CRY_DEBUG_COMPILER_TESTING 1
 #endif
 
 #define SET_HANDLER(n,c) \
@@ -154,6 +155,9 @@ public:
 		// Create an empty program for the first stage
 		ProgramPtr program = Program::MakeProgram();
 
+		// Clear all warnings for this session.
+		g_warningQueue.Clear();
+
 		try {
 			// The frontend will not perform any substitutions, but instead
 			// return the tokenizer required for the requested language
@@ -190,7 +194,6 @@ public:
 				.TrivialReduction();
 			//.DeepInflation()
 			//.Metrics(program->FillMetrics());
-
 			Emit::Module<Emit::Sequencer::AIIPX> AIIPXMod;
 
 #ifdef CRY_DEBUG_COMPILER
@@ -213,7 +216,7 @@ public:
 				.AddModule(AIIPXMod)
 				.Process();
 
-#ifdef TESTING
+#ifdef CRY_DEBUG_COMPILER_TESTING
 			AST::AST tree;
 			auto treeBlock = memoryStream->DeepCopy();
 			Emit::Sequencer::AIIPX{
@@ -276,6 +279,7 @@ void AssimilateProgram(program_t *out_program, Compiler::ProgramPtr&& in_program
 	assert(out_program);
 	assert(!out_program->program_ptr);
 	out_program->program_ptr = in_program.release();
+	assert(!in_program);
 }
 
 } // namespace InterOpHelper
@@ -321,15 +325,25 @@ COILCLAPI void Compile(compiler_info_t *cl_info) NOTHROW
 
 	// Start compiler and return the program as result
 	Compiler::ProgramPtr program = Compiler::Dispatch(std::move(coilcl));
+
+#ifdef CRY_DEBUG_COMPILER
 	if (!program->Condition().IsRunnable()) {
 		std::cout << "Consensus: resulting program not runnable" << std::endl;
 	}
 	if (program->HasSymbols()) {
 		program->PrintSymbols();
 	}
+#endif
 
 	// Pass program to frontend
 	InterOpHelper::AssimilateProgram(&cl_info->program, std::move(program));
+}
+
+COILCLAPI void ReleaseProgram(program_t *program) NOTHROW
+{
+	if (program->program_ptr) {
+		delete static_cast<Program *>(program->program_ptr);
+	}
 }
 
 COILCLAPI void GetResultSection(result_t *result_inquery) NOTHROW

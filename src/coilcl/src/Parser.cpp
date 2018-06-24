@@ -27,9 +27,7 @@
 class UnexpectedTokenException : public std::exception
 {
 public:
-	UnexpectedTokenException() noexcept
-	{
-	}
+	UnexpectedTokenException() noexcept = default;
 
 	explicit UnexpectedTokenException(char const* const message, int line, int column, Token token) noexcept
 		: m_line{ line }
@@ -68,9 +66,7 @@ private:
 class SyntaxException : public std::exception
 {
 public:
-	SyntaxException() noexcept
-	{
-	}
+	SyntaxException() noexcept = default;
 
 	explicit SyntaxException(char const* const message, char token, int line, int column) noexcept
 		: m_token{ token }
@@ -112,7 +108,7 @@ class ParseException : public std::exception
 public:
 	ParseException() noexcept = default;
 
-	explicit ParseException(char const* const message, int line, int column) noexcept
+	explicit ParseException(char const *const message, int line, int column) noexcept
 		: m_line{ line }
 		, m_column{ column }
 	{
@@ -2473,7 +2469,7 @@ void Parser::TranslationUnit()
 	localAst->SetLocation(0, 0);
 
 	// Set translation unit as top level tree root
-	if (AST_ROOT() == nullptr) {
+	if (!AST_ROOT()) {
 		AST_ROOT() = localAst;
 	}
 

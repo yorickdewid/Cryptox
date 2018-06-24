@@ -37,11 +37,11 @@ struct StageType
 
 extern StageType::Type g_compilerStage;
 
-template<typename _Ty/*, typename = typename std::enable_if<std::is_class<_Ty>::value>::type*/>
+template<typename StageClass/*, typename = typename std::enable_if<std::is_class<_Ty>::value>::type*/>
 class Stage
 {
 protected:
-	using StageBase = Stage<_Ty>;
+	using StageBase = Stage<StageClass>;
 
 public:
 	// Abstract methods for stage implementation
@@ -49,7 +49,7 @@ public:
 
 	// The check compatibility method allows the stage to check if the stage is executable
 	// with the given profile.
-	virtual _Ty& CheckCompatibility() = 0;
+	virtual StageClass& CheckCompatibility() = 0;
 
 	// The stage exception can show details about current stage in which the exception occured
 	class StageException : public std::runtime_error
@@ -76,14 +76,14 @@ public:
 	Stage(const StageBase&) = delete;
 	Stage(StageBase&&) = delete;
 
-	explicit Stage(_Ty* derived, StageType::Type stage)
+	explicit Stage(StageClass* derived, StageType::Type stage)
 		: m_derived{ derived }
 		, m_stageType{ stage }
 	{
 	}
 
 	// Move the current stage into the global compiler stage
-	_Ty& MoveStage() const noexcept
+	StageClass& MoveStage() const noexcept
 	{
 		g_compilerStage = m_stageType;
 		return m_derived->CheckCompatibility();
@@ -100,7 +100,7 @@ protected:
 	inline auto StageName() const noexcept { return StageType::Print(m_stageType); }
 
 private:
-	_Ty * m_derived = nullptr;
+	StageClass * m_derived = nullptr;
 	StageType::Type m_stageType;
 };
 

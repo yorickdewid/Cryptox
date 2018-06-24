@@ -133,6 +133,9 @@ extern "C" {
 	// Compiler entry point
 	COILCLAPI void Compile(compiler_info_t *) NOTHROW;
 
+	// 
+	COILCLAPI void ReleaseProgram(program_t *) NOTHROW;
+
 	// Result section tag
 	enum resultsection_tag
 	{

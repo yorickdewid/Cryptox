@@ -48,6 +48,7 @@ class CompilerHelper
 		return 0;
 	}
 
+	//TODO: test return nullptr
 	static metainfo_t *TestInfo(void *user_data)
 	{
 		CRY_UNUSED(user_data);
@@ -106,6 +107,11 @@ public:
 	{
 	}
 
+	~CompilerHelper()
+	{
+		ReleaseProgram(&m_program);
+	}
+
 	CompilerHelper& RunCompiler()
 	{
 		CallCompiler();
@@ -129,7 +135,7 @@ private:
 	int m_vmResult{ -1 };
 	int m_programResult{ -1 };
 	bool m_done{ false };
-	program_t m_program;
+	program_t m_program{ nullptr };
 	std::string m_source;
 };
 

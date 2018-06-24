@@ -297,10 +297,11 @@ Visitor::Visitor(InputCallback& _inputCallback)
 }
 
 Visitor::Visitor(Visitor& other)
+	: inputCallback{ other.inputCallback }
+	, level{ other.level + 1 }
+	, nodeId{ 0 }
+	, parentId{ other.nodeId }
 {
-	inputCallback = other.inputCallback;
-	parentId = other.nodeId;
-	level = other.level + 1;
 }
 
 Serializable::GroupListType Visitor::CreateChildGroups(size_t size)

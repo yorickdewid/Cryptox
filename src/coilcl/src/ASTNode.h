@@ -1370,10 +1370,10 @@ public:
 
 	void AppendChild(const std::shared_ptr<ASTNode>& node) final;
 
-	template<typename... _Args>
-	static std::shared_ptr<TranslationUnitDecl> Make(_Args&&... args)
+	template<typename... ArgTypes>
+	static std::shared_ptr<TranslationUnitDecl> Make(ArgTypes&&... args)
 	{
-		auto ptr = std::shared_ptr<TranslationUnitDecl>{ new TranslationUnitDecl{ std::forward<_Args>(args)... } };
+		auto ptr = std::shared_ptr<TranslationUnitDecl>{ new TranslationUnitDecl{ std::forward<ArgTypes>(args)... } };
 		ptr->UpdateDelegate();
 		return ptr;
 	}
