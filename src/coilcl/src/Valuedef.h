@@ -28,7 +28,7 @@ namespace CoilCl
 namespace Util
 {
 
-class ValueFactory;
+struct ValueFactory;
 
 } // namespace Util
 
@@ -76,10 +76,9 @@ static_assert(Trait::IsNativeMultiType<std::vector<bool>>::value, "IsNativeMulti
 
 class Value //TODO: mark each value with an unique id
 {
-	friend class Util::ValueFactory;
+	friend struct Util::ValueFactory;
 
 public:
-	using ValueVariant = boost::variant<int, char, float, double, bool, std::string>; //OBSOLETE: REMOVE: TODO:
 	using ValueVariant2 = boost::variant<int, char, float, double, bool>; //TODO: rename
 	using ValueVariant3 = boost::variant<std::vector<int> //TODO: rename
 		, std::vector<char>
@@ -94,14 +93,14 @@ public:
 	struct InvalidTypeCastException : public std::runtime_error
 	{
 		explicit InvalidTypeCastException()
-			: runtime_error{ "" }
+			: runtime_error{ "" } //TODO:
 		{
 		}
 	};
 	struct UninitializedValueException : public std::runtime_error
 	{
 		explicit UninitializedValueException()
-			: runtime_error{ "" }
+			: runtime_error{ "" } //TODO:
 		{
 		}
 	};
@@ -109,8 +108,6 @@ public:
 protected:
 	// The internal datastructure stores the value
 	// as close to the actual data type specifier.
-	//ValueVariant m_value; //OBSOLETE: REMOVE: TODO:
-
 	struct ValueSelect final
 	{
 		ValueSelect() = default; //TODO: for now
@@ -183,17 +180,6 @@ protected:
 		boost::optional<RecordValue> recordValue;
 		std::shared_ptr<Value> referenceValue;
 	} m_value3;
-
-	struct ConvertToStringVisitor final : public boost::static_visitor<>
-	{
-		std::string output;
-
-		template<typename NativeType>
-		void operator()(NativeType& value)
-		{
-			output = boost::lexical_cast<std::string>(value);
-		}
-	};
 
 private:
 	template<typename CastTypePart>
@@ -268,20 +254,8 @@ private:
 	}
 
 public:
-	// Special member funcion, copy constructor
-	//Value();
 	Value(const Value&) = default;
 	Value(Value&&) = default;
-
-	//Value(Typedef::BaseType typeBase); //TODO: remove obsolete
-	//Value(Typedef::BaseType typeBase, ValueVariant value); //TODO: remove obsolete
-
-	//template<typename NativeType>
-	//Value(Typedef::BaseType typeBase, NativeType&& value) //TODO: remove obsolete
-	//	: m_objectType{ typeBase }
-	//	, m_value{ ValueVariant{ std::forward<NativeType>(value) } }
-	//{
-	//}
 
 	// Value declaration without initialization
 	Value(int, Typedef::TypeFacade);
@@ -294,23 +268,6 @@ public:
 	// Pointer value declaration and initialization
 	Value(int, Typedef::TypeFacade, Value&&);
 
-	// Swap-in native replacement value
-	//template<typename NativeType>
-	//void ReplaceValue(NativeType&& value) //TODO: OBSOLETE: remove
-	//{
-	//	m_value = ValueVariant{ std::forward<NativeType>(value) };
-	//}
-	//// Copy value from another value
-	//void ReplaceValueWithValue(const Value& other) //TODO: OBSOLETE: remove
-	//{
-	//	m_value = other.m_value;
-	//}
-
-	// Return the type specifier
-	//Typedef::BaseType DataType() const noexcept { return m_objectType; } //TODO: OBSOLETE: remove
-	//template<typename CastType>
-	//auto DataType() const { return std::dynamic_pointer_cast<CastType>(m_objectType); } //TODO: OBSOLETE: remove
-
 	// Access type information
 	Typedef::TypeFacade Type() const { return m_internalType; }
 
@@ -322,13 +279,9 @@ public:
 	//TODO: REMOVE: OBSOLETE:
 	inline bool IsArray() const noexcept { return false; }
 
-	// By default try direct cast from variant, if the cast fails
-	// a bad casting exception is thrown.
-	/*template<typename CastType>
-	CastType As() const { return boost::get<CastType>(m_value); }*/
-
+	// If the cast fails a InvalidTypeCastException is thrown.
 	template<typename CastType>
-	inline CastType As2() const
+	inline CastType As() const
 	{
 		return ValueCastImp<CastType>(int{});
 	}
@@ -337,17 +290,12 @@ public:
 	// Print value
 	virtual const std::string Print() const
 	{
-		/*ConvertToStringVisitor conv;
-		m_value.apply_visitor(conv);
-		return conv.output;*/
 		return m_value3.ToString();
 	}
 
 	// Serialize the value into byte array
-	//virtual const Cry::ByteArray Serialize() const;
-	// Serialize the value into byte array
 	Cry::ByteArray Serialize(int) const;
-	
+
 	// Serialize the value into byte array
 	static void Serialize(const Value&, Cry::ByteArray&);
 	// Serialize byte array into value
@@ -375,7 +323,7 @@ private:
 };
 
 template<>
-inline std::string Value::As2() const //TODO: rename
+inline std::string Value::As() const //TODO: rename
 {
 	const auto value = ValueCastImp<std::vector<char>>(int{});
 	return std::string{ value.cbegin(), value.cend() };
@@ -385,36 +333,6 @@ static_assert(std::is_copy_constructible<Value>::value, "Value !is_copy_construc
 static_assert(std::is_move_constructible<Value>::value, "Value !is_move_constructible");
 static_assert(std::is_copy_assignable<Value>::value, "Value !is_copy_assignable");
 static_assert(std::is_move_assignable<Value>::value, "Value !is_move_assignable");
-
-//TODO: OBSOLETE: REMOVE:
-//template<typename _Ty>
-//class ValueObject
-//	: public Value
-//{
-//	using _Myty = ValueObject<_Ty>;
-//
-//public:
-//	ValueObject(Typedef::BuiltinType&& type, _Ty value)
-//		: Value{ std::make_shared<Typedef::BuiltinType>(type), value }
-//	{
-//		static_assert(sizeof(_Myty) == sizeof(Value), "");
-//	}
-//
-//	virtual const std::string Print() const override
-//	{
-//		return boost::lexical_cast<std::string>(Value::As<_Ty>());
-//	}
-//
-//	friend std::ostream& operator<<(std::ostream& os, const _Myty& value)
-//	{
-//		os << value.Print();
-//		return os;
-//	}
-//};
-
-//TODO: OBSOLETE: REMOVE:
-//template<typename _Ty>
-//using ValueType = std::shared_ptr<ValueObject<_Ty>>;
 
 namespace Detail
 {
@@ -529,18 +447,8 @@ namespace Util
 
 using namespace ::CoilCl;
 
-class ValueFactory
+struct ValueFactory
 {
-	static std::shared_ptr<Valuedef::Value> BaseValue(Cry::ByteArray&);
-
-public:
-	/*template<typename _Ty>
-	static std::shared_ptr<CoilCl::Valuedef::ValueObject<_Ty>> MakeValue(Cry::ByteArray& buffer)
-	{
-		auto basePtr = BaseValue(buffer);
-		return std::static_pointer_cast<CoilCl::Valuedef::ValueObject<_Ty>>(basePtr);
-	}*/
-
 	static Valuedef::Value MakeValue(int, Cry::ByteArray&);
 };
 

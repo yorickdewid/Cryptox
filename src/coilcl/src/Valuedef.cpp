@@ -19,22 +19,6 @@ namespace CoilCl
 namespace Valuedef
 {
 
-//Value::Value()
-//	: m_objectType{ Util::MakeBuiltinType(Typedef::BuiltinType::Specifier::INT) }
-//{
-//}
-
-//Value::Value(Typedef::BaseType typeBase)
-//	: m_objectType{ typeBase }
-//{
-//}
-//
-//Value::Value(Typedef::BaseType typeBase, ValueVariant value)
-//	: m_objectType{ typeBase }
-//	, m_value{ value }
-//{
-//}
-
 // Value declaration without initialization
 Value::Value(int, Typedef::TypeFacade typeBase)
 	: m_internalType{ typeBase }
@@ -54,7 +38,7 @@ Value::Value(int, Typedef::TypeFacade typeBase, ValueVariant3&& value)
 	m_internalType.SetArraySize(1);
 }
 
-// Value declaration and initialization
+// Value declaration and initialization.
 Value::Value(int, Typedef::TypeFacade typeBase, RecordValue&& value)
 	: m_internalType{ typeBase }
 	, m_value3{ ValueSelect{ std::move(value) } }
@@ -62,21 +46,22 @@ Value::Value(int, Typedef::TypeFacade typeBase, RecordValue&& value)
 	auto *record = dynamic_cast<Typedef::RecordType *>(m_internalType.operator->());
 	assert(record);
 
-	//FUTURE: improve this structure and copy the record with transform to recordtype
-	const auto recordValue = As2<RecordValue>();
+	//FUTURE: Improve this structure and copy the record with transform to recordtype.
+	const auto recordValue = As<RecordValue>();
 	for (size_t i = 0; i < recordValue.Size(); ++i) {
 		const auto fieldTypeFacade = std::make_shared<Typedef::TypeFacade>(recordValue.At(i)->Type());
 		record->AddField(recordValue.FieldName(i), fieldTypeFacade);
 	}
 }
 
-// Value declaration and initialization
+// Value declaration and initialization.
 Value::Value(int, Typedef::TypeFacade typeBase, Value&& value)
 	: m_internalType{ typeBase }
 	, m_value3{ ValueSelect{ std::move(value) } }
 {
 }
 
+// Make the value uninitialized by unsetting all current values.
 void Value::ValueSelect::Clear()
 {
 	singleValue = boost::none;
@@ -335,6 +320,8 @@ struct ConvertToStringMulti final : public boost::static_visitor<>
 	template<typename NativeType>
 	void operator()(NativeType& value)
 	{
+		//TODO: convert list to string
+		CRY_UNUSED(value);
 		output = "list";// boost::lexical_cast<std::string>(value);
 	}
 };
@@ -349,7 +336,7 @@ enum ValueSelectType
 	REFERENCE,
 };
 
-// Convert value into byte stream
+// Convert value into byte stream.
 void Value::ValueSelect::Pack(const ValueSelect& value, Cry::ByteArray& buffer)
 {
 	if (value.singleValue) {
@@ -372,7 +359,7 @@ void Value::ValueSelect::Pack(const ValueSelect& value, Cry::ByteArray& buffer)
 	}
 }
 
-// Convert byte stream into value
+// Convert byte stream into value.
 void Value::ValueSelect::Unpack(ValueSelect& value, Cry::ByteArray& buffer)
 {
 	switch (static_cast<ValueSelectType>(buffer.Deserialize<Cry::Byte>(Cry::ByteArray::AUTO)))
@@ -394,7 +381,7 @@ void Value::ValueSelect::Unpack(ValueSelect& value, Cry::ByteArray& buffer)
 		break;
 	}
 	case ValueSelectType::REFERENCE: {
-		Value refVal = Util::MakeInt2(0);
+		Value refVal = Util::MakeInt(0); //TODO: uninitialized value
 		PointerUnpacker(refVal, buffer);
 		value = ValueSelect{ std::move(refVal) };
 		break;
@@ -404,6 +391,7 @@ void Value::ValueSelect::Unpack(ValueSelect& value, Cry::ByteArray& buffer)
 	}
 }
 
+// Convert value in string.
 std::string Value::ValueSelect::ToString() const
 {
 	if (singleValue) {
@@ -427,95 +415,7 @@ std::string Value::ValueSelect::ToString() const
 	CryImplExcept(); //TODO
 }
 
-//namespace
-//{
-//
-////TODO: OBSOLETE: REMOVE:
-//class TypePacker final : public boost::static_visitor<>
-//{
-//	enum NativeType : uint8_t
-//	{
-//		INT, CHAR, DOUBLE, STR,
-//	};
-//
-//public:
-//	TypePacker(Cry::ByteArray& buffer)
-//		: m_buffer{ buffer }
-//	{
-//	}
-//
-//	void operator()(int i) const
-//	{
-//		m_buffer.push_back(static_cast<NativeType>(NativeType::INT));
-//		m_buffer.push_back(static_cast<Cry::Byte>(i));
-//	}
-//
-//	void operator()(char c) const
-//	{
-//		m_buffer.push_back(static_cast<NativeType>(NativeType::CHAR));
-//		m_buffer.push_back(c);
-//	}
-//
-//	void operator()(double d) const
-//	{
-//		m_buffer.push_back(static_cast<NativeType>(NativeType::DOUBLE));
-//		m_buffer.push_back(static_cast<Cry::Byte>(d));
-//	}
-//
-//	void operator()(const std::string& s) const
-//	{
-//		m_buffer.push_back(static_cast<NativeType>(NativeType::STR));
-//		m_buffer.push_back(static_cast<Cry::Byte>(s.size()));
-//		m_buffer.insert(m_buffer.cend(), s.begin(), s.end());
-//	}
-//
-//	std::shared_ptr<Valuedef::Value> Unpack(Typedef::BaseType base)
-//	{
-//		/*switch (static_cast<NativeType>(m_buffer[0]))
-//		{
-//		case TypePacker::INT:
-//			return std::make_shared<Valuedef::Value>(std::move(base), static_cast<int>(m_buffer[1]));
-//		case TypePacker::CHAR:
-//			return std::make_shared<Valuedef::Value>(std::move(base), static_cast<char>(m_buffer[1]));
-//		case TypePacker::DOUBLE:
-//			return std::make_shared<Valuedef::Value>(std::move(base), static_cast<double>(m_buffer[1]));
-//		case TypePacker::STR: {
-//			auto strSize = static_cast<size_t>(m_buffer[1]);
-//			std::string buffer;
-//			buffer.resize(strSize);
-//			buffer.insert(buffer.cbegin(), m_buffer.begin() + 2, m_buffer.begin() + 2 + strSize);
-//			return std::make_shared<Valuedef::Value>(std::move(base), std::move(buffer));
-//		}
-//		default:*/
-//		CryImplExcept();
-//		//}
-//	}
-//
-//private:
-//	Cry::ByteArray& m_buffer;
-//};
-//
-//} // namespace
-
-//TODO: OBSOLETE: REMOVE:
-//const Cry::ByteArray Value::Serialize() const
-//{
-//	Cry::ByteArray buffer;
-//	buffer.SetMagic(VALUE_MAGIC);
-//	buffer.SetPlatformCompat();
-//	//buffer.SerializeAs<Cry::Byte>(m_isVoid);
-//	//buffer.SerializeAs<Cry::Short>(m_arraySize);//FUTURE: Limited to 16bits
-//
-//	const auto type = m_objectType->TypeEnvelope();
-//	buffer.SerializeAs<Cry::Short>(type.size());
-//	buffer.insert(buffer.cend(), type.begin(), type.end());
-//
-//	TypePacker visitor{ buffer };
-//	m_value.apply_visitor(visitor);
-//	return buffer;
-//}
-
-// Serialize the value into byte array
+// Serialize the value into byte array.
 Cry::ByteArray Value::Serialize(int) const
 {
 	Cry::ByteArray buffer;
@@ -552,7 +452,7 @@ void Value::Deserialize(Value& value, Cry::ByteArray& buffer)
 	ValueSelect::Unpack(value.m_value3, buffer);
 }
 
-// Copy other value into this value
+// Copy other value into this value.
 Value& Value::operator=(const Value& other)
 {
 	m_value3 = other.m_value3;
@@ -560,7 +460,7 @@ Value& Value::operator=(const Value& other)
 	return (*this);
 }
 
-// Move other value into this value
+// Move other value into this value.
 Value& Value::operator=(Value&& other)
 {
 	m_value3 = std::move(other.m_value3);
@@ -568,7 +468,7 @@ Value& Value::operator=(Value&& other)
 	return (*this);
 }
 
-// Comparison equal operator
+// Comparison equal operator.
 bool Value::operator==(const Value& other) const
 {
 	return Empty() == other.Empty()
@@ -576,12 +476,13 @@ bool Value::operator==(const Value& other) const
 		&& m_internalType == other.m_internalType;
 }
 
-// Comparison not equal operator
+// Comparison not equal operator.
 bool Value::operator!=(const Value& other) const
 {
 	return !operator==(other);
 }
 
+// Stream value to ostream.
 std::ostream& operator<<(std::ostream& os, const Value& value)
 {
 	os << value.Print();
@@ -593,72 +494,26 @@ std::ostream& operator<<(std::ostream& os, const Value& value)
 namespace Util
 {
 
-std::shared_ptr<CoilCl::Valuedef::Value> ValueCopy(const std::shared_ptr<CoilCl::Valuedef::Value>& value)
-{
-	return std::make_shared<CoilCl::Valuedef::Value>(*value);
-}
-
+// Evaluate value as boolean if conversion is possible. If the conversion
+// is not possible, an exception is thrown and caught here. In that case
+// the evaluator returns with a negative result.
 bool EvaluateValueAsBoolean(const Value& value)
 {
-	try {
-		return value.As2<int>();
-	}
+	try { return value.As<int>(); }
 	catch (const Value::InvalidTypeCastException&) {}
-
 	return false;
 }
 
+// Convert value as integer. If the conversion fails an exception
+// is thrown upwards to the caller.
 int EvaluateValueAsInteger(const Value& value)
 {
-	return value.As2<int>();
+	return value.As<int>();
 }
-
-//
-// ...
-//
-
-//TODO: OBSOLETE: REMOVE:
-//std::shared_ptr<Valuedef::Value> ValueFactory::BaseValue(Cry::ByteArray& buffer)
-//{
-//	buffer.StartOffset(0);
-//	if (!buffer.ValidateMagic(VALUE_MAGIC)) {
-//		CryImplExcept(); //TODO
-//	}
-//
-//	if (!buffer.IsPlatformCompat()) {
-//		CryImplExcept(); //TODO
-//	}
-//
-//	//bool isVoid = buffer.Deserialize<Cry::Byte>(Cry::ByteArray::AUTO);
-//
-//	Cry::ByteArray type;
-//	size_t evSize = buffer.Deserialize<Cry::Short>(Cry::ByteArray::AUTO);
-//	type.resize(evSize);
-//	std::copy(buffer.cbegin() + buffer.Offset(), buffer.cbegin() + buffer.Offset() + evSize, type.begin());
-//	Typedef::BaseType ptr = Util::MakeType(std::move(type));
-//	if (!ptr) {
-//		CryImplExcept();
-//	}
-//
-//	std::shared_ptr<Valuedef::Value> value;
-//	/*if (isVoid) {
-//		value = MakeVoid();
-//	}
-//	else {*/
-//	Cry::ByteArray subBuffer{ buffer.cbegin() + buffer.Offset() + evSize, buffer.cend() };
-//	Valuedef::TypePacker visitor{ subBuffer };
-//	value = visitor.Unpack(ptr);
-//	if (!value) {
-//		CryImplExcept();
-//	}
-//	//}
-//
-//	return value;
-//}
 
 Valuedef::Value ValueFactory::MakeValue(int, Cry::ByteArray& buffer)
 {
-	Valuedef::Value value = Util::MakeInt2(0); //TODO: Make uninitialized
+	Valuedef::Value value = Util::MakeInt(0); //TODO: Make uninitialized
 	Valuedef::Value::Deserialize(value, buffer);
 	return value;
 }

@@ -730,18 +730,18 @@ NATIVE_WRAPPER(puts)
 {
 	const auto& value = GET_DEFAULT_ARG(0);
 	assert(value);
-	const auto arg0 = value.As2<std::string>();
+	const auto arg0 = value.As<std::string>();
 	auto result = puts(arg0.c_str());
-	ctx->CreateSpecialVar<RETURN_VALUE>(Util::MakeInt2(result));
+	ctx->CreateSpecialVar<RETURN_VALUE>(Util::MakeInt(result));
 }
 
 NATIVE_WRAPPER(putchar)
 {
 	const auto& value = GET_DEFAULT_ARG(0);
 	assert(value);
-	const auto arg0 = value.As2<int>();
+	const auto arg0 = value.As<int>();
 	auto result = putchar(arg0);
-	ctx->CreateSpecialVar<RETURN_VALUE>(Util::MakeInt2(result));
+	ctx->CreateSpecialVar<RETURN_VALUE>(Util::MakeInt(result));
 }
 
 //TODO: create full string format wrapper
@@ -751,19 +751,19 @@ NATIVE_WRAPPER(printf)
 	const auto& value2 = GET_VA_LIST_ARG(0);
 	assert(value);
 	assert(value2);
-	const auto arg0 = value.As2<std::string>();
-	const auto arg1 = value2.As2<int>();
+	const auto arg0 = value.As<std::string>();
+	const auto arg1 = value2.As<int>();
 	auto result = printf(arg0.c_str(), arg1);
-	ctx->CreateSpecialVar<RETURN_VALUE>(Util::MakeInt2(result));
+	ctx->CreateSpecialVar<RETURN_VALUE>(Util::MakeInt(result));
 }
 
 NATIVE_WRAPPER(scanf)
 {
 	const auto& value = GET_DEFAULT_ARG(0);
 	assert(value);
-	const auto arg0 = value.As2<std::string>();
+	const auto arg0 = value.As<std::string>();
 	auto result = scanf(arg0.c_str());
-	ctx->CreateSpecialVar<RETURN_VALUE>(Util::MakeInt2(result));
+	ctx->CreateSpecialVar<RETURN_VALUE>(Util::MakeInt(result));
 }
 
 NATIVE_WRAPPER(error)
@@ -772,8 +772,8 @@ NATIVE_WRAPPER(error)
 	const auto& value2 = GET_VA_LIST_ARG(0);
 	assert(value);
 	assert(value2);
-	const auto arg0 = value.As2<int>();
-	const auto arg1 = value.As2<std::string>();
+	const auto arg0 = value.As<int>();
+	const auto arg1 = value.As<std::string>();
 	throw arg0; //TODO: or something
 }
 
@@ -1117,15 +1117,15 @@ class ScopedRoutine
 	static CoilCl::Valuedef::Value BinaryOperation(OperandPred predicate, ContainerType&& valuesLHS, ContainerType&& valuesRHS)
 	{
 		typename OperandPred::result_type result = predicate(
-			valuesLHS.As2<OperandPred::result_type>(),
-			valuesRHS.As2<OperandPred::result_type>());
+			valuesLHS.As<OperandPred::result_type>(),
+			valuesRHS.As<OperandPred::result_type>());
 
-		return Util::MakeInt2(result); //TODO: not always an integer
+		return Util::MakeInt(result); //TODO: not always an integer
 	}
 
 	static CoilCl::Valuedef::Value EvaluateInverse(const CoilCl::Valuedef::Value& value)
 	{
-		return Util::MakeBool2(!Util::EvaluateValueAsBoolean(value));
+		return Util::MakeBool(!Util::EvaluateValueAsBoolean(value));
 	}
 
 	//FUTURE: both operations can be improved
@@ -1133,17 +1133,17 @@ class ScopedRoutine
 	static CoilCl::Valuedef::Value ValueAlteration(OperandPred predicate, AST::UnaryOperator::OperandSide side, std::shared_ptr<DeclRefExpr> declRef, ContextType& ctx)
 	{
 		CoilCl::Valuedef::Value& value = ctx->LookupIdentifier(declRef->Identifier());
-		int result = predicate(value.As2<int>(), 1);
+		int result = predicate(value.As<int>(), 1);
 
 		// On postfix operand, copy the original first
 		if (side == AST::UnaryOperator::OperandSide::POSTFIX) {
 			auto origvalue = CoilCl::Valuedef::Value{ value };
-			value = Util::MakeInt2(result);
+			value = Util::MakeInt(result);
 			return origvalue;
 		}
 
 		// On prefix, perform the unary operand on the original
-		value = Util::MakeInt2(result);
+		value = Util::MakeInt(result);
 		return value;
 	}
 
@@ -1271,7 +1271,7 @@ class ScopedRoutine
 		case AST::NodeID::IMPLICIT_CONVERTION_EXPR_ID: {
 			auto convRef = Util::NodeCast<ImplicitConvertionExpr>(node);
 			CRY_UNUSED(convRef);
-			return Util::MakeInt2(12); //TODO: for now
+			return Util::MakeInt(12); //TODO: for now
 		}
 
 		default:
@@ -1647,11 +1647,11 @@ Parameters ConvertToValueDef(const ArgumentList&& args)
 	{
 		void operator()(int i) const
 		{
-			m_paramList.push_back(MakeInt2(i));
+			m_paramList.push_back(MakeInt(i));
 		}
 		void operator()(std::string s) const
 		{
-			m_paramList.push_back(MakeString2(s));
+			m_paramList.push_back(MakeString(s));
 		}
 
 		Converter(Parameters& params)
@@ -1682,9 +1682,9 @@ void FormatStartupParameters(std::array<std::string, 3> mapper, Parameters&& par
 {
 	if (params.empty()) { return; }
 
-	ctx->PushVar({ mapper[0], Util::MakeInt2(static_cast<int>(params.size())) });
-	ctx->PushVar({ mapper[1], Util::MakeFloat2(872.21f) }); //TODO: Util::MakeArray
-	ctx->PushVar({ mapper[2], Util::MakeBool2(true) }); //TODO: Util::MakeArray
+	ctx->PushVar({ mapper[0], Util::MakeInt(static_cast<int>(params.size())) });
+	ctx->PushVar({ mapper[1], Util::MakeFloat(872.21f) }); //TODO: Util::MakeArray
+	ctx->PushVar({ mapper[2], Util::MakeBool(true) }); //TODO: Util::MakeArray
 }
 
 } // namespace
@@ -1727,7 +1727,7 @@ int Evaluator::YieldResult()
 	try {
 		auto globalCtx = m_unitContext->ParentAs<GlobalContext>();
 		if (globalCtx->HasReturnValue()) {
-			return globalCtx->ReturnValue().As2<int>();
+			return globalCtx->ReturnValue().As<int>();
 		}
 	}
 	// On casting faillure, return faillure all the way

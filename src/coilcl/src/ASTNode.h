@@ -757,7 +757,7 @@ protected:
 	}
 
 	explicit Literal(Serializable::Interface&)
-		: m_value{ Util::MakeInt2(0) } //TOOD: temporary fix
+		: m_value{ Util::MakeInt(0) } //TOOD: temporary fix
 	{
 	}
 
@@ -828,7 +828,7 @@ public:
 	}
 
 	CharacterLiteral(char value)
-		: Literal{ Util::MakeChar2(value) }
+		: Literal{ Util::MakeChar(value) }
 	{
 	}
 
@@ -876,7 +876,7 @@ public:
 	}
 
 	StringLiteral(const std::string& value)
-		: Literal{ Util::MakeString2(value) }
+		: Literal{ Util::MakeString(value) }
 	{
 	}
 
@@ -924,7 +924,7 @@ public:
 	}
 
 	IntegerLiteral(int value)
-		: Literal{ Util::MakeInt2(value) }
+		: Literal{ Util::MakeInt(value) }
 	{
 	}
 
@@ -972,7 +972,7 @@ public:
 	}
 
 	FloatingLiteral(float value)
-		: Literal{ Util::MakeFloat2(value) }
+		: Literal{ Util::MakeFloat(value) }
 	{
 	}
 

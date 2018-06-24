@@ -26,7 +26,7 @@
 
 #define DEFINE_MACRO_STR(k,v) \
 	{ \
-		TokenProcessor::DataType m_data = Util::MakeString2(v); \
+		TokenProcessor::DataType m_data = Util::MakeString(v); \
 		std::vector<Preprocessor::TokenDataPair<TokenProcessor::TokenType, const TokenProcessor::DataType>> m_definitionBody; \
 		m_definitionBody.push_back({ 20, m_data }); \
 		g_definitionList.insert({ k, std::move(m_definitionBody) }); \
@@ -34,7 +34,7 @@
 
 #define DEFINE_MACRO_INT(k,v) \
 	{ \
-		TokenProcessor::DataType m_data = Util::MakeInt2(v); \
+		TokenProcessor::DataType m_data = Util::MakeInt(v); \
 		std::vector<Preprocessor::TokenDataPair<TokenProcessor::TokenType, const TokenProcessor::DataType>> m_definitionBody; \
 		m_definitionBody.push_back({ 20, m_data }); \
 		g_definitionList.insert({ k, std::move(m_definitionBody) }); \
@@ -264,7 +264,7 @@ protected:
 	template<typename CastType>
 	static inline CastType ConvertDataAs(const TokenProcessor::DataType& data)
 	{
-		return data.As2<CastType>();
+		return data.As<CastType>();
 	}
 
 	void RequireToken(int expectedToken, int token)
@@ -396,14 +396,9 @@ public:
 			return;
 		}
 
-		DUMP_VALUE(it->second.at(0).Data());
-		DUMP_VALUE(dataPair.Data());
-
 		// Always assign first token and optional data
 		dataPair.AssignToken(it->second.at(0).Token());
 		dataPair.AssignData(it->second.at(0).Data());
-
-		DUMP_VALUE(dataPair.Data());
 
 		// When multiple tokens are registered for this definition, create a token queue
 		if (it->second.size() > 1) {
@@ -520,15 +515,15 @@ class ConditionalStatement : public AbstractDirective
 				switch (it->Data().Type().DataType<CoilCl::Typedef::BuiltinType>()->TypeSpecifier()) {
 				case CoilCl::Typedef::BuiltinType::Specifier::INT:
 				{
-					stack[0] = it->Data().As2<int>();
+					stack[0] = it->Data().As<int>();
 					consensusAction.Consolidate(stack[0]);
 					break;
 				}
 				case CoilCl::Typedef::BuiltinType::Specifier::CHAR:
 				{
 					const std::string definition = Util::IsArray(it->Data().Type())
-						? it->Data().As2<std::string>()
-						: std::string{ it->Data().As2<char>() };
+						? it->Data().As<std::string>()
+						: std::string{ it->Data().As<char>() };
 					bool hasDefinition = g_definitionList.find(definition) != g_definitionList.end();
 					consensusAction.Consolidate(hasDefinition);
 					break;
@@ -554,7 +549,7 @@ class ConditionalStatement : public AbstractDirective
 						throw ConditionalStatementException{ "expected identifier" };
 					}
 					assert(it->HasData());
-					const std::string definition = it->Data().As2<std::string>();
+					const std::string definition = it->Data().As<std::string>();
 					++it;
 					if (it->Token() != TK_PARENTHESE_CLOSE) {
 						throw ConditionalStatementException{ "expected )" };
@@ -566,7 +561,7 @@ class ConditionalStatement : public AbstractDirective
 					throw ConditionalStatementException{ "expected identifier" };
 				}
 				assert(it->HasData());
-				const std::string definition = it->Data().As2<std::string>();
+				const std::string definition = it->Data().As<std::string>();
 				consensusAction.Consolidate(g_definitionList.find(definition) != g_definitionList.end());
 				continue;
 			}
@@ -592,7 +587,7 @@ class ConditionalStatement : public AbstractDirective
 			++it; \
 			if (it->Token() != TK_CONSTANT) {  throw ConditionalStatementException{ "expected constant" }; } \
 			assert(it->HasData()); \
-			stack[1] = it->Data().As2<int>(); \
+			stack[1] = it->Data().As<int>(); \
 			consensusAction.Consolidate(stack[0] o stack[1]); \
 			stack[0] = 0; stack[1] = 0;
 
@@ -632,7 +627,7 @@ class ConditionalStatement : public AbstractDirective
 			++it; \
 			if (it->Token() != TK_CONSTANT) { throw ConditionalStatementException{ "expected constant" }; } \
 			assert(it->HasData()); \
-			stack[0] = stack[0] o it->Data().As2<int>();
+			stack[0] = stack[0] o it->Data().As<int>();
 
 			// Integral arithmetic
 			case TK_PLUS:

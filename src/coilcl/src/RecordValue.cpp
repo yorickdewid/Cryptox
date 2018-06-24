@@ -114,7 +114,7 @@ void RecordValue::Deserialize(RecordValue& value, Cry::ByteArray& buffer)
 		buffer.SetOffset(static_cast<int>(fieldNameSize)); //TODO: Make ByteArray do this automatically
 
 		// Field value
-		Valuedef::Value tmp = Util::MakeInt2(0);
+		Valuedef::Value tmp = Util::MakeInt(0); //TODO: make uninitialized value
 		Value::Deserialize(tmp, buffer);
 		tmpRec.AddField({ fieldName, RecordValue::AutoValue(tmp) });
 	}

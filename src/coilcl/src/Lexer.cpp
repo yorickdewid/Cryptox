@@ -440,7 +440,7 @@ void Lexer::LexLineComment()
 
 int Lexer::ReadString(int ndelim)
 {
-	std::string _longstr;
+	std::string str;
 	auto& context = CONTEXT();
 
 	Next();
@@ -450,43 +450,43 @@ int Lexer::ReadString(int ndelim)
 	}*/
 
 	while (context.m_currentChar != ndelim && context.m_currentChar != END_OF_UNIT) {
-		_longstr.push_back(context.m_currentChar);
+		str.push_back(context.m_currentChar);
 		Next();
 	}
 
 	Next();
 
-	size_t len = _longstr.size();
+	size_t len = str.size();
 	if (ndelim == '\'') {
 		if (len == 0) { Error("empty constant"); }
 		if (len > 1) { Error("constant too long"); }
 
-		m_data = Util::MakeChar2(_longstr[0]);
+		m_data = Util::MakeChar(str[0]);
 		return Token::TK_CONSTANT;
 	}
 
-	m_data = Util::MakeString2(_longstr);
+	m_data = Util::MakeString(str);
 	return Token::TK_CONSTANT;
 }
 
 int Lexer::ReadID()
 {
-	std::string _longstr;
+	std::string str;
 	auto& context = CONTEXT();
 
 	do {
-		_longstr.push_back(context.m_currentChar);
+		str.push_back(context.m_currentChar);
 		Next();
 	} while (std::isalnum(static_cast<int>(context.m_currentChar)) || context.m_currentChar == '_');
 
 	// Match string as keyword
-	auto result = m_keywords.find(_longstr);
+	auto result = m_keywords.find(str);
 	if (result != m_keywords.end()) {
 		return static_cast<int>(result->second.m_token);
 	}
 
 	// Save string as identifier
-	m_data = Util::MakeString2(_longstr);
+	m_data = Util::MakeString(str);
 	return Token::TK_IDENTIFIER;
 }
 
@@ -576,11 +576,9 @@ int Lexer::LexScalar()
 
 	switch (ScalarType) {
 	case SCIENTIFIC:
-	case DOUBLE:
-	{
+	case DOUBLE: {
 		try {
-			auto _fvalue = boost::lexical_cast<double>(tmpStr);
-			m_data = Util::MakeDouble2(_fvalue);
+			m_data = Util::MakeDouble(boost::lexical_cast<double>(tmpStr));
 			return TK_CONSTANT;
 		}
 		catch (boost::bad_lexical_cast) {
@@ -588,21 +586,17 @@ int Lexer::LexScalar()
 		}
 	}
 	case OCTAL:
-	case INT:
-	{
+	case INT: {
 		try {
-			auto _nvalue = boost::lexical_cast<int>(tmpStr);
-			m_data = Util::MakeInt2(_nvalue);
+			m_data = Util::MakeInt(boost::lexical_cast<int>(tmpStr));
 			return TK_CONSTANT;
 		}
 		catch (boost::bad_lexical_cast) {
 			Error("invalid numeric format");
 		}
 	}
-	case HEX:
-	{
-		int _nvalue = std::stoul(tmpStr, nullptr, 16);
-		m_data = Util::MakeInt2(_nvalue);
+	case HEX: {
+		m_data = Util::MakeInt(std::stoul(tmpStr, nullptr, 16));
 		return TK_CONSTANT;
 	}
 	}

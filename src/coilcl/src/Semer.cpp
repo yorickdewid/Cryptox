@@ -162,14 +162,12 @@ CoilCl::Semer& CoilCl::Semer::StaticResolve()
 
 			// If expression, evaluate outcome
 			if (builtinExpr->Expression()) {
-				throw NotImplementedException{ "Expression" }; //TODO
+				CryImplExcept(); //TODO
 			}
 			// No expression, use typename
 			else {
 				// Replace static builtin operation with integer result
-				//int builtinSize = static_cast<int>(builtinExpr->TypeName().Size());
-				//auto m_data = CaptureValue(builtinSize);
-				auto m_data = Util::MakeInt2(static_cast<int>(builtinExpr->TypeName().Size()));
+				auto m_data = Util::MakeInt(static_cast<int>(builtinExpr->TypeName().Size()));
 				auto literal = CoilCl::AST::MakeASTNode<IntegerLiteral>(std::move(m_data));
 
 				// Emplace current object on existing
