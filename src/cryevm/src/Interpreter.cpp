@@ -99,6 +99,11 @@ using Unit = std::shared_ptr<UnitContext>;
 using Compound = std::shared_ptr<CompoundContext>;
 using Function = std::shared_ptr<FunctionContext>;
 
+using WeakGlobal = std::weak_ptr<GlobalContext>;
+using WeakUnit = std::weak_ptr<UnitContext>;
+using WeakCompound = std::weak_ptr<CompoundContext>;
+using WeakFunction = std::weak_ptr<FunctionContext>;
+
 // Make global context from existing context or create a new global context
 Global MakeGlobalContext(std::shared_ptr<AbstractContext> ctx = nullptr)
 {
@@ -498,13 +503,13 @@ public:
 	{
 	}
 
-	template<typename ContextType, typename... Args>
-	std::shared_ptr<ContextType> MakeContext(Args&&... args)
+	template<typename ContextType, typename... ArgTypes>
+	std::shared_ptr<ContextType> MakeContext(ArgTypes&&... args)
 	{
 		using namespace Local::Detail;
 
 		assert(Parent());
-		return MakeContextImpl<ContextType>{ shared_from_this(), Parent() }(std::forward<Args>(args)...);
+		return MakeContextImpl<ContextType>{ shared_from_this(), Parent() }(std::forward<ArgTypes>(args)...);
 	}
 
 	//TODO:
@@ -524,6 +529,7 @@ public:
 			std::is_same<InternalType, const char *>::value, "");
 		m_localObj.emplace(std::forward<KeyType>(key), std::forward<ValueType>(value));
 	}
+
 	void PushVar(std::pair<const std::string, Valuedef::Value>&& pair)
 	{
 		m_localObj.insert(std::move(pair));
@@ -531,7 +537,7 @@ public:
 
 	void AttachCompound(Context::Compound& ctx)
 	{
-		assert(!m_bodyContext);
+		assert(m_bodyContext.expired());
 		m_bodyContext = ctx;
 	}
 
@@ -539,15 +545,17 @@ public:
 	{
 		auto val = m_localObj.find(key);
 		if (val == m_localObj.end()) {
+
 			// If a function compound context was set, then search the context for an identifier. On
 			// all program defined functions the context is attached. External modules may define
 			// functions that do not set compounds, and thus the body context can by empty.
-			if (m_bodyContext) {
-				auto& compoundVal = CastDownAs<DeclarationRegistry>(m_bodyContext)->LookupIdentifier(key);
+			if (auto ctx = m_bodyContext.lock()) {
+				auto& compoundVal = CastDownAs<DeclarationRegistry>(ctx)->LookupIdentifier(key);
 				if (compoundVal) {
 					return compoundVal;
 				}
 			}
+
 			return ParentAs<UnitContext>()->LookupIdentifier(key);
 		}
 
@@ -561,7 +569,7 @@ private:
 	}
 
 private:
-	Context::Compound m_bodyContext;
+	Context::WeakCompound m_bodyContext;
 	std::string m_name;
 };
 
@@ -1123,12 +1131,13 @@ class ScopedRoutine
 		return Util::MakeInt(result); //TODO: not always an integer
 	}
 
+	// Inverse the boolea result.
 	static CoilCl::Valuedef::Value EvaluateInverse(const CoilCl::Valuedef::Value& value)
 	{
 		return Util::MakeBool(!Util::EvaluateValueAsBoolean(value));
 	}
 
-	//FUTURE: both operations can be improved
+	//FUTURE: both operations can be improved.
 	template<typename OperandPred, typename ContextType>
 	static CoilCl::Valuedef::Value ValueAlteration(OperandPred predicate, AST::UnaryOperator::OperandSide side, std::shared_ptr<DeclRefExpr> declRef, ContextType& ctx)
 	{
@@ -1179,8 +1188,10 @@ class ScopedRoutine
 
 		case AST::NodeID::BINARY_OPERATOR_ID: {
 			const auto op = std::dynamic_pointer_cast<BinaryOperator>(node);
+
 			// If the binary operand is an assignment do it right now.
 			if (op->Operand() == BinaryOperator::BinOperand::ASSGN) {
+				
 				// The left hand side must be a lvalue and thus can be converted into an declaration
 				// reference. The declaration reference value is altered when the new value is assigned
 				// and as a consequence updates the declaration table entry.
@@ -1189,6 +1200,7 @@ class ScopedRoutine
 				assignValue = ResolveExpression(op->RHS(), ctx);
 				return assignValue;
 			}
+
 			return BinaryOperation(OperandFactory<int>(op->Operand())
 				, ResolveExpression(op->LHS(), ctx)
 				, ResolveExpression(op->RHS(), ctx));

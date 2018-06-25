@@ -32,8 +32,8 @@
 // - Lexer does not check on end of literal char or end of string literal
 
 #ifdef CRY_DEBUG
-# define CRY_DEBUG_COMPILER 1
-//# define CRY_DEBUG_COMPILER_TESTING 1
+# define CRY_DEBUG_TRACE 1
+//# define CRY_DEBUG_TESTING 1
 #endif
 
 #define SET_HANDLER(n,c) \
@@ -174,7 +174,7 @@ public:
 			// Compose definitive program structure
 			Program::Bind(std::move(program), std::move(ast));
 
-#ifdef CRY_DEBUG_COMPILER
+#ifdef CRY_DEBUG_TRACE
 			// For now dump contents to screen
 			program->AstPassthrough()->Print<CoilCl::AST::ASTNode::Traverse::STAGE_FIRST>();
 #endif
@@ -196,7 +196,7 @@ public:
 			//.Metrics(program->FillMetrics());
 			Emit::Module<Emit::Sequencer::AIIPX> AIIPXMod;
 
-#ifdef CRY_DEBUG_COMPILER
+#ifdef CRY_DEBUG_TRACE
 			// For now dump contents to screen
 			program->AstPassthrough()->Print<CoilCl::AST::ASTNode::Traverse::STAGE_LAST>();
 
@@ -216,7 +216,7 @@ public:
 				.AddModule(AIIPXMod)
 				.Process();
 
-#ifdef CRY_DEBUG_COMPILER_TESTING
+#ifdef CRY_DEBUG_TESTING
 			AST::AST tree;
 			auto treeBlock = memoryStream->DeepCopy();
 			Emit::Sequencer::AIIPX{
@@ -326,7 +326,7 @@ COILCLAPI void Compile(compiler_info_t *cl_info) NOTHROW
 	// Start compiler and return the program as result
 	Compiler::ProgramPtr program = Compiler::Dispatch(std::move(coilcl));
 
-#ifdef CRY_DEBUG_COMPILER
+#ifdef CRY_DEBUG_TRACE
 	if (!program->Condition().IsRunnable()) {
 		std::cout << "Consensus: resulting program not runnable" << std::endl;
 	}
