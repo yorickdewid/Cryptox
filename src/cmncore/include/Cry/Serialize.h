@@ -131,7 +131,7 @@ struct HasIterator : std::false_type
 template<typename IterType>
 struct HasIterator<IterType, typename std::enable_if<
 	!std::is_same<typename std::iterator_traits<typename IterType::iterator>::value_type, void>::value
-	>::type> : std::true_type
+>::type> : std::true_type
 {
 };
 
@@ -346,11 +346,11 @@ public:
 	template<typename IntegerType>
 	IntegerType Deserialize(OffsetType idx = -1)
 	{
-		 return Detail::DeserializeImpl<IntegerType>::Delegate(*this, idx);
+		return Detail::DeserializeImpl<IntegerType>::Delegate(*this, idx);
 	}
 
 private:
-	OffsetType m_offset = 0;
+	OffsetType m_offset{ 0 };
 };
 
 template<typename VectorType>
@@ -361,6 +361,8 @@ inline bool BasicArrayBuffer<VectorType>::IsPlatformCompat()
 	return true;
 }
 
-using ByteArray = BasicArrayBuffer<std::vector<Byte>>;
+template<template<typename Type, typename Allocator = std::allocator<Type>> class ContainerType>
+using ByteArrayBuffer = BasicArrayBuffer<ContainerType<Byte>>;
+using ByteArray = ByteArrayBuffer<std::vector>;
 
 } // namespace Cry

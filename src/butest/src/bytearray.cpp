@@ -189,7 +189,7 @@ BOOST_AUTO_TEST_CASE(BAContainer)
 	buffer.SerializeAs<Cry::Short>(v.size());
 	buffer.insert(buffer.cend(), v.cbegin(), v.cend());
 	buffer.Serialize(var_3);
-	
+
 	buffer.StartOffset(0);
 	BOOST_REQUIRE(buffer.ValidateMagic(241));
 	BOOST_REQUIRE(buffer.IsPlatformCompat());
@@ -231,6 +231,25 @@ BOOST_AUTO_TEST_CASE(BAOperators)
 		BOOST_REQUIRE_EQUAL(872, buffer.Deserialize<Cry::Word>());
 		BOOST_REQUIRE_EQUAL('X', buffer.Deserialize<Cry::Byte>());
 	}
+}
+
+template<typename Type, typename Allocator = std::allocator<Type>>
+class MyClass : public std::vector<Type, Allocator>
+{
+	using Base = std::vector<Type, Allocator>;
+};
+
+BOOST_AUTO_TEST_CASE(BACustomBuffer)
+{
+	using MyClassArray = Cry::ByteArrayBuffer<MyClass>;
+
+	MyClassArray buffer;
+	buffer.SerializeAs<Cry::Byte>(0x1f);
+	buffer.SerializeAs<Cry::Short>(82761);
+
+	BOOST_REQUIRE_EQUAL(buffer.size(), 3);
+	BOOST_REQUIRE_EQUAL(0x1f, buffer.Deserialize<Cry::Byte>());
+	BOOST_REQUIRE_EQUAL((short)82761, buffer.Deserialize<Cry::Short>());
 }
 
 BOOST_AUTO_TEST_SUITE_END()
