@@ -122,8 +122,8 @@ extern "C" {
 		// is an required function and *must* be set by the frontend.
 		void(*errorHandler)(void *, const char *, int); //TODO: rename and set error code
 
-		// Compiler resulting output. This structure is set by the compiler
-		// interface and should be freed by the caller. The structure cannot
+		// Compiler resulting output. This structure is set by the compiler interface
+		// and should be freed by calling ReleaseProgram. The structure cannot
 		// be used directly, but shall be passed to program compatible components.
 		program_t program;
 		// User provided context.
@@ -133,7 +133,7 @@ extern "C" {
 	// Compiler entry point
 	COILCLAPI void Compile(compiler_info_t *) NOTHROW;
 
-	// 
+	// Release program object
 	COILCLAPI void ReleaseProgram(program_t *) NOTHROW;
 
 	// Result section tag

@@ -25,13 +25,128 @@ using Short = uint16_t;
 using Word = uint32_t;
 using DoubleWord = uint64_t;
 
+namespace Detail
+{
+
+template<typename IntegerType>
+struct DeserializeImpl;
+
+template<>
+struct DeserializeImpl<Byte>
+{
+	template<typename BaseType>
+	static Byte Delegate(BaseType& base, typename BaseType::OffsetType idx)
+	{
+		if (idx == -1) {
+			idx = base.Offset();
+		}
+
+		base.SetOffset(sizeof(Byte));
+		return base.at(idx);
+	}
+};
+
+template<>
+struct DeserializeImpl<Short>
+{
+	template<typename BaseType>
+	static Short Delegate(BaseType& base, typename BaseType::OffsetType idx)
+	{
+		if (idx == -1) {
+			idx = base.Offset();
+		}
+
+		Short i = base.at(idx)
+			| base.at(idx + 1) << 8;
+
+#if CRY_LITTLE_ENDIAN
+		i = BSWAP16(i);
+#endif
+		base.SetOffset(sizeof(Short));
+		return i;
+	}
+};
+
+template<>
+struct DeserializeImpl<Word>
+{
+	template<typename BaseType>
+	static Word Delegate(BaseType& base, typename BaseType::OffsetType idx)
+	{
+		if (idx == -1) {
+			idx = base.Offset();
+		}
+
+		Word i = base.at(idx)
+			| base.at(idx + 1) << 8
+			| base.at(idx + 2) << 16
+			| base.at(idx + 3) << 24;
+
+#if CRY_LITTLE_ENDIAN
+		i = BSWAP32(i);
+#endif
+		base.SetOffset(sizeof(Word));
+		return i;
+	}
+};
+
+template<>
+struct DeserializeImpl<DoubleWord>
+{
+	template<typename BaseType>
+	static DoubleWord Delegate(BaseType& base, typename BaseType::OffsetType idx)
+	{
+		if (idx == -1) {
+			idx = base.Offset();
+		}
+
+		DoubleWord i = 0;
+		i |= (DoubleWord)base.at(idx) << 0;
+		i |= (DoubleWord)base.at(idx + 1) << 8;
+		i |= (DoubleWord)base.at(idx + 2) << 16;
+		i |= (DoubleWord)base.at(idx + 3) << 24;
+		i |= (DoubleWord)base.at(idx + 4) << 32;
+		i |= (DoubleWord)base.at(idx + 5) << 40;
+		i |= (DoubleWord)base.at(idx + 6) << 48;
+		i |= (DoubleWord)base.at(idx + 7) << 56;
+
+#if CRY_LITTLE_ENDIAN
+		i = BSWAP64(i);
+#endif
+		base.SetOffset(sizeof(DoubleWord));
+		return i;
+	}
+};
+
+} // namespace Detail
+
+namespace Trait
+{
+
+template<typename IterType, typename = void>
+struct HasIterator : std::false_type
+{
+};
+
+template<typename IterType>
+struct HasIterator<IterType, typename std::enable_if<
+	!std::is_same<typename std::iterator_traits<typename IterType::iterator>::value_type, void>::value
+	>::type> : std::true_type
+{
+};
+
+} // namespace Trait
+
 // Byte container with multiplatform and multi archtitecture
 // support. The bytearray can be used to write builtin datatypes
 // to a byte stream. The byte stream can be converted back into
 // native objects. The class offers serialization methods for common
 // tricks including byte reordering and structure assertion.
-class ByteArray : public std::vector<Byte>
+template<typename VectorType>
+class BasicArrayBuffer : public VectorType
 {
+	static_assert(Trait::HasIterator<VectorType>::value, "");
+
 	const unsigned char flag0 = 1 << 0;      // 0000 0001
 	const unsigned char flagIs64 = 1 << 1;   // 0000 0010
 	const unsigned char flagIsWin = 1 << 2;  // 0000 0100
@@ -41,25 +156,32 @@ class ByteArray : public std::vector<Byte>
 	const unsigned char flag6 = 1 << 6;      // 0100 0000
 	const unsigned char flagIsLE = 1 << 7;   // 1000 0000
 
-protected:
-	using BaseType = std::vector<Byte>;
-	using OffsetType = int;
+	template<typename>
+	friend struct DeserializeImpl;
 
 public:
-	ByteArray() = default;
-	ByteArray(const ByteArray& other)
+	using BaseType = VectorType;
+	using ValueType = typename BaseType::value_type;
+	using SizeType = typename BaseType::size_type;
+	using OffsetType = int;
+
+	static_assert(sizeof(ValueType) == sizeof(Byte), "");
+
+public:
+	BasicArrayBuffer() = default;
+	BasicArrayBuffer(const BasicArrayBuffer& other)
 		: BaseType{ other }
 		, m_offset{ other.m_offset }
 	{
 	}
-	ByteArray(ByteArray&& other)
+	BasicArrayBuffer(BasicArrayBuffer&& other)
 		: BaseType{ std::move(other) }
 		, m_offset{ other.m_offset } //FIXME: this does not work
 	{
 	}
 
 	template<typename InputIt>
-	inline ByteArray(InputIt first, InputIt last)
+	inline BasicArrayBuffer(InputIt first, InputIt last)
 		: BaseType{ first, last }
 	{
 	}
@@ -68,13 +190,13 @@ public:
 	// Assignment operators
 	//
 
-	ByteArray& operator=(const ByteArray& other)
+	BasicArrayBuffer& operator=(const BasicArrayBuffer& other)
 	{
 		m_offset = other.m_offset;
 		BaseType::operator=(other);
 		return (*this);
 	}
-	ByteArray& operator=(ByteArray&& other)
+	BasicArrayBuffer& operator=(BasicArrayBuffer&& other)
 	{
 		m_offset = other.m_offset;
 		BaseType::operator=(std::move(other));
@@ -88,31 +210,31 @@ public:
 	enum { AUTO = -1 };
 
 	// Set start offset
-	void SetOffset(int offset) { m_offset += offset; }
+	void SetOffset(OffsetType offset) { m_offset += offset; }
 	// Set start offset
-	void StartOffset(int offset) { m_offset = offset; }
+	void StartOffset(OffsetType offset) { m_offset = offset; }
 	// Get current offset
 	int Offset() const noexcept { return m_offset; }
 
-	ByteArray& operator++()
+	BasicArrayBuffer& operator++()
 	{
 		m_offset++;
 		return (*this);
 	}
-	ByteArray& operator++(int)
+	BasicArrayBuffer& operator++(int)
 	{
-		ByteArray *copy = this;
+		BasicArrayBuffer *copy = this;
 		m_offset++;
 		return (*copy);
 	}
-	ByteArray& operator--()
+	BasicArrayBuffer& operator--()
 	{
 		m_offset--;
 		return (*this);
 	}
-	ByteArray& operator--(int)
+	BasicArrayBuffer& operator--(int)
 	{
-		ByteArray *copy = this;
+		BasicArrayBuffer *copy = this;
 		m_offset--;
 		return (*copy);
 	}
@@ -124,7 +246,7 @@ public:
 	}
 
 	// Validate magic value
-	bool ValidateMagic(Byte magic, int idx = -1)
+	bool ValidateMagic(Byte magic, OffsetType idx = -1)
 	{
 		if (idx == -1) {
 			idx = m_offset;
@@ -133,12 +255,14 @@ public:
 		return at(idx) == magic;
 	}
 
+	// Create a new checkpoint
 	void MakeCheckpoint()
 	{
 		BaseType::insert(this->cend(), { CHECKPOINT_TAG_1, CHECKPOINT_TAG_2 });
 	}
 
-	bool ValidateCheckpoint(int idx = -1)
+	// Validate checkpoint
+	bool ValidateCheckpoint(OffsetType idx = -1)
 	{
 		if (idx == -1) {
 			idx = m_offset;
@@ -220,91 +344,23 @@ public:
 	}
 
 	template<typename IntegerType>
-	IntegerType Deserialize(int idx = -1);
+	IntegerType Deserialize(OffsetType idx = -1)
+	{
+		 return Detail::DeserializeImpl<IntegerType>::Delegate(*this, idx);
+	}
 
 private:
 	OffsetType m_offset = 0;
 };
 
-template<>
-inline Byte ByteArray::Deserialize(int idx)
-{
-	if (idx == -1) {
-		idx = m_offset;
-	}
-
-	m_offset += sizeof(Byte);
-	return at(idx);
-}
-
-template<>
-inline Short ByteArray::Deserialize(int idx)
-{
-	if (idx == -1) {
-		idx = m_offset;
-	}
-
-	Short i = at(idx)
-		| at(idx + 1) << 8;
-
-#if CRY_LITTLE_ENDIAN
-	i = BSWAP16(i);
-#endif
-	m_offset += sizeof(Short);
-	return i;
-}
-
-template<>
-inline Word ByteArray::Deserialize(int idx)
-{
-	if (idx == -1) {
-		idx = m_offset;
-	}
-
-	Word i = at(idx)
-		| at(idx + 1) << 8
-		| at(idx + 2) << 16
-		| at(idx + 3) << 24;
-
-#if CRY_LITTLE_ENDIAN
-	i = BSWAP32(i);
-#endif
-	m_offset += sizeof(Word);
-	return i;
-}
-
-template<>
-inline DoubleWord ByteArray::Deserialize(int idx)
-{
-	if (idx == -1) {
-		idx = m_offset;
-	}
-
-	DoubleWord i = 0;
-	i |= (DoubleWord)at(idx) << 0;
-	i |= (DoubleWord)at(idx + 1) << 8;
-	i |= (DoubleWord)at(idx + 2) << 16;
-	i |= (DoubleWord)at(idx + 3) << 24;
-	i |= (DoubleWord)at(idx + 4) << 32;
-	i |= (DoubleWord)at(idx + 5) << 40;
-	i |= (DoubleWord)at(idx + 6) << 48;
-	i |= (DoubleWord)at(idx + 7) << 56;
-
-#if CRY_LITTLE_ENDIAN
-	i = BSWAP64(i);
-#endif
-	m_offset += sizeof(DoubleWord);
-	return i;
-}
-
-inline bool ByteArray::IsPlatformCompat()
+template<typename VectorType>
+inline bool BasicArrayBuffer<VectorType>::IsPlatformCompat()
 {
 	//FUTURE: Do something with flags
-	Deserialize<Byte>(AUTO);
+	Deserialize<Byte>();
 	return true;
 }
 
-//using ByteArray = BasicArrayBuffer<std::vector<Byte>>;
-//using WordArray = BasicArrayBuffer<std::vector<Word>>;
+using ByteArray = BasicArrayBuffer<std::vector<Byte>>;
 
 } // namespace Cry

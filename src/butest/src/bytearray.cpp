@@ -12,6 +12,7 @@
 #include <boost/test/unit_test.hpp>
 
 //
+// Key         : BA
 // Test        : ByteArray unittest
 // Type        : unit
 // Description : Test the possible combinations and common
