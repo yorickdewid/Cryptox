@@ -10,6 +10,7 @@
 
 #include "Profile.h"
 #include "Stage.h"
+#include "Program.h"
 #include "Tokenizer.h"
 
 namespace CoilCl
@@ -21,7 +22,7 @@ namespace CoilCl
 class Frontend : public Stage<Frontend>
 {
 public:
-	Frontend(std::shared_ptr<CoilCl::Profile>&);
+	Frontend(std::shared_ptr<CoilCl::Profile>&, Program::ConditionTracker::Tracker);
 
 	// Implement interface
 	virtual std::string Name() const { return "Frontend"; }
@@ -31,6 +32,7 @@ public:
 
 private:
 	std::shared_ptr<CoilCl::Profile> m_profile;
+	Program::ConditionTracker::Tracker m_tracker;
 };
 
 } // namespace CoilCl

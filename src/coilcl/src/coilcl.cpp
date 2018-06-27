@@ -161,9 +161,15 @@ public:
 		g_warningQueue.Clear();
 
 		try {
+			// Create a condition tracker on the program condition to record the 
+			// different program phases. The compiler stages move the tracker into
+			// a new phase when the stage is done. When an compiler anomaly occurs
+			// the program is checked until its last recorded phase.
+			Program::ConditionTracker::Tracker tracker{ program->Condition() };
+
 			// The frontend will not perform any substitutions, but instead
 			// return the tokenizer required for the requested language.
-			TokenizerPtr tokenizer = Frontend{ profile }
+			TokenizerPtr tokenizer = Frontend{ profile, tracker }
 				.MoveStage()
 				.SelectTokenizer();
 
@@ -246,7 +252,7 @@ public:
 		// Clear all warnings for this session.
 		g_warningQueue.Clear();
 
-		return program;
+		return CAPTURE(program);
 	}
 };
 
@@ -334,15 +340,23 @@ COILCLAPI void Compile(compiler_info_t *cl_info) NOTHROW
 	Compiler::ProgramPtr program = Compiler::Dispatch(std::move(coilcl));
 
 #ifdef CRY_DEBUG_TRACE
-	if (!program->Condition().IsRunnable()) {
-		std::cout << "Consensus: resulting program not runnable" << std::endl;
+	if (program->Condition().IsRunnable()) {
+		if (program->Condition().IsAllPassed()) {
+			std::cout << "Program: phase done" << std::endl;
+		}
+		else {
+			std::cout << "Program: phase runnable" << std::endl;
+		}
+	}
+	else {
+		std::cout << "Program: NOT runnable" << std::endl;
 	}
 	if (program->HasSymbols()) {
 		program->PrintSymbols();
 	}
 #endif
 
-	// Pass program to frontend
+	// Pass program to frontend.
 	InterOpHelper::AssimilateProgram(&cl_info->program, std::move(program));
 }
 

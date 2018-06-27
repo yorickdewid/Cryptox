@@ -12,9 +12,10 @@
 
 using namespace CoilCl;
 
-Frontend::Frontend(std::shared_ptr<CoilCl::Profile>& profile)
+Frontend::Frontend(std::shared_ptr<CoilCl::Profile>& profile, Program::ConditionTracker::Tracker tracker)
 	: Stage{ this, StageType::Type::Frontend }
 	, m_profile{ profile }
+	, m_tracker{ tracker }
 {
 }
 
@@ -26,5 +27,6 @@ Frontend& Frontend::CheckCompatibility()
 
 TokenizerPtr Frontend::SelectTokenizer()
 {
+	m_tracker.Complete(Program::ConditionTracker::DETECTION);
 	return std::make_shared<DirectiveScanner>(m_profile);
 }
