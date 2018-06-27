@@ -25,3 +25,8 @@ CoilCl::Optimizer& CoilCl::Optimizer::TrivialReduction()
 {
 	return (*this);
 }
+
+CoilCl::Optimizer& CoilCl::Optimizer::DeepInflation()
+{
+	return (*this);
+}

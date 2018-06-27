@@ -18,6 +18,12 @@ namespace Emit
 namespace Stream
 {
 
+template<typename StreamType, typename... ArgTypes>
+inline auto MakeStream(ArgTypes&&... args)
+{
+	return std::make_shared<StreamType>(std::forward<ArgTypes>(args)...);
+}
+
 // Stream input contract
 class InputStream
 {

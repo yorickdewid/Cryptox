@@ -28,6 +28,7 @@ public:
 
 	Optimizer& CheckCompatibility();
 	Optimizer& TrivialReduction();
+	Optimizer& DeepInflation();
 
 private:
 	AST::AST m_ast;

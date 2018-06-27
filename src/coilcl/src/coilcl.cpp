@@ -171,7 +171,7 @@ public:
 				.Execute()
 				.DumpAST();
 
-			// Compose definitive program structure
+			// Move abstract syntax tree into program
 			Program::Bind(std::move(program), std::move(ast));
 
 #ifdef CRY_DEBUG_TRACE
@@ -191,9 +191,11 @@ public:
 			// Optimizer
 			Optimizer{ profile, std::move(program->Ast()) }
 				.MoveStage()
-				.TrivialReduction();
-			//.DeepInflation()
+				.TrivialReduction()
+				.DeepInflation();
 			//.Metrics(program->FillMetrics());
+
+			// Construct emitter sequencer
 			Emit::Module<Emit::Sequencer::AIIPX> AIIPXMod;
 
 #ifdef CRY_DEBUG_TRACE
@@ -201,13 +203,13 @@ public:
 			program->AstPassthrough()->Print<CoilCl::AST::ASTNode::Traverse::STAGE_LAST>();
 
 			// Add console output stream to module
-			auto consoleStream = std::make_shared<Emit::Stream::Console>();
+			auto consoleStream = Emit::Stream::MakeStream<Emit::Stream::Console>();
 			AIIPXMod.AddStream(consoleStream);
 #endif
 
 			// Add program memory block to module
 			auto& aiipxResult = program->GetResultSection(Program::ResultSection::AIIPX);
-			auto memoryStream = std::make_shared<Emit::Stream::MemoryBlock>(aiipxResult.Data());
+			auto memoryStream = Emit::Stream::MakeStream<Emit::Stream::MemoryBlock>(aiipxResult.Data());
 			AIIPXMod.AddStream(memoryStream);
 
 			// Program output building
