@@ -14,7 +14,7 @@ using namespace CoilCl;
 
 void Program::ConditionTracker::Advance()
 {
-	//TODO
+	//TODO: tracking
 }
 
 void Program::PrintSymbols()

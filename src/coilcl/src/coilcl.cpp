@@ -32,7 +32,7 @@
 // - Lexer does not check on end of literal char or end of string literal
 
 #ifdef CRY_DEBUG
-# define CRY_DEBUG_TRACE 1
+# define CRY_DEBUG_TRACE CRY_DEBUG_TRACE_ALL || 1
 //# define CRY_DEBUG_TESTING 1
 #endif
 
@@ -42,6 +42,8 @@
 		c = callback; \
 		return (*this); \
 	}
+
+#define CAPTURE(s) std::move(s)
 
 CoilCl::DefaultNoticeList CoilCl::g_warningQueue;
 
@@ -150,7 +152,7 @@ public:
 	static ProgramPtr Dispatch(std::shared_ptr<Compiler>&& compiler)
 	{
 		// Convert compiler object to profile interface in order to limit access for components
-		auto profile = std::dynamic_pointer_cast<Profile>(compiler);
+		auto profile = Profile::DeriveInterface(compiler);
 
 		// Create an empty program for the first stage
 		ProgramPtr program = Program::MakeProgram();
@@ -160,7 +162,7 @@ public:
 
 		try {
 			// The frontend will not perform any substitutions, but instead
-			// return the tokenizer required for the requested language
+			// return the tokenizer required for the requested language.
 			TokenizerPtr tokenizer = Frontend{ profile }
 				.MoveStage()
 				.SelectTokenizer();
@@ -172,7 +174,7 @@ public:
 				.DumpAST();
 
 			// Move abstract syntax tree into program
-			Program::Bind(std::move(program), std::move(ast));
+			Program::Bind(CAPTURE(program), CAPTURE(ast));
 
 #ifdef CRY_DEBUG_TRACE
 			// For now dump contents to screen
@@ -180,7 +182,7 @@ public:
 #endif
 
 			// Semantic analysis
-			Semer{ profile, std::move(program->Ast()) }
+			Semer{ profile, CAPTURE(program->Ast()) }
 				.MoveStage()
 				.StaticResolve()
 				.PreliminaryAssert()
@@ -189,7 +191,7 @@ public:
 				.ExtractSymbols(program->FillSymbols());
 
 			// Optimizer
-			Optimizer{ profile, std::move(program->Ast()) }
+			Optimizer{ profile, CAPTURE(program->Ast()) }
 				.MoveStage()
 				.TrivialReduction()
 				.DeepInflation();
@@ -213,7 +215,7 @@ public:
 			AIIPXMod.AddStream(memoryStream);
 
 			// Program output building
-			Emit::Emitter{ profile, std::move(program->Ast()) }
+			Emit::Emitter{ profile, CAPTURE(program->Ast()) }
 				.MoveStage()
 				.AddModule(AIIPXMod)
 				.Process();
@@ -226,12 +228,15 @@ public:
 				[&treeBlock](uint8_t *data, size_t sz) { treeBlock->Read(data, sz); }
 			}.UnpackAST(tree);
 
-			ProgramPtr recoveredProgram = std::make_unique<Program>(std::move(tree));
+			ProgramPtr recoveredProgram = std::make_unique<Program>(CAPTURE(tree));
 			recoveredProgram->AstPassthrough()->Print<CoilCl::AST::ASTNode::Traverse::STAGE_FIRST>();
 #endif
 
 			// Print all compiler stage non fatal messages
 			PrintNoticeMessages(profile);
+
+			// Mark program as readonly
+			program->Lock();
 		}
 		// Catch any leaked erros not caught in the stages
 		catch (const std::exception& e) {
@@ -345,6 +350,7 @@ COILCLAPI void ReleaseProgram(program_t *program) NOTHROW
 {
 	if (program->program_ptr) {
 		delete static_cast<Program *>(program->program_ptr);
+		program->program_ptr = nullptr;
 	}
 }
 

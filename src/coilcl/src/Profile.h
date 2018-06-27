@@ -29,6 +29,14 @@ struct Profile
 
 	// Call to report an error to the frontend. 
 	virtual void Error(const std::string& message, bool isFatal) = 0;
+
+	// Downcast base to profile interface to limit scope.
+	template<typename CompilerBase>
+	static auto DeriveInterface(std::shared_ptr<CompilerBase>& compiler)
+	{
+		static_assert(std::is_base_of<Profile, CompilerBase>::value, "Base must implement Profile");
+		return std::dynamic_pointer_cast<Profile>(compiler);
+	}
 };
 
 } // namespace CoilCl
