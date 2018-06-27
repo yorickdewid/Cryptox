@@ -234,9 +234,31 @@ BOOST_AUTO_TEST_CASE(BAOperators)
 }
 
 template<typename Type, typename Allocator = std::allocator<Type>>
-class MyClass : public std::vector<Type, Allocator>
+class MyClass : public std::vector<Type, Allocator>, public Cry::SerializableContract
 {
 	using Base = std::vector<Type, Allocator>;
+
+protected:
+	void push_back(const Type& value)
+	{
+		Base::push_back(value);
+	}
+
+	void push_back(Type&& value)
+	{
+		Base::push_back(std::move(value));
+	}
+
+public:
+	Base::reference at(size_type pos)
+	{
+		return Base::at(pos);
+	}
+
+	Base::const_reference at(size_type pos) const
+	{
+		return Base::at(pos);
+	}
 };
 
 BOOST_AUTO_TEST_CASE(BACustomBuffer)

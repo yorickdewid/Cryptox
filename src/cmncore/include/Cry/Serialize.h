@@ -124,18 +124,20 @@ namespace Trait
 {
 
 template<typename IterType, typename = void>
-struct HasIterator : std::false_type
+struct IsIterable : std::false_type
 {
 };
 
 template<typename IterType>
-struct HasIterator<IterType, typename std::enable_if<
+struct IsIterable<IterType, typename std::enable_if<
 	!std::is_same<typename std::iterator_traits<typename IterType::iterator>::value_type, void>::value
 >::type> : std::true_type
 {
 };
 
 } // namespace Trait
+
+struct SerializableContract {};
 
 // Byte container with multiplatform and multi archtitecture
 // support. The bytearray can be used to write builtin datatypes
@@ -145,7 +147,10 @@ struct HasIterator<IterType, typename std::enable_if<
 template<typename VectorType>
 class BasicArrayBuffer : public VectorType
 {
-	static_assert(Trait::HasIterator<VectorType>::value, "");
+	static_assert(std::is_base_of<SerializableContract, VectorType>::value, "");
+	static_assert(Trait::IsIterable<VectorType>::value, "");
+	static_assert(std::is_copy_assignable<VectorType>::value, "");
+	static_assert(std::is_move_assignable<VectorType>::value, "");
 
 	const unsigned char flag0 = 1 << 0;      // 0000 0001
 	const unsigned char flagIs64 = 1 << 1;   // 0000 0010
@@ -176,7 +181,7 @@ public:
 	}
 	BasicArrayBuffer(BasicArrayBuffer&& other)
 		: BaseType{ std::move(other) }
-		, m_offset{ other.m_offset } //FIXME: this does not work
+		, m_offset{ other.m_offset }
 	{
 	}
 
@@ -361,8 +366,14 @@ inline bool BasicArrayBuffer<VectorType>::IsPlatformCompat()
 	return true;
 }
 
+template<typename Type, typename Allocator = std::allocator<Type>>
+class VectorBuffer : public std::vector<Type, Allocator>, public SerializableContract
+{
+	using Base = std::vector<Type, Allocator>;
+};
+
 template<template<typename Type, typename Allocator = std::allocator<Type>> class ContainerType>
 using ByteArrayBuffer = BasicArrayBuffer<ContainerType<Byte>>;
-using ByteArray = ByteArrayBuffer<std::vector>;
+using ByteArray = ByteArrayBuffer<VectorBuffer>;
 
 } // namespace Cry
