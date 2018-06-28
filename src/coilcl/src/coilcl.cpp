@@ -180,7 +180,7 @@ public:
 				.DumpAST();
 
 			// Move abstract syntax tree into program
-			Program::Bind(CAPTURE(program), CAPTURE(ast));
+			Program::Bind(program, CAPTURE(ast));
 
 #ifdef CRY_DEBUG_TRACE
 			// For now dump contents to screen
@@ -202,6 +202,9 @@ public:
 				.TrivialReduction()
 				.DeepInflation();
 			//.Metrics(program->FillMetrics());
+
+			// Mark program as readonly
+			program->Lock();
 
 			// Construct emitter sequencer
 			Emit::Module<Emit::Sequencer::AIIPX> AIIPXMod;
@@ -240,9 +243,6 @@ public:
 
 			// Print all compiler stage non fatal messages
 			PrintNoticeMessages(profile);
-
-			// Mark program as readonly
-			program->Lock();
 		}
 		// Catch any leaked erros not caught in the stages
 		catch (const std::exception& e) {

@@ -22,7 +22,7 @@ namespace CoilCl
 class Optimizer : public Stage<Optimizer>
 {
 public:
-	Optimizer(std::shared_ptr<CoilCl::Profile>& profile, AST::AST&& ast, ConditionTracker::Tracker);
+	Optimizer(std::shared_ptr<CoilCl::Profile>& profile, AST::AST&& ast, ConditionTracker::Tracker&);
 
 	std::string Name() const { return "Optimizer"; }
 

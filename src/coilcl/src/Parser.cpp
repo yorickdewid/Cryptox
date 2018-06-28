@@ -141,7 +141,7 @@ private:
 	int m_column;
 };
 
-Parser::Parser(std::shared_ptr<CoilCl::Profile>& profile, TokenizerPtr tokenizer, ConditionTracker::Tracker tracker)
+Parser::Parser(std::shared_ptr<CoilCl::Profile>& profile, TokenizerPtr tokenizer, ConditionTracker::Tracker& tracker)
 	: Stage{ this, StageType::Type::SyntacticAnalysis, tracker }
 	, m_profile{ profile }
 	, lex{ tokenizer }

@@ -95,7 +95,7 @@ private:
 	int m_column;
 };
 
-CoilCl::Semer::Semer(std::shared_ptr<CoilCl::Profile>& profile, AST::AST&& ast, ConditionTracker::Tracker tracker)
+CoilCl::Semer::Semer(std::shared_ptr<CoilCl::Profile>& profile, AST::AST&& ast, ConditionTracker::Tracker& tracker)
 	: Stage{ this, StageType::Type::SemanticAnalysis, tracker }
 	, m_profile{ profile }
 	, m_ast{ std::move(ast) }

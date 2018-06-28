@@ -76,6 +76,7 @@ public:
 		: m_ast{ new AST::AST{ std::move(ast) } }
 		, m_treeCondition{ other.m_treeCondition }
 		, m_lastStage{ other.m_lastStage }
+		, m_locked{ other.m_locked }
 	{
 	}
 
@@ -115,11 +116,10 @@ public:
 	void Lock() { m_locked = true; }
 
 	template<typename... ArgTypes>
-	static void Bind(std::unique_ptr<Program>&& program, ArgTypes&&... args)
+	static void Bind(std::unique_ptr<Program>& program, ArgTypes&&... args)
 	{
-		auto ptr = program.release();
-		program = std::make_unique<Program>(std::move(*(ptr)), std::forward<ArgTypes>(args)...);
-		delete ptr;
+		assert(!program->m_ast);
+		program->m_ast = std::make_unique<AST::AST>(std::forward<ArgTypes>(args)...);
 	}
 
 	template<typename... ArgTypes>
@@ -135,7 +135,7 @@ private:
 
 private:
 	std::map<std::string, std::shared_ptr<CoilCl::AST::ASTNode>> m_symbols;
-	std::unique_ptr<AST::AST> m_ast = std::make_unique<AST::AST>();
+	std::unique_ptr<AST::AST> m_ast{ nullptr };
 	std::vector<ResultSection> m_resultSet;
 };
 
