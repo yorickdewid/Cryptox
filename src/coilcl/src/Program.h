@@ -10,6 +10,7 @@
 
 #include "AST.h"
 #include "Stage.h"
+#include "ConditionTracker.h"
 
 #include <Cry/Cry.h>
 #include <Cry/Serialize.h>
@@ -30,81 +31,6 @@ namespace CoilCl
 class Program final
 {
 public:
-	class ConditionTracker
-	{
-	public:
-		//TODO: Shiftable enum
-		enum ProgramPhase
-		{
-			_INVAL = 0,             // Default invalid phase.
-
-			CANONICAL = 100,        // Bootstrapping phase.
-			DETECTION,              // Langauge detection phase.
-			SUBSTITUTION,           // Token substitution phase.
-			VALIDATION,             // Input validation phase.
-			_PHASE1 = VALIDATION,   // End of phase 1
-
-			STATIC_RESOLVED,        // Internal routines phase.
-			ASSERTION_PASSED,       // Semantic assertion phase.
-			_PHASE2 = VALIDATION,   // End of phase 2
-
-			COMPLIANT,              // Language compliant phase.
-			OPTIMIZED,              // Object optimization phase.
-			STRIPPED,               // Symbols are stripped phase.
-			_PHASE3 = STRIPPED,     // End of phase 3
-
-			_MAX = _PHASE3,         // Identify last phase
-		};
-
-		// Move condition into next phase. Each time a phase is
-		// completed the condition is updated accordingly. Compiler
-		// phases can only be moved forward. Phases can be skipped
-		// but withint their own phase group.
-		void Advance(ProgramPhase jump = _INVAL);
-
-	public:
-		class Tracker
-		{
-			ConditionTracker& m_condition;
-
-		public:
-			// Initialize the tracker and set condition to initial phase.
-			Tracker(const ConditionTracker& condition)
-				: m_condition{ const_cast<ConditionTracker&>(condition) }
-			{
-				m_condition.Advance(CANONICAL);
-			}
-
-			// Complete given phase.
-			Tracker& Complete(ProgramPhase phase)
-			{
-				m_condition.Advance(phase);
-				return (*this);
-			}
-
-			// Move condition into next phase.
-			Tracker& operator++()
-			{
-				m_condition.Advance();
-				return (*this);
-			}
-		};
-
-	public:
-		//
-		// Check program status.
-		//
-
-		inline auto IsInvalid() const noexcept { return m_treeCondition == _INVAL; }
-		inline auto IsLanguage() const noexcept { return m_treeCondition >= _PHASE1; }
-		inline auto IsRunnable() const noexcept { return m_treeCondition >= _PHASE2; }
-		inline auto IsOptimized() const noexcept { return m_treeCondition >= _PHASE3; }
-		inline auto IsAllPassed() const noexcept { return m_treeCondition == _MAX; }
-
-	private:
-		ProgramPhase m_treeCondition{ _INVAL };
-	};
-
 	class ResultSection
 	{
 		using SizeType = size_t;
@@ -165,7 +91,7 @@ public:
 	//
 
 	// Get reference to the AST tree.
-	inline auto Ast() { CHECK_LOCK(); return m_ast->tree_ref(); }
+	inline auto Ast() { /*CHECK_LOCK();*/ return m_ast->tree_ref(); }
 	// Access internal AST tree indirect.
 	inline auto AstPassthrough() const { return m_ast->operator->(); }
 
@@ -176,6 +102,7 @@ public:
 	inline bool HasSymbol(const std::string& name) const { return m_symbols.find(name) != m_symbols.end(); }
 	auto& FillSymbols() { CHECK_LOCK(); return m_symbols; } //TODO: friend?
 
+	// TODO return const if locked
 	// Get memory block.
 	ResultSection& GetResultSection(ResultSection::Tag tag = ResultSection::Tag::COMPLEMENTARY);
 

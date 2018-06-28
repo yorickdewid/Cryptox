@@ -59,7 +59,7 @@ private:
 class Semer : public Stage<Semer>
 {
 public:
-	Semer(std::shared_ptr<CoilCl::Profile>& profile, AST::AST&& ast);
+	Semer(std::shared_ptr<CoilCl::Profile>& profile, AST::AST&& ast, ConditionTracker::Tracker);
 
 	std::string Name() const { return "Semer"; }
 

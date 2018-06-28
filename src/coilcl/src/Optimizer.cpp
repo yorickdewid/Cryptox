@@ -8,8 +8,8 @@
 
 #include "Optimizer.h"
 
-CoilCl::Optimizer::Optimizer(std::shared_ptr<CoilCl::Profile>& profile, AST::AST&& ast)
-	: Stage{ this, StageType::Type::SemanticAnalysis }
+CoilCl::Optimizer::Optimizer(std::shared_ptr<CoilCl::Profile>& profile, AST::AST&& ast, ConditionTracker::Tracker tracker)
+	: Stage{ this, StageType::Type::SemanticAnalysis, tracker }
 	, m_profile{ profile }
 	, m_ast{ std::move(ast) }
 {
@@ -23,6 +23,7 @@ CoilCl::Optimizer& CoilCl::Optimizer::CheckCompatibility()
 
 CoilCl::Optimizer& CoilCl::Optimizer::TrivialReduction()
 {
+	this->CompletePhase(ConditionTracker::OPTIMIZED);
 	return (*this);
 }
 

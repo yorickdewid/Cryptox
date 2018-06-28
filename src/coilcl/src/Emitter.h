@@ -159,7 +159,7 @@ class Emitter : public Stage<Emitter>
 	using ModulePair = std::pair<ModuleInterface::ModulePerm, Module<Sequencer::Interface>>;
 
 public:
-	Emitter(std::shared_ptr<CoilCl::Profile>& profile, AST::AST&& ast);
+	Emitter(std::shared_ptr<CoilCl::Profile>& profile, AST::AST&& ast, ConditionTracker::Tracker&);
 
 	std::string Name() const { return "Emitter"; }
 

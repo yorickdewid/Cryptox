@@ -855,8 +855,8 @@ public:
 } // namespace LocalMethod
 } // namespace CoilCl
 
-Preprocessor::Preprocessor(std::shared_ptr<CoilCl::Profile>& profile)
-	: Stage{ this, StageType::Type::TokenProcessor }
+Preprocessor::Preprocessor(std::shared_ptr<CoilCl::Profile>& profile, ConditionTracker::Tracker tracker)
+	: Stage{ this, StageType::Type::TokenProcessor, tracker }
 	, m_profile{ profile }
 {
 	RegisterMacros();

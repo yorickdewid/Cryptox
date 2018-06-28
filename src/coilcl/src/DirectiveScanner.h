@@ -71,7 +71,7 @@ template<typename PreprocessorClass>
 class TokenProcessorProxy
 {
 	class ProfileWrapper;
-	
+
 	std::set<int> m_subscribedTokens;
 	std::shared_ptr<Profile> m_profile;
 	PreprocessorClass tokenProcessor;
@@ -83,14 +83,14 @@ protected:
 	TokenProcessor::TokenDataPair<TokenProcessor::TokenType, const TokenProcessor::DataType> ProcessBacklog();
 
 public:
-	template<typename... _ArgsTy>
-	TokenProcessorProxy(std::shared_ptr<Profile>&, _ArgsTy&&...);
+	template<typename... ArgTypes>
+	TokenProcessorProxy(std::shared_ptr<Profile>&, ConditionTracker::Tracker&, ArgTypes&&...);
 
 	// Connection between scanner and token processor.
 	int operator()(std::function<int()>,
-				   std::function<bool()>,
-				   std::function<Tokenizer::ValuePointer()>,
-				   std::function<void(const Tokenizer::ValuePointer&)>);
+		std::function<bool()>,
+		std::function<Tokenizer::ValuePointer()>,
+		std::function<void(const Tokenizer::ValuePointer&)>);
 
 	// Token processor must accede token processor contract.
 	static_assert(std::is_base_of<TokenProcessor, PreprocessorClass>::value, "");
@@ -103,7 +103,7 @@ class DirectiveScanner : public Lexer
 	TokenProcessorProxy<Preprocessor> m_proxy;
 
 public:
-	DirectiveScanner(std::shared_ptr<Profile>&);
+	DirectiveScanner(std::shared_ptr<Profile>&, ConditionTracker::Tracker&);
 
 	// Push machine state forward
 	virtual int Lex() override;

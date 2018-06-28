@@ -165,7 +165,7 @@ public:
 			// different program phases. The compiler stages move the tracker into
 			// a new phase when the stage is done. When an compiler anomaly occurs
 			// the program is checked until its last recorded phase.
-			Program::ConditionTracker::Tracker tracker{ program->Condition() };
+			ConditionTracker::Tracker tracker{ program->Condition() };
 
 			// The frontend will not perform any substitutions, but instead
 			// return the tokenizer required for the requested language.
@@ -174,7 +174,7 @@ public:
 				.SelectTokenizer();
 
 			// Syntax analysis
-			auto ast = Parser{ profile, tokenizer }
+			auto ast = Parser{ profile, tokenizer, tracker }
 				.MoveStage()
 				.Execute()
 				.DumpAST();
@@ -188,7 +188,7 @@ public:
 #endif
 
 			// Semantic analysis
-			Semer{ profile, CAPTURE(program->Ast()) }
+			Semer{ profile, CAPTURE(program->Ast()), tracker }
 				.MoveStage()
 				.StaticResolve()
 				.PreliminaryAssert()
@@ -197,7 +197,7 @@ public:
 				.ExtractSymbols(program->FillSymbols());
 
 			// Optimizer
-			Optimizer{ profile, CAPTURE(program->Ast()) }
+			Optimizer{ profile, CAPTURE(program->Ast()), tracker }
 				.MoveStage()
 				.TrivialReduction()
 				.DeepInflation();
@@ -221,7 +221,7 @@ public:
 			AIIPXMod.AddStream(memoryStream);
 
 			// Program output building
-			Emit::Emitter{ profile, CAPTURE(program->Ast()) }
+			Emit::Emitter{ profile, CAPTURE(program->Ast()), tracker }
 				.MoveStage()
 				.AddModule(AIIPXMod)
 				.Process();

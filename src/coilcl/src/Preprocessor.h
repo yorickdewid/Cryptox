@@ -139,7 +139,7 @@ class Preprocessor
 	, public TokenProcessor
 {
 public:
-	Preprocessor(std::shared_ptr<CoilCl::Profile>&);
+	Preprocessor(std::shared_ptr<CoilCl::Profile>&, ConditionTracker::Tracker);
 
 	// Implement stage interface
 	virtual std::string Name() const { return "Preprocessor"; }

@@ -92,10 +92,10 @@ public:
 };
 
 template<typename _Ty>
-template<typename... _ArgsTy>
-TokenProcessorProxy<_Ty>::TokenProcessorProxy(std::shared_ptr<Profile>& profile, _ArgsTy&&... args)
-	: m_profile{ std::shared_ptr<Profile>{ new ProfileWrapper{ profile, std::forward<_ArgsTy>(args)... } } }
-	, tokenProcessor{ m_profile }
+template<typename... ArgTypes>
+TokenProcessorProxy<_Ty>::TokenProcessorProxy(std::shared_ptr<Profile>& profile, ConditionTracker::Tracker& tracker, ArgTypes&&... args)
+	: m_profile{ std::shared_ptr<Profile>{ new ProfileWrapper{ profile, std::forward<ArgTypes>(args)... } } }
+	, tokenProcessor{ m_profile, tracker }
 {
 }
 
@@ -270,9 +270,9 @@ int DirectiveScanner::Lex()
 	});
 }
 
-DirectiveScanner::DirectiveScanner(std::shared_ptr<Profile>& profile)
+DirectiveScanner::DirectiveScanner(std::shared_ptr<Profile>& profile, ConditionTracker::Tracker& tracker)
 	: Lexer{ profile }
-, m_proxy{ profile, [this](const std::string& source) -> bool { this->SwapSource(source); return true; /*TODO: Unmock*/ } }
+, m_proxy{ profile, tracker,  [this](const std::string& source) -> bool { this->SwapSource(source); return true; /*TODO: Unmock*/ } }
 {
 	AddKeyword("include", TK_PP_INCLUDE);
 	AddKeyword("define", TK_PP_DEFINE);

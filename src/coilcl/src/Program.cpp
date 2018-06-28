@@ -16,31 +16,6 @@
 
 using namespace CoilCl;
 
-template<int Increment = 1>
-void PhaseInc(Program::ConditionTracker::ProgramPhase& phase)
-{
-	phase = static_cast<Program::ConditionTracker::ProgramPhase>(static_cast<int>(phase) + Increment);
-}
-
-// Advance or jump the program phase.
-void Program::ConditionTracker::Advance(ProgramPhase jump)
-{
-	if (m_treeCondition == Program::ConditionTracker::ProgramPhase::_MAX) {
-		return;
-	}
-
-	if (jump == _INVAL) {
-		PhaseInc(m_treeCondition);
-	}
-	else if (jump > m_treeCondition) {
-		m_treeCondition = jump;
-	}
-
-#ifdef CRY_DEBUG_TRACE
-	std::cout << "phase " << m_treeCondition << " done" << std::endl;
-#endif
-}
-
 void Program::PrintSymbols()
 {
 	for (const auto& node : m_symbols) {

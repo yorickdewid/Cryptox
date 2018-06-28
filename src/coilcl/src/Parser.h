@@ -229,7 +229,7 @@ struct CompareStringPair
 class Parser : public Stage<Parser>
 {
 public:
-	Parser(std::shared_ptr<CoilCl::Profile>& profile, TokenizerPtr tokenizer);
+	Parser(std::shared_ptr<CoilCl::Profile>& profile, TokenizerPtr tokenizer, ConditionTracker::Tracker);
 
 	std::string Name() const { return "Parser"; }
 

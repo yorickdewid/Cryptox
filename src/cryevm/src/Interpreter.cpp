@@ -68,8 +68,8 @@ Interpreter::Interpreter(Planner& planner)
 bool Interpreter::IsRunnable() const noexcept
 {
 	return (Program()->Condition().IsRunnable()
-		&& !Program()->Ast().empty()
-		&& Program()->Ast()->Parent().expired()
+		&& Program()->AstPassthrough()->ChildrenCount()
+		&& Program()->AstPassthrough()->Parent().expired()
 		&& IsTranslationUnitNode(Program()->Ast().Front())) || true;
 }
 
@@ -1759,7 +1759,6 @@ int Evaluator::CallFunction(AST::AST&& ast, const std::string& symbol, const Arg
 
 void Interpreter::PreliminaryCheck(const std::string& entry)
 {
-	assert(!Program()->Ast().Empty());
 	assert(Program()->HasSymbols());
 	if (!Program()->MatchSymbol(entry)) {
 		CryImplExcept();

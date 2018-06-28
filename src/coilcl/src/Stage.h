@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include "ConditionTracker.h"
+
 #include <ostream>
 #include <string>
 #include <stdexcept>
@@ -22,13 +24,13 @@ struct StageType
 	// and to track exception to their stage source.
 	enum Type
 	{
-		Frontend,				// Frontend
-		TokenProcessor,			// Preprocessor
-		LexicalAnalysis,		// Lexer
-		SyntacticAnalysis,		// Parser
-		SemanticAnalysis,		// Semer
-		Optimizer,				// Optimizer
-		Emitter,				// Emitter
+		Frontend,               // Frontend.
+		TokenProcessor,         // Preprocessor.
+		LexicalAnalysis,        // Lexer.
+		SyntacticAnalysis,      // Parser.
+		SemanticAnalysis,       // Semer.
+		Optimizer,              // Optimizer.
+		Emitter,                // Emitter.
 	};
 
 	// Return stage name as string
@@ -44,19 +46,19 @@ protected:
 	using StageBase = Stage<StageClass>;
 
 public:
-	// Abstract methods for stage implementation
+	// Abstract methods for stage implementation.
 	virtual std::string Name() const = 0;
 
 	// The check compatibility method allows the stage to check if the stage is executable
 	// with the given profile.
 	virtual StageClass& CheckCompatibility() = 0;
 
-	// The stage exception can show details about current stage in which the exception occured
+	// The stage exception can show details about current stage in which the exception occured.
 	class StageException : public std::runtime_error
 	{
 	public:
 		StageException(const std::string& message) noexcept
-			: std::runtime_error{ StageType::Print(g_compilerStage) + std::string{": "} + message }
+			: std::runtime_error{ StageType::Print(g_compilerStage) + std::string{": "} +message }
 		{
 		}
 
@@ -76,9 +78,10 @@ public:
 	Stage(const StageBase&) = delete;
 	Stage(StageBase&&) = delete;
 
-	explicit Stage(StageClass* derived, StageType::Type stage)
+	explicit Stage(StageClass* derived, StageType::Type stage, ConditionTracker::Tracker& tracker)
 		: m_derived{ derived }
 		, m_stageType{ stage }
+		, m_tracker{ tracker }
 	{
 	}
 
@@ -95,13 +98,32 @@ protected:
 		throw StageException{ message };
 	}
 
-protected:
+	//
+	// Tracker operations.
+	//
+
+	void CompletePhase(ConditionTracker::ProgramPhase phase)
+	{
+		m_tracker.Jump(phase);
+	}
+	
+	void CompletePhase(std::initializer_list<ConditionTracker::ProgramPhase> phaseList)
+	{
+		for (auto phase : phaseList) {
+			m_tracker.Jump(phase);
+		}
+	}
+
+	ConditionTracker::Tracker& GetTracker() noexcept { return m_tracker; }
+
 	// Retrieve stage name
 	inline auto StageName() const noexcept { return StageType::Print(m_stageType); }
 
 private:
-	StageClass * m_derived = nullptr;
+	// TODO: move profile in here
+	StageClass * m_derived{ nullptr };
 	StageType::Type m_stageType;
+	ConditionTracker::Tracker& m_tracker;
 };
 
 } // namespace CoilCl

@@ -11,8 +11,8 @@
 
 using namespace CoilCl::Emit;
 
-Emitter::Emitter(std::shared_ptr<Profile>& profile, AST::AST&& ast)
-	: Stage{ this, StageType::Type::Emitter }
+Emitter::Emitter(std::shared_ptr<Profile>& profile, AST::AST&& ast, ConditionTracker::Tracker& tracker)
+	: Stage{ this, StageType::Type::Emitter, tracker }
 	, m_profile{ profile }
 	, m_ast{ std::move(ast) }
 {

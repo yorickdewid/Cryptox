@@ -95,8 +95,8 @@ private:
 	int m_column;
 };
 
-CoilCl::Semer::Semer(std::shared_ptr<CoilCl::Profile>& profile, AST::AST&& ast)
-	: Stage{ this, StageType::Type::SemanticAnalysis }
+CoilCl::Semer::Semer(std::shared_ptr<CoilCl::Profile>& profile, AST::AST&& ast, ConditionTracker::Tracker tracker)
+	: Stage{ this, StageType::Type::SemanticAnalysis, tracker }
 	, m_profile{ profile }
 	, m_ast{ std::move(ast) }
 {
@@ -188,6 +188,7 @@ CoilCl::Semer& CoilCl::Semer::StaticResolve()
 		}
 	});
 
+	this->CompletePhase(ConditionTracker::STATIC_RESOLVED);
 	return (*this);
 }
 
@@ -202,9 +203,7 @@ CoilCl::Semer& CoilCl::Semer::PreliminaryAssert()
 	DeduceTypes();
 	CheckDataType();
 
-	//TODO:
-	//ASSERTION_PASSED
-
+	this->CompletePhase(ConditionTracker::ASSERTION_PASSED);
 	return (*this);
 }
 
@@ -567,6 +566,7 @@ void CoilCl::Semer::CheckDataType()
 
 CoilCl::Semer& CoilCl::Semer::StandardCompliance()
 {
+	this->CompletePhase(ConditionTracker::COMPLIANT);
 	return (*this);
 }
 
