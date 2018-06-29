@@ -20,13 +20,13 @@ extern "C" {
     // C compatible string structure
 	typedef struct
 	{
-		// Size of the data chunk
+		// Size of the data chunk.
 		unsigned int size;
-		// Pointer to data location
+		// Pointer to data location.
 		const char *ptr;
-		// Boolean indicating ptr memory block should be freed by the callee
+		// Boolean indicating ptr memory block should be freed by the callee.
 		int unmanaged_res;
-		// Function pointer to be called when the object is freed by the callee
+		// Function pointer to be called when the object is freed by the callee.
 		void(*deallocVPtr)(void *);
 	} datachunk_t;
 

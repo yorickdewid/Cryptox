@@ -13,7 +13,7 @@
 #define CONSTANT    1
 #define RETURN_OK   0
 
-int main() {
+int main(int args, char *argv[]) {
     
     /* My first program in C. */
     printf("Hello, %d!\n", 12);

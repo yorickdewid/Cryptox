@@ -24,9 +24,9 @@
 #define ENTRY_SYMBOL "main"
 
 #define DEFAULT_MAKE_CONTEXT() \
-	template<typename ContextType, typename... Args> \
-	std::shared_ptr<ContextType> MakeContext(Args&&... args) { \
-		return std::make_shared<ContextType>(shared_from_this(), std::forward<Args>(args)...); \
+	template<typename ContextType, typename... ArgTypes> \
+	std::shared_ptr<ContextType> MakeContext(ArgTypes&&... args) { \
+		return std::make_shared<ContextType>(shared_from_this(), std::forward<ArgTypes>(args)...); \
 	}
 
 using namespace EVM;
@@ -70,7 +70,7 @@ bool Interpreter::IsRunnable() const noexcept
 	return (Program()->Condition().IsRunnable()
 		&& Program()->AstPassthrough()->ChildrenCount()
 		&& Program()->AstPassthrough()->Parent().expired()
-		&& IsTranslationUnitNode(Program()->Ast().Front())) || true;
+		&& IsTranslationUnitNode(Program()->Ast().Front()));
 }
 
 class Evaluator;
@@ -1191,7 +1191,7 @@ class ScopedRoutine
 
 			// If the binary operand is an assignment do it right now.
 			if (op->Operand() == BinaryOperator::BinOperand::ASSGN) {
-				
+
 				// The left hand side must be a lvalue and thus can be converted into an declaration
 				// reference. The declaration reference value is altered when the new value is assigned
 				// and as a consequence updates the declaration table entry.
@@ -1693,9 +1693,11 @@ void FormatStartupParameters(std::array<std::string, 3> mapper, Parameters&& par
 {
 	if (params.empty()) { return; }
 
+	//TODO: Capture the environment variables
+
 	ctx->PushVar({ mapper[0], Util::MakeInt(static_cast<int>(params.size())) });
-	ctx->PushVar({ mapper[1], Util::MakeFloat(872.21f) }); //TODO: Util::MakeArray
-	ctx->PushVar({ mapper[2], Util::MakeBool(true) }); //TODO: Util::MakeArray
+	ctx->PushVar({ mapper[1], Util::MakeFloatArray({872.21f}) }); //TODO: Util::MakeArray
+	ctx->PushVar({ mapper[2], Util::MakeString("test") }); //TODO: Util::MakeArray
 }
 
 } // namespace
@@ -1706,8 +1708,12 @@ Evaluator& Evaluator::CallRoutine(const std::string& symbol, const ArgumentList&
 	auto funcNode = m_unitContext->LookupSymbol<FunctionDecl>(symbol);
 	auto funcCtx = m_unitContext->MakeContext<FunctionContext>(funcNode->Identifier());
 
-	if (funcNode->HasParameters()) {
-		std::string argv = "argv"; std::string envp = "envp";
+	// If the entry function does not accept parameters, then there is no point in
+	// converting the passed arguments. Likewise skip argument parsing if there are
+	// no commandline arguments supplied.
+	if (funcNode->HasParameters() && !args.empty()) {
+		std::string argv = "argv";
+		std::string envp = "envp";
 		std::string argc = Util::NodeCast<ParamDecl>(funcNode->ParameterStatement()->Children()[0])->Identifier();
 		if (funcNode->ParameterStatement()->ChildrenCount() > 1) {
 			argv = Util::NodeCast<ParamDecl>(funcNode->ParameterStatement()->Children()[1])->Identifier();

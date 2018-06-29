@@ -41,12 +41,26 @@
 extern "C" {
 #endif
 
+	// Code generation options
+	struct vm_config
+	{
+		// Enable or disable debug mode.
+		int debug_mode;
+	};
+
 	typedef struct
 	{
-		// API version between executable and library
+		// API version between executable and library.
 		unsigned short apiVer;
-		// Program entry point, this must be a synbol name.
+
+		// Virtual machine runtime configuration settings.
+		struct vm_config cfg;
+
+		// Program entry point, this must be a synbol name. If no entry point
+		// is provided by the called, the program runner will determine an
+		// entry point itself.
 		const char *entry_point;
+
 		// Program exit code. Zero indicates exit with success.
 		int return_code;
 
@@ -61,8 +75,10 @@ extern "C" {
 		// interface and should be freed by the caller. The structure cannot
 		// be used directly, but shall be passed to program compatible components.
 		program_t program;
-		// Program runtime arguments.
+
+		// Program runtime arguments. This is a null terminated list.
 		const datachunk_t **args;
+
 		// User provided context.
 		void *user_data;
 	} runtime_settings_t;

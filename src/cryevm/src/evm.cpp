@@ -64,9 +64,17 @@ void ReworkArgumentList(ArgumentList& list, runtime_settings_t *runtime)
 	} while (runtime->args[sz]->ptr != nullptr);
 }
 
+void AssertConfiguration(const struct vm_config *config)
+{
+	//
+}
+
+//TODO: check API version from struct
 // Execute program
 EVMAPI int ExecuteProgram(runtime_settings_t *runtime) noexcept
 {
+	AssertConfiguration(&runtime->cfg);
+
 	// Capture program pointer and cast into program structure
 	ProgramPtr program = ProgramPtr{ runtime->program.program_ptr };
 
