@@ -1255,7 +1255,7 @@ void Parser::AdditiveExpression()
 		m_elementDescentPipe.pop();
 
 		NextToken();
-		MultiplicativeExpression();
+		AdditiveExpression();
 
 		binOp->SetRightSide(m_elementDescentPipe.next());
 		m_elementDescentPipe.pop();
@@ -1269,7 +1269,7 @@ void Parser::AdditiveExpression()
 		m_elementDescentPipe.pop();
 
 		NextToken();
-		MultiplicativeExpression();
+		AdditiveExpression();
 
 		binOp->SetRightSide(m_elementDescentPipe.next());
 		m_elementDescentPipe.pop();
@@ -2348,9 +2348,10 @@ bool Parser::ParameterTypeList()
 	return rs;
 }
 
-// Parameter declaration can have only a specifier;
-// a specifier and declarator or specifier and abstract
-// declarator.
+// Parameter declaration can only have:
+//   1.) A single specifier
+//   2.) A specifier and declarator
+//   3.) A specifier and abstract declarator.
 bool Parser::ParameterDeclaration()
 {
 	if (!DeclarationSpecifiers()) {
@@ -2372,7 +2373,7 @@ bool Parser::ParameterDeclaration()
 		return true;
 	}
 
-	// Found a type, but no identifier. Add type as abstract declaration
+	// Found a type, but no identifier. Add type as abstract declaration.
 	AbstractDeclarator();
 	auto decl = CoilCl::AST::MakeASTNode<ParamDecl>(m_typeStack.top());
 	decl->SetLocation(CURRENT_LOCATION());
@@ -2387,31 +2388,31 @@ bool Parser::ParameterDeclaration()
 
 bool Parser::FunctionDefinition()
 {
-	// Return type for function declaration
+	// Return type for function declaration.
 	DeclarationSpecifiers();
 
 	auto startState = m_elementDescentPipe.state();
 
-	// Must match at least one declarator to qualify as function declaration
+	// Must match at least one declarator to qualify as function declaration.
 	if (!Declarator()) {
 		m_elementDescentPipe.release_until(startState);
 		return false;
 	}
 
-	// No result so far, bail
+	// No result so far, bail.
 	if (m_elementDescentPipe.empty()) {
 		m_elementDescentPipe.release_until(startState);
 		return false;
 	}
 
-	// Check if we found a function
+	// Check if we found a function.
 	auto func = std::dynamic_pointer_cast<FunctionDecl>(m_elementDescentPipe.next());
 	if (func == nullptr) {
 		m_elementDescentPipe.release_until(startState);
 		return false;
 	}
 
-	// Found a function statement, lock it
+	// Found a function statement, lock it.
 	m_elementDescentPipe.lock();
 
 	while (Declarator());
@@ -2426,10 +2427,10 @@ bool Parser::FunctionDefinition()
 	return true;
 }
 
-// Try as function; if that fails assume declaration
+// Try as function; if that fails assume a declaration.
 void Parser::ExternalDeclaration()
 {
-	// Usless commits must be ignored, this saves as few trips
+	// Useless commits must be ignored, this saves as few trips
 	// into function or declaration statements.
 	if (MATCH_TOKEN(TK_COMMIT)) {
 		NextToken();

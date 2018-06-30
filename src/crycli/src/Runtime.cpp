@@ -66,17 +66,18 @@ class ExecuteAdapter final
 		return { vmResult, settings.return_code };
 	}
 
+	// Execute the runtime processor.
 	std::pair<int, int> Execute()
 	{
 		return Compose();
 	}
-	
+
 	// Set program arguments.
 	void CommandLineArgs(const ArgumentList& args)
 	{
 		m_args = args;
 	}
-	
+
 	// Set program entry symbol.
 	void SetEntryPoint(const char *str)
 	{
@@ -122,14 +123,20 @@ public:
 private:
 	ArgumentList m_args;
 	program_t m_program;
-	const char *entrySymbol = nullptr;
+	const char *entrySymbol{ nullptr };
 };
 
 void CCBErrorHandler(void *user_data, const char *message, int fatal)
 {
 	CRY_UNUSED(user_data);
-	CRY_UNUSED(fatal);
+
+	// Write error message to console
 	std::cerr << message << std::endl;
+
+	// If the error is non fatal, log and continue
+	if (!static_cast<bool>(fatal)) {
+		//TODO: write to log
+	}
 }
 
 } // namespace

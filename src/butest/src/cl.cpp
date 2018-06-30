@@ -128,6 +128,7 @@ public:
 	{
 		return m_program.program_ptr == nullptr;
 	}
+
 	int VMResult() const { return m_vmResult; }
 	int ExecutionResult() const { return m_programResult; }
 
@@ -157,13 +158,12 @@ BOOST_AUTO_TEST_CASE(ClSysSimpleSource)
 	BOOST_REQUIRE_EQUAL(compiler.ExecutionResult(), 0);
 }
 
-BOOST_AUTO_TEST_CASE(ClSysHelloWorld)
+BOOST_AUTO_TEST_CASE(ClSysAggregate)
 {
 	const std::string source = ""
-		"int puts(const char *);"
 		"int main() {"
-		"   puts(\"Hello, World\n\");"
-		"	return 0;"
+		"	int i = 100 + 7 + 99 + 12;"
+		"	return 1 + 9 + i;"
 		"}";
 
 	CompilerHelper compiler{ source };
@@ -172,7 +172,25 @@ BOOST_AUTO_TEST_CASE(ClSysHelloWorld)
 
 	compiler.RunVirtualMachine();
 	BOOST_REQUIRE_EQUAL(compiler.VMResult(), 0);
-	BOOST_REQUIRE_EQUAL(compiler.ExecutionResult(), 0);
+	BOOST_REQUIRE_EQUAL(compiler.ExecutionResult(), 228);
+}
+
+BOOST_AUTO_TEST_CASE(ClSysHelloWorld)
+{
+	const std::string source = ""
+		"int puts(const char *);"
+		"int main() {"
+		"   puts(\"Hello, World\n\");"
+		"	return 7;"
+		"}";
+
+	CompilerHelper compiler{ source };
+	compiler.RunCompiler();
+	BOOST_REQUIRE(!compiler.IsProgramEmpty());
+
+	compiler.RunVirtualMachine();
+	BOOST_REQUIRE_EQUAL(compiler.VMResult(), 0);
+	BOOST_REQUIRE_EQUAL(compiler.ExecutionResult(), 7);
 }
 
 BOOST_AUTO_TEST_CASE(ClSysFunction)

@@ -166,10 +166,9 @@ metainfo_t *CCBMetaInfo(void *user_data)
 // Error handler. Write the error message to console and mark
 void CCBErrorHandler(void *user_data, const char *message, int fatal)
 {
-	StreamReaderAdapter& adapter = Cry::Algorithm::SideCast<StreamReaderAdapter>(user_data);
-	CRY_UNUSED(adapter);
+	CRY_UNUSED(user_data);
 
-	//FIXME:
+	// Write error message to console
 	std::cerr << message << std::endl;
 
 	// If the error is non fatal, log and continue

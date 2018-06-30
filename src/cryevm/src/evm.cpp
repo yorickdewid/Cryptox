@@ -66,16 +66,23 @@ void ReworkArgumentList(ArgumentList& list, runtime_settings_t *runtime)
 
 void AssertConfiguration(const struct vm_config *config)
 {
-	//
+	CRY_UNUSED(config);
 }
 
 #define CHECK_API_VERSION(u) \
 	if (u->apiVer != EVMAPIVER) { fprintf(stderr, "API version mismatch"); abort(); }
 
-// Execute program
+// API entry; Execute program
 EVMAPI int ExecuteProgram(runtime_settings_t *runtime) noexcept
 {
+	using EVM::Planner;
+
+	assert(runtime);
+
 	CHECK_API_VERSION(runtime);
+
+	assert(runtime->error_handler);
+	assert(runtime->program.program_ptr);
 
 	AssertConfiguration(&runtime->cfg);
 
@@ -83,7 +90,7 @@ EVMAPI int ExecuteProgram(runtime_settings_t *runtime) noexcept
 	ProgramPtr program = ProgramPtr{ runtime->program.program_ptr };
 
 	// Determine strategy for program
-	auto runner = EVM::Planner{ std::move(program), EVM::Planner::Plan::ALL }.DetermineStrategy();
+	auto runner = Planner{ std::move(program), Planner::Plan::ALL }.DetermineStrategy();
 	if (!runner->IsRunnable()) {
 		return RETURN_NOT_RUNNABLE;
 	}
