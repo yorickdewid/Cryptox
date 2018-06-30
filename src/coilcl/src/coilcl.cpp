@@ -299,14 +299,16 @@ void AssimilateProgram(program_t *out_program, Compiler::ProgramPtr&& in_program
 } // namespace InterOpHelper
 
 #define CHECK_API_VERSION(u) \
-	if (u->apiVer != COILCLAPIVER) { std::cerr << "API version mismatch" << std::endl; abort(); }
+	if (u->apiVer != COILCLAPIVER) { fprintf(stderr, "API version mismatch"); abort(); }
 
 #define USER_DATA(u) u->user_data
 
-// API compiler interface
+// API entry; compiler interface.
 COILCLAPI void Compile(compiler_info_t *cl_info) NOTHROW
 {
 	using CoilCl::Compiler;
+
+	assert(cl_info);
 
 	CHECK_API_VERSION(cl_info);
 
@@ -361,14 +363,40 @@ COILCLAPI void Compile(compiler_info_t *cl_info) NOTHROW
 	InterOpHelper::AssimilateProgram(&cl_info->program, std::move(program));
 }
 
+//FUTURE: move
+// API entry; release program.
 COILCLAPI void ReleaseProgram(program_t *program) NOTHROW
 {
+	assert(program);
 	if (program->program_ptr) {
 		delete static_cast<Program *>(program->program_ptr);
 		program->program_ptr = nullptr;
 	}
 }
 
+//FUTURE: move
+// API entry; program info.
+COILCLAPI void ProgramInfo(program_info_t *program_info) NOTHROW
+{
+	assert(program_info);
+
+	// Early return if program is empty.
+	if (!program_info->program.program_ptr) {
+		program_info->is_healthy = 0;
+		return;
+	}
+
+	Program *program = static_cast<Program *>(program_info->program.program_ptr);
+	program_info->is_healthy = program->HasSymbols() && program->operator bool() && program->IsLocked();
+	program_info->is_locked = program->IsLocked();
+	program_info->symbols = program->SymbolCount();
+	program_info->result_sets = 0;
+	program_info->last_phase = 0;
+	program_info->last_stage = 0;
+}
+
+//FUTURE: move
+// API entry; get a resultset section.
 COILCLAPI void GetResultSection(result_t *result_inquery) NOTHROW
 {
 	assert(result_inquery);
@@ -400,6 +428,7 @@ COILCLAPI void GetResultSection(result_t *result_inquery) NOTHROW
 	result_inquery->content.deallocVPtr = nullptr;
 }
 
+// API entry; get library information.
 COILCLAPI void GetLibraryInfo(library_info_t *info) NOTHROW
 {
 	info->version_number.major = PRODUCT_VERSION_MAJOR;

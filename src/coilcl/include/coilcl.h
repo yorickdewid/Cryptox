@@ -40,7 +40,7 @@ extern "C" {
 
 #define MAX_FILENAME_SZ 64
 
-	// Languange standard
+	// Languange standard.
 	enum cil_standard
 	{
 		cil = 10,
@@ -50,7 +50,7 @@ extern "C" {
 		c17 = 17,
 	};
 
-	// Optimization level
+	// Optimization level.
 	enum optimization
 	{
 		NONE,
@@ -59,40 +59,38 @@ extern "C" {
 		LEVEL3,
 	};
 
-	// Code generation options
+	// Code generation options.
 	struct codegen
 	{
 		enum cil_standard standard;
 		enum optimization optimization;
 
-		// Disable all compiler extensions
+		// Disable all compiler extensions.
 		int no_extension : 1;
-		// Dump preprocessed source and exit
+		// Dump preprocessed source and exit.
 		int dump_preproc : 1;
-		// Dump resulting section to file(s)
+		// Dump resulting section to file(s).
 		int dump_section : 1;
-		// Include comments in program tree
+		// Include comments in program tree.
 		int keep_comment : 1;
-		// Prevent the removal of unused structures
+		// Prevent the removal of unused structures.
 		int keep_zero_ref_cnt : 1;
-		
-		int reserved : 3;
 	};
 
-	// Source unit metadata
+	// Source unit metadata.
 	typedef struct
 	{
-		// Source unit name
+		// Source unit name.
 		char name[MAX_FILENAME_SZ];
-		// Source unit size
+		// Source unit size.
 		unsigned int size;
 	} metainfo_t;
 
 	typedef struct
 	{
-		// API version between executable and library
+		// API version between executable and library.
 		unsigned short apiVer; //TODO: rename
-		// Code generation options set in the frontend
+		// Code generation options set in the frontend.
 		struct codegen code_opt;
 
 		// The read callback is an function pointer set in the frontend and
@@ -126,17 +124,52 @@ extern "C" {
 		// and should be freed by calling ReleaseProgram. The structure cannot
 		// be used directly, but shall be passed to program compatible components.
 		program_t program;
+
 		// User provided context.
 		void *user_data;
 	} compiler_info_t;
 
-	// Compiler entry point
+	// Compiler entry point.
 	COILCLAPI void Compile(compiler_info_t *) NOTHROW;
 
-	// Release program object
+	// Release program object.
 	COILCLAPI void ReleaseProgram(program_t *) NOTHROW;
 
-	// Result section tag
+	// Source unit metadata.
+	typedef struct
+	{
+		// Compiler resulting output. This structure is set by the compiler
+		// interface and should be freed by the caller. The structure cannot
+		// be used directly, but shall be passed to program compatible components.
+		program_t program;
+
+		// Check if the program is healty. A non zero result indicates the program
+		// passed basic assertions and is runnable.
+		int is_healthy;
+
+		// A non zero value indicates if the program is locked.
+		int is_locked;
+
+		// Number of function symbols. Zero means program contains no symbols. This
+		// check is important for futher program processing.
+		int symbols;
+
+		// Number of resultsets. A resultset is the product of a program translation
+		// into another data format.
+		int result_sets;
+
+		// Last program phase recorded by a stage. This essentially serves as a
+		// checkpoint in case the program experiences an anomaly.
+		unsigned int last_phase;
+
+		// Last compiler stage processing the program.
+		unsigned int last_stage;
+	} program_info_t;
+
+	// Get program information.
+	COILCLAPI void ProgramInfo(program_info_t *) NOTHROW;
+
+	// Result section tag.
 	enum resultsection_tag
 	{
 		AIIPX,
@@ -145,47 +178,49 @@ extern "C" {
 		COMPLEMENTARY,
 	};
 
-	// Result inquery
+	// Result inquery.
 	typedef struct
 	{
-		// Query result set tag
+		// Query result set tag.
 		enum resultsection_tag tag;
-		// Compiler resulting output
+		// Compiler resulting output.
 		program_t program;
-		// Pointer to the requested contents
+		// Pointer to the requested contents.
 		datachunk_t content;
 	} result_t;
 
-	// Retrieve resulting section from program
+	// Retrieve resulting section from program.
 	COILCLAPI void GetResultSection(result_t *) NOTHROW;
 
 	typedef struct
 	{
 		struct
 		{
-			// Version major part
+			// Version major part.
 			short int major;
-			// Version minor part
+			// Version minor part.
 			short int minor;
-			// Version patch level
+			// Version patch level.
 			short int patch;
-			// Subversion part
+			// Subversion part.
 			short int local;
 		} version_number;
 
-		// API version number
+		// API version number.
 		short int api_version;
-		// Product name
+		// Product name.
 		const char *product;
-		// Product description
+		// Product description.
 		const char *description;
 	} library_info_t;
 
 	// Library version information
 	COILCLAPI void GetLibraryInfo(library_info_t *) NOTHROW;
 
-// C function defines
+// C function defines.
 #define compile(c) Compile(c)
+#define free_program(p) ReleaseProgram(p)
+#define program_info(p) ProgramInfo(p)
 #define get_result_section(r) GetResultSection(r)
 #define get_library_info(i) GetLibraryInfo(i)
 

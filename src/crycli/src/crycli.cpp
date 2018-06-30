@@ -6,16 +6,20 @@
 // that can be found in the LICENSE file. Content can not be 
 // copied and/or distributed without the express of the author.
 
+// Local includes.
 #include "Env.h"
 #include "Direct.h"
 #include "Specification.h"
 
+// Project includes.
 #include <Cry/Config.h>
 #include <Cry/ProgramOptions.h>
 
+// Framework includes.
 #include <boost/program_options.hpp>
 #include <boost/algorithm/string.hpp>
 
+// Language includes.
 #include <iostream>
 
 #define SPECIFICATION_FILE "default.spec"
@@ -37,8 +41,7 @@ int main(int argc, const char *argv[])
 			("spec", po::value<std::string>()->value_name("<file>"), "Load specifications from file")
 			("plugin", po::value<std::string>()->value_name("<plugin>"), "Load compiler plugin")
 			("run", "Compile and execute")
-			("args", po::value<std::vector<std::string>>()->value_name("<arg>"), "Runner arguments")
-			("version", "Compiler version information");
+			("args", po::value<std::vector<std::string>>()->value_name("<arg>"), "Runner arguments");
 
 		// Compiler options
 		po::options_description codegen{ "\nCompiler options" };
@@ -164,12 +167,11 @@ int main(int argc, const char *argv[])
 		}
 		// Print version and exit
 		else if (parser.Version(vm)) {
-			std::cout << "Version: " PROGRAM_VERSION << std::endl;
-			//TODO
+			std::cout << "CLI: " PROGRAM_VERSION << std::endl;
 			std::cout
-				<< "Compiler: 1.1\n"
-				<< "Virtual machine: 0.3"
-				<< std::endl;
+				<< "Compiler: " << Version::Compiler() << '\n'
+				<< "Virtual machine: " << "X" << '\n'
+				<< std::flush;
 		}
 		// Anything else; we're in trouble
 		else {

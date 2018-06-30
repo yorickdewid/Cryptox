@@ -17,28 +17,6 @@
 #include <fstream>
 #include <sstream>
 
-class CompilerException final : public std::exception
-{
-public:
-	explicit CompilerException(const std::string& msg) noexcept
-		: m_msg{ msg }
-	{
-	}
-
-	CompilerException(std::string&& msg)
-		: m_msg{ msg }
-	{
-	}
-
-	virtual const char *what() const noexcept
-	{
-		return m_msg.c_str();
-	}
-
-protected:
-	std::string m_msg;
-};
-
 namespace {
 
 static datachunk_t *CCBFetchChunk(void *);
@@ -59,7 +37,7 @@ class StreamReaderAdapter final
 	// be using the lexer to parse the program. The compose method offers a single
 	// shot call to the compiler compatible API. Any changes to the API should be
 	// reflected here and only here.
-	program_t Compose()
+	program_t Compose() noexcept
 	{
 		compiler_info_t info;
 		info.apiVer = COILCLAPIVER;
@@ -85,7 +63,7 @@ class StreamReaderAdapter final
 		return Compose();
 	}
 
-	// Set stream read buffer
+	// Set stream read buffer.
 	void SetStreamChuckSize(size_t size)
 	{
 		m_chunkSize = size;
@@ -103,19 +81,19 @@ public:
 	{
 	}
 
-	// Forward call to adapter interface FetchNextChunk
+	// Forward call to adapter interface FetchNextChunk.
 	const std::string FetchNextChunk() const
 	{
 		return m_contentReader->FetchNextChunk(m_chunkSize);
 	}
 
-	// Forward call to adapter interface SwitchSource
+	// Forward call to adapter interface SwitchSource.
 	const void SwitchSource(const std::string& source) const
 	{
 		m_contentReader->SwitchSource(source);
 	}
 
-	// Forward call to adapter interface FetchMetaInfo
+	// Forward call to adapter interface FetchMetaInfo.
 	const std::string FetchMetaInfo() const
 	{
 		return m_contentReader->FetchMetaInfo();
@@ -126,15 +104,23 @@ private:
 	size_t m_chunkSize = defaultChunkSize;
 };
 
-template<class _Ty1, typename _Ty2>
-constexpr _Ty1& side_cast(_Ty2 *_opaquePtr) noexcept
+namespace Cry
 {
-	return static_cast<_Ty1&>(*static_cast<_Ty1 *>(const_cast<typename std::remove_const<_Ty2>::type*>(_opaquePtr)));
+namespace Algorithm
+{
+
+template<class CastType, typename PointerType>
+constexpr CastType& SideCast(PointerType *_opaquePtr) noexcept
+{
+	return static_cast<CastType&>(*static_cast<CastType *>(const_cast<typename std::remove_const<PointerType>::type*>(_opaquePtr)));
 }
+
+} // namespace Algorithm
+} // namespace Cry
 
 datachunk_t *CCBFetchChunk(void *user_data)
 {
-	StreamReaderAdapter &adapter = side_cast<StreamReaderAdapter>(user_data);
+	StreamReaderAdapter& adapter = Cry::Algorithm::SideCast<StreamReaderAdapter>(user_data);
 	auto str = adapter.FetchNextChunk();
 	if (str.empty()) {
 		return nullptr;
@@ -150,7 +136,7 @@ datachunk_t *CCBFetchChunk(void *user_data)
 
 int CCBLoadExternalSource(void *user_data, const char *source)
 {
-	StreamReaderAdapter &adapter = side_cast<StreamReaderAdapter>(user_data);
+	StreamReaderAdapter& adapter = Cry::Algorithm::SideCast<StreamReaderAdapter>(user_data);
 
 	// If an system error occurs, we assume the source file was not
 	// found and return false to the caller
@@ -166,7 +152,7 @@ int CCBLoadExternalSource(void *user_data, const char *source)
 
 metainfo_t *CCBMetaInfo(void *user_data)
 {
-	StreamReaderAdapter &adapter = side_cast<StreamReaderAdapter>(user_data);
+	StreamReaderAdapter& adapter = Cry::Algorithm::SideCast<StreamReaderAdapter>(user_data);
 	auto str = adapter.FetchMetaInfo();
 
 	auto metablock = new metainfo_t;
@@ -177,20 +163,19 @@ metainfo_t *CCBMetaInfo(void *user_data)
 	return metablock;
 }
 
+// Error handler. Write the error message to console and mark
 void CCBErrorHandler(void *user_data, const char *message, int fatal)
 {
-	CRY_UNUSED(user_data);
+	StreamReaderAdapter& adapter = Cry::Algorithm::SideCast<StreamReaderAdapter>(user_data);
+	CRY_UNUSED(adapter);
 
 	//FIXME:
-	std::cout << message << std::endl;
+	std::cerr << message << std::endl;
 
 	// If the error is non fatal, log and continue
 	if (!static_cast<bool>(fatal)) {
 		//TODO: write to log
-		return;
 	}
-
-	throw CompilerException(message);
 }
 
 } // namespace
@@ -203,6 +188,7 @@ CompilerAbstraction::CompilerAbstraction(const BaseReader&& reader)
 
 CompilerAbstraction::~CompilerAbstraction()
 {
+	assert(m_compiler);
 	delete m_compiler;
 	m_compiler = nullptr;
 }
@@ -218,6 +204,7 @@ CompilerAbstraction& CompilerAbstraction::SetBuffer(size_t size)
 	return (*this);
 }
 
+//TODO: ugly refactor
 void GetSectionMemoryBlock(const char *tag, void *programRaw, std::function<void(const char *, size_t)> callback)
 {
 	result_t result_inquery;
@@ -264,7 +251,7 @@ void GetSectionMemoryBlock(const char *tag, void *programRaw, std::function<void
 	}
 }
 
-CompilerLibraryInfo::CompilerLibraryInfo()
+LibraryInfo::LibraryInfo()
 {
 	library_info_t info;
 	GetLibraryInfo(&info);
@@ -280,7 +267,7 @@ CompilerLibraryInfo::CompilerLibraryInfo()
 	description = info.description;
 }
 
-std::string CompilerLibraryInfo::Version()
+std::string LibraryInfo::Version()
 {
 	return boost::str(boost::format{ "%1%.%2%.%3%.%4%" }
 		% std::get<0>(version)

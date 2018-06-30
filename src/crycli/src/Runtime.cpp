@@ -56,13 +56,13 @@ class ExecuteAdapter final
 		settings.args = ConvertProgramArguments();
 		settings.user_data = static_cast<void*>(this);
 
-		// Invoke compiler with environment and compiler settings
+		// Invoke compiler with environment and compiler settings.
 		int vmResult = ExecuteProgram(&settings);
 
-		// Free allocated program arguments
+		// Free allocated program arguments.
 		FreeProgramArguments(settings.args);
 
-		// Return the vm and program result
+		// Return the vm and program result.
 		return { vmResult, settings.return_code };
 	}
 
@@ -70,20 +70,20 @@ class ExecuteAdapter final
 	{
 		return Compose();
 	}
-
-	// Set program arguments
+	
+	// Set program arguments.
 	void CommandLineArgs(const ArgumentList& args)
 	{
 		m_args = args;
 	}
-
-	// Set program entry symbol
+	
+	// Set program entry symbol.
 	void SetEntryPoint(const char *str)
 	{
 		entrySymbol = str;
 	}
 
-	// Convert arguments from the arguments list into an plain array
+	// Convert arguments from the arguments list into an plain array.
 	const datachunk_t **ConvertProgramArguments()
 	{
 		size_t argsz = m_args.size();
@@ -142,6 +142,7 @@ ExecutionEnv::ExecutionEnv(void *programPtr)
 
 ExecutionEnv::~ExecutionEnv()
 {
+	assert(m_virtualMachine);
 	delete m_virtualMachine;
 	m_virtualMachine = nullptr;
 }

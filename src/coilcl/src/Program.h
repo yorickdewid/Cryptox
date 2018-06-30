@@ -96,10 +96,14 @@ public:
 	// Access internal AST tree indirect.
 	inline auto AstPassthrough() const { return m_ast->operator->(); }
 
-	// Symbol operations
+	//
+	// Symbol operations.
+	//
+
 	void PrintSymbols();
 	bool MatchSymbol(const std::string&);
-	inline bool HasSymbols() const { return !m_symbols.empty(); }
+	inline bool HasSymbols() const noexcept { return !m_symbols.empty(); }
+	inline bool SymbolCount() const noexcept { return m_symbols.size(); }
 	inline bool HasSymbol(const std::string& name) const { return m_symbols.find(name) != m_symbols.end(); }
 	auto& FillSymbols() { CHECK_LOCK(); return m_symbols; } //TODO: friend?
 
@@ -112,9 +116,12 @@ public:
 
 	operator bool() const noexcept { return !!m_ast; }
 
-	// Lock the program and throw on modifier methods,
+	// Lock the program and throw on modifier methods.
 	void Lock() { m_locked = true; }
+	// Check if program is in locked mode.
+	bool IsLocked() const noexcept { return m_locked; }
 
+	// Bind a tree struture to program, but only once.
 	template<typename... ArgTypes>
 	static void Bind(std::unique_ptr<Program>& program, ArgTypes&&... args)
 	{
@@ -122,11 +129,14 @@ public:
 		program->m_ast = std::make_unique<AST::AST>(std::forward<ArgTypes>(args)...);
 	}
 
+	// Allocate a new program.
 	template<typename... ArgTypes>
 	static std::unique_ptr<Program> MakeProgram(ArgTypes&&... args)
 	{
 		return std::make_unique<Program>(std::forward<ArgTypes>(args)...);
 	}
+
+	//TODO: Health check
 
 private:
 	ConditionTracker m_treeCondition;

@@ -11,6 +11,13 @@
 #include <string>
 #include <vector>
 
+namespace Version
+{
+
+std::string Compiler();
+
+} // namespace Version
+
 class Env;
 
 // Compile and run single source file.

@@ -26,6 +26,7 @@ class CompilerContract
 
 	// Run compiler.
 	virtual program_t Execute() = 0;
+
 	// Set stream chunk size.
 	virtual void SetStreamChuckSize(size_t) = 0;
 };
@@ -43,7 +44,7 @@ struct CompilerAbstraction
 	virtual CompilerAbstraction& SetBuffer(size_t);
 
 private:
-	CompilerContract * m_compiler = nullptr;
+	CompilerContract * m_compiler{ nullptr };
 };
 
 // Create a new stream reader object. 
@@ -55,13 +56,17 @@ inline auto MakeReader(_ArgsTy&&... args) -> BaseReader
 
 void GetSectionMemoryBlock(const char *tag, void *program, std::function<void(const char *, size_t)>);
 
-struct CompilerLibraryInfo
+struct LibraryInfo
 {
-	CompilerLibraryInfo();
+	LibraryInfo();
 
+	// Get the version as string.
 	std::string Version();
 
+	// Version parts.
 	std::tuple<int, int, int, int> version;
+	// Product name.
 	std::string name;
+	// Product description.
 	std::string description;
 };
