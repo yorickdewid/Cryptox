@@ -17,10 +17,10 @@
 extern "C" {
 #endif
 
-	// Resulting program
+	// Resulting program.
 	typedef struct
 	{
-		// Pointer to the program structure
+		// Pointer to the program structure.
 		void *program_ptr;
 	} program_t;
 

@@ -24,8 +24,10 @@ class VMContract
 
 	// Run compiler.
 	virtual std::pair<int, int> Execute() = 0;
+
 	// Set commandline arguments to the program.
 	virtual void CommandLineArgs(const ArgumentList&) = 0;
+
 	// Set symbol as entry point.
 	virtual void SetEntryPoint(const char *) = 0;
 };
@@ -51,5 +53,5 @@ public:
 	RunResult ExecuteProgram(const ArgumentList = {});
 
 private:
-	VMContract * m_virtualMachine = nullptr;
+	VMContract * m_virtualMachine{ nullptr };
 };

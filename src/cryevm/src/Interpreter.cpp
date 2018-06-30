@@ -1556,7 +1556,7 @@ class ScopedRoutine
 	{
 		if (!node->HasBodyExpression()) { return RETURN_NORMAL; } //TODO: set warning about useless statement
 
-		// Body node must be compound in order to be executable
+		// Body node must be compound in order to be executable.
 		if (node->BodyExpression()->Label() != AST::NodeID::COMPOUND_STMT_ID) {
 			//TODO: set warning about non-executable
 			return RETURN_NORMAL;
@@ -1574,7 +1574,7 @@ class ScopedRoutine
 				return RETURN_NORMAL; //TODO: set warning: empty statement
 			}
 
-			// Process each child node
+			// Process each child node.
 			for (const auto& childNode : body) {
 				auto child = childNode.lock();
 				if (child->Label() != AST::NodeID::CASE_STMT_ID) {
@@ -1596,7 +1596,7 @@ class ScopedRoutine
 		return RETURN_NORMAL;
 	}
 
-	// Execute body statement as long as expression is true
+	// Execute body statement as long as expression is true.
 	void ProcessWhileLoop(std::shared_ptr<WhileStmt>& node, Context::Compound& ctx)
 	{
 		if (!node->HasBodyExpression()) { return; }
@@ -1605,7 +1605,7 @@ class ScopedRoutine
 		}
 	}
 
-	// Execute body statement once and then as long as expression is true
+	// Execute body statement once and then as long as expression is true.
 	void ProcessDoLoop(std::shared_ptr<DoStmt>& node, Context::Compound& ctx)
 	{
 		if (!node->HasBodyExpression()) { return; }
@@ -1614,7 +1614,7 @@ class ScopedRoutine
 		} while (Util::EvaluateValueAsBoolean(ResolveExpression(node->Expression(), ctx)));
 	}
 
-	// Loop over statement unil expression is false
+	// Loop over statement unil expression is false.
 	void ProcessForLoop(std::shared_ptr<ForStmt>& node, Context::Compound& ctx)
 	{
 		if (!node->HasBodyExpression()) { return; }
@@ -1625,7 +1625,7 @@ class ScopedRoutine
 		}
 	}
 
-	// Return from function with either special value or none
+	// Return from function with either special value or none.
 	void ProcessReturn(std::shared_ptr<ReturnStmt>& node, Context::Function& ctx)
 	{
 		// Create explicit return type
@@ -1649,7 +1649,7 @@ public:
 namespace
 {
 
-// Convert user defined argument list items to parameters
+// Convert user defined argument list items to parameters.
 Parameters ConvertToValueDef(const ArgumentList&& args)
 {
 	using namespace CoilCl::Util;
@@ -1686,9 +1686,9 @@ Parameters ConvertToValueDef(const ArgumentList&& args)
 // Warp startup parameters in program arguments format. To If no arguments are
 // passed to the startup the parameters are ignored. The program contract
 // defines thee parameters, respectively:
-//   1.) argc, the argument count
-//   2.) argv, an array to string literal parameters
-//   3.) envp, an array to string literal environment variables
+//   1.) argc, the argument count.
+//   2.) argv, an array to string literal parameters.
+//   3.) envp, an array to string literal environment variables.
 void FormatStartupParameters(std::array<std::string, 3> mapper, Parameters&& params, Context::Function& ctx)
 {
 	if (params.empty()) { return; }
@@ -1702,7 +1702,7 @@ void FormatStartupParameters(std::array<std::string, 3> mapper, Parameters&& par
 
 } // namespace
 
-// Call program routine from external context
+// Call program routine from external context.
 Evaluator& Evaluator::CallRoutine(const std::string& symbol, const ArgumentList& args)
 {
 	auto funcNode = m_unitContext->LookupSymbol<FunctionDecl>(symbol);
@@ -1747,7 +1747,7 @@ int Evaluator::YieldResult()
 			return globalCtx->ReturnValue().As<int>();
 		}
 	}
-	// On casting faillure, return faillure all the way
+	// On casting faillure, return faillure all the way.
 	catch (std::exception&) { //TODO: catch the boost casting error here
 		return EXIT_FAILURE;
 	}

@@ -69,10 +69,14 @@ void AssertConfiguration(const struct vm_config *config)
 	//
 }
 
-//TODO: check API version from struct
+#define CHECK_API_VERSION(u) \
+	if (u->apiVer != EVMAPIVER) { fprintf(stderr, "API version mismatch"); abort(); }
+
 // Execute program
 EVMAPI int ExecuteProgram(runtime_settings_t *runtime) noexcept
 {
+	CHECK_API_VERSION(runtime);
+
 	AssertConfiguration(&runtime->cfg);
 
 	// Capture program pointer and cast into program structure
