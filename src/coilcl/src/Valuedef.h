@@ -79,8 +79,8 @@ class Value //TODO: mark each value with an unique id
 	friend struct Util::ValueFactory;
 
 public:
-	using ValueVariant2 = boost::variant<int, char, float, double, bool>; //TODO: rename
-	using ValueVariant3 = boost::variant<std::vector<int> //TODO: rename
+	using ValueVariantSingle = boost::variant<int, char, float, double, bool>; //TODO: rename
+	using ValueVariantMulti = boost::variant<std::vector<int> //TODO: rename
 		, std::vector<char>
 		, std::vector<float>
 		, std::vector<double>
@@ -113,12 +113,12 @@ protected:
 		ValueSelect() = default; //TODO: for now
 		ValueSelect(const ValueSelect&) = default;
 		ValueSelect(ValueSelect&&) = default;
-		ValueSelect(ValueVariant2 value)
+		ValueSelect(ValueVariantSingle value)
 			: singleValue{ value }
 		{
 		}
 
-		ValueSelect(ValueVariant3 value)
+		ValueSelect(ValueVariantMulti value)
 			: multiValue{ value }
 		{
 		}
@@ -175,11 +175,11 @@ protected:
 		// Clear any values
 		void Clear();
 
-		boost::optional<ValueVariant2> singleValue;
-		boost::optional<ValueVariant3> multiValue;
+		boost::optional<ValueVariantSingle> singleValue;
+		boost::optional<ValueVariantMulti> multiValue;
 		boost::optional<RecordValue> recordValue;
 		std::shared_ptr<Value> referenceValue;
-	} m_value3;
+	} m_value;
 
 private:
 	template<typename CastTypePart>
@@ -190,8 +190,8 @@ private:
 	ValueCastImp ValueCastImp(int) const
 	{
 		try {
-			if (m_value3.singleValue) {
-				return boost::get<ValueCastImp>(m_value3.singleValue.get());
+			if (m_value.singleValue) {
+				return boost::get<ValueCastImp>(m_value.singleValue.get());
 			}
 			else {
 				throw UninitializedValueException{};
@@ -207,8 +207,8 @@ private:
 	ValueCastImp ValueCastImp(int) const
 	{
 		try {
-			if (m_value3.multiValue) {
-				return boost::get<ValueCastImp>(m_value3.multiValue.get());
+			if (m_value.multiValue) {
+				return boost::get<ValueCastImp>(m_value.multiValue.get());
 			}
 			else {
 				throw UninitializedValueException{};
@@ -224,8 +224,8 @@ private:
 	ValueCastImp ValueCastImp(int) const
 	{
 		try {
-			if (m_value3.recordValue) {
-				return boost::get<ValueCastImp>(m_value3.recordValue.get());
+			if (m_value.recordValue) {
+				return boost::get<ValueCastImp>(m_value.recordValue.get());
 			}
 			else {
 				throw UninitializedValueException{};
@@ -241,8 +241,8 @@ private:
 	ValueCastImp ValueCastImp(int) const
 	{
 		try {
-			if (m_value3.referenceValue) {
-				return (*m_value3.referenceValue.get());
+			if (m_value.referenceValue) {
+				return (*m_value.referenceValue.get());
 			}
 			else {
 				throw UninitializedValueException{};
@@ -260,9 +260,9 @@ public:
 	// Value declaration without initialization.
 	Value(Typedef::TypeFacade);
 	// Value declaration and initialization.
-	Value(Typedef::TypeFacade, ValueVariant2&&);
+	Value(Typedef::TypeFacade, ValueVariantSingle&&);
 	// Value declaration and initialization.
-	Value(Typedef::TypeFacade, ValueVariant3&&);
+	Value(Typedef::TypeFacade, ValueVariantMulti&&);
 	// Value declaration and initialization.
 	Value(Typedef::TypeFacade, RecordValue&&);
 	// Pointer value declaration and initialization.
@@ -272,9 +272,9 @@ public:
 	Typedef::TypeFacade Type() const { return m_internalType; }
 
 	// Check if current value is an pointer.
-	inline bool IsReference() const { return !!m_value3.referenceValue; } //TODO: refactor & remove in lieu of Typedef
+	inline bool IsReference() const { return !!m_value.referenceValue; } //TODO: refactor & remove in lieu of Typedef
 	// Check if value is empty.
-	inline bool Empty() const noexcept { return m_value3.Empty(); }
+	inline bool Empty() const noexcept { return m_value.Empty(); }
 
 	//TODO: REMOVE: OBSOLETE:
 	inline bool IsArray() const noexcept { return false; }
@@ -291,7 +291,7 @@ public:
 	// Return value as string.
 	virtual const std::string Print() const
 	{
-		return m_value3.ToString();
+		return m_value.ToString();
 	}
 
 	// Serialize the value into byte array.
@@ -347,14 +347,14 @@ struct ValueDeductor
 	Valuedef::Value MakeValue(NativeRawType value)
 	{
 		return Valuedef::Value{TypeFacade{ Util::MakeBuiltinType(Specifier) }
-			, Valuedef::Value::ValueVariant2{ value } };
+			, Valuedef::Value::ValueVariantSingle{ value } };
 	}
 
 	template<BuiltinType::Specifier Specifier, typename NativeRawType>
 	Valuedef::Value MakeMultiValue(NativeRawType&& value)
 	{
 		return Valuedef::Value{TypeFacade{ Util::MakeBuiltinType(Specifier) }
-			, Valuedef::Value::ValueVariant3{ std::move(value) } };
+			, Valuedef::Value::ValueVariantMulti{ std::move(value) } };
 	}
 
 	template<typename PlainType>

@@ -25,15 +25,15 @@ Value::Value(Typedef::TypeFacade typeBase)
 {
 }
 // Value declaration and initialization
-Value::Value(Typedef::TypeFacade typeBase, ValueVariant2&& value)
+Value::Value(Typedef::TypeFacade typeBase, ValueVariantSingle&& value)
 	: m_internalType{ typeBase }
-	, m_value3{ ValueSelect{ std::move(value) } }
+	, m_value{ ValueSelect{ std::move(value) } }
 {
 }
 // Value declaration and initialization
-Value::Value(Typedef::TypeFacade typeBase, ValueVariant3&& value)
+Value::Value(Typedef::TypeFacade typeBase, ValueVariantMulti&& value)
 	: m_internalType{ typeBase }
-	, m_value3{ ValueSelect{ std::move(value) } }
+	, m_value{ ValueSelect{ std::move(value) } }
 {
 	m_internalType.SetArraySize(1);
 }
@@ -41,7 +41,7 @@ Value::Value(Typedef::TypeFacade typeBase, ValueVariant3&& value)
 // Value declaration and initialization.
 Value::Value(Typedef::TypeFacade typeBase, RecordValue&& value)
 	: m_internalType{ typeBase }
-	, m_value3{ ValueSelect{ std::move(value) } }
+	, m_value{ ValueSelect{ std::move(value) } }
 {
 	auto *record = dynamic_cast<Typedef::RecordType *>(m_internalType.operator->());
 	assert(record);
@@ -57,7 +57,7 @@ Value::Value(Typedef::TypeFacade typeBase, RecordValue&& value)
 // Value declaration and initialization.
 Value::Value(Typedef::TypeFacade typeBase, Value&& value)
 	: m_internalType{ typeBase }
-	, m_value3{ ValueSelect{ std::move(value) } }
+	, m_value{ ValueSelect{ std::move(value) } }
 {
 }
 
@@ -167,7 +167,7 @@ struct ValuePackerSingular final : public ValuePacker
 		m_buffer.SerializeAs<Cry::Byte>(v);
 	}
 
-	Value::ValueVariant2 Load() const
+	Value::ValueVariantSingle Load() const
 	{
 		switch (static_cast<NativeValueType>(m_buffer.Deserialize<Cry::Byte>(Cry::ByteArray::AUTO)))
 		{
@@ -240,7 +240,7 @@ struct ValuePackerMulti final : public ValuePacker
 		}
 	}
 
-	Value::ValueVariant3 Load() const
+	Value::ValueVariantMulti Load() const
 	{
 		NativeValueType select = static_cast<NativeValueType>(m_buffer.Deserialize<Cry::Byte>(Cry::ByteArray::AUTO));
 		size_t arraySize = m_buffer.Deserialize<Cry::Word>(Cry::ByteArray::AUTO);
@@ -432,7 +432,7 @@ void Value::Serialize(const Value& value, Cry::ByteArray& buffer)
 	Typedef::TypeFacade::Serialize(int{}, value.m_internalType, buffer);
 
 	// Serialzie value
-	ValueSelect::Pack(value.m_value3, buffer);
+	ValueSelect::Pack(value.m_value, buffer);
 }
 
 void Value::Deserialize(Value& value, Cry::ByteArray& buffer)
@@ -449,13 +449,13 @@ void Value::Deserialize(Value& value, Cry::ByteArray& buffer)
 	Typedef::TypeFacade::Deserialize(int{}, value.m_internalType, buffer);
 
 	// Convert stream into value
-	ValueSelect::Unpack(value.m_value3, buffer);
+	ValueSelect::Unpack(value.m_value, buffer);
 }
 
 // Copy other value into this value.
 Value& Value::operator=(const Value& other)
 {
-	m_value3 = other.m_value3;
+	m_value = other.m_value;
 	m_internalType = other.m_internalType;
 	return (*this);
 }
@@ -463,7 +463,7 @@ Value& Value::operator=(const Value& other)
 // Move other value into this value.
 Value& Value::operator=(Value&& other)
 {
-	m_value3 = std::move(other.m_value3);
+	m_value = std::move(other.m_value);
 	m_internalType = std::move(other.m_internalType);
 	return (*this);
 }
@@ -472,7 +472,7 @@ Value& Value::operator=(Value&& other)
 bool Value::operator==(const Value& other) const
 {
 	return Empty() == other.Empty()
-		&& m_value3 == other.m_value3
+		&& m_value == other.m_value
 		&& m_internalType == other.m_internalType;
 }
 

@@ -88,7 +88,7 @@ class ExecuteAdapter final
 	{
 		size_t argsz = m_args.size();
 		if (!argsz) { return nullptr; };
-		datachunk_t **argv = (datachunk_t **)malloc(argsz + 1);
+		datachunk_t **argv = (datachunk_t **)malloc((argsz + 1) * sizeof(datachunk_t *));
 		for (size_t i = 0; i < argsz; ++i) {
 			argv[i] = (datachunk_t *)malloc(sizeof(datachunk_t));
 			argv[i]->ptr = m_args[i].data();
@@ -102,14 +102,15 @@ class ExecuteAdapter final
 		return const_cast<const datachunk_t **>(argv);
 	}
 
-	//TODO; still missing 1 dealloc
+	// Release program arguments
 	void FreeProgramArguments(const datachunk_t **args)
 	{
 		size_t i = 0;
 		for (; args[i]->ptr; ++i) {
-			free((void*)args[i]);
+			free(static_cast<void*>(const_cast<datachunk_t *>(args[i])));
 		}
-		free((void*)args[i]);
+		free(static_cast<void*>(const_cast<datachunk_t *>(args[i])));
+		free(const_cast<datachunk_t **>(args));
 	}
 
 public:

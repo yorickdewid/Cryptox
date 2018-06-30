@@ -212,7 +212,8 @@ public:
 #ifdef CRY_DEBUG_TRACE
 			// For now dump contents to screen
 			program->AstPassthrough()->Print<CoilCl::AST::ASTNode::Traverse::STAGE_LAST>();
-
+#endif
+#ifdef CRY_DEBUG_TESTING
 			// Add console output stream to module
 			auto consoleStream = Emit::Stream::MakeStream<Emit::Stream::Console>();
 			AIIPXMod.AddStream(consoleStream);
