@@ -528,6 +528,7 @@ public:
 		ASSGN,		// =
 
 		XOR,		// ^
+		OR,			// |
 		AND,		// &
 
 		SLEFT,		// <<

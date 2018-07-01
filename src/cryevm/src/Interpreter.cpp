@@ -1071,10 +1071,10 @@ struct OperandFactory
 				//
 			}
 
-			//TODO: missing bit_or?
-
 		case BinaryOperator::BinOperand::XOR:
 			return std::bit_xor<Type>()(left, right);
+		case BinaryOperator::BinOperand::OR:
+			return std::bit_or<Type>()(left, right);
 		case BinaryOperator::BinOperand::AND:
 			return std::bit_and<Type>()(left, right);
 		case BinaryOperator::BinOperand::SLEFT:

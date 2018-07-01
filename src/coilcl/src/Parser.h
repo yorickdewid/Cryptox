@@ -278,6 +278,7 @@ private: // Expressions
 	void EqualityExpression();
 	void AndExpression();
 	void ExclusiveOrExpression();
+	void InclusiveOrExpression();
 	void LogicalAndExpression();
 	void LogicalOrExpression();
 	void ConditionalExpression();

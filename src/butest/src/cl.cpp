@@ -23,6 +23,11 @@
 //               a testcase for the specific bug should be created.
 //
 
+//TODO:
+// - Test cast
+// - Test double cast (int)(char)
+// - All binary operators
+
 class CompilerHelper
 {
 	// Read the source in one go, this operation does not need to be efficient
@@ -390,6 +395,26 @@ BOOST_AUTO_TEST_CASE(ClSysPrefixPostFix)
 	compiler.RunVirtualMachine();
 	BOOST_REQUIRE_EQUAL(compiler.VMResult(), 0);
 	BOOST_REQUIRE_EQUAL(compiler.ExecutionResult(), 60);
+}
+
+BOOST_AUTO_TEST_CASE(ClSysOrderOfOperations)
+{
+	const std::string source = ""
+		"int main() {\n"
+		"	int a = 3 * 4 + 2; // 14\n"
+		"	int b = 3 + 4 * 2; // 11\n"
+		"	int c = 16 / 8 - 1; // 1\n"
+		"	int d = 24 + 5 - 4 - 6; // 19\n"
+		"	return a * b / c - 19;\n"
+		"}";
+
+	CompilerHelper compiler{ source };
+	compiler.RunCompiler();
+	BOOST_REQUIRE(!compiler.IsProgramEmpty());
+
+	compiler.RunVirtualMachine();
+	BOOST_REQUIRE_EQUAL(compiler.VMResult(), 0);
+	BOOST_REQUIRE_EQUAL(compiler.ExecutionResult(), 135);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

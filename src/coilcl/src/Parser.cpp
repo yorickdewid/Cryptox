@@ -1197,49 +1197,53 @@ void Parser::MultiplicativeExpression()
 {
 	CastExpression();
 
-	switch (CURRENT_TOKEN()) {
-	case TK_ASTERISK:
-	{
-		auto binOp = CoilCl::AST::MakeASTNode<BinaryOperator>(BinaryOperator::BinOperand::MUL, m_elementDescentPipe.next());
-		binOp->SetLocation(CURRENT_LOCATION());
-		m_elementDescentPipe.pop();
+	for (;;) {
+		switch (CURRENT_TOKEN()) {
+		case TK_ASTERISK:
+		{
+			auto binOp = CoilCl::AST::MakeASTNode<BinaryOperator>(BinaryOperator::BinOperand::MUL, m_elementDescentPipe.next());
+			binOp->SetLocation(CURRENT_LOCATION());
+			m_elementDescentPipe.pop();
 
-		NextToken();
-		CastExpression();
+			NextToken();
+			CastExpression();
 
-		binOp->SetRightSide(m_elementDescentPipe.next());
-		m_elementDescentPipe.pop();
-		m_elementDescentPipe.push(binOp);
-		break;
-	}
-	case TK_SLASH:
-	{
-		auto binOp = CoilCl::AST::MakeASTNode<BinaryOperator>(BinaryOperator::BinOperand::DIV, m_elementDescentPipe.next());
-		binOp->SetLocation(CURRENT_LOCATION());
-		m_elementDescentPipe.pop();
+			binOp->SetRightSide(m_elementDescentPipe.next());
+			m_elementDescentPipe.pop();
+			m_elementDescentPipe.push(binOp);
+			break;
+		}
+		case TK_SLASH:
+		{
+			auto binOp = CoilCl::AST::MakeASTNode<BinaryOperator>(BinaryOperator::BinOperand::DIV, m_elementDescentPipe.next());
+			binOp->SetLocation(CURRENT_LOCATION());
+			m_elementDescentPipe.pop();
 
-		NextToken();
-		CastExpression();
+			NextToken();
+			CastExpression();
 
-		binOp->SetRightSide(m_elementDescentPipe.next());
-		m_elementDescentPipe.pop();
-		m_elementDescentPipe.push(binOp);
-		break;
-	}
-	case TK_PERCENT:
-	{
-		auto binOp = CoilCl::AST::MakeASTNode<BinaryOperator>(BinaryOperator::BinOperand::MOD, m_elementDescentPipe.next());
-		binOp->SetLocation(CURRENT_LOCATION());
-		m_elementDescentPipe.pop();
+			binOp->SetRightSide(m_elementDescentPipe.next());
+			m_elementDescentPipe.pop();
+			m_elementDescentPipe.push(binOp);
+			break;
+		}
+		case TK_PERCENT:
+		{
+			auto binOp = CoilCl::AST::MakeASTNode<BinaryOperator>(BinaryOperator::BinOperand::MOD, m_elementDescentPipe.next());
+			binOp->SetLocation(CURRENT_LOCATION());
+			m_elementDescentPipe.pop();
 
-		NextToken();
-		CastExpression();
+			NextToken();
+			CastExpression();
 
-		binOp->SetRightSide(m_elementDescentPipe.next());
-		m_elementDescentPipe.pop();
-		m_elementDescentPipe.push(binOp);
-		break;
-	}
+			binOp->SetRightSide(m_elementDescentPipe.next());
+			m_elementDescentPipe.pop();
+			m_elementDescentPipe.push(binOp);
+			break;
+		}
+		default:
+			return;
+		}
 	}
 }
 
@@ -1247,35 +1251,39 @@ void Parser::AdditiveExpression()
 {
 	MultiplicativeExpression();
 
-	switch (CURRENT_TOKEN()) {
-	case TK_MINUS:
-	{
-		auto binOp = CoilCl::AST::MakeASTNode<BinaryOperator>(BinaryOperator::BinOperand::MINUS, m_elementDescentPipe.next());
-		binOp->SetLocation(CURRENT_LOCATION());
-		m_elementDescentPipe.pop();
+	for (;;) {
+		switch (CURRENT_TOKEN()) {
+		case TK_PLUS:
+		{
+			auto binOp = CoilCl::AST::MakeASTNode<BinaryOperator>(BinaryOperator::BinOperand::PLUS, m_elementDescentPipe.next());
+			binOp->SetLocation(CURRENT_LOCATION());
+			m_elementDescentPipe.pop();
 
-		NextToken();
-		AdditiveExpression();
+			NextToken();
+			MultiplicativeExpression();
 
-		binOp->SetRightSide(m_elementDescentPipe.next());
-		m_elementDescentPipe.pop();
-		m_elementDescentPipe.push(binOp);
-		break;
-	}
-	case TK_PLUS:
-	{
-		auto binOp = CoilCl::AST::MakeASTNode<BinaryOperator>(BinaryOperator::BinOperand::PLUS, m_elementDescentPipe.next());
-		binOp->SetLocation(CURRENT_LOCATION());
-		m_elementDescentPipe.pop();
+			binOp->SetRightSide(m_elementDescentPipe.next());
+			m_elementDescentPipe.pop();
+			m_elementDescentPipe.push(binOp);
+			break;
+		}
+		case TK_MINUS:
+		{
+			auto binOp = CoilCl::AST::MakeASTNode<BinaryOperator>(BinaryOperator::BinOperand::MINUS, m_elementDescentPipe.next());
+			binOp->SetLocation(CURRENT_LOCATION());
+			m_elementDescentPipe.pop();
 
-		NextToken();
-		AdditiveExpression();
+			NextToken();
+			MultiplicativeExpression();
 
-		binOp->SetRightSide(m_elementDescentPipe.next());
-		m_elementDescentPipe.pop();
-		m_elementDescentPipe.push(binOp);
-		break;
-	}
+			binOp->SetRightSide(m_elementDescentPipe.next());
+			m_elementDescentPipe.pop();
+			m_elementDescentPipe.push(binOp);
+			break;
+		}
+		default:
+			return;
+		}
 	}
 }
 
@@ -1283,35 +1291,39 @@ void Parser::ShiftExpression()
 {
 	AdditiveExpression();
 
-	switch (CURRENT_TOKEN()) {
-	case TK_LEFT_OP:
-	{
-		auto binOp = CoilCl::AST::MakeASTNode<BinaryOperator>(BinaryOperator::BinOperand::SLEFT, m_elementDescentPipe.next());
-		binOp->SetLocation(CURRENT_LOCATION());
-		m_elementDescentPipe.pop();
+	for (;;) {
+		switch (CURRENT_TOKEN()) {
+		case TK_LEFT_OP:
+		{
+			auto binOp = CoilCl::AST::MakeASTNode<BinaryOperator>(BinaryOperator::BinOperand::SLEFT, m_elementDescentPipe.next());
+			binOp->SetLocation(CURRENT_LOCATION());
+			m_elementDescentPipe.pop();
 
-		NextToken();
-		AdditiveExpression();
+			NextToken();
+			AdditiveExpression();
 
-		binOp->SetRightSide(m_elementDescentPipe.next());
-		m_elementDescentPipe.pop();
-		m_elementDescentPipe.push(binOp);
-		break;
-	}
-	case TK_RIGHT_OP:
-	{
-		auto binOp = CoilCl::AST::MakeASTNode<BinaryOperator>(BinaryOperator::BinOperand::SRIGHT, m_elementDescentPipe.next());
-		binOp->SetLocation(CURRENT_LOCATION());
-		m_elementDescentPipe.pop();
+			binOp->SetRightSide(m_elementDescentPipe.next());
+			m_elementDescentPipe.pop();
+			m_elementDescentPipe.push(binOp);
+			break;
+		}
+		case TK_RIGHT_OP:
+		{
+			auto binOp = CoilCl::AST::MakeASTNode<BinaryOperator>(BinaryOperator::BinOperand::SRIGHT, m_elementDescentPipe.next());
+			binOp->SetLocation(CURRENT_LOCATION());
+			m_elementDescentPipe.pop();
 
-		NextToken();
-		AdditiveExpression();
+			NextToken();
+			AdditiveExpression();
 
-		binOp->SetRightSide(m_elementDescentPipe.next());
-		m_elementDescentPipe.pop();
-		m_elementDescentPipe.push(binOp);
-		break;
-	}
+			binOp->SetRightSide(m_elementDescentPipe.next());
+			m_elementDescentPipe.pop();
+			m_elementDescentPipe.push(binOp);
+			break;
+		}
+		default:
+			return;
+		}
 	}
 }
 
@@ -1319,63 +1331,67 @@ void Parser::RelationalExpression()
 {
 	ShiftExpression();
 
-	switch (CURRENT_TOKEN()) {
-	case TK_LESS_THAN:
-	{
-		auto binOp = CoilCl::AST::MakeASTNode<BinaryOperator>(BinaryOperator::BinOperand::LT, m_elementDescentPipe.next());
-		binOp->SetLocation(CURRENT_LOCATION());
-		m_elementDescentPipe.pop();
+	for (;;) {
+		switch (CURRENT_TOKEN()) {
+		case TK_LESS_THAN:
+		{
+			auto binOp = CoilCl::AST::MakeASTNode<BinaryOperator>(BinaryOperator::BinOperand::LT, m_elementDescentPipe.next());
+			binOp->SetLocation(CURRENT_LOCATION());
+			m_elementDescentPipe.pop();
 
-		NextToken();
-		ShiftExpression();
+			NextToken();
+			ShiftExpression();
 
-		binOp->SetRightSide(m_elementDescentPipe.next());
-		m_elementDescentPipe.pop();
-		m_elementDescentPipe.push(binOp);
-		break;
-	}
-	case TK_GREATER_THAN:
-	{
-		auto binOp = CoilCl::AST::MakeASTNode<BinaryOperator>(BinaryOperator::BinOperand::GT, m_elementDescentPipe.next());
-		binOp->SetLocation(CURRENT_LOCATION());
-		m_elementDescentPipe.pop();
+			binOp->SetRightSide(m_elementDescentPipe.next());
+			m_elementDescentPipe.pop();
+			m_elementDescentPipe.push(binOp);
+			break;
+		}
+		case TK_GREATER_THAN:
+		{
+			auto binOp = CoilCl::AST::MakeASTNode<BinaryOperator>(BinaryOperator::BinOperand::GT, m_elementDescentPipe.next());
+			binOp->SetLocation(CURRENT_LOCATION());
+			m_elementDescentPipe.pop();
 
-		NextToken();
-		ShiftExpression();
+			NextToken();
+			ShiftExpression();
 
-		binOp->SetRightSide(m_elementDescentPipe.next());
-		m_elementDescentPipe.pop();
-		m_elementDescentPipe.push(binOp);
-		break;
-	}
-	case TK_LE_OP:
-	{
-		auto binOp = CoilCl::AST::MakeASTNode<BinaryOperator>(BinaryOperator::BinOperand::LE, m_elementDescentPipe.next());
-		binOp->SetLocation(CURRENT_LOCATION());
-		m_elementDescentPipe.pop();
+			binOp->SetRightSide(m_elementDescentPipe.next());
+			m_elementDescentPipe.pop();
+			m_elementDescentPipe.push(binOp);
+			break;
+		}
+		case TK_LE_OP:
+		{
+			auto binOp = CoilCl::AST::MakeASTNode<BinaryOperator>(BinaryOperator::BinOperand::LE, m_elementDescentPipe.next());
+			binOp->SetLocation(CURRENT_LOCATION());
+			m_elementDescentPipe.pop();
 
-		NextToken();
-		ShiftExpression();
+			NextToken();
+			ShiftExpression();
 
-		binOp->SetRightSide(m_elementDescentPipe.next());
-		m_elementDescentPipe.pop();
-		m_elementDescentPipe.push(binOp);
-		break;
-	}
-	case TK_GE_OP:
-	{
-		auto binOp = CoilCl::AST::MakeASTNode<BinaryOperator>(BinaryOperator::BinOperand::GE, m_elementDescentPipe.next());
-		binOp->SetLocation(CURRENT_LOCATION());
-		m_elementDescentPipe.pop();
+			binOp->SetRightSide(m_elementDescentPipe.next());
+			m_elementDescentPipe.pop();
+			m_elementDescentPipe.push(binOp);
+			break;
+		}
+		case TK_GE_OP:
+		{
+			auto binOp = CoilCl::AST::MakeASTNode<BinaryOperator>(BinaryOperator::BinOperand::GE, m_elementDescentPipe.next());
+			binOp->SetLocation(CURRENT_LOCATION());
+			m_elementDescentPipe.pop();
 
-		NextToken();
-		ShiftExpression();
+			NextToken();
+			ShiftExpression();
 
-		binOp->SetRightSide(m_elementDescentPipe.next());
-		m_elementDescentPipe.pop();
-		m_elementDescentPipe.push(binOp);
-		break;
-	}
+			binOp->SetRightSide(m_elementDescentPipe.next());
+			m_elementDescentPipe.pop();
+			m_elementDescentPipe.push(binOp);
+			break;
+		}
+		default:
+			return;
+		}
 	}
 }
 
@@ -1383,35 +1399,39 @@ void Parser::EqualityExpression()
 {
 	RelationalExpression();
 
-	switch (CURRENT_TOKEN()) {
-	case TK_EQ_OP:
-	{
-		auto binOp = CoilCl::AST::MakeASTNode<BinaryOperator>(BinaryOperator::BinOperand::EQ, m_elementDescentPipe.next());
-		binOp->SetLocation(CURRENT_LOCATION());
-		m_elementDescentPipe.pop();
+	for (;;) {
+		switch (CURRENT_TOKEN()) {
+		case TK_EQ_OP:
+		{
+			auto binOp = CoilCl::AST::MakeASTNode<BinaryOperator>(BinaryOperator::BinOperand::EQ, m_elementDescentPipe.next());
+			binOp->SetLocation(CURRENT_LOCATION());
+			m_elementDescentPipe.pop();
 
-		NextToken();
-		RelationalExpression();
+			NextToken();
+			RelationalExpression();
 
-		binOp->SetRightSide(m_elementDescentPipe.next());
-		m_elementDescentPipe.pop();
-		m_elementDescentPipe.push(binOp);
-		break;
-	}
-	case TK_NE_OP:
-	{
-		auto binOp = CoilCl::AST::MakeASTNode<BinaryOperator>(BinaryOperator::BinOperand::NEQ, m_elementDescentPipe.next());
-		binOp->SetLocation(CURRENT_LOCATION());
-		m_elementDescentPipe.pop();
+			binOp->SetRightSide(m_elementDescentPipe.next());
+			m_elementDescentPipe.pop();
+			m_elementDescentPipe.push(binOp);
+			break;
+		}
+		case TK_NE_OP:
+		{
+			auto binOp = CoilCl::AST::MakeASTNode<BinaryOperator>(BinaryOperator::BinOperand::NEQ, m_elementDescentPipe.next());
+			binOp->SetLocation(CURRENT_LOCATION());
+			m_elementDescentPipe.pop();
 
-		NextToken();
-		RelationalExpression();
+			NextToken();
+			RelationalExpression();
 
-		binOp->SetRightSide(m_elementDescentPipe.next());
-		m_elementDescentPipe.pop();
-		m_elementDescentPipe.push(binOp);
-		break;
-	}
+			binOp->SetRightSide(m_elementDescentPipe.next());
+			m_elementDescentPipe.pop();
+			m_elementDescentPipe.push(binOp);
+			break;
+		}
+		default:
+			return;
+		}
 	}
 }
 
@@ -1419,7 +1439,7 @@ void Parser::AndExpression()
 {
 	EqualityExpression();
 
-	if (MATCH_TOKEN(TK_AMPERSAND)) {
+	while (MATCH_TOKEN(TK_AMPERSAND)) {
 		auto binOp = CoilCl::AST::MakeASTNode<BinaryOperator>(BinaryOperator::BinOperand::AND, m_elementDescentPipe.next());
 		binOp->SetLocation(CURRENT_LOCATION());
 		m_elementDescentPipe.pop();
@@ -1437,8 +1457,26 @@ void Parser::ExclusiveOrExpression()
 {
 	AndExpression();
 
-	if (MATCH_TOKEN(TK_CARET)) {
+	while (MATCH_TOKEN(TK_CARET)) {
 		auto binOp = CoilCl::AST::MakeASTNode<BinaryOperator>(BinaryOperator::BinOperand::XOR, m_elementDescentPipe.next());
+		binOp->SetLocation(CURRENT_LOCATION());
+		m_elementDescentPipe.pop();
+
+		NextToken();
+		AndExpression();
+
+		binOp->SetRightSide(m_elementDescentPipe.next());
+		m_elementDescentPipe.pop();
+		m_elementDescentPipe.push(binOp);
+	}
+}
+
+void Parser::InclusiveOrExpression()
+{
+	ExclusiveOrExpression();
+
+	while (MATCH_TOKEN(TK_VERTIAL_BAR)) {
+		auto binOp = CoilCl::AST::MakeASTNode<BinaryOperator>(BinaryOperator::BinOperand::OR, m_elementDescentPipe.next());
 		binOp->SetLocation(CURRENT_LOCATION());
 		m_elementDescentPipe.pop();
 
@@ -1453,9 +1491,9 @@ void Parser::ExclusiveOrExpression()
 
 void Parser::LogicalAndExpression()
 {
-	ExclusiveOrExpression();
+	InclusiveOrExpression();
 
-	if (MATCH_TOKEN(TK_AND_OP)) {
+	while (MATCH_TOKEN(TK_AND_OP)) {
 		auto binOp = CoilCl::AST::MakeASTNode<BinaryOperator>(BinaryOperator::BinOperand::LAND, m_elementDescentPipe.next());
 		binOp->SetLocation(CURRENT_LOCATION());
 		m_elementDescentPipe.pop();
@@ -1473,7 +1511,7 @@ void Parser::LogicalOrExpression()
 {
 	LogicalAndExpression();
 
-	if (MATCH_TOKEN(TK_OR_OP)) {
+	while (MATCH_TOKEN(TK_OR_OP)) {
 		auto binOp = CoilCl::AST::MakeASTNode<BinaryOperator>(BinaryOperator::BinOperand::LOR, m_elementDescentPipe.next());
 		binOp->SetLocation(CURRENT_LOCATION());
 		m_elementDescentPipe.pop();
@@ -1513,8 +1551,6 @@ void Parser::ConditionalExpression()
 void Parser::AssignmentExpression()
 {
 	ConditionalExpression();
-
-	//UnaryExpression(); //XXX UnaryExpression is already run in the ConditionalExpression
 	AssignmentOperator();
 }
 
