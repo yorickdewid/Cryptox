@@ -352,4 +352,44 @@ BOOST_AUTO_TEST_CASE(ClSysIfConditionFalse)
 	BOOST_REQUIRE_EQUAL(compiler.ExecutionResult(), 617538);
 }
 
+BOOST_AUTO_TEST_CASE(ClSysPrefixPostFix)
+{
+	const std::string source = ""
+		"int preplus() {\n"
+		"	int u = 9;\n"
+		"	int i = ++u + u;\n"
+		"	return i;\n"
+		"}\n"
+		"\n"
+		"int postplus() {\n"
+		"	int u = 9;\n"
+		"	int i = u++ + u;\n"
+		"	return i;\n"
+		"}\n"
+		"\n"
+		"int premin() {\n"
+		"	int u = 9;\n"
+		"	int i = --u - u;\n"
+		"	return i;\n"
+		"}\n"
+		"\n"
+		"int postmin() {\n"
+		"	int u = 9;\n"
+		"	int i = u-- - u;\n"
+		"	return i;\n"
+		"}\n"
+		"\n"
+		"int main() {\n"
+		"	return preplus() + preplus() + premin() + postplus() + postmin();\n"
+		"}";
+
+	CompilerHelper compiler{ source };
+	compiler.RunCompiler();
+	BOOST_REQUIRE(!compiler.IsProgramEmpty());
+
+	compiler.RunVirtualMachine();
+	BOOST_REQUIRE_EQUAL(compiler.VMResult(), 0);
+	BOOST_REQUIRE_EQUAL(compiler.ExecutionResult(), 60);
+}
+
 BOOST_AUTO_TEST_SUITE_END()

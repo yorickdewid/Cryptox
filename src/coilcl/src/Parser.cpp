@@ -1248,9 +1248,9 @@ void Parser::AdditiveExpression()
 	MultiplicativeExpression();
 
 	switch (CURRENT_TOKEN()) {
-	case TK_PLUS:
+	case TK_MINUS:
 	{
-		auto binOp = CoilCl::AST::MakeASTNode<BinaryOperator>(BinaryOperator::BinOperand::PLUS, m_elementDescentPipe.next());
+		auto binOp = CoilCl::AST::MakeASTNode<BinaryOperator>(BinaryOperator::BinOperand::MINUS, m_elementDescentPipe.next());
 		binOp->SetLocation(CURRENT_LOCATION());
 		m_elementDescentPipe.pop();
 
@@ -1262,9 +1262,9 @@ void Parser::AdditiveExpression()
 		m_elementDescentPipe.push(binOp);
 		break;
 	}
-	case TK_MINUS:
+	case TK_PLUS:
 	{
-		auto binOp = CoilCl::AST::MakeASTNode<BinaryOperator>(BinaryOperator::BinOperand::MINUS, m_elementDescentPipe.next());
+		auto binOp = CoilCl::AST::MakeASTNode<BinaryOperator>(BinaryOperator::BinOperand::PLUS, m_elementDescentPipe.next());
 		binOp->SetLocation(CURRENT_LOCATION());
 		m_elementDescentPipe.pop();
 
@@ -2298,14 +2298,14 @@ break_loop:
 	return foundDecl;
 }
 
-// Continue until a type qualifier was found
+// Continue until a type qualifier was found.
 void Parser::TypeQualifierList()
 {
 	while (TypeQualifier() != Typedef::TypedefBase::TypeQualifier::NONE);
 }
 
 // A parameter type list must contain at least the
-// parameter declaration with a type specifier
+// parameter declaration with a type specifier.
 bool Parser::ParameterTypeList()
 {
 	auto rs = false;
@@ -2460,7 +2460,7 @@ void Parser::ExternalDeclaration()
 	assert(!m_elementDescentPipe.empty());
 }
 
-//XXX: For each translation unit run the parser loop
+//FUTURE: For each translation unit run the parser loop
 // For each transaltion unit create a new AST tree. As of this moment
 // only a single translation unit is supported
 void Parser::TranslationUnit()

@@ -1163,7 +1163,7 @@ class ScopedRoutine
 		{
 			{
 				//
-				// Return literal types
+				// Return literal types.
 				//
 			}
 
@@ -1182,7 +1182,7 @@ class ScopedRoutine
 
 		{
 			//
-			// Operators
+			// Operators.
 			//
 		}
 
@@ -1201,9 +1201,9 @@ class ScopedRoutine
 				return assignValue;
 			}
 
-			return BinaryOperation(OperandFactory<int>(op->Operand())
-				, ResolveExpression(op->LHS(), ctx)
-				, ResolveExpression(op->RHS(), ctx));
+			auto lhsValue = ResolveExpression(op->LHS(), ctx);
+			auto rhsValue = ResolveExpression(op->RHS(), ctx);
+			return BinaryOperation(OperandFactory<int>(op->Operand()), lhsValue, rhsValue);
 		}
 		case AST::NodeID::CONDITIONAL_OPERATOR_ID: {
 			const auto op = std::dynamic_pointer_cast<ConditionalOperator>(node);
@@ -1212,12 +1212,11 @@ class ScopedRoutine
 				return ResolveExpression(op->TruthStatement(), ctx);
 			}
 
-			// Handle alternative path
+			// Handle alternative path.
 			return ResolveExpression(op->AltStatement(), ctx);
 		}
 		case AST::NodeID::UNARY_OPERATOR_ID: {
 			const auto op = std::dynamic_pointer_cast<AST::UnaryOperator>(node);
-			//auto value = ResolveExpression(op->Expression(), ctx);
 			switch (op->Operand())
 			{
 			case AST::UnaryOperator::UnaryOperand::INC:
@@ -1225,10 +1224,12 @@ class ScopedRoutine
 			case AST::UnaryOperator::UnaryOperand::DEC:
 				return ValueAlteration(std::minus<int>(), op->OperationSide(), Util::NodeCast<DeclRefExpr>(op->Expression()), ctx);
 
-			case AST::UnaryOperator::UnaryOperand::INTPOS:
-			case AST::UnaryOperator::UnaryOperand::INTNEG:
-				//ValueSignedness();
-				break;
+				/*
+				case AST::UnaryOperator::UnaryOperand::INTPOS:
+					return ValueSignedness();
+				case AST::UnaryOperator::UnaryOperand::INTNEG:
+					return ValueSignedness();
+				*/
 
 			case AST::UnaryOperator::UnaryOperand::ADDR:
 				//ValueAddress();
@@ -1250,7 +1251,7 @@ class ScopedRoutine
 
 		{
 			//
-			// Return routine result
+			// Return routine result.
 			//
 		}
 
@@ -1265,7 +1266,7 @@ class ScopedRoutine
 
 		{
 			//
-			// Lookup symbol reference
+			// Lookup symbol reference.
 			//
 		}
 
@@ -1276,7 +1277,7 @@ class ScopedRoutine
 
 		{
 			//
-			// Type casting
+			// Type casting.
 			//
 		}
 
@@ -1628,7 +1629,7 @@ class ScopedRoutine
 	// Return from function with either special value or none.
 	void ProcessReturn(std::shared_ptr<ReturnStmt>& node, Context::Function& ctx)
 	{
-		// Create explicit return type
+		// Create explicit return type.
 		if (!node->HasExpression()) {
 			//TODO: Why not empty?
 			//ctx->CreateSpecialVar<RETURN_VALUE>(CoilCl::Util::MakeVoid());
@@ -1779,7 +1780,7 @@ std::string Interpreter::EntryPoint(const char *entry)
 	return entry;
 }
 
-// Run the program with current strategy
+// Run the program with current strategy.
 Interpreter::ReturnCode Interpreter::Execute(const std::string entry, const ArgumentList args)
 {
 	// Check if settings work for this program.

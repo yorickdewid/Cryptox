@@ -18,8 +18,6 @@
  * @license     GPL, Version 3
  */
 
-#include <stdio.h>
-
 int func() {
     int u = 9;
     int i = ++u + u;
@@ -33,8 +31,5 @@ int func2() {
 }
 
 int main()  {
-    func();
-    func2();
-
-    return 0;
+    return func() + func2();
 }
