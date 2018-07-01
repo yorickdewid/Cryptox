@@ -405,7 +405,7 @@ BOOST_AUTO_TEST_CASE(ClSysOrderOfOperations)
 		"	int b = 3 + 4 * 2; // 11\n"
 		"	int c = 16 / 8 - 1; // 1\n"
 		"	int d = 24 + 5 - 4 - 6; // 19\n"
-		"	return a * b / c - 19;\n"
+		"	return (a * b / c - 19) / (3 * (2 + 3));\n"
 		"}";
 
 	CompilerHelper compiler{ source };
@@ -414,7 +414,7 @@ BOOST_AUTO_TEST_CASE(ClSysOrderOfOperations)
 
 	compiler.RunVirtualMachine();
 	BOOST_REQUIRE_EQUAL(compiler.VMResult(), 0);
-	BOOST_REQUIRE_EQUAL(compiler.ExecutionResult(), 135);
+	BOOST_REQUIRE_EQUAL(compiler.ExecutionResult(), 9);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

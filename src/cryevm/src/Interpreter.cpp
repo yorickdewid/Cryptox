@@ -1287,6 +1287,18 @@ class ScopedRoutine
 			return Util::MakeInt(12); //TODO: for now
 		}
 
+		{
+			//
+			// Enclosed expression.
+			//
+		}
+
+		case AST::NodeID::PAREN_EXPR_ID: {
+			auto expr = Util::NodeCast<ParenExpr>(node);
+			assert(expr->HasExpression());
+			return ResolveExpression(expr->Expression(), ctx);
+		}
+
 		default:
 			break;
 		}

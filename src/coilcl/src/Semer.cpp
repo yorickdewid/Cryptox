@@ -126,9 +126,11 @@ std::shared_ptr<NodeType> Closest(std::shared_ptr<CoilCl::AST::ASTNode>& node)
 	return nullptr;
 }
 
-template<size_t Idx = 0, typename _ConvTy, typename _ParentTy, typename _ChildTy>
-void IsConversionRequired(std::shared_ptr<_ParentTy> parent, std::shared_ptr<_ChildTy> child, _ConvTy baseType)
+// Test if the return statement type matches the function return type, if not inject a converter.
+template<size_t Idx = 0, typename BaseType, typename ParentNode, typename ChildNode>
+void IsConversionRequired(std::shared_ptr<ParentNode> parent, std::shared_ptr<ChildNode> child, BaseType baseType)
 {
+	// FUTURE: Test this on the node id.
 	// Skip if an converter is already injected.
 	if (std::dynamic_pointer_cast<ImplicitConvertionExpr>(child) != nullptr) {
 		return;
@@ -147,7 +149,7 @@ void IsConversionRequired(std::shared_ptr<_ParentTy> parent, std::shared_ptr<_Ch
 } // namespace
 
 // Resolve all static expresions such as native type size calculations
-// and inject the expression result back into the copied tree
+// and inject the expression result back into the copied tree.
 CoilCl::Semer& CoilCl::Semer::StaticResolve()
 {
 	const std::array<std::string, 1> staticLookup{ "sizeof" };
@@ -328,18 +330,20 @@ void CoilCl::Semer::BindPrototype()
 }
 
 // Determine and set the return types and signatures for expressions,
-// operators and functions based on connected nodes
+// operators and functions based on connected nodes. The order of processing
+// is important as returnable objects are processed from the bottom up.
 void CoilCl::Semer::DeduceTypes()
 {
-	// Set signature in function definition
+	// Set signature in function definition.
 	AST::Compare::Equal<FunctionDecl> eqOp;
 	AST::Compare::Equal<VariadicDecl> eqVaria;
 	MatchIf(m_ast.begin(), m_ast.end(), eqOp, [&eqVaria](AST::AST::iterator itr)
 	{
 		std::vector<Typedef::TypeFacade> paramTypeList;
 
+		// Skip if there are no parameters, or signature was already set.
 		auto func = std::dynamic_pointer_cast<FunctionDecl>(itr.shared_ptr());
-		if (func->ParameterStatement() == nullptr || func->HasSignature()) {
+		if (!func->ParameterStatement() || func->HasSignature()) {
 			return;
 		}
 
@@ -358,7 +362,7 @@ void CoilCl::Semer::DeduceTypes()
 		}
 	});
 
-	// Set return type on call expression
+	// Set return type on call expression.
 	AST::Compare::Equal<CallExpr> eqCall;
 	MatchIf(m_ast.begin(), m_ast.end(), eqCall, [](AST::AST::iterator itr)
 	{
@@ -369,53 +373,25 @@ void CoilCl::Semer::DeduceTypes()
 		if (!call->HasReturnType()) {
 			call->SetReturnType(call->FuncDeclRef()->Reference()->ReturnType());
 		}
+
+		assert(call->HasReturnType());
 	});
 
-	// Set return type on operators and delegate type down the tree. The operator type
-	// is deducted from the first expression with an return type
-	AST::Compare::Derived<Operator> drvOp;
-	MatchIf(m_ast.begin(), m_ast.end(), drvOp, [](AST::AST::iterator itr)
-	{
-		auto opr = std::dynamic_pointer_cast<Operator>(itr.shared_ptr());
-
-		AST::AST delegate{ opr };
-		AST::Compare::Derived<Returnable> baseNodeOp;
-		MatchIf(delegate.begin(), delegate.end(), baseNodeOp, [&opr](AST::AST::iterator del_itr)
-		{
-			auto retType = std::dynamic_pointer_cast<Returnable>(del_itr.shared_ptr());
-			if (retType->HasReturnType() && !opr->HasReturnType()) {
-				opr->SetReturnType(retType->ReturnType());
-			}
-		});
-
-		assert(opr->HasReturnType());
-
-		AST::Compare::Derived<Returnable> drvOp2;
-		MatchIf(delegate.begin(), delegate.end(), drvOp2, [&opr](AST::AST::iterator del_itr)
-		{
-			auto retType = std::dynamic_pointer_cast<Returnable>(del_itr.shared_ptr());
-			if (!retType->HasReturnType()) {
-				retType->SetReturnType(opr->ReturnType());
-			}
-		});
-	});
-
+	// Set return type on enum declaration variable.
 	AST::Compare::Derived<EnumConstantDecl> enumOp;
 	MatchIf(m_ast.begin(), m_ast.end(), enumOp, [](AST::AST::iterator itr)
 	{
 		auto enumDecl = std::dynamic_pointer_cast<EnumConstantDecl>(itr.shared_ptr());
 		if (!enumDecl->Children().empty() && !enumDecl->HasReturnType()) {
 			auto decl = enumDecl->Children().front().lock();
-			if (!decl) {
-				return;
-			}
+			if (!decl) { return; }
 
 			auto rdecl = std::dynamic_pointer_cast<Returnable>(decl);
 			if (!rdecl->HasReturnType()) {
 				throw SemanticException{ "initializer must be integer constant expression", 0, 0 };
 			}
 
-			// Enum initializer must be type of integer
+			// Enum initializer must be type of integer.
 			if (!rdecl->ReturnType()->Equals(Util::MakeBuiltinType(Typedef::BuiltinType::Specifier::INT).get())
 				&& !rdecl->ReturnType()->Equals(Util::MakeBuiltinType(Typedef::BuiltinType::Specifier::CHAR).get())) {
 				throw SemanticException{ "initializer must be integer constant expression", 0, 0 };
@@ -427,17 +403,56 @@ void CoilCl::Semer::DeduceTypes()
 			auto integer = std::dynamic_pointer_cast<Typedef::TypedefBase>(Util::MakeBuiltinType(Typedef::BuiltinType::Specifier::INT));
 			enumDecl->SetReturnType(Typedef::TypeFacade{ integer });
 		}
+
+		assert(enumDecl->HasReturnType());
+	});
+
+	// Set return type on operators and delegate type down the tree. The operator type
+	// is deducted from the first expression with an return type.
+	AST::Compare::Derived<Operator> drvOp;
+	MatchIf(m_ast.begin(), m_ast.end(), drvOp, [](AST::AST::iterator itr)
+	{
+		auto opr = std::dynamic_pointer_cast<Operator>(itr.shared_ptr());
+
+		AST::AST delegate{ opr };
+		AST::Compare::Derived<Returnable> drvRet;
+		MatchIf(delegate.begin(), delegate.end(), drvRet, [&opr](AST::AST::iterator del_itr)
+		{
+			auto retType = std::dynamic_pointer_cast<Returnable>(del_itr.shared_ptr());
+			if (retType->HasReturnType() && !opr->HasReturnType()) {
+				opr->SetReturnType(retType->ReturnType());
+			}
+		});
+
+		assert(opr->HasReturnType());
+	});
+
+	// Set return type on call expression.
+	AST::Compare::Equal<ParenExpr> eqExpr;
+	MatchIf(m_ast.begin(), m_ast.end(), eqExpr, [](AST::AST::iterator itr)
+	{
+		auto paren = std::dynamic_pointer_cast<ParenExpr>(itr.shared_ptr());
+
+		AST::AST delegate{ paren };
+		AST::Compare::Derived<Returnable> drvRet;
+		MatchIf(delegate.begin(), delegate.end(), drvRet, [&paren](AST::AST::iterator del_itr)
+		{
+			auto retType = std::dynamic_pointer_cast<Returnable>(del_itr.shared_ptr());
+			if (retType->HasReturnType() && !paren->HasReturnType()) {
+				paren->SetReturnType(retType->ReturnType());
+			}
+		});
+
+		assert(paren->HasReturnType());
 	});
 }
 
 // Check if all datatypes are convertible and inject type conversions in the tree
-// when two types can be casted
+// when two types can be casted.
 void CoilCl::Semer::CheckDataType()
 {
+	// Compare function with its prototype, if exist.
 	AST::Compare::Equal<FunctionDecl> eqFuncOp;
-	AST::Compare::Equal<CallExpr> eqCallOp;
-
-	// Compare function with its prototype, if exist
 	MatchIf(m_ast.begin(), m_ast.end(), eqFuncOp, [](AST::AST::iterator itr)
 	{
 		auto func = std::dynamic_pointer_cast<FunctionDecl>(itr.shared_ptr());
@@ -445,18 +460,19 @@ void CoilCl::Semer::CheckDataType()
 			return;
 		}
 
-		// Return type must match on function definition and prototype
+		// Return type must match on function definition and prototype.
 		if (func->PrototypeDefinition()->ReturnType() != func->ReturnType()) {
 			throw SemanticException{ "conflicting types for 'x'", 0, 0 };
 		}
 
-		// Function signature must match on definition and prototype
+		// Function signature must match on definition and prototype.
 		if (func->PrototypeDefinition()->Signature() != func->Signature()) {
 			throw SemanticException{ "conflicting types for 'x'", 0, 0 };
 		}
 	});
 
-	// Match function signature with caller
+	// Match function signature with caller.
+	AST::Compare::Equal<CallExpr> eqCallOp;
 	MatchIf(m_ast.begin(), m_ast.end(), eqCallOp, [](AST::AST::iterator itr)
 	{
 		auto call = std::dynamic_pointer_cast<CallExpr>(itr.shared_ptr());
@@ -472,13 +488,13 @@ void CoilCl::Semer::CheckDataType()
 			? call->ArgumentStatement()->Children()
 			: std::vector<std::weak_ptr<AST::ASTNode>>{};
 
-		// Make an exception for variadic argument
+		// Make an exception for variadic argument.
 		bool canHaveTooMany = true;
 		if (func->HasSignature() && func->Signature().back().Type() == typeid(Typedef::VariadicType)) { //TODO: FIX
 			canHaveTooMany = false;
 		}
 
-		// If argument size is off, throw exception
+		// If argument size is off, throw exception.
 		if (func->Signature().size() > arguments.size()) {
 			throw SemanticException{ "too few arguments to function call, expected at least 0, have 0", 0, 0 };
 		}
@@ -487,7 +503,7 @@ void CoilCl::Semer::CheckDataType()
 		}
 	});
 
-	// Inject type converter in vardecl
+	// Inject type converter in vardecl.
 	AST::Compare::Equal<VarDecl> eqVar;
 	MatchIf(m_ast.begin(), m_ast.end(), eqVar, [](AST::AST::iterator itr)
 	{
@@ -501,7 +517,7 @@ void CoilCl::Semer::CheckDataType()
 		}
 	});
 
-	// Inject type converter in operator
+	// Inject type converter in operator.
 	AST::Compare::Derived<BinaryOperator> eqOp;
 	MatchIf(m_ast.begin(), m_ast.end(), eqOp, [](AST::AST::iterator itr)
 	{

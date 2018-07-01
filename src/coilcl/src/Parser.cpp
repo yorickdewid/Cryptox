@@ -503,7 +503,8 @@ void Parser::SpecifierQualifierList()
 	do {
 		cont = false;
 
-		// Find a type specifier
+		// Find a type specifier and continue if this was the first
+		// type specifier.
 		if (typeCount == m_typeStack.size() && TypeSpecifier()) {
 			NextToken();
 			cont = true;
@@ -517,6 +518,11 @@ void Parser::SpecifierQualifierList()
 			cont = true;
 		}
 	} while (cont);
+
+	// Nothing was found, return now.
+	if (typeCount == m_typeStack.size()) {
+		return;
+	}
 
 	// Append all stacked storage classes and qualifiers onto the value object
 	auto& baseType = m_typeStack.top();

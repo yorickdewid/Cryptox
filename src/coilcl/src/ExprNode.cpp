@@ -316,6 +316,20 @@ void ParenExpr::Deserialize(Serializable::Interface& pack)
 	Expr::Deserialize(pack);
 }
 
+const std::string ParenExpr::NodeName() const
+{
+	std::string _node{ RemoveClassFromName(typeid(ParenExpr).name()) };
+	_node += " {" + std::to_string(m_state.Alteration()) + "}";
+	_node += " <line:" + std::to_string(line) + ",col:" + std::to_string(col) + "> ";
+
+	if (ReturnType().HasValue()) {
+		_node += "'" + ReturnType().TypeName() + "' ";
+		_node += ReturnType()->StorageClassName();
+	}
+
+	return _node;
+}
+
 
 void InitListExpr::AddListItem(const std::shared_ptr<ASTNode>& node)
 {

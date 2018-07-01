@@ -1668,11 +1668,14 @@ public:
 
 	ParenExpr(std::shared_ptr<ASTNode>& node);
 
+	bool HasExpression() const { return m_body != nullptr; }
+	auto& Expression() const { return m_body; }
+
 	virtual void Serialize(Serializable::Interface& pack);
 	virtual void Deserialize(Serializable::Interface& pack);
 
 	LABEL();
-	PRINT_NODE(ParenExpr);
+	virtual const std::string NodeName() const;
 
 private:
 	POLY_IMPL();
