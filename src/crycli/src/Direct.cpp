@@ -77,6 +77,7 @@ class Executor final
 {
 	ProgramWrapper m_program;
 	ExecutionEnv m_execEnv;
+	ExecutionEnv::RunResult result;
 
 public:
 	Executor(ProgramWrapper&& program)
@@ -103,51 +104,70 @@ public:
 	// Run the program in a runtime executor.
 	Executor& Run(const std::vector<std::string>& arguments)
 	{
-		m_execEnv.Setup()
+		result = m_execEnv.Setup()
 			.EntryPoint("main") //TODO: get from frontend
 			.ExecuteProgram(arguments);
 
 		return (*this);
 	}
+
+	int ReturnCode() const noexcept
+	{
+		return result.programExitCode;
+	}
 };
 
 // Direct API call to run a single file.
-void RunSourceFile(Env& env, const std::string& sourceFile, const std::vector<std::string>& arguments)
+int RunSourceFile(Env& env, const std::string& sourceFile, const std::vector<std::string>& arguments)
 {
 	CRY_UNUSED(env);
 	try {
 		BaseReader reader = MakeReader<FileReader>(sourceFile);
 		auto program = CompilerAbstraction{ std::move(reader) }.Start();
-		Executor{ std::move(program) }.AssertProgram().Run(arguments);
+		return Executor{ std::move(program) }
+			.AssertProgram()
+			.Run(arguments)
+			.ReturnCode();
 	}
 	// Catch any missed exceptions.
 	catch (const std::exception& e) {
 		std::cerr << e.what() << std::endl;
+		return EXIT_BACKEND_FAILLURE;
 	}
+
+	return EXIT_SUCCESS;
 }
 
 //FUTURE: Implement
 // Direct API call to run a multiple files in order.
-void RunSourceFile(Env& env, const std::vector<std::string>& sourceFiles, const std::vector<std::string>& arguments)
+int RunSourceFile(Env& env, const std::vector<std::string>& sourceFiles, const std::vector<std::string>& arguments)
 {
 	CRY_UNUSED(env);
 	CRY_UNUSED(sourceFiles);
 	CRY_UNUSED(arguments);
+
+	return EXIT_NO_OPERATION;
 }
 
 // Direct API call to run source from memory.
-void RunMemoryString(Env& env, const std::string& content, const std::vector<std::string>& arguments)
+int RunMemoryString(Env& env, const std::string& content, const std::vector<std::string>& arguments)
 {
 	CRY_UNUSED(env);
 	try {
 		BaseReader reader = MakeReader<StringReader>(content);
 		auto program = CompilerAbstraction{ std::move(reader) }.SetBuffer(256).Start();
-		Executor{ std::move(program) }.AssertProgram().Run(arguments);
+		return Executor{ std::move(program) }
+			.AssertProgram()
+			.Run(arguments)
+			.ReturnCode();
 	}
 	// Catch any missed exceptions.
 	catch (const std::exception& e) {
 		std::cerr << e.what() << std::endl;
+		return EXIT_BACKEND_FAILLURE;
 	}
+
+	return EXIT_SUCCESS;
 }
 
 //
@@ -181,7 +201,7 @@ public:
 };
 
 // Direct API call to compile a single file.
-void CompileSourceFile(Env& env, const std::string& sourceFile)
+int CompileSourceFile(Env& env, const std::string& sourceFile)
 {
 	try {
 		BaseReader reader = MakeReader<FileReader>(sourceFile);
@@ -191,19 +211,24 @@ void CompileSourceFile(Env& env, const std::string& sourceFile)
 	// Catch any missed exceptions.
 	catch (const std::exception& e) {
 		std::cerr << e.what() << std::endl;
+		return EXIT_BACKEND_FAILLURE;
 	}
+
+	return EXIT_SUCCESS;
 }
 
 //FUTURE: Implement
 // Direct API call to compile multiple files in order.
-void CompileSourceFile(Env& env, const std::vector<std::string>& sourceFiles)
+int CompileSourceFile(Env& env, const std::vector<std::string>& sourceFiles)
 {
 	CRY_UNUSED(env);
 	CRY_UNUSED(sourceFiles);
+
+	return EXIT_NO_OPERATION;
 }
 
 // Direct API call to compile source from memory.
-void CompileMemoryString(Env& env, const std::string& m_sourceFile)
+int CompileMemoryString(Env& env, const std::string& m_sourceFile)
 {
 	try {
 		BaseReader reader = MakeReader<StringReader>(m_sourceFile);
@@ -213,5 +238,8 @@ void CompileMemoryString(Env& env, const std::string& m_sourceFile)
 	// Catch any missed exceptions.
 	catch (const std::exception& e) {
 		std::cerr << e.what() << std::endl;
+		return EXIT_BACKEND_FAILLURE;
 	}
+
+	return EXIT_SUCCESS;
 }

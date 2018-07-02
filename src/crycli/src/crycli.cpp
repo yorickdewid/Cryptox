@@ -114,8 +114,21 @@ int main(int argc, const char *argv[])
 			env.SetImageName(vm["out"].as<std::string>());
 		}
 
+		// If help is requested, display now
+		if (vm.count("?") || vm.count("h") || vm.count("help")) {
+			std::cout << parser << std::endl;
+			return EXIT_SUCCESS;
+		}
+		// Print version and exit
+		else if (parser.Version(vm)) {
+			std::cout << "CLI: " PROGRAM_VERSION << std::endl;
+			std::cout
+				<< "Compiler: " << Version::Compiler() << '\n'
+				<< "Virtual machine: " << "X" << '\n'
+				<< std::flush;
+		}
 		// Parse input file as source
-		if (vm.count("file")) {
+		else if (vm.count("file")) {
 			const auto file = vm["file"].as<std::string>();
 			if (!env.HasImageName()) {
 				env.SetImageName(file);
@@ -124,10 +137,10 @@ int main(int argc, const char *argv[])
 				const std::vector<std::string> vmArguments = vm.count("args")
 					? vm["args"].as<std::vector<std::string>>()
 					: std::vector<std::string>{};
-				RunSourceFile(env, file, vmArguments);
+				return RunSourceFile(env, file, vmArguments);
 			}
 			else {
-				CompileSourceFile(env, file);
+				return CompileSourceFile(env, file);
 			}
 		}
 		// Print include directory paths
@@ -164,14 +177,6 @@ int main(int argc, const char *argv[])
 				<< "  1) CASM\tCryptox Assamble\n"
 				<< "  2) AIIPX\tArchitecture Independent Intermediate Program Executor"
 				<< std::endl;
-		}
-		// Print version and exit
-		else if (parser.Version(vm)) {
-			std::cout << "CLI: " PROGRAM_VERSION << std::endl;
-			std::cout
-				<< "Compiler: " << Version::Compiler() << '\n'
-				<< "Virtual machine: " << "X" << '\n'
-				<< std::flush;
 		}
 		// Anything else; we're in trouble
 		else {

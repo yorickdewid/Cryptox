@@ -106,6 +106,7 @@ class ExecuteAdapter final
 	// Release program arguments
 	void FreeProgramArguments(const datachunk_t **args)
 	{
+		if (!args) { return; }
 		size_t i = 0;
 		for (; args[i]->ptr; ++i) {
 			free(static_cast<void*>(const_cast<datachunk_t *>(args[i])));
