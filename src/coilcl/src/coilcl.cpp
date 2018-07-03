@@ -30,6 +30,8 @@
 // - No support for K&R function declarations
 // - Singe translation unit
 // - Lexer does not check on end of literal char or end of string literal
+// FUTURE:
+// - Static analyzer after the Semer stage
 
 #ifdef CRY_DEBUG
 # define CRY_DEBUG_TRACE CRY_DEBUG_TRACE_ALL || 1
@@ -173,21 +175,25 @@ public:
 				.MoveStage()
 				.SelectTokenizer();
 
-			// Syntax analysis
+			// The lexical analyzer transforms the raw input into a tokenstream, which
+			// is then processed by the syntax analyzer. The syntax analyzer build an
+			// abstract syntax tree of the object, and returns this as a result.
 			auto ast = Parser{ profile, tokenizer, tracker }
 				.MoveStage()
 				.Execute()
 				.DumpAST();
 
-			// Move abstract syntax tree into program
+			// Move abstract syntax tree into program.
 			Program::Bind(program, CAPTURE(ast));
 
 #ifdef CRY_DEBUG_TRACE
-			// For now dump contents to screen
+			// In trace mode dump the contents to screen.
 			program->AstPassthrough()->Print<CoilCl::AST::ASTNode::Traverse::STAGE_FIRST>();
 #endif
 
-			// Semantic analysis
+			// The semantic analyzer checks the object tree against the language
+			// specification and decorates the object tree to improve the informational
+			// context of the program.
 			Semer{ profile, CAPTURE(program->Ast()), tracker }
 				.MoveStage()
 				.StaticResolve()
@@ -196,35 +202,40 @@ public:
 				.PedanticCompliance()
 				.ExtractSymbols(program->FillSymbols());
 
-			// Optimizer
+			// The optimizer removes unused objects, replaces tree substructures and
+			// rewrites processing orders to improve overal execution speed. This step
+			// is optional.
 			Optimizer{ profile, CAPTURE(program->Ast()), tracker }
 				.MoveStage()
 				.TrivialReduction()
 				.DeepInflation();
 			//.Metrics(program->FillMetrics());
 
-			// Mark program as readonly
+			// Mark program as readonly, no other tree or object alterations are allowed 
+			// beyond this point. To change the tree, a copy must be made.
 			program->Lock();
 
-			// Construct emitter sequencer
+			// The emitter utilizes a sequencer to transform the tree into an flat format. This
+			// is usefull if the tree needs to be exported to another process, or when the program
+			// must be kept as a persistent result.
 			Emit::Module<Emit::Sequencer::AIIPX> AIIPXMod;
 
 #ifdef CRY_DEBUG_TRACE
-			// For now dump contents to screen
+			// In trace mode dump the contents to screen.
 			program->AstPassthrough()->Print<CoilCl::AST::ASTNode::Traverse::STAGE_LAST>();
 #endif
 #ifdef CRY_DEBUG_TESTING
-			// Add console output stream to module
+			// Add console output stream to module.
 			auto consoleStream = Emit::Stream::MakeStream<Emit::Stream::Console>();
 			AIIPXMod.AddStream(consoleStream);
 #endif
 
-			// Add program memory block to module
+			// Add program memory block to module.
 			auto& aiipxResult = program->GetResultSection(Program::ResultSection::AIIPX);
 			auto memoryStream = Emit::Stream::MakeStream<Emit::Stream::MemoryBlock>(aiipxResult.Data());
 			AIIPXMod.AddStream(memoryStream);
 
-			// Program output building
+			// Run the emitting sequence.
 			Emit::Emitter{ profile, CAPTURE(program->Ast()), tracker }
 				.MoveStage()
 				.AddModule(AIIPXMod)
@@ -242,10 +253,10 @@ public:
 			recoveredProgram->AstPassthrough()->Print<CoilCl::AST::ASTNode::Traverse::STAGE_FIRST>();
 #endif
 
-			// Print all compiler stage non fatal messages
+			// Print all compiler stage non fatal messages.
 			PrintNoticeMessages(profile);
 		}
-		// Catch any leaked erros not caught in the stages
+		// Catch any leaked erros not caught in the stages.
 		catch (const std::exception& e) {
 			compiler->Error(e.what());
 		}

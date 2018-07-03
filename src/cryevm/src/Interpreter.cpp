@@ -1793,8 +1793,10 @@ std::string Interpreter::EntryPoint(const char *entry)
 }
 
 // Run the program with current strategy.
-Interpreter::ReturnCode Interpreter::Execute(const std::string entry, const ArgumentList args)
+Interpreter::ReturnCode Interpreter::Execute(const std::string& entry, const ArgumentList& args, const ArgumentList& envs)
 {
+	CRY_UNUSED(envs);
+
 	// Check if settings work for this program.
 	PreliminaryCheck(entry);
 

@@ -8,6 +8,15 @@
 
 #include "Optimizer.h"
 
+//TODO:
+// - Remove untouched objects (ref count)
+// - Remove single parameter with void type
+// - Calculate static arithmetic
+// - Substitute non-changing (const) values if small enough
+// - Perform basic type changes
+// - inline functions
+// - Execute static conditions
+
 CoilCl::Optimizer::Optimizer(std::shared_ptr<CoilCl::Profile>& profile, AST::AST&& ast, ConditionTracker::Tracker& tracker)
 	: Stage{ this, StageType::Type::SemanticAnalysis, tracker }
 	, m_profile{ profile }

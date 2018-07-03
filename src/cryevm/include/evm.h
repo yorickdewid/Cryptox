@@ -44,8 +44,14 @@ extern "C" {
 	// Code generation options
 	struct vm_config
 	{
-		// Enable or disable debug mode.
-		int debug_mode;
+		// Use the memory mapper for dynamic memory.
+		int enable_memory_mapper;
+		
+		// Use memory table to track values.
+		int enable_memory_table;
+
+		// Use internal function stubs rather than native functions.
+		int enable_stub_functions;
 	};
 
 	typedef struct
@@ -77,7 +83,10 @@ extern "C" {
 		program_t program;
 
 		// Program runtime arguments. This is a null terminated list.
-		const datachunk_t **args;
+		datalist_t args;
+
+		// Program environment variables. This is a null terminated list.
+		datalist_t envs;
 
 		// User provided context.
 		void *user_data;

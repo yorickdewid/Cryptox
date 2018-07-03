@@ -53,14 +53,15 @@ class ExecuteAdapter final
 		settings.return_code = EXIT_FAILURE;
 		settings.error_handler = &CCBErrorHandler;
 		settings.program = m_program;
-		settings.args = ConvertProgramArguments();
+		settings.args = MapProgramArguments();
+		settings.envs = nullptr;
 		settings.user_data = static_cast<void*>(this);
 
 		// Invoke compiler with environment and compiler settings.
 		int vmResult = ExecuteProgram(&settings);
 
 		// Free allocated program arguments.
-		FreeProgramArguments(settings.args);
+		FreeDataLists(&settings);
 
 		// Return the vm and program result.
 		return { vmResult, settings.return_code };
@@ -84,35 +85,28 @@ class ExecuteAdapter final
 		entrySymbol = str;
 	}
 
-	// Convert arguments from the arguments list into an plain array.
-	const datachunk_t **ConvertProgramArguments()
+	// Convert arguments from the arguments list into a datalist.
+	const datalist_t MapProgramArguments()
 	{
 		size_t argsz = m_args.size();
 		if (!argsz) { return nullptr; };
-		datachunk_t **argv = (datachunk_t **)malloc((argsz + 1) * sizeof(datachunk_t *));
+
+		datalist_t argv = datalist_new(argsz);
 		for (size_t i = 0; i < argsz; ++i) {
-			argv[i] = (datachunk_t *)malloc(sizeof(datachunk_t));
+			argv[i] = datalist_item_new();
 			argv[i]->ptr = m_args[i].data();
 			argv[i]->size = m_args[i].size();
-			argv[i]->unmanaged_res = 0;
 		}
-		argv[argsz] = (datachunk_t *)malloc(sizeof(datachunk_t));
-		argv[argsz]->ptr = nullptr;
-		argv[argsz]->size = 0;
-		argv[argsz]->unmanaged_res = 0;
-		return const_cast<const datachunk_t **>(argv);
+
+		return argv;
 	}
 
-	// Release program arguments
-	void FreeProgramArguments(const datachunk_t **args)
+	// Release datalists.
+	void FreeDataLists(runtime_settings_t *settings)
 	{
-		if (!args) { return; }
-		size_t i = 0;
-		for (; args[i]->ptr; ++i) {
-			free(static_cast<void*>(const_cast<datachunk_t *>(args[i])));
-		}
-		free(static_cast<void*>(const_cast<datachunk_t *>(args[i])));
-		free(const_cast<datachunk_t **>(args));
+		assert(settings);
+		datalist_release(settings->args);
+		datalist_release(settings->envs);
 	}
 
 public:

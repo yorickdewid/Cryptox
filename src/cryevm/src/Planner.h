@@ -76,7 +76,7 @@ public:
 	// Program entry point
 	virtual std::string EntryPoint(const char *) = 0;
 	// Run the program with current strategy
-	virtual ReturnCode Execute(const std::string entry = {}, const ArgumentList args = {}) = 0;
+	virtual ReturnCode Execute(const std::string&, const ArgumentList&, const ArgumentList&) = 0;
 };
 
 } // namespace EVM

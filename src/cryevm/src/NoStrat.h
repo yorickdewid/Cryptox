@@ -21,7 +21,7 @@ public:
 	// Program entry point
 	virtual std::string EntryPoint(const char *) { return ""; }
 	// Run the program with current strategy
-	virtual ReturnCode Execute(const std::string) { return EXIT_FAILURE; }
+	virtual ReturnCode Execute(const std::string&, const ArgumentList&, const ArgumentList&) { return EXIT_FAILURE; }
 };
 
 } // namespace EVM

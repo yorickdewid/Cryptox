@@ -12,7 +12,9 @@
 
 #include "../../coilcl/src/Program.h"
 
+#ifdef AUTO_CONVERT
 #include <boost/lexical_cast.hpp>
+#endif
 
 #include <memory>
 
@@ -35,18 +37,19 @@ bool has_digits(const std::string& s)
 }
 #endif
 
-void ReworkArgumentList(ArgumentList& list, runtime_settings_t *runtime)
+void ConvertToArgumentList(ArgumentList& list, const datalist_t pointerList)
 {
 	size_t sz = 0;
-	if (!runtime->args) {
-		return;
-	}
+	if (!pointerList) { return; }
 
 	do {
-		// Reconstruct parameters and cast to builtin type if possible
-		const datachunk_t *arg = runtime->args[sz++];
+		// Reconstruct parameters.
+		datachunk_t *arg = pointerList[sz++];
+		if (!arg) { return; }
 		auto str = std::string{ arg->ptr, arg->size };
+
 #ifdef AUTO_CONVERT
+		// Cast to builtin type.
 		if (has_digits(str)) {
 			list.emplace_back(boost::lexical_cast<int>(str));
 		}
@@ -56,23 +59,36 @@ void ReworkArgumentList(ArgumentList& list, runtime_settings_t *runtime)
 #else
 		list.push_back(std::move(str));
 #endif
-		if (arg->unmanaged_res) {
-			auto *tmpVal = const_cast<char*>(arg->ptr);
-			free(static_cast<void*>(tmpVal));
-			tmpVal = nullptr;
-		}
-	} while (runtime->args[sz]->ptr != nullptr);
-}
+		// Free datachunk if required.
+		datachunk_internal_release(arg);
+		} while (pointerList[sz]);
+	}
 
-void AssertConfiguration(const struct vm_config *config)
+class Configuration
 {
-	CRY_UNUSED(config);
-}
+
+public:
+	Configuration(struct vm_config *config)
+		: m_config{ config }
+	{
+		Configuration::Assert(config);
+	}
+
+	// Test the combination of configuration items.
+	static void Assert(const struct vm_config *config)
+	{
+		//
+	}
+
+private:
+	struct vm_config *m_config;
+};
 
 #define CHECK_API_VERSION(u) \
 	if (u->apiVer != EVMAPIVER) { fprintf(stderr, "API version mismatch"); abort(); }
 
-// API entry; Execute program
+//TODO: check API version from struct
+// API entry; Execute program.
 EVMAPI int ExecuteProgram(runtime_settings_t *runtime) noexcept
 {
 	using EVM::Planner;
@@ -84,12 +100,13 @@ EVMAPI int ExecuteProgram(runtime_settings_t *runtime) noexcept
 	assert(runtime->error_handler);
 	assert(runtime->program.program_ptr);
 
-	AssertConfiguration(&runtime->cfg);
+	// Create a configuration object.
+	Configuration config{ &runtime->cfg };
 
-	// Capture program pointer and cast into program structure
+	// Capture program pointer and cast into program structure.
 	ProgramPtr program = ProgramPtr{ runtime->program.program_ptr };
 
-	// Determine strategy for program
+	// Determine strategy for program.
 	auto runner = Planner{ std::move(program), Planner::Plan::ALL }.DetermineStrategy();
 	if (!runner->IsRunnable()) {
 		return RETURN_NOT_RUNNABLE;
@@ -97,12 +114,15 @@ EVMAPI int ExecuteProgram(runtime_settings_t *runtime) noexcept
 
 	try {
 		ArgumentList args;
-		ReworkArgumentList(args, runtime);
+		ConvertToArgumentList(args, runtime->args);
 
-		// Execute the program in the designated strategy
-		runtime->return_code = runner->Execute(runner->EntryPoint(runtime->entry_point), args);
+		ArgumentList envs;
+		ConvertToArgumentList(envs, runtime->envs);
+
+		// Execute the program in the designated strategy.
+		runtime->return_code = runner->Execute(runner->EntryPoint(runtime->entry_point), args, envs);
 	}
-	// Catch any runtime errors
+	// Catch any runtime errors.
 	catch (const std::exception& e) {
 		runtime->error_handler(runtime->user_data, e.what(), true);
 	}
