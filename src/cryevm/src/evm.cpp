@@ -12,6 +12,10 @@
 
 #include "../../coilcl/src/Program.h"
 
+// Project includes.
+#include <Cry/Cry.h>
+#include <Cry/Config.h>
+
 #ifdef AUTO_CONVERT
 #include <boost/lexical_cast.hpp>
 #endif
@@ -128,4 +132,16 @@ EVMAPI int ExecuteProgram(runtime_settings_t *runtime) noexcept
 	}
 
 	return RETURN_OK;
+}
+
+// API entry; get library information.
+EVMAPI void GetLibraryInfo(library_info_t *info) NOTHROW
+{
+	info->version_number.major = PRODUCT_VERSION_MAJOR;
+	info->version_number.minor = PRODUCT_VERSION_MINOR;
+	info->version_number.patch = PRODUCT_VERSION_PATCH;
+	info->version_number.local = PRODUCT_VERSION_LOCAL;
+	info->product = PROGRAM_NAME;
+	info->api_version = EVMAPIVER;
+	info->description = PROGRAM_DESCRIPTION;
 }

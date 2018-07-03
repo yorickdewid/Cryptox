@@ -13,6 +13,7 @@
 #pragma once
 #endif
 
+#include <common.h>
 #include <program.h>
 #include <data.h>
 
@@ -29,16 +30,8 @@
 #define COILCLAPIVER	100
 
 #ifdef __cplusplus
-# define NOTHROW noexcept
-#else
-# define NOTHROW
-#endif
-
-#ifdef __cplusplus
 extern "C" {
 #endif
-
-#define MAX_FILENAME_SZ 64
 
 	// Languange standard.
 	enum cil_standard
@@ -83,13 +76,13 @@ extern "C" {
 		// Source unit name.
 		char name[MAX_FILENAME_SZ];
 		// Source unit size.
-		unsigned int size;
+		size_t size;
 	} metainfo_t;
 
 	typedef struct
 	{
 		// API version between executable and library.
-		unsigned short apiVer; //TODO: rename
+		api_t apiVer; //TODO: rename
 		// Code generation options set in the frontend.
 		struct codegen code_opt;
 
@@ -118,7 +111,7 @@ extern "C" {
 		// and exception which cannot be caught by the frontend, the backend
 		// must be granted a method to report errors back to the frontend. This
 		// is an required function and *must* be set by the frontend.
-		void(*errorHandler)(void *, const char *, int); //TODO: rename and set error code
+		error_handler_t error_handler;
 
 		// Compiler resulting output. This structure is set by the compiler interface
 		// and should be freed by calling ReleaseProgram. The structure cannot
@@ -192,37 +185,15 @@ extern "C" {
 	// Retrieve resulting section from program.
 	COILCLAPI void GetResultSection(result_t *) NOTHROW;
 
-	typedef struct
-	{
-		struct
-		{
-			// Version major part.
-			short int major;
-			// Version minor part.
-			short int minor;
-			// Version patch level.
-			short int patch;
-			// Subversion part.
-			short int local;
-		} version_number;
-
-		// API version number.
-		short int api_version;
-		// Product name.
-		const char *product;
-		// Product description.
-		const char *description;
-	} library_info_t;
-
-	// Library version information
+	// Library version information.
 	COILCLAPI void GetLibraryInfo(library_info_t *) NOTHROW;
 
-// C function defines.
-#define compile(c) Compile(c)
-#define free_program(p) ReleaseProgram(p)
-#define program_info(p) ProgramInfo(p)
-#define get_result_section(r) GetResultSection(r)
-#define get_library_info(i) GetLibraryInfo(i)
+	// C function defines.
+#define coilcl_compile(p) Compile(p)
+#define coilcl_free_program(p) ReleaseProgram(p)
+#define coilcl_program_info(p) ProgramInfo(p)
+#define coilcl_get_result_section(p) GetResultSection(p)
+#define coilcl_get_library_info(p) GetLibraryInfo(p)
 
 #ifdef __cplusplus
 }

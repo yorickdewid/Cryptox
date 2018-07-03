@@ -53,9 +53,11 @@ class ExecuteAdapter final
 		settings.return_code = EXIT_FAILURE;
 		settings.error_handler = &CCBErrorHandler;
 		settings.program = m_program;
-		settings.args = MapProgramArguments();
 		settings.envs = nullptr;
 		settings.user_data = static_cast<void*>(this);
+
+		// Assign program arguments.
+		MapProgramArguments(&settings);
 
 		// Invoke compiler with environment and compiler settings.
 		int vmResult = ExecuteProgram(&settings);
@@ -85,20 +87,18 @@ class ExecuteAdapter final
 		entrySymbol = str;
 	}
 
-	// Convert arguments from the arguments list into a datalist.
-	const datalist_t MapProgramArguments()
+	// Map program arguments from the arguments list into a datalist.
+	void MapProgramArguments(runtime_settings_t *settings)
 	{
 		size_t argsz = m_args.size();
-		if (!argsz) { return nullptr; };
+		if (!argsz) { return; };
 
-		datalist_t argv = datalist_new(argsz);
+		settings->args = datalist_new(argsz);
 		for (size_t i = 0; i < argsz; ++i) {
-			argv[i] = datalist_item_new();
-			argv[i]->ptr = m_args[i].data();
-			argv[i]->size = m_args[i].size();
+			settings->args[i] = datalist_item_new();
+			settings->args[i]->ptr = m_args[i].data();
+			settings->args[i]->size = m_args[i].size();
 		}
-
-		return argv;
 	}
 
 	// Release datalists.

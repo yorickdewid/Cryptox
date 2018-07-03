@@ -85,7 +85,7 @@ class CompilerHelper
 		info.streamReaderVPtr = &CompilerHelper::GetSource;
 		info.loadStreamRequestVPtr = &CompilerHelper::Load;
 		info.streamMetaVPtr = &CompilerHelper::TestInfo;
-		info.errorHandler = &CompilerHelper::ErrorHandler;
+		info.error_handler = &CompilerHelper::ErrorHandler;
 		info.program.program_ptr = nullptr;
 		info.user_data = this;
 		Compile(&info);

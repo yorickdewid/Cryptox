@@ -81,7 +81,7 @@ extern "C" {
 	// Get the number of items in the list.
 	inline size_t datalist_size(datalist_t list)
 	{
-		if (!list) { return; }
+		if (!list) { return 0; }
 		size_t count = 0;
 		for (size_t i = 0; list[i]; ++i) {
 			count++;

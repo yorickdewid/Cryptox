@@ -13,6 +13,7 @@
 #pragma once
 #endif
 
+#include <common.h>
 #include <program.h>
 #include <data.h>
 
@@ -28,12 +29,6 @@
 
 #define EVMAPIVER	100
 
-#ifdef __cplusplus
-# define NOTHROW noexcept
-#else
-# define NOTHROW
-#endif
-
 #define RETURN_OK 0
 #define RETURN_NOT_RUNNABLE 1
 
@@ -45,19 +40,17 @@ extern "C" {
 	struct vm_config
 	{
 		// Use the memory mapper for dynamic memory.
-		int enable_memory_mapper;
-		
+		int enable_memory_mapper : 1;
 		// Use memory table to track values.
-		int enable_memory_table;
-
+		int enable_memory_table : 1;
 		// Use internal function stubs rather than native functions.
-		int enable_stub_functions;
+		int enable_stub_functions : 1;
 	};
 
 	typedef struct
 	{
 		// API version between executable and library.
-		unsigned short apiVer;
+		api_t apiVer;
 
 		// Virtual machine runtime configuration settings.
 		struct vm_config cfg;
@@ -75,7 +68,7 @@ extern "C" {
 		// and exception which cannot be caught by the frontend, the backend
 		// must be granted a method to report errors back to the frontend. This
 		// is an required function and *must* be set by the frontend.
-		void(*error_handler)(void *, const char *, int);
+		error_handler_t error_handler;
 
 		// Compiler resulting output. This structure is set by the compiler
 		// interface and should be freed by the caller. The structure cannot
@@ -94,6 +87,13 @@ extern "C" {
 
 	// Compiler library entry point
 	EVMAPI int ExecuteProgram(runtime_settings_t *) NOTHROW;
+
+	// Library version information.
+	EVMAPI void GetLibraryInfo(library_info_t *) NOTHROW;
+
+	// C function defines.
+#define evm_execute_program(c) ExecuteProgram(p)
+#define evm_get_library_info(p) GetLibraryInfo(p)
 
 #ifdef __cplusplus
 }

@@ -326,7 +326,7 @@ COILCLAPI void Compile(compiler_info_t *cl_info) NOTHROW
 	assert(cl_info->streamReaderVPtr);
 	assert(cl_info->loadStreamRequestVPtr);
 	assert(cl_info->streamMetaVPtr);
-	assert(cl_info->errorHandler);
+	assert(cl_info->error_handler);
 	assert(!cl_info->program.program_ptr);
 
 	// Register handlers with compiler object and covnert types between API
@@ -344,7 +344,7 @@ COILCLAPI void Compile(compiler_info_t *cl_info) NOTHROW
 		return InterOpHelper::WrapMeta(cl_info->streamMetaVPtr(USER_DATA(cl_info)));
 	}).SetErrorHandler([&cl_info](const std::string& message, bool isFatal)
 	{
-		cl_info->errorHandler(USER_DATA(cl_info), message.c_str(), isFatal);
+		cl_info->error_handler(USER_DATA(cl_info), message.c_str(), isFatal);
 	}).Object();
 
 	// Store pointer to original object
