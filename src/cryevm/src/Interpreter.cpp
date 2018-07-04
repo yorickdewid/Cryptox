@@ -133,12 +133,14 @@ struct DeclarationRegistry
 	{
 		return !m_localObj.empty();
 	}
-	// Return number of elements in the context
-	virtual size_t LocalObjectCount() const noexcept
+
+	// Return number of elements in the context.
+	size_t LocalObjectCount() const noexcept
 	{
 		return m_localObj.size();
 	}
-	// Access local storage object directly without hirarchiecal lookup
+
+	// Access local storage object directly without hirarchiecal lookup.
 	virtual void ForEachObject(std::function<void(Valuedef::Value)> delegate) const
 	{
 		for (const auto& item : m_localObj) {
@@ -1395,15 +1397,16 @@ class ScopedRoutine
 		return funcCtx;
 	}
 
-	// Create new compound context
+	// Create new compound context.
 	void CreateCompound(const std::shared_ptr<AST::ASTNode>& node, Context::Compound& ctx)
 	{
 		auto compNode = Util::NodeCast<CompoundStmt>(node);
-		auto compCtx = ctx->MakeContext<CompoundContext>();
+		Context::Compound compCtx = ctx->MakeContext<CompoundContext>();
 		ProcessCompound(compNode, compCtx);
+		compCtx.reset();
 	}
 
-	// Call internal function
+	// Call internal function.
 	void ProcessRoutine(std::shared_ptr<FunctionDecl>& funcNode, Context::Function& ctx)
 	{
 		assert(funcNode->ChildrenCount());
@@ -1411,9 +1414,10 @@ class ScopedRoutine
 			//TODO: Do something?
 		}
 
-		auto compCtx = ctx->MakeContext<CompoundContext>();
+		Context::Compound compCtx = ctx->MakeContext<CompoundContext>();
 		ctx->AttachCompound(compCtx);
 		ProcessCompound(const_cast<std::shared_ptr<CompoundStmt>&>(funcNode->FunctionCompound()), compCtx);
+		compCtx.reset();
 	}
 
 	// Run all nodes in the compound
@@ -1548,7 +1552,7 @@ class ScopedRoutine
 				}
 			}
 		}
-		// Handle alternative path, if any
+		// Handle alternative path, if any.
 		else if (node->HasAltCompound()) {
 			auto continueNode = node->AltCompound();
 			if (Util::IsNodeCompound(continueNode)) {
@@ -1579,7 +1583,7 @@ class ScopedRoutine
 
 		// Process compound within the switch statement instead of calling process compound
 		// since the switch body compound semantically differs from a generic compound block.
-		auto compCtx = ctx->MakeContext<CompoundContext>();
+		Context::Compound compCtx = ctx->MakeContext<CompoundContext>();
 		{
 			auto body = compoundNode->Children();
 			if (!body.size()) {
@@ -1604,6 +1608,7 @@ class ScopedRoutine
 				}
 			}
 		}
+		compCtx.reset();
 
 		return RETURN_NORMAL;
 	}
@@ -1647,7 +1652,7 @@ class ScopedRoutine
 			return;
 		}
 
-		// Resolve return expression
+		// Resolve return expression.
 		ctx->CreateSpecialVar<RETURN_VALUE>(ResolveExpression(node->Expression(), ctx));
 	}
 
@@ -1718,7 +1723,7 @@ void FormatStartupParameters(std::array<std::string, 3> mapper, Parameters&& par
 Evaluator& Evaluator::CallRoutine(const std::string& symbol, const ArgumentList& args)
 {
 	auto funcNode = m_unitContext->LookupSymbol<FunctionDecl>(symbol);
-	auto funcCtx = m_unitContext->MakeContext<FunctionContext>(funcNode->Identifier());
+	Context::Function funcCtx = m_unitContext->MakeContext<FunctionContext>(funcNode->Identifier());
 
 	// If the entry function does not accept parameters, then there is no point in
 	// converting the passed arguments. Likewise skip argument parsing if there are
@@ -1747,7 +1752,7 @@ Evaluator& Evaluator::CallRoutine(const std::string& symbol, const ArgumentList&
 	if (funcCtx->HasReturnValue()) {
 		funcCtx->FindContext<GlobalContext>(Context::tag::GLOBAL)->CreateSpecialVar<RETURN_VALUE>(funcCtx->ReturnValue(), true);
 	}
-
+	funcCtx.reset();
 	return (*this);
 }
 
