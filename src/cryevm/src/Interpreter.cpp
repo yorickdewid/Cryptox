@@ -14,6 +14,7 @@
 #include "../../coilcl/src/ValueHelper.h"
 
 #include <numeric>
+#include <set>
 
 //TODO:
 // - Stacktrace
@@ -22,6 +23,7 @@
 
 #define RETURN_VALUE 0
 #define ENTRY_SYMBOL "main"
+#define ADDRESS_SEQUENCE 1000
 
 #define DEFAULT_MAKE_CONTEXT() \
 	template<typename ContextType, typename... ArgTypes> \
@@ -56,7 +58,6 @@ private:
 Interpreter::Interpreter(Planner& planner)
 	: Strategy{ planner }
 {
-	//
 }
 
 // This strategy defines rules which must be met
@@ -104,7 +105,7 @@ using WeakUnit = std::weak_ptr<UnitContext>;
 using WeakCompound = std::weak_ptr<CompoundContext>;
 using WeakFunction = std::weak_ptr<FunctionContext>;
 
-// Make global context from existing context or create a new global context
+// Make global context from existing context or create a new global context.
 Global MakeGlobalContext(std::shared_ptr<AbstractContext> ctx = nullptr)
 {
 	if (ctx) {
@@ -206,7 +207,7 @@ public:
 	}
 
 public:
-	// Create and position a value in the special space
+	// Create and position a value in the special space.
 	template<size_t Position>
 	void CreateSpecialVar(CoilCl::Valuedef::Value value, bool override = false)
 	{
@@ -289,7 +290,7 @@ public:
 		return nullptr;
 	}
 
-	// Run predicate for each context item
+	// Run predicate for each context item.
 	template<typename Predicate, typename CastAsType = AbstractContext>
 	void ForEachContext(Predicate&& pred)
 	{
@@ -851,7 +852,7 @@ public:
 public:
 	Runnable() = default;
 
-	// Construct runnable from function declaration
+	// Construct runnable from function declaration.
 	Runnable(std::shared_ptr<FunctionDecl>& funcNode)
 		: m_functionData{ funcNode }
 	{
@@ -872,7 +873,7 @@ public:
 		}
 	}
 
-	// Construct runnable from internal method
+	// Construct runnable from internal method.
 	Runnable(const LocalMethod::InternalMethod *exfuncRef)
 		: m_isExternal{ true }
 		, m_functionData{ exfuncRef }
@@ -905,11 +906,11 @@ public:
 	const Parameter& Front() const { return m_paramList.front(); }
 	const Parameter& Back() const { return m_paramList.back(); }
 
-	// Query argument size
+	// Query argument size.
 	inline size_t ArgumentSize() const noexcept { return m_paramList.size(); }
-	// Query if runnable has arguments
+	// Query if runnable has arguments.
 	inline bool HasArguments() const noexcept { return ArgumentSize() > 0; }
-	// Query if runnable is external method
+	// Query if runnable is external method.
 	inline bool IsExternal() const noexcept { return m_isExternal; }
 
 	template<typename CastType>
@@ -960,7 +961,7 @@ Evaluator::Evaluator(AST::AST&& ast, std::shared_ptr<GlobalContext>& ctx)
 	Unit(static_cast<TranslationUnitDecl&>(m_ast.Front()));
 }
 
-// Global scope evaluation an entire unit
+// Global scope evaluation an entire unit.
 void Evaluator::Unit(const TranslationUnitDecl& node)
 {
 	using namespace AST;
@@ -1144,14 +1145,14 @@ class ScopedRoutine
 		CoilCl::Valuedef::Value& value = ctx->LookupIdentifier(declRef->Identifier());
 		int result = predicate(value.As<int>(), 1);
 
-		// On postfix operand, copy the original first
+		// On postfix operand, copy the original first.
 		if (side == AST::UnaryOperator::OperandSide::POSTFIX) {
 			auto origvalue = CoilCl::Valuedef::Value{ value };
 			value = Util::MakeInt(result);
 			return origvalue;
 		}
 
-		// On prefix, perform the unary operand on the original
+		// On prefix, perform the unary operand on the original.
 		value = Util::MakeInt(result);
 		return value;
 	}
@@ -1508,23 +1509,21 @@ class ScopedRoutine
 		return RETURN_NORMAL;
 	}
 
-	// If all else fails, try the node as expression
+	// If all else fails, try the node as expression.
 	void ProcessExpression(const std::shared_ptr<AST::ASTNode>& node, Context::Compound& ctx)
 	{
-		// Only execute the expression and ignore the result
+		// Only execute the expression and ignore the result.
 		ResolveExpression(node, ctx);
 	}
 
-	// Register the declaration in the current context scope
+	// Register the declaration in the current context scope.
 	void ProcessDeclaration(std::shared_ptr<DeclStmt>& declNode, Context::Compound& ctx)
 	{
 		for (const auto& child : declNode->Children()) {
 			auto node = Util::NodeCast<VarDecl>(child);
+			assert(node->HasReturnType());
 
-			//TODO: Super ugly & wrong. Create the value fromt he valDecl return type,
-			//      then optionally initialize the value with an expression.
-			const auto builtin = Util::MakeBuiltinType(Typedef::BuiltinType::Specifier::INT);
-			auto value = Valuedef::Value{ Typedef::TypeFacade{ builtin } };
+			auto value = Valuedef::Value{ node->ReturnType() };
 			if (node->HasExpression()) {
 				value = ResolveExpression(node->Expression(), ctx);
 			}
@@ -1797,7 +1796,7 @@ Interpreter::ReturnCode Interpreter::Execute(const std::string& entry, const Arg
 {
 	CRY_UNUSED(envs);
 
-	// Check if settings work for this program.
+	// Check if entry exists in this program.
 	PreliminaryCheck(entry);
 
 	return Evaluator::CallFunction(Program()->Ast(), entry, args);

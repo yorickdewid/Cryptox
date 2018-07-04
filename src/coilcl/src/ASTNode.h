@@ -1417,10 +1417,7 @@ public:
 	ResolveRefExpr(const std::string& identifier);
 
 	//TODO: friend
-	auto Identifier() const
-	{
-		return m_identifier;
-	}
+	std::string Identifier() const noexcept { return m_identifier; }
 
 protected:
 	virtual void Serialize(Serializable::Interface& pack);
