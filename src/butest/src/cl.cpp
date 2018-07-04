@@ -27,7 +27,6 @@
 // - Test cast
 // - Test double cast (int)(char)
 // - All binary operators
-// - Negative numbers
 
 class CompilerHelper
 {

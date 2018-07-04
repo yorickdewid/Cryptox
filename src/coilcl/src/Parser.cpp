@@ -2295,6 +2295,7 @@ bool Parser::DirectDeclarator()
 			NextToken();
 			switch (CURRENT_TOKEN()) {
 			case TK_BRACKET_CLOSE:
+				m_pointerCounter++;
 				NextToken();
 				return true;
 			case TK_ASTERISK:

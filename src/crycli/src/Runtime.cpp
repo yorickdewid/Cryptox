@@ -53,6 +53,7 @@ class ExecuteAdapter final
 		settings.return_code = EXIT_FAILURE;
 		settings.error_handler = &CCBErrorHandler;
 		settings.program = m_program;
+		settings.args = nullptr;
 		settings.envs = nullptr;
 		settings.user_data = static_cast<void*>(this);
 

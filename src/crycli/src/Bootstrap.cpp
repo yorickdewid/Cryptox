@@ -46,7 +46,7 @@ class StreamReaderAdapter final
 		info.streamReaderVPtr = &CCBFetchChunk;
 		info.loadStreamRequestVPtr = &CCBLoadExternalSource;
 		info.streamMetaVPtr = &CCBMetaInfo;
-		info.errorHandler = &CCBErrorHandler;
+		info.error_handler = &CCBErrorHandler;
 		info.program.program_ptr = nullptr;
 		info.user_data = static_cast<void*>(this);
 
