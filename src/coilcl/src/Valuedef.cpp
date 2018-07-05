@@ -428,10 +428,10 @@ void Value::Serialize(const Value& value, Cry::ByteArray& buffer)
 	buffer.SetMagic(VALUE_MAGIC);
 	buffer.SetPlatformCompat();
 
-	// Serialzie type
+	// Serialzie type.
 	Typedef::TypeFacade::Serialize(int{}, value.m_internalType, buffer);
 
-	// Serialzie value
+	// Serialzie value.
 	ValueSelect::Pack(value.m_value, buffer);
 }
 
@@ -445,26 +445,32 @@ void Value::Deserialize(Value& value, Cry::ByteArray& buffer)
 		CryImplExcept(); //TODO
 	}
 
-	// Convert stream to type
+	// Convert stream to type.
 	Typedef::TypeFacade::Deserialize(int{}, value.m_internalType, buffer);
 
-	// Convert stream into value
+	// Convert stream into value.
 	ValueSelect::Unpack(value.m_value, buffer);
 }
 
 // Copy other value into this value.
 Value& Value::operator=(const Value& other)
 {
+	if (m_internalType != other.m_internalType) {
+		throw InvalidTypeCastException{};
+	}
+
 	m_value = other.m_value;
-	m_internalType = other.m_internalType; //TODO: maybe not
 	return (*this);
 }
 
 // Move other value into this value.
 Value& Value::operator=(Value&& other)
 {
+	if (m_internalType != other.m_internalType) {
+		throw InvalidTypeCastException{};
+	}
+
 	m_value = std::move(other.m_value);
-	m_internalType = std::move(other.m_internalType); //TODO: maybe not
 	return (*this);
 }
 

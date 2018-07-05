@@ -259,8 +259,9 @@ BOOST_AUTO_TEST_CASE(ValDefReworkReplace)
 		valInt = Util::MakeInt(17);
 		BOOST_REQUIRE_EQUAL(17, valInt.As<int>());
 		BOOST_REQUIRE(Typedef::BuiltinType::Specifier::INT == valInt.Type().DataType<Typedef::BuiltinType>()->TypeSpecifier());
-		valInt = Util::MakeFloat(12.821639f);
-		BOOST_REQUIRE(Typedef::BuiltinType::Specifier::FLOAT == valInt.Type().DataType<Typedef::BuiltinType>()->TypeSpecifier());
+		valInt = Util::MakeInt(7862138);
+		BOOST_REQUIRE(Typedef::BuiltinType::Specifier::INT == valInt.Type().DataType<Typedef::BuiltinType>()->TypeSpecifier());
+		BOOST_REQUIRE_THROW(valInt = Util::MakeFloat(12.23f), Valuedef::Value::InvalidTypeCastException);
 	}
 
 	{
