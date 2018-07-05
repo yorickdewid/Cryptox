@@ -457,7 +457,7 @@ bool Parser::StructOrUnionSpecifier()
 				if (MATCH_TOKEN(TK_COLON)) {
 					NextToken();
 					ConstantExpression();
-					field->SetBitField(std::dynamic_pointer_cast<IntegerLiteral>(m_elementDescentPipe.next()));
+					field->SetBitField(Util::NodeCast<IntegerLiteral>(m_elementDescentPipe.next()));
 					m_elementDescentPipe.pop();
 				}
 
@@ -679,7 +679,7 @@ bool Parser::AssignmentOperator()
 	}
 	case TK_MUL_ASSIGN:
 	{
-		auto resv = std::dynamic_pointer_cast<DeclRefExpr>(m_elementDescentPipe.next());
+		auto resv = Util::NodeCast<DeclRefExpr>(m_elementDescentPipe.next());
 		auto comOp = CoilCl::AST::MakeASTNode<CompoundAssignOperator>(CompoundAssignOperator::CompoundAssignOperand::MUL, resv);
 		comOp->SetLocation(CURRENT_LOCATION());
 		m_elementDescentPipe.pop();
@@ -694,7 +694,7 @@ bool Parser::AssignmentOperator()
 	}
 	case TK_DIV_ASSIGN:
 	{
-		auto resv = std::dynamic_pointer_cast<DeclRefExpr>(m_elementDescentPipe.next());
+		auto resv = Util::NodeCast<DeclRefExpr>(m_elementDescentPipe.next());
 		auto comOp = CoilCl::AST::MakeASTNode<CompoundAssignOperator>(CompoundAssignOperator::CompoundAssignOperand::DIV, resv);
 		comOp->SetLocation(CURRENT_LOCATION());
 		m_elementDescentPipe.pop();
@@ -709,7 +709,7 @@ bool Parser::AssignmentOperator()
 	}
 	case TK_MOD_ASSIGN:
 	{
-		auto resv = std::dynamic_pointer_cast<DeclRefExpr>(m_elementDescentPipe.next());
+		auto resv = Util::NodeCast<DeclRefExpr>(m_elementDescentPipe.next());
 		auto comOp = CoilCl::AST::MakeASTNode<CompoundAssignOperator>(CompoundAssignOperator::CompoundAssignOperand::MOD, resv);
 		comOp->SetLocation(CURRENT_LOCATION());
 		m_elementDescentPipe.pop();
@@ -724,7 +724,7 @@ bool Parser::AssignmentOperator()
 	}
 	case TK_ADD_ASSIGN:
 	{
-		auto resv = std::dynamic_pointer_cast<DeclRefExpr>(m_elementDescentPipe.next());
+		auto resv = Util::NodeCast<DeclRefExpr>(m_elementDescentPipe.next());
 		auto comOp = CoilCl::AST::MakeASTNode<CompoundAssignOperator>(CompoundAssignOperator::CompoundAssignOperand::ADD, resv);
 		comOp->SetLocation(CURRENT_LOCATION());
 		m_elementDescentPipe.pop();
@@ -739,7 +739,7 @@ bool Parser::AssignmentOperator()
 	}
 	case TK_SUB_ASSIGN:
 	{
-		auto resv = std::dynamic_pointer_cast<DeclRefExpr>(m_elementDescentPipe.next());
+		auto resv = Util::NodeCast<DeclRefExpr>(m_elementDescentPipe.next());
 		auto comOp = CoilCl::AST::MakeASTNode<CompoundAssignOperator>(CompoundAssignOperator::CompoundAssignOperand::SUB, resv);
 		comOp->SetLocation(CURRENT_LOCATION());
 		m_elementDescentPipe.pop();
@@ -754,7 +754,7 @@ bool Parser::AssignmentOperator()
 	}
 	case TK_LEFT_ASSIGN:
 	{
-		auto resv = std::dynamic_pointer_cast<DeclRefExpr>(m_elementDescentPipe.next());
+		auto resv = Util::NodeCast<DeclRefExpr>(m_elementDescentPipe.next());
 		auto comOp = CoilCl::AST::MakeASTNode<CompoundAssignOperator>(CompoundAssignOperator::CompoundAssignOperand::LEFT, resv);
 		comOp->SetLocation(CURRENT_LOCATION());
 		m_elementDescentPipe.pop();
@@ -770,7 +770,7 @@ bool Parser::AssignmentOperator()
 	}
 	case TK_RIGHT_ASSIGN:
 	{
-		auto resv = std::dynamic_pointer_cast<DeclRefExpr>(m_elementDescentPipe.next());
+		auto resv = Util::NodeCast<DeclRefExpr>(m_elementDescentPipe.next());
 		auto comOp = CoilCl::AST::MakeASTNode<CompoundAssignOperator>(CompoundAssignOperator::CompoundAssignOperand::RIGHT, resv);
 		comOp->SetLocation(CURRENT_LOCATION());
 		m_elementDescentPipe.pop();
@@ -785,7 +785,7 @@ bool Parser::AssignmentOperator()
 	}
 	case TK_AND_ASSIGN:
 	{
-		auto resv = std::dynamic_pointer_cast<DeclRefExpr>(m_elementDescentPipe.next());
+		auto resv = Util::NodeCast<DeclRefExpr>(m_elementDescentPipe.next());
 		auto comOp = CoilCl::AST::MakeASTNode<CompoundAssignOperator>(CompoundAssignOperator::CompoundAssignOperand::AND, resv);
 		comOp->SetLocation(CURRENT_LOCATION());
 		m_elementDescentPipe.pop();
@@ -800,7 +800,7 @@ bool Parser::AssignmentOperator()
 	}
 	case TK_XOR_ASSIGN:
 	{
-		auto resv = std::dynamic_pointer_cast<DeclRefExpr>(m_elementDescentPipe.next());
+		auto resv = Util::NodeCast<DeclRefExpr>(m_elementDescentPipe.next());
 		auto comOp = CoilCl::AST::MakeASTNode<CompoundAssignOperator>(CompoundAssignOperator::CompoundAssignOperand::XOR, resv);
 		comOp->SetLocation(CURRENT_LOCATION());
 		m_elementDescentPipe.pop();
@@ -815,7 +815,7 @@ bool Parser::AssignmentOperator()
 	}
 	case TK_OR_ASSIGN:
 	{
-		auto resv = std::dynamic_pointer_cast<DeclRefExpr>(m_elementDescentPipe.next());
+		auto resv = Util::NodeCast<DeclRefExpr>(m_elementDescentPipe.next());
 		auto comOp = CoilCl::AST::MakeASTNode<CompoundAssignOperator>(CompoundAssignOperator::CompoundAssignOperand::OR, resv);
 		comOp->SetLocation(CURRENT_LOCATION());
 		m_elementDescentPipe.pop();
@@ -1997,7 +1997,7 @@ void Parser::Declaration()
 			auto decl = CoilCl::AST::MakeASTNode<DeclStmt>();
 			decl->SetLocation(CURRENT_LOCATION());
 			while (!m_elementDescentPipe.empty()) {
-				decl->AddDeclaration(std::dynamic_pointer_cast<VarDecl>(m_elementDescentPipe.next()));
+				decl->AddDeclaration(Util::NodeCast<VarDecl>(m_elementDescentPipe.next()));
 				m_elementDescentPipe.pop();
 			}
 
@@ -2064,7 +2064,7 @@ void Parser::TypeName()
 
 // An abstract declarator is a declarator without an identifier,
 // consisting of one or more pointer, array, or function modifiers.
-// Abstract declarator are used by typedefs and parameter lists
+// Abstract declarator are used by typedefs and parameter lists.
 void Parser::AbstractDeclarator()
 {
 	Pointer();
@@ -2190,7 +2190,27 @@ void Parser::Designators()
 	}
 }
 
-// As long as we find pointers, continue
+bool Parser::IdentifierListDecl()
+{
+	bool rs = false;
+	for (;;) {
+		if (MATCH_TOKEN(TK_IDENTIFIER)) {
+			auto name = CURRENT_DATA().As<std::string>();
+			m_identifierStack.push(name);
+			rs = true;
+			NextToken();
+		}
+
+		if (NOT_TOKEN(TK_COMMA)) {
+			break;
+		}
+
+		NextToken();
+	}
+	return rs;
+};
+
+// As long as we find pointers, continue.
 void Parser::Pointer()
 {
 	while (MATCH_TOKEN(TK_ASTERISK)) {
@@ -2208,7 +2228,7 @@ bool Parser::Declarator()
 
 bool Parser::DirectDeclarator()
 {
-	auto foundDecl = false;
+	bool foundDecl = false;
 
 	if (MATCH_TOKEN(TK_IDENTIFIER)) {
 		auto name = CURRENT_DATA().As<std::string>();
@@ -2246,44 +2266,27 @@ bool Parser::DirectDeclarator()
 				return true;
 			}
 			else {
-				const auto IdentifierListDecl = [=]
-				{
-					auto stmt = CoilCl::AST::MakeASTNode<ParamStmt>();
-					stmt->SetLocation(CURRENT_LOCATION());
-
-					for (;;) {
-						if (MATCH_TOKEN(TK_IDENTIFIER)) {
-							//TODO
-							/*auto paramDecl = CoilCl::AST::MakeASTNode<ParamDecl>(CURRENT_DATA()->As<std::string>());
-							paramDecl->SetLocation(CURRENT_LOCATION());
-							stmt->AppendParamter(std::dynamic_pointer_cast<ASTNode>(paramDecl));*/
-							NextToken();
-						}
-
-						if (NOT_TOKEN(TK_COMMA)) {
-							break;
-						}
-
-						NextToken();
-					}
-
-					m_elementDescentPipe.push(stmt);
-				};
-
-				// Try default parameter declarations first, if that fails
-				// give the ol' K&R decls a go
+				// Test default parameter declarations first, if that fails
+				// give the ol' K&R decls a go.
+				bool expectSpecifiers = false;
 				if (!ParameterTypeList()) {
-					IdentifierListDecl();
+					expectSpecifiers = IdentifierListDecl();
+				}
+
+				ExpectToken(TK_PARENTHESE_CLOSE);
+				if (expectSpecifiers) {
+					if (!PostParameterTypeList()) {
+						throw ParseException{ "expect declaration specifier by identifier", 0, 0 };
+					}
 				}
 
 				auto decl = CoilCl::AST::MakeASTNode<FunctionDecl>(m_identifierStack.top(), m_typeStack.top());
 				decl->SetLocation(CURRENT_LOCATION());
-				decl->SetParameterStatement(std::dynamic_pointer_cast<ParamStmt>(m_elementDescentPipe.next()));
+				decl->SetParameterStatement(Util::NodeCast<ParamStmt>(m_elementDescentPipe.next()));
 				decl->UpdateReturnType().SetPointer(m_pointerCounter);
 				m_pointerCounter = 0;
 				m_elementDescentPipe.pop();
 				m_typeStack.pop();
-				ExpectToken(TK_PARENTHESE_CLOSE);
 
 				m_elementDescentPipe.push(decl);
 				return true;
@@ -2347,6 +2350,44 @@ void Parser::TypeQualifierList()
 	while (TypeQualifier() != Typedef::TypedefBase::TypeQualifier::NONE);
 }
 
+//TODO: Match the identifiers with the param declarations
+// A post parameter type list declares the type declarations for
+// the identifiers within the function parameter statement.
+bool Parser::PostParameterTypeList()
+{
+	auto rs = false;
+	auto startState = m_elementDescentPipe.state();
+
+	for (;;) {
+		// Test parameter as type declaration.
+		if (ParameterDeclaration()) {
+			m_identifierStack.pop();
+			rs = true;
+		}
+
+		if (NOT_TOKEN(TK_COMMIT)) {
+			break;
+		}
+
+		NextToken();
+	}
+
+	m_elementDescentPipe.release_until(startState);
+
+	if (rs) {
+		auto stmt = AST::MakeASTNode<ParamStmt>();
+		stmt->SetLocation(CURRENT_LOCATION());
+		while (!m_elementDescentPipe.empty()) {
+			stmt->AppendParamter(m_elementDescentPipe.next());
+			m_elementDescentPipe.pop();
+		}
+
+		m_elementDescentPipe.push(stmt);
+	}
+
+	return rs;
+}
+
 // A parameter type list must contain at least the
 // parameter declaration with a type specifier.
 bool Parser::ParameterTypeList()
@@ -2355,6 +2396,7 @@ bool Parser::ParameterTypeList()
 	auto startState = m_elementDescentPipe.state();
 
 	for (;;) {
+		// Test parameter as ellipsis.
 		if (MATCH_TOKEN(TK_ELLIPSIS)) {
 			NextToken();
 
@@ -2364,6 +2406,7 @@ bool Parser::ParameterTypeList()
 			rs = true;
 		}
 
+		// Test parameter as type declaration.
 		if (ParameterDeclaration()) {
 			rs = true;
 		}
@@ -2392,9 +2435,9 @@ bool Parser::ParameterTypeList()
 }
 
 // Parameter declaration can only have:
-//   1.) A single specifier
-//   2.) A specifier and declarator
-//   3.) A specifier and abstract declarator.
+//   1.) A single specifier (int).
+//   2.) A specifier and declarator (int a).
+//   3.) A specifier and abstract declarator (int *).
 bool Parser::ParameterDeclaration()
 {
 	if (!DeclarationSpecifiers()) {
@@ -2449,8 +2492,8 @@ bool Parser::FunctionDefinition()
 	}
 
 	// Check if we found a function.
-	auto func = std::dynamic_pointer_cast<FunctionDecl>(m_elementDescentPipe.next());
-	if (func == nullptr) {
+	auto func = Util::NodeCast<FunctionDecl>(m_elementDescentPipe.next());
+	if (!func) {
 		m_elementDescentPipe.release_until(startState);
 		return false;
 	}
@@ -2461,7 +2504,7 @@ bool Parser::FunctionDefinition()
 	while (Declarator());
 	auto res = CompoundStatement();
 	if (res) {
-		func->SetCompound(std::dynamic_pointer_cast<CompoundStmt>(m_elementDescentPipe.next()));
+		func->SetCompound(Util::NodeCast<CompoundStmt>(m_elementDescentPipe.next()));
 		m_elementDescentPipe.pop();
 	}
 

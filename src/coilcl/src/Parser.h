@@ -305,10 +305,12 @@ private: // Declarations
 	void Initializer();
 	void Designation();
 	void Designators();
+	bool IdentifierListDecl();
 	void Pointer();
 	bool Declarator();
 	bool DirectDeclarator();
 	void TypeQualifierList();
+	bool PostParameterTypeList();
 	bool ParameterTypeList();
 	bool ParameterDeclaration();
 
