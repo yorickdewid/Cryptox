@@ -456,7 +456,7 @@ void Value::Deserialize(Value& value, Cry::ByteArray& buffer)
 Value& Value::operator=(const Value& other)
 {
 	m_value = other.m_value;
-	m_internalType = other.m_internalType;
+	m_internalType = other.m_internalType; //TODO: maybe not
 	return (*this);
 }
 
@@ -464,7 +464,7 @@ Value& Value::operator=(const Value& other)
 Value& Value::operator=(Value&& other)
 {
 	m_value = std::move(other.m_value);
-	m_internalType = std::move(other.m_internalType);
+	m_internalType = std::move(other.m_internalType); //TODO: maybe not
 	return (*this);
 }
 

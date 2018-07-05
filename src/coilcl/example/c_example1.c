@@ -122,7 +122,7 @@ void run_source_file(const char *file, const char *out) {
 	info.streamReaderVPtr = &get_next_source_buffer;
 	info.loadStreamRequestVPtr = &load_source;
 	info.streamMetaVPtr = &source_info;
-	info.errorHandler = &error_handler;
+	info.error_handler = &error_handler;
 	info.program.program_ptr = NULL;
 	info.user_data = ptr;
 	Compile(&info);

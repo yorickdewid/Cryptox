@@ -101,6 +101,7 @@ class CompilerHelper
 		settings.error_handler = &CompilerHelper::ErrorHandler;
 		settings.program = m_program;
 		settings.args = nullptr;
+		settings.envs = nullptr;
 		settings.user_data = this;
 		m_vmResult = ExecuteProgram(&settings);
 		m_programResult = settings.return_code;
@@ -416,6 +417,29 @@ BOOST_AUTO_TEST_CASE(ClSysOrderOfOperations)
 	compiler.RunVirtualMachine();
 	BOOST_REQUIRE_EQUAL(compiler.VMResult(), 0);
 	BOOST_REQUIRE_EQUAL(compiler.ExecutionResult(), -12);
+}
+
+BOOST_AUTO_TEST_CASE(ClSysKNR)
+{
+	const std::string source = ""
+		"int func(i, j)\n"
+		"	int i;\n"
+		"	int j;\n"
+		"{\n"
+		"	return i+j;\n"
+		"}\n"
+		"\n"
+		"int main() {\n"
+		"	return func(12, 3);\n"
+		"}";
+
+	CompilerHelper compiler{ source };
+	compiler.RunCompiler();
+	BOOST_REQUIRE(!compiler.IsProgramEmpty());
+
+	compiler.RunVirtualMachine();
+	BOOST_REQUIRE_EQUAL(compiler.VMResult(), 0);
+	BOOST_REQUIRE_EQUAL(compiler.ExecutionResult(), 15);
 }
 
 BOOST_AUTO_TEST_SUITE_END()
