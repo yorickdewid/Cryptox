@@ -60,7 +60,7 @@ TokenProcessor::DataType DynamicTime();
 
 static std::set<std::string> g_sourceGuardList; //TODO: should not be global
 static std::map<std::string, std::vector<Preprocessor::TokenDataPair<TokenProcessor::TokenType, const TokenProcessor::DataType>>> g_definitionList; //TODO: should not be global
-static std::map<std::string, std::function<TokenProcessor::DataType()>> g_macroList = {
+static const std::map<std::string, std::function<TokenProcessor::DataType()>> g_macroList = {
 	//{ "__func__", []() { CryImplExcept(); } },
 	{ "__FILE__", CoilCl::MacroHelper::DynamicSourceFile },
 	{ "__LINE__", CoilCl::MacroHelper::DynamicSourceLine },
@@ -149,6 +149,12 @@ public:
 		while (it != m_subscriptionSet.end()) {
 			(*it++)(isDirective, tokenData);
 		}
+	}
+
+	void Clear()
+	{
+		m_subscriptionTokenSet.clear();
+		m_subscriptionSet.clear();
 	}
 
 private:
@@ -861,10 +867,15 @@ Preprocessor::Preprocessor(std::shared_ptr<CoilCl::Profile>& profile, ConditionT
 {
 	RegisterMacros();
 
+	// Start with clean states.
+	g_tokenSubscription.Clear();
+	g_sourceGuardList.clear();
+	g_definitionList.clear();
+
 	// Subscribe on all identifier tokens apart from the define tag. This indicates
 	// we can do work on 'normal' tokens that would otherwise flow directly through to
-	// the caller frontend. In this case we register identifier to examine, and on match
-	// replace with the corresponding value. This essentially allows for find and replace
+	// the caller frontend. In this case we register identifiers to examine and on match
+	// replace with the corresponding value. This essentially allows for find-and-replace
 	// semantics on the provided input before any other stage has perceived the token stream.
 	// Since standard and common definition can always be used, register the hook in the
 	// constructor and invoke the definition call on any identifier.
@@ -944,7 +955,7 @@ void Preprocessor::Dispatch(DefaultTokenDataPair& tokenData)
 
 void Preprocessor::EndOfLine()
 {
-	// Reste directive method for next preprocessor line
+	// Reset directive method for next preprocessor line.
 	if (m_method) {
 		m_method->Yield();
 		m_method.reset();

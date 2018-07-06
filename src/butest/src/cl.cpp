@@ -307,14 +307,14 @@ BOOST_AUTO_TEST_CASE(ClSysForFunctionCall)
 BOOST_AUTO_TEST_CASE(ClSysIfConditionTrue)
 {
 	const std::string source = ""
-		"#define CONSTANT_INT    1\n"
-		"#define RETURN_OK       0\n"
+		"#define CONSTANT     1\n"
+		"#define RETURN_OK    0\n"
 		"\n"
 		"/* Prints a string to stdout. */\n"
 		"int puts(const char *str);\n"
 		"\n"
 		"int main() {\n"
-		"	int i = CONSTANT_INT;\n"
+		"	int i = CONSTANT;\n"
 		"	if (i == 1) {\n"
 		"		puts(\"statement true\");\n"
 		"	} else {\n"
