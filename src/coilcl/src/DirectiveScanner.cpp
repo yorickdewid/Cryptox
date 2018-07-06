@@ -266,6 +266,7 @@ int DirectiveScanner::Lex()
 		[this]() { return m_data.get(); },
 		[this](const Tokenizer::ValuePointer& dataPtr)
 	{
+		m_data = boost::none;
 		m_data = dataPtr;
 	});
 }

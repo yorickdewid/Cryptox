@@ -80,6 +80,11 @@ struct TokenProcessor
 
 		void AssignData(const data_type& data) noexcept
 		{
+			// NOTE: Reset the data member first because we do not
+			//       wish to assign a new value, but replace the current
+			//       value with a new value. Value assignments are only
+			//       for new internal values an not types.
+			ResetData();
 			m_data = data;
 			++dataChangeCounter;
 		}
