@@ -20,6 +20,7 @@
 // - Stacktrace
 // - Infinite loop detection
 // - Runtime resolve
+// - Check .lock()'s
 
 #define RETURN_VALUE 0
 #define ENTRY_SYMBOL "main"
@@ -227,18 +228,6 @@ struct DeclarationRegistry
 		PushVar(std::move(pair.first), std::move(pair.second));
 	}
 
-	// Find the value by identifier, if not found null should be returned.
-	//virtual Valuedef::Value& LookupIdentifier(const std::string& key)
-	//{
-	//	auto val = m_localObj.find(key);
-	//	if (val == m_localObj.end()) {
-	//		// TODO: why not null?
-	//		throw IdentifierNotFoundException{ key };
-	//	}
-
-	//	return val->second;
-	//}
-
 	// Find the value by identifier, if not found IdentifierNotFoundException is thrown.
 	virtual std::weak_ptr<Valuedef::Value> ValueByIdentifier(const std::string& key)
 	{
@@ -365,13 +354,13 @@ public:
 		throw std::logic_error{ "cannot set special value multiple time" };
 	}
 
-	// Test if an return value is set
+	// Test if an return value is set.
 	bool HasReturnValue() const noexcept
 	{
 		return (!!m_specialType[RETURN_VALUE]);
 	}
 
-	// Retrieve return value
+	// Retrieve return value.
 	auto ReturnValue() const noexcept
 	{
 		return m_specialType[RETURN_VALUE].get();
@@ -443,9 +432,6 @@ public:
 		for (const auto& context : m_contextList) {
 			if (auto ptr = context.lock()) {
 				pred(std::static_pointer_cast<CastAsType>(context));
-			}
-			else {
-				//TODO: remove from list
 			}
 		}
 	}
@@ -634,34 +620,12 @@ public:
 				return CastDownAs<DeclarationRegistry>(ctx)->ValueByIdentifier(key);
 			}
 
-			//return ParentAs<UnitContext>()->ValueByIdentifier(key);
 			return std::dynamic_pointer_cast<DeclarationRegistry>(Parent())->ValueByIdentifier(key);
 		}
 
 		// Get the value part from the tuple.
 		return std::get<std::shared_ptr<Valuedef::Value>>(val->second);
 	}
-
-	//Valuedef::Value& LookupIdentifier(const std::string& key) override
-	//{
-	//	auto val = m_localObj.find(key);
-	//	if (val == m_localObj.end()) {
-
-	//		// If a function compound context was set, then search the context for an identifier. On
-	//		// all program defined functions the context is attached. External modules may define
-	//		// functions that do not set compounds, and thus the body context can by empty.
-	//		if (auto ctx = m_bodyContext.lock()) {
-	//			auto& compoundVal = CastDownAs<DeclarationRegistry>(ctx)->LookupIdentifier(key);
-	//			if (compoundVal) {
-	//				return compoundVal;
-	//			}
-	//		}
-
-	//		return ParentAs<UnitContext>()->LookupIdentifier(key);
-	//	}
-
-	//	return val->second;
-	//}
 
 private:
 	virtual std::shared_ptr<AbstractContext> GetSharedSelf()
@@ -700,8 +664,6 @@ public:
 	{
 		auto val = m_namedMap.find(key);
 		if (val == m_namedMap.end()) {
-
-			/*return ParentAs<UnitContext>()->ValueByIdentifier(key);*/
 			return std::dynamic_pointer_cast<DeclarationRegistry>(Parent())->ValueByIdentifier(key);
 		}
 
@@ -718,9 +680,9 @@ private:
 
 } // namespace
 
-  // FUTURE:
-  // Local methods must be replaced by the external modules to load functions. Fow now
-  // we trust on these few functions, although it is temporary and thus not complete.
+// FUTURE:
+// Local methods must be replaced by the external modules to load functions. Fow now
+// we trust on these few functions, although it is temporary and thus not complete.
 namespace LocalMethod
 {
 
@@ -1239,7 +1201,7 @@ class ScopedRoutine
 		}
 
 		// On prefix, perform the unary operand on the original.
-		value = std::make_shared<CoilCl::Valuedef::Value>(Util::MakeInt(result));
+		(*value) = Util::MakeInt(result);
 		return (*value.get());
 	}
 
@@ -1249,7 +1211,7 @@ class ScopedRoutine
 		DeclarationRegistry::OpaqueAddress address = ctx->AddressByIdentifier(declRef->Identifier());
 		assert(!address.Expired());
 
-		//Util::MakePointer(address.address);
+		//TODO: Util::MakePointer(address.address);
 		return Util::MakeInt(address.address);
 	}
 
@@ -1293,11 +1255,9 @@ class ScopedRoutine
 				// reference. The declaration reference value is altered when the new value is assigned
 				// and as a consequence updates the declaration table entry.
 				auto declRef = Util::NodeCast<DeclRefExpr>(op->LHS());
-				//CoilCl::Valuedef::Value& assignValue = ctx->LookupIdentifier(declRef->Identifier());
-				const auto& assignValue_tmp = ctx->ValueByIdentifier(declRef->Identifier());
-				auto assignValue = (*assignValue_tmp.lock().get());
-				assignValue = ResolveExpression(op->RHS(), ctx);
-				return assignValue;
+				const auto assignValue = ctx->ValueByIdentifier(declRef->Identifier()).lock();
+				(*assignValue) = ResolveExpression(op->RHS(), ctx);
+				return (*assignValue.get());
 			}
 
 			auto lhsValue = ResolveExpression(op->LHS(), ctx);
@@ -1518,7 +1478,7 @@ class ScopedRoutine
 		compCtx.reset();
 	}
 
-	// Run all nodes in the compound
+	// Run all nodes in the compound.
 	template<typename Node>
 	void ProcessCompound(const std::shared_ptr<Node>& node, Context::Compound& ctx)
 	{
@@ -1527,7 +1487,7 @@ class ScopedRoutine
 			return; //TODO: Check if return type is void
 		}
 
-		// Process each child node
+		// Process each child node.
 		for (const auto& childNode : body) {
 			auto child = childNode.lock();
 			auto returnType = ExecuteStatement(child, ctx);
