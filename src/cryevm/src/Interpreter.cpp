@@ -118,6 +118,83 @@ Global MakeGlobalContext(std::shared_ptr<AbstractContext> ctx = nullptr)
 
 struct DeclarationRegistry
 {
+	struct OpaqueAddress
+	{
+		using AddressType = unsigned int;
+
+		AddressType address;
+
+		OpaqueAddress(AddressType address, std::weak_ptr<Valuedef::Value> ptr)
+			: address{ address }
+			, m_ptr{ ptr }
+		{
+		}
+
+		inline std::shared_ptr<Valuedef::Value> operator->() const
+		{
+			return this->Get();
+		}
+
+		inline std::shared_ptr<Valuedef::Value> operator*() const
+		{
+			return this->Get();
+		}
+
+		inline std::shared_ptr<Valuedef::Value> Get() const
+		{
+			return m_ptr.lock();
+		}
+
+		inline bool Expired() const noexcept
+		{
+			return m_ptr.expired();
+		}
+
+		bool operator==(const OpaqueAddress& other) const
+		{
+			return address == other.address;
+		}
+		bool operator!=(const OpaqueAddress& other) const
+		{
+			return address != other.address;
+		}
+		bool operator<(const OpaqueAddress& other) const
+		{
+			return address < other.address;
+		}
+		bool operator>(const OpaqueAddress& other) const
+		{
+			return address > other.address;
+		}
+		bool operator<=(const OpaqueAddress& other) const
+		{
+			return address <= other.address;
+		}
+		bool operator>=(const OpaqueAddress& other) const
+		{
+			return address >= other.address;
+		}
+
+		static AddressType Advance()
+		{
+			return s_addressSequnce++;
+		}
+
+	private:
+		std::weak_ptr<Valuedef::Value> m_ptr;
+
+	private:
+		static AddressType s_addressSequnce;
+	};
+
+	~DeclarationRegistry()
+	{
+		// Force reset of values in this scope.
+		for (auto& map : m_namedMap) {
+			std::get<std::shared_ptr<Valuedef::Value>>(map.second).reset();
+		}
+	}
+
 	//TODO
 	//virtual PushVar() = 0;
 	//TODO:
@@ -126,43 +203,110 @@ struct DeclarationRegistry
 	//TODO:
 	// Link value to the original value definition from the caller
 	//void PushVarAsPointer(const std::string&& key, std::shared_ptr<Valuedef::Value>&& value);
-	// Find the value by identifier, if not found null should be returned
-	virtual Valuedef::Value& LookupIdentifier(const std::string& key) = 0;
-	// Test if there are any declarations in the current context
-	virtual bool HasLocalObjects() const noexcept
+
+	template<typename KeyType, typename ValueType>
+	void PushVar(KeyType&& key, ValueType&& value)
 	{
-		return !m_localObj.empty();
+		//FUTURE: std::remove_cvref
+		using InternalType = typename std::remove_cv<typename std::remove_reference<KeyType>::type>::type;
+		static_assert(std::is_same<InternalType, std::string>::value ||
+			std::is_same<InternalType, const char *>::value, "");
+
+		auto ptr = std::make_shared<Valuedef::Value>(value);
+		const auto addr = OpaqueAddress::Advance();
+		s_global.emplace(addr, ptr);
+		m_namedMap.emplace(key, std::make_tuple(OpaqueAddress{ addr,ptr }, ptr));
+
+		//TODO: remove
+		m_localObj.emplace(std::forward<KeyType>(key), std::forward<ValueType>(value));
 	}
 
-	// Return number of elements in the context.
-	size_t LocalObjectCount() const noexcept
+	//FUTURE: maybe remove?
+	void PushVar(std::pair<const std::string, Valuedef::Value>&& pair)
 	{
-		return m_localObj.size();
+		PushVar(std::move(pair.first), std::move(pair.second));
 	}
 
-	// Access local storage object directly without hirarchiecal lookup.
-	virtual void ForEachObject(std::function<void(Valuedef::Value)> delegate) const
+	// Find the value by identifier, if not found null should be returned.
+	//virtual Valuedef::Value& LookupIdentifier(const std::string& key)
+	//{
+	//	auto val = m_localObj.find(key);
+	//	if (val == m_localObj.end()) {
+	//		// TODO: why not null?
+	//		throw IdentifierNotFoundException{ key };
+	//	}
+
+	//	return val->second;
+	//}
+
+	// Find the value by identifier, if not found IdentifierNotFoundException is thrown.
+	virtual std::weak_ptr<Valuedef::Value> ValueByIdentifier(const std::string& key)
 	{
-		for (const auto& item : m_localObj) {
-			delegate(item.second);
+		auto val = m_namedMap.find(key);
+		if (val == m_namedMap.end()) {
+			throw IdentifierNotFoundException{ key };
 		}
+
+		// Get the value part from the tuple.
+		return std::get<std::shared_ptr<Valuedef::Value>>(val->second);
+	}
+
+	// Find the address by identifier, if not found null should be returned.
+	virtual OpaqueAddress AddressByIdentifier(const std::string& key)
+	{
+		auto val = m_namedMap.find(key);
+		if (val == m_namedMap.end()) {
+			// TODO: why not null?
+			throw IdentifierNotFoundException{ key };
+		}
+
+		// Get the address part from the tuple.
+		return std::get<OpaqueAddress>(val->second);
+	}
+
+	// Test if there are any declarations in the current context.
+	bool HasLocalValues() const noexcept
+	{
+		return !m_namedMap.empty();
+	}
+
+	// Return number of values in the context.
+	size_t LocalValueCount() const noexcept
+	{
+		return m_namedMap.size();
 	}
 
 #ifdef CRY_DEBUG
 	void DumpVar(const std::string& key)
 	{
-		auto var = LookupIdentifier(key);
-		if (!var) { printf("%s -> (null)", key.c_str()); }
+		auto var = ValueByIdentifier(key);
+		if (!var.lock()) { printf("%s -> (null)", key.c_str()); }
 		else {
 			printf("%s -> ", key.c_str());
-			DUMP_VALUE(var);
+			DUMP_VALUE((*var.lock().get()));
 		}
 	}
 #endif
 
+	// Get value from global address.
+	static std::shared_ptr<Valuedef::Value> ValueByAddress(const OpaqueAddress& address)
+	{
+		return s_global.find(address)->Get();
+	}
+
+	// Clear object registery.
+	static void ClearGlobalObject() { s_global.clear(); }
+
 protected:
-	std::map<std::string, Valuedef::Value> m_localObj;
+	std::map<std::string, Valuedef::Value> m_localObj; //TODO: remove
+	std::map<std::string, std::tuple<OpaqueAddress, std::shared_ptr<Valuedef::Value>>> m_namedMap;
+
+private:
+	static std::set<OpaqueAddress> s_global;
 };
+
+DeclarationRegistry::OpaqueAddress::AddressType DeclarationRegistry::OpaqueAddress::s_addressSequnce{ ADDRESS_SEQUENCE };
+std::set<DeclarationRegistry::OpaqueAddress> DeclarationRegistry::s_global;
 
 struct SymbolRegistry
 {
@@ -394,50 +538,6 @@ public:
 		return func;
 	}
 
-	//TODO:
-	// Copy the original and insert the new value in the context
-	//void PushVarAsCopy(const std::string& key, std::shared_ptr<AST::ASTNode>& node);
-
-	//TODO:
-	// Link value to the original value definition from the caller
-	//void PushVarAsPointer(const std::string&& key, std::shared_ptr<Valuedef::Value>&& value);
-
-	//template<typename KeyType, typename ValueType>
-	//void PushVar(KeyType&& key, ValueType&& value)
-	//{
-	//	//FUTURE: std::remove_cvref
-	//	using InternalType = std::remove_cv<std::remove_reference<KeyType>::type>::type;
-	//	static_assert(std::is_same<InternalType, std::string>::value ||
-	//		std::is_same<InternalType, const char *>::value, "");
-	//	m_localObj.emplace(std::forward<KeyType>(key), std::forward<ValueType>(value));
-	//}
-	void PushVar(std::pair<const std::string, Valuedef::Value>&& pair)
-	{
-		CRY_UNUSED(pair);
-		// Static declarations must be registered in unit scope
-		/*if (Util::IsTypeStatic(pair.second->DataType())) {
-			m_localObj.insert(std::move(pair));
-		}*/
-		// External declarations must be ignored (for now)
-		/*if (Util::IsTypeExtern(pair.second->DataType())) {
-
-		}*/
-
-		//ParentAs<GlobalContext>()->PushVar(std::move(pair));
-	}
-
-	Valuedef::Value& LookupIdentifier(const std::string& key)
-	{
-		auto val = m_localObj.find(key);
-		if (val == m_localObj.end()) {
-			//TODO: search higher up
-			//return ParentAs<GlobalContext>()->LookupIdentifier(key);
-			throw IdentifierNotFoundException{ key };
-		}
-
-		return val->second;
-	}
-
 private:
 	virtual std::shared_ptr<AbstractContext> GetSharedSelf()
 	{
@@ -515,55 +615,53 @@ public:
 		return MakeContextImpl<ContextType>{ shared_from_this(), Parent() }(std::forward<ArgTypes>(args)...);
 	}
 
-	//TODO:
-	// Copy the original and insert the new value in the context
-	//void PushVarAsCopy(const std::string& key, std::shared_ptr<AST::ASTNode>& node);
-
-	//TODO:
-	// Link value to the original value definition from the caller
-	//void PushVarAsPointer(const std::string&& key, std::shared_ptr<Valuedef::Value>&& value);
-
-	template<typename KeyType, typename ValueType>
-	void PushVar(KeyType&& key, ValueType&& value)
-	{
-		//FUTURE: std::remove_cvref
-		using InternalType = typename std::remove_cv<typename std::remove_reference<KeyType>::type>::type;
-		static_assert(std::is_same<InternalType, std::string>::value ||
-			std::is_same<InternalType, const char *>::value, "");
-		m_localObj.emplace(std::forward<KeyType>(key), std::forward<ValueType>(value));
-	}
-
-	void PushVar(std::pair<const std::string, Valuedef::Value>&& pair)
-	{
-		m_localObj.insert(std::move(pair));
-	}
-
 	void AttachCompound(Context::Compound& ctx)
 	{
 		assert(m_bodyContext.expired());
 		m_bodyContext = ctx;
 	}
 
-	Valuedef::Value& LookupIdentifier(const std::string& key)
+	// Find the value by identifier, if not found IdentifierNotFoundException is thrown.
+	virtual std::weak_ptr<Valuedef::Value> ValueByIdentifier(const std::string& key) override
 	{
-		auto val = m_localObj.find(key);
-		if (val == m_localObj.end()) {
+		auto val = m_namedMap.find(key);
+		if (val == m_namedMap.end()) {
 
 			// If a function compound context was set, then search the context for an identifier. On
 			// all program defined functions the context is attached. External modules may define
 			// functions that do not set compounds, and thus the body context can by empty.
 			if (auto ctx = m_bodyContext.lock()) {
-				auto& compoundVal = CastDownAs<DeclarationRegistry>(ctx)->LookupIdentifier(key);
-				if (compoundVal) {
-					return compoundVal;
-				}
+				return CastDownAs<DeclarationRegistry>(ctx)->ValueByIdentifier(key);
 			}
 
-			return ParentAs<UnitContext>()->LookupIdentifier(key);
+			//return ParentAs<UnitContext>()->ValueByIdentifier(key);
+			return std::dynamic_pointer_cast<DeclarationRegistry>(Parent())->ValueByIdentifier(key);
 		}
 
-		return val->second;
+		// Get the value part from the tuple.
+		return std::get<std::shared_ptr<Valuedef::Value>>(val->second);
 	}
+
+	//Valuedef::Value& LookupIdentifier(const std::string& key) override
+	//{
+	//	auto val = m_localObj.find(key);
+	//	if (val == m_localObj.end()) {
+
+	//		// If a function compound context was set, then search the context for an identifier. On
+	//		// all program defined functions the context is attached. External modules may define
+	//		// functions that do not set compounds, and thus the body context can by empty.
+	//		if (auto ctx = m_bodyContext.lock()) {
+	//			auto& compoundVal = CastDownAs<DeclarationRegistry>(ctx)->LookupIdentifier(key);
+	//			if (compoundVal) {
+	//				return compoundVal;
+	//			}
+	//		}
+
+	//		return ParentAs<UnitContext>()->LookupIdentifier(key);
+	//	}
+
+	//	return val->second;
+	//}
 
 private:
 	virtual std::shared_ptr<AbstractContext> GetSharedSelf()
@@ -597,33 +695,18 @@ public:
 		return MakeContextImpl<ContextType>{ shared_from_this(), FindContext<UnitContext>(Context::tag::UNIT) }(std::forward<Args>(args)...);
 	}
 
-	//TODO:
-	// Copy the original and insert the new value in the context
-	//void PushVarAsCopy(const std::string& key, std::shared_ptr<AST::ASTNode>& node);
-
-	//TODO:
-	// Link value to the original value definition from the caller
-	//void PushVarAsPointer(const std::string&& key, std::shared_ptr<Valuedef::Value>&& value);
-
-	template<typename KeyType, typename ValueType>
-	void PushVar(KeyType&& key, ValueType&& value)
+	// Find the value by identifier, if not found IdentifierNotFoundException is thrown.
+	virtual std::weak_ptr<Valuedef::Value> ValueByIdentifier(const std::string& key) override
 	{
-		//FUTURE: std::remove_cvref
-		using InternalType = typename std::remove_cv<typename std::remove_reference<KeyType>::type>::type;
-		static_assert(std::is_same<InternalType, std::string>::value ||
-			std::is_same<InternalType, const char *>::value, "");
-		m_localObj.emplace(std::forward<KeyType>(key), std::forward<ValueType>(value));
-	}
+		auto val = m_namedMap.find(key);
+		if (val == m_namedMap.end()) {
 
-	Valuedef::Value& LookupIdentifier(const std::string& key)
-	{
-		auto val = m_localObj.find(key);
-		if (val == m_localObj.end()) {
-			assert(Parent());
-			return std::dynamic_pointer_cast<DeclarationRegistry>(Parent())->LookupIdentifier(key);
+			/*return ParentAs<UnitContext>()->ValueByIdentifier(key);*/
+			return std::dynamic_pointer_cast<DeclarationRegistry>(Parent())->ValueByIdentifier(key);
 		}
 
-		return val->second;
+		// Get the value part from the tuple.
+		return std::get<std::shared_ptr<Valuedef::Value>>(val->second);
 	}
 
 private:
@@ -734,14 +817,14 @@ struct InternalMethod
 };
 
 #define NATIVE_WRAPPER(c) void _##c(Context::Function& ctx)
-#define GET_DEFAULT_ARG(i) ctx->LookupIdentifier("__arg" #i "__")
-#define GET_VA_LIST_ARG(i) ctx->LookupIdentifier("__va_arg" #i "__")
+#define GET_DEFAULT_ARG(i) ctx->ValueByIdentifier("__arg" #i "__").lock()
+#define GET_VA_LIST_ARG(i) ctx->ValueByIdentifier("__va_arg" #i "__").lock()
 
 NATIVE_WRAPPER(puts)
 {
 	const auto& value = GET_DEFAULT_ARG(0);
 	assert(value);
-	const auto arg0 = value.As<std::string>();
+	const auto arg0 = value->As<std::string>();
 	auto result = puts(arg0.c_str());
 	ctx->CreateSpecialVar<RETURN_VALUE>(Util::MakeInt(result));
 }
@@ -750,7 +833,7 @@ NATIVE_WRAPPER(putchar)
 {
 	const auto& value = GET_DEFAULT_ARG(0);
 	assert(value);
-	const auto arg0 = value.As<int>();
+	const auto arg0 = value->As<int>();
 	auto result = putchar(arg0);
 	ctx->CreateSpecialVar<RETURN_VALUE>(Util::MakeInt(result));
 }
@@ -762,8 +845,8 @@ NATIVE_WRAPPER(printf)
 	const auto& value2 = GET_VA_LIST_ARG(0);
 	assert(value);
 	assert(value2);
-	const auto arg0 = value.As<std::string>();
-	const auto arg1 = value2.As<int>();
+	const auto arg0 = value->As<std::string>();
+	const auto arg1 = value2->As<int>();
 	auto result = printf(arg0.c_str(), arg1);
 	ctx->CreateSpecialVar<RETURN_VALUE>(Util::MakeInt(result));
 }
@@ -772,7 +855,7 @@ NATIVE_WRAPPER(scanf)
 {
 	const auto& value = GET_DEFAULT_ARG(0);
 	assert(value);
-	const auto arg0 = value.As<std::string>();
+	const auto arg0 = value->As<std::string>();
 	auto result = scanf(arg0.c_str());
 	ctx->CreateSpecialVar<RETURN_VALUE>(Util::MakeInt(result));
 }
@@ -783,8 +866,8 @@ NATIVE_WRAPPER(error)
 	const auto& value2 = GET_VA_LIST_ARG(0);
 	assert(value);
 	assert(value2);
-	const auto arg0 = value.As<int>();
-	const auto arg1 = value.As<std::string>();
+	const auto arg0 = value->As<int>();
+	const auto arg1 = value->As<std::string>();
 	throw arg0; //TODO: or something
 }
 
@@ -960,6 +1043,7 @@ Evaluator::Evaluator(AST::AST&& ast, std::shared_ptr<GlobalContext>& ctx)
 	, m_unitContext{ InitializeContext(m_ast, ctx) }
 {
 	assert(IsTranslationUnitNode(m_ast.Front()));
+	DeclarationRegistry::ClearGlobalObject();
 	Unit(static_cast<TranslationUnitDecl&>(m_ast.Front()));
 }
 
@@ -1141,22 +1225,32 @@ class ScopedRoutine
 	}
 
 	//FUTURE: both operations can be improved.
-	template<typename OperandPred, typename ContextType>
+	template<int Increment, typename OperandPred, typename ContextType>
 	static CoilCl::Valuedef::Value ValueAlteration(OperandPred predicate, AST::UnaryOperator::OperandSide side, std::shared_ptr<DeclRefExpr> declRef, ContextType& ctx)
 	{
-		CoilCl::Valuedef::Value& value = ctx->LookupIdentifier(declRef->Identifier());
-		int result = predicate(value.As<int>(), 1);
+		std::shared_ptr<CoilCl::Valuedef::Value> value = ctx->ValueByIdentifier(declRef->Identifier()).lock();
+		int result = predicate(value->As<int>(), Increment);
 
 		// On postfix operand, copy the original first.
 		if (side == AST::UnaryOperator::OperandSide::POSTFIX) {
-			auto origvalue = CoilCl::Valuedef::Value{ value };
-			value = Util::MakeInt(result);
+			auto origvalue = CoilCl::Valuedef::Value{ (*value.get()) };
+			(*value) = Util::MakeInt(result);
 			return origvalue;
 		}
 
 		// On prefix, perform the unary operand on the original.
-		value = Util::MakeInt(result);
-		return value;
+		value = std::make_shared<CoilCl::Valuedef::Value>(Util::MakeInt(result));
+		return (*value.get());
+	}
+
+	template<typename ContextType>
+	static CoilCl::Valuedef::Value ValueReference(std::shared_ptr<DeclRefExpr> declRef, ContextType& ctx)
+	{
+		DeclarationRegistry::OpaqueAddress address = ctx->AddressByIdentifier(declRef->Identifier());
+		assert(!address.Expired());
+
+		//Util::MakePointer(address.address);
+		return Util::MakeInt(address.address);
 	}
 
 	template<typename ContextType>
@@ -1199,7 +1293,9 @@ class ScopedRoutine
 				// reference. The declaration reference value is altered when the new value is assigned
 				// and as a consequence updates the declaration table entry.
 				auto declRef = Util::NodeCast<DeclRefExpr>(op->LHS());
-				CoilCl::Valuedef::Value& assignValue = ctx->LookupIdentifier(declRef->Identifier());
+				//CoilCl::Valuedef::Value& assignValue = ctx->LookupIdentifier(declRef->Identifier());
+				const auto& assignValue_tmp = ctx->ValueByIdentifier(declRef->Identifier());
+				auto assignValue = (*assignValue_tmp.lock().get());
 				assignValue = ResolveExpression(op->RHS(), ctx);
 				return assignValue;
 			}
@@ -1223,9 +1319,9 @@ class ScopedRoutine
 			switch (op->Operand())
 			{
 			case AST::UnaryOperator::UnaryOperand::INC:
-				return ValueAlteration(std::plus<int>(), op->OperationSide(), Util::NodeCast<DeclRefExpr>(op->Expression()), ctx);
+				return ValueAlteration<1>(std::plus<int>(), op->OperationSide(), Util::NodeCast<DeclRefExpr>(op->Expression()), ctx);
 			case AST::UnaryOperator::UnaryOperand::DEC:
-				return ValueAlteration(std::minus<int>(), op->OperationSide(), Util::NodeCast<DeclRefExpr>(op->Expression()), ctx);
+				return ValueAlteration<1>(std::minus<int>(), op->OperationSide(), Util::NodeCast<DeclRefExpr>(op->Expression()), ctx);
 
 				/*
 				case AST::UnaryOperator::UnaryOperand::INTPOS:
@@ -1235,8 +1331,7 @@ class ScopedRoutine
 				*/
 
 			case AST::UnaryOperator::UnaryOperand::ADDR:
-				//ValueAddress();
-				break;
+				return ValueReference(Util::NodeCast<DeclRefExpr>(op->Expression()), ctx);
 			case AST::UnaryOperator::UnaryOperand::PTRVAL:
 				//ValueIndirection();
 				break;
@@ -1275,7 +1370,10 @@ class ScopedRoutine
 
 		case AST::NodeID::DECL_REF_EXPR_ID: {
 			auto declRef = Util::NodeCast<DeclRefExpr>(node);
-			return ctx->LookupIdentifier(declRef->Identifier());
+			//return ctx->LookupIdentifier(declRef->Identifier());
+
+			const auto& value = ctx->ValueByIdentifier(declRef->Identifier());
+			return (*value.lock().get());
 		}
 
 		{
@@ -1321,7 +1419,7 @@ class ScopedRoutine
 		// Create a new function context. Depending on the parent context the new context
 		// is a direct hierarchical or a sub-hierarchical child.
 		Context::Function funcCtx = ctx->MakeContext<FunctionContext>(functionIdentifier);
-		assert(!funcCtx->HasLocalObjects());
+		assert(!funcCtx->HasLocalValues());
 
 		// The symbol is can be found in different places. The interpreter will locate
 		// the runnable object according to the following algorithm:
