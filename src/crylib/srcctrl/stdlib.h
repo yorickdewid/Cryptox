@@ -79,11 +79,6 @@ typedef struct
 #define	RAND_MAX	2147483647
 
 
-/* We define these the same for all machines.  */
-#define	EXIT_FAILURE	1	/* Failing exit status.  */
-#define	EXIT_SUCCESS	0	/* Successful exit status.  */
-
-
 /* Maximum length of a multibyte character in the current locale.  */
 #define	MB_CUR_MAX	(__ctype_get_mb_cur_max ())
 extern size_t __ctype_get_mb_cur_max (void);

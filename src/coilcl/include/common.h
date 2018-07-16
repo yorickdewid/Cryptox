@@ -23,7 +23,12 @@
 extern "C" {
 #endif
 
-#define MAX_FILENAME_SZ 64
+//TODO: CRY_MAX_FILENAME_SZ
+#ifdef FILENAME_MAX
+# define MAX_FILENAME_SZ FILENAME_MAX
+#else
+# define MAX_FILENAME_SZ 128
+#endif
 
 	typedef unsigned short api_t;
 
