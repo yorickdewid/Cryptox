@@ -16,13 +16,14 @@
 
 #define PTR_NATIVE(p) (*(p).get())
 
-// Global definitions occupy index 0 in the definitions list
+// Global definitions occupy index 0 in the definitions list.
 #define GLOBAL_DEFS	0
 
 using namespace Cry::Algorithm;
 
 class SemanticException;
 
+// Inject implicit cast with converter.
 template<size_t Idx = 0, typename ConvertType, typename ParentType, typename ChildType>
 void InjectConverter(std::shared_ptr<ParentType> parent, std::shared_ptr<ChildType> child, ConvertType baseType, ConvertType initType)
 {
@@ -120,29 +121,51 @@ std::shared_ptr<NodeType> Closest(std::shared_ptr<CoilCl::AST::ASTNode>& node)
 			return Closest<NodeType>(parent);
 		}
 
-		return std::dynamic_pointer_cast<NodeType>(parent);
+		return Util::NodeCast<NodeType>(parent);
 	}
 
 	return nullptr;
 }
 
 // Test if the return statement type matches the function return type, if not inject a converter.
-template<size_t Idx = 0, typename BaseType, typename ParentNode, typename ChildNode>
-void IsConversionRequired(std::shared_ptr<ParentNode> parent, std::shared_ptr<ChildNode> child, BaseType baseType)
+template<size_t Idx = 0, typename ParentNode, typename ChildNode>
+void IsConversionRequired(std::shared_ptr<ParentNode> parent, std::shared_ptr<ChildNode> child)
 {
-	// FUTURE: Test this on the node id.
 	// Skip if an converter is already injected.
-	if (std::dynamic_pointer_cast<ImplicitConvertionExpr>(child) != nullptr) {
-		return;
-	}
+	if (AST::NodeID::IMPLICIT_CONVERTION_EXPR_ID == child->Label()) { return; }
 
-	if (auto ret = std::dynamic_pointer_cast<Returnable>(child)) {
-		const Typedef::TypeFacade& initType = ret->ReturnType();
+	auto retBase = std::dynamic_pointer_cast<Returnable>(parent);
+	auto retInit = std::dynamic_pointer_cast<Returnable>(child);
+	if (retBase && retInit) {
+		const Typedef::TypeFacade& baseType = retBase->ReturnType();
+		const Typedef::TypeFacade& initType = retInit->ReturnType();
 
-		assert(initType.HasValue());
+		assert(baseType.HasValue() && initType.HasValue());
 		if (baseType != initType) {
 			InjectConverter<Idx>(parent, child, baseType, initType);
 		}
+	}
+}
+
+// ...
+template<typename ParentNode, typename ChildNode>
+void SetConversion(std::shared_ptr<ParentNode> parent, std::shared_ptr<ChildNode> child)
+{
+	assert(AST::NodeID::CAST_EXPR_ID == parent->Label());
+
+	auto retBase = std::dynamic_pointer_cast<Returnable>(parent);
+	auto retInit = std::dynamic_pointer_cast<Returnable>(child);
+	if (retBase && retInit) {
+		const Typedef::TypeFacade& baseType = retBase->ReturnType();
+		const Typedef::TypeFacade& initType = retInit->ReturnType();
+
+		assert(baseType.HasValue() && initType.HasValue());
+		Conv::Cast::Tag m_tag = Conv::Cast::Tag::NONE_CAST;
+		if (baseType != initType) {
+			m_tag = Conv::Cast::Transmute(baseType, initType);
+		}
+
+		parent->SetConverterOperation(m_tag);
 	}
 }
 
@@ -157,7 +180,7 @@ CoilCl::Semer& CoilCl::Semer::StaticResolve()
 	AST::Compare::Equal<BuiltinExpr> eqOp;
 	MatchIf(m_ast.begin(), m_ast.end(), eqOp, [&staticLookup](AST::AST::iterator itr)
 	{
-		auto builtinExpr = std::dynamic_pointer_cast<BuiltinExpr>(itr.shared_ptr());
+		auto builtinExpr = Util::NodeCast<BuiltinExpr>(itr.shared_ptr());
 		auto declRefName = builtinExpr->FuncDeclRef()->Identifier();
 
 		if (std::any_of(staticLookup.cbegin(), staticLookup.cend(), [&declRefName](const std::string& c) { return c == declRefName; })) {
@@ -214,7 +237,7 @@ void CoilCl::Semer::FuncToSymbol(std::function<void(const std::string, const std
 	AST::Compare::Equal<FunctionDecl> eqOp;
 	MatchIf(m_ast.begin(), m_ast.end(), eqOp, [&insert](AST::AST::iterator itr)
 	{
-		auto func = std::dynamic_pointer_cast<FunctionDecl>(itr.shared_ptr());
+		auto func = Util::NodeCast<FunctionDecl>(itr.shared_ptr());
 		if (func->ReturnType()->IsInline() || func->IsPrototypeDefinition()) {
 			return;
 		}
@@ -232,7 +255,7 @@ void CoilCl::Semer::NamedDeclaration()
 	MatchIf(m_ast.begin(), m_ast.end(), drivdOp, [&traunOp, this](AST::AST::iterator itr)
 	{
 		auto node = itr.shared_ptr();
-		auto decl = std::dynamic_pointer_cast<Decl>(node);
+		auto decl = Util::NodeCast<Decl>(node);
 
 		// Ignore translation unit declaration
 		if (traunOp(PTR_NATIVE(decl))) {
@@ -267,7 +290,7 @@ void CoilCl::Semer::ResolveIdentifier()
 		boost::format semfmt{ "use of undeclared identifier '%1%'" };
 
 		auto node = itr.shared_ptr();
-		auto decl = std::dynamic_pointer_cast<DeclRefExpr>(node);
+		auto decl = Util::NodeCast<DeclRefExpr>(node);
 		if (!decl->IsResolved()) {
 			auto func = Closest<FunctionDecl>(node);
 			if (!func) {
@@ -280,7 +303,7 @@ void CoilCl::Semer::ResolveIdentifier()
 					}
 
 					decl->Resolve(binder->second);
-					std::dynamic_pointer_cast<Decl>(binder->second)->RegisterCaller();
+					Util::NodeCast<Decl>(binder->second)->RegisterCaller();
 				}
 				else {
 					throw std::exception{};//TODO
@@ -297,7 +320,7 @@ void CoilCl::Semer::ResolveIdentifier()
 				}
 
 				decl->Resolve(binder->second);
-				std::dynamic_pointer_cast<Decl>(binder->second)->RegisterCaller();
+				Util::NodeCast<Decl>(binder->second)->RegisterCaller();
 			}
 		}
 	});
@@ -310,7 +333,7 @@ void CoilCl::Semer::BindPrototype()
 
 	MatchIf(m_ast.begin(), m_ast.end(), eqOp, [&m_resolFuncProto](AST::AST::iterator itr)
 	{
-		auto func = std::dynamic_pointer_cast<FunctionDecl>(itr.shared_ptr());
+		auto func = Util::NodeCast<FunctionDecl>(itr.shared_ptr());
 		if (func->IsPrototypeDefinition()) {
 			m_resolFuncProto.Enlist(func);
 		}
@@ -342,7 +365,7 @@ void CoilCl::Semer::DeduceTypes()
 		std::vector<Typedef::TypeFacade> paramTypeList;
 
 		// Skip if there are no parameters, or signature was already set.
-		auto func = std::dynamic_pointer_cast<FunctionDecl>(itr.shared_ptr());
+		auto func = Util::NodeCast<FunctionDecl>(itr.shared_ptr());
 		if (!func->ParameterStatement() || func->HasSignature()) {
 			return;
 		}
@@ -353,7 +376,7 @@ void CoilCl::Semer::DeduceTypes()
 				if (eqVaria(PTR_NATIVE(child)) && it != parameters.end() - 1) {
 					throw SemanticException{ "no argument expected after '...'", 0, 0 };
 				}
-				paramTypeList.push_back(std::dynamic_pointer_cast<Returnable>(child)->ReturnType());
+				paramTypeList.push_back(Util::NodeCast<Returnable>(child)->ReturnType());
 			}
 		}
 
@@ -366,7 +389,7 @@ void CoilCl::Semer::DeduceTypes()
 	AST::Compare::Equal<CallExpr> eqCall;
 	MatchIf(m_ast.begin(), m_ast.end(), eqCall, [](AST::AST::iterator itr)
 	{
-		auto call = std::dynamic_pointer_cast<CallExpr>(itr.shared_ptr());
+		auto call = Util::NodeCast<CallExpr>(itr.shared_ptr());
 		assert(call->FuncDeclRef()->IsResolved());
 		assert(call->FuncDeclRef()->HasReturnType());
 
@@ -381,12 +404,12 @@ void CoilCl::Semer::DeduceTypes()
 	AST::Compare::Derived<EnumConstantDecl> enumOp;
 	MatchIf(m_ast.begin(), m_ast.end(), enumOp, [](AST::AST::iterator itr)
 	{
-		auto enumDecl = std::dynamic_pointer_cast<EnumConstantDecl>(itr.shared_ptr());
+		auto enumDecl = Util::NodeCast<EnumConstantDecl>(itr.shared_ptr());
 		if (!enumDecl->Children().empty() && !enumDecl->HasReturnType()) {
 			auto decl = enumDecl->Children().front().lock();
 			if (!decl) { return; }
 
-			auto rdecl = std::dynamic_pointer_cast<Returnable>(decl);
+			auto rdecl = Util::NodeCast<Returnable>(decl);
 			if (!rdecl->HasReturnType()) {
 				throw SemanticException{ "initializer must be integer constant expression", 0, 0 };
 			}
@@ -412,13 +435,13 @@ void CoilCl::Semer::DeduceTypes()
 	AST::Compare::Derived<Operator> drvOp;
 	MatchIf(m_ast.begin(), m_ast.end(), drvOp, [](AST::AST::iterator itr)
 	{
-		auto opr = std::dynamic_pointer_cast<Operator>(itr.shared_ptr());
+		auto opr = Util::NodeCast<Operator>(itr.shared_ptr());
 
 		AST::AST delegate{ opr };
 		AST::Compare::Derived<Returnable> drvRet;
 		MatchIf(delegate.begin(), delegate.end(), drvRet, [&opr](AST::AST::iterator del_itr)
 		{
-			auto retType = std::dynamic_pointer_cast<Returnable>(del_itr.shared_ptr());
+			auto retType = Util::NodeCast<Returnable>(del_itr.shared_ptr());
 			if (retType->HasReturnType() && !opr->HasReturnType()) {
 				opr->SetReturnType(retType->ReturnType());
 			}
@@ -431,19 +454,27 @@ void CoilCl::Semer::DeduceTypes()
 	AST::Compare::Equal<ParenExpr> eqExpr;
 	MatchIf(m_ast.begin(), m_ast.end(), eqExpr, [](AST::AST::iterator itr)
 	{
-		auto paren = std::dynamic_pointer_cast<ParenExpr>(itr.shared_ptr());
+		auto paren = Util::NodeCast<ParenExpr>(itr.shared_ptr());
 
 		AST::AST delegate{ paren };
 		AST::Compare::Derived<Returnable> drvRet;
 		MatchIf(delegate.begin(), delegate.end(), drvRet, [&paren](AST::AST::iterator del_itr)
 		{
-			auto retType = std::dynamic_pointer_cast<Returnable>(del_itr.shared_ptr());
+			auto retType = Util::NodeCast<Returnable>(del_itr.shared_ptr());
 			if (retType->HasReturnType() && !paren->HasReturnType()) {
 				paren->SetReturnType(retType->ReturnType());
 			}
 		});
 
 		assert(paren->HasReturnType());
+	});
+
+	// ...
+	AST::Compare::Equal<CastExpr> eqCast;
+	MatchIf(m_ast.begin(), m_ast.end(), eqCast, [](AST::AST::iterator itr)
+	{
+		auto cast = Util::NodeCast<CastExpr>(itr.shared_ptr());
+		SetConversion(cast, cast->Expression());
 	});
 }
 
@@ -456,7 +487,7 @@ void CoilCl::Semer::CheckDataType()
 	AST::Compare::Equal<FunctionDecl> eqFuncOp;
 	MatchIf(m_ast.begin(), m_ast.end(), eqFuncOp, [](AST::AST::iterator itr)
 	{
-		auto func = std::dynamic_pointer_cast<FunctionDecl>(itr.shared_ptr());
+		auto func = Util::NodeCast<FunctionDecl>(itr.shared_ptr());
 		if (func->IsPrototypeDefinition() || !func->HasPrototypeDefinition()) {
 			return;
 		}
@@ -476,7 +507,7 @@ void CoilCl::Semer::CheckDataType()
 	AST::Compare::Equal<CallExpr> eqCallOp;
 	MatchIf(m_ast.begin(), m_ast.end(), eqCallOp, [](AST::AST::iterator itr)
 	{
-		auto call = std::dynamic_pointer_cast<CallExpr>(itr.shared_ptr());
+		auto call = Util::NodeCast<CallExpr>(itr.shared_ptr());
 		auto func = std::dynamic_pointer_cast<FunctionDecl>(call->FuncDeclRef()->Reference());
 		assert(call->FuncDeclRef()->IsResolved());
 
@@ -509,12 +540,11 @@ void CoilCl::Semer::CheckDataType()
 	AST::Compare::Equal<VarDecl> eqVar;
 	MatchIf(m_ast.begin(), m_ast.end(), eqVar, [](AST::AST::iterator itr)
 	{
-		auto decl = std::dynamic_pointer_cast<VarDecl>(itr.shared_ptr());
-		Typedef::TypeFacade baseType = decl->ReturnType();
+		auto decl = Util::NodeCast<VarDecl>(itr.shared_ptr());
 
 		for (const auto& wInitializer : decl->Children()) {
 			if (auto initializer = wInitializer.lock()) {
-				IsConversionRequired(decl, initializer, baseType);
+				IsConversionRequired(decl, initializer);
 			}
 		}
 	});
@@ -530,20 +560,28 @@ void CoilCl::Semer::CheckDataType()
 			OperatorRHS = 1,
 		};
 
-		auto opr = std::dynamic_pointer_cast<BinaryOperator>(itr.shared_ptr());
-		Typedef::TypeFacade baseType = opr->ReturnType();
+		auto opr = Util::NodeCast<BinaryOperator>(itr.shared_ptr());
 
 		auto intializerLHS = opr->Children().front().lock();
 		if (intializerLHS) {
-			IsConversionRequired<OperatorLHS>(opr, intializerLHS, baseType);
+			IsConversionRequired<OperatorLHS>(opr, intializerLHS);
 		}
 
 		auto intializerRHS = opr->Children().back().lock();
 		if (intializerRHS) {
-			IsConversionRequired<OperatorRHS>(opr, intializerRHS, baseType);
+			IsConversionRequired<OperatorRHS>(opr, intializerRHS);
 		}
 	});
 
+	// Set return type on cast expression.
+	/*AST::Compare::Equal<CastExpr> eqCast;
+	MatchIf(m_ast.begin(), m_ast.end(), eqCast, [](AST::AST::iterator itr)
+	{
+	auto cast = Util::NodeCast<CastExpr>(itr.shared_ptr());
+	auto retType = Util::NodeCast<Returnable>(cast->Expression());
+	assert(retType->HasReturnType());
+	cast->SetReturnType(retType->ReturnType());
+	});*/
 
 	//TODO: move to DeduceTypes?
 	// Check function return type.
@@ -551,7 +589,7 @@ void CoilCl::Semer::CheckDataType()
 	MatchIf(m_ast.begin(), m_ast.end(), eqRet, [&eqFuncOp](AST::AST::iterator itr)
 	{
 		auto node = itr.shared_ptr();
-		auto stmt = std::dynamic_pointer_cast<ReturnStmt>(node);
+		auto stmt = Util::NodeCast<ReturnStmt>(node);
 		auto func = Closest<FunctionDecl>(node);
 
 		// No function found at return parent.
@@ -580,8 +618,7 @@ void CoilCl::Semer::CheckDataType()
 			throw SemanticException{ "expected operator, expression or literal", 0, 0 };
 		}
 
-		auto baseType = func->ReturnType();
-		IsConversionRequired(stmt, intializer, baseType);
+		IsConversionRequired(stmt, intializer);
 	});
 }
 

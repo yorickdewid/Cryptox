@@ -287,8 +287,8 @@ const std::string CastExpr::NodeName() const
 
 
 ImplicitConvertionExpr::ImplicitConvertionExpr(std::shared_ptr<ASTNode>& node, Conv::Cast::Tag convOp)
-	: m_body{ node }
-	, m_convOp{ convOp }
+	: Convertible{ convOp }
+	, m_body{ node }
 {
 	ASTNode::AppendChild(node);
 }
@@ -332,7 +332,7 @@ const std::string ImplicitConvertionExpr::NodeName() const
 		% line % col
 		% ReturnType().TypeName()
 		% ReturnType()->StorageClassName()
-		% Conv::Cast::PrintTag(m_convOp));
+		% Conv::Cast::PrintTag(Converter()));
 }
 
 

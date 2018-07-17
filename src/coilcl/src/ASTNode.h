@@ -355,7 +355,7 @@ public:
 	ASTNode(int _line, int _col);
 
 	//
-	// Node modifiers
+	// Node modifiers.
 	//
 
 	inline size_t ChildrenCount() const noexcept { return children.size(); }
@@ -1565,13 +1565,31 @@ public:
 	}
 };
 
+class Convertible
+{
+	Conv::Cast::Tag m_convOp{ Conv::Cast::Tag::NONE_CAST };
+
+protected:
+	Convertible() = default;
+
+	// Initialize object with converter.
+	Convertible(Conv::Cast::Tag op)
+		: m_convOp{ op }
+	{
+	}
+
+public:
+	virtual void SetConverterOperation(Conv::Cast::Tag op) { m_convOp = op; }
+	virtual const Conv::Cast::Tag Converter() const { return m_convOp; }
+};
+
 class CastExpr
 	: public Expr
+	, public Convertible
 	, public SelfReference<CastExpr>
 {
 	NODE_ID(AST::NodeID::CAST_EXPR_ID);
 	std::shared_ptr<ASTNode> m_body;
-	Conv::Cast::Tag m_convOp;
 
 public:
 	explicit CastExpr(Serializable::Interface& pack)
@@ -1597,11 +1615,11 @@ private:
 //TODO: rename ImplicitCastExpr
 class ImplicitConvertionExpr
 	: public Expr
+	, public Convertible
 	, public SelfReference<ImplicitConvertionExpr>
 {
 	NODE_ID(AST::NodeID::IMPLICIT_CONVERTION_EXPR_ID);
 	std::shared_ptr<ASTNode> m_body;
-	Conv::Cast::Tag m_convOp;
 
 public:
 	explicit ImplicitConvertionExpr(Serializable::Interface& pack)

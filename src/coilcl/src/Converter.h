@@ -8,10 +8,12 @@
 
 #pragma once
 
+#include "TypeFacade.h"
+
+#include <Cry/Cry.h>
+
 #include <stdexcept>
 #include <sstream>
-
-#include "Typedef.h"
 
 namespace CoilCl
 {
@@ -55,7 +57,21 @@ class MutateOperation
 {
 };
 
+// Convert from one integer to another integer value.
 class IntegralCast : public MutateOperation
+{
+};
+
+// Convert from one floating point to another floating point value.
+class FloatingCast : public MutateOperation
+{
+};
+
+class IntegralToFloatingCast : public MutateOperation
+{
+};
+
+class FloatingToIntegralCast : public MutateOperation
 {
 };
 
@@ -64,19 +80,23 @@ class Cast
 public:
 	enum class Tag
 	{
-		INTEGRAL_CAST,
-		ARRAY_CAST,
-		LTOR_CAST,
-		CONST_CAST,
-		FUNCTION_CAST,
+		NONE_CAST,        // Do not cast anything.
+		INTEGRAL_CAST,    // Cast Integer to integer.
+		FLOATING_CAST,    // Cast float to float point.
+		ARRAY_CAST,       // 
+		LTOR_CAST,        // Cast left to right value.
+		CONST_CAST,       // Cast to or from constant.
+		FUNCTION_CAST,    //
 	};
 
 public:
-	template<typename _ConvTy>
-	static Tag Transmute(_ConvTy from, _ConvTy to)
+	static Tag Transmute(const Typedef::TypeFacade& baseType, const Typedef::TypeFacade& initType)
 	{
+		CRY_UNUSED(baseType);
+		CRY_UNUSED(initType);
+
 		//TODO
-		return Tag::INTEGRAL_CAST;
+		return Tag::NONE_CAST;
 	}
 
 	static std::string PrintTag(Cast::Tag);
