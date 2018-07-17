@@ -184,11 +184,11 @@ void Parser::NextToken()
 }
 
 // Expect next token to be provided token, if so
-// move lexer forward. If not report error and bail.
+// Move lexer forward. If not report error and bail.
 void Parser::ExpectToken(Token token)
 {
 	if (NOT_TOKEN(token)) {
-		Error("expected expression", token);
+		Error("expected token", token);
 	}
 
 	NextToken();
@@ -227,7 +227,7 @@ auto Parser::StorageClassSpecifier()
 	return TypedefBase::StorageClassSpecifier::NONE;
 }
 
-// Type specifiers determine size of the object in memory
+// Type specifiers determine size of the object in memory.
 bool Parser::TypeSpecifier()
 {
 	using namespace Typedef;
@@ -269,17 +269,17 @@ bool Parser::TypeSpecifier()
 		throw StageBase::StageException{ Name(), "imaginary types are not supported" };
 	}
 
-	// Check for enum declarations
+	// Check for enum declarations.
 	if (EnumSpecifier()) {
 		return true;
 	}
 
-	// Check for struct or union declarations
+	// Check for struct or union declarations.
 	if (StructOrUnionSpecifier()) {
 		return true;
 	}
 
-	// Check if identifier is registered as typename
+	// Check if identifier is registered as typename.
 	if (TypenameSpecifier()) {
 		return true;
 	}
@@ -330,7 +330,7 @@ bool Parser::DeclarationSpecifiers()
 			cont = true;
 		}
 
-		// Only one specifier can be applied per object type
+		// Only one specifier can be applied per object type.
 		auto sc = StorageClassSpecifier();
 		if (IsSet(sc)) {
 			NextToken();
@@ -338,7 +338,7 @@ bool Parser::DeclarationSpecifiers()
 			cont = true;
 		}
 
-		// Can have multiple type qualifiers, list them
+		// Can have multiple type qualifiers, list them.
 		auto tq = TypeQualifier();
 		if (IsSet(tq)) {
 			NextToken();
@@ -346,7 +346,7 @@ bool Parser::DeclarationSpecifiers()
 			cont = true;
 		}
 
-		// Function inline specifier
+		// Function inline specifier.
 		if (MATCH_TOKEN(TK_INLINE)) {
 			NextToken();
 			isInline = true;
@@ -354,12 +354,12 @@ bool Parser::DeclarationSpecifiers()
 		}
 	}
 
-	// No type was found, bail
+	// No type was found, bail.
 	if (typeCount == m_typeStack.size()) {
 		return false;
 	}
 
-	// Result yields multiple types, try type coalescence
+	// Result yields multiple types, try type coalescence.
 	auto deltaTypeCount = m_typeStack.size() - typeCount;
 	if (deltaTypeCount > 1) {
 		auto lastType = m_typeStack.top();
@@ -377,12 +377,12 @@ bool Parser::DeclarationSpecifiers()
 		baseType->SetStorageClass(tmpSCP);
 	}
 
-	// Append all stacked qualifiers onto the value object
+	// Append all stacked qualifiers onto the value object.
 	for (const auto& tq : tmpTQ) {
 		baseType->SetQualifier(tq);
 	}
 
-	// Function inlining
+	// Function inlining.
 	if (isInline) {
 		baseType->SetInline();
 	}
@@ -409,6 +409,7 @@ bool Parser::TypenameSpecifier()
 
 bool Parser::StructOrUnionSpecifier()
 {
+	using Specifier = Typedef::RecordType::Specifier;
 	auto isUnion = false;
 
 	switch (CURRENT_TOKEN()) {
@@ -476,20 +477,24 @@ bool Parser::StructOrUnionSpecifier()
 		} while (NOT_TOKEN(TK_BRACE_CLOSE));
 		ExpectToken(TK_BRACE_CLOSE);
 
+		// Possible declaration after record.
+		if (NOT_TOKEN(TK_COMMIT)) {
+			m_comm.ShiftBackward();
+		}
+
 		m_elementDescentPipe.push(rec);
 		m_elementDescentPipe.lock();
 	}
 	else {
-		using Specifier = Typedef::RecordType::Specifier;
-
 		auto& res = m_recordList[std::make_pair(name, !static_cast<int>(isUnion))];
 		if (res == nullptr) {
 			return false;
 		}
 
-		m_typeStack.push(Util::MakeRecordType(name, isUnion ? Specifier::UNION : Specifier::STRUCT));
 		m_comm.ShiftBackward();
 	}
+
+	m_typeStack.push(Util::MakeRecordType(name, isUnion ? Specifier::UNION : Specifier::STRUCT));
 
 	return true;
 }
@@ -1933,17 +1938,17 @@ void Parser::Statement()
 	if (JumpStatement()) { return; }
 	if (LabeledStatement()) { return; }
 
-	// Yield no result, try statement as expression
+	// Yield no result, try statement as expression.
 	ExpressionStatement();
 }
 
-// Loop as long as there are items found within the block
+// Loop as long as there are items found within the block.
 void Parser::BlockItems()
 {
 	do {
 		auto itemState = m_elementDescentPipe.state();
 
-		// Test statement first
+		// Test statement first.
 		Statement();
 		if (MATCH_TOKEN(TK_BRACE_CLOSE)) {
 			break;
@@ -1954,7 +1959,7 @@ void Parser::BlockItems()
 			itemState = m_elementDescentPipe.state();
 		}
 
-		// Continue with declaration
+		// Continue with declaration.
 		Declaration();
 		if (m_elementDescentPipe.is_changed(itemState)) {
 			m_elementDescentPipe.lock();
@@ -1971,7 +1976,7 @@ void Parser::Declaration()
 	if (MATCH_TOKEN(TK_COMMIT)) {
 		NextToken();
 	}
-	// Check if the specifier results yield a typedef
+	// Check if the specifier results yield a typedef.
 	else if (m_typeStack.top()->StorageClass() == Typedef::BuiltinType::StorageClassSpecifier::TYPEDEF) {
 		if (Declarator()) {
 			ExpectToken(TK_COMMIT);

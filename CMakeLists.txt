@@ -267,14 +267,15 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 set(COMMON_DIR ${CMAKE_SOURCE_DIR}/common)
 set(CONTRIB_DIR ${CMAKE_SOURCE_DIR}/contrib)
 set(3RD_PROJECT_DIR ${CMAKE_SOURCE_DIR}/third_party)
+set(GEN_SOURCE_DIR ${CMAKE_BINARY_DIR}/include)
 
 # Fing Message Event Generator
 include(FindMsgGen)
 
 # Generate the event logging header
-file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/include)
+file(MAKE_DIRECTORY ${GEN_SOURCE_DIR})
 execute_process(
-	COMMAND ${MSGGEN_EXE} ${COMMON_DIR}/manifest.xml ${CMAKE_BINARY_DIR}/include/event_log.h
+	COMMAND ${MSGGEN_EXE} ${COMMON_DIR}/manifest.xml ${GEN_SOURCE_DIR}/event_log.h
 )
 
 # -------------------------------

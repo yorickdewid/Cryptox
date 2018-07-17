@@ -33,6 +33,7 @@ file(GLOB ${PROJECT_NAME}_rel ${CMAKE_CURRENT_SOURCE_DIR}/*.rc ${CMAKE_CURRENT_S
 
 include_directories(${${PROJECT_NAME}_INCLUDE})
 include_directories(${CMAKE_CURRENT_BINARY_DIR}/include)
+include_directories(${GEN_SOURCE_DIR})
 
 # Include common headers in every project
 include_directories(${CommonCore_INCLUDE_DIRS})
