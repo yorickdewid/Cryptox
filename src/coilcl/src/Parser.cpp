@@ -1167,7 +1167,7 @@ void Parser::UnaryExpression()
 void Parser::CastExpression()
 {
 	if (MATCH_TOKEN(TK_PARENTHESE_OPEN)) {
-		// Snapshot current state in case of rollback
+		// Snapshot current state in case of rollback.
 		m_comm.Snapshot();
 		try {
 			NextToken();
@@ -1176,17 +1176,18 @@ void Parser::CastExpression()
 
 			CastExpression();
 
-			// If there are no element on the queue, no cast was found
+			// If there are no element on the queue, no cast was found.
 			if (m_elementDescentPipe.empty()) {
 				throw UnexpectedTokenException{};
 			}
 
-			// Remove snapshot since we can continue this path
+			// Remove snapshot since we can continue this path.
 			m_comm.DisposeSnapshot();
 
-			auto cast = CoilCl::AST::MakeASTNode<CastExpr>(m_elementDescentPipe.next());
+			auto cast = CoilCl::AST::MakeASTNode<CastExpr>(m_elementDescentPipe.next(), m_typeStack.top());
 			cast->SetLocation(CURRENT_LOCATION());
 			m_elementDescentPipe.pop();
+			m_typeStack.pop();
 			m_elementDescentPipe.push(cast);
 			return;
 		}

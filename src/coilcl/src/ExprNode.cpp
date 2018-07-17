@@ -223,11 +223,18 @@ void BuiltinExpr::Deserialize(Serializable::Interface& pack)
 const std::string BuiltinExpr::NodeName() const
 {
 	return boost::str(boost::format("%1$s {%2$d} <line:%3$d,col:%4$d> '%5%'")
-		% RemoveClassFromName(typeid(ResolveRefExpr).name())
+		% RemoveClassFromName(typeid(BuiltinExpr).name())
 		% m_state.Alteration()
 		% line % col);
 }
 
+
+CastExpr::CastExpr(std::shared_ptr<ASTNode>& node, std::shared_ptr<Typedef::TypedefBase> type)
+{
+	SetReturnType(type);
+	ASTNode::AppendChild(node);
+	m_body = node;
+}
 
 void CastExpr::Serialize(Serializable::Interface& pack)
 {
@@ -235,7 +242,9 @@ void CastExpr::Serialize(Serializable::Interface& pack)
 
 	auto group = pack.ChildGroups(1);
 	group.Size(1);
-	group << rtype;
+	group << m_body;
+
+	//pack << m_convOp;//TODO
 
 	Expr::Serialize(pack);
 }
@@ -246,9 +255,11 @@ void CastExpr::Deserialize(Serializable::Interface& pack)
 	pack >> _nodeId;
 	AssertNode(_nodeId, nodeId);
 
+	//pack >> m_convOp;//TODO
+
 	auto group = pack.ChildGroups();
 	pack <<= {group[0], [=](const std::shared_ptr<ASTNode>& node) {
-		rtype = node;
+		m_body = node;
 		ASTNode::AppendChild(node);
 	}};
 
@@ -257,10 +268,21 @@ void CastExpr::Deserialize(Serializable::Interface& pack)
 
 const std::string CastExpr::NodeName() const
 {
-	return boost::str(boost::format("%1$s {%2$d} <line:%3$d,col:%4$d>")
-		% RemoveClassFromName(typeid(ResolveRefExpr).name())
-		% m_state.Alteration()
-		% line % col);
+	//TODO: ugly
+	if (!ReturnType().HasValue()) {
+		return boost::str(boost::format("%1$s {%2$d} <line:%3$d,col:%4$d>")
+			% RemoveClassFromName(typeid(CastExpr).name())
+			% m_state.Alteration()
+			% line % col);
+	}
+	else {
+		return boost::str(boost::format("%1$s {%2$d} <line:%3$d,col:%4$d> '%5%' %6%")
+			% RemoveClassFromName(typeid(CastExpr).name())
+			% m_state.Alteration()
+			% line % col
+			% ReturnType().TypeName()
+			% ReturnType()->StorageClassName());
+	}
 }
 
 
@@ -269,6 +291,36 @@ ImplicitConvertionExpr::ImplicitConvertionExpr(std::shared_ptr<ASTNode>& node, C
 	, m_convOp{ convOp }
 {
 	ASTNode::AppendChild(node);
+}
+
+void ImplicitConvertionExpr::Serialize(Serializable::Interface& pack)
+{
+	pack << nodeId;
+
+	auto group = pack.ChildGroups(1);
+	group.Size(1);
+	group << m_body;
+
+	//pack << m_convOp;//TODO
+
+	Expr::Serialize(pack);
+}
+
+void ImplicitConvertionExpr::Deserialize(Serializable::Interface& pack)
+{
+	AST::NodeID _nodeId;
+	pack >> _nodeId;
+	AssertNode(_nodeId, nodeId);
+
+	//pack >> m_convOp;//TODO
+
+	auto group = pack.ChildGroups();
+	pack <<= {group[0], [=](const std::shared_ptr<ASTNode>& node) {
+		m_body = node;
+		ASTNode::AppendChild(node);
+	}};
+
+	Expr::Deserialize(pack);
 }
 
 const std::string ImplicitConvertionExpr::NodeName() const
@@ -494,7 +546,7 @@ void MemberExpr::Deserialize(Serializable::Interface& pack)
 const std::string MemberExpr::NodeName() const
 {
 	return boost::str(boost::format("%1$s {%2$d} <line:%3$d,col:%4$d> %5% %6%")
-		% RemoveClassFromName(typeid(ResolveRefExpr).name())
+		% RemoveClassFromName(typeid(MemberExpr).name())
 		% m_state.Alteration()
 		% line % col
 		% (m_memberType == MemberType::REFERENCE ? "." : "->")

@@ -270,9 +270,9 @@ void CoilCl::Semer::ResolveIdentifier()
 		auto decl = std::dynamic_pointer_cast<DeclRefExpr>(node);
 		if (!decl->IsResolved()) {
 			auto func = Closest<FunctionDecl>(node);
-			if (func == nullptr) {
+			if (!func) {
 				auto block = Closest<CompoundStmt>(node);
-				if (block == nullptr) {
+				if (!block) {
 					auto binder = this->m_resolveList[GLOBAL_DEFS].find(decl->Identifier());
 					if (binder == this->m_resolveList[GLOBAL_DEFS].end()) {
 						semfmt % decl->Identifier();
@@ -448,7 +448,8 @@ void CoilCl::Semer::DeduceTypes()
 }
 
 // Check if all datatypes are convertible and inject type conversions in the tree
-// when two types can be casted.
+// when two types can be casted. This method should only perform readonly operations
+// on the tree.
 void CoilCl::Semer::CheckDataType()
 {
 	// Compare function with its prototype, if exist.
@@ -479,7 +480,7 @@ void CoilCl::Semer::CheckDataType()
 		auto func = std::dynamic_pointer_cast<FunctionDecl>(call->FuncDeclRef()->Reference());
 		assert(call->FuncDeclRef()->IsResolved());
 
-		// Early exit
+		// Early exit.
 		if (!call->HasArguments() && !func->HasSignature()) {
 			return;
 		}
@@ -503,6 +504,7 @@ void CoilCl::Semer::CheckDataType()
 		}
 	});
 
+	//TODO: move to DeduceTypes?
 	// Inject type converter in vardecl.
 	AST::Compare::Equal<VarDecl> eqVar;
 	MatchIf(m_ast.begin(), m_ast.end(), eqVar, [](AST::AST::iterator itr)
@@ -510,13 +512,14 @@ void CoilCl::Semer::CheckDataType()
 		auto decl = std::dynamic_pointer_cast<VarDecl>(itr.shared_ptr());
 		Typedef::TypeFacade baseType = decl->ReturnType();
 
-		for (const auto& wIntializer : decl->Children()) {
-			if (auto intializer = wIntializer.lock()) {
-				IsConversionRequired(decl, intializer, baseType);
+		for (const auto& wInitializer : decl->Children()) {
+			if (auto initializer = wInitializer.lock()) {
+				IsConversionRequired(decl, initializer, baseType);
 			}
 		}
 	});
 
+	//TODO: move to DeduceTypes?
 	// Inject type converter in operator.
 	AST::Compare::Derived<BinaryOperator> eqOp;
 	MatchIf(m_ast.begin(), m_ast.end(), eqOp, [](AST::AST::iterator itr)
@@ -541,6 +544,8 @@ void CoilCl::Semer::CheckDataType()
 		}
 	});
 
+
+	//TODO: move to DeduceTypes?
 	// Check function return type.
 	AST::Compare::Equal<ReturnStmt> eqRet;
 	MatchIf(m_ast.begin(), m_ast.end(), eqRet, [&eqFuncOp](AST::AST::iterator itr)

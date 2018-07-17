@@ -1570,7 +1570,8 @@ class CastExpr
 	, public SelfReference<CastExpr>
 {
 	NODE_ID(AST::NodeID::CAST_EXPR_ID);
-	std::shared_ptr<ASTNode> rtype;
+	std::shared_ptr<ASTNode> m_body;
+	Conv::Cast::Tag m_convOp;
 
 public:
 	explicit CastExpr(Serializable::Interface& pack)
@@ -1578,12 +1579,9 @@ public:
 		Deserialize(pack);
 	}
 
-	CastExpr(std::shared_ptr<ASTNode>& node)
-		//: Expr{}
-	{
-		ASTNode::AppendChild(node);
-		rtype = node;
-	}
+	CastExpr(std::shared_ptr<ASTNode>& node, std::shared_ptr<Typedef::TypedefBase> type);
+
+	auto& Expression() const { return m_body; }
 
 	virtual void Serialize(Serializable::Interface& pack);
 	virtual void Deserialize(Serializable::Interface& pack);
@@ -1596,7 +1594,7 @@ private:
 };
 
 //TODO: converter function
-//TODO: rename ImplicitConversionExpr
+//TODO: rename ImplicitCastExpr
 class ImplicitConvertionExpr
 	: public Expr
 	, public SelfReference<ImplicitConvertionExpr>
@@ -1606,42 +1604,15 @@ class ImplicitConvertionExpr
 	Conv::Cast::Tag m_convOp;
 
 public:
-	ImplicitConvertionExpr(std::shared_ptr<ASTNode>& node, Conv::Cast::Tag convOp);
-
 	explicit ImplicitConvertionExpr(Serializable::Interface& pack)
 	{
 		Deserialize(pack);
 	}
 
-	virtual void Serialize(Serializable::Interface& pack)
-	{
-		pack << nodeId;
+	ImplicitConvertionExpr(std::shared_ptr<ASTNode>& node, Conv::Cast::Tag convOp);
 
-		auto group = pack.ChildGroups(1);
-		group.Size(1);
-		group << m_body;
-
-		//pack << m_convOp;//TODO
-
-		Expr::Serialize(pack);
-	}
-
-	virtual void Deserialize(Serializable::Interface& pack)
-	{
-		AST::NodeID _nodeId;
-		pack >> _nodeId;
-		AssertNode(_nodeId, nodeId);
-
-		//pack >> m_convOp;//TODO
-
-		auto group = pack.ChildGroups();
-		pack <<= {group[0], [=](const std::shared_ptr<ASTNode>& node) {
-			m_body = node;
-			ASTNode::AppendChild(node);
-		}};
-
-		Expr::Deserialize(pack);
-	}
+	virtual void Serialize(Serializable::Interface& pack);
+	virtual void Deserialize(Serializable::Interface& pack);
 
 	LABEL();
 	virtual const std::string NodeName() const;
