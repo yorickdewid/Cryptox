@@ -275,7 +275,7 @@ include(FindMsgGen)
 # Generate the event logging header
 file(MAKE_DIRECTORY ${GEN_SOURCE_DIR})
 execute_process(
-	COMMAND ${MSGGEN_EXE} ${COMMON_DIR}/manifest.xml ${GEN_SOURCE_DIR}/event_log.h
+	COMMAND ${MSGGEN_EXE} ${COMMON_DIR}/manifest.xml ${GEN_SOURCE_DIR}/EventLog.h
 )
 
 # -------------------------------

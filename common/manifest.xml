@@ -20,7 +20,7 @@
    </event>
    <event id="1002">
       <level>2</level>
-      <title>Symbol not found in internal or external module</title>
+      <title>Symbol '%s' not found in internal or external module</title>
       <description>Symbol was not found in the current program or an external program</description>
    </event>
   </events>

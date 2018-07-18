@@ -762,7 +762,7 @@ public:
 
 #define PACKED_PARAM_DECL(s) SolidParameterFormat{}.Parse(s).Parameters()
 
-struct InternalMethod
+struct ExternalMethod
 {
 	const std::string symbol;
 	const std::function<void(Context::Function&)> functional;
@@ -770,7 +770,7 @@ struct InternalMethod
 
 	bool HasParameters() const noexcept { return params != nullptr; }
 
-	InternalMethod(const std::string symbol, std::function<void(Context::Function&)> func, std::shared_ptr<ParamStmt> params = {})
+	ExternalMethod(const std::string symbol, std::function<void(Context::Function&)> func, std::shared_ptr<ParamStmt> params = {})
 		: symbol{ symbol }
 		, functional{ func }
 		, params{ params }
@@ -833,35 +833,36 @@ NATIVE_WRAPPER(error)
 	throw arg0; //TODO: or something
 }
 
-const std::array<InternalMethod, 5> g_internalMethod = {
-	InternalMethod{ "puts", &_puts, PACKED_PARAM_DECL("s") },
-	InternalMethod{ "putchar", &_putchar, PACKED_PARAM_DECL("i") },
-	InternalMethod{ "printf", &_printf, PACKED_PARAM_DECL("sV") },
-	InternalMethod{ "scanf", &_scanf, PACKED_PARAM_DECL("sV") },
-	InternalMethod{ "error", &_error, PACKED_PARAM_DECL("is") },
+const std::array<ExternalMethod, 5> g_externalMethod = {
+	ExternalMethod{ "puts", &_puts, PACKED_PARAM_DECL("s") },
+	ExternalMethod{ "putchar", &_putchar, PACKED_PARAM_DECL("i") },
+	ExternalMethod{ "printf", &_printf, PACKED_PARAM_DECL("sV") },
+	ExternalMethod{ "scanf", &_scanf, PACKED_PARAM_DECL("sV") },
+	ExternalMethod{ "error", &_error, PACKED_PARAM_DECL("is") },
 };
 
 struct ExternalRoutine
 {
-	void ProcessRoutine(const InternalMethod *method, Context::Function& ctx)
+	void ProcessRoutine(const ExternalMethod *method, Context::Function& ctx)
 	{
 		method->functional(ctx);
 	}
 
 public:
-	inline void operator()(const InternalMethod *method, Context::Function& ctx)
+	inline void operator()(const ExternalMethod *method, Context::Function& ctx)
 	{
 		assert(method);
 		ProcessRoutine(method, ctx);
 	}
 };
 
-const InternalMethod *RequestInternalMethod(const std::string& symbol)
+const ExternalMethod *RequestInternalMethod(const std::string& symbol)
 {
-	auto it = std::find_if(g_internalMethod.cbegin(), g_internalMethod.cend(), [&](const InternalMethod& method) {
+	// FUTURE: logarithmic search or static search
+	auto it = std::find_if(g_externalMethod.cbegin(), g_externalMethod.cend(), [&](const ExternalMethod& method) {
 		return method.symbol == symbol;
 	});
-	if (it == g_internalMethod.cend()) { return nullptr; }
+	if (it == g_externalMethod.cend()) { return nullptr; }
 	return &(*it);
 }
 
@@ -900,7 +901,7 @@ public:
 	Runnable() = default;
 
 	// Construct runnable from function declaration.
-	Runnable(std::shared_ptr<FunctionDecl>& funcNode)
+	explicit Runnable(std::shared_ptr<FunctionDecl>& funcNode)
 		: m_functionData{ funcNode }
 	{
 		assert(funcNode);
@@ -921,7 +922,7 @@ public:
 	}
 
 	// Construct runnable from internal method.
-	Runnable(const LocalMethod::InternalMethod *exfuncRef)
+	explicit Runnable(const LocalMethod::ExternalMethod *exfuncRef)
 		: m_isExternal{ true }
 		, m_functionData{ exfuncRef }
 	{
@@ -950,7 +951,9 @@ public:
 		return m_paramList[idx];
 	}
 
+	//TODO: confusing call
 	const Parameter& Front() const { return m_paramList.front(); }
+	//TODO: confusing call
 	const Parameter& Back() const { return m_paramList.back(); }
 
 	// Query argument size.
@@ -967,7 +970,7 @@ public:
 
 private:
 	bool m_isExternal = false;
-	boost::variant<std::shared_ptr<FunctionDecl>, const LocalMethod::InternalMethod*> m_functionData;
+	boost::variant<std::shared_ptr<FunctionDecl>, const LocalMethod::ExternalMethod*> m_functionData;
 	std::vector<Parameter> m_paramList;
 };
 
@@ -1009,7 +1012,8 @@ Evaluator::Evaluator(AST::AST&& ast, std::shared_ptr<GlobalContext>& ctx)
 	Unit(static_cast<TranslationUnitDecl&>(m_ast.Front()));
 }
 
-// Global scope evaluation an entire unit.
+// Global scope, evaluate an entire unit and registger
+// toplevel objects such as records, variables and functions.
 void Evaluator::Unit(const TranslationUnitDecl& node)
 {
 	using namespace AST;
@@ -1027,7 +1031,7 @@ void Evaluator::Unit(const TranslationUnitDecl& node)
 				break;
 			}
 			case NodeID::TYPEDEF_DECL_ID: {
-				// Type definitions should already have been resolved in an earlier state
+				// Type definitions should already have been resolved in an earlier stage
 				// and thus is error checking alone sufficient.
 				auto typedefDecl = Util::NodeCast<TypedefDecl>(ptr);
 				if (!typedefDecl->HasReturnType()) {
@@ -1056,7 +1060,7 @@ void Evaluator::Unit(const TranslationUnitDecl& node)
 				break;
 			}
 			default:
-				CryImplExcept(); //TODO: Throw something usefull
+				CryImplExcept(); //TODO: THROW: statement or declaration is unqualified in global scope.
 			}
 		}
 	}
@@ -1191,17 +1195,17 @@ class ScopedRoutine
 	static CoilCl::Valuedef::Value ValueAlteration(OperandPred predicate, AST::UnaryOperator::OperandSide side, std::shared_ptr<DeclRefExpr> declRef, ContextType& ctx)
 	{
 		std::shared_ptr<CoilCl::Valuedef::Value> value = ctx->ValueByIdentifier(declRef->Identifier()).lock();
-		int result = predicate(value->As<int>(), Increment);
+		int result = predicate(value->As<int>(), Increment); //TODO: not always an integer
 
 		// On postfix operand, copy the original first.
 		if (side == AST::UnaryOperator::OperandSide::POSTFIX) {
 			auto origvalue = CoilCl::Valuedef::Value{ (*value.get()) };
-			(*value) = Util::MakeInt(result);
+			(*value) = Util::MakeInt(result); //TODO: not always an integer
 			return origvalue;
 		}
 
 		// On prefix, perform the unary operand on the original.
-		(*value) = Util::MakeInt(result);
+		(*value) = Util::MakeInt(result); //TODO: not always an integer
 		return (*value.get());
 	}
 
@@ -1262,7 +1266,7 @@ class ScopedRoutine
 
 			auto lhsValue = ResolveExpression(op->LHS(), ctx);
 			auto rhsValue = ResolveExpression(op->RHS(), ctx);
-			return BinaryOperation(OperandFactory<int>(op->Operand()), lhsValue, rhsValue);
+			return BinaryOperation(OperandFactory<int>(op->Operand()), lhsValue, rhsValue); //TODO: not always an integer
 		}
 		case AST::NodeID::CONDITIONAL_OPERATOR_ID: {
 			const auto op = std::dynamic_pointer_cast<ConditionalOperator>(node);
@@ -1279,9 +1283,9 @@ class ScopedRoutine
 			switch (op->Operand())
 			{
 			case AST::UnaryOperator::UnaryOperand::INC:
-				return ValueAlteration<1>(std::plus<int>(), op->OperationSide(), Util::NodeCast<DeclRefExpr>(op->Expression()), ctx);
+				return ValueAlteration<1>(std::plus<int>(), op->OperationSide(), Util::NodeCast<DeclRefExpr>(op->Expression()), ctx); //TODO: not always an integer
 			case AST::UnaryOperator::UnaryOperand::DEC:
-				return ValueAlteration<1>(std::minus<int>(), op->OperationSide(), Util::NodeCast<DeclRefExpr>(op->Expression()), ctx);
+				return ValueAlteration<1>(std::minus<int>(), op->OperationSide(), Util::NodeCast<DeclRefExpr>(op->Expression()), ctx); //TODO: not always an integer
 
 				/*
 				case AST::UnaryOperator::UnaryOperand::INTPOS:
@@ -1445,7 +1449,7 @@ class ScopedRoutine
 		// is returned as the result of the expression.
 		assert(function);
 		if (function.IsExternal()) {
-			LocalMethod::ExternalRoutine{}(function.Data<const LocalMethod::InternalMethod*>(), funcCtx);
+			LocalMethod::ExternalRoutine{}(function.Data<const LocalMethod::ExternalMethod*>(), funcCtx);
 		}
 		else {
 			auto func = function.Data<std::shared_ptr<FunctionDecl>>();
@@ -1594,6 +1598,7 @@ class ScopedRoutine
 		}
 	}
 
+	// Run the expression and evaluate return values as boolean.
 	int ProcessCondition(std::shared_ptr<IfStmt>& node, Context::Compound& ctx)
 	{
 		auto value = ResolveExpression(node->Expression(), ctx);
@@ -1610,7 +1615,7 @@ class ScopedRoutine
 				}
 			}
 		}
-		// Handle alternative path, if any.
+		// Handle alternative path, if defined.
 		else if (node->HasAltCompound()) {
 			auto continueNode = node->AltCompound();
 			if (Util::IsNodeCompound(continueNode)) {
@@ -1666,8 +1671,8 @@ class ScopedRoutine
 				}
 			}
 		}
-		compCtx.reset();
 
+		compCtx.reset();
 		return RETURN_NORMAL;
 	}
 

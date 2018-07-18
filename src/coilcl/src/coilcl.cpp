@@ -18,6 +18,7 @@
 #include "NonFatal.h"
 
 // Project includes.
+#include <EventLog.h>
 #include <Cry/Cry.h>
 #include <Cry/Config.h>
 
@@ -27,10 +28,9 @@
 #include <functional>
 
 // Current compiler limitations
-// - No support for K&R function declarations
-// - Singe translation unit
 // - Lexer does not check on end of literal char or end of string literal
 // FUTURE:
+// - Multiple translation units
 // - Static analyzer after the Semer stage
 
 #ifdef CRY_DEBUG
@@ -150,13 +150,13 @@ public:
 		backreferencePointer = static_cast<void*>(ptr);
 	}
 
-	// Run all stages and build the program, the program is returned if no exceptions occur
+	// Run all stages and build the program, the program is returned if no exceptions occur.
 	static ProgramPtr Dispatch(std::shared_ptr<Compiler>&& compiler)
 	{
-		// Convert compiler object to profile interface in order to limit access for components
+		// Convert compiler object to profile interface in order to limit access for components.
 		auto profile = Profile::DeriveInterface(compiler);
 
-		// Create an empty program for the first stage
+		// Create an empty program for the first stage.
 		ProgramPtr program = Program::MakeProgram();
 
 		// Clear all warnings for this session.
@@ -356,14 +356,14 @@ COILCLAPI void Compile(compiler_info_t *cl_info) NOTHROW
 #ifdef CRY_DEBUG_TRACE
 	if (program->Condition().IsRunnable()) {
 		if (program->Condition().IsAllPassed()) {
-			std::cout << "Program: phase done" << std::endl;
+			EventLog::Log(EventLevel::Level::Hint, "Program: phase done");
 		}
 		else {
-			std::cout << "Program: phase runnable" << std::endl;
+			EventLog::Log(EventLevel::Level::Hint, "Program: phase runnable");
 		}
 	}
 	else {
-		std::cout << "Program: NOT runnable" << std::endl;
+		EventLog::Log(EventLevel::Level::Warning, "Program: NOT runnable");
 	}
 	if (program->HasSymbols()) {
 		program->PrintSymbols();
