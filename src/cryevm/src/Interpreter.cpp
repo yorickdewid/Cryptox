@@ -856,7 +856,7 @@ public:
 	}
 };
 
-const ExternalMethod *RequestInternalMethod(const std::string& symbol)
+const ExternalMethod *RequestExternalMethod(const std::string& symbol)
 {
 	// FUTURE: logarithmic search or static search
 	auto it = std::find_if(g_externalMethod.cbegin(), g_externalMethod.cend(), [&](const ExternalMethod& method) {
@@ -1393,7 +1393,7 @@ class ScopedRoutine
 		if (auto funcNode = ctx->FindContext<UnitContext>(Context::tag::UNIT)->LookupSymbol<FunctionDecl>(functionIdentifier)) {
 			function = std::move(Runnable{ funcNode });
 		}
-		else if (auto exfuncRef = LocalMethod::RequestInternalMethod(functionIdentifier)) {
+		else if (auto exfuncRef = LocalMethod::RequestExternalMethod(functionIdentifier)) {
 			function = std::move(Runnable{ exfuncRef });
 		}
 		else {

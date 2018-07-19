@@ -8,10 +8,14 @@
 
 #pragma once
 
-#define	_STDLIB_H
+#define	_CRY_STDLIB_DEFINED
 
 #if (defined __CRYC__ || defined __INCLUDE_CRYLIB) && !defined _CRYLIB_H
 # include <crylib.h>
+#endif
+
+#ifndef _EXTERN
+# define _EXTERN extern
 #endif
 
 //
@@ -19,45 +23,45 @@
 //
 
 // Abort execution and generate a core-dump.
-extern void abort(void);
+_EXTERN void abort(void);
 
 // Register a function to be called when 'exit' is called.
-extern int atexit(void(*__func) (void));
+_EXTERN int atexit(void(*func) (void));
 
 #ifdef __USE_ISOC11
 // Register a function to be called when 'quick_exit' is called.
-extern int at_quick_exit(void(*__func) (void));
+_EXTERN int at_quick_exit(void(*func) (void));
 #endif
 
 #ifdef __USE_MISC
 // Register a function to be called with the status given
 // to 'exit' and the given argument.
-extern int on_exit(void(*__func) (int __status, void *__arg), void *__arg);
+_EXTERN int on_exit(void(*func) (int status, void *arg), void *arg);
 #endif
 
 // Call all functions registered with 'atexit' and 'on_exit',
 // in the reverse of the order in which they were registered then
 // perform stdio cleanup, and terminate program execution with STATUS.
-extern void exit(int __status);
+_EXTERN void exit(int status);
 
 #ifdef __USE_ISOC11
 // Call all functions registered with 'at_quick_exit' in the reverse
 // of the order in which they were registered and terminate program
 // execution with STATUS.
-extern void quick_exit(int __status);
+_EXTERN void quick_exit(int status);
 #endif
 
 #ifdef __USE_CRYC
 // Call all functions registered with 'at_quick_exit' in the reverse
 // of the order in which they were registered and terminate program
 // with calltrace.
-extern void calltrace_exit(void);
+_EXTERN void calltrace_exit(void);
 #endif
 
 #ifdef __USE_ISOC99
 // Terminate the program with STATUS without calling any of the
 // functions registered with 'atexit' or 'on_exit'.
-extern void _Exit(int __status);
+_EXTERN void _Exit(int status);
 #endif
 
 // We define these the same for all machines and environments.
@@ -69,12 +73,16 @@ extern void _Exit(int __status);
 //
 
 // Execute the given line as a shell command.
-extern int system(const char *__command);
+_EXTERN int system(const char *command);
 
 //
 // Signals.
 //
 
+// ...
+
 //
 // Cross jumps.
 //
+
+// ...

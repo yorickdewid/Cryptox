@@ -29,7 +29,7 @@ namespace po = boost::program_options;
 int main(int argc, const char *argv[])
 {
 	try {
-		// Generic options
+		// Generic options.
 		po::options_description description{ PROGRAM_UTIL_HEADER "\n\n" PROGRAM_ORIGINAL_NAME ": [OPTIONS] FILE ...\n\nOptions" };
 		description.add_options()
 			("print-include-dirs", "Display the include directories in the compiler's search path")
@@ -43,7 +43,7 @@ int main(int argc, const char *argv[])
 			("run", "Compile and execute")
 			("args", po::value<std::vector<std::string>>()->value_name("<arg>"), "Runner arguments");
 
-		// Compiler options
+		// Compiler options.
 		po::options_description codegen{ "\nCompiler options" };
 		codegen.add_options()
 			("out", po::value<std::string>()->value_name("<file>"), "Image output file")
@@ -60,14 +60,14 @@ int main(int argc, const char *argv[])
 			("Wall", "Report all warnings")
 			("Werror", "Threat warnings as errors");
 
-		// Optimizer options
+		// Optimizer options.
 		po::options_description optim{ "\nOptimizer options" };
 		optim.add_options()
 			("O", "Optimize basics (default)")
 			("O0", "No optimization (not recommended)")
 			("O1", "Full optimization basics (not recommended)");
 
-		// Debug / tracking options
+		// Debug / tracking options.
 		po::options_description debug{ "\nDebug options" };
 		debug.add_options()
 			("skip-compact", "Skip compatibility stage verification (not recommended)")
@@ -77,16 +77,16 @@ int main(int argc, const char *argv[])
 			("dump-ast-mod", "Write all ast modifications to file")
 			("safe", "Run in safe mode (without plugins)");
 
-		// Positional arguments
+		// Positional arguments.
 		po::options_description hidden;
 		hidden.add_options()
 			("file", po::value<std::string>()->required(), "Source files");
 
-		// Take positional arguments
+		// Take positional arguments.
 		po::positional_options_description positional;
 		positional.add("file", -1);
 
-		// Set options for argument parser
+		// Set options for argument parser.
 		po::variables_map vm;
 		Cry::OptionParser parser{ argc, argv };
 		parser.Options()
@@ -101,33 +101,33 @@ int main(int argc, const char *argv[])
 		// Build specification from file
 		Specification spec{ Specification::CurrentDirectory(), SPECIFICATION_FILE };
 
-		// Initialize compiler environment
+		// Initialize compiler environment.
 		Env env = Env::InitBasicEnvironment(spec);
 
-		// Set debug mode
+		// Set debug mode.
 		if (vm.count("g")) {
 			env.SetDebug(true);
 		}
 
-		// Set image output name
+		// Set image output name.
 		if (vm.count("out")) {
 			env.SetImageName(vm["out"].as<std::string>());
 		}
 
-		// If help is requested, display now
+		// If help is requested, display now.
 		if (vm.count("?") || vm.count("h") || vm.count("help")) {
 			std::cout << parser << std::endl;
 			return EXIT_SUCCESS;
 		}
-		// Print version and exit
+		// Print version and exit.
 		else if (parser.Version(vm)) {
 			std::cout << "CLI: " PROGRAM_VERSION << std::endl;
 			std::cout
 				<< "Compiler: " << Version::Compiler() << '\n'
-				<< "Virtual machine: " << "X" << '\n'
+				<< "Virtual machine: " << "X" << '\n' //TODO
 				<< std::flush;
 		}
-		// Parse input file as source
+		// Parse input file as source.
 		else if (vm.count("file")) {
 			const auto file = vm["file"].as<std::string>();
 			if (!env.HasImageName()) {
@@ -143,25 +143,25 @@ int main(int argc, const char *argv[])
 				return CompileSourceFile(env, file);
 			}
 		}
-		// Print include directory paths
+		// Print include directory paths.
 		else if (vm.count("print-include-dirs")) {
 			for (const auto& path : env.GetSettingIncludePaths()) {
 				std::cout << path << std::endl;
 			}
 		}
-		// Print standard directory paths
+		// Print standard directory paths.
 		else if (vm.count("print-standard-dirs")) {
 			for (const auto& path : env.GetSettingStandardPaths()) {
 				std::cout << path << std::endl;
 			}
 		}
-		// Print library directory paths
+		// Print library directory paths.
 		else if (vm.count("print-library-dirs")) {
 			for (const auto& path : env.GetSettingLibraryPaths()) {
 				std::cout << path << std::endl;
 			}
 		}
-		// Display all language standards
+		// Display all language standards.
 		else if (vm.count("print-std-list")) {
 			//TODO: get from Env
 			std::cout << "Supported standards:\n"
@@ -170,7 +170,7 @@ int main(int argc, const char *argv[])
 				<< "  3) C11"
 				<< std::endl;
 		}
-		// Display all language standards
+		// Display all language standards.
 		else if (vm.count("print-targets")) {
 			//TODO: get from Env
 			std::cout << "Compiler targets:\n"
@@ -178,13 +178,13 @@ int main(int argc, const char *argv[])
 				<< "  2) AIIPX\tArchitecture Independent Intermediate Program Executor"
 				<< std::endl;
 		}
-		// Anything else; we're in trouble
+		// Anything else; we're in trouble.
 		else {
 			std::cout << parser << std::endl;
 			return EXIT_FAILURE;
 		}
 	}
-	// Commandline parse whoops, report back to user
+	// Commandline parse whoops, report back to user.
 	catch (const std::exception& e) {
 		std::cerr << e.what() << std::endl;
 		return EXIT_FAILURE;

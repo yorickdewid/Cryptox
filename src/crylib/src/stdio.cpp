@@ -6,21 +6,30 @@
 // that can be found in the LICENSE file. Content can not be 
 // copied and/or distributed without the express of the author.
 
-#include <stdio.h>
+#include "Interface.h"
 
-#define WRAP_NATIVE(n) cry_##n
+#include <cstdio>
 
-int WRAP_NATIVE(puts)(const char *str)
-{
-	return puts(str);
-}
+//CRY_METHOD(puts)
+//{
+//	puts(str);
+//}
+//
+//CRY_METHOD(perror)
+//{
+//	perror(str);
+//}
+//
+//CRY_METHOD(remove)
+//{
+//	remove(file);
+//}
 
-void WRAP_NATIVE(perror)(const char *str)
-{
-	perror(str);
-}
-
-int WRAP_NATIVE(remove)(const char *file)
-{
-	return remove(file);
-}
+//TODO:
+//void InterfaceFunctions() {
+//	return std::array<ExternalMethod, 3>{
+//		ExternalMethod{ "puts", &cry_puts, PACKED_PARAM_DECL("s") },
+//		ExternalMethod{ "perror", &cry_perror, PACKED_PARAM_DECL("s") },
+//		ExternalMethod{ "remove", &cry_remove, PACKED_PARAM_DECL("q") },
+//	};
+//}

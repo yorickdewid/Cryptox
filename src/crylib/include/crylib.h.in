@@ -8,7 +8,9 @@
 
 #pragma once
 
-#define	_CRYLIB_H
+#define	_CRY_CRYLIB_DEFINED
+
+#define _EXTERN extern
 
 // Header is cry compiler specific. Throw a compiler error if this
 // is not a supported compiler. This list can be  to add
@@ -20,11 +22,15 @@
 # error "module is compiler specific"
 #endif
 
+#ifdef __cplusplus
+# error "unsupported compiler language"
+#endif
+
 // Cry library version.
-#define __CRYLIB_V 10200 //FORMAT: X.XX.XX.
+#define __CRYLIB_V 10204 //FORMAT: X.XX.XX.
 #define __CRYLIB_V_Q1 01
 #define __CRYLIB_V_Q2 02
-#define __CRYLIB_V_Q3 00
+#define __CRYLIB_V_Q3 04
 
 // Crygenerator info type.
 #ifndef ___crygen_info_t_defined
@@ -74,11 +80,11 @@ typedef struct
 
 #ifdef __USE_CRYC
 // Evaluate the given line as source code.
-extern int eval(const char *__source);
+_EXTERN int eval(const char *source);
 
 // Pause the current execution phase.
-extern void pause(void);
+_EXTERN void pause(void);
 
 // Return the name of the current processing unit.
-extern char *current_unit(void);
+_EXTERN char *current_unit(void);
 #endif

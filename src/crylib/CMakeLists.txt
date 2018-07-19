@@ -14,6 +14,14 @@ project_description(${PROJECT_NAME} "CIL Standard Library")
 # Load project defaults
 include(ProjectPrep)
 
+# Copy headers to binary directory
+file(GLOB files ${${PROJECT_NAME}_INCLUDE}/*.in)
+foreach(file ${files})
+  get_filename_component(file_source ${file} NAME)
+  string(REGEX REPLACE "\\.[^.]*$" "" file_source_we ${file_source})
+  configure_file(${file} ${CMAKE_BINARY_DIR}/include/${PROJECT_NAME}/${file_source_we} @ONLY)
+endforeach()
+
 # Ignore security checks
 enable_unsecure_crt()
 
