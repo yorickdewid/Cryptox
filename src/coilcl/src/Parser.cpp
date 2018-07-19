@@ -494,6 +494,7 @@ bool Parser::StructOrUnionSpecifier()
 		m_comm.ShiftBackward();
 	}
 
+	//TODO: Build record type?
 	m_typeStack.push(Util::MakeRecordType(name, isUnion ? Specifier::UNION : Specifier::STRUCT));
 
 	return true;
