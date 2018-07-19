@@ -168,12 +168,11 @@ struct FatalException : public std::exception
 	std::string m_msg;
 	const EventItem& m_eventLink;
 
-	std::string PostProcess(std::string ibuffer, ...)
+	std::string PostProcess(const char *fmt, ...)
 	{
-		const char *fmt = ibuffer.c_str();
 		char obuffer[2048];
 		va_list args;
-		va_start(args, ibuffer);
+		va_start(args, fmt);
 		vsprintf_s(obuffer, sizeof(obuffer), fmt, args);
 		va_end(args);
 		return obuffer;
@@ -184,14 +183,14 @@ public:
 	FatalException(int code, Params&&... params)
 		: m_eventLink{ Detail::FetchEvent(code) }
 	{
-		m_msg = PostProcess(m_eventLink.InfoLine(), std::forward<Params>(params)...);
+		m_msg = PostProcess(m_eventLink.InfoLine().c_str(), std::forward<Params>(params)...);
 	}
 
 	template<typename... Params>
 	explicit FatalException(AliasErrorCode code, Params&&... params)
 		: m_eventLink{ Detail::FetchEvent(static_cast<int>(code)) }
 	{
-		m_msg = PostProcess(m_eventLink.InfoLine(), std::forward<Params>(params)...);
+		m_msg = PostProcess(m_eventLink.InfoLine().c_str(), std::forward<Params>(params)...);
 	}
 
 	inline const EventItem Event() const noexcept
@@ -242,7 +241,6 @@ static void AssertVersion(int version)
 
 static std::string DateTime()
 {
-	auto t = std::time(nullptr);
 	struct tm tm;
 	CRY_LOCALTIME(&tm);
 
