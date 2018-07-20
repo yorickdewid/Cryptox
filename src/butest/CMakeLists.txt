@@ -21,6 +21,8 @@ include_directories(${CoilCEX_INCLUDE_DIRS})
 include_directories(${CoilCl_INCLUDE_DIRS})
 include_directories(${CryEVM_INCLUDE_DIRS})
 
+file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/test DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
+
 # Ignore security checks
 enable_unsecure_crt()
 

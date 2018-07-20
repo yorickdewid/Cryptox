@@ -6,13 +6,11 @@
 // that can be found in the LICENSE file. Content can not be 
 // copied and/or distributed without the express of the author.
 
-#include "docker.h"
+#include <Cry/Loader.h>
 
 #include <boost/dll.hpp>
 
 #include <iostream>
-
-#define MODULE_SYMBOL "create_plugin"
 
 namespace dll = boost::dll;
 
@@ -55,21 +53,35 @@ std::shared_ptr<Type> MakeShared(const boost::shared_ptr<Type>& p)
 } // namespace Cry
 
 // Load the file as external module, and return if failed.
-bool LoadAsModule(boost::filesystem::path file, Module& module, std::string symbol = MODULE_SYMBOL)
+Cry::Module::Module LoadAsModule(boost::filesystem::path file, std::string symbol = EXPORT_SYMBOL_STR)
 {
+	if (!boost::filesystem::is_regular_file(file)) {
+		throw Cry::Module::LoaderException{ "file is not a module" };
+	}
+
 	dll::shared_library library(file, dll::load_mode::append_decorations);
-	if (!library.has(symbol)) { return false; }
+	if (!library.has(symbol)) {
+		throw Cry::Module::LoaderException{ "module symbol not found" };
+	}
 
 	auto moduleInterface = Cry::MakeShared(dll::import<Cry::Module::Interface>(std::move(library), symbol));
+	assert(moduleInterface);
 
-	return true;
+	auto modInfo = moduleInterface->GetInfo();
+	switch (modInfo.gatewayVersion)
+	{
+	case Cry::Module::GatewayVersion::VERSION_1:
+		break;
+	default:
+		throw Cry::Module::LoaderException{ "module is incompatible with this loader" };
+	}
+
+	return moduleInterface;
 }
 
-Module ModuleLoader::Load(const std::string& name)
+Cry::Module::Module Cry::Module::Load(const std::string& name)
 {
-	CRY_UNUSED(name);
-
-	return {};
+	return LoadAsModule(name);
 }
 
 void Loader()

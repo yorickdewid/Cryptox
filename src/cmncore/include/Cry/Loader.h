@@ -13,18 +13,46 @@
 
 #include <string>
 
+namespace Cry
+{
+namespace Module
+{
+
+class LoaderException : public std::runtime_error
+{
+public:
+	LoaderException(const std::string& msg)
+		: std::runtime_error{ msg }
+	{
+	}
+
+private:
+
+};
+
 class Module
 {
 	std::shared_ptr<Cry::Module::Interface> m_interface;
 
 public:
-	Module()
+	Module(std::shared_ptr<Cry::Module::Interface> interface)
+		:m_interface{ interface }
 	{
 	}
 
-	std::string Name() const noexcept
+	inline std::string Name() const noexcept
 	{
-		m_interface->GetInfo().moduleName;
+		return m_interface->GetInfo().moduleName;
+	}
+
+	inline std::string Author() const noexcept
+	{
+		return m_interface->GetInfo().moduleAuthor;
+	}
+
+	inline std::string Copyright() const noexcept
+	{
+		return m_interface->GetInfo().moduleCopyright;
 	}
 
 	inline void Load() const noexcept
@@ -38,11 +66,9 @@ public:
 	}
 };
 
-namespace ModuleLoader
-{
-
 // Load external module directly.
 Module Load(const std::string& name);
 //TOOD: load from directory, or file list
 
-} // namespace ModuleLoader
+} // namespace Module
+} // namespace Cry

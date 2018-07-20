@@ -23,7 +23,7 @@ public:
 
 	// Return the information about this module. The information is used by the
 	// module loader, exteral tools and publishing catalogue.
-	Info GetInfo() const
+	Info GetInfo() const noexcept
 	{
 		return {
 			MOD_API_VERSION,  // Internal API version.
@@ -47,3 +47,5 @@ public:
 		m_resource = nullptr;
 	}
 };
+
+EXPORT_MODULE_CLASS(ModExample1);
