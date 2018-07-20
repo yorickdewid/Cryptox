@@ -15,6 +15,9 @@ project_description(${PROJECT_NAME} "Module Docker")
 # Load project defaults
 include(ProjectPrep)
 
+# External includes
+include_directories(${ModStub_INCLUDE_DIRS})
+
 add_library(${PROJECT_NAME} STATIC
 	${${PROJECT_NAME}_src}
 	${${PROJECT_NAME}_h}

@@ -7,11 +7,13 @@
 // copied and/or distributed without the express of the author.
 
 #include <cstdio>
+#include <cassert>
 
 #if 0
 
-int strformat(VMHANDLE v, int nformatstringidx, int *outlen, const char **output) {
-	const char *format;
+int StringFormat(int nformatstringidx, int *outlen, const char **output)
+{
+	const char *format = nullptr;
 	char *dest;
 	char fmt[MAX_FORMAT_LEN];
 	lv_getstring(v, nformatstringidx, &format);
@@ -88,27 +90,29 @@ int strformat(VMHANDLE v, int nformatstringidx, int *outlen, const char **output
 			default:
 				return lv_throwerror(v, _LC("invalid format"));
 			}
+
 			n++;
 			allocated += addlen + sizeof(LVChar);
 			dest = lv_getscratchpad(v, allocated);
 			switch (valtype) {
 			case 's':
-				i += scsprintf(&dest[i], allocated, fmt, ts);
+				i += sprintf(&dest[i], allocated, fmt, ts);
 				break;
 			case 'i':
-				i += scsprintf(&dest[i], allocated, fmt, ti);
+				i += sprintf(&dest[i], allocated, fmt, ti);
 				break;
 			case 'f':
-				i += scsprintf(&dest[i], allocated, fmt, tf);
+				i += sprintf(&dest[i], allocated, fmt, tf);
 				break;
 			};
 			nparam++;
 		}
 	}
+
 	*outlen = i;
 	dest[i] = '\0';
 	*output = dest;
-	return LV_OK;
+	return 0;
 }
 
 #endif

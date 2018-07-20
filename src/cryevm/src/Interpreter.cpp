@@ -782,44 +782,50 @@ struct ExternalMethod
 #define GET_DEFAULT_ARG(i) ctx->ValueByIdentifier("__arg" #i "__").lock()
 #define GET_VA_LIST_ARG(i) ctx->ValueByIdentifier("__va_arg" #i "__").lock()
 
+#define GET_PARAMETER(i,c) \
+	const auto& value##i = ctx->ValueByIdentifier("__arg" #i "__").lock(); \
+	assert(value##i); \
+	const auto param##i = value##i->As<c>();
+
+#define GET_VA_PARAMETER(i,c) \
+	const auto& va_value##i = ctx->ValueByIdentifier("__va_arg" #i "__").lock(); \
+	assert(va_value##i); \
+	const auto va_param##i = va_value##i->As<c>();
+
+#define SET_RETURN(r) ctx->CreateSpecialVar<RETURN_VALUE>(Util::MakeInt(r));
+
 NATIVE_WRAPPER(puts)
 {
-	const auto& value = GET_DEFAULT_ARG(0);
-	assert(value);
-	const auto arg0 = value->As<std::string>();
-	auto result = puts(arg0.c_str());
-	ctx->CreateSpecialVar<RETURN_VALUE>(Util::MakeInt(result));
+	GET_PARAMETER(0, std::string);
+
+	auto result = puts(param0.c_str());
+	SET_RETURN(result);
 }
 
 NATIVE_WRAPPER(putchar)
 {
-	const auto& value = GET_DEFAULT_ARG(0);
-	assert(value);
-	const auto arg0 = value->As<int>();
-	auto result = putchar(arg0);
-	ctx->CreateSpecialVar<RETURN_VALUE>(Util::MakeInt(result));
+	GET_PARAMETER(0, int);
+
+	auto result = putchar(param0);
+	SET_RETURN(result);
 }
 
 //TODO: create full string format wrapper
 NATIVE_WRAPPER(printf)
 {
-	const auto& value = GET_DEFAULT_ARG(0);
-	const auto& value2 = GET_VA_LIST_ARG(0);
-	assert(value);
-	assert(value2);
-	const auto arg0 = value->As<std::string>();
-	const auto arg1 = value2->As<int>();
-	auto result = printf(arg0.c_str(), arg1);
-	ctx->CreateSpecialVar<RETURN_VALUE>(Util::MakeInt(result));
+	GET_PARAMETER(0, std::string);
+	GET_VA_PARAMETER(0, int);
+
+	auto result = printf(param0.c_str(), va_param0);
+	SET_RETURN(result);
 }
 
 NATIVE_WRAPPER(scanf)
 {
-	const auto& value = GET_DEFAULT_ARG(0);
-	assert(value);
-	const auto arg0 = value->As<std::string>();
-	auto result = scanf(arg0.c_str());
-	ctx->CreateSpecialVar<RETURN_VALUE>(Util::MakeInt(result));
+	GET_PARAMETER(0, std::string);
+
+	auto result = scanf(param0.c_str());
+	SET_RETURN(result);
 }
 
 NATIVE_WRAPPER(error)
@@ -833,12 +839,20 @@ NATIVE_WRAPPER(error)
 	throw arg0; //TODO: or something
 }
 
-const std::array<ExternalMethod, 5> g_externalMethod = {
+NATIVE_WRAPPER(system)
+{
+	GET_PARAMETER(0, std::string);
+	auto result = system(param0.c_str());
+	SET_RETURN(result);
+}
+
+const std::array<ExternalMethod, 6> g_externalMethod = {
 	ExternalMethod{ "puts", &_puts, PACKED_PARAM_DECL("s") },
 	ExternalMethod{ "putchar", &_putchar, PACKED_PARAM_DECL("i") },
 	ExternalMethod{ "printf", &_printf, PACKED_PARAM_DECL("sV") },
 	ExternalMethod{ "scanf", &_scanf, PACKED_PARAM_DECL("sV") },
 	ExternalMethod{ "error", &_error, PACKED_PARAM_DECL("is") },
+	ExternalMethod{ "system", &_system, PACKED_PARAM_DECL("s") },
 };
 
 struct ExternalRoutine
