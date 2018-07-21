@@ -162,5 +162,22 @@ std::vector<Module<ModuleClass>> Load(const std::string& name)
 	return Load<ModuleClass>(name, ModuleClass::GetComponentId());
 }
 
+// Load external module, throws if module cannot be loaded.
+template<typename ModuleClass>
+Cry::Module::Module<ModuleClass> LoadSingle(const std::string& name)
+{
+	return LoadAsModule<ModuleClass>(name, ModuleClass::GetComponentId());
+}
+
+template<typename ModuleClass, typename Predicate>
+void ForEach(std::vector<Module<ModuleClass>>& mods, Predicate pred)
+{
+	for (auto& mod : mods) {
+		mod.Load();
+		pred(mod);
+		mod.Unload();
+	}
+}
+
 } // namespace Module
 } // namespace Cry

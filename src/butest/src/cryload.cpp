@@ -29,10 +29,8 @@ BOOST_AUTO_TEST_CASE(ModLoadComponent)
 {
 	std::string testString = "somertesttextstring";
 	auto mockMods = Cry::Module::Load<MockInterface>("test");
-	std::for_each(mockMods.begin(), mockMods.end(), [&testString](Cry::Module::Module<MockInterface>& mockMod) {
-		mockMod.Load();
+	Cry::Module::ForEach(mockMods, [&testString](Cry::Module::Module<MockInterface>& mockMod) {
 		mockMod->Transform(testString);
-		mockMod.Unload();
 	});
 }
 
