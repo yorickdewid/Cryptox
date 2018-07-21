@@ -9,8 +9,8 @@
 #include <Cry/Cry.h>
 #include <Cry/Module.h>
 
+#define MOD_COMPONENT_ID 0
 #define MOD_API_VERSION  2
-#define MOD_GW_VERSION   Cry::Module::GatewayVersion::VERSION_1
 #define MOD_NAME         "mod_example1"
 #define MOD_AUTHOR       "Blub Corp."
 #define MOD_COPYRIGHT    "Copyright (c) 2018"
@@ -25,12 +25,14 @@ public:
 	// module loader, exteral tools and publishing catalogue.
 	Info GetInfo() const noexcept
 	{
-		return {
-			MOD_API_VERSION,  // Internal API version.
-			MOD_GW_VERSION,   // Module communication version.
-			MOD_NAME,         // Module loader name.
-			MOD_AUTHOR,       // Module author.
-			MOD_COPYRIGHT,    // Module copyright.
+		return { {
+			MOD_GW_VERSION_1,   // Module communication version.
+			MOD_PROP_NONE,      // Module properties.
+			MOD_COMPONENT_ID }, // Module component.
+			MOD_API_VERSION,    // Internal API version.
+			MOD_NAME,           // Module loader name.
+			MOD_AUTHOR,         // Module author.
+			MOD_COPYRIGHT,      // Module copyright.
 		};
 	}
 

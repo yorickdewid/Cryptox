@@ -16,6 +16,12 @@
 	extern "C" CRY_SYMBOL_EXPORT u EXPORT_SYMBOL; \
 	u EXPORT_SYMBOL;
 
+#define MOD_PROP_NONE         0 << 0  // 0000 0000
+#define MOD_PROP_PARALLEL     1 << 0  // 0000 0001
+#define MOD_PROP_AUTO_UNLOAD  1 << 1  // 0000 0010
+
+#define MOD_GW_VERSION_1   Cry::Module::GatewayVersion::VERSION_1
+
 namespace Cry
 {
 namespace Module
@@ -23,20 +29,33 @@ namespace Module
 
 enum GatewayVersion { VERSION_1 = 1 };
 
-enum Properties
-{
-	PARALLEL = 1 << 0,    // 0000 0001
-	AUTO_UNLOAD = 1 << 1, // 0000 0010
-};
-
 using VersionType = unsigned int;
 
 struct Interface
 {
-	struct Info
+	struct BasicModule
 	{
-		VersionType apiVersion;
 		GatewayVersion gatewayVersion;
+		unsigned int properties;
+		unsigned int componentId;
+	};
+
+	struct Info : public BasicModule
+	{
+		Info(BasicModule basicInfo
+			, VersionType apiVersion
+			, std::string moduleName
+			, std::string moduleAuthor = {}
+			, std::string moduleCopyright = {})
+			: BasicModule{ basicInfo }
+			, apiVersion{ apiVersion }
+			, moduleName{ moduleName }
+			, moduleAuthor{ moduleAuthor }
+			, moduleCopyright{ moduleCopyright }
+		{
+		}
+
+		VersionType apiVersion;
 		std::string moduleName;
 		std::string moduleAuthor;
 		std::string moduleCopyright;

@@ -12,6 +12,7 @@
 #include <Cry/Module.h>
 
 #include <string>
+#include <vector>
 
 namespace Cry
 {
@@ -66,9 +67,10 @@ public:
 	}
 };
 
-// Load external module directly.
-Module Load(const std::string& name);
-//TOOD: load from directory, or file list
+// Load modules in the directory, skips every non compatible module.
+std::vector<Cry::Module::Module> Load(const std::string& name);
+// Load external module, throws if module cannot be loaded.
+Cry::Module::Module LoadSingle(const std::string& name);
 
 } // namespace Module
 } // namespace Cry

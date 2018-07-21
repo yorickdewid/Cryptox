@@ -11,8 +11,13 @@
 #include <boost/dll.hpp>
 
 #include <iostream>
+#include <array>
+
+#define NONE_COMPONENT_ID 0
 
 namespace dll = boost::dll;
+
+static const std::array<std::string, 2> g_moduleExtensions = std::array<std::string, 2>{ ".dll", ".so" };
 
 namespace
 {
@@ -53,9 +58,16 @@ std::shared_ptr<Type> MakeShared(const boost::shared_ptr<Type>& p)
 } // namespace Cry
 
 // Load the file as external module, and return if failed.
-Cry::Module::Module LoadAsModule(boost::filesystem::path file, std::string symbol = EXPORT_SYMBOL_STR)
+Cry::Module::Module LoadAsModule(boost::filesystem::path file, unsigned int componentId = NONE_COMPONENT_ID, std::string symbol = EXPORT_SYMBOL_STR)
 {
 	if (!boost::filesystem::is_regular_file(file)) {
+		throw Cry::Module::LoaderException{ "file is not a module" };
+	}
+
+	bool isAllowed = std::any_of(g_moduleExtensions.cbegin(), g_moduleExtensions.cend(), [&file](const std::string& ext) {
+		return file.extension() == ext;
+	});
+	if (!isAllowed) {
 		throw Cry::Module::LoaderException{ "file is not a module" };
 	}
 
@@ -64,6 +76,7 @@ Cry::Module::Module LoadAsModule(boost::filesystem::path file, std::string symbo
 		throw Cry::Module::LoaderException{ "module symbol not found" };
 	}
 
+	// Load the external module as a library.
 	auto moduleInterface = Cry::MakeShared(dll::import<Cry::Module::Interface>(std::move(library), symbol));
 	assert(moduleInterface);
 
@@ -76,27 +89,38 @@ Cry::Module::Module LoadAsModule(boost::filesystem::path file, std::string symbo
 		throw Cry::Module::LoaderException{ "module is incompatible with this loader" };
 	}
 
+	// Test for component ID.
+	if (componentId > NONE_COMPONENT_ID) {
+		if (!modInfo.componentId == componentId) {
+			throw Cry::Module::LoaderException{ "module is incompatible with this loader" };
+		}
+	}
+
 	return moduleInterface;
 }
 
-Cry::Module::Module Cry::Module::Load(const std::string& name)
+std::vector<Cry::Module::Module> Cry::Module::Load(const std::string& name)
 {
-	return LoadAsModule(name);
+	std::vector<Cry::Module::Module> resultList;
+	boost::filesystem::path path{ name };
+
+	if (!boost::filesystem::is_directory(path)) {
+		throw std::runtime_error{ "path is not a directory" };
+	}
+
+	for (boost::filesystem::directory_entry& dir : boost::filesystem::directory_iterator(path)) {
+		try {
+			resultList.emplace_back(std::move(LoadAsModule(dir)));
+		}
+		catch (const Cry::Module::LoaderException&) {
+			continue;
+		}
+	}
+
+	return resultList;
 }
 
-void Loader()
+Cry::Module::Module Cry::Module::LoadSingle(const std::string& name)
 {
-	boost::filesystem::path extensionPath(".");
-	//for (std::size_t i = 0; i < 10; ++i) {
-	//std::cout << "Loading module: " << plugins[i] << '\n';
-	//dll::shared_library module(extensionPath, dll::load_mode::append_decorations);
-	//if (!module.has(MODULE_SYMBOL)) { return; /*continue*/; }
-
-	// Library is an recoginzed module.
-	//auto moduleInterface = Cry::MakeShared(dll::import<Cry::Module::Interface>(std::move(module), MODULE_SYMBOL));
-
-	//moduleInterface->GetInfo();
-
-	//std::cout << "Matching plugin name: " << creator()->name() << std::endl;
-//}
+	return LoadAsModule(name);
 }

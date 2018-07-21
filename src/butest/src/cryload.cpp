@@ -15,7 +15,7 @@ BOOST_AUTO_TEST_SUITE(CryLoader)
 
 BOOST_AUTO_TEST_CASE(ModLoadBasic)
 {
-	Cry::Module::Module mod = Cry::Module::Load("test\\mod_test1.dll");
+	Cry::Module::Module mod = Cry::Module::LoadSingle("test\\mod_test1.dll");
 	mod.Load();
 	BOOST_REQUIRE_EQUAL("mod_example1", mod.Name());
 	BOOST_REQUIRE_EQUAL("Blub Corp.", mod.Author());
