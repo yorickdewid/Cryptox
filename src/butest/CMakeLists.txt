@@ -65,7 +65,7 @@ target_link_libraries(${PROJECT_NAME}
 
 # Add test
 add_test(NAME ${PROJECT_NAME}
-	COMMAND ${CMAKE_BINARY_DIR}/bin/boost-test
+	COMMAND ${CMAKE_BINARY_DIR}/bin/boost-test --run_test=!CryLoader
 )
 
 # Set project options

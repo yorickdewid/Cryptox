@@ -21,6 +21,7 @@
 #define MOD_PROP_AUTO_UNLOAD  1 << 1  // 0000 0010
 
 #define MOD_GW_VERSION_1   Cry::Module::GatewayVersion::VERSION_1
+#define MOD_GW_DEFAULT     MOD_GW_VERSION_1
 
 namespace Cry
 {
@@ -30,25 +31,24 @@ namespace Module
 enum GatewayVersion { VERSION_1 = 1 };
 
 using VersionType = unsigned int;
+using ComponentId = unsigned int;
 
 struct Interface
 {
 	struct BasicModule
 	{
 		GatewayVersion gatewayVersion;
+		ComponentId componentId;
 		unsigned int properties;
-		unsigned int componentId;
 	};
 
-	struct Info : public BasicModule
+	struct Info
 	{
-		Info(BasicModule basicInfo
-			, VersionType apiVersion
+		Info(VersionType apiVersion
 			, std::string moduleName
 			, std::string moduleAuthor = {}
 			, std::string moduleCopyright = {})
-			: BasicModule{ basicInfo }
-			, apiVersion{ apiVersion }
+			: apiVersion{ apiVersion }
 			, moduleName{ moduleName }
 			, moduleAuthor{ moduleAuthor }
 			, moduleCopyright{ moduleCopyright }
@@ -61,16 +61,34 @@ struct Interface
 		std::string moduleCopyright;
 	};
 
+	Interface(BasicModule info)
+		: m_modBasics{ info }
+	{
+	}
+
 	// Get the module information, this method is always called regardless
 	// of the contents of the module and must be implemented.
-	virtual Info GetInfo() const noexcept = 0;
+	virtual Info GetModuleInfo() const noexcept = 0;
 
 	// Called if the module is loaded.
 	virtual void OnLoad() {}
 	// Called before t the module is unloaded.
 	virtual void OnUnload() {}
 
+	inline BasicModule GetLibraryInfo() const noexcept
+	{
+		return m_modBasics;
+	}
+
+	static BasicModule MakeDefaultModule(ComponentId id)
+	{
+		return { MOD_GW_DEFAULT, id, MOD_PROP_NONE };
+	}
+
 	virtual ~Interface() {}
+
+private:
+	BasicModule m_modBasics;
 };
 
 } // namespace Module

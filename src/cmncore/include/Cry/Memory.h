@@ -10,6 +10,8 @@
 
 #include "Cry.h"
 
+#include <boost/shared_ptr.hpp>
+
 #include <memory>
 
 namespace Cry
@@ -21,10 +23,43 @@ CSTD unique_ptr<ToType> static_unique_pointer_cast(CSTD unique_ptr<FromType>&& o
 	return CSTD unique_ptr<ToType>{ static_cast<ToType*>(old.release()) };
 }
 
-template<class _Ty1, typename _Ty2>
-constexpr _Ty1& side_cast(_Ty2 *_opaquePtr) noexcept
+template<class Type1, typename Type2>
+constexpr Type1& side_cast(Type2 *_opaquePtr) noexcept
 {
-	return static_cast<_Ty1&>(*static_cast<_Ty1 *>(const_cast<typename CSTD remove_const<_Ty2>::type*>(_opaquePtr)));
+	return static_cast<Type1&>(*static_cast<Type1 *>(const_cast<typename CSTD remove_const<Type2>::type*>(_opaquePtr)));
+}
+
+namespace
+{
+
+template<typename SharedPointer>
+class Holder
+{
+	SharedPointer m_ptr;
+
+public:
+	Holder(const SharedPointer& p) : m_ptr(p) {}
+	Holder(const Holder& other) = default;
+	Holder(Holder&& other) = default;
+
+	SharedPointer Get() const noexcept { return m_ptr; }
+
+	void operator () (...) { m_ptr.reset(); }
+};
+
+} // namespace
+
+// Convert boost shared pointer into std shared pointer.
+template<typename Type>
+std::shared_ptr<Type> MakeShared(const boost::shared_ptr<Type>& p)
+{
+	using HolderType = Holder<std::shared_ptr<Type>>;
+	using WrapperType = Holder<boost::shared_ptr<Type>>;
+	if (HolderType *holder = boost::get_deleter<HolderType, Type>(p)) {
+		return holder->Get();
+	}
+
+	return { p.get(), WrapperType{ p } };
 }
 
 } // namespace Cry

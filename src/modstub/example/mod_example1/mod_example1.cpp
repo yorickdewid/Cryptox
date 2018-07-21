@@ -20,15 +20,16 @@ class ModExample1 : public Cry::Module::Interface
 	void *m_resource{ nullptr };
 
 public:
+	ModExample1()
+		: Cry::Module::Interface{ MakeDefaultModule(MOD_COMPONENT_ID) }
+	{
+	}
 
 	// Return the information about this module. The information is used by the
 	// module loader, exteral tools and publishing catalogue.
-	Info GetInfo() const noexcept
+	Info GetModuleInfo() const noexcept
 	{
-		return { {
-			MOD_GW_VERSION_1,   // Module communication version.
-			MOD_PROP_NONE,      // Module properties.
-			MOD_COMPONENT_ID }, // Module component.
+		return {
 			MOD_API_VERSION,    // Internal API version.
 			MOD_NAME,           // Module loader name.
 			MOD_AUTHOR,         // Module author.
