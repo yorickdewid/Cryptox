@@ -15,9 +15,6 @@ project_description(${PROJECT_NAME} "External module example1")
 # Load project defaults
 include(ProjectPrep)
 
-# External includes
-include_directories(${ModStub_INCLUDE_DIRS})
-
 add_library(${PROJECT_NAME} SHARED
 	mod_example1.cpp
 	${${PROJECT_NAME}_src}
@@ -34,10 +31,6 @@ set_target_properties(${PROJECT_NAME}
     ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
     LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
     RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
-)
-
-target_link_libraries(${PROJECT_NAME}
-	ModStub
 )
 
 # Set project options

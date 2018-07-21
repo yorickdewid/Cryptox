@@ -47,8 +47,8 @@ class Module
 	std::shared_ptr<ModuleClass> m_interface;
 
 public:
-	Module(std::shared_ptr<ModuleClass> interface)
-		: m_interface{ interface }
+	Module(std::shared_ptr<ModuleClass> iface)
+		: m_interface{ iface }
 	{
 	}
 

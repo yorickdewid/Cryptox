@@ -32,6 +32,7 @@ BOOST_AUTO_TEST_CASE(ModLoadComponent)
 	Cry::Module::ForEach(mockMods, [&testString](Cry::Module::Module<MockInterface>& mockMod) {
 		mockMod->Transform(testString);
 	});
+	BOOST_REQUIRE_EQUAL("SOMERTESTTEXTSTRING", testString);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

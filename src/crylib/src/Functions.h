@@ -8,6 +8,10 @@
 
 #pragma once
 
-#include <array>
+#include "../../coilcl/src/ASTNode.h"
 
-#define CRY_METHOD(n) void cry_##c(Context::Function& ctx)
+#include <ExternalMethod.h>
+
+#include <list>
+
+namespace IO { std::list<EVM::ExternalMethod> RegisterFunctions(); }

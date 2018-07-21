@@ -65,8 +65,8 @@ void ConvertToArgumentList(ArgumentList& list, const datalist_t pointerList)
 #endif
 		// Free datachunk if required.
 		datachunk_internal_release(arg);
-		} while (pointerList[sz]);
-	}
+	} while (pointerList[sz]);
+}
 
 class Configuration
 {
@@ -81,7 +81,7 @@ public:
 	// Test the combination of configuration items.
 	static void Assert(const struct vm_config *config)
 	{
-		//
+		CRY_UNUSED(config);
 	}
 
 private:

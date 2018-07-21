@@ -17,13 +17,16 @@ include(ProjectPrep)
 # Copy headers to binary directory
 file(GLOB files ${${PROJECT_NAME}_INCLUDE}/*.in)
 foreach(file ${files})
-  get_filename_component(file_source ${file} NAME)
-  string(REGEX REPLACE "\\.[^.]*$" "" file_source_we ${file_source})
-  configure_file(${file} ${CMAKE_BINARY_DIR}/include/${PROJECT_NAME}/${file_source_we} @ONLY)
+    get_filename_component(file_source ${file} NAME)
+    string(REGEX REPLACE "\\.[^.]*$" "" file_source_we ${file_source})
+    configure_file(${file} ${CMAKE_BINARY_DIR}/include/${PROJECT_NAME}/${file_source_we} @ONLY)
 endforeach()
 
 # Ignore security checks
 enable_unsecure_crt()
+
+# External includes
+include_directories(${CryEVM_INCLUDE_DIRS})
 
 add_library(${PROJECT_NAME} SHARED
 	${${PROJECT_NAME}_src}
@@ -35,7 +38,7 @@ add_library(${PROJECT_NAME} SHARED
 # Define output directories
 set_target_properties(${PROJECT_NAME}
     PROPERTIES
-	OUTPUT_NAME "libcil"
+	OUTPUT_NAME "crystd"
 	PROJECT_LABEL "CIL Standard Library"
     ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
     LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
