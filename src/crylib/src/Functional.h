@@ -8,8 +8,6 @@
 
 #pragma once
 
-#include "../../coilcl/src/ASTNode.h"
-
 #include <ExternalMethod.h>
 
 #include <list>

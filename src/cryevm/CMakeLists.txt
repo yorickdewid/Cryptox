@@ -21,6 +21,7 @@ enable_unsecure_crt()
 # External includes
 include_directories(${CoilCl_INCLUDE_DIRS})
 
+# TODO: Fix external references
 add_library(${PROJECT_NAME} SHARED
 	${${PROJECT_NAME}_src}
 	${${PROJECT_NAME}_h}

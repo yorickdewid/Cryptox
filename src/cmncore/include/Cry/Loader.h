@@ -179,5 +179,21 @@ void ForEach(std::vector<Module<ModuleClass>>& mods, Predicate pred)
 	}
 }
 
+template<typename ModuleClass>
+void ForEachLoad(std::vector<Module<ModuleClass>>& mods)
+{
+	for (auto& mod : mods) {
+		mod.Load();
+	}
+}
+
+
+template<typename ModuleClass>
+void ForEachUnload(std::vector<Module<ModuleClass>>& mods)
+{
+	for (auto& mod : mods) {
+		mod.Unload();
+	}
+}
 } // namespace Module
 } // namespace Cry

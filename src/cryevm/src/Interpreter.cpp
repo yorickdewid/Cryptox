@@ -7,6 +7,7 @@
 // copied and/or distributed without the express of the author.
 
 #include "Interpreter.h"
+#include "ExternalMethod.h"
 
 #include <Cry/Except.h>
 
@@ -76,14 +77,14 @@ bool Interpreter::IsRunnable() const noexcept
 
 class Evaluator;
 
-namespace {
+//class AbstractContext;
+//class GlobalContext;
+//class UnitContext;
+//class CompoundContext;
+//class FunctionContext;
 
-class AbstractContext;
-class GlobalContext;
-class UnitContext;
-class CompoundContext;
-class FunctionContext;
-
+namespace EVM
+{
 namespace Context
 {
 
@@ -95,15 +96,15 @@ enum class tag
 	COMPOUND,
 };
 
-using Global = std::shared_ptr<GlobalContext>;
-using Unit = std::shared_ptr<UnitContext>;
-using Compound = std::shared_ptr<CompoundContext>;
-using Function = std::shared_ptr<FunctionContext>;
-
-using WeakGlobal = std::weak_ptr<GlobalContext>;
-using WeakUnit = std::weak_ptr<UnitContext>;
-using WeakCompound = std::weak_ptr<CompoundContext>;
-using WeakFunction = std::weak_ptr<FunctionContext>;
+//using Global = std::shared_ptr<GlobalContext>;
+//using Unit = std::shared_ptr<UnitContext>;
+//using Compound = std::shared_ptr<CompoundContext>;
+//using Function = std::shared_ptr<FunctionContext>;
+//
+//using WeakGlobal = std::weak_ptr<GlobalContext>;
+//using WeakUnit = std::weak_ptr<UnitContext>;
+//using WeakCompound = std::weak_ptr<CompoundContext>;
+//using WeakFunction = std::weak_ptr<FunctionContext>;
 
 // Make global context from existing context or create a new global context.
 Global MakeGlobalContext(std::shared_ptr<AbstractContext> ctx = nullptr)
@@ -677,7 +678,7 @@ private:
 	}
 };
 
-} // namespace
+} // namespace EVM
 
 // FUTURE:
 // Local methods must be replaced by the external modules to load functions. Fow now
@@ -761,125 +762,18 @@ public:
 
 #define PACKED_PARAM_DECL(s) SolidParameterFormat{}.Parse(s).Parameters()
 
-struct ExternalMethod
-{
-	const std::string symbol;
-	const std::function<void(Context::Function&)> functional;
-	const std::shared_ptr<ParamStmt> params;
-
-	bool HasParameters() const noexcept { return params != nullptr; }
-
-	ExternalMethod(const std::string symbol, std::function<void(Context::Function&)> func, std::shared_ptr<ParamStmt> params = {})
-		: symbol{ symbol }
-		, functional{ func }
-		, params{ params }
-	{
-	}
-};
-
-#define NATIVE_WRAPPER(c) void _##c(Context::Function& ctx)
-#define GET_DEFAULT_ARG(i) ctx->ValueByIdentifier("__arg" #i "__").lock()
-#define GET_VA_LIST_ARG(i) ctx->ValueByIdentifier("__va_arg" #i "__").lock()
-
-#define GET_PARAMETER(i,c) \
-	const auto& value##i = ctx->ValueByIdentifier("__arg" #i "__").lock(); \
-	assert(value##i); \
-	const auto param##i = value##i->As<c>();
-
-#define GET_VA_PARAMETER(i,c) \
-	const auto& va_value##i = ctx->ValueByIdentifier("__va_arg" #i "__").lock(); \
-	assert(va_value##i); \
-	const auto va_param##i = va_value##i->As<c>();
-
-#define SET_RETURN(r) ctx->CreateSpecialVar<RETURN_VALUE>(Util::MakeInt(r));
-
-NATIVE_WRAPPER(puts)
-{
-	GET_PARAMETER(0, std::string);
-
-	auto result = puts(param0.c_str());
-	SET_RETURN(result);
-}
-
-NATIVE_WRAPPER(putchar)
-{
-	GET_PARAMETER(0, int);
-
-	auto result = putchar(param0);
-	SET_RETURN(result);
-}
-
-//TODO: create full string format wrapper
-NATIVE_WRAPPER(printf)
-{
-	GET_PARAMETER(0, std::string);
-	GET_VA_PARAMETER(0, int);
-
-	auto result = printf(param0.c_str(), va_param0);
-	SET_RETURN(result);
-}
-
-NATIVE_WRAPPER(scanf)
-{
-	GET_PARAMETER(0, std::string);
-
-	auto result = scanf(param0.c_str());
-	SET_RETURN(result);
-}
-
-NATIVE_WRAPPER(error)
-{
-	const auto& value = GET_DEFAULT_ARG(0);
-	const auto& value2 = GET_VA_LIST_ARG(0);
-	assert(value);
-	assert(value2);
-	const auto arg0 = value->As<int>();
-	const auto arg1 = value->As<std::string>();
-	throw arg0; //TODO: or something
-}
-
-NATIVE_WRAPPER(system)
-{
-	GET_PARAMETER(0, std::string);
-	auto result = system(param0.c_str());
-	SET_RETURN(result);
-}
-
-const std::array<ExternalMethod, 6> g_externalMethod = {
-	ExternalMethod{ "puts", &_puts, PACKED_PARAM_DECL("s") },
-	ExternalMethod{ "putchar", &_putchar, PACKED_PARAM_DECL("i") },
-	ExternalMethod{ "printf", &_printf, PACKED_PARAM_DECL("sV") },
-	ExternalMethod{ "scanf", &_scanf, PACKED_PARAM_DECL("sV") },
-	ExternalMethod{ "error", &_error, PACKED_PARAM_DECL("is") },
-	ExternalMethod{ "system", &_system, PACKED_PARAM_DECL("s") },
-};
-
-struct ExternalRoutine
-{
-	void ProcessRoutine(const ExternalMethod *method, Context::Function& ctx)
-	{
-		method->functional(ctx);
-	}
-
-public:
-	inline void operator()(const ExternalMethod *method, Context::Function& ctx)
-	{
-		assert(method);
-		ProcessRoutine(method, ctx);
-	}
-};
-
-const ExternalMethod *RequestExternalMethod(const std::string& symbol)
-{
-	// FUTURE: logarithmic search or static search
-	auto it = std::find_if(g_externalMethod.cbegin(), g_externalMethod.cend(), [&](const ExternalMethod& method) {
-		return method.symbol == symbol;
-	});
-	if (it == g_externalMethod.cend()) { return nullptr; }
-	return &(*it);
-}
-
 } // namespace LocalMethod
+
+//const ExternalMethod *RequestExternalMethod(const std::string& symbol)
+//{
+//	// FUTURE: logarithmic search or static search
+//	auto list = SymbolList();
+//	auto it = std::find_if(g_externalMethod.cbegin(), g_externalMethod.cend(), [&](const ExternalMethod& method) {
+//		return method.symbol == symbol;
+//	});
+//	if (it == g_externalMethod.cend()) { return nullptr; }
+//	return &(*it);
+//}
 
 class Runnable
 {
@@ -935,7 +829,7 @@ public:
 	}
 
 	// Construct runnable from internal method.
-	explicit Runnable(const LocalMethod::ExternalMethod *exfuncRef)
+	explicit Runnable(const ExternalMethod *exfuncRef)
 		: m_isExternal{ true }
 		, m_functionData{ exfuncRef }
 	{
@@ -983,7 +877,7 @@ public:
 
 private:
 	bool m_isExternal = false;
-	boost::variant<std::shared_ptr<FunctionDecl>, const LocalMethod::ExternalMethod*> m_functionData;
+	boost::variant<std::shared_ptr<FunctionDecl>, const ExternalMethod*> m_functionData;
 	std::vector<Parameter> m_paramList;
 };
 
@@ -1116,7 +1010,7 @@ struct OperandFactory
 
 			{
 				//
-				// Arithmetic operations
+				// Arithmetic operations.
 				//
 			}
 
@@ -1133,7 +1027,7 @@ struct OperandFactory
 
 			{
 				//
-				// Bitwise operations
+				// Bitwise operations.
 				//
 			}
 
@@ -1150,7 +1044,7 @@ struct OperandFactory
 
 			{
 				//
-				// Comparisons
+				// Comparisons.
 				//
 			}
 
@@ -1169,7 +1063,7 @@ struct OperandFactory
 
 			{
 				//
-				// Logical operations
+				// Logical operations.
 				//
 			}
 
@@ -1182,6 +1076,21 @@ struct OperandFactory
 		}
 
 		CryImplExcept();
+	}
+};
+
+struct ExternalRoutine
+{
+	void ProcessRoutine(const ExternalMethod *method, Context::Function& ctx)
+	{
+		method->functional(ctx);
+	}
+
+public:
+	inline void operator()(const ExternalMethod *method, Context::Function& ctx)
+	{
+		assert(method);
+		ProcessRoutine(method, ctx);
 	}
 };
 
@@ -1406,7 +1315,7 @@ class ScopedRoutine
 		if (auto funcNode = ctx->FindContext<UnitContext>(Context::tag::UNIT)->LookupSymbol<FunctionDecl>(functionIdentifier)) {
 			function = std::move(Runnable{ funcNode });
 		}
-		else if (auto exfuncRef = LocalMethod::RequestExternalMethod(functionIdentifier)) {
+		else if (auto exfuncRef = GlobalExecutionState::FindExternalSymbol(functionIdentifier)) {
 			function = std::move(Runnable{ exfuncRef });
 		}
 		else {
@@ -1462,7 +1371,7 @@ class ScopedRoutine
 		// is returned as the result of the expression.
 		assert(function);
 		if (function.IsExternal()) {
-			LocalMethod::ExternalRoutine{}(function.Data<const LocalMethod::ExternalMethod*>(), funcCtx);
+			ExternalRoutine{}(function.Data<const ExternalMethod*>(), funcCtx);
 		}
 		else {
 			auto func = function.Data<std::shared_ptr<FunctionDecl>>();

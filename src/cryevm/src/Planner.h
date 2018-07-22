@@ -9,6 +9,7 @@
 #pragma once
 
 #include "UniquePreservePtr.h"
+#include "State.h"
 
 #include "../../coilcl/src/Program.h"
 

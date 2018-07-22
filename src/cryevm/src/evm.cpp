@@ -7,6 +7,10 @@
 // copied and/or distributed without the express of the author.
 
 #include "evm.h"
+#include "Functional.h"
+#include "ExternalMethod.h"
+#include "RuntimeInterface.h"
+#include "State.h"
 #include "Planner.h"
 #include "UniquePreservePtr.h"
 
@@ -15,6 +19,7 @@
 // Project includes.
 #include <Cry/Cry.h>
 #include <Cry/Config.h>
+#include <Cry/Loader.h>
 
 #ifdef AUTO_CONVERT
 #include <boost/lexical_cast.hpp>
@@ -31,6 +36,8 @@
 //    - Either Interpreter
 //    - Or Virtual machine
 //    - Or native
+
+namespace Loader = Cry::Module;
 
 using ProgramPtr = Detail::UniquePreservePtr<CoilCl::Program>;
 
@@ -91,11 +98,10 @@ private:
 #define CHECK_API_VERSION(u) \
 	if (u->apiVer != EVMAPIVER) { fprintf(stderr, "API version mismatch"); abort(); }
 
-//TODO: check API version from struct
 // API entry; Execute program.
 EVMAPI int ExecuteProgram(runtime_settings_t *runtime) noexcept
 {
-	using EVM::Planner;
+	using namespace EVM;
 
 	assert(runtime);
 
@@ -109,6 +115,21 @@ EVMAPI int ExecuteProgram(runtime_settings_t *runtime) noexcept
 
 	// Capture program pointer and cast into program structure.
 	ProgramPtr program = ProgramPtr{ runtime->program.program_ptr };
+
+	// Load modules to import external functionality.
+	auto runtimeModules = Loader::Load<RuntimeInterface>(DIST_BINARY_DIR "\\Debug");
+	Loader::ForEachLoad(runtimeModules);
+
+	// Collect all external symbols.
+	std::list<EVM::ExternalMethod> list;
+	list.merge(EVM::SymbolIndex(), [](auto, auto) { return false; });
+	for (auto& module : runtimeModules) {
+		module->LoadSymbolIndex(list);
+	}
+
+	// Set the execution options.
+	GlobalExecutionState::Set(list);
+	//GlobalExecutionState::Set(config);
 
 	// Determine strategy for program.
 	auto runner = Planner{ std::move(program), Planner::Plan::ALL }.DetermineStrategy();
@@ -130,6 +151,10 @@ EVMAPI int ExecuteProgram(runtime_settings_t *runtime) noexcept
 	catch (const std::exception& e) {
 		runtime->error_handler(runtime->user_data, e.what(), true);
 	}
+
+	// Unset the execution options.
+	GlobalExecutionState::UnsetAll();
+	Loader::ForEachUnload(runtimeModules);
 
 	return RETURN_OK;
 }
