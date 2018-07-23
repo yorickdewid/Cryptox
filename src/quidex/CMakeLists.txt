@@ -7,23 +7,15 @@
 # that can be found in the LICENSE file. Content can not be 
 # copied and/or distributed without the express of the author.
 
-project(Crylib CXX)
-project_version(${PROJECT_NAME} 0)
-project_description(${PROJECT_NAME} "CIL Standard Library")
+project(quidex CXX)
+project_version(${PROJECT_NAME} 1)
+project_description(${PROJECT_NAME} "CIL QUID Extension")
 
 # Load project defaults
 include(ProjectPrep)
 
-# Copy headers to binary directory
-file(GLOB files ${${PROJECT_NAME}_INCLUDE}/*.in)
-foreach(file ${files})
-    get_filename_component(file_source ${file} NAME)
-    string(REGEX REPLACE "\\.[^.]*$" "" file_source_we ${file_source})
-    configure_file(${file} ${CMAKE_BINARY_DIR}/include/${PROJECT_NAME}/${file_source_we} @ONLY)
-endforeach()
-
 # Ignore security checks
-enable_unsecure_crt()
+#enable_unsecure_crt()
 
 # External includes
 include_directories(${CryEVM_INCLUDE_DIRS})
@@ -42,8 +34,8 @@ add_library(${PROJECT_NAME} SHARED
 # Define output directories
 set_target_properties(${PROJECT_NAME}
     PROPERTIES
-	OUTPUT_NAME "crystd"
-	PROJECT_LABEL "CIL Standard Library"
+	OUTPUT_NAME "quidex"
+	PROJECT_LABEL "CIL QUID Extension"
     ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
     LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
     RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"

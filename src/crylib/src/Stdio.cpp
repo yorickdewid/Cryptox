@@ -15,18 +15,16 @@ namespace
 
 CRY_METHOD(puts)
 {
-	/*GET_PARAMETER(0, std::string);
-
-	auto result = puts(param0.c_str());
-	SET_RETURN(result);*/
+	const std::string str = ctx.GetParameter<std::string>("str");
+	int result = puts(str.c_str());
+	ctx.SetReturn(Util::MakeInt(result));
 }
 
 CRY_METHOD(putchar)
 {
-	/*GET_PARAMETER(0, int);
-
-	auto result = putchar(param0);
-	SET_RETURN(result);*/
+	const int chr = ctx.GetParameter<int>("str");
+	int result = putchar(chr);
+	ctx.SetReturn(Util::MakeInt(result));
 }
 
 CRY_METHOD(perror)
@@ -56,17 +54,6 @@ CRY_METHOD(scanf)
 	//SET_RETURN(result);
 }
 
-CRY_METHOD(error)
-{
-	//const auto& value = GET_DEFAULT_ARG(0);
-	//const auto& value2 = GET_VA_LIST_ARG(0);
-	//assert(value);
-	//assert(value2);
-	//const auto arg0 = value->As<int>();
-	//const auto arg1 = value->As<std::string>();
-	//throw arg0; //TODO: or something
-}
-
 CRY_METHOD(system)
 {
 	/*GET_PARAMETER(0, std::string);
@@ -84,15 +71,15 @@ std::list<EVM::ExternalMethod> RegisterFunctions()
 	using namespace EVM;
 
 	return {
-		ExternalMethod{ "puts", &cry_puts, /*PACKED_PARAM_DECL("s")*/ {} },
-		ExternalMethod{ "putchar", &cry_putchar, /*PACKED_PARAM_DECL("i")*/ {} },
-		ExternalMethod{ "puts", &cry_puts, /*PACKED_PARAM_DECL("s")*/ {} },
-		ExternalMethod{ "perror", &cry_perror, /*PACKED_PARAM_DECL("s")*/ {} },
-		ExternalMethod{ "remove", &cry_remove, /*PACKED_PARAM_DECL("q")*/ {} },
-		ExternalMethod{ "printf", &cry_printf, /*PACKED_PARAM_DECL("sV")*/ {} },
-		ExternalMethod{ "scanf", &cry_scanf, /*PACKED_PARAM_DECL("sV")*/ {} },
-		ExternalMethod{ "error", &cry_error, /*PACKED_PARAM_DECL("is")*/ {} },
-		ExternalMethod{ "system", &cry_system, /*PACKED_PARAM_DECL("s")*/ {} },
+		REGISTER_METHOD_PARAM("puts", puts, ParseSolidType("str", "s")),
+		REGISTER_METHOD_PARAM("putchar", putchar, ParseSolidType("c", "i")),
+		//ExternalMethod{ "putchar", &cry_putchar, /*PACKED_PARAM_DECL("i")*/ {} },
+		//ExternalMethod{ "puts", &cry_puts, /*PACKED_PARAM_DECL("s")*/ {} },
+		//ExternalMethod{ "perror", &cry_perror, /*PACKED_PARAM_DECL("s")*/ {} },
+		//ExternalMethod{ "remove", &cry_remove, /*PACKED_PARAM_DECL("q")*/ {} },
+		//ExternalMethod{ "printf", &cry_printf, /*PACKED_PARAM_DECL("sV")*/ {} },
+		//ExternalMethod{ "scanf", &cry_scanf, /*PACKED_PARAM_DECL("sV")*/ {} },
+		//ExternalMethod{ "system", &cry_system, /*PACKED_PARAM_DECL("s")*/ {} },
 	};
 }
 

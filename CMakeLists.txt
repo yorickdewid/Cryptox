@@ -284,6 +284,7 @@ execute_process(
 
 # Project consists of multiple subprojects
 add_subdirectory(src/cmncore)
+add_subdirectory(src/cmnval)
 add_subdirectory(src/coilcex)
 add_subdirectory(src/coilcl)
 add_subdirectory(src/cryevm)
@@ -296,6 +297,7 @@ add_subdirectory(src/modstub)
 #add_subdirectory(src/primcore)
 #add_subdirectory(src/entropysrv)
 add_subdirectory(src/crylib)
+add_subdirectory(src/quidex)
 
 # UI parts are disabled
 #add_subdirectory(src/shapework)

@@ -9,6 +9,7 @@
 #pragma once
 
 #include <ExternalMethod.h>
+#include <ExternalValue.h>
 
 #include <list>
 
