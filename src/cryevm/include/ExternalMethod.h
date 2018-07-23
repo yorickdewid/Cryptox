@@ -9,11 +9,12 @@
 #pragma once
 
 #include "../../coilcl/src/ASTNode.h"
+#include "../../coilcl/src/ValueHelper.h"
 
 #include <string>
 #include <functional>
 
-#define CRY_METHOD(c) void cry_##c(EVM::Context::Function& ctx)
+#define CRY_METHOD(c) void cry_##c(EVM::ExternalFunctionContext& ctx)
 
 #define GET_PARAMETER(i,c) \
 	const auto& value##i = ctx->ValueByIdentifier("__arg" #i "__").lock(); \
@@ -30,41 +31,105 @@
 namespace EVM
 {
 
-class AbstractContext;
-class GlobalContext;
-class UnitContext;
-class CompoundContext;
-class FunctionContext;
-
-namespace Context
+// Function context passed when external method is called.
+class ExternalFunctionContext
 {
+public:
+	ExternalFunctionContext() = default;
 
-using Global = std::shared_ptr<GlobalContext>;
-using Unit = std::shared_ptr<UnitContext>;
-using Compound = std::shared_ptr<CompoundContext>;
-using Function = std::shared_ptr<FunctionContext>;
+	template<typename CastType>
+	void GetParameter(const std::string&)
+	{
+		//
+	}
 
-using WeakGlobal = std::weak_ptr<GlobalContext>;
-using WeakUnit = std::weak_ptr<UnitContext>;
-using WeakCompound = std::weak_ptr<CompoundContext>;
-using WeakFunction = std::weak_ptr<FunctionContext>;
+	void SetReturn(Valuedef::Value&)
+	{
+		//
+	}
 
-} // namespace Context
+	void SetReturn(Valuedef::Value&&)
+	{
+		//
+	}
+};
 
-struct ExternalMethod
+// Definition of an externally defined method callable by any EVM runner.
+class ExternalMethod
 {
-	const std::string symbol;
-	const std::function<void(Context::Function&)> functional;
-	const std::shared_ptr<ParamStmt> params;
+public:
+	class Parameter
+	{
+	public:
+		Parameter(const std::string& identifier, const Typedef::TypeFacade& type)
+			: m_identifier{ identifier }
+			, m_type{ type }
+		{
+		}
 
-	bool HasParameters() const noexcept { return params != nullptr; }
+		explicit Parameter(const std::string& identifier)
+			: m_identifier{ identifier }
+			, m_isVariadic{ true }
+		{
+		}
 
-	ExternalMethod(const std::string symbol, std::function<void(Context::Function&)> func, std::shared_ptr<ParamStmt> params = {})
-		: symbol{ symbol }
-		, functional{ func }
-		, params{ params }
+		inline const std::string Identifier() const noexcept { return m_identifier; }
+		inline bool Empty() const noexcept { return m_identifier.empty(); }
+		inline Typedef::TypeFacade DataType() const noexcept { return m_type; }
+		inline bool IsVariadic() const noexcept { return m_isVariadic; }
+
+	private:
+		const bool m_isVariadic{ false }; //TODO: incorporate in datatype
+		const std::string m_identifier;
+		const Typedef::TypeFacade m_type;
+	};
+
+	class ParameterList : public std::vector<Parameter>
+	{
+	public:
+		ParameterList() = default;
+
+		ParameterList(std::initializer_list<Parameter>&& list)
+			: std::vector<Parameter>{ std::move(list) }
+		{
+		}
+
+		ParameterList(Parameter&& list)
+			: std::vector<Parameter>{ { std::move(list) } }
+		{
+		}
+
+		// Return the number of parameters.
+		size_t Count() const noexcept { return this->size(); }
+	};
+
+public:
+	using FunctionalType = std::function<void(ExternalFunctionContext&)>;
+
+public:
+	ExternalMethod(const std::string& symbol, FunctionalType func, ParameterList params = {})
+		: m_symbol{ symbol }
+		, m_functional{ func }
+		, m_paramList{ params }
 	{
 	}
+
+	// Get the parameter list.
+	const ParameterList& Parameters() const noexcept { return m_paramList; }
+
+	// Get the symbol name.
+	std::string Symbol() const noexcept { return m_symbol; }
+
+	// Call the external method.
+	void Call(ExternalFunctionContext& ctx) const { m_functional(ctx); }
+
+	// Call the external method via function operator.
+	void operator()(ExternalFunctionContext& ctx) const { this->Call(ctx); }
+
+private:
+	const std::string m_symbol;
+	const FunctionalType m_functional;
+	ParameterList m_paramList;
 };
 
 } // namespace EVM

@@ -30,7 +30,7 @@ void UnsetAll()
 const ExternalMethod *FindExternalSymbol(const std::string& symbol)
 {
 	auto it = std::find_if(g_externalSymbolList.cbegin(), g_externalSymbolList.cend(), [&](const ExternalMethod& method) {
-		return method.symbol == symbol;
+		return method.Symbol() == symbol;
 	});
 	if (it == g_externalSymbolList.cend()) { return nullptr; }
 	return &(*it);

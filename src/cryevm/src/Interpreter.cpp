@@ -77,14 +77,15 @@ bool Interpreter::IsRunnable() const noexcept
 
 class Evaluator;
 
-//class AbstractContext;
-//class GlobalContext;
-//class UnitContext;
-//class CompoundContext;
-//class FunctionContext;
-
 namespace EVM
 {
+
+class AbstractContext;
+class GlobalContext;
+class UnitContext;
+class CompoundContext;
+class FunctionContext;
+
 namespace Context
 {
 
@@ -96,15 +97,15 @@ enum class tag
 	COMPOUND,
 };
 
-//using Global = std::shared_ptr<GlobalContext>;
-//using Unit = std::shared_ptr<UnitContext>;
-//using Compound = std::shared_ptr<CompoundContext>;
-//using Function = std::shared_ptr<FunctionContext>;
-//
-//using WeakGlobal = std::weak_ptr<GlobalContext>;
-//using WeakUnit = std::weak_ptr<UnitContext>;
-//using WeakCompound = std::weak_ptr<CompoundContext>;
-//using WeakFunction = std::weak_ptr<FunctionContext>;
+using Global = std::shared_ptr<GlobalContext>;
+using Unit = std::shared_ptr<UnitContext>;
+using Compound = std::shared_ptr<CompoundContext>;
+using Function = std::shared_ptr<FunctionContext>;
+
+using WeakGlobal = std::weak_ptr<GlobalContext>;
+using WeakUnit = std::weak_ptr<UnitContext>;
+using WeakCompound = std::weak_ptr<CompoundContext>;
+using WeakFunction = std::weak_ptr<FunctionContext>;
 
 // Make global context from existing context or create a new global context.
 Global MakeGlobalContext(std::shared_ptr<AbstractContext> ctx = nullptr)
@@ -535,8 +536,6 @@ private:
 	std::string m_name;
 };
 
-namespace Local
-{
 namespace Detail
 {
 
@@ -575,7 +574,6 @@ struct MakeContextImpl<FunctionContext>
 };
 
 } // Detail namespace
-} // Local namespace
 
 class FunctionContext
 	: public AbstractContext
@@ -595,10 +593,8 @@ public:
 	template<typename ContextType, typename... ArgTypes>
 	std::shared_ptr<ContextType> MakeContext(ArgTypes&&... args)
 	{
-		using namespace Local::Detail;
-
 		assert(Parent());
-		return MakeContextImpl<ContextType>{ shared_from_this(), Parent() }(std::forward<ArgTypes>(args)...);
+		return Detail::MakeContextImpl<ContextType>{ shared_from_this(), Parent() }(std::forward<ArgTypes>(args)...);
 	}
 
 	void AttachCompound(Context::Compound& ctx)
@@ -653,10 +649,8 @@ public:
 	template<typename ContextType, typename... Args>
 	std::shared_ptr<ContextType> MakeContext(Args&&... args)
 	{
-		using namespace Local::Detail;
-
 		assert(FindContext<UnitContext>(Context::tag::UNIT));
-		return MakeContextImpl<ContextType>{ shared_from_this(), FindContext<UnitContext>(Context::tag::UNIT) }(std::forward<Args>(args)...);
+		return Detail::MakeContextImpl<ContextType>{ shared_from_this(), FindContext<UnitContext>(Context::tag::UNIT) }(std::forward<Args>(args)...);
 	}
 
 	// Find the value by identifier, if not found IdentifierNotFoundException is thrown.
@@ -764,104 +758,142 @@ public:
 
 } // namespace LocalMethod
 
-//const ExternalMethod *RequestExternalMethod(const std::string& symbol)
-//{
-//	// FUTURE: logarithmic search or static search
-//	auto list = SymbolList();
-//	auto it = std::find_if(g_externalMethod.cbegin(), g_externalMethod.cend(), [&](const ExternalMethod& method) {
-//		return method.symbol == symbol;
-//	});
-//	if (it == g_externalMethod.cend()) { return nullptr; }
-//	return &(*it);
-//}
-
 class Runnable
 {
-public:
-	class Parameter
+	//public:
+		//class Parameter
+		//{
+		//public:
+		//	Parameter(const std::string& identifier, const Typedef::TypeFacade& type)
+		//		: m_identifier{ identifier }
+		//		, m_type{ type }
+		//	{
+		//	}
+
+		//	explicit Parameter(const std::string& identifier)
+		//		: m_identifier{ identifier }
+		//		, m_isVariadic{ true }
+		//	{
+		//	}
+
+		//	inline const std::string Identifier() const noexcept { return m_identifier; }
+		//	inline bool Empty() const noexcept { return m_identifier.empty(); }
+		//	inline Typedef::TypeFacade DataType() const noexcept { return m_type; }
+		//	inline bool IsVariadic() const noexcept { return m_isVariadic; }
+
+		//private:
+		//	const bool m_isVariadic{ false }; //TODO: incorporate in datatype
+		//	const std::string m_identifier;
+		//	const Typedef::TypeFacade m_type;
+		//};
+
+	void ConvertInternalMethod(std::shared_ptr<FunctionDecl>& funcNode)
 	{
-	public:
-		Parameter(const std::string& identifier, const Typedef::TypeFacade& type)
-			: m_identifier{ identifier }
-			, m_type{ type }
-		{
+		assert(funcNode);
+		m_functionData = funcNode;
+
+		// Convert paramters.
+		if (!funcNode->HasParameters()) { return; }
+		for (const auto& child : funcNode->ParameterStatement()->Children()) {
+			if (child.lock()->Label() == AST::NodeID::VARIADIC_DECL_ID) {
+				m_paramList.emplace_back("__va_list__");
+			}
+			else {
+				auto paramDecl = Util::NodeCast<ParamDecl>(child);
+				assert(paramDecl->HasReturnType());
+				m_paramList.emplace_back(paramDecl->Identifier(), paramDecl->ReturnType());
+			}
 		}
+	}
 
-		explicit Parameter(const std::string& identifier)
-			: m_identifier{ identifier }
-			, m_isVariadic{ true }
-		{
-		}
+	void ConvertExternalMethod(const ExternalMethod *exfuncRef)
+	{
+		assert(exfuncRef);
+		m_isExternal = true;
+		m_functionData = exfuncRef;
 
-		inline const std::string Identifier() const noexcept { return m_identifier; }
-		inline bool Empty() const noexcept { return m_identifier.empty(); }
-		inline Typedef::TypeFacade DataType() const noexcept { return m_type; }
-		inline bool IsVariadic() const noexcept { return m_isVariadic; }
-
-	private:
-		const bool m_isVariadic{ false }; //TODO: incorporate in datatype
-		const std::string m_identifier;
-		const Typedef::TypeFacade m_type;
-	};
+		// Copy paramters.
+		if (exfuncRef->Parameters().empty()) { return; }
+		std::copy(exfuncRef->Parameters().cbegin()
+			, exfuncRef->Parameters().cend()
+			, std::back_inserter(m_paramList));
+	}
 
 public:
 	Runnable() = default;
 
 	// Construct runnable from function declaration.
 	explicit Runnable(std::shared_ptr<FunctionDecl>& funcNode)
-		: m_functionData{ funcNode }
+		//: m_functionData{ funcNode }
 	{
-		assert(funcNode);
+		ConvertInternalMethod(funcNode);
+		/*assert(funcNode);
 
 		if (!funcNode->HasParameters()) { return; }
 		for (const auto& child : funcNode->ParameterStatement()->Children()) {
 			if (child.lock()->Label() == AST::NodeID::VARIADIC_DECL_ID) {
-				std::string autoArg{ "__va_list__" };
-				break; //TODO: fix
-				m_paramList.push_back(Parameter{ autoArg });
+				m_paramList.emplace_back("__va_list__");
 			}
 			else {
 				auto paramDecl = Util::NodeCast<ParamDecl>(child);
 				assert(paramDecl->HasReturnType());
-				m_paramList.push_back(Parameter{ paramDecl->Identifier(), paramDecl->ReturnType() });
+				m_paramList.emplace_back(paramDecl->Identifier(), paramDecl->ReturnType());
 			}
-		}
+		}*/
 	}
 
-	// Construct runnable from internal method.
+	// Construct runnable from external method.
 	explicit Runnable(const ExternalMethod *exfuncRef)
-		: m_isExternal{ true }
-		, m_functionData{ exfuncRef }
+		//: m_isExternal{ true }
+		//, m_functionData{ exfuncRef }
 	{
-		assert(exfuncRef);
+		ConvertExternalMethod(exfuncRef);
+		//assert(exfuncRef);
 
-		int counter = 0;
-		if (!exfuncRef->HasParameters()) { return; }
-		for (const auto& child : exfuncRef->params->Children()) {
-			if (child.lock()->Label() == AST::NodeID::VARIADIC_DECL_ID) {
-				std::string autoArg{ "__va_list__" };
-				m_paramList.push_back(Parameter{ autoArg });
-				break;
-			}
-			else {
-				auto paramDecl = Util::NodeCast<ParamDecl>(child);
-				assert(paramDecl->HasReturnType());
-				std::string autoArg{ "__arg" + std::to_string(counter++) + "__" };
-				m_paramList.push_back(Parameter{ autoArg, paramDecl->ReturnType() });
-			}
-		}
+		//int counter = 0;
+		/*if (!exfuncRef->Parameters().empty()) { return; }
+
+		std::copy(exfuncRef->Parameters().cbegin()
+			, exfuncRef->Parameters().cend()
+			, std::back_inserter(m_paramList));*/
+
+			/*for (const auto& child : exfuncRef->Parameters()->Children()) {
+				if (child.lock()->Label() == AST::NodeID::VARIADIC_DECL_ID) {
+					std::string autoArg{ "__va_list__" };
+					m_paramList.push_back(ExternalMethod::Parameter{ autoArg });
+					break;
+				}
+				else {
+					auto paramDecl = Util::NodeCast<ParamDecl>(child);
+					assert(paramDecl->HasReturnType());
+					std::string autoArg{ "__arg" + std::to_string(counter++) + "__" };
+					m_paramList.push_back(ExternalMethod::Parameter{ autoArg, paramDecl->ReturnType() });
+				}
+			}*/
+	}
+
+	Runnable& operator=(std::shared_ptr<FunctionDecl>& method)
+	{
+		ConvertInternalMethod(method);
+		return (*this);
+	}
+
+	Runnable& operator=(const ExternalMethod *method)
+	{
+		ConvertExternalMethod(method);
+		return (*this);
 	}
 
 	//TODO: confusing call
-	const Parameter& operator[](size_t idx) const
+	/*const ExternalMethod::Parameter& operator[](size_t idx) const
 	{
 		return m_paramList[idx];
-	}
+	}*/
 
 	//TODO: confusing call
-	const Parameter& Front() const { return m_paramList.front(); }
+	//const ExternalMethod::Parameter& Front() const { return m_paramList.front(); }
 	//TODO: confusing call
-	const Parameter& Back() const { return m_paramList.back(); }
+	//const ExternalMethod::Parameter& Back() const { return m_paramList.back(); }
 
 	// Query argument size.
 	inline size_t ArgumentSize() const noexcept { return m_paramList.size(); }
@@ -869,6 +901,8 @@ public:
 	inline bool HasArguments() const noexcept { return ArgumentSize() > 0; }
 	// Query if runnable is external method.
 	inline bool IsExternal() const noexcept { return m_isExternal; }
+	// Get the parameter list.
+	const ExternalMethod::ParameterList& Parameters() const noexcept { return m_paramList; }
 
 	template<typename CastType>
 	auto Data() const { return boost::get<CastType>(m_functionData); }
@@ -878,7 +912,7 @@ public:
 private:
 	bool m_isExternal = false;
 	boost::variant<std::shared_ptr<FunctionDecl>, const ExternalMethod*> m_functionData;
-	std::vector<Parameter> m_paramList;
+	ExternalMethod::ParameterList m_paramList;
 };
 
 Context::Unit InitializeContext(AST::AST& ast, std::shared_ptr<GlobalContext>& ctx)
@@ -1083,7 +1117,8 @@ struct ExternalRoutine
 {
 	void ProcessRoutine(const ExternalMethod *method, Context::Function& ctx)
 	{
-		method->functional(ctx);
+		ExternalFunctionContext ctx2;
+		method->Call(ctx2);
 	}
 
 public:
@@ -1313,10 +1348,10 @@ class ScopedRoutine
 		//   2.) Request the symbol as an external routine (internal or external module)
 		//   3.) Throw an symbol not found exception halting from further execution
 		if (auto funcNode = ctx->FindContext<UnitContext>(Context::tag::UNIT)->LookupSymbol<FunctionDecl>(functionIdentifier)) {
-			function = std::move(Runnable{ funcNode });
+			function = funcNode;
 		}
 		else if (auto exfuncRef = GlobalExecutionState::FindExternalSymbol(functionIdentifier)) {
-			function = std::move(Runnable{ exfuncRef });
+			function = exfuncRef;
 		}
 		else {
 			CryImplExcept(); //TODO: symbol not found in internal or external module
@@ -1332,7 +1367,7 @@ class ScopedRoutine
 			if (function.ArgumentSize() > argsDecls.size()) {
 				CryImplExcept(); //TODO: source.c:0:0: error: too many arguments to function 'funcNode'
 			}
-			else if (function.ArgumentSize() < argsDecls.size() && !function.Back().IsVariadic()) {
+			else if (function.ArgumentSize() < argsDecls.size() && !function.Parameters().back().IsVariadic()) {
 				CryImplExcept(); //TODO: source.c:0:0: error: too few arguments to function 'funcNode'
 			}
 
@@ -1340,10 +1375,10 @@ class ScopedRoutine
 			int i = 0;
 			auto itArgs = argsDecls.cbegin();
 			while (itArgs != argsDecls.cend()) {
-				if (function[i].Empty()) {
+				if (function.Parameters().at(i).Empty()) {
 					CryImplExcept(); //TODO: source.c:0:0: error: parameter name omitted to function 'funcNode'
 				}
-				if (function[i].IsVariadic()) {
+				if (function.Parameters().at(i).IsVariadic()) {
 					int v_i = 0;
 					while (itArgs != argsDecls.cend()) {
 						auto value = ResolveExpression(itArgs->lock(), ctx);
@@ -1355,11 +1390,11 @@ class ScopedRoutine
 				}
 				else {
 					auto value = ResolveExpression(itArgs->lock(), ctx);
-					if (function[i].DataType() != value.Type()) {
+					if (function.Parameters().at(i).DataType() != value.Type()) {
 						CryImplExcept(); //TODO: source.c:0:0: error: cannot convert argument of type 'X' to parameter type 'Y'
 					}
 					//TODO: check if param is pointer
-					funcCtx->PushVar(function[i].Identifier(), Valuedef::Value{ value });
+					funcCtx->PushVar(function.Parameters().at(i).Identifier(), Valuedef::Value{ value });
 					++itArgs;
 					++i;
 				}

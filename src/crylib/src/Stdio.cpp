@@ -6,7 +6,7 @@
 // that can be found in the LICENSE file. Content can not be 
 // copied and/or distributed without the express of the author.
 
-#include "Functions.h"
+#include "Functional.h"
 
 #include <cstdio>
 
