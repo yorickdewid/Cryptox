@@ -13,6 +13,7 @@
 
 #include <string>
 #include <functional>
+#include <memory>
 
 #define CRY_METHOD(c) void cry_##c(EVM::ExternalFunctionContext& ctx)
 
@@ -28,29 +29,44 @@
 
 #define SET_RETURN(r) ctx->CreateSpecialVar<RETURN_VALUE>(Util::MakeInt(r));
 
+#define REGISTER_METHOD(s,c) ExternalMethod{ s, &cry_##c }
+#define REGISTER_METHOD_PARAM(s,c,...) ExternalMethod{ s, &cry_##c, { __VA_ARGS__ } }
+
 namespace EVM
 {
 
 // Function context passed when external method is called.
 class ExternalFunctionContext
 {
+	std::unique_ptr<Valuedef::Value> m_returnValue;
+	std::function<std::shared_ptr<Valuedef::Value>(const std::string&)> m_ctxCallback;
+
 public:
-	ExternalFunctionContext() = default;
+	ExternalFunctionContext(std::function<std::shared_ptr<Valuedef::Value>(const std::string&)> cb)
+		: m_ctxCallback{ cb }
+	{
+	}
 
 	template<typename CastType>
-	void GetParameter(const std::string&)
+	CastType GetParameter(const std::string& name)
 	{
-		//
+		auto valuePtr = m_ctxCallback(name);
+		return valuePtr->As<CastType>();
 	}
 
-	void SetReturn(Valuedef::Value&)
+	void SetReturn(Valuedef::Value& value)
 	{
-		//
+		m_returnValue = std::make_unique<Valuedef::Value>(value);
 	}
 
-	void SetReturn(Valuedef::Value&&)
+	void SetReturn(Valuedef::Value&& value)
 	{
-		//
+		m_returnValue = std::make_unique<Valuedef::Value>(std::move(value));
+	}
+
+	std::unique_ptr<Valuedef::Value> GetReturn()
+	{
+		return std::move(m_returnValue);
 	}
 };
 

@@ -7,7 +7,6 @@
 // copied and/or distributed without the express of the author.
 
 #include "Functional.h"
-#include "ExternalMethod.h"
 
 #include <list>
 
@@ -17,6 +16,20 @@ namespace
 CRY_METHOD(pause)
 {
 	// TODO...
+
+	/*const auto& value0 = ctx->ValueByIdentifier("__arg0__").lock();
+	assert(value0);
+	const auto param0 = value0->As<int>();
+
+	ctx->CreateSpecialVar<RETURN_VALUE>(Util::MakeInt(param0));*/
+}
+
+CRY_METHOD(blub)
+{
+	int i = ctx.GetParameter<int>("i");
+	int j = ctx.GetParameter<int>("j");
+	i += j;
+	ctx.SetReturn(Util::MakeInt(i));
 }
 
 } // namespace
@@ -26,7 +39,10 @@ namespace EVM
 
 std::list<ExternalMethod> SymbolIndex()
 {
-	return { ExternalMethod{ "pause", &cry_pause, /*PACKED_PARAM_DECL("s")*/{} }, };
+	return {
+		REGISTER_METHOD("pause", pause),
+		REGISTER_METHOD_PARAM("blub", blub, ParseSolidType("i", "i"), ParseSolidType("j", "i")),
+	};
 }
 
 } // namespace EVM

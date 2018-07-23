@@ -674,119 +674,8 @@ private:
 
 } // namespace EVM
 
-// FUTURE:
-// Local methods must be replaced by the external modules to load functions. Fow now
-// we trust on these few functions, although it is temporary and thus not complete.
-namespace LocalMethod
-{
-
-class SolidParameterFormat
-{
-	std::shared_ptr<ParamStmt> stmt{ AST::MakeASTNode<ParamStmt>() };
-
-public:
-	std::shared_ptr<ParamStmt> Parameters() const { return stmt; };
-
-	SolidParameterFormat& Parse(const char str[])
-	{
-		for (size_t i = 0; i < strlen(str); ++i) {
-			assert(i < 100);
-			switch (str[i]) {
-			case 'i': {
-				auto decl = AST::MakeASTNode<ParamDecl>(Util::MakeBuiltinType(Typedef::BuiltinType::Specifier::INT));
-				stmt->AppendParamter(decl);
-				break;
-			}
-			case 's': {
-				auto decl = AST::MakeASTNode<ParamDecl>(Util::MakeBuiltinType(Typedef::BuiltinType::Specifier::CHAR));
-				stmt->AppendParamter(decl);
-				break;
-			}
-			case 'f': {
-				auto decl = AST::MakeASTNode<ParamDecl>(Util::MakeBuiltinType(Typedef::BuiltinType::Specifier::FLOAT));
-				stmt->AppendParamter(decl);
-				break;
-			}
-			case 'b': {
-				auto decl = AST::MakeASTNode<ParamDecl>(Util::MakeBuiltinType(Typedef::BuiltinType::Specifier::BOOL));
-				stmt->AppendParamter(decl);
-				break;
-			}
-			case 'd': {
-				auto decl = AST::MakeASTNode<ParamDecl>(Util::MakeBuiltinType(Typedef::BuiltinType::Specifier::DOUBLE));
-				stmt->AppendParamter(decl);
-				break;
-			}
-			case 'L': {
-				auto decl = AST::MakeASTNode<ParamDecl>(Util::MakeBuiltinType(Typedef::BuiltinType::Specifier::LONG));
-				stmt->AppendParamter(decl);
-				break;
-			}
-			case 'S': {
-				auto decl = AST::MakeASTNode<ParamDecl>(Util::MakeBuiltinType(Typedef::BuiltinType::Specifier::SHORT));
-				stmt->AppendParamter(decl);
-				break;
-			}
-			case 'U': {
-				auto decl = AST::MakeASTNode<ParamDecl>(Util::MakeBuiltinType(Typedef::BuiltinType::Specifier::UNSIGNED));
-				stmt->AppendParamter(decl);
-				break;
-			}
-			case 'G': {
-				auto decl = AST::MakeASTNode<ParamDecl>(Util::MakeBuiltinType(Typedef::BuiltinType::Specifier::SIGNED));
-				stmt->AppendParamter(decl);
-				break;
-			}
-			case 'v': {
-				auto decl = AST::MakeASTNode<ParamDecl>(Util::MakeBuiltinType(Typedef::BuiltinType::Specifier::VOID_T));
-				stmt->AppendParamter(decl);
-				break;
-			}
-			case 'V': {
-				auto decl = AST::MakeASTNode<VariadicDecl>();
-				stmt->AppendParamter(decl);
-				break;
-			}
-			}
-		}
-
-		return (*this);
-	}
-};
-
-#define PACKED_PARAM_DECL(s) SolidParameterFormat{}.Parse(s).Parameters()
-
-} // namespace LocalMethod
-
 class Runnable
 {
-	//public:
-		//class Parameter
-		//{
-		//public:
-		//	Parameter(const std::string& identifier, const Typedef::TypeFacade& type)
-		//		: m_identifier{ identifier }
-		//		, m_type{ type }
-		//	{
-		//	}
-
-		//	explicit Parameter(const std::string& identifier)
-		//		: m_identifier{ identifier }
-		//		, m_isVariadic{ true }
-		//	{
-		//	}
-
-		//	inline const std::string Identifier() const noexcept { return m_identifier; }
-		//	inline bool Empty() const noexcept { return m_identifier.empty(); }
-		//	inline Typedef::TypeFacade DataType() const noexcept { return m_type; }
-		//	inline bool IsVariadic() const noexcept { return m_isVariadic; }
-
-		//private:
-		//	const bool m_isVariadic{ false }; //TODO: incorporate in datatype
-		//	const std::string m_identifier;
-		//	const Typedef::TypeFacade m_type;
-		//};
-
 	void ConvertInternalMethod(std::shared_ptr<FunctionDecl>& funcNode)
 	{
 		assert(funcNode);
@@ -824,52 +713,14 @@ public:
 
 	// Construct runnable from function declaration.
 	explicit Runnable(std::shared_ptr<FunctionDecl>& funcNode)
-		//: m_functionData{ funcNode }
 	{
 		ConvertInternalMethod(funcNode);
-		/*assert(funcNode);
-
-		if (!funcNode->HasParameters()) { return; }
-		for (const auto& child : funcNode->ParameterStatement()->Children()) {
-			if (child.lock()->Label() == AST::NodeID::VARIADIC_DECL_ID) {
-				m_paramList.emplace_back("__va_list__");
-			}
-			else {
-				auto paramDecl = Util::NodeCast<ParamDecl>(child);
-				assert(paramDecl->HasReturnType());
-				m_paramList.emplace_back(paramDecl->Identifier(), paramDecl->ReturnType());
-			}
-		}*/
 	}
 
 	// Construct runnable from external method.
 	explicit Runnable(const ExternalMethod *exfuncRef)
-		//: m_isExternal{ true }
-		//, m_functionData{ exfuncRef }
 	{
 		ConvertExternalMethod(exfuncRef);
-		//assert(exfuncRef);
-
-		//int counter = 0;
-		/*if (!exfuncRef->Parameters().empty()) { return; }
-
-		std::copy(exfuncRef->Parameters().cbegin()
-			, exfuncRef->Parameters().cend()
-			, std::back_inserter(m_paramList));*/
-
-			/*for (const auto& child : exfuncRef->Parameters()->Children()) {
-				if (child.lock()->Label() == AST::NodeID::VARIADIC_DECL_ID) {
-					std::string autoArg{ "__va_list__" };
-					m_paramList.push_back(ExternalMethod::Parameter{ autoArg });
-					break;
-				}
-				else {
-					auto paramDecl = Util::NodeCast<ParamDecl>(child);
-					assert(paramDecl->HasReturnType());
-					std::string autoArg{ "__arg" + std::to_string(counter++) + "__" };
-					m_paramList.push_back(ExternalMethod::Parameter{ autoArg, paramDecl->ReturnType() });
-				}
-			}*/
 	}
 
 	Runnable& operator=(std::shared_ptr<FunctionDecl>& method)
@@ -883,17 +734,6 @@ public:
 		ConvertExternalMethod(method);
 		return (*this);
 	}
-
-	//TODO: confusing call
-	/*const ExternalMethod::Parameter& operator[](size_t idx) const
-	{
-		return m_paramList[idx];
-	}*/
-
-	//TODO: confusing call
-	//const ExternalMethod::Parameter& Front() const { return m_paramList.front(); }
-	//TODO: confusing call
-	//const ExternalMethod::Parameter& Back() const { return m_paramList.back(); }
 
 	// Query argument size.
 	inline size_t ArgumentSize() const noexcept { return m_paramList.size(); }
@@ -1113,468 +953,391 @@ struct OperandFactory
 	}
 };
 
-struct ExternalRoutine
+namespace ExternalRoutine
 {
-	void ProcessRoutine(const ExternalMethod *method, Context::Function& ctx)
-	{
-		ExternalFunctionContext ctx2;
-		method->Call(ctx2);
-	}
 
-public:
-	inline void operator()(const ExternalMethod *method, Context::Function& ctx)
-	{
-		assert(method);
-		ProcessRoutine(method, ctx);
-	}
-};
-
-class ScopedRoutine
+void Invoke(const ExternalMethod *method, Context::Function& ctx)
 {
-	template<typename OperandPred, typename ContainerType = CoilCl::Valuedef::Value>
-	static CoilCl::Valuedef::Value BinaryOperation(OperandPred predicate, ContainerType&& valuesLHS, ContainerType&& valuesRHS)
-	{
-		typename OperandPred::result_type result = predicate(
-			valuesLHS.As<OperandPred::result_type>(),
-			valuesRHS.As<OperandPred::result_type>());
+	assert(method);
 
-		return Util::MakeInt(result); //TODO: not always an integer
+	Context::Compound compCtx = ctx->MakeContext<CompoundContext>();
+	ctx->AttachCompound(compCtx);
+	ExternalFunctionContext exCtx{ [&compCtx](const std::string& name) -> std::shared_ptr<CoilCl::Valuedef::Value>
+	{
+		return compCtx->ValueByIdentifier(name).lock();
+	} };
+	method->Call(exCtx);
+	auto ptr = exCtx.GetReturn();
+	if (ptr) {
+		ctx->CreateSpecialVar<RETURN_VALUE>(*ptr.get());
 	}
 
-	// Inverse the boolea result.
-	static CoilCl::Valuedef::Value EvaluateInverse(const CoilCl::Valuedef::Value& value)
-	{
-		return Util::MakeBool(!Util::EvaluateValueAsBoolean(value));
-	}
+	ptr.reset();
+	compCtx.reset();
+}
 
-	//FUTURE: both operations can be improved.
-	template<int Increment, typename OperandPred, typename ContextType>
-	static CoilCl::Valuedef::Value ValueAlteration(OperandPred predicate, AST::UnaryOperator::OperandSide side, std::shared_ptr<DeclRefExpr> declRef, ContextType& ctx)
-	{
-		std::shared_ptr<CoilCl::Valuedef::Value> value = ctx->ValueByIdentifier(declRef->Identifier()).lock();
-		int result = predicate(value->As<int>(), Increment); //TODO: not always an integer
+} // namespace ExternalRoutine
 
-		// On postfix operand, copy the original first.
-		if (side == AST::UnaryOperator::OperandSide::POSTFIX) {
-			auto origvalue = CoilCl::Valuedef::Value{ (*value.get()) };
-			(*value) = Util::MakeInt(result); //TODO: not always an integer
-			return origvalue;
-		}
+namespace InternalRoutine
+{
 
-		// On prefix, perform the unary operand on the original.
+enum { RETURN_NORMAL, RETURN_BREAK, RETURN_RETURN };
+
+int ExecuteStatement(const std::shared_ptr<AST::ASTNode>&, Context::Compound&);
+
+template<typename OperandPred, typename ContainerType = CoilCl::Valuedef::Value>
+static CoilCl::Valuedef::Value BinaryOperation(OperandPred predicate, ContainerType&& valuesLHS, ContainerType&& valuesRHS)
+{
+	typename OperandPred::result_type result = predicate(
+		valuesLHS.As<OperandPred::result_type>(),
+		valuesRHS.As<OperandPred::result_type>());
+
+	return Util::MakeInt(result); //TODO: not always an integer
+}
+
+// Inverse the boolea result.
+CoilCl::Valuedef::Value EvaluateInverse(const CoilCl::Valuedef::Value& value)
+{
+	return Util::MakeBool(!Util::EvaluateValueAsBoolean(value));
+}
+
+//FUTURE: both operations can be improved.
+template<int Increment, typename OperandPred, typename ContextType>
+CoilCl::Valuedef::Value ValueAlteration(OperandPred predicate, AST::UnaryOperator::OperandSide side, std::shared_ptr<DeclRefExpr> declRef, ContextType& ctx)
+{
+	std::shared_ptr<CoilCl::Valuedef::Value> value = ctx->ValueByIdentifier(declRef->Identifier()).lock();
+	int result = predicate(value->As<int>(), Increment); //TODO: not always an integer
+
+	// On postfix operand, copy the original first.
+	if (side == AST::UnaryOperator::OperandSide::POSTFIX) {
+		auto origvalue = CoilCl::Valuedef::Value{ (*value.get()) };
 		(*value) = Util::MakeInt(result); //TODO: not always an integer
-		return (*value.get());
+		return origvalue;
 	}
 
-	template<typename ContextType>
-	static CoilCl::Valuedef::Value ValueReference(std::shared_ptr<DeclRefExpr> declRef, ContextType& ctx)
+	// On prefix, perform the unary operand on the original.
+	(*value) = Util::MakeInt(result); //TODO: not always an integer
+	return (*value.get());
+}
+
+template<typename ContextType>
+CoilCl::Valuedef::Value ValueReference(std::shared_ptr<DeclRefExpr> declRef, ContextType& ctx)
+{
+	DeclarationRegistry::OpaqueAddress address = ctx->AddressByIdentifier(declRef->Identifier());
+	assert(!address.Expired());
+
+	//TODO: Util::MakePointer(address.address);
+	return Util::MakeInt(address.address);
+}
+
+template<typename ContextType>
+CoilCl::Valuedef::Value ResolveExpression(std::shared_ptr<AST::ASTNode> node, ContextType& ctx)
+{
+	switch (node->Label())
 	{
-		DeclarationRegistry::OpaqueAddress address = ctx->AddressByIdentifier(declRef->Identifier());
-		assert(!address.Expired());
-
-		//TODO: Util::MakePointer(address.address);
-		return Util::MakeInt(address.address);
-	}
-
-	template<typename ContextType>
-	static CoilCl::Valuedef::Value ResolveExpression(std::shared_ptr<AST::ASTNode> node, ContextType& ctx)
-	{
-		switch (node->Label())
-		{
-			{
-				//
-				// Return literal types.
-				//
-			}
-
-		case AST::NodeID::CHARACTER_LITERAL_ID: {
-			return std::dynamic_pointer_cast<CharacterLiteral>(node)->Value();
-		}
-		case AST::NodeID::STRING_LITERAL_ID: {
-			return std::dynamic_pointer_cast<StringLiteral>(node)->Value();
-		}
-		case AST::NodeID::INTEGER_LITERAL_ID: {
-			return std::dynamic_pointer_cast<IntegerLiteral>(node)->Value();
-		}
-		case AST::NodeID::FLOAT_LITERAL_ID: {
-			return std::dynamic_pointer_cast<FloatingLiteral>(node)->Value();
-		}
-
 		{
 			//
-			// Operators.
+			// Return literal types.
 			//
 		}
 
-		case AST::NodeID::BINARY_OPERATOR_ID: {
-			const auto op = std::dynamic_pointer_cast<BinaryOperator>(node);
-
-			// If the binary operand is an assignment do it right now.
-			if (op->Operand() == BinaryOperator::BinOperand::ASSGN) {
-
-				// The left hand side must be a lvalue and thus can be converted into an declaration
-				// reference. The declaration reference value is altered when the new value is assigned
-				// and as a consequence updates the declaration table entry.
-				auto declRef = Util::NodeCast<DeclRefExpr>(op->LHS());
-				const auto assignValue = ctx->ValueByIdentifier(declRef->Identifier()).lock();
-				(*assignValue) = ResolveExpression(op->RHS(), ctx);
-				return (*assignValue.get());
-			}
-
-			auto lhsValue = ResolveExpression(op->LHS(), ctx);
-			auto rhsValue = ResolveExpression(op->RHS(), ctx);
-			return BinaryOperation(OperandFactory<int>(op->Operand()), lhsValue, rhsValue); //TODO: not always an integer
-		}
-		case AST::NodeID::CONDITIONAL_OPERATOR_ID: {
-			const auto op = std::dynamic_pointer_cast<ConditionalOperator>(node);
-			auto value = ResolveExpression(op->Expression(), ctx);
-			if (Util::EvaluateValueAsBoolean(value)) {
-				return ResolveExpression(op->TruthStatement(), ctx);
-			}
-
-			// Handle alternative path.
-			return ResolveExpression(op->AltStatement(), ctx);
-		}
-		case AST::NodeID::UNARY_OPERATOR_ID: {
-			const auto op = std::dynamic_pointer_cast<AST::UnaryOperator>(node);
-			switch (op->Operand())
-			{
-			case AST::UnaryOperator::UnaryOperand::INC:
-				return ValueAlteration<1>(std::plus<int>(), op->OperationSide(), Util::NodeCast<DeclRefExpr>(op->Expression()), ctx); //TODO: not always an integer
-			case AST::UnaryOperator::UnaryOperand::DEC:
-				return ValueAlteration<1>(std::minus<int>(), op->OperationSide(), Util::NodeCast<DeclRefExpr>(op->Expression()), ctx); //TODO: not always an integer
-
-				/*
-				case AST::UnaryOperator::UnaryOperand::INTPOS:
-					return ValueSignedness();
-				case AST::UnaryOperator::UnaryOperand::INTNEG:
-					return ValueSignedness();
-				*/
-
-			case AST::UnaryOperator::UnaryOperand::ADDR:
-				return ValueReference(Util::NodeCast<DeclRefExpr>(op->Expression()), ctx);
-			case AST::UnaryOperator::UnaryOperand::PTRVAL:
-				//ValueIndirection();
-				break;
-
-				//case AST::UnaryOperator::UnaryOperand::BITNOT:
-			case AST::UnaryOperator::UnaryOperand::BOOLNOT:
-				return EvaluateInverse(ResolveExpression(op->Expression(), ctx));
-			}
-			CryImplExcept(); //TODO:
-		}
-		case AST::NodeID::COMPOUND_ASSIGN_OPERATOR_ID: {
-			Util::NodeCast<CompoundAssignOperator>(node);
-			break;
-		}
-
-		{
-			//
-			// Return routine result.
-			//
-		}
-
-		case AST::NodeID::CALL_EXPR_ID: {
-			auto op = Util::NodeCast<CallExpr>(node);
-			Context::Function funcCtx = CallExpression(op, ctx);
-			if (!funcCtx->HasReturnValue()) {
-				throw std::logic_error{ "function must return a value" }; //TODO:
-			}
-			return funcCtx->ReturnValue();
-		}
-
-		{
-			//
-			// Lookup symbol reference.
-			//
-		}
-
-		case AST::NodeID::DECL_REF_EXPR_ID: {
-			auto declRef = Util::NodeCast<DeclRefExpr>(node);
-			//return ctx->LookupIdentifier(declRef->Identifier());
-
-			const auto& value = ctx->ValueByIdentifier(declRef->Identifier());
-			return (*value.lock().get());
-		}
-
-		{
-			//
-			// Type casting.
-			//
-		}
-
-		case AST::NodeID::IMPLICIT_CONVERTION_EXPR_ID: {
-			auto convRef = Util::NodeCast<ImplicitConvertionExpr>(node);
-			CRY_UNUSED(convRef);
-			return Util::MakeInt(12); //TODO: for now
-		}
-
-		{
-			//
-			// Enclosed expression.
-			//
-		}
-
-		case AST::NodeID::PAREN_EXPR_ID: {
-			auto expr = Util::NodeCast<ParenExpr>(node);
-			assert(expr->HasExpression());
-			return ResolveExpression(expr->Expression(), ctx);
-		}
-
-		default:
-			break;
-		}
-
-		CryImplExcept(); //TODO
+	case AST::NodeID::CHARACTER_LITERAL_ID: {
+		return std::dynamic_pointer_cast<CharacterLiteral>(node)->Value();
+	}
+	case AST::NodeID::STRING_LITERAL_ID: {
+		return std::dynamic_pointer_cast<StringLiteral>(node)->Value();
+	}
+	case AST::NodeID::INTEGER_LITERAL_ID: {
+		return std::dynamic_pointer_cast<IntegerLiteral>(node)->Value();
+	}
+	case AST::NodeID::FLOAT_LITERAL_ID: {
+		return std::dynamic_pointer_cast<FloatingLiteral>(node)->Value();
 	}
 
-	template<typename ContextType>
-	static Context::Function CallExpression(const std::shared_ptr<CallExpr>& callNode, ContextType& ctx)
 	{
-		assert(callNode);
-		assert(callNode->ChildrenCount());
-		assert(callNode->FunctionReference()->IsResolved());
-		const std::string& functionIdentifier = callNode->FunctionReference()->Identifier();
-		Runnable function;
-
-		// Create a new function context. Depending on the parent context the new context
-		// is a direct hierarchical or a sub-hierarchical child.
-		Context::Function funcCtx = ctx->MakeContext<FunctionContext>(functionIdentifier);
-		assert(!funcCtx->HasLocalValues());
-
-		// The symbol is can be found in different places. The interpreter will locate
-		// the runnable object according to the following algorithm:
-		//   1.) Look for the symbol in the current program assuming it is a local object
-		//   2.) Request the symbol as an external routine (internal or external module)
-		//   3.) Throw an symbol not found exception halting from further execution
-		if (auto funcNode = ctx->FindContext<UnitContext>(Context::tag::UNIT)->LookupSymbol<FunctionDecl>(functionIdentifier)) {
-			function = funcNode;
-		}
-		else if (auto exfuncRef = GlobalExecutionState::FindExternalSymbol(functionIdentifier)) {
-			function = exfuncRef;
-		}
-		else {
-			CryImplExcept(); //TODO: symbol not found in internal or external module
-		}
-
-		// Check if call expression has arguments, if so assign paramters to the arguments
-		// and commit the arguments into the function context.
-		if (callNode->HasArguments() && function.HasArguments()) {
-			assert(callNode->ArgumentStatement()->ChildrenCount());
-			const auto argsDecls = callNode->ArgumentStatement()->Children();
-
-			// Sanity check, should have been done by semer
-			if (function.ArgumentSize() > argsDecls.size()) {
-				CryImplExcept(); //TODO: source.c:0:0: error: too many arguments to function 'funcNode'
-			}
-			else if (function.ArgumentSize() < argsDecls.size() && !function.Parameters().back().IsVariadic()) {
-				CryImplExcept(); //TODO: source.c:0:0: error: too few arguments to function 'funcNode'
-			}
-
-			// Assign function arguments to parameters
-			int i = 0;
-			auto itArgs = argsDecls.cbegin();
-			while (itArgs != argsDecls.cend()) {
-				if (function.Parameters().at(i).Empty()) {
-					CryImplExcept(); //TODO: source.c:0:0: error: parameter name omitted to function 'funcNode'
-				}
-				if (function.Parameters().at(i).IsVariadic()) {
-					int v_i = 0;
-					while (itArgs != argsDecls.cend()) {
-						auto value = ResolveExpression(itArgs->lock(), ctx);
-						std::string autoVA{ "__va_arg" + std::to_string(v_i++) + "__" };
-						funcCtx->PushVar(autoVA, Valuedef::Value{ value });
-						++itArgs;
-					}
-					break;
-				}
-				else {
-					auto value = ResolveExpression(itArgs->lock(), ctx);
-					if (function.Parameters().at(i).DataType() != value.Type()) {
-						CryImplExcept(); //TODO: source.c:0:0: error: cannot convert argument of type 'X' to parameter type 'Y'
-					}
-					//TODO: check if param is pointer
-					funcCtx->PushVar(function.Parameters().at(i).Identifier(), Valuedef::Value{ value });
-					++itArgs;
-					++i;
-				}
-			}
-		}
-
-		// Call the routine with a new functional context. An new instance is created intentionally
-		// to restrict context scope, and to allow the compiler to RAII all resources. The context
-		// is returned as the result of the expression.
-		assert(function);
-		if (function.IsExternal()) {
-			ExternalRoutine{}(function.Data<const ExternalMethod*>(), funcCtx);
-		}
-		else {
-			auto func = function.Data<std::shared_ptr<FunctionDecl>>();
-			ScopedRoutine{}(func, funcCtx);
-		}
-
-		return funcCtx;
+		//
+		// Operators.
+		//
 	}
 
-	// Create new compound context.
-	void CreateCompound(const std::shared_ptr<AST::ASTNode>& node, Context::Compound& ctx)
-	{
-		auto compNode = Util::NodeCast<CompoundStmt>(node);
-		Context::Compound compCtx = ctx->MakeContext<CompoundContext>();
-		ProcessCompound(compNode, compCtx);
-		compCtx.reset();
+	case AST::NodeID::BINARY_OPERATOR_ID: {
+		const auto op = std::dynamic_pointer_cast<BinaryOperator>(node);
+
+		// If the binary operand is an assignment do it right now.
+		if (op->Operand() == BinaryOperator::BinOperand::ASSGN) {
+
+			// The left hand side must be a lvalue and thus can be converted into an declaration
+			// reference. The declaration reference value is altered when the new value is assigned
+			// and as a consequence updates the declaration table entry.
+			auto declRef = Util::NodeCast<DeclRefExpr>(op->LHS());
+			const auto assignValue = ctx->ValueByIdentifier(declRef->Identifier()).lock();
+			(*assignValue) = ResolveExpression(op->RHS(), ctx);
+			return (*assignValue.get());
+		}
+
+		auto lhsValue = ResolveExpression(op->LHS(), ctx);
+		auto rhsValue = ResolveExpression(op->RHS(), ctx);
+		return BinaryOperation(OperandFactory<int>(op->Operand()), lhsValue, rhsValue); //TODO: not always an integer
 	}
-
-	// Call internal function.
-	void ProcessRoutine(std::shared_ptr<FunctionDecl>& funcNode, Context::Function& ctx)
-	{
-		assert(funcNode->ChildrenCount());
-		if (funcNode->HasParameters()) {
-			//TODO: Do something?
-		}
-
-		Context::Compound compCtx = ctx->MakeContext<CompoundContext>();
-		ctx->AttachCompound(compCtx);
-		ProcessCompound(const_cast<std::shared_ptr<CompoundStmt>&>(funcNode->FunctionCompound()), compCtx);
-		compCtx.reset();
-	}
-
-	// Run all nodes in the compound.
-	template<typename Node>
-	void ProcessCompound(const std::shared_ptr<Node>& node, Context::Compound& ctx)
-	{
-		auto body = node->Children();
-		if (!body.size()) {
-			return; //TODO: Check if return type is void
-		}
-
-		// Process each child node.
-		for (const auto& childNode : body) {
-			auto child = childNode.lock();
-			auto returnType = ExecuteStatement(child, ctx);
-			switch (returnType)
-			{
-			case RETURN_RETURN:
-				goto done;
-			case RETURN_BREAK:
-				CryImplExcept(); //TODO: break statement not within loop or switch
-			}
-		}
-	done: {}
-	}
-
-	enum { RETURN_NORMAL, RETURN_BREAK, RETURN_RETURN };
-
-	int ExecuteStatement(const std::shared_ptr<AST::ASTNode>& childNode, Context::Compound& ctx)
-	{
-		using namespace AST;
-
-		switch (childNode->Label())
-		{
-		case NodeID::COMPOUND_STMT_ID: {
-			auto node = Util::NodeCast<CompoundStmt>(childNode);
-			CreateCompound(node, ctx);
-			break;
-		}
-		case NodeID::CALL_EXPR_ID: {
-			auto node = Util::NodeCast<CallExpr>(childNode);
-			CallExpression(node, ctx);
-			break;
-		}
-		case NodeID::DECL_STMT_ID: {
-			auto node = Util::NodeCast<DeclStmt>(childNode);
-			ProcessDeclaration(node, ctx);
-			break;
-		}
-		case NodeID::IF_STMT_ID: {
-			auto node = Util::NodeCast<IfStmt>(childNode);
-			if (ProcessCondition(node, ctx) == RETURN_RETURN) {
-				return RETURN_RETURN;
-			}
-			break;
-		}
-		case NodeID::SWITCH_STMT_ID: {
-			auto node = Util::NodeCast<SwitchStmt>(childNode);
-			if (ProcessSwitch(node, ctx) == RETURN_RETURN) {
-				return RETURN_RETURN;
-			}
-			break;
-		}
-		case NodeID::WHILE_STMT_ID: {
-			auto node = Util::NodeCast<WhileStmt>(childNode);
-			ProcessWhileLoop(node, ctx);
-			break;
-		}
-		case NodeID::DO_STMT_ID: {
-			auto node = Util::NodeCast<DoStmt>(childNode);
-			ProcessDoLoop(node, ctx);
-			break;
-		}
-		case NodeID::FOR_STMT_ID: {
-			auto node = Util::NodeCast<ForStmt>(childNode);
-			ProcessForLoop(node, ctx);
-			break;
-		}
-		case NodeID::BREAK_STMT_ID: {
-			return RETURN_BREAK;
-		}
-		case NodeID::RETURN_STMT_ID: {
-			auto node = Util::NodeCast<ReturnStmt>(childNode);
-			Context::Function funcCtx = ctx->FindContext<FunctionContext>(Context::tag::FUNCTION);
-			assert(funcCtx);
-			ProcessReturn(node, funcCtx);
-			return RETURN_RETURN;
-		}
-		default:
-			ProcessExpression(childNode, ctx);
-		}
-
-		return RETURN_NORMAL;
-	}
-
-	// If all else fails, try the node as expression.
-	void ProcessExpression(const std::shared_ptr<AST::ASTNode>& node, Context::Compound& ctx)
-	{
-		// Only execute the expression and ignore the result.
-		ResolveExpression(node, ctx);
-	}
-
-	// Register the declaration in the current context scope.
-	void ProcessDeclaration(std::shared_ptr<DeclStmt>& declNode, Context::Compound& ctx)
-	{
-		for (const auto& child : declNode->Children()) {
-			auto node = Util::NodeCast<VarDecl>(child);
-			assert(node->HasReturnType());
-
-			auto value = Valuedef::Value{ node->ReturnType() };
-			if (node->HasExpression()) {
-				value = ResolveExpression(node->Expression(), ctx);
-			}
-
-			ctx->PushVar(node->Identifier(), value);
-		}
-	}
-
-	// Run the expression and evaluate return values as boolean.
-	int ProcessCondition(std::shared_ptr<IfStmt>& node, Context::Compound& ctx)
-	{
-		auto value = ResolveExpression(node->Expression(), ctx);
+	case AST::NodeID::CONDITIONAL_OPERATOR_ID: {
+		const auto op = std::dynamic_pointer_cast<ConditionalOperator>(node);
+		auto value = ResolveExpression(op->Expression(), ctx);
 		if (Util::EvaluateValueAsBoolean(value)) {
-			if (node->HasTruthCompound()) {
-				auto continueNode = node->TruthCompound();
-				if (Util::IsNodeCompound(continueNode)) {
-					auto compoundNode = Util::NodeCast<CompoundStmt>(continueNode);
-					ProcessCompound(compoundNode, ctx);
+			return ResolveExpression(op->TruthStatement(), ctx);
+		}
+
+		// Handle alternative path.
+		return ResolveExpression(op->AltStatement(), ctx);
+	}
+	case AST::NodeID::UNARY_OPERATOR_ID: {
+		const auto op = std::dynamic_pointer_cast<AST::UnaryOperator>(node);
+		switch (op->Operand())
+		{
+		case AST::UnaryOperator::UnaryOperand::INC:
+			return ValueAlteration<1>(std::plus<int>(), op->OperationSide(), Util::NodeCast<DeclRefExpr>(op->Expression()), ctx); //TODO: not always an integer
+		case AST::UnaryOperator::UnaryOperand::DEC:
+			return ValueAlteration<1>(std::minus<int>(), op->OperationSide(), Util::NodeCast<DeclRefExpr>(op->Expression()), ctx); //TODO: not always an integer
+
+			/*
+			case AST::UnaryOperator::UnaryOperand::INTPOS:
+				return ValueSignedness();
+			case AST::UnaryOperator::UnaryOperand::INTNEG:
+				return ValueSignedness();
+			*/
+
+		case AST::UnaryOperator::UnaryOperand::ADDR:
+			return ValueReference(Util::NodeCast<DeclRefExpr>(op->Expression()), ctx);
+		case AST::UnaryOperator::UnaryOperand::PTRVAL:
+			//ValueIndirection();
+			break;
+
+			//case AST::UnaryOperator::UnaryOperand::BITNOT:
+		case AST::UnaryOperator::UnaryOperand::BOOLNOT:
+			return EvaluateInverse(ResolveExpression(op->Expression(), ctx));
+		}
+		CryImplExcept(); //TODO:
+	}
+	case AST::NodeID::COMPOUND_ASSIGN_OPERATOR_ID: {
+		Util::NodeCast<CompoundAssignOperator>(node);
+		break;
+	}
+
+	{
+		//
+		// Return routine result.
+		//
+	}
+
+	case AST::NodeID::CALL_EXPR_ID: {
+		auto op = Util::NodeCast<CallExpr>(node);
+		Context::Function funcCtx = CallExpression(op, ctx);
+		if (!funcCtx->HasReturnValue()) {
+			throw std::logic_error{ "function must return a value" }; //TODO:
+		}
+		return funcCtx->ReturnValue();
+	}
+
+	{
+		//
+		// Lookup symbol reference.
+		//
+	}
+
+	case AST::NodeID::DECL_REF_EXPR_ID: {
+		auto declRef = Util::NodeCast<DeclRefExpr>(node);
+		//return ctx->LookupIdentifier(declRef->Identifier());
+
+		const auto& value = ctx->ValueByIdentifier(declRef->Identifier());
+		return (*value.lock().get());
+	}
+
+	{
+		//
+		// Type casting.
+		//
+	}
+
+	case AST::NodeID::IMPLICIT_CONVERTION_EXPR_ID: {
+		auto convRef = Util::NodeCast<ImplicitConvertionExpr>(node);
+		CRY_UNUSED(convRef);
+		return Util::MakeInt(12); //TODO: for now
+	}
+
+	{
+		//
+		// Enclosed expression.
+		//
+	}
+
+	case AST::NodeID::PAREN_EXPR_ID: {
+		auto expr = Util::NodeCast<ParenExpr>(node);
+		assert(expr->HasExpression());
+		return ResolveExpression(expr->Expression(), ctx);
+	}
+
+	default:
+		break;
+	}
+
+	CryImplExcept(); //TODO
+}
+
+template<typename ContextType>
+Context::Function CallExpression(const std::shared_ptr<CallExpr>& callNode, ContextType& ctx)
+{
+	assert(callNode);
+	assert(callNode->ChildrenCount());
+	assert(callNode->FunctionReference()->IsResolved());
+	const std::string& functionIdentifier = callNode->FunctionReference()->Identifier();
+	Runnable function;
+
+	// Create a new function context. Depending on the parent context the new context
+	// is a direct hierarchical or a sub-hierarchical child.
+	Context::Function funcCtx = ctx->MakeContext<FunctionContext>(functionIdentifier);
+	assert(!funcCtx->HasLocalValues());
+
+	// The symbol is can be found in different places. The interpreter will locate
+	// the runnable object according to the following algorithm:
+	//   1.) Look for the symbol in the current program assuming it is a local object
+	//   2.) Request the symbol as an external routine (internal or external module)
+	//   3.) Throw an symbol not found exception halting from further execution
+	if (auto funcNode = ctx->FindContext<UnitContext>(Context::tag::UNIT)->LookupSymbol<FunctionDecl>(functionIdentifier)) {
+		function = funcNode;
+	}
+	else if (auto exfuncRef = GlobalExecutionState::FindExternalSymbol(functionIdentifier)) {
+		function = exfuncRef;
+	}
+	else {
+		CryImplExcept(); //TODO: symbol not found in internal or external module
+	}
+
+	// Check if call expression has arguments, if so assign paramters to the arguments
+	// and commit the arguments into the function context.
+	if (callNode->HasArguments() && function.HasArguments()) {
+		assert(callNode->ArgumentStatement()->ChildrenCount());
+		const auto argsDecls = callNode->ArgumentStatement()->Children();
+
+		// Sanity check, should have been done by semer
+		if (function.ArgumentSize() > argsDecls.size()) {
+			CryImplExcept(); //TODO: source.c:0:0: error: too many arguments to function 'funcNode'
+		}
+		else if (function.ArgumentSize() < argsDecls.size() && !function.Parameters().back().IsVariadic()) {
+			CryImplExcept(); //TODO: source.c:0:0: error: too few arguments to function 'funcNode'
+		}
+
+		// Assign function arguments to parameters
+		int i = 0;
+		auto itArgs = argsDecls.cbegin();
+		while (itArgs != argsDecls.cend()) {
+			if (function.Parameters().at(i).Empty()) {
+				CryImplExcept(); //TODO: source.c:0:0: error: parameter name omitted to function 'funcNode'
+			}
+			if (function.Parameters().at(i).IsVariadic()) {
+				int v_i = 0;
+				while (itArgs != argsDecls.cend()) {
+					auto value = ResolveExpression(itArgs->lock(), ctx);
+					std::string autoVA{ "__va_arg" + std::to_string(v_i++) + "__" };
+					funcCtx->PushVar(autoVA, Valuedef::Value{ value });
+					++itArgs;
 				}
-				else {
-					auto compoundNode = Util::NodeCast<AST::ASTNode>(continueNode);
-					return ExecuteStatement(compoundNode, ctx);
+				break;
+			}
+			else {
+				auto value = ResolveExpression(itArgs->lock(), ctx);
+				if (function.Parameters().at(i).DataType() != value.Type()) {
+					CryImplExcept(); //TODO: source.c:0:0: error: cannot convert argument of type 'X' to parameter type 'Y'
 				}
+				//TODO: check if param is pointer
+				funcCtx->PushVar(function.Parameters().at(i).Identifier(), Valuedef::Value{ value });
+				++itArgs;
+				++i;
 			}
 		}
-		// Handle alternative path, if defined.
-		else if (node->HasAltCompound()) {
-			auto continueNode = node->AltCompound();
+	}
+
+	// Call the routine with a new functional context. An new instance is created intentionally
+	// to restrict context scope, and to allow the compiler to RAII all resources. The context
+	// is returned as the result of the expression.
+	assert(function);
+	if (function.IsExternal()) {
+		ExternalRoutine::Invoke(function.Data<const ExternalMethod*>(), funcCtx);
+	}
+	else {
+		auto func = function.Data<std::shared_ptr<FunctionDecl>>();
+		InternalRoutine::Invoke(func, funcCtx);
+	}
+
+	return funcCtx;
+}
+
+// Run all nodes in the compound.
+template<typename Node>
+void ProcessCompound(const std::shared_ptr<Node>& node, Context::Compound& ctx)
+{
+	auto body = node->Children();
+	if (!body.size()) {
+		return; //TODO: Check if return type is void
+	}
+
+	// Process each child node.
+	for (const auto& childNode : body) {
+		auto child = childNode.lock();
+		auto returnType = ExecuteStatement(child, ctx);
+		switch (returnType)
+		{
+		case RETURN_RETURN:
+			goto done;
+		case RETURN_BREAK:
+			CryImplExcept(); //TODO: break statement not within loop or switch
+		}
+	}
+done: {}
+}
+
+// Call internal function.
+void Invoke(std::shared_ptr<FunctionDecl>& funcNode, Context::Function& ctx)
+{
+	assert(funcNode->ChildrenCount());
+	if (funcNode->HasParameters()) {
+		//TODO: Do something?
+	}
+
+	Context::Compound compCtx = ctx->MakeContext<CompoundContext>();
+	ctx->AttachCompound(compCtx);
+	ProcessCompound(const_cast<std::shared_ptr<CompoundStmt>&>(funcNode->FunctionCompound()), compCtx);
+	compCtx.reset();
+}
+
+// If all else fails, try the node as expression.
+void ProcessExpression(const std::shared_ptr<AST::ASTNode>& node, Context::Compound& ctx)
+{
+	// Only execute the expression and ignore the result.
+	ResolveExpression(node, ctx);
+}
+
+// Register the declaration in the current context scope.
+void ProcessDeclaration(std::shared_ptr<DeclStmt>& declNode, Context::Compound& ctx)
+{
+	for (const auto& child : declNode->Children()) {
+		auto node = Util::NodeCast<VarDecl>(child);
+		assert(node->HasReturnType());
+
+		auto value = Valuedef::Value{ node->ReturnType() };
+		if (node->HasExpression()) {
+			value = ResolveExpression(node->Expression(), ctx);
+		}
+
+		ctx->PushVar(node->Identifier(), value);
+	}
+}
+
+// Run the expression and evaluate return values as boolean.
+int ProcessCondition(std::shared_ptr<IfStmt>& node, Context::Compound& ctx)
+{
+	auto value = ResolveExpression(node->Expression(), ctx);
+	if (Util::EvaluateValueAsBoolean(value)) {
+		if (node->HasTruthCompound()) {
+			auto continueNode = node->TruthCompound();
 			if (Util::IsNodeCompound(continueNode)) {
 				auto compoundNode = Util::NodeCast<CompoundStmt>(continueNode);
 				ProcessCompound(compoundNode, ctx);
@@ -1584,104 +1347,190 @@ class ScopedRoutine
 				return ExecuteStatement(compoundNode, ctx);
 			}
 		}
+	}
+	// Handle alternative path, if defined.
+	else if (node->HasAltCompound()) {
+		auto continueNode = node->AltCompound();
+		if (Util::IsNodeCompound(continueNode)) {
+			auto compoundNode = Util::NodeCast<CompoundStmt>(continueNode);
+			ProcessCompound(compoundNode, ctx);
+		}
+		else {
+			auto compoundNode = Util::NodeCast<AST::ASTNode>(continueNode);
+			return ExecuteStatement(compoundNode, ctx);
+		}
+	}
 
+	return RETURN_NORMAL;
+}
+
+// Process the switch statement.
+int ProcessSwitch(std::shared_ptr<SwitchStmt>& node, Context::Compound& ctx)
+{
+	if (!node->HasBodyExpression()) { return RETURN_NORMAL; } //TODO: set warning about useless statement
+
+	// Body node must be compound in order to be executable.
+	if (node->BodyExpression()->Label() != AST::NodeID::COMPOUND_STMT_ID) {
+		//TODO: set warning about non-executable
 		return RETURN_NORMAL;
 	}
 
-	int ProcessSwitch(std::shared_ptr<SwitchStmt>& node, Context::Compound& ctx)
-	{
-		if (!node->HasBodyExpression()) { return RETURN_NORMAL; } //TODO: set warning about useless statement
+	auto value = ResolveExpression(node->Expression(), ctx);
+	auto compoundNode = Util::NodeCast<CompoundStmt>(node->BodyExpression());
 
-		// Body node must be compound in order to be executable.
-		if (node->BodyExpression()->Label() != AST::NodeID::COMPOUND_STMT_ID) {
-			//TODO: set warning about non-executable
-			return RETURN_NORMAL;
+	// Process compound within the switch statement instead of calling process compound
+	// since the switch body compound semantically differs from a generic compound block.
+	Context::Compound compCtx = ctx->MakeContext<CompoundContext>();
+	{
+		auto body = compoundNode->Children();
+		if (!body.size()) {
+			return RETURN_NORMAL; //TODO: set warning: empty statement
 		}
 
-		auto value = ResolveExpression(node->Expression(), ctx);
-		auto compoundNode = Util::NodeCast<CompoundStmt>(node->BodyExpression());
-
-		// Process compound within the switch statement instead of calling process compound
-		// since the switch body compound semantically differs from a generic compound block.
-		Context::Compound compCtx = ctx->MakeContext<CompoundContext>();
-		{
-			auto body = compoundNode->Children();
-			if (!body.size()) {
-				return RETURN_NORMAL; //TODO: set warning: empty statement
+		// Process each child node.
+		for (const auto& childNode : body) {
+			auto child = childNode.lock();
+			if (child->Label() != AST::NodeID::CASE_STMT_ID) {
+				continue; //TODO: set warning: statement will never be executed
 			}
-
-			// Process each child node.
-			for (const auto& childNode : body) {
-				auto child = childNode.lock();
-				if (child->Label() != AST::NodeID::CASE_STMT_ID) {
-					continue; //TODO: set warning: statement will never be executed
-				}
-				auto caseNode = Util::NodeCast<CaseStmt>(child);
-				if (!Util::IsNodeLiteral(caseNode->Identifier())) {
-					CryImplExcept(); //TODO: case label must be integer constant
-				}
-				auto literal = Util::NodeCast<Literal>(caseNode->Identifier());
-				const int caseLabelInt = Util::EvaluateValueAsInteger(literal->Value());
-				const int valueInt = Util::EvaluateValueAsInteger(value);
-				if (caseLabelInt == valueInt) {
-					return ExecuteStatement(caseNode->Expression(), compCtx);
-				}
+			auto caseNode = Util::NodeCast<CaseStmt>(child);
+			if (!Util::IsNodeLiteral(caseNode->Identifier())) {
+				CryImplExcept(); //TODO: case label must be integer constant
+			}
+			auto literal = Util::NodeCast<Literal>(caseNode->Identifier());
+			const int caseLabelInt = Util::EvaluateValueAsInteger(literal->Value());
+			const int valueInt = Util::EvaluateValueAsInteger(value);
+			if (caseLabelInt == valueInt) {
+				return ExecuteStatement(caseNode->Expression(), compCtx);
 			}
 		}
-
-		compCtx.reset();
-		return RETURN_NORMAL;
 	}
 
-	// Execute body statement as long as expression is true.
-	void ProcessWhileLoop(std::shared_ptr<WhileStmt>& node, Context::Compound& ctx)
+	compCtx.reset();
+	return RETURN_NORMAL;
+}
+
+// Execute body statement as long as expression is true.
+void ProcessWhileLoop(std::shared_ptr<WhileStmt>& node, Context::Compound& ctx)
+{
+	if (!node->HasBodyExpression()) { return; }
+	while (Util::EvaluateValueAsBoolean(ResolveExpression(node->Expression(), ctx))) {
+		ExecuteStatement(node->BodyExpression(), ctx);
+	}
+}
+
+// Execute body statement once and then as long as expression is true.
+void ProcessDoLoop(std::shared_ptr<DoStmt>& node, Context::Compound& ctx)
+{
+	if (!node->HasBodyExpression()) { return; }
+	do {
+		ExecuteStatement(node->BodyExpression(), ctx);
+	} while (Util::EvaluateValueAsBoolean(ResolveExpression(node->Expression(), ctx)));
+}
+
+// Loop over statement unil expression is false.
+void ProcessForLoop(std::shared_ptr<ForStmt>& node, Context::Compound& ctx)
+{
+	if (!node->HasBodyExpression()) { return; }
+	for (ExecuteStatement(node->Declaration(), ctx);
+		Util::EvaluateValueAsBoolean(ResolveExpression(node->Expression(), ctx));
+		ExecuteStatement(node->FinishStatement(), ctx)) {
+		ExecuteStatement(node->BodyExpression(), ctx);
+	}
+}
+
+// Return from function with either special value or none.
+void ProcessReturn(std::shared_ptr<ReturnStmt>& node, Context::Function& ctx)
+{
+	// Create explicit return type.
+	if (!node->HasExpression()) {
+		//TODO: Why not empty?
+		//ctx->CreateSpecialVar<RETURN_VALUE>(CoilCl::Util::MakeVoid());
+		return;
+	}
+
+	// Resolve return expression.
+	ctx->CreateSpecialVar<RETURN_VALUE>(ResolveExpression(node->Expression(), ctx));
+}
+
+// Create new compound context.
+void CreateCompound(const std::shared_ptr<AST::ASTNode>& node, Context::Compound& ctx)
+{
+	auto compNode = Util::NodeCast<CompoundStmt>(node);
+	Context::Compound compCtx = ctx->MakeContext<CompoundContext>();
+	ProcessCompound(compNode, compCtx);
+	compCtx.reset();
+}
+
+// Run the statement.
+int ExecuteStatement(const std::shared_ptr<AST::ASTNode>& childNode, Context::Compound& ctx)
+{
+	using namespace AST;
+
+	switch (childNode->Label())
 	{
-		if (!node->HasBodyExpression()) { return; }
-		while (Util::EvaluateValueAsBoolean(ResolveExpression(node->Expression(), ctx))) {
-			ExecuteStatement(node->BodyExpression(), ctx);
+	case NodeID::COMPOUND_STMT_ID: {
+		auto node = Util::NodeCast<CompoundStmt>(childNode);
+		CreateCompound(node, ctx);
+		break;
+	}
+	case NodeID::CALL_EXPR_ID: {
+		auto node = Util::NodeCast<CallExpr>(childNode);
+		CallExpression(node, ctx);
+		break;
+	}
+	case NodeID::DECL_STMT_ID: {
+		auto node = Util::NodeCast<DeclStmt>(childNode);
+		ProcessDeclaration(node, ctx);
+		break;
+	}
+	case NodeID::IF_STMT_ID: {
+		auto node = Util::NodeCast<IfStmt>(childNode);
+		if (ProcessCondition(node, ctx) == RETURN_RETURN) {
+			return RETURN_RETURN;
 		}
+		break;
 	}
-
-	// Execute body statement once and then as long as expression is true.
-	void ProcessDoLoop(std::shared_ptr<DoStmt>& node, Context::Compound& ctx)
-	{
-		if (!node->HasBodyExpression()) { return; }
-		do {
-			ExecuteStatement(node->BodyExpression(), ctx);
-		} while (Util::EvaluateValueAsBoolean(ResolveExpression(node->Expression(), ctx)));
-	}
-
-	// Loop over statement unil expression is false.
-	void ProcessForLoop(std::shared_ptr<ForStmt>& node, Context::Compound& ctx)
-	{
-		if (!node->HasBodyExpression()) { return; }
-		for (ExecuteStatement(node->Declaration(), ctx);
-			Util::EvaluateValueAsBoolean(ResolveExpression(node->Expression(), ctx));
-			ExecuteStatement(node->FinishStatement(), ctx)) {
-			ExecuteStatement(node->BodyExpression(), ctx);
+	case NodeID::SWITCH_STMT_ID: {
+		auto node = Util::NodeCast<SwitchStmt>(childNode);
+		if (ProcessSwitch(node, ctx) == RETURN_RETURN) {
+			return RETURN_RETURN;
 		}
+		break;
+	}
+	case NodeID::WHILE_STMT_ID: {
+		auto node = Util::NodeCast<WhileStmt>(childNode);
+		ProcessWhileLoop(node, ctx);
+		break;
+	}
+	case NodeID::DO_STMT_ID: {
+		auto node = Util::NodeCast<DoStmt>(childNode);
+		ProcessDoLoop(node, ctx);
+		break;
+	}
+	case NodeID::FOR_STMT_ID: {
+		auto node = Util::NodeCast<ForStmt>(childNode);
+		ProcessForLoop(node, ctx);
+		break;
+	}
+	case NodeID::BREAK_STMT_ID: {
+		return RETURN_BREAK;
+	}
+	case NodeID::RETURN_STMT_ID: {
+		auto node = Util::NodeCast<ReturnStmt>(childNode);
+		Context::Function funcCtx = ctx->FindContext<FunctionContext>(Context::tag::FUNCTION);
+		assert(funcCtx);
+		ProcessReturn(node, funcCtx);
+		return RETURN_RETURN;
+	}
+	default:
+		ProcessExpression(childNode, ctx);
 	}
 
-	// Return from function with either special value or none.
-	void ProcessReturn(std::shared_ptr<ReturnStmt>& node, Context::Function& ctx)
-	{
-		// Create explicit return type.
-		if (!node->HasExpression()) {
-			//TODO: Why not empty?
-			//ctx->CreateSpecialVar<RETURN_VALUE>(CoilCl::Util::MakeVoid());
-			return;
-		}
+	return RETURN_NORMAL;
+}
 
-		// Resolve return expression.
-		ctx->CreateSpecialVar<RETURN_VALUE>(ResolveExpression(node->Expression(), ctx));
-	}
-
-public:
-	inline void operator()(std::shared_ptr<FunctionDecl>& node, std::shared_ptr<FunctionContext>& ctx)
-	{
-		ProcessRoutine(node, ctx);
-	}
-};
+} // namespace InternalRoutine
 
 namespace
 {
@@ -1763,7 +1612,9 @@ Evaluator& Evaluator::CallRoutine(const std::string& symbol, const ArgumentList&
 		}
 		FormatStartupParameters({ argc, argv, envp }, ConvertToValueDef(std::move(args)), funcCtx);
 	}
-	ScopedRoutine{}(funcNode, funcCtx);
+
+	// Go run the startup routine.
+	InternalRoutine::Invoke(funcNode, funcCtx);
 
 	// If the function context contained a return value, set the return value as program exit
 	// code. When the program is finished, this global return value serves as the exit code.
