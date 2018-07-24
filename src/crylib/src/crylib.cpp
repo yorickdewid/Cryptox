@@ -40,6 +40,7 @@ public:
 void CryLib::LoadSymbolIndex(std::list<EVM::ExternalMethod>& list)
 {
 	list += IO::RegisterFunctions();
+	list += Lib::RegisterFunctions();
 
 	// FUTURE: Add new namespace units here.
 }

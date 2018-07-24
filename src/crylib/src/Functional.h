@@ -14,3 +14,4 @@
 #include <list>
 
 namespace IO { std::list<EVM::ExternalMethod> RegisterFunctions(); }
+namespace Lib { std::list<EVM::ExternalMethod> RegisterFunctions(); }

@@ -54,13 +54,6 @@ CRY_METHOD(scanf)
 	//SET_RETURN(result);
 }
 
-CRY_METHOD(system)
-{
-	/*GET_PARAMETER(0, std::string);
-	auto result = system(param0.c_str());
-	SET_RETURN(result);*/
-}
-
 } // namespace
 
 namespace IO
@@ -79,7 +72,6 @@ std::list<EVM::ExternalMethod> RegisterFunctions()
 		//ExternalMethod{ "remove", &cry_remove, /*PACKED_PARAM_DECL("q")*/ {} },
 		//ExternalMethod{ "printf", &cry_printf, /*PACKED_PARAM_DECL("sV")*/ {} },
 		//ExternalMethod{ "scanf", &cry_scanf, /*PACKED_PARAM_DECL("sV")*/ {} },
-		//ExternalMethod{ "system", &cry_system, /*PACKED_PARAM_DECL("s")*/ {} },
 	};
 }
 
