@@ -28,7 +28,7 @@ public:
 	}
 
 	// Load functions from this module.
-	void LoadSymbolIndex(std::list<EVM::ExternalMethod>& list)  override
+	void LoadSymbolIndex(std::list<EVM::ExternalMethod>&)  override
 	{
 		// list += IO::RegisterFunctions();
 	}

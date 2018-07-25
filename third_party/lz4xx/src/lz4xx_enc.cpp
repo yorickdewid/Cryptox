@@ -103,7 +103,7 @@ size_t LZ4Encoder::flush()
 	char *cBlock;
 	cBlock = (char *)malloc(LZ4_COMPRESSBOUND(rawBlockSize));
 
-	int cBlockSize = LZ4_compress_default(mBlock, cBlock, rawBlockSize, LZ4_COMPRESSBOUND(rawBlockSize));
+	int cBlockSize = LZ4_compress_default(mBlock, cBlock, (int)rawBlockSize, LZ4_COMPRESSBOUND(rawBlockSize));
 	if (cBlockSize <= 0) {
 		throw LZ4Exception{};
 	}

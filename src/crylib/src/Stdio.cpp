@@ -29,16 +29,19 @@ CRY_METHOD(putchar)
 
 CRY_METHOD(perror)
 {
+	ctx.GetParameter<std::string>("str");
 	//perror(str);
 }
 
 CRY_METHOD(remove)
 {
+	ctx.GetParameter<std::string>("str");
 	//remove(file);
 }
 
 CRY_METHOD(printf)
 {
+	ctx.GetParameter<std::string>("str");
 	/*GET_PARAMETER(0, std::string);
 	GET_VA_PARAMETER(0, int);
 
@@ -48,6 +51,7 @@ CRY_METHOD(printf)
 
 CRY_METHOD(scanf)
 {
+	ctx.GetParameter<std::string>("str");
 	//GET_PARAMETER(0, std::string);
 
 	//auto result = scanf(param0.c_str());

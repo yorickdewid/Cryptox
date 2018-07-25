@@ -95,7 +95,7 @@ void CryExe::OSAdapter::WriteRaw(const void *buffer, size_t size, size_t count)
 
 	size_t sz = std::fwrite(buffer, size, count, m_fpImage);
 	assert(sz == count); //TODO: write again
-	m_fpOffset += (size * count);
+	m_fpOffset += static_cast<OSFilePosition>(size * count);
 }
 
 CryExe::OSAdapter::~OSAdapter()

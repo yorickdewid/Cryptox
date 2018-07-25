@@ -63,7 +63,7 @@ void TypeFacade::Deserialize(int, TypeFacade& type, Cry::ByteArray& buffer)
 
 	Cry::ByteArray tempBuffer;
 	std::copy(buffer.cbegin() + buffer.Offset(), buffer.cbegin() + buffer.Offset() + typePackSize, std::back_inserter(tempBuffer));
-	buffer.SetOffset(typePackSize);
+	buffer.SetOffset(static_cast<int>(typePackSize));
 	Typedef::BaseType ptr = Util::MakeType(std::move(tempBuffer));
 
 	// Set type facade options

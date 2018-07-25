@@ -73,7 +73,7 @@ size_t LZ4Decoder::decode(size_t inlen)
 			break;
 		}
 		//int outBlockSize = LZ4_decompress_safe_continue(&mStreamDecode, cmpBuf, outBuf, inBlockSize, mBlockSize);
-		int outBlockSize = LZ4_decompress_safe(cmpBuf, outBuf, inBlockSize, mBlockSize);
+		int outBlockSize = LZ4_decompress_safe(cmpBuf, outBuf, inBlockSize, (int)mBlockSize);
 		mTotalWritten += mOut.write(outBuf, outBlockSize);
 		remain = inlen - outBlockSize;
 		if (remain < mBlockSize) {

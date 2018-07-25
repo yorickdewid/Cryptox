@@ -15,7 +15,7 @@ namespace
 
 CRY_METHOD(pause)
 {
-	// TODO...
+	CRY_UNUSED(ctx);
 
 	/*const auto& value0 = ctx->ValueByIdentifier("__arg0__").lock();
 	assert(value0);

@@ -134,8 +134,6 @@ int RunSourceFile(Env& env, const std::string& sourceFile, const std::vector<std
 		std::cerr << e.what() << std::endl;
 		return EXIT_BACKEND_FAILLURE;
 	}
-
-	return EXIT_SUCCESS;
 }
 
 //FUTURE: Implement
@@ -166,8 +164,6 @@ int RunMemoryString(Env& env, const std::string& content, const std::vector<std:
 		std::cerr << e.what() << std::endl;
 		return EXIT_BACKEND_FAILLURE;
 	}
-
-	return EXIT_SUCCESS;
 }
 
 //

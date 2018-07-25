@@ -228,7 +228,7 @@ BOOST_AUTO_TEST_CASE(BAOperators)
 		buffer.SerializeAs<Cry::Byte>('X');
 		buffer.StartOffset(1);
 
-		BOOST_REQUIRE_EQUAL(872, buffer.Deserialize<Cry::Word>());
+		BOOST_REQUIRE_EQUAL(872U, buffer.Deserialize<Cry::Word>());
 		BOOST_REQUIRE_EQUAL('X', buffer.Deserialize<Cry::Byte>());
 	}
 }
@@ -271,7 +271,7 @@ BOOST_AUTO_TEST_CASE(BACustomBuffer)
 
 	BOOST_REQUIRE_EQUAL(buffer.size(), 3);
 	BOOST_REQUIRE_EQUAL(0x1f, buffer.Deserialize<Cry::Byte>());
-	BOOST_REQUIRE_EQUAL((short)82761, buffer.Deserialize<Cry::Short>());
+	BOOST_REQUIRE_EQUAL(82761U, buffer.Deserialize<Cry::Short>());
 }
 
 BOOST_AUTO_TEST_SUITE_END()
