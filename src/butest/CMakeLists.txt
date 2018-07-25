@@ -21,8 +21,6 @@ include_directories(${CoilCEX_INCLUDE_DIRS})
 include_directories(${CoilCl_INCLUDE_DIRS})
 include_directories(${CryEVM_INCLUDE_DIRS})
 
-file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/test DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
-
 # Ignore security checks
 enable_unsecure_crt()
 
@@ -62,6 +60,9 @@ target_link_libraries(${PROJECT_NAME}
 	${Boost_UNIT_TEST_FRAMEWORK_LIBRARY}
 	${Boost_LIBRARIES}
 )
+
+# Depend on other standalone projects
+add_dependencies(${PROJECT_NAME} ModStubEx1 ModStubEx2)
 
 # Add test
 add_test(NAME ${PROJECT_NAME}

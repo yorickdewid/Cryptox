@@ -12,7 +12,7 @@
 #define CNOEXCEPT noexcept
 
 #ifndef CRY_DEBUG
-# if defined(DEBUG) || defined(_DEBUG)
+# if defined(DEBUG) || defined(_DEBUG) || !defined(NDEBUG)
 #  define CRY_DEBUG 1
 # endif
 #endif

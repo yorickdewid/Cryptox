@@ -16,12 +16,6 @@ namespace
 CRY_METHOD(pause)
 {
 	CRY_UNUSED(ctx);
-
-	/*const auto& value0 = ctx->ValueByIdentifier("__arg0__").lock();
-	assert(value0);
-	const auto param0 = value0->As<int>();
-
-	ctx->CreateSpecialVar<RETURN_VALUE>(Util::MakeInt(param0));*/
 }
 
 CRY_METHOD(blub)

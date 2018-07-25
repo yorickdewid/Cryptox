@@ -9,6 +9,7 @@
 #include "../../modstub/example/mod_example2/MockInterface.h"
 
 #include <Cry/Cry.h>
+#include <Cry/Config.h>
 #include <Cry/Loader.h>
 
 #include <boost/test/unit_test.hpp>
@@ -17,7 +18,7 @@ BOOST_AUTO_TEST_SUITE(CryLoader)
 
 BOOST_AUTO_TEST_CASE(ModLoadBasic)
 {
-	Cry::Module::Module<> mod = Cry::Module::LoadSingle("test\\mod_test1.dll", ANY_COMPONENT_ID);
+	Cry::Module::Module<> mod = Cry::Module::LoadSingle(DIST_BINARY_DIR "/mod_example1.dll", ANY_COMPONENT_ID);
 	mod.Load();
 	BOOST_REQUIRE_EQUAL("mod_example1", mod.Name());
 	BOOST_REQUIRE_EQUAL("Blub Corp.", mod.Author());
@@ -28,7 +29,7 @@ BOOST_AUTO_TEST_CASE(ModLoadBasic)
 BOOST_AUTO_TEST_CASE(ModLoadComponent)
 {
 	std::string testString = "somertesttextstring";
-	auto mockMods = Cry::Module::Load<MockInterface>("test");
+	auto mockMods = Cry::Module::Load<MockInterface>(DIST_BINARY_DIR);
 	Cry::Module::ForEach(mockMods, [&testString](Cry::Module::Module<MockInterface>& mockMod) {
 		mockMod->Transform(testString);
 	});

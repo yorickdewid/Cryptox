@@ -87,6 +87,7 @@ option(${${PROJECT_NAME}_ID}_RELEASE_CE "Build community release" OFF)
 option(${${PROJECT_NAME}_ID}_BUILD_BUTEST "Build Boost Unit Test" ON)
 option(${${PROJECT_NAME}_ID}_BUILD_LZ4XX "Build with LZ4" ON)
 option(${${PROJECT_NAME}_ID}_BUILD_MSGGEN "Build event message generator" ON)
+option(${${PROJECT_NAME}_ID}_BUILD_QUID "Build QUID identifier library" ON)
 option(${${PROJECT_NAME}_ID}_BUILD_WALL "Build with all warning options" OFF)
 set(${${PROJECT_NAME}_ID}_BRAND_NAME "Cryptox" CACHE STRING "Product name")
 set(${${PROJECT_NAME}_ID}_BRAND_NAME_FULL "Cryptox Cryptography Suite" CACHE STRING "Product full description name")
@@ -259,9 +260,12 @@ endif()
 # -------------------------------
 
 # Direct output to certain directories
-set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+SET(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_DEBUG "${CMAKE_BINARY_DIR}/lib/Debug")
+SET(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_RELEASE "${CMAKE_BINARY_DIR}/lib/Release")
+SET(CMAKE_LIBRARY_OUTPUT_DIRECTORY_DEBUG "${CMAKE_BINARY_DIR}/lib/Debug")
+SET(CMAKE_LIBRARY_OUTPUT_DIRECTORY_RELEASE "${CMAKE_BINARY_DIR}/lib/Release")
+SET(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG "${CMAKE_BINARY_DIR}/bin/Debug")
+SET(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CMAKE_BINARY_DIR}/bin/Release")
 
 # Top level source directories
 set(COMMON_DIR ${CMAKE_SOURCE_DIR}/common)
@@ -315,6 +319,10 @@ endif()
 
 if (${${PROJECT_NAME}_ID}_BUILD_MSGGEN)
 	add_subdirectory(third_party/msggen)
+endif()
+
+if (${${PROJECT_NAME}_ID}_BUILD_QUID)
+	add_subdirectory(third_party/QUID)
 endif()
 
 install(DIRECTORY DESTINATION "redist")

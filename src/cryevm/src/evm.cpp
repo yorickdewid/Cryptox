@@ -117,7 +117,7 @@ EVMAPI int ExecuteProgram(runtime_settings_t *runtime) noexcept
 	ProgramPtr program = ProgramPtr{ runtime->program.program_ptr };
 
 	// Load modules to import external functionality.
-	auto runtimeModules = Loader::Load<RuntimeInterface>(DIST_BINARY_DIR "\\Debug");
+	auto runtimeModules = Loader::Load<RuntimeInterface>(DIST_BINARY_DIR);
 	Loader::ForEachLoad(runtimeModules);
 
 	// Collect all external symbols.
