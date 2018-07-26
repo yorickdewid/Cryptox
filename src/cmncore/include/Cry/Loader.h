@@ -83,6 +83,9 @@ public:
 	}
 };
 
+namespace Detail
+{
+
 // Load the file as external module, and return if failed.
 template<typename ModuleClass = Cry::Module::Interface>
 Cry::Module::Module<ModuleClass> LoadAsModule(boost::filesystem::path file, Cry::Module::ComponentId componentId = ANY_COMPONENT_ID, std::string symbol = EXPORT_SYMBOL_STR)
@@ -126,6 +129,8 @@ Cry::Module::Module<ModuleClass> LoadAsModule(boost::filesystem::path file, Cry:
 	return moduleInterface;
 }
 
+} // namespace Detail
+
 // Load modules in the directory, skips every non compatible module.
 template<typename ModuleClass>
 std::vector<Module<ModuleClass>> Load(const std::string& name, ComponentId id)
@@ -139,7 +144,7 @@ std::vector<Module<ModuleClass>> Load(const std::string& name, ComponentId id)
 
 	for (boost::filesystem::directory_entry& dir : boost::filesystem::directory_iterator(path)) {
 		try {
-			resultList.emplace_back(LoadAsModule<ModuleClass>(dir, id));
+			resultList.emplace_back(Detail::LoadAsModule<ModuleClass>(dir, id));
 		}
 		catch (const Cry::Module::LoaderException&) {
 			continue;
@@ -152,7 +157,14 @@ std::vector<Module<ModuleClass>> Load(const std::string& name, ComponentId id)
 // Load external module, throws if module cannot be loaded.
 Cry::Module::Module<> LoadSingle(const std::string& name, Cry::Module::ComponentId id)
 {
-	return LoadAsModule(name, id);
+	return Detail::LoadAsModule(name, id);
+}
+
+// Load external module, throws if module cannot be loaded.
+template<typename ModuleClass>
+Cry::Module::Module<ModuleClass> LoadSingle(const std::string& name)
+{
+	return Detail::LoadAsModule<ModuleClass>(name, ModuleClass::GetComponentId());
 }
 
 // Load modules in the directory, skips every non compatible module.
@@ -186,7 +198,6 @@ void ForEachLoad(std::vector<Module<ModuleClass>>& mods)
 		mod.Load();
 	}
 }
-
 
 template<typename ModuleClass>
 void ForEachUnload(std::vector<Module<ModuleClass>>& mods)

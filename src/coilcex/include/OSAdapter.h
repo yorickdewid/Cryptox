@@ -98,8 +98,8 @@ using OSFilePositionSafe = OSFilePositionImpl<std::atomic_llong>;
 
 class COILCEXAPI OSAdapter
 {
-	std::FILE *m_fpImage = nullptr;
-	OSFilePosition m_fpOffset = 0;
+	std::FILE *m_fpImage{ nullptr };
+	OSFilePosition m_fpOffset{ 0 };
 
 public:
 	OSAdapter() = default;

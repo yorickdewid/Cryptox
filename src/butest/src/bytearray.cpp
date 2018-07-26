@@ -267,11 +267,11 @@ BOOST_AUTO_TEST_CASE(BACustomBuffer)
 
 	MyClassArray buffer;
 	buffer.SerializeAs<Cry::Byte>(0x1f);
-	buffer.SerializeAs<Cry::Short>(82761);
-
+	buffer.SerializeAs<Cry::Short>(65436);
+	
 	BOOST_REQUIRE_EQUAL(buffer.size(), 3);
 	BOOST_REQUIRE_EQUAL(0x1f, buffer.Deserialize<Cry::Byte>());
-	BOOST_REQUIRE_EQUAL(82761U, buffer.Deserialize<Cry::Short>());
+	BOOST_REQUIRE_EQUAL(65436, buffer.Deserialize<Cry::Short>());
 }
 
 BOOST_AUTO_TEST_SUITE_END()
