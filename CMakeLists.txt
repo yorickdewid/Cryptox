@@ -50,6 +50,9 @@ include(FindOS)
 include(FindGit)
 include(CheckCXXCompilerFlag)
 
+set(CMAKE_DISABLE_IN_SOURCE_BUILD ON)
+set(CMAKE_DISABLE_SOURCE_CHANGES  ON)
+
 # Force build type
 if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
 	set(CMAKE_BUILD_TYPE "Debug" CACHE STRING "Build type for Swift [Debug, RelWithDebInfo, Release, MinSizeRel]" FORCE)
@@ -308,11 +311,6 @@ add_subdirectory(src/quidex)
 #add_subdirectory(src/shellasset)
 #add_subdirectory(src/ui)
 
-if (${${PROJECT_NAME}_ID}_BUILD_BUTEST)
-	message(STATUS "Building with Boost Unit Test")
-	add_subdirectory(src/butest)
-endif()
-
 if (${${PROJECT_NAME}_ID}_BUILD_LZ4XX)
 	add_subdirectory(third_party/lz4xx)
 endif()
@@ -321,8 +319,14 @@ if (${${PROJECT_NAME}_ID}_BUILD_MSGGEN)
 	add_subdirectory(third_party/msggen)
 endif()
 
+
 if (${${PROJECT_NAME}_ID}_BUILD_QUID)
 	add_subdirectory(third_party/QUID)
+endif()
+
+if (${${PROJECT_NAME}_ID}_BUILD_BUTEST)
+	message(STATUS "Building with Boost Unit Test")
+	add_subdirectory(src/butest)
 endif()
 
 install(DIRECTORY DESTINATION "redist")

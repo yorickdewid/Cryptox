@@ -53,6 +53,7 @@ if (UNIX)
 endif()
 
 target_link_libraries(${PROJECT_NAME}
+	CommonValue
 	PfBase
 	CoilCEX
 	CoilCl

@@ -222,7 +222,7 @@ void BuiltinExpr::Deserialize(Serializable::Interface& pack)
 
 const std::string BuiltinExpr::NodeName() const
 {
-	return boost::str(boost::format("%1$s {%2$d} <line:%3$d,col:%4$d> '%5%'")
+	return boost::str(boost::format("%1$s {%2$d} <line:%3$d,col:%4$d>")
 		% RemoveClassFromName(typeid(BuiltinExpr).name())
 		% m_state.Alteration()
 		% line % col);

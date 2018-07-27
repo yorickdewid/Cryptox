@@ -93,6 +93,7 @@ private:
 	void BindPrototype();
 	void DeduceTypes();
 	void CheckDataType();
+	void IllFormedConstruction();
 	void FuncToSymbol(std::function<void(const std::string, const std::shared_ptr<CoilCl::AST::ASTNode>& node)>);
 
 	inline void ClearnInternalState()
