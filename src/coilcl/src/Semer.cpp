@@ -477,6 +477,22 @@ void CoilCl::Semer::DeduceTypes()
 		auto cast = Util::NodeCast<CastExpr>(itr.shared_ptr());
 		SetConversion(cast, cast->Expression());
 	});
+
+	// Convert record declaration into record type and set the type as return type.
+	AST::Compare::Equal<RecordDecl> eqRec;
+	MatchIf(m_ast.begin(), m_ast.end(), eqRec, [](AST::AST::iterator itr)
+	{
+		auto recordDecl = Util::NodeCast<RecordDecl>(itr.shared_ptr());
+		auto recordType = Util::MakeRecordType(recordDecl->Identifier(), recordDecl->Type() == RecordDecl::RecordType::STRUCT
+			? Typedef::RecordType::Specifier::STRUCT
+			: Typedef::RecordType::Specifier::UNION);
+
+		for (const auto& field : recordDecl->Fields()) {
+			recordType->AddField(field->Identifier(), std::make_shared<Typedef::BaseType2::element_type>(field->ReturnType()));
+		}
+
+		recordDecl->SetReturnType(Typedef::TypeFacade{ recordType });
+	});
 }
 
 // Check if all datatypes are convertible and inject type conversions in the tree

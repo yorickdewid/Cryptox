@@ -509,6 +509,11 @@ MemberExpr::MemberExpr(MemberType type, const std::string& name, std::shared_ptr
 	ASTNode::AppendChild(NODE_UPCAST(node));
 }
 
+std::shared_ptr<DeclRefExpr> MemberExpr::Record()
+{
+	return m_record;
+}
+
 void MemberExpr::Serialize(Serializable::Interface& pack)
 {
 	pack << nodeId;

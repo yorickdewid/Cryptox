@@ -174,11 +174,18 @@ std::vector<Module<ModuleClass>> Load(const std::string& name)
 	return Load<ModuleClass>(name, ModuleClass::GetComponentId());
 }
 
-// Load external module, throws if module cannot be loaded.
+// Load modules in the directory and all its subdirectories, skips every non compatible module.
 template<typename ModuleClass>
-Cry::Module::Module<ModuleClass> LoadSingle(const std::string& name)
+std::vector<Module<ModuleClass>> LoadRecursive(const std::string& name)
 {
-	return LoadAsModule<ModuleClass>(name, ModuleClass::GetComponentId());
+	return {};
+}
+
+// Load modules in the directory and all its subdirectories, skips every non compatible module.
+template<typename ModuleClass, typename... ArgsTy>
+std::vector<Module<ModuleClass>> LoadAny(ArgsTy&&... args)
+{
+	return {};
 }
 
 template<typename ModuleClass, typename Predicate>

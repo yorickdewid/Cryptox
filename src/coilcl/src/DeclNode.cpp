@@ -265,6 +265,11 @@ void RecordDecl::AddField(std::shared_ptr<FieldDecl>& node)
 	ASTNode::UpdateDelegate();
 }
 
+RecordDecl::RecordType RecordDecl::Type() const
+{
+	return m_type;
+}
+
 void RecordDecl::Serialize(Serializable::Interface& pack)
 {
 	pack << nodeId;

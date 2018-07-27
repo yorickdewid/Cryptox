@@ -56,3 +56,15 @@ void CoilCl::AST::ForwardItemTree::ForwardInternalTree(std::shared_ptr<ASTNode>&
 		}
 	}
 }
+
+std::shared_ptr<DeclRefExpr> Util::DeclarationReference(const std::shared_ptr<AST::ASTNode>& node)
+{
+	switch (node->Label()) {
+	case AST::NodeID::DECL_REF_EXPR_ID:
+		break;
+	case AST::NodeID::MEMBER_EXPR_ID:
+		return NodeCast<MemberExpr>(node)->Record();
+	}
+
+	return NodeCast<DeclRefExpr>(node);
+}

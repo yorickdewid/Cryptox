@@ -1215,11 +1215,16 @@ public:
 	RecordDecl(const std::string& name);
 	RecordDecl(RecordType type);
 
+	bool HasFields() const noexcept { return !m_fields.empty(); }
+	auto& Fields() const { return m_fields; }
+
 	bool IsAnonymous() const;
 
 	void SetName(const std::string& name);
 
 	void AddField(std::shared_ptr<FieldDecl>& node);
+
+	RecordType Type() const;
 
 	virtual void Serialize(Serializable::Interface& pack);
 	virtual void Deserialize(Serializable::Interface& pack);
@@ -1767,6 +1772,8 @@ public:
 	}
 
 	MemberExpr(MemberType type, const std::string& name, std::shared_ptr<DeclRefExpr>& node);
+
+	std::shared_ptr<DeclRefExpr> Record();
 
 	virtual void Serialize(Serializable::Interface& pack);
 	virtual void Deserialize(Serializable::Interface& pack);

@@ -801,14 +801,11 @@ void Evaluator::Unit(const TranslationUnitDecl& node)
 
 	assert(m_unitContext);
 	for (const auto& weaknode : node.Children()) {
-		if (auto ptr = weaknode.lock()) {
+		if (const auto ptr = weaknode.lock()) {
 			//TODO: switch can have more elements
 			switch (ptr->Label())
 			{
 			case NodeID::RECORD_DECL_ID: {
-				//TODO:
-				// - register record & calculate size
-				//m_unitContext->RegisterObject();
 				break;
 			}
 			case NodeID::TYPEDEF_DECL_ID: {

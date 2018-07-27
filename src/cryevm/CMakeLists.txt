@@ -21,7 +21,7 @@ enable_unsecure_crt()
 # External includes
 include_directories(${CoilCl_INCLUDE_DIRS})
 
-# TODO: Fix external references
+# TODO: Fix external references, need a facade?
 add_library(${PROJECT_NAME} SHARED
 	${${PROJECT_NAME}_src}
 	${${PROJECT_NAME}_h}
@@ -33,6 +33,8 @@ add_library(${PROJECT_NAME} SHARED
 	"../coilcl/src/DeclNode.cpp"
 	"../coilcl/src/LiteralNode.cpp"
 	"../coilcl/src/StmtNode.cpp"
+	"../coilcl/src/ExprNode.cpp"
+	"../coilcl/src/Converter.cpp"
 	"../coilcl/src/Valuedef.cpp"
 	"../coilcl/src/Typedef.cpp"
 	"../coilcl/src/TypeFacade.cpp"
