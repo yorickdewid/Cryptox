@@ -254,6 +254,52 @@ struct DeclarationRegistry
 		return std::get<OpaqueAddress>(val->second);
 	}
 
+	std::shared_ptr<Valuedef::Value> DeclarationReference(const std::shared_ptr<AST::ASTNode>& node)
+	{
+		std::shared_ptr<DeclRefExpr> declRef;
+
+		switch (node->Label()) {
+		case AST::NodeID::DECL_REF_EXPR_ID: {
+			declRef = Util::NodeCast<DeclRefExpr>(node);
+			return ValueByIdentifier(declRef->Identifier()).lock();
+		}
+		case AST::NodeID::MEMBER_EXPR_ID: {
+			const auto member = Util::NodeCast<MemberExpr>(node);
+			std::shared_ptr<Valuedef::Value> value = ValueByIdentifier(member->RecordRef()->Identifier()).lock();
+
+			// Create new record in value, or retrieve existing
+			if (!value->Empty()) {
+				Valuedef::RecordValue recVal = value->As<Valuedef::RecordValue>();
+				if (recVal.HasField(member->FieldName())) {
+					return recVal.GetField(member->FieldName());
+				}
+			}
+			else {
+				Typedef::RecordType *recType = ((Typedef::RecordType*)value->Type().operator->());
+				const auto fields = recType->Fields();
+				auto it = std::find_if(fields.cbegin(), fields.cend(), [&member](auto pair) {
+					return member->FieldName() == pair.first;
+				});
+				if (it == fields.cend()) {
+					CryImplExcept(); //TODO: 'recType->Name()' has no member named 'member->FieldName()'
+				}
+
+				auto memberValue = std::make_shared<Valuedef::Value>(*it->second.get());
+
+				Valuedef::RecordValue recVal{ recType->Name() };
+				recVal.EmplaceField(member->FieldName(), memberValue);
+				(*value) = (recType->TypeSpecifier() == Typedef::RecordType::Specifier::STRUCT)
+					? Util::MakeStruct(std::move(recVal))
+					: Util::MakeUnion(std::move(recVal));
+
+				return memberValue;
+			}
+		}
+		}
+
+		CryImplExcept(); //TODO
+	}
+
 	// Test if there are any declarations in the current context.
 	bool HasLocalValues() const noexcept
 	{
@@ -1000,9 +1046,9 @@ CoilCl::Valuedef::Value EvaluateInverse(const CoilCl::Valuedef::Value& value)
 
 //FUTURE: both operations can be improved.
 template<int Increment, typename OperandPred, typename ContextType>
-CoilCl::Valuedef::Value ValueAlteration(OperandPred predicate, AST::UnaryOperator::OperandSide side, std::shared_ptr<DeclRefExpr> declRef, ContextType& ctx)
+CoilCl::Valuedef::Value ValueAlteration(OperandPred predicate, AST::UnaryOperator::OperandSide side, std::shared_ptr<AST::ASTNode> node, ContextType& ctx)
 {
-	std::shared_ptr<CoilCl::Valuedef::Value> value = ctx->ValueByIdentifier(declRef->Identifier()).lock();
+	std::shared_ptr<CoilCl::Valuedef::Value> value = ctx->DeclarationReference(node);
 	int result = predicate(value->As<int>(), Increment); //TODO: not always an integer
 
 	// On postfix operand, copy the original first.
@@ -1018,8 +1064,9 @@ CoilCl::Valuedef::Value ValueAlteration(OperandPred predicate, AST::UnaryOperato
 }
 
 template<typename ContextType>
-CoilCl::Valuedef::Value ValueReference(std::shared_ptr<DeclRefExpr> declRef, ContextType& ctx)
+CoilCl::Valuedef::Value ValueReference(std::shared_ptr<AST::ASTNode> node, ContextType& ctx)
 {
+	const auto declRef = Util::NodeCast<DeclRefExpr>(node);
 	DeclarationRegistry::OpaqueAddress address = ctx->AddressByIdentifier(declRef->Identifier());
 	assert(!address.Expired());
 
@@ -1066,8 +1113,9 @@ CoilCl::Valuedef::Value ResolveExpression(std::shared_ptr<AST::ASTNode> node, Co
 			// The left hand side must be a lvalue and thus can be converted into an declaration
 			// reference. The declaration reference value is altered when the new value is assigned
 			// and as a consequence updates the declaration table entry.
-			auto declRef = Util::DeclarationReference(op->LHS());
-			const auto assignValue = ctx->ValueByIdentifier(declRef->Identifier()).lock();
+			const auto assignValue = ctx->DeclarationReference(op->LHS());
+
+			//const auto assignValue = ctx->ValueByIdentifier(declRef->Identifier()).lock();
 			(*assignValue) = ResolveExpression(op->RHS(), ctx);
 			return (*assignValue.get());
 		}
@@ -1091,9 +1139,9 @@ CoilCl::Valuedef::Value ResolveExpression(std::shared_ptr<AST::ASTNode> node, Co
 		switch (op->Operand())
 		{
 		case AST::UnaryOperator::UnaryOperand::INC:
-			return ValueAlteration<1>(std::plus<int>(), op->OperationSide(), Util::DeclarationReference(op->Expression()), ctx); //TODO: not always an integer
+			return ValueAlteration<1>(std::plus<int>(), op->OperationSide(), op->Expression(), ctx); //TODO: not always an integer
 		case AST::UnaryOperator::UnaryOperand::DEC:
-			return ValueAlteration<1>(std::minus<int>(), op->OperationSide(), Util::DeclarationReference(op->Expression()), ctx); //TODO: not always an integer
+			return ValueAlteration<1>(std::minus<int>(), op->OperationSide(), op->Expression(), ctx); //TODO: not always an integer
 
 			/*
 			case AST::UnaryOperator::UnaryOperand::INTPOS:
@@ -1103,7 +1151,7 @@ CoilCl::Valuedef::Value ResolveExpression(std::shared_ptr<AST::ASTNode> node, Co
 			*/
 
 		case AST::UnaryOperator::UnaryOperand::ADDR:
-			return ValueReference(Util::DeclarationReference(op->Expression()), ctx);
+			return ValueReference(op->Expression(), ctx);
 		case AST::UnaryOperator::UnaryOperand::PTRVAL:
 			//ValueIndirection();
 			break;
@@ -1141,11 +1189,8 @@ CoilCl::Valuedef::Value ResolveExpression(std::shared_ptr<AST::ASTNode> node, Co
 	}
 
 	case AST::NodeID::DECL_REF_EXPR_ID: {
-		auto declRef = Util::DeclarationReference(node);
-		//return ctx->LookupIdentifier(declRef->Identifier());
-
-		const auto& value = ctx->ValueByIdentifier(declRef->Identifier());
-		return (*value.lock().get());
+		const auto value = ctx->DeclarationReference(node);
+		return (*value.get());
 	}
 
 	{

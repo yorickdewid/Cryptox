@@ -70,25 +70,27 @@ public:
 		m_fields.emplace_back(std::forward<ArgsType>(args)...);
 	}
 
-	// Check if record has name
+	// Check if record has name.
 	bool HasRecordName() const noexcept { return !m_name.empty(); }
-	// Get record name
+	// Get record name.
 	std::string RecordName() const noexcept { return m_name; }
-	// Return number of fields
+	// Return number of fields.
 	size_t Size() const noexcept { return m_fields.size(); }
-	// Get the fieldname by index
+	// Get the fieldname by index.
 	const std::string FieldName(size_t idx) const { return m_fields.at(idx).first; }
-	// Get the value by index
+	// Get the value by index.
 	std::shared_ptr<Value> At(size_t idx) const { return m_fields.at(idx).second; }
-	// Get the value by index
+	// Get the value by index.
 	std::shared_ptr<Value> operator[](size_t idx) const { return m_fields.at(idx).second; }
 
-	// Check if field with name already exists in this record
+	// Check if field with name already exists in this record.
 	bool HasField(const std::string&) const;
+	// Get the value by field name.
+	std::shared_ptr<Value> GetField(const std::string&) const;
 
-	// Convert record value into data stream
+	// Convert record value into data stream.
 	static void Serialize(const RecordValue&, Cry::ByteArray&);
-	// Convert data stream into record value
+	// Convert data stream into record value.
 	static void Deserialize(RecordValue&, Cry::ByteArray&);
 
 	bool operator==(const RecordValue& other) const

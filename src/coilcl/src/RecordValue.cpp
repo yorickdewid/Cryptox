@@ -16,10 +16,18 @@ using namespace CoilCl::Valuedef;
 
 bool RecordValue::HasField(const std::string& name) const
 {
-	return std::any_of(m_fields.cbegin(), m_fields.cend(), [=](const decltype(m_fields)::value_type& pair)
+	return std::any_of(m_fields.cbegin(), m_fields.cend(), [=](const auto& pair)
 	{
 		return pair.first == name;
 	});
+}
+
+std::shared_ptr<Value> RecordValue::GetField(const std::string& name) const
+{
+	return std::find_if(m_fields.cbegin(), m_fields.cend(), [=](const auto& pair)
+	{
+		return pair.first == name;
+	})->second;
 }
 
 bool RecordValue::Compare(const RecordValue& other) const

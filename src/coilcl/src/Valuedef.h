@@ -156,9 +156,9 @@ protected:
 			return !operator==(other);
 		}
 
-		// Compare ValueSelect
+		// Assign ValueSelect
 		ValueSelect& operator=(const ValueSelect&);
-		// Compare ValueSelect
+		// Assign ValueSelect
 		ValueSelect& operator=(ValueSelect&&);
 
 		// Convert value into byte stream
