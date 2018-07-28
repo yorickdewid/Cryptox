@@ -63,7 +63,7 @@ std::shared_ptr<DeclRefExpr> Util::DeclarationReference(const std::shared_ptr<AS
 	case AST::NodeID::DECL_REF_EXPR_ID:
 		break;
 	case AST::NodeID::MEMBER_EXPR_ID:
-		return NodeCast<MemberExpr>(node)->Record();
+		return NodeCast<MemberExpr>(node)->RecordRef();
 	}
 
 	return NodeCast<DeclRefExpr>(node);

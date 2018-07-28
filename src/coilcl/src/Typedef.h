@@ -258,8 +258,10 @@ public:
 
 	inline size_t FieldSize() const noexcept { return m_fields.size(); }
 
+	inline std::vector<std::pair<std::string, BaseType2>> Fields() const noexcept { return m_fields; }
+
 	bool AllowCoalescence() const final { return false; }
-	// Return the record specifier
+	// Return the record specifier.
 	Specifier TypeSpecifier() const { return m_specifier; }
 
 	//TODO: quite the puzzle

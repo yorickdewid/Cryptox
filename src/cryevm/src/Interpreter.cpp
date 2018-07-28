@@ -1066,7 +1066,7 @@ CoilCl::Valuedef::Value ResolveExpression(std::shared_ptr<AST::ASTNode> node, Co
 			// The left hand side must be a lvalue and thus can be converted into an declaration
 			// reference. The declaration reference value is altered when the new value is assigned
 			// and as a consequence updates the declaration table entry.
-			auto declRef = Util::NodeCast<DeclRefExpr>(op->LHS());
+			auto declRef = Util::DeclarationReference(op->LHS());
 			const auto assignValue = ctx->ValueByIdentifier(declRef->Identifier()).lock();
 			(*assignValue) = ResolveExpression(op->RHS(), ctx);
 			return (*assignValue.get());
@@ -1091,9 +1091,9 @@ CoilCl::Valuedef::Value ResolveExpression(std::shared_ptr<AST::ASTNode> node, Co
 		switch (op->Operand())
 		{
 		case AST::UnaryOperator::UnaryOperand::INC:
-			return ValueAlteration<1>(std::plus<int>(), op->OperationSide(), Util::NodeCast<DeclRefExpr>(op->Expression()), ctx); //TODO: not always an integer
+			return ValueAlteration<1>(std::plus<int>(), op->OperationSide(), Util::DeclarationReference(op->Expression()), ctx); //TODO: not always an integer
 		case AST::UnaryOperator::UnaryOperand::DEC:
-			return ValueAlteration<1>(std::minus<int>(), op->OperationSide(), Util::NodeCast<DeclRefExpr>(op->Expression()), ctx); //TODO: not always an integer
+			return ValueAlteration<1>(std::minus<int>(), op->OperationSide(), Util::DeclarationReference(op->Expression()), ctx); //TODO: not always an integer
 
 			/*
 			case AST::UnaryOperator::UnaryOperand::INTPOS:
@@ -1103,7 +1103,7 @@ CoilCl::Valuedef::Value ResolveExpression(std::shared_ptr<AST::ASTNode> node, Co
 			*/
 
 		case AST::UnaryOperator::UnaryOperand::ADDR:
-			return ValueReference(Util::NodeCast<DeclRefExpr>(op->Expression()), ctx);
+			return ValueReference(Util::DeclarationReference(op->Expression()), ctx);
 		case AST::UnaryOperator::UnaryOperand::PTRVAL:
 			//ValueIndirection();
 			break;
@@ -1141,7 +1141,7 @@ CoilCl::Valuedef::Value ResolveExpression(std::shared_ptr<AST::ASTNode> node, Co
 	}
 
 	case AST::NodeID::DECL_REF_EXPR_ID: {
-		auto declRef = Util::NodeCast<DeclRefExpr>(node);
+		auto declRef = Util::DeclarationReference(node);
 		//return ctx->LookupIdentifier(declRef->Identifier());
 
 		const auto& value = ctx->ValueByIdentifier(declRef->Identifier());
