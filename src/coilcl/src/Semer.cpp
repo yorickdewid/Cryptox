@@ -480,7 +480,7 @@ void CoilCl::Semer::DeduceTypes()
 
 	// Convert record declaration into record type and set the type as return type.
 	AST::Compare::Equal<RecordDecl> eqRec;
-	MatchIf(m_ast.begin(), m_ast.end(), eqRec, [](AST::AST::iterator itr)
+	MatchIf(m_ast.begin(), m_ast.end(), eqRec, [this](AST::AST::iterator itr)
 	{
 		auto recordDecl = Util::NodeCast<RecordDecl>(itr.shared_ptr());
 		auto recordType = Util::MakeRecordType(recordDecl->Identifier(), recordDecl->Type() == RecordDecl::RecordType::STRUCT
@@ -491,7 +491,25 @@ void CoilCl::Semer::DeduceTypes()
 			recordType->AddField(field->Identifier(), std::make_shared<Typedef::BaseType2::element_type>(field->ReturnType()));
 		}
 
+		// Set the return type on the declaration
 		recordDecl->SetReturnType(Typedef::TypeFacade{ recordType });
+
+		//TODO: does not continue loop
+		// Set return type on every declaration using the record declaration.
+		AST::Compare::Equal<VarDecl> eqVal;
+		MatchIf(m_ast.begin(), m_ast.end(), eqVal, [&recordDecl, &recordType](AST::AST::iterator rec_itr)
+		{
+			auto retType = Util::NodeCast<Returnable>(rec_itr.shared_ptr());
+
+			if (!retType->HasReturnType()) { return; }
+
+			//TODO: dynamic_cast should not be the test to see if this in a record type.
+			if (auto recType = dynamic_cast<Typedef::RecordType*>(retType->ReturnType().operator->())) {
+				if (!recType->IsAnonymous() && recType->Name() == recordType->Name()) {
+					retType->SetReturnType(recordDecl->ReturnType());
+				}
+			}
+		});
 	});
 }
 

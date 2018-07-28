@@ -256,6 +256,10 @@ public:
 		m_fields.push_back({ field, type });
 	}
 
+	inline bool IsAnonymous() const noexcept { return m_name.empty(); }
+
+	inline std::string Name() const noexcept { return m_name; }
+
 	inline size_t FieldSize() const noexcept { return m_fields.size(); }
 
 	inline std::vector<std::pair<std::string, BaseType2>> Fields() const noexcept { return m_fields; }

@@ -47,14 +47,14 @@ public:
 	inline void SetArraySize(size_t element) { m_arrayElement = element; }
 	inline size_t Size() const { return m_type->UnboxedSize(); }
 
-	// Concat type base name and pointer counter for convenience
+	// Concat type base name and pointer counter for convenience.
 	std::string TypeName() const
 	{
 		if (!HasValue()) { return {}; }
 		return m_type->TypeName() + PointerName();
 	}
 
-	// Access native type base
+	// Access native type base.
 	Typedef::TypedefBase *operator->() const
 	{
 		if (!HasValue()) { return nullptr; }

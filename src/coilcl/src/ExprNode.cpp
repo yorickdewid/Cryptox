@@ -509,20 +509,10 @@ MemberExpr::MemberExpr(MemberType type, const std::string& name, std::shared_ptr
 	ASTNode::AppendChild(NODE_UPCAST(node));
 }
 
-//std::shared_ptr<DeclRefExpr> MemberExpr::Field()
-//{
-//	if (!m_record->HasReturnType()) { return nullptr; }
-//	const Typedef::TypeFacade& rec = m_record->ReturnType();
-//
-//	Typedef::RecordType *s = (*rec.operator->);
-//
-//	auto it = std::find_if(s->Fields().cbegin(), s->Fields().cend(), [this](auto pair) {
-//		return this->m_name == pair.fist;
-//	});
-//	if (it == s->Fields().cend()) { return nullptr; }
-//
-//	return it->second->DataType();
-//}
+std::string MemberExpr::FieldName()
+{
+	return m_name;
+}
 
 std::shared_ptr<DeclRefExpr> MemberExpr::RecordRef()
 {

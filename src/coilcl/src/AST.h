@@ -371,8 +371,6 @@ auto NodeCast(const std::weak_ptr<AST::ASTNode>& node)
 	return NodeCast<CastNode>(node.lock());
 }
 
-std::shared_ptr<DeclRefExpr> DeclarationReference(const std::shared_ptr<AST::ASTNode>& node);
-
 } // namespace Util
 } // namespace CoilCl
 

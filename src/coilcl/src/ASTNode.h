@@ -1773,7 +1773,8 @@ public:
 
 	MemberExpr(MemberType type, const std::string& name, std::shared_ptr<DeclRefExpr>& node);
 
-	//std::shared_ptr<DeclRefExpr> Field();
+	std::string FieldName();
+
 	std::shared_ptr<DeclRefExpr> RecordRef();
 
 	virtual void Serialize(Serializable::Interface& pack);

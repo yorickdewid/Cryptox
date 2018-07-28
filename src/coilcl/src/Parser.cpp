@@ -448,7 +448,7 @@ bool Parser::StructOrUnionSpecifier()
 			for (;;) {
 				Declarator();
 
-				auto& decl = m_identifierStack.top();
+				const auto decl = m_identifierStack.top();
 				m_identifierStack.pop();
 				auto field = CoilCl::AST::MakeASTNode<FieldDecl>(decl, m_typeStack.top());
 				field->SetLocation(CURRENT_LOCATION());
