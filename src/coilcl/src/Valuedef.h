@@ -79,6 +79,7 @@ class Value //TODO: mark each value with an unique id
 	friend struct Util::ValueFactory;
 
 public:
+	//TODO: move into ValueSelect
 	using ValueVariantSingle = boost::variant<int, char, float, double, bool>; //TODO: rename
 	using ValueVariantMulti = boost::variant<std::vector<int> //TODO: rename
 		, std::vector<char>
@@ -87,7 +88,7 @@ public:
 		, std::vector<bool>>;
 
 	//
-	// Local exceptions
+	// Local exceptions.
 	//
 
 	struct InvalidTypeCastException : public std::runtime_error
@@ -133,7 +134,7 @@ protected:
 		{
 		}
 
-		// Check if all of the values are empty
+		// Check if all of the values are empty.
 		bool Empty() const noexcept
 		{
 			return !singleValue
@@ -142,7 +143,7 @@ protected:
 				&& !referenceValue;
 		}
 
-		// Comparison equal operator
+		// Comparison equal operator.
 		bool operator==(const ValueSelect& other) const
 		{
 			return singleValue == other.singleValue
@@ -150,35 +151,37 @@ protected:
 				&& recordValue == other.recordValue
 				&& referenceValue == other.referenceValue;
 		}
-		// Comparison not equal operator
+		// Comparison not equal operator.
 		bool operator!=(const ValueSelect& other) const
 		{
 			return !operator==(other);
 		}
 
-		// Assign ValueSelect
+		// Assign ValueSelect.
 		ValueSelect& operator=(const ValueSelect&);
-		// Assign ValueSelect
+		// Assign ValueSelect.
 		ValueSelect& operator=(ValueSelect&&);
 
-		// Convert value into byte stream
+		// Convert value into byte stream.
 		static void Pack(const ValueSelect&, Cry::ByteArray&);
-		// Convert byte stream into value
+		// Convert byte stream into value.
 		static void Unpack(ValueSelect&, Cry::ByteArray&);
 
-		// Return value as string
+		// Return value as string.
 		std::string ToString() const;
 
-		// Check if an value was set
+		// Check if an value was set.
 		operator bool() const { return !Empty(); }
 
-		// Clear any values
+		// Clear any values.
 		void Clear();
 
-		boost::optional<ValueVariantSingle> singleValue;
-		boost::optional<ValueVariantMulti> multiValue;
-		boost::optional<RecordValue> recordValue;
-		std::shared_ptr<Value> referenceValue;
+		boost::optional<ValueVariantSingle> singleValue; //TODO: rename singleNativeValue
+		boost::optional<ValueVariantMulti> multiValue; //TODO: rename multiNativeValue
+		boost::optional<RecordValue> recordValue; //TODO: rename singleRecordValue
+		//boost::optional<std::vector<RecordValue>> multiRecordValue;
+		std::shared_ptr<Value> referenceValue; //TODO: rename singleReferenceValue
+		//std::shared_ptr<std::vector<Value>> multiReferenceValue;
 	} m_value;
 
 private:

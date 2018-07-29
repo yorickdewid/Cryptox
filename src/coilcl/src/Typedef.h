@@ -33,7 +33,7 @@ using BaseType2 = std::shared_ptr<TypeFacade>;
 class TypedefBase
 {
 public:
-	// Envelope helper to identify type
+	// Envelope helper to identify type.
 	enum class TypeVariation : uint8_t
 	{
 		INVAL = 0,
@@ -45,7 +45,7 @@ public:
 	};
 
 public:
-	// Storage class specifier
+	// Storage class specifier.
 	enum class StorageClassSpecifier
 	{
 		// TODO: rename to use _T

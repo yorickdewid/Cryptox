@@ -19,18 +19,18 @@ namespace CoilCl
 namespace Valuedef
 {
 
-// Value declaration without initialization
+// Value declaration without initialization.
 Value::Value(Typedef::TypeFacade typeBase)
 	: m_internalType{ typeBase }
 {
 }
-// Value declaration and initialization
+// Value declaration and initialization.
 Value::Value(Typedef::TypeFacade typeBase, ValueVariantSingle&& value)
 	: m_internalType{ typeBase }
 	, m_value{ ValueSelect{ std::move(value) } }
 {
 }
-// Value declaration and initialization
+// Value declaration and initialization.
 Value::Value(Typedef::TypeFacade typeBase, ValueVariantMulti&& value)
 	: m_internalType{ typeBase }
 	, m_value{ ValueSelect{ std::move(value) } }
@@ -71,6 +71,7 @@ void Value::ValueSelect::Clear()
 	assert(Empty());
 }
 
+// Clear current value and copy value.
 Value::ValueSelect& Value::ValueSelect::operator=(const ValueSelect& other)
 {
 	Clear();
@@ -90,6 +91,7 @@ Value::ValueSelect& Value::ValueSelect::operator=(const ValueSelect& other)
 	return (*this);
 }
 
+// Clear current value and copy value, then clear other value.
 Value::ValueSelect& Value::ValueSelect::operator=(ValueSelect&& other)
 {
 	Clear();

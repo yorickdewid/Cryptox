@@ -1126,16 +1126,26 @@ CoilCl::Valuedef::Value ResolveExpression(std::shared_ptr<AST::ASTNode> node, Co
 		}
 
 	case AST::NodeID::CHARACTER_LITERAL_ID: {
-		return std::dynamic_pointer_cast<CharacterLiteral>(node)->Value();
+		return Util::NodeCast<CharacterLiteral>(node)->Value();
 	}
 	case AST::NodeID::STRING_LITERAL_ID: {
-		return std::dynamic_pointer_cast<StringLiteral>(node)->Value();
+		return Util::NodeCast<StringLiteral>(node)->Value();
 	}
 	case AST::NodeID::INTEGER_LITERAL_ID: {
-		return std::dynamic_pointer_cast<IntegerLiteral>(node)->Value();
+		return Util::NodeCast<IntegerLiteral>(node)->Value();
 	}
 	case AST::NodeID::FLOAT_LITERAL_ID: {
-		return std::dynamic_pointer_cast<FloatingLiteral>(node)->Value();
+		return Util::NodeCast<FloatingLiteral>(node)->Value();
+	}
+	case AST::NodeID::INIT_LIST_EXPR_ID: {
+		std::vector<int> dummyArray; //TODO: only only integer
+		const auto list = Util::NodeCast<InitListExpr>(node)->List();
+		std::transform(list.cbegin(), list.cend(), std::back_inserter(dummyArray), [&ctx](const std::shared_ptr<AST::ASTNode>& value) -> int
+		{
+			return ResolveExpression(value, ctx).As<int>();
+		});
+
+		return Util::MakeIntArray(dummyArray);
 	}
 
 	{
