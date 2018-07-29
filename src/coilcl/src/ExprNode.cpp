@@ -382,6 +382,10 @@ const std::string ParenExpr::NodeName() const
 	return _node;
 }
 
+std::vector<std::shared_ptr<AST::ASTNode>> InitListExpr::List() const noexcept
+{
+	return m_children;
+}
 
 void InitListExpr::AddListItem(const std::shared_ptr<ASTNode>& node)
 {

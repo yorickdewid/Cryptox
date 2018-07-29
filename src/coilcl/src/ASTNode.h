@@ -1687,6 +1687,8 @@ public:
 
 	InitListExpr() = default;
 
+	std::vector<std::shared_ptr<ASTNode>> List() const noexcept;
+
 	void AddListItem(const std::shared_ptr<ASTNode>& node);
 
 	virtual void Serialize(Serializable::Interface& pack);

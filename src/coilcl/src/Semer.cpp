@@ -222,10 +222,19 @@ CoilCl::Semer& CoilCl::Semer::StaticResolve()
 // implicit casting and identifier resolving.
 CoilCl::Semer& CoilCl::Semer::PreliminaryAssert()
 {
+	//
+	// Annotate tree.
+	//
+
 	NamedDeclaration();
 	ResolveIdentifier();
 	BindPrototype();
 	DeduceTypes();
+
+	//
+	// Verify tree.
+	//
+
 	CheckDataType();
 	IllFormedConstruction();
 
@@ -401,6 +410,30 @@ void CoilCl::Semer::DeduceTypes()
 		assert(call->HasReturnType());
 	});
 
+	// Set return type on list initializers.
+	AST::Compare::Equal<InitListExpr> eqList;
+	MatchIf(m_ast.begin(), m_ast.end(), eqList, [](AST::AST::iterator itr)
+	{
+		auto list = Util::NodeCast<InitListExpr>(itr.shared_ptr());
+		Typedef::TypeFacade listType;
+
+		// Set list type based on first item type.
+		if (!list->List().empty()) {
+			const auto firstItemNode = list->List()[0];
+			listType = Util::NodeCast<Returnable>(firstItemNode)->ReturnType();
+			listType.SetPointer(listType.PointerCount() + 1);
+		}
+		// Set list type based on parent type.
+		else {
+			if (const auto parent = Util::NodeCast<Returnable>(list->Parent())) {
+				listType = parent->ReturnType();
+			}
+		}
+
+		list->SetReturnType(listType);
+		assert(list->HasReturnType());
+	});
+
 	// Set return type on enum declaration variable.
 	AST::Compare::Derived<EnumConstantDecl> enumOp;
 	MatchIf(m_ast.begin(), m_ast.end(), enumOp, [](AST::AST::iterator itr)
@@ -567,6 +600,22 @@ void CoilCl::Semer::CheckDataType()
 		}
 		else if (func->Signature().size() < arguments.size() && canHaveTooMany) {
 			throw SemanticException{ "too many arguments to function call, expected 0, have 0", 0, 0 };
+		}
+	});
+
+	//FUTURE: Check if list item can be converted to item type.
+	// Test if all the list items have the same datatype.
+	AST::Compare::Equal<InitListExpr> eqList;
+	MatchIf(m_ast.begin(), m_ast.end(), eqList, [](AST::AST::iterator itr)
+	{
+		auto list = Util::NodeCast<InitListExpr>(itr.shared_ptr());
+		if (list->List().empty()) { return; }
+
+		Typedef::TypeFacade itemType = Util::NodeCast<Returnable>(list->List()[0])->ReturnType();
+		for (const auto& item : list->List()) {
+			if (Util::NodeCast<Returnable>(item)->ReturnType() != itemType) {
+				throw SemanticException{ "conflicting types for 'x'", 0, 0 };
+			}
 		}
 	});
 
