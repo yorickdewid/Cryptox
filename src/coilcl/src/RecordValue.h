@@ -54,7 +54,7 @@ public:
 	{
 	}
 
-	// Add field to record
+	// Add field to record.
 	void AddField(std::pair<std::string, std::shared_ptr<Value>>&& val)
 	{
 		if (HasField(val.first)) {
@@ -63,7 +63,7 @@ public:
 		m_fields.push_back(std::move(val));
 	}
 
-	// Add field to record directly
+	// Add field to record directly.
 	template<typename... ArgsType>
 	void EmplaceField(ArgsType&&... args)
 	{
@@ -74,6 +74,8 @@ public:
 	bool HasRecordName() const noexcept { return !m_name.empty(); }
 	// Get record name.
 	std::string RecordName() const noexcept { return m_name; }
+	// Set record name.
+	void SetRecordName(const std::string& name) noexcept { m_name = name; }
 	// Return number of fields.
 	size_t Size() const noexcept { return m_fields.size(); }
 	// Get the fieldname by index.

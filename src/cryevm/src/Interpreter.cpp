@@ -86,6 +86,72 @@ class UnitContext;
 class CompoundContext;
 class FunctionContext;
 
+// Access record as a single entity value. If the record value is not initialized, create a new record value and
+// assign it to the value. If the member values does not exist in the record value, create a new member value, add
+// it to the record value and return the member value as writable value. If the member value already exist in the
+// record value, return the value immediately.
+class RecordProxy
+{
+	// Crate new record field value from record type.
+	static std::shared_ptr<Valuedef::Value> MemberFromType(const std::shared_ptr<Valuedef::Value>& recordValue, Valuedef::RecordValue& record, const std::string& name)
+	{
+		Typedef::RecordType *recType = ((Typedef::RecordType*)recordValue->Type().operator->());
+		const auto fields = recType->Fields();
+		auto it = std::find_if(fields.cbegin(), fields.cend(), [=](auto pair) {
+			return name == pair.first;
+		});
+		if (it == fields.cend()) {
+			CryImplExcept(); //TODO: 'recType->Name()' has no member named 'member->FieldName()'
+		}
+
+		// Create new value from type definition.
+		return std::make_shared<Valuedef::Value>(*it->second.get());
+	}
+
+	// Create a new record value and assign it to the passed value. This initializes the value as a record. If the 
+	// record type was setup with a name, copy the name to the record value.
+	static void AssignNewRecord(const std::shared_ptr<Valuedef::Value>& recordValue, Valuedef::RecordValue&& record)
+	{
+		Typedef::RecordType *recType = ((Typedef::RecordType*)recordValue->Type().operator->());
+
+		// Set record name if known.
+		if (!recType->IsAnonymous()) {
+			if (!record.HasRecordName()) {
+				record.SetRecordName(recType->Name());
+			}
+		}
+
+		// Assign record value to passed record.
+		(*recordValue) = (recType->TypeSpecifier() == Typedef::RecordType::Specifier::STRUCT)
+			? Util::MakeStruct(std::move(record))
+			: Util::MakeUnion(std::move(record));
+	}
+
+public:
+	static std::shared_ptr<Valuedef::Value> MemberValue(std::shared_ptr<Valuedef::Value>& recordValue, const std::string& name)
+	{
+		// If value is not set, create a new record value.
+		if (!recordValue->Empty()) {
+			Valuedef::RecordValue recVal = recordValue->As<Valuedef::RecordValue>();
+			if (recVal.HasField(name)) {
+				return recVal.GetField(name);
+			}
+			else {
+				auto memberValue = MemberFromType(recordValue, recVal, name);
+				recVal.AddField({ name, memberValue });
+				return memberValue;
+			}
+		}
+		else {
+			Valuedef::RecordValue recVal;
+			auto memberValue = MemberFromType(recordValue, recVal, name);
+			recVal.AddField({ name, memberValue });
+			AssignNewRecord(recordValue, std::move(recVal));
+			return memberValue;
+		}
+	}
+};
+
 namespace Context
 {
 
@@ -266,34 +332,7 @@ struct DeclarationRegistry
 		case AST::NodeID::MEMBER_EXPR_ID: {
 			const auto member = Util::NodeCast<MemberExpr>(node);
 			std::shared_ptr<Valuedef::Value> value = ValueByIdentifier(member->RecordRef()->Identifier()).lock();
-
-			// Create new record in value, or retrieve existing
-			if (!value->Empty()) {
-				Valuedef::RecordValue recVal = value->As<Valuedef::RecordValue>();
-				if (recVal.HasField(member->FieldName())) {
-					return recVal.GetField(member->FieldName());
-				}
-			}
-			else {
-				Typedef::RecordType *recType = ((Typedef::RecordType*)value->Type().operator->());
-				const auto fields = recType->Fields();
-				auto it = std::find_if(fields.cbegin(), fields.cend(), [&member](auto pair) {
-					return member->FieldName() == pair.first;
-				});
-				if (it == fields.cend()) {
-					CryImplExcept(); //TODO: 'recType->Name()' has no member named 'member->FieldName()'
-				}
-
-				auto memberValue = std::make_shared<Valuedef::Value>(*it->second.get());
-
-				Valuedef::RecordValue recVal{ recType->Name() };
-				recVal.EmplaceField(member->FieldName(), memberValue);
-				(*value) = (recType->TypeSpecifier() == Typedef::RecordType::Specifier::STRUCT)
-					? Util::MakeStruct(std::move(recVal))
-					: Util::MakeUnion(std::move(recVal));
-
-				return memberValue;
-			}
+			return RecordProxy::MemberValue(value, member->FieldName());
 		}
 		}
 
