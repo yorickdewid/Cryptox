@@ -442,4 +442,31 @@ BOOST_AUTO_TEST_CASE(ClSysKNR)
 	BOOST_REQUIRE_EQUAL(compiler.ExecutionResult(), 15);
 }
 
+BOOST_AUTO_TEST_CASE(ClSysRecord)
+{
+	const std::string source = ""
+		"struct pair\n"
+		"{\n"
+		"	int i;\n"
+		"	int j;\n"
+		"};\n"
+		"\n"
+		"int main() {\n"
+		"	struct pair my_struct;\n"
+		"	my_struct.i = 1;\n"
+		"	my_struct.j = 19;\n"
+		"	my_struct.i = 9713;\n"
+		"	my_struct.j = 413;\n"
+		"	return my_struct.i + my_struct.j;\n"
+		"}";
+
+	CompilerHelper compiler{ source };
+	compiler.RunCompiler();
+	BOOST_REQUIRE(!compiler.IsProgramEmpty());
+
+	compiler.RunVirtualMachine();
+	BOOST_REQUIRE_EQUAL(compiler.VMResult(), 0);
+	BOOST_REQUIRE_EQUAL(compiler.ExecutionResult(), 10126);
+}
+
 BOOST_AUTO_TEST_SUITE_END()

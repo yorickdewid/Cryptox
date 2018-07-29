@@ -93,7 +93,7 @@ class FunctionContext;
 class RecordProxy
 {
 	// Crate new record field value from record type.
-	static std::shared_ptr<Valuedef::Value> MemberFromType(const std::shared_ptr<Valuedef::Value>& recordValue, Valuedef::RecordValue& record, const std::string& name)
+	static std::shared_ptr<Valuedef::Value> MemberFromType(const std::shared_ptr<Valuedef::Value>& recordValue, const std::string& name)
 	{
 		Typedef::RecordType *recType = ((Typedef::RecordType*)recordValue->Type().operator->());
 		const auto fields = recType->Fields();
@@ -137,14 +137,15 @@ public:
 				return recVal.GetField(name);
 			}
 			else {
-				auto memberValue = MemberFromType(recordValue, recVal, name);
+				auto memberValue = MemberFromType(recordValue, name);
 				recVal.AddField({ name, memberValue });
+				AssignNewRecord(recordValue, std::move(recVal));
 				return memberValue;
 			}
 		}
 		else {
 			Valuedef::RecordValue recVal;
-			auto memberValue = MemberFromType(recordValue, recVal, name);
+			auto memberValue = MemberFromType(recordValue, name);
 			recVal.AddField({ name, memberValue });
 			AssignNewRecord(recordValue, std::move(recVal));
 			return memberValue;
@@ -1227,6 +1228,7 @@ CoilCl::Valuedef::Value ResolveExpression(std::shared_ptr<AST::ASTNode> node, Co
 		//
 	}
 
+	case AST::NodeID::MEMBER_EXPR_ID:
 	case AST::NodeID::DECL_REF_EXPR_ID: {
 		const auto value = ctx->DeclarationReference(node);
 		return (*value.get());
