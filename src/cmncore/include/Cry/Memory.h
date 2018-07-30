@@ -18,15 +18,15 @@ namespace Cry
 {
 
 template<typename ToType, typename FromType>
-CSTD unique_ptr<ToType> static_unique_pointer_cast(CSTD unique_ptr<FromType>&& old)
+std::unique_ptr<ToType> static_unique_pointer_cast(std::unique_ptr<FromType>&& old)
 {
-	return CSTD unique_ptr<ToType>{ static_cast<ToType*>(old.release()) };
+	return std::unique_ptr<ToType>{ static_cast<ToType*>(old.release()) };
 }
 
 template<class Type1, typename Type2>
-constexpr Type1& side_cast(Type2 *_opaquePtr) noexcept
+constexpr Type1& side_cast(Type2 *opaquePtr) noexcept
 {
-	return static_cast<Type1&>(*static_cast<Type1 *>(const_cast<typename CSTD remove_const<Type2>::type*>(_opaquePtr)));
+	return static_cast<Type1&>(*static_cast<Type1*>(const_cast<typename std::remove_const<Type2>::type*>(opaquePtr)));
 }
 
 namespace

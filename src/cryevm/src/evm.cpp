@@ -120,7 +120,8 @@ EVMAPI int ExecuteProgram(runtime_settings_t *runtime) noexcept
 	auto runtimeModules = Loader::Load<RuntimeInterface>(DIST_BINARY_DIR);
 	Loader::ForEachLoad(runtimeModules);
 
-	// Collect all external symbols.
+	// Collect all external symbols. Load the local symbols first, and give
+	// the external symbols loaded from modules the chance to override functions.
 	std::list<EVM::ExternalMethod> list;
 	list.merge(EVM::SymbolIndex(), [](auto, auto) { return false; });
 	for (auto& module : runtimeModules) {

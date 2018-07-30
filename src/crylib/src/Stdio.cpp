@@ -41,12 +41,8 @@ CRY_METHOD(remove)
 
 CRY_METHOD(printf)
 {
-	ctx.GetParameter<std::string>("str");
-	/*GET_PARAMETER(0, std::string);
-	GET_VA_PARAMETER(0, int);
-
-	auto result = printf(param0.c_str(), va_param0);
-	SET_RETURN(result);*/
+	const std::string fmt = ctx.GetParameter<std::string>("fmt");
+	//ctx.SetReturn(Util::MakeInt(result));
 }
 
 CRY_METHOD(scanf)
@@ -74,7 +70,7 @@ std::list<EVM::ExternalMethod> RegisterFunctions()
 		//ExternalMethod{ "puts", &cry_puts, /*PACKED_PARAM_DECL("s")*/ {} },
 		//ExternalMethod{ "perror", &cry_perror, /*PACKED_PARAM_DECL("s")*/ {} },
 		//ExternalMethod{ "remove", &cry_remove, /*PACKED_PARAM_DECL("q")*/ {} },
-		//ExternalMethod{ "printf", &cry_printf, /*PACKED_PARAM_DECL("sV")*/ {} },
+		REGISTER_METHOD_PARAM("printf", printf, ParseSolidType("fmt", "s"), ParseSolidType("arg", "V")),
 		//ExternalMethod{ "scanf", &cry_scanf, /*PACKED_PARAM_DECL("sV")*/ {} },
 	};
 }
