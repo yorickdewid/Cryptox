@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include "../NonCopyable.h"
+
 namespace Cry
 {
 namespace MemoryManager
@@ -15,7 +17,7 @@ namespace MemoryManager
 
 using ResourceType = void*;
 
-struct MemoryPoolInterface //TODO: NoCopy
+struct MemoryPoolInterface : public Cry::NonCopyable
 {
 	virtual ~MemoryPoolInterface() {}
 

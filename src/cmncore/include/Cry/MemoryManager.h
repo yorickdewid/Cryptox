@@ -25,6 +25,11 @@ namespace MemoryManager
 
 using ResourceType = void*;
 
+struct OutOfMemoryException : public std::exception
+{
+public:
+};
+
 class BackedPool : public MemoryPoolInterface
 {
 	size_t m_totalAllocSize{ 0 };
@@ -92,37 +97,33 @@ protected:
 		size_t contiguousBlocks = blocks;
 		for (size_t i = 0; i < m_free.size(); ++i) {
 			if (!m_free[i]) {
-
-				if (contiguousBlocks > 1) {
-					for (size_t j = i; j < contiguousBlocks; ++j) {
-						if (m_free[j]) {
-							goto skip_block;
-						}
-					}
-					for (size_t j = i; j < contiguousBlocks; ++j) {
-						m_free.set(j);
+				for (size_t j = i; j < contiguousBlocks + i; ++j) {
+					if (m_free[j]) {
+						goto skip_block;
 					}
 				}
+				for (size_t j = i; j < contiguousBlocks + i; ++j) {
+					m_free.set(j);
+				}
 
-				m_free.set(i);
-				MemoryPointer *memPtr = (MemoryPointer*)((intptr_t*)m_block) + (i * chunkSize);
+				MemoryPointer *memPtr = (MemoryPointer*)(((uint8_t*)m_block) + (i * chunkSize));
 				memPtr->blocks = blocks;
 				return memPtr + sizeof(MemoryPointer);
-
 			skip_block: {}
 			}
 		}
 
-		return nullptr;
+		throw OutOfMemoryException{};
 	}
 
 	virtual void ReturnChunk(void *ptr)
 	{
 		MemoryPointer *memPtr = (MemoryPointer *)ptr - sizeof(MemoryPointer);
-		memPtr->blocks;
 
-		size_t i = (((intptr_t*)memPtr) - ((intptr_t*)m_block)) / chunkSize;
-		m_free.reset(i);
+		size_t i = (((uint8_t*)memPtr) - ((uint8_t*)m_block)) / chunkSize;
+		for (size_t j = i; j < memPtr->blocks + i; ++j) {
+			m_free.reset(j);
+		}
 	}
 
 public:
@@ -130,6 +131,12 @@ public:
 		: m_block{ malloc(AllocSize) }
 		, m_free{ 0 }
 	{
+	}
+
+	ContiguousPool(ContiguousPool&& other)
+	{
+		m_block = other.m_block;
+		other.m_block = nullptr;
 	}
 
 	virtual ~ContiguousPool()
@@ -202,7 +209,7 @@ public:
 	template<typename MemoryPoolType>
 	MultiPoolMemoryManager(MemoryPoolType&& pool)
 	{
-		m_pools.emplace_back(std::make_unique<MemoryPoolType>(std::move(pool)));
+		m_pools.emplace_back(std::move(std::make_unique<MemoryPoolType>(std::move(pool))));
 	}
 
 	// Return number of pools in use.
@@ -216,7 +223,7 @@ public:
 	// Return the default pool for multipool mananger.
 	static decltype(auto) MultiPoolMemoryManager::DefaultPool()
 	{
-		return ContiguousPool<DEFAULT_POOL_SZ>{};
+		return std::move(ContiguousPool<DEFAULT_POOL_SZ>{});
 	}
 
 	size_t HeapTotalSize() const noexcept;

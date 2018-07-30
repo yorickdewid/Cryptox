@@ -21,18 +21,18 @@ class UnsupportedOperationException : public CSTD runtime_error
 {
 public:
 	UnsupportedOperationException(const CSTD string& message) noexcept
-		: CSTD runtime_error{ message }
+		: std::runtime_error{ message }
 	{
 	}
 
 	explicit UnsupportedOperationException(char const* const message) noexcept
-		: CSTD runtime_error{ message }
+		: std::runtime_error{ message }
 	{
 	}
 
 	virtual const char *what() const noexcept
 	{
-		return CSTD runtime_error::what();
+		return std::runtime_error::what();
 	}
 };
 
@@ -40,56 +40,56 @@ class IncompatibleException : public CSTD runtime_error
 {
 public:
 	IncompatibleException(const CSTD string& message) noexcept
-		: CSTD runtime_error{ message }
+		: std::runtime_error{ message }
 	{
 	}
 
 	explicit IncompatibleException(char const* const message) noexcept
-		: CSTD runtime_error{ message }
+		: std::runtime_error{ message }
 	{
 	}
 
 	virtual const char *what() const noexcept
 	{
-		return CSTD runtime_error::what();
+		return std::runtime_error::what();
 	}
 };
 
-class NotImplementedException : public CSTD runtime_error
+class NotImplementedException : public std::runtime_error
 {
 public:
-	NotImplementedException(const CSTD string& message) noexcept
-		: CSTD runtime_error{ message }
+	NotImplementedException(const std::string& message) noexcept
+		: std::runtime_error{ message }
 	{
 	}
 
 	explicit NotImplementedException(char const* const message) noexcept
-		: CSTD runtime_error{ message }
+		: std::runtime_error{ message }
 	{
 	}
 
 	virtual const char *what() const noexcept
 	{
-		return CSTD runtime_error::what();
+		return std::runtime_error::what();
 	}
 };
 
-class KeyNotFoundException : public CSTD runtime_error
+class KeyNotFoundException : public std::runtime_error
 {
 public:
-	KeyNotFoundException(const CSTD string& message) noexcept
-		: CSTD runtime_error{ message }
+	KeyNotFoundException(const std::string& message) noexcept
+		: std::runtime_error{ message }
 	{
 	}
 
 	explicit KeyNotFoundException(char const* const message) noexcept
-		: CSTD runtime_error{ message }
+		: std::runtime_error{ message }
 	{
 	}
 
 	virtual const char *what() const noexcept
 	{
-		return CSTD runtime_error::what();
+		return std::runtime_error::what();
 	}
 };
 
