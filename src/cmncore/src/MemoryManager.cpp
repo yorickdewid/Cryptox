@@ -9,13 +9,17 @@
 #include <Cry/Cry.h>
 #include <Cry/MemoryManager.h>
 
+//TODO:
+// - Reallocation
+// - calloc or something
+
 using namespace Cry::MemoryManager;
 
 ResourceType MultiPoolMemoryManager::HeapAllocate(size_t size)
 {
 	return std::find_if(m_pools.cbegin(), m_pools.cend(), [](const auto& pool) {
 		CRY_UNUSED(pool);
-		return true;
+		return true; //TODO:
 	})->get()->Allocate(size);
 }
 
@@ -23,7 +27,7 @@ void MultiPoolMemoryManager::HeapFree(ResourceType ptr)
 {
 	return std::find_if(m_pools.cbegin(), m_pools.cend(), [](const auto& pool) {
 		CRY_UNUSED(pool);
-		return true;
+		return true; //TODO:
 	})->get()->Deallocate(ptr);
 }
 

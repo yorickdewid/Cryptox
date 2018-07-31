@@ -55,13 +55,13 @@ public:
 	{
 	}
 
-	//
+	// Request memory block.
 	void *Allocate(size_t size)
 	{
 		return malloc(size);
 	}
 
-	//
+	// Free allocated memory.
 	void Deallocate(void *ptr)
 	{
 		if (!ptr) { return; }
@@ -167,13 +167,13 @@ public:
 		FreePool();
 	}
 
-	//
+	// Request memory block.
 	void *Allocate(size_t size)
 	{
 		return AllocateNewChunk(size);
 	}
 
-	//
+	// Free allocated memory.
 	void Deallocate(void *ptr)
 	{
 		ReturnChunk(ptr);
@@ -207,7 +207,7 @@ class SecurePoolImpl : public PoolType
 	static_assert(std::is_base_of<MemoryPoolInterface, PoolType>::value, "must implement MemoryPoolInterface");
 
 public:
-	// Free allocated memory and clear
+	// Free allocated memory and clear.
 	virtual void Deallocate(void *ptr) override
 	{
 		// TODO: nullify

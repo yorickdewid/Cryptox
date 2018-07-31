@@ -13,7 +13,7 @@
 //
 // Test        : Memory manager unitttest
 // Type        : unit
-// Description : ..
+// Description : Test the memory manager.
 //
 
 using namespace Cry::MemoryManager;

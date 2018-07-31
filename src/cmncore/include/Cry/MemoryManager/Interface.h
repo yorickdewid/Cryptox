@@ -25,7 +25,7 @@ struct MemoryPoolInterface : public Cry::NonCopyable
 	// Memory block operations.
 	//
 
-	// Reqest memory block.
+	// Request memory block.
 	virtual void *Allocate(size_t) = 0;
 	// Free allocated memory.
 	virtual void Deallocate(void *) = 0;
