@@ -15,6 +15,7 @@ configuration:
   # - Debug
 
 environment:
+  APPVEYOR_RDP_PASSWORD: ABC@123
   matrix:
     - MSVC_ARCH: x64
       BOOST_ROOT: C:\Libraries\boost_1_65_1
@@ -55,12 +56,12 @@ test_script:
   - ctest -V --build-config %CONFIGURATION%
 
 # Disable artefacts as there is a storage limit
-# artifacts:
-#  - path: '**\bin\$(configuration)\*.dll'
-#    name: Deliverables
+artifacts:
+ - path: '**\bin\$(configuration)\*.dll'
+   name: Deliverables
  
-#  - path: '**\bin\$(configuration)\*.exe'
-#    name: Deliverables
+ - path: '**\bin\$(configuration)\*.exe'
+   name: Deliverables
  
 #  - path: '**\bin\$(configuration)\*.pdb'
 #    name: Diagnostics

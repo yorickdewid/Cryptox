@@ -297,6 +297,7 @@ add_subdirectory(src/coilcl)
 add_subdirectory(src/cryevm)
 add_subdirectory(src/crycli)
 add_subdirectory(src/cexdump)
+add_subdirectory(src/shellasset)
 add_subdirectory(src/lddriver)
 add_subdirectory(src/pfbase)
 add_subdirectory(src/pfupgr)
@@ -308,7 +309,6 @@ add_subdirectory(src/quidex)
 
 # UI parts are disabled
 #add_subdirectory(src/shapework)
-#add_subdirectory(src/shellasset)
 #add_subdirectory(src/ui)
 
 if (${${PROJECT_NAME}_ID}_BUILD_LZ4XX)

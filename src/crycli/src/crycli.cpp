@@ -12,6 +12,7 @@
 #include "Specification.h"
 
 // Project includes.
+#include <Cry/Cry.h>
 #include <Cry/Config.h>
 #include <Cry/ProgramOptions.h>
 
