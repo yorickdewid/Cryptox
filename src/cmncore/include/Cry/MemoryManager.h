@@ -15,6 +15,7 @@
 #include <memory>
 #include <algorithm>
 #include <bitset>
+#include <cassert>
 
 #define DEFAULT_POOL_SZ 4096 << 9 // 2MB
 
@@ -27,20 +28,36 @@ using ResourceType = void*;
 
 struct OutOfMemoryException : public std::exception
 {
+	size_t m_allocatedSize;
+
 public:
+	OutOfMemoryException(size_t size)
+		: m_allocatedSize{ size }
+	{
+	}
+
+	virtual char const *what() const
+	{
+		return ""; //TODO
+	}
 };
 
 class BackedPool : public MemoryPoolInterface
 {
-	size_t m_totalAllocSize{ 0 };
-	size_t m_totalUsedSize{ 0 };
 
 public:
+	BackedPool() = default;
+	BackedPool(BackedPool&&)
+	{
+	}
+
+	virtual ~BackedPool()
+	{
+	}
+
 	//
 	void *Allocate(size_t size)
 	{
-		m_totalAllocSize += size;
-		m_totalUsedSize += size;
 		return malloc(size);
 	}
 
@@ -48,13 +65,12 @@ public:
 	void Deallocate(void *ptr)
 	{
 		if (!ptr) { return; }
-		m_totalUsedSize -= 1; //TODO:
 		free(ptr);
 	}
 
 	size_t TotalSize() const noexcept
 	{
-		return m_totalAllocSize;
+		return 0;
 	}
 
 	size_t FreeSize() const noexcept
@@ -64,7 +80,7 @@ public:
 
 	size_t UsedSize() const noexcept
 	{
-		return m_totalUsedSize;
+		return 0;
 	}
 };
 
@@ -72,6 +88,8 @@ template<size_t AllocSize>
 class ContiguousPool : public MemoryPoolInterface
 {
 	constexpr static size_t chunkSize = 128;
+
+	static_assert(AllocSize > chunkSize, "must be at least chunk size");
 
 	void *m_block{ nullptr };
 	std::bitset<AllocSize / chunkSize> m_free;
@@ -92,12 +110,16 @@ protected:
 
 	virtual void *AllocateNewChunk(size_t size)
 	{
+		assert(m_block);
 		size_t blocks = ((size + sizeof(MemoryPointer)) / chunkSize) + 1;
 
 		size_t contiguousBlocks = blocks;
 		for (size_t i = 0; i < m_free.size(); ++i) {
 			if (!m_free[i]) {
 				for (size_t j = i; j < contiguousBlocks + i; ++j) {
+					if (j >= m_free.size()) {
+						throw OutOfMemoryException{ size };
+					}
 					if (m_free[j]) {
 						goto skip_block;
 					}
@@ -113,11 +135,12 @@ protected:
 			}
 		}
 
-		throw OutOfMemoryException{};
+		throw OutOfMemoryException{ size };
 	}
 
 	virtual void ReturnChunk(void *ptr)
 	{
+		assert(m_block);
 		MemoryPointer *memPtr = (MemoryPointer *)ptr - sizeof(MemoryPointer);
 
 		size_t i = (((uint8_t*)memPtr) - ((uint8_t*)m_block)) / chunkSize;
@@ -134,8 +157,8 @@ public:
 	}
 
 	ContiguousPool(ContiguousPool&& other)
+		: m_block{ other.m_block }
 	{
-		m_block = other.m_block;
 		other.m_block = nullptr;
 	}
 
@@ -194,7 +217,7 @@ public:
 
 	virtual ~SecurePoolImpl()
 	{
-		//	//CRY_MEMZERO(m_block, this->TotalSize());
+		//CRY_MEMZERO(m_block, this->TotalSize());
 	}
 };
 
@@ -209,6 +232,8 @@ public:
 	template<typename MemoryPoolType>
 	MultiPoolMemoryManager(MemoryPoolType&& pool)
 	{
+		static_assert(std::is_move_constructible<MemoryPoolType>::value, "must be moveable");
+
 		m_pools.emplace_back(std::move(std::make_unique<MemoryPoolType>(std::move(pool))));
 	}
 
@@ -220,12 +245,6 @@ public:
 	// Free heap allocated memory.
 	void HeapFree(ResourceType ptr);
 
-	// Return the default pool for multipool mananger.
-	static decltype(auto) MultiPoolMemoryManager::DefaultPool()
-	{
-		return std::move(ContiguousPool<DEFAULT_POOL_SZ>{});
-	}
-
 	size_t HeapTotalSize() const noexcept;
 	size_t HeapFreeSize() const noexcept;
 	size_t HeapUsedSize() const noexcept;
@@ -236,7 +255,7 @@ class MemoryManagerImpl : public MultiPoolMemoryManager
 {
 public:
 	MemoryManagerImpl()
-		: MultiPoolMemoryManager{ MultiPoolMemoryManager::DefaultPool() }
+		: MultiPoolMemoryManager{ ContiguousPool<DEFAULT_POOL_SZ>{} }
 	{
 	}
 };

@@ -29,24 +29,27 @@ void MultiPoolMemoryManager::HeapFree(ResourceType ptr)
 
 size_t MultiPoolMemoryManager::HeapTotalSize() const noexcept
 {
-	return std::count_if(m_pools.cbegin(), m_pools.cend(), [](const auto& pool)
-	{
-		return pool->TotalSize();
-	});
+	size_t result = 0;
+	for (const auto& pool : m_pools) {
+		result += pool->TotalSize();
+	}
+	return result;
 }
 
 size_t MultiPoolMemoryManager::HeapFreeSize() const noexcept
 {
-	return std::count_if(m_pools.cbegin(), m_pools.cend(), [](const auto& pool)
-	{
-		return pool->FreeSize();
-	});
+	size_t result = 0;
+	for (const auto& pool : m_pools) {
+		result += pool->FreeSize();
+	}
+	return result;
 }
 
 size_t MultiPoolMemoryManager::HeapUsedSize() const noexcept
 {
-	return std::count_if(m_pools.cbegin(), m_pools.cend(), [](const auto& pool)
-	{
-		return pool->UsedSize();
-	});
+	size_t result = 0;
+	for (const auto& pool : m_pools) {
+		result += pool->UsedSize();
+	}
+	return result;
 }
