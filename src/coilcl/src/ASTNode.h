@@ -1447,8 +1447,8 @@ public:
 		Deserialize(pack);
 	}
 
-	// We're not saving the reference as child in the root to prevent
-	// circulair references in the upper node.
+	// NOTE: We're not saving the reference as child in the root
+	// to prevent circulair references in the upper node.
 	explicit DeclRefExpr(std::shared_ptr<Decl>& ref)
 		: m_ref{ ref }
 	{

@@ -4,8 +4,13 @@ primary_expression
 	| STRING_LITERAL
 	| '(' expression ')'
 
+compound_literal
+	::= '(' type_name ')' '{' initializer_list '}'
+	| '(' type_name ')' '{' initializer_list ',' '}'
+
 postfix_expression
 	::= primary_expression
+	| compound_literal
 	| postfix_expression '[' expression ']'
 	| postfix_expression '(' ')'
 	| postfix_expression '(' argument_expression_list ')'
@@ -13,8 +18,6 @@ postfix_expression
 	| postfix_expression PTR_OP IDENTIFIER
 	| postfix_expression INC_OP
 	| postfix_expression DEC_OP
-	| '(' type_name ')' '{' initializer_list '}'
-	| '(' type_name ')' '{' initializer_list ',' '}'
 
 argument_expression_list
 	::= assignment_expression
