@@ -321,25 +321,6 @@ struct DeclarationRegistry
 		return std::get<OpaqueAddress>(val->second);
 	}
 
-	std::shared_ptr<Valuedef::Value> DeclarationReference(const std::shared_ptr<AST::ASTNode>& node)
-	{
-		std::shared_ptr<DeclRefExpr> declRef;
-
-		switch (node->Label()) {
-		case AST::NodeID::DECL_REF_EXPR_ID: {
-			declRef = Util::NodeCast<DeclRefExpr>(node);
-			return ValueByIdentifier(declRef->Identifier()).lock();
-		}
-		case AST::NodeID::MEMBER_EXPR_ID: {
-			const auto member = Util::NodeCast<MemberExpr>(node);
-			std::shared_ptr<Valuedef::Value> value = ValueByIdentifier(member->RecordRef()->Identifier()).lock();
-			return RecordProxy::MemberValue(value, member->FieldName());
-		}
-		}
-
-		CryImplExcept(); //TODO
-	}
-
 	// Test if there are any declarations in the current context.
 	bool HasLocalValues() const noexcept
 	{
@@ -1068,6 +1049,33 @@ enum { RETURN_NORMAL, RETURN_BREAK, RETURN_RETURN };
 
 int ExecuteStatement(const std::shared_ptr<AST::ASTNode>&, Context::Compound&);
 
+template<typename ContextType>
+std::shared_ptr<Valuedef::Value> DeclarationReference(const std::shared_ptr<AST::ASTNode>& node, ContextType& ctx)
+{
+	std::shared_ptr<DeclRefExpr> declRef;
+
+	switch (node->Label()) {
+	case AST::NodeID::DECL_REF_EXPR_ID: {
+		declRef = Util::NodeCast<DeclRefExpr>(node);
+		return ctx->ValueByIdentifier(declRef->Identifier()).lock();
+	}
+	case AST::NodeID::MEMBER_EXPR_ID: {
+		const auto member = Util::NodeCast<MemberExpr>(node);
+		std::shared_ptr<Valuedef::Value> value = ctx->ValueByIdentifier(member->RecordRef()->Identifier()).lock(); //TODO: RecordRef -> RecordDeclaration
+		return RecordProxy::MemberValue(value, member->FieldName());
+	}
+	case AST::NodeID::ARRAY_SUBSCRIPT_EXPR_ID: {
+		const auto subscr = Util::NodeCast<ArraySubscriptExpr>(node);
+		std::shared_ptr<Valuedef::Value> value = ctx->ValueByIdentifier(subscr->ArrayDeclaration()->Identifier()).lock();
+		CoilCl::Valuedef::Value offset = ResolveExpression(subscr->OffsetExpression(), ctx);
+		auto array = value->As<std::vector<int>>(); //TODO: could be any type
+		return std::make_shared<Valuedef::Value>(Util::MakeInt(array[offset.As<int>()])); //TODO: could be any integral type
+	}
+	}
+
+	CryImplExcept(); //TODO
+}
+
 template<typename OperandPred, typename ContainerType = CoilCl::Valuedef::Value>
 static CoilCl::Valuedef::Value BinaryOperation(OperandPred predicate, ContainerType&& valuesLHS, ContainerType&& valuesRHS)
 {
@@ -1088,7 +1096,7 @@ CoilCl::Valuedef::Value EvaluateInverse(const CoilCl::Valuedef::Value& value)
 template<int Increment, typename OperandPred, typename ContextType>
 CoilCl::Valuedef::Value ValueAlteration(OperandPred predicate, AST::UnaryOperator::OperandSide side, std::shared_ptr<AST::ASTNode> node, ContextType& ctx)
 {
-	std::shared_ptr<CoilCl::Valuedef::Value> value = ctx->DeclarationReference(node);
+	std::shared_ptr<CoilCl::Valuedef::Value> value = DeclarationReference(node, ctx);
 	int result = predicate(value->As<int>(), Increment); //TODO: not always an integer
 
 	// On postfix operand, copy the original first.
@@ -1163,7 +1171,7 @@ CoilCl::Valuedef::Value ResolveExpression(std::shared_ptr<AST::ASTNode> node, Co
 			// The left hand side must be a lvalue and thus can be converted into an declaration
 			// reference. The declaration reference value is altered when the new value is assigned
 			// and as a consequence updates the declaration table entry.
-			const auto assignValue = ctx->DeclarationReference(op->LHS());
+			const auto assignValue = DeclarationReference(op->LHS(), ctx);
 
 			//const auto assignValue = ctx->ValueByIdentifier(declRef->Identifier()).lock();
 			(*assignValue) = ResolveExpression(op->RHS(), ctx);
@@ -1240,7 +1248,7 @@ CoilCl::Valuedef::Value ResolveExpression(std::shared_ptr<AST::ASTNode> node, Co
 
 	case AST::NodeID::MEMBER_EXPR_ID:
 	case AST::NodeID::DECL_REF_EXPR_ID: {
-		const auto value = ctx->DeclarationReference(node);
+		const auto value = DeclarationReference(node, ctx);
 		return (*value.get());
 	}
 

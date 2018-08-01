@@ -15,7 +15,6 @@ configuration:
   # - Debug
 
 environment:
-  APPVEYOR_RDP_PASSWORD: ABC@123
   matrix:
     - MSVC_ARCH: x64
       BOOST_ROOT: C:\Libraries\boost_1_65_1

@@ -468,6 +468,16 @@ ArraySubscriptExpr::ArraySubscriptExpr(std::shared_ptr<DeclRefExpr>& ref, std::s
 	ASTNode::AppendChild(expr);
 }
 
+std::shared_ptr<AST::ASTNode> ArraySubscriptExpr::OffsetExpression() const noexcept
+{
+	return m_offset;
+}
+
+std::shared_ptr<DeclRefExpr> ArraySubscriptExpr::ArrayDeclaration() const noexcept
+{
+	return m_identifier;
+}
+
 void ArraySubscriptExpr::Serialize(Serializable::Interface& pack)
 {
 	pack << nodeId;

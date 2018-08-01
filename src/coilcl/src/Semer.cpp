@@ -434,6 +434,21 @@ void CoilCl::Semer::DeduceTypes()
 		assert(list->HasReturnType());
 	});
 
+	// Set return type on array accessor.
+	AST::Compare::Equal<ArraySubscriptExpr> eqArr;
+	MatchIf(m_ast.begin(), m_ast.end(), eqArr, [](AST::AST::iterator itr)
+	{
+		auto subscr = Util::NodeCast<ArraySubscriptExpr>(itr.shared_ptr());
+		assert(subscr->ArrayDeclaration()->IsResolved());
+		assert(subscr->ArrayDeclaration()->HasReturnType());
+
+		if (!subscr->HasReturnType()) {
+			subscr->SetReturnType(subscr->ArrayDeclaration()->Reference()->ReturnType());
+		}
+
+		assert(subscr->HasReturnType());
+	});
+
 	// Set return type on enum declaration variable.
 	AST::Compare::Derived<EnumConstantDecl> enumOp;
 	MatchIf(m_ast.begin(), m_ast.end(), enumOp, [](AST::AST::iterator itr)
@@ -503,7 +518,7 @@ void CoilCl::Semer::DeduceTypes()
 		assert(paren->HasReturnType());
 	});
 
-	// ...
+	// Inject a type converter for explicit cast.
 	AST::Compare::Equal<CastExpr> eqCast;
 	MatchIf(m_ast.begin(), m_ast.end(), eqCast, [](AST::AST::iterator itr)
 	{

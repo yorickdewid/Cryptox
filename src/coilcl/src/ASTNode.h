@@ -1742,6 +1742,10 @@ public:
 
 	ArraySubscriptExpr(std::shared_ptr<DeclRefExpr>& ref, std::shared_ptr<ASTNode>& expr);
 
+	std::shared_ptr<ASTNode> OffsetExpression() const noexcept;
+
+	std::shared_ptr<DeclRefExpr> ArrayDeclaration() const noexcept;
+
 	void Serialize(Serializable::Interface& pack);
 	void Deserialize(Serializable::Interface& pack);
 
