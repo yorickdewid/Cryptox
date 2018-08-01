@@ -171,7 +171,7 @@ const std::string CallExpr::NodeName() const
 
 BuiltinExpr::BuiltinExpr(std::shared_ptr<DeclRefExpr>& func, std::shared_ptr<DeclRefExpr> expr, std::shared_ptr<ArgumentStmt> args)
 	: CallExpr{ func, args }
-	, m_expr{ expr }
+	, m_body{ expr }
 {
 	if (expr != nullptr) {
 		ASTNode::AppendChild(NODE_UPCAST(expr));
@@ -181,7 +181,7 @@ BuiltinExpr::BuiltinExpr(std::shared_ptr<DeclRefExpr>& func, std::shared_ptr<Dec
 void BuiltinExpr::SetExpression(const std::shared_ptr<ASTNode>& node)
 {
 	ASTNode::AppendChild(node);
-	m_expr = node;
+	m_body = node;
 
 	ASTNode::UpdateDelegate();
 }
@@ -197,7 +197,7 @@ void BuiltinExpr::Serialize(Serializable::Interface& pack)
 
 	auto group = pack.ChildGroups(1);
 	group.Size(1);
-	group << m_expr;
+	group << m_body;
 
 	//pack << m_typenameType;//TODO
 

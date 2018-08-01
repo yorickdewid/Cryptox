@@ -64,7 +64,6 @@ public:
 	std::string Name() const { return "Semer"; }
 
 	Semer& CheckCompatibility();
-	Semer& StaticResolve();
 	Semer& PreliminaryAssert();
 	Semer& StandardCompliance();
 	Semer& PedanticCompliance();
@@ -89,6 +88,7 @@ public:
 
 private:
 	void NamedDeclaration();
+	void StaticResolve();
 	void ResolveIdentifier();
 	void BindPrototype();
 	void DeduceTypes();

@@ -1538,7 +1538,7 @@ class BuiltinExpr final
 	: public CallExpr
 {
 	NODE_ID(AST::NodeID::BUILTIN_EXPR_ID);
-	std::shared_ptr<ASTNode> m_expr;
+	std::shared_ptr<ASTNode> m_body;
 	Typedef::TypeFacade m_typenameType;
 
 public:
@@ -1556,7 +1556,8 @@ public:
 	void SetTypename(std::shared_ptr<Typedef::TypedefBase>& type);
 
 	///TODO: friends
-	auto Expression() const { return m_expr; }
+	bool HasExpression() const { return m_body != nullptr; }
+	auto Expression() const { return m_body; }
 	auto TypeName() const { return m_typenameType; }
 
 	virtual void Serialize(Serializable::Interface& pack);

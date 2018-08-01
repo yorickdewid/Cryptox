@@ -196,7 +196,6 @@ public:
 			// context of the program.
 			Semer{ profile, CAPTURE(program->Ast()), tracker }
 				.MoveStage()
-				.StaticResolve()
 				.PreliminaryAssert()
 				.StandardCompliance()
 				.PedanticCompliance()

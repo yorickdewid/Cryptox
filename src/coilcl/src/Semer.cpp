@@ -13,6 +13,7 @@
 #include "Semer.h"
 #include "ValueHelper.h"
 #include "Converter.h"
+#include "BuiltinRoutine.h"
 
 #define PTR_NATIVE(p) (*(p).get())
 
@@ -171,52 +172,6 @@ void SetConversion(std::shared_ptr<ParentNode> parent, std::shared_ptr<ChildNode
 
 } // namespace
 
-// Resolve all static expresions such as native type size calculations
-// and inject the expression result back into the copied tree.
-CoilCl::Semer& CoilCl::Semer::StaticResolve()
-{
-	const std::array<std::string, 1> staticLookup{ "sizeof" };
-
-	AST::Compare::Equal<BuiltinExpr> eqOp;
-	MatchIf(m_ast.begin(), m_ast.end(), eqOp, [&staticLookup](AST::AST::iterator itr)
-	{
-		auto builtinExpr = Util::NodeCast<BuiltinExpr>(itr.shared_ptr());
-		auto declRefName = builtinExpr->FuncDeclRef()->Identifier();
-
-		if (std::any_of(staticLookup.cbegin(), staticLookup.cend(), [&declRefName](const std::string& c) { return c == declRefName; })) {
-
-			// If expression, evaluate outcome
-			if (builtinExpr->Expression()) {
-				CryImplExcept(); //TODO
-			}
-			// No expression, use typename
-			else {
-				// Replace static builtin operation with integer result
-				auto m_data = Util::MakeInt(static_cast<int>(builtinExpr->TypeName().Size()));
-				auto literal = CoilCl::AST::MakeASTNode<IntegerLiteral>(std::move(m_data));
-
-				// Emplace current object on existing
-				if (auto parent = builtinExpr->Parent().lock()) {
-					auto parentChildren = parent->Children();
-
-					auto selfListItem = std::find_if(parentChildren.begin(), parentChildren.end(), [=](std::weak_ptr<CoilCl::AST::ASTNode>& wPtr)
-					{
-						return wPtr.lock() == builtinExpr;
-					});
-
-					if (selfListItem != parentChildren.end()) {
-						size_t idx = std::distance(parentChildren.begin(), selfListItem);
-						parent->Emplace(idx, literal);
-					}
-				}
-			}
-		}
-	});
-
-	this->CompletePhase(ConditionTracker::STATIC_RESOLVED);
-	return (*this);
-}
-
 // Run all semantic checks that defines the language,
 // this comprises type checking, object scope validation,
 // implicit casting and identifier resolving.
@@ -228,6 +183,7 @@ CoilCl::Semer& CoilCl::Semer::PreliminaryAssert()
 
 	NamedDeclaration();
 	ResolveIdentifier();
+	StaticResolve();
 	BindPrototype();
 	DeduceTypes();
 
@@ -240,6 +196,31 @@ CoilCl::Semer& CoilCl::Semer::PreliminaryAssert()
 
 	this->CompletePhase(ConditionTracker::ASSERTION_PASSED);
 	return (*this);
+}
+
+#define BUILTIN_ROUTINE(r) \
+	if (declRefName == #r) { \
+		BuiltinRoutine::static_##r(builtinExpr); \
+	}
+#define RESERVE_BUILTIN_ROUTINE(r) \
+	this->m_resolveList[GLOBAL_DEFS][r] = nullptr;
+
+// Resolve all static expresions, and remove the result with the call.
+void CoilCl::Semer::StaticResolve()
+{
+	AST::Compare::Equal<BuiltinExpr> eqOp;
+	MatchIf(m_ast.begin(), m_ast.end(), eqOp, [](AST::AST::iterator itr)
+	{
+		auto builtinExpr = Util::NodeCast<BuiltinExpr>(itr.shared_ptr());
+		auto declRefName = builtinExpr->FuncDeclRef()->Identifier();
+
+		BUILTIN_ROUTINE(sizeof);
+		BUILTIN_ROUTINE(static_assert);
+
+		// NOTE: define any static buildin functions here.
+	});
+
+	this->CompletePhase(ConditionTracker::STATIC_RESOLVED);
 }
 
 void CoilCl::Semer::FuncToSymbol(std::function<void(const std::string, const std::shared_ptr<CoilCl::AST::ASTNode>& node)> insert)
@@ -260,6 +241,11 @@ void CoilCl::Semer::FuncToSymbol(std::function<void(const std::string, const std
 // All declaration nodes have an identifier, which could be empty.
 void CoilCl::Semer::NamedDeclaration()
 {
+	RESERVE_BUILTIN_ROUTINE("sizeof");
+	RESERVE_BUILTIN_ROUTINE("static_assert");
+
+	//FUTURE: Hook in known indentifiers and show warning if they are not defined.
+
 	AST::Compare::Equal<TranslationUnitDecl> traunOp;
 	AST::Compare::Derived<Decl> drivdOp;
 	MatchIf(m_ast.begin(), m_ast.end(), drivdOp, [&traunOp, this](AST::AST::iterator itr)
@@ -267,16 +253,16 @@ void CoilCl::Semer::NamedDeclaration()
 		auto node = itr.shared_ptr();
 		auto decl = Util::NodeCast<Decl>(node);
 
-		// Ignore translation unit declaration
+		// Ignore translation unit declaration.
 		if (traunOp(PTR_NATIVE(decl))) {
 			return;
 		}
 
 		if (!decl->Identifier().empty()) {
 			auto func = Closest<FunctionDecl>(node);
-			if (func == nullptr) {
+			if (!func) {
 				auto block = Closest<CompoundStmt>(node);
-				if (block == nullptr) {
+				if (!block) {
 					this->m_resolveList[GLOBAL_DEFS][decl->Identifier()] = node;
 					//std::cout << "Global declaration [0]: " << decl->Identifier() << std::endl;
 				}
@@ -312,6 +298,11 @@ void CoilCl::Semer::ResolveIdentifier()
 						throw SemanticException{ semfmt.str().c_str(), 0, 0 };
 					}
 
+					// Internal identifiers are empty.
+					if (!binder->second) {
+						return;
+					}
+
 					decl->Resolve(binder->second);
 					Util::NodeCast<Decl>(binder->second)->RegisterCaller();
 				}
@@ -327,6 +318,11 @@ void CoilCl::Semer::ResolveIdentifier()
 						semfmt % decl->Identifier();
 						throw SemanticException{ semfmt.str().c_str(), 0, 0 };
 					}
+				}
+
+				// Internal identifiers are empty.
+				if (!binder->second) {
+					return;
 				}
 
 				decl->Resolve(binder->second);
