@@ -11,8 +11,7 @@ platform:
 
 # Build configuration
 configuration:
-  - RelWithDebInfo
-  # - Debug
+  - Release
 
 environment:
   matrix:
@@ -35,8 +34,8 @@ branches:
 skip_commits:
   message: /cmake|appveyor/\[contrib\]/
 
-init:
-  - ps: $blockRdp = $true; iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
+# init:
+#   - ps: $blockRdp = $true; iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
 
 install:
   - git submodule update --init --recursive
@@ -61,6 +60,3 @@ artifacts:
  
  - path: '**\bin\$(configuration)\*.exe'
    name: Deliverables
- 
-#  - path: '**\bin\$(configuration)\*.pdb'
-#    name: Diagnostics

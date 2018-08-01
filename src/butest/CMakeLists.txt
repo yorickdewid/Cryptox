@@ -67,7 +67,7 @@ add_dependencies(${PROJECT_NAME} ModStubEx1 ModStubEx2)
 
 # Add test
 add_test(NAME ${PROJECT_NAME}
-	COMMAND ${CMAKE_BINARY_DIR}/bin/boost-test --run_test=!CryLoader
+	COMMAND ${CMAKE_BINARY_DIR}/bin/boost-test
 )
 
 # Set project options
