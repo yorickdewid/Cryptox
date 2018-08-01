@@ -9,15 +9,27 @@
  */
 
 /**
- * @name        febb.c
- * @purpose     Demonstration of arithmetic
+ * @name        rec.c
+ * @purpose     Test of record declaration
  * @author      Blub Corp.
  * @modified    Yorick de Wid
- * @created     2018-05-15
+ * @created     2018-08-01
  * @copyright   (C) Copyright 2018, Blub Corp, All Rights Reserved.
  * @license     GPL, Version 3
  */
 
-int main() {
-    return 1 + 1 + 2 + 3 + 5 + 8 + 13 + 21 + 34 + 55 + 89 + 144 + 233 + 377 + 610 + 987 + 1597;
+int main()  {
+    struct location
+    {
+        int x;
+        int y;
+    };
+
+    struct location loc;
+    loc.x = 7364;
+    loc.y = 8613;
+ 
+    printf("loc %d:%d\n", loc.x, loc.y);
+
+    return 0;
 }

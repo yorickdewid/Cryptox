@@ -526,6 +526,7 @@ void CoilCl::Semer::DeduceTypes()
 		SetConversion(cast, cast->Expression());
 	});
 
+	//TODO: remove RecordDecl from tree after conversion.
 	// Convert record declaration into record type and set the type as return type.
 	AST::Compare::Equal<RecordDecl> eqRec;
 	MatchIf(m_ast.begin(), m_ast.end(), eqRec, [this](AST::AST::iterator itr)
@@ -542,6 +543,7 @@ void CoilCl::Semer::DeduceTypes()
 		// Set the return type on the declaration
 		recordDecl->SetReturnType(Typedef::TypeFacade{ recordType });
 
+		//TODO: only current valdecl scope
 		//TODO: does not continue loop
 		// Set return type on every declaration using the record declaration.
 		AST::Compare::Equal<VarDecl> eqVal;

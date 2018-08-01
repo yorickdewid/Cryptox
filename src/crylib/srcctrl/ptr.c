@@ -8,6 +8,16 @@
  * permission of the author.
  */
 
+/**
+ * @name        ptr.c
+ * @purpose     Demonstration of pointers
+ * @author      Blub Corp.
+ * @modified    Yorick de Wid
+ * @created     2018-04-09
+ * @copyright   (C) Copyright 2018, Blub Corp, All Rights Reserved.
+ * @license     GPL, Version 3
+ */
+
 int main(void) {
     int a, b;
     int *p = &a;

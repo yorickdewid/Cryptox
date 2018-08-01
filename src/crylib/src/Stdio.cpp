@@ -10,6 +10,10 @@
 
 #include <cstdio>
 
+//
+// Corresponding header: stdio.h
+//
+
 namespace
 {
 
@@ -22,27 +26,50 @@ CRY_METHOD(puts)
 
 CRY_METHOD(putchar)
 {
-	const int chr = ctx.GetParameter<int>("str");
+	const int chr = ctx.GetParameter<int>("c");
 	int result = putchar(chr);
 	ctx.SetReturn(Util::MakeInt(result));
 }
 
 CRY_METHOD(perror)
 {
-	ctx.GetParameter<std::string>("str");
-	//perror(str);
+	const std::string str = ctx.GetParameter<std::string>("str");
+	perror(str.c_str());
 }
 
 CRY_METHOD(remove)
 {
-	ctx.GetParameter<std::string>("str");
-	//remove(file);
+	const std::string file = ctx.GetParameter<std::string>("file");
+	int result = remove(file.c_str());
+	ctx.SetReturn(Util::MakeInt(result));
+}
+
+CRY_METHOD(rename)
+{
+	const std::string oldname = ctx.GetParameter<std::string>("oldname");
+	const std::string newname = ctx.GetParameter<std::string>("newname");
+	int result = rename(oldname.c_str(), newname.c_str());
+	ctx.SetReturn(Util::MakeInt(result));
 }
 
 CRY_METHOD(printf)
 {
 	const std::string fmt = ctx.GetParameter<std::string>("fmt");
-	//ctx.SetReturn(Util::MakeInt(result));
+
+	//TODO: ...
+}
+
+CRY_METHOD(putc)
+{
+	const int chr = ctx.GetParameter<int>("c");
+
+	//TODO: ...
+}
+
+CRY_METHOD(getchar)
+{
+	int c = getchar();
+	ctx.SetReturn(Util::MakeInt(c));
 }
 
 CRY_METHOD(scanf)
@@ -64,14 +91,30 @@ std::list<EVM::ExternalMethod> RegisterFunctions()
 	using namespace EVM;
 
 	return {
-		REGISTER_METHOD_PARAM("puts", puts, ParseSolidType("str", "s")),
-		REGISTER_METHOD_PARAM("putchar", putchar, ParseSolidType("c", "i")),
-		//ExternalMethod{ "putchar", &cry_putchar, /*PACKED_PARAM_DECL("i")*/ {} },
-		//ExternalMethod{ "puts", &cry_puts, /*PACKED_PARAM_DECL("s")*/ {} },
-		//ExternalMethod{ "perror", &cry_perror, /*PACKED_PARAM_DECL("s")*/ {} },
-		//ExternalMethod{ "remove", &cry_remove, /*PACKED_PARAM_DECL("q")*/ {} },
+
+		//
+		// Output operations.
+		//
+
+		REGISTER_METHOD_PARAM("perror", perror, ParseSolidType("str", "s")),
 		REGISTER_METHOD_PARAM("printf", printf, ParseSolidType("fmt", "s"), ParseSolidType("arg", "V")),
-		//ExternalMethod{ "scanf", &cry_scanf, /*PACKED_PARAM_DECL("sV")*/ {} },
+		REGISTER_METHOD_PARAM("putc", putc, ParseSolidType("c", "i")),
+		REGISTER_METHOD_PARAM("putchar", putchar, ParseSolidType("c", "i")),
+		REGISTER_METHOD_PARAM("puts", puts, ParseSolidType("str", "s")),
+
+		//
+		// Input operations.
+		//
+
+		REGISTER_METHOD("getchar", getchar),
+		//REGISTER_METHOD_PARAM("scanf", scanf, ParseSolidType("str", "s")),
+
+		//
+		// File operations.
+		//
+
+		REGISTER_METHOD_PARAM("remove", remove, ParseSolidType("file", "s")),
+		REGISTER_METHOD_PARAM("rename", rename, ParseSolidType("oldname", "s"), ParseSolidType("newname", "s")),
 	};
 }
 

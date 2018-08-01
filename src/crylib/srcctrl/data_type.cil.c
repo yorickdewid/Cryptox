@@ -8,6 +8,16 @@
  * permission of the author.
  */
 
+/**
+ * @name        data_type.cil.c
+ * @purpose     Test of data type parsing
+ * @author      Blub Corp.
+ * @modified    Yorick de Wid
+ * @created     2018-05-03
+ * @copyright   (C) Copyright 2018, Blub Corp, All Rights Reserved.
+ * @license     GPL, Version 3
+ */
+
 char c;
 signed char sc;
 unsigned char uc;

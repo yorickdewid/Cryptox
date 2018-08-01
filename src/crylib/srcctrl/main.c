@@ -8,7 +8,17 @@
  * permission of the author.
  */
 
-#include "main.cil.h"
+/**
+ * @name        main.c
+ * @purpose     Original source test
+ * @author      Blub Corp.
+ * @modified    Yorick de Wid
+ * @created     2017-08-02
+ * @copyright   (C) Copyright 2018, Blub Corp, All Rights Reserved.
+ * @license     GPL, Version 3
+ */
+
+#include "main.h"
 
 #define CONSTANT    1
 #define RETURN_OK   0

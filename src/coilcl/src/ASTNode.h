@@ -1435,11 +1435,12 @@ private:
 	POLY_IMPL();
 };
 
+//TODO: DeclRefExpr to ReferenceExpr
 class DeclRefExpr
 	: public ResolveRefExpr
 {
 	NODE_ID(AST::NodeID::DECL_REF_EXPR_ID);
-	std::weak_ptr<Decl> m_ref;
+	std::weak_ptr<Decl> m_ref; //TODO: expand to AST::ASTNode
 
 public:
 	explicit DeclRefExpr(Serializable::Interface& pack)
