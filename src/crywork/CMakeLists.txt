@@ -8,7 +8,7 @@
 # copied and/or distributed without the express of the author.
 
 # Set project info
-project(CommonCore CXX)
+project(CryWork CXX)
 project_version(${PROJECT_NAME} 1)
 project_description(${PROJECT_NAME} "Cry Framework")
 

@@ -23,7 +23,6 @@
 namespace Cry
 {
 
-#if 0
 namespace Detail
 {
 
@@ -48,10 +47,9 @@ public:
 	FileWriteBuffer() = default;
 };
 
-}
-#endif
+////
 
-class ByteIOBase : public ByteArray
+class StreamIOBase : public ByteArray
 {
 public:
 	using Type = ByteArray::BaseType::value_type;
@@ -66,7 +64,9 @@ public:
 	}
 };
 
-class ByteInStream : virtual public ByteIOBase
+} // namespace Detail
+
+class ByteInStream : virtual public Detail::StreamIOBase
 {
 	//
 
@@ -112,7 +112,7 @@ public:
 	}
 };
 
-class ByteOutStream : virtual public ByteIOBase
+class ByteOutStream : virtual public Detail::StreamIOBase
 {
 	//
 

@@ -36,7 +36,7 @@ include_directories(${CMAKE_CURRENT_BINARY_DIR}/include)
 include_directories(${GEN_SOURCE_DIR})
 
 # Include common headers in every project
-include_directories(${CommonCore_INCLUDE_DIRS})
+include_directories(${CryWork_INCLUDE_DIRS})
 
 # On Windows include self generated resource files
 if(WIN32)

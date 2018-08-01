@@ -12,7 +12,7 @@
 using namespace Cry;
 
 //
-// ByteInStream
+// ByteInStream.
 //
 
 ByteInStream& ByteInStream::operator>>(short& v)
@@ -87,7 +87,7 @@ ByteInStream& ByteInStream::operator>>(ByteInStream& v)
 }
 
 //
-// ByteOutStream
+// ByteOutStream.
 //
 
 ByteOutStream& ByteOutStream::operator<<(short v)

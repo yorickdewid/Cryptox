@@ -16,6 +16,9 @@
 
 namespace Cry
 {
+//TODO:
+// namespace Memory
+// {
 
 template<typename ToType, typename FromType>
 std::unique_ptr<ToType> static_unique_pointer_cast(std::unique_ptr<FromType>&& old)

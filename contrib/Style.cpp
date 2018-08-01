@@ -46,9 +46,9 @@ class SomeClass
     size_t m_offset;
 
 public:
-    // Set length of size
+    // Set length of size.
     inline void SetLenth(int sz) { m_size = sz; }
-    // Set offset of offset
+    // Set offset of offset.
     inline void SetOffset(size_t offset) { m_offset = offset; }
 
 };

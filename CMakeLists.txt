@@ -87,7 +87,7 @@ endif()
 # Options
 set(${${PROJECT_NAME}_ID}_RELEASE_ADD CACHE STRING "Version extension")
 option(${${PROJECT_NAME}_ID}_RELEASE_CE "Build community release" OFF)
-option(${${PROJECT_NAME}_ID}_BUILD_BUTEST "Build Boost Unit Test" ON)
+option(${${PROJECT_NAME}_ID}_BUILD_UNITTEST "Build Boost Unit Test" ON)
 option(${${PROJECT_NAME}_ID}_BUILD_LZ4XX "Build with LZ4" ON)
 option(${${PROJECT_NAME}_ID}_BUILD_MSGGEN "Build event message generator" ON)
 option(${${PROJECT_NAME}_ID}_BUILD_QUID "Build QUID identifier library" ON)
@@ -290,7 +290,7 @@ execute_process(
 # -------------------------------
 
 # Project consists of multiple subprojects
-add_subdirectory(src/cmncore)
+add_subdirectory(src/crywork)
 add_subdirectory(src/cmnval)
 add_subdirectory(src/coilcex)
 add_subdirectory(src/coilcl)
@@ -302,10 +302,10 @@ add_subdirectory(src/lddriver)
 add_subdirectory(src/pfbase)
 add_subdirectory(src/pfupgr)
 add_subdirectory(src/modstub)
-#add_subdirectory(src/primcore)
-#add_subdirectory(src/entropysrv)
+add_subdirectory(src/entropysrv)
 add_subdirectory(src/crylib)
 add_subdirectory(src/quidex)
+#add_subdirectory(src/primcore)
 
 # UI parts are disabled
 #add_subdirectory(src/shapework)
@@ -324,9 +324,9 @@ if (${${PROJECT_NAME}_ID}_BUILD_QUID)
 	add_subdirectory(third_party/QUID)
 endif()
 
-if (${${PROJECT_NAME}_ID}_BUILD_BUTEST)
-	message(STATUS "Building with Boost Unit Test")
-	add_subdirectory(src/butest)
+if (${${PROJECT_NAME}_ID}_BUILD_UNITTEST)
+	message(STATUS "Building with Unit Test")
+	add_subdirectory(test)
 endif()
 
 install(DIRECTORY DESTINATION "redist")

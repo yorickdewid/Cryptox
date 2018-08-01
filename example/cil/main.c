@@ -18,22 +18,21 @@
  * @license     GPL, Version 3
  */
 
-#include "main.h"
+int putchar(int c);
 
-#define CONSTANT    1
-#define RETURN_OK   0
+int puts(const char *str);
 
 int main(int args, char *argv[]) {
     
-    /* My first program in C. */
-    printf("Hello, %d!\n", 12);
-    
-    int i = CONSTANT;
-    if (i >= 1) {
-        puts("statement true");                                 
-    } else {
-        puts("statement false");
+    const char qq[] = "TEEESRHDEBNAHHEMRE";
+
+    for (int i=0;i<sizeof(qq);++i) {
+        putchar(qq[i]);
+    }
+    puts("");
+    for (int i=0;i<sizeof(qq);++i) {
+        putchar(qq[i]-5);
     }
 
-    return RETURN_OK;
+    return 0;
 }

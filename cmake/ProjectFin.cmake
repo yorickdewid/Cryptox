@@ -31,9 +31,9 @@ else()
 	message(FATAL_ERROR "Unknown target ${PROJECT_TARGET_TYPE}")
 endif()
 
-if(NOT ${PROJECT_NAME} STREQUAL CommonCore)
+if(NOT ${PROJECT_NAME} STREQUAL CryWork)
 	target_link_libraries(${PROJECT_NAME}
-		CommonCore
+		CryWork
 	)
 endif()
 
