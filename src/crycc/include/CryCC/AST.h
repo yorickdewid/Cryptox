@@ -23,5 +23,6 @@
 #include <CryCC/AST/ASTNode.h>
 #include <CryCC/AST/ASTTrait.h>
 #include <CryCC/AST/AST.h>
+#include <CryCC/AST/ASTFactory>
 
 #endif // CRYCC_AST_H_

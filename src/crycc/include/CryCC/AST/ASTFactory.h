@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include "ASTNode.h"
+#include <CryCC/AST/ASTNode.h>
 
 namespace CryCC
 {

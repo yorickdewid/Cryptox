@@ -41,5 +41,11 @@ struct AllFalse
 	}
 };
 
+template<typename Type>
+struct IsStack : public std::false_type {};
+
+template<typename Type, typename Alloc>
+struct IsStack<std::stack<Type, Alloc>> : public std::true_type {};
+
 } // namespace Functional
 } // namespace Cry

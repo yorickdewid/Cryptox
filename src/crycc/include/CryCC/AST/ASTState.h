@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include <Cry/Memory.h>
+
 #include <stack>
 
 namespace CryCC
@@ -15,31 +17,25 @@ namespace CryCC
 namespace AST
 {
 
-template<typename _ToTy, typename _FromTy>
-std::unique_ptr<_ToTy> static_unique_pointer_cast(std::unique_ptr<_FromTy>&& old)
-{
-	return std::unique_ptr<_ToTy>{ static_cast<_ToTy*>(old.release()) };
-}
-
-template<typename _BaseTy, typename _Container = std::deque<std::shared_ptr<_BaseTy>>>
+template<typename BaseTy, typename Container = std::deque<std::shared_ptr<BaseTy>>>
 class ASTState
 {
 public:
-	using container_type = _Container;
-	using allocator_type = typename _Container::allocator_type;
-	using value_type = typename _Container::value_type;
-	using size_type = typename _Container::size_type;
-	using difference_type = typename _Container::difference_type;
-	using reference = typename _Container::reference;
-	using const_reference = typename _Container::const_reference;
-	using pointer = typename _Container::pointer;
-	using const_pointer = typename _Container::const_pointer;
+	using container_type = Container;
+	using allocator_type = typename Container::allocator_type;
+	using value_type = typename Container::value_type;
+	using size_type = typename Container::size_type;
+	using difference_type = typename Container::difference_type;
+	using reference = typename Container::reference;
+	using const_reference = typename Container::const_reference;
+	using pointer = typename Container::pointer;
+	using const_pointer = typename Container::const_pointer;
 
 public:
-	using iterator = typename _Container::iterator;
-	using const_iterator = typename _Container::const_iterator;
-	using reverse_iterator = typename _Container::reverse_iterator;
-	using const_reverse_iterator = typename _Container::const_reverse_iterator;
+	using iterator = typename Container::iterator;
+	using const_iterator = typename Container::const_iterator;
+	using reverse_iterator = typename Container::reverse_iterator;
+	using const_reverse_iterator = typename Container::const_reverse_iterator;
 
 public:
 	ASTState() = default;
@@ -65,13 +61,13 @@ public:
 	{
 		std::unique_ptr<_Ty> origPtr{ new _Ty{ objectCpyState } };
 
-		auto ptrBase = static_unique_pointer_cast<_BaseTy>(std::move(origPtr));
+		auto ptrBase = Cry::StaticUniquePointerCast<BaseTy>(std::move(origPtr));
 
 		m_mementoList.push_back(std::move(ptrBase));
 	}
 
 private:
-	_Container m_mementoList;
+	Container m_mementoList;
 };
 
 } // namespace AST

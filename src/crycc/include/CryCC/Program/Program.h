@@ -9,6 +9,7 @@
 #pragma once
 
 #include <CryCC/AST/AST.h>
+
 #include <CryCC/Program/ConditionTracker.h>
 #include <CryCC/Program/Stage.h>
 

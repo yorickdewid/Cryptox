@@ -309,6 +309,14 @@ private:
 	std::shared_ptr<ASTNode> m_tree;
 };
 
+} // namespace AST
+} // namespace CryCC
+
+namespace Util
+{
+
+using namespace CryCC::AST;
+
 template<typename NodeType, typename... ArgTypes>
 inline auto MakeASTNode(ArgTypes&&... args)
 {
@@ -317,54 +325,48 @@ inline auto MakeASTNode(ArgTypes&&... args)
 	return ptr;
 }
 
-} // namespace AST
-} // namespace CryCC
-
-namespace Util
-{
-
-template<typename NodeType, typename = typename std::enable_if<std::is_convertible<NodeType, AST::ASTNode>::value
-	|| std::is_same<NodeType, AST::ASTNode>::value>::type>
+template<typename NodeType, typename = typename std::enable_if<std::is_convertible<NodeType, ASTNode>::value
+	|| std::is_same<NodeType, ASTNode>::value>::type>
 bool IsNodeLiteral(const std::shared_ptr<NodeType>& type)
 {
 	//TODO: poor man's solution
 	switch (type->Label())
 	{
-	case AST::NodeID::CHARACTER_LITERAL_ID:
-	case AST::NodeID::STRING_LITERAL_ID:
-	case AST::NodeID::INTEGER_LITERAL_ID:
-	case AST::NodeID::FLOAT_LITERAL_ID:
+	case NodeID::CHARACTER_LITERAL_ID:
+	case NodeID::STRING_LITERAL_ID:
+	case NodeID::INTEGER_LITERAL_ID:
+	case NodeID::FLOAT_LITERAL_ID:
 		return true;
 	}
 
 	return false;
 }
-template<typename NodeType, typename = typename std::enable_if<std::is_convertible<NodeType, AST::ASTNode>::value
-	|| std::is_same<NodeType, AST::ASTNode>::value>::type>
+template<typename NodeType, typename = typename std::enable_if<std::is_convertible<NodeType, ASTNode>::value
+	|| std::is_same<NodeType, ASTNode>::value>::type>
 inline bool IsNodeFunction(const std::shared_ptr<NodeType>& type)
 {
-	return type->Label() == AST::NodeID::FUNCTION_DECL_ID;
+	return type->Label() == NodeID::FUNCTION_DECL_ID;
 }
-template<typename NodeType, typename = typename std::enable_if<std::is_convertible<NodeType, AST::ASTNode>::value
-	|| std::is_same<NodeType, AST::ASTNode>::value>::type>
+template<typename NodeType, typename = typename std::enable_if<std::is_convertible<NodeType, ASTNode>::value
+	|| std::is_same<NodeType, ASTNode>::value>::type>
 inline bool IsNodeTranslationUnit(const std::shared_ptr<NodeType>& type)
 {
-	return type->Label() == AST::NodeID::TRANSLATION_UNIT_DECL_ID;
+	return type->Label() == NodeID::TRANSLATION_UNIT_DECL_ID;
 }
-template<typename NodeType, typename = typename std::enable_if<std::is_convertible<NodeType, AST::ASTNode>::value
-	|| std::is_same<NodeType, AST::ASTNode>::value>::type>
+template<typename NodeType, typename = typename std::enable_if<std::is_convertible<NodeType, ASTNode>::value
+	|| std::is_same<NodeType, ASTNode>::value>::type>
 	inline bool IsNodeCompound(const std::shared_ptr<NodeType>& type)
 {
-	return type->Label() == AST::NodeID::COMPOUND_STMT_ID;
+	return type->Label() == NodeID::COMPOUND_STMT_ID;
 }
 
 template<typename CastNode>
-auto NodeCast(const std::shared_ptr<AST::ASTNode>& node)
+auto NodeCast(const std::shared_ptr<ASTNode>& node)
 {
 	return std::dynamic_pointer_cast<CastNode>(node);
 }
 template<typename CastNode>
-auto NodeCast(const std::weak_ptr<AST::ASTNode>& node)
+auto NodeCast(const std::weak_ptr<ASTNode>& node)
 {
 	if (node.expired()) {
 		throw 1; //TODO: some bad ptr exception

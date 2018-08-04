@@ -452,7 +452,7 @@ inline Valuedef::Value ValueDeductor::ConvertNativeType(std::vector<bool> value)
 namespace Util
 {
 
-using namespace CryCC::Valuedef;
+using namespace CryCC::SubValue::Valuedef;
 
 struct ValueFactory
 {

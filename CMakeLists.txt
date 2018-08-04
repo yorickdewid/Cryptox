@@ -291,7 +291,7 @@ execute_process(
 
 # Project consists of multiple subprojects
 add_subdirectory(src/crywork)
-add_subdirectory(src/cmnval)
+add_subdirectory(src/crycc)
 add_subdirectory(src/coilcex)
 add_subdirectory(src/coilcl)
 add_subdirectory(src/cryevm)

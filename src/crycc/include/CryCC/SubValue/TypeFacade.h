@@ -96,7 +96,7 @@ private:
 namespace Util
 {
 
-using namespace CryCC::Typedef;
+using namespace CryCC::SubValue::Typedef;
 
 inline bool IsVoid(const TypeFacade& other) noexcept
 {

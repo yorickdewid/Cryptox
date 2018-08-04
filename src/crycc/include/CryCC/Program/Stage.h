@@ -35,7 +35,7 @@ struct StageType
 		Emitter,                // Emitter.
 	};
 
-	// Return stage name as string
+	// Return stage name as string.
 	static const char *Print(Type name) noexcept;
 };
 
@@ -51,7 +51,7 @@ public:
 	// Abstract methods for stage implementation.
 	virtual std::string Name() const = 0;
 
-	// The check compatibility method allows the stage to check if the stage is executable
+	// The check compatibility method allows the stage to check if the stage is executable.
 	// with the given profile.
 	virtual StageClass& CheckCompatibility() = 0;
 
@@ -87,7 +87,7 @@ public:
 	{
 	}
 
-	// Move the current stage into the global compiler stage
+	// Move the current stage into the global compiler stage.
 	StageClass& MoveStage() const noexcept
 	{
 		g_compilerStage = m_stageType;
@@ -118,7 +118,7 @@ protected:
 
 	ConditionTracker::Tracker& GetTracker() noexcept { return m_tracker; }
 
-	// Retrieve stage name
+	// Retrieve stage name.
 	inline auto StageName() const noexcept { return StageType::Print(m_stageType); }
 
 private:

@@ -15,7 +15,7 @@ namespace AST
 namespace Trait
 {
 
-// Identifying tag for root nodes
+// Identifying tag for root nodes.
 struct RootNodeTag
 {
 };

@@ -51,17 +51,17 @@ public:
 	UserDataWrapper& operator=(const UserDataWrapper&) = default; //TODO
 	UserDataWrapper& operator=(UserDataWrapper&&) = default;
 
-	// Serialize passthrough
+	// Serialize passthrough.
 	virtual void Serialize() { m_ptr->Serialize(); }
-	// Deserialize passthrough
+	// Deserialize passthrough.
 	virtual void Deserialize() { m_ptr->Deserialize(); }
 
-	// Access internal pointer
+	// Access internal pointer.
 	inline UserDataInterface *operator*() const noexcept { return m_ptr; }
 	inline UserDataInterface *operator->() const noexcept { return m_ptr; }
 	inline UserDataInterface *get() const noexcept { return m_ptr; }
 
-	// Release pointer to caller
+	// Release pointer to caller.
 	UserDataInterface *release() noexcept
 	{
 		auto tmpPtr = m_ptr;

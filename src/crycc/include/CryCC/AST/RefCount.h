@@ -17,7 +17,11 @@ namespace AST
 class RefCount
 {
 public:
-	auto IsUsed() const { return m_useCount > 0; }
+	// Check if object is used.
+	bool IsUsed() const noexcept { return m_useCount > 0; }
+	// Get the object use count.
+	int UseCount() const noexcept { return m_useCount; }
+	// Register object as being used one more.
 	void RegisterCaller() { ++m_useCount; }
 
 protected:
