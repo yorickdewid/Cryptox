@@ -12,9 +12,9 @@
 
 #ifdef _WIN32
 # define CRY_WINDOWS 1
-#ifdef _WIN64
-# define CRY_WINDOWS64 1
-#else
+# ifdef _WIN64
+#  define CRY_WINDOWS64 1
+# else
 # define CRY_WINDOWS32 1
 #endif
 #elif __APPLE__

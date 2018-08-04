@@ -33,10 +33,6 @@ add_library(${PROJECT_NAME} SHARED
 	${${PROJECT_NAME}_h}
 	${${PROJECT_NAME}_rel}
     ${${PROJECT_NAME}_res}
-	"../coilcl/src/Valuedef.cpp"
-	"../coilcl/src/Typedef.cpp"
-	"../coilcl/src/TypeFacade.cpp"
-	"../coilcl/src/RecordValue.cpp"
 )
 
 # Define output directories
@@ -47,6 +43,11 @@ set_target_properties(${PROJECT_NAME}
     ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
     LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
     RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
+)
+
+target_link_libraries(${PROJECT_NAME}
+	CryCC
+	${Boost_LIBRARIES}
 )
 
 # Set project options
