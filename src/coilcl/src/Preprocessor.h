@@ -9,14 +9,15 @@
 #pragma once
 
 #include "Profile.h"
-#include "Stage.h"
 #include "Tokenizer.h"
+
+#include <CryCC/Program.h>
+
+#include <boost/optional.hpp>
 
 #include <map>
 #include <deque>
 #include <functional>
-
-#include <boost/optional.hpp>
 
 namespace CoilCl
 {
@@ -27,6 +28,8 @@ namespace LocalMethod
 class AbstractDirective;
 
 } // namespace LocalMethod
+
+//TODO: Move into interface file
 
 // TokenProcessor interface is an interface which all 
 // preprocessors must implement. The calling proxies
@@ -56,7 +59,7 @@ struct TokenProcessor
 		}
 
 		//
-		// Query properties
+		// Query properties.
 		//
 
 		inline bool HasToken() const { return m_token.is_initialized(); }
@@ -66,7 +69,7 @@ struct TokenProcessor
 		inline bool HasDataChanged() const noexcept { return dataChangeCounter; }
 
 		//
-		// Reset values
+		// Reset values.
 		//
 
 		inline void ResetToken() { m_token = boost::none; }
@@ -140,11 +143,11 @@ struct TokenProcessor
 // methods. The preprocessor will fan any of the directives
 // towards specialized structures via a factory.
 class Preprocessor
-	: public Stage<Preprocessor>
+	: public CryCC::Program::Stage<Preprocessor>
 	, public TokenProcessor
 {
 public:
-	Preprocessor(std::shared_ptr<CoilCl::Profile>&, ConditionTracker::Tracker);
+	Preprocessor(std::shared_ptr<CoilCl::Profile>&, CryCC::Program::ConditionTracker::Tracker);
 
 	// Implement stage interface
 	virtual std::string Name() const { return "Preprocessor"; }

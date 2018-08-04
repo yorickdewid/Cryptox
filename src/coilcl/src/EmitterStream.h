@@ -8,8 +8,11 @@
 
 #pragma once
 
+#include <Cry/Cry.h>
+
 #include <iostream>
 #include <iomanip>
+#include <vector>
 
 namespace CoilCl
 {

@@ -8,18 +8,19 @@
 
 #pragma once
 
+// Local includes.
 #include "Profile.h"
-#include "Stage.h"
-#include "AST.h"
-#include "ASTNode.h"
-//#include "Optimizer.h"
+
+// Project includes.
+#include <CryCC/AST.h>
+#include <CryCC/Program.h>
 
 #include <map>
 
 namespace CoilCl
 {
 
-template<typename _Ty>
+template<typename Type>
 class Stash
 {
 public:
@@ -27,7 +28,7 @@ public:
 	void Enlist(_STy& type)
 	{
 		using shared_type = typename _STy::element_type;
-		m_stash.push_back(static_cast<std::weak_ptr<_Ty>>(std::weak_ptr<shared_type>(type)));
+		m_stash.push_back(static_cast<std::weak_ptr<Type>>(std::weak_ptr<shared_type>(type)));
 	}
 
 	template<typename _DeclTy,
@@ -53,13 +54,13 @@ public:
 	}
 
 private:
-	std::vector<std::weak_ptr<_Ty>> m_stash;
+	std::vector<std::weak_ptr<Type>> m_stash;
 };
 
-class Semer : public Stage<Semer>
+class Semer : public CryCC::Program::Stage<Semer>
 {
 public:
-	Semer(std::shared_ptr<CoilCl::Profile>& profile, AST::AST&& ast, ConditionTracker::Tracker&);
+	Semer(std::shared_ptr<CoilCl::Profile>& profile, CryCC::AST::AST&& ast, CryCC::Program::ConditionTracker::Tracker&);
 
 	std::string Name() const { return "Semer"; }
 
@@ -77,7 +78,7 @@ public:
 	template<typename _MapTy>
 	Semer& ExtractSymbols(_MapTy& map)
 	{
-		auto callback = [&map](const std::string name, const std::shared_ptr<CoilCl::AST::ASTNode>& node)
+		auto callback = [&map](const std::string name, const std::shared_ptr<CryCC::AST::ASTNode>& node)
 		{
 			map[name] = node;
 		};
@@ -94,7 +95,7 @@ private:
 	void DeduceTypes();
 	void CheckDataType();
 	void IllFormedConstruction();
-	void FuncToSymbol(std::function<void(const std::string, const std::shared_ptr<CoilCl::AST::ASTNode>& node)>);
+	void FuncToSymbol(std::function<void(const std::string, const std::shared_ptr<CryCC::AST::ASTNode>& node)>);
 
 	inline void ClearnInternalState()
 	{
@@ -102,9 +103,9 @@ private:
 	}
 
 private:
-	AST::AST m_ast;
-	Stash<CoilCl::AST::ASTNode> m_resolvStash;
-	std::map<UniqueObj::unique_type, std::map<std::string, std::shared_ptr<CoilCl::AST::ASTNode>>> m_resolveList;
+	CryCC::AST::AST m_ast;
+	Stash<CryCC::AST::ASTNode> m_resolvStash;
+	std::map<CryCC::AST::UniqueObj::UniqueType, std::map<std::string, std::shared_ptr<CryCC::AST::ASTNode>>> m_resolveList;
 	std::shared_ptr<CoilCl::Profile> m_profile;
 };
 

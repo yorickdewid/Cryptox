@@ -10,7 +10,6 @@
 
 #include "Lexer.h"
 #include "Preprocessor.h"
-#include "IntrusiveScopedPtr.h"
 
 #include <set>
 
@@ -20,12 +19,12 @@ namespace CoilCl
 // TODO: move into header
 enum PreprocessorToken
 {
-	//TODO: add preprocessor token
+	//TODO: add preprocessor token.
 	TK_PREPROCESS = 35, // #
 	TK_LINE_CONT = 36,  // \.
 	TK_LINE_NEW = 37,   // \n
 
-	// Keywords
+	// Keywords.
 	TK_PP_INCLUDE = 100, // include
 	TK_PP_DEFINE = 101,  // define
 	TK_PP_DEFINED = 102, // defined
@@ -40,7 +39,7 @@ enum PreprocessorToken
 	TK_PP_WARNING = 111, // warning
 	TK_PP_ERROR = 112,   // error
 
-	// Compiler translation
+	// Compiler translation.
 	TK___LINE__ = 390,
 	TK___FILE__ = 391,
 };
@@ -57,7 +56,8 @@ struct DirectiveKeyword
 	{
 	}
 
-	// Return token as string
+	//TODO: Cry::ToString()
+	// Return token as string.
 	std::string Print();
 
 private:
@@ -84,7 +84,7 @@ protected:
 
 public:
 	template<typename... ArgTypes>
-	TokenProcessorProxy(std::shared_ptr<Profile>&, ConditionTracker::Tracker&, ArgTypes&&...);
+	TokenProcessorProxy(std::shared_ptr<Profile>&, CryCC::Program::ConditionTracker::Tracker&, ArgTypes&&...);
 
 	// Connection between scanner and token processor.
 	int operator()(std::function<int()>,
@@ -97,15 +97,15 @@ public:
 };
 
 // The directive scanner is an extension on the default lexer
-// and adds tokens and opertions to allow macro expansions
+// and adds tokens and opertions to allow macro expansions.
 class DirectiveScanner : public Lexer
 {
 	TokenProcessorProxy<Preprocessor> m_proxy;
 
 public:
-	DirectiveScanner(std::shared_ptr<Profile>&, ConditionTracker::Tracker&);
+	DirectiveScanner(std::shared_ptr<Profile>&, CryCC::Program::ConditionTracker::Tracker&);
 
-	// Push machine state forward
+	// Push machine state forward.
 	virtual int Lex() override;
 
 private:

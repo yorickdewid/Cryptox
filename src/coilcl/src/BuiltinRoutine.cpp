@@ -7,19 +7,20 @@
 // copied and/or distributed without the express of the author.
 
 #include "BuiltinRoutine.h"
-#include "AST.h"
 
 namespace CoilCl
 {
 namespace BuiltinRoutine
 {
 
+using namespace CryCC::AST;
+
 BUILTIN_ROUTINE_IMPL(sizeof)
 {
 	// If expression, evaluate and inject the result in the tree.
 	if (builtinExpr->HasExpression()) {
 		auto expr = builtinExpr->Expression();
-		if (expr->Label() == AST::NodeID::PAREN_EXPR_ID) {
+		if (expr->Label() == NodeID::PAREN_EXPR_ID) {
 			assert(Util::NodeCast<ParenExpr>(expr)->HasExpression());
 			expr = Util::NodeCast<ParenExpr>(expr)->Expression();
 		}
@@ -35,13 +36,13 @@ BUILTIN_ROUTINE_IMPL(sizeof)
 
 	// Replace static builtin operation with integer result.
 	auto m_data = Util::MakeInt(static_cast<int>(builtinExpr->TypeName().Size()));
-	auto literal = AST::MakeASTNode<IntegerLiteral>(std::move(m_data));
+	auto literal = Util::MakeASTNode<IntegerLiteral>(std::move(m_data));
 
 	// Emplace current object on existing.
 	if (auto parent = builtinExpr->Parent().lock()) {
 		const auto parentChildren = parent->Children();
 
-		auto selfListItem = std::find_if(parentChildren.cbegin(), parentChildren.cend(), [=](const std::weak_ptr<CoilCl::AST::ASTNode>& wPtr)
+		auto selfListItem = std::find_if(parentChildren.cbegin(), parentChildren.cend(), [=](const std::weak_ptr<ASTNode>& wPtr)
 		{
 			return wPtr.lock() == builtinExpr;
 		});

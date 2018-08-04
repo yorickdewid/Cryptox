@@ -8,9 +8,12 @@
 
 #pragma once
 
+// Local includes.
 #include "Profile.h"
-#include "Stage.h"
-#include "AST.h"
+
+// Project includes.
+#include <CryCC/Program.h>
+#include <CryCC/AST.h>
 
 namespace CoilCl
 {
@@ -19,19 +22,19 @@ namespace CoilCl
 // - Remove unused code
 // - Calculate constants
 
-class Optimizer : public Stage<Optimizer>
+class Optimizer : public CryCC::Program::Stage<Optimizer>
 {
 public:
-	Optimizer(std::shared_ptr<CoilCl::Profile>& profile, AST::AST&& ast, ConditionTracker::Tracker&);
+	Optimizer(std::shared_ptr<CoilCl::Profile>& profile, CryCC::AST::AST&& ast, CryCC::Program::ConditionTracker::Tracker&);
 
-	std::string Name() const { return "Optimizer"; }
+	std::string Name() const noexcept { return "Optimizer"; }
 
 	Optimizer& CheckCompatibility();
 	Optimizer& TrivialReduction();
 	Optimizer& DeepInflation();
 
 private:
-	AST::AST m_ast;
+	CryCC::AST::AST m_ast;
 	std::shared_ptr<CoilCl::Profile> m_profile;
 };
 

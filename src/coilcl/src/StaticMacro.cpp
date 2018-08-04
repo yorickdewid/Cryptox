@@ -7,7 +7,8 @@
 // copied and/or distributed without the express of the author.
 
 #include "Preprocessor.h"
-#include "ValueHelper.h"
+
+#include <CryCC/SubValue.h>
 
 #include <cassert>
 

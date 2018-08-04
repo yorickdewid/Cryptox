@@ -10,7 +10,12 @@
 #include "Lexer.h"
 #include "DirectiveScanner.h"
 
-using namespace CoilCl;
+#include <CryCC/Program.h>
+
+using namespace CryCC::Program;
+
+namespace CoilCl
+{
 
 Frontend::Frontend(std::shared_ptr<CoilCl::Profile>& profile, ConditionTracker::Tracker& tracker)
 	: Stage{ this, StageType::Type::Frontend, tracker }
@@ -29,3 +34,5 @@ TokenizerPtr Frontend::SelectTokenizer()
 	this->CompletePhase(ConditionTracker::DETECTION);
 	return std::make_shared<DirectiveScanner>(m_profile, GetTracker());
 }
+
+} // namespace CoilCl

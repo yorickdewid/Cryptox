@@ -19,6 +19,9 @@ include(ProjectPrep)
 option(${Cryptox_ID}_CIL_BUILD_INTERPRETER "Build with interpreter support" ON)
 option(${Cryptox_ID}_CIL_BUILD_ASM "Build with ASM support" ON)
 
+# External includes
+include_directories(${CryCC_INCLUDE_DIRS})
+
 add_library(${PROJECT_NAME} SHARED
 	${${PROJECT_NAME}_src}
 	${${PROJECT_NAME}_h}
@@ -34,6 +37,11 @@ set_target_properties(${PROJECT_NAME}
     ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
     LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
     RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
+)
+
+target_link_libraries(${PROJECT_NAME}
+	CryCC
+	${Boost_LIBRARIES}
 )
 
 # Set project options

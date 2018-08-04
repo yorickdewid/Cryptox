@@ -8,9 +8,11 @@
 
 #pragma once
 
-#include "Cry/Except.h"
+// Project includes.
+#include <CryCC/AST.h>
 
-#include "AST.h"
+// Framework includes.
+#include <Cry/Except.h>
 
 namespace CoilCl
 {
@@ -19,17 +21,19 @@ namespace Emit
 namespace Sequencer
 {
 
+using namespace CryCC::AST;
+
 class Interface
 {
 public:
-	// Execute the sequencer
-	virtual void Execute(AST::AST) = 0;
+	// Execute the sequencer.
+	virtual void Execute(AST) = 0;
 };
 
 class CASM : public Interface
 {
 public:
-	virtual void Execute(AST::AST)
+	virtual void Execute(AST)
 	{
 		throw Cry::Except::NotImplementedException{ "CASM::Execute" };
 	}
@@ -39,7 +43,7 @@ class AIIPX : public Interface
 {
 	using IOCallback = std::function<void(uint8_t *data, size_t sz)>;
 
-	// Input/Output stream callbacks
+	// Input/Output stream callbacks.
 	IOCallback m_outputCallback;
 	IOCallback m_inputCallback;
 
@@ -50,16 +54,16 @@ public:
 	{
 	}
 
-	// Implement interface
-	virtual void Execute(AST::AST tree)
+	// Implement interface.
+	virtual void Execute(AST tree)
 	{
 		PackAST(tree);
 	}
 
-	// Convert tree into output stream
-	void PackAST(AST::AST);
-	// Convert input stream into tree
-	void UnpackAST(AST::AST&);
+	// Convert tree into output stream.
+	void PackAST(AST);
+	// Convert input stream into tree.
+	void UnpackAST(AST&);
 };
 
 } // namespace Sequencer

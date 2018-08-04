@@ -8,10 +8,13 @@
 
 #pragma once
 
+// Local includes.
 #include "Profile.h"
-#include "Stage.h"
 #include "Program.h"
 #include "Tokenizer.h"
+
+// Project includes.
+#include <CryCC/Program.h>
 
 namespace CoilCl
 {
@@ -19,10 +22,10 @@ namespace CoilCl
 // Based on the input and meta provided by the profile, the
 // frontend will select the necessary stages. Incompatible options
 // should be detected right away and reported back to the user
-class Frontend : public Stage<Frontend>
+class Frontend : public CryCC::Program::Stage<Frontend>
 {
 public:
-	Frontend(std::shared_ptr<CoilCl::Profile>&, ConditionTracker::Tracker&);
+	Frontend(std::shared_ptr<CoilCl::Profile>&, CryCC::Program::ConditionTracker::Tracker&);
 
 	// Implement interface
 	virtual std::string Name() const { return "Frontend"; }

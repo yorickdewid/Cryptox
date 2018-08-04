@@ -6,38 +6,43 @@
 // that can be found in the LICENSE file. Content can not be 
 // copied and/or distributed without the express of the author.
 
+// Local includes.
+#include "Semer.h"
+#include "BuiltinRoutine.h"
+
+// Project includes.
+#include <CryCC/AST.h>
+
 #include <Cry/Algorithm.h>
 
 #include <boost/format.hpp>
-
-#include "Semer.h"
-#include "ValueHelper.h"
-#include "Converter.h"
-#include "BuiltinRoutine.h"
 
 #define PTR_NATIVE(p) (*(p).get())
 
 // Global definitions occupy index 0 in the definitions list.
 #define GLOBAL_DEFS	0
 
-using namespace Cry::Algorithm;
-
 class SemanticException;
+
+namespace
+{
 
 // Inject implicit cast with converter.
 template<size_t Idx = 0, typename ConvertType, typename ParentType, typename ChildType>
 void InjectConverter(std::shared_ptr<ParentType> parent, std::shared_ptr<ChildType> child, ConvertType baseType, ConvertType initType)
 {
 	try {
-		Conv::Cast::Tag methodTag = Conv::Cast::Transmute(baseType, initType);
-		auto converter = AST::MakeASTNode<ImplicitConvertionExpr>(child, methodTag);
+		CryCC::SubValue::Conv::Cast::Tag methodTag = CryCC::SubValue::Conv::Cast::Transmute(baseType, initType);
+		auto converter = Util::MakeASTNode<ImplicitConvertionExpr>(child, methodTag);
 		converter->SetReturnType(baseType);
 		parent->Emplace(Idx, converter);
 	}
-	catch (Conv::ConverterException& e) {
+	catch (CryCC::SubValue::Conv::ConverterException& e) {
 		throw SemanticException{ e.what(), 0, 0 };
 	}
 }
+
+} // namespace
 
 //TODO: replace by Cry::except...
 class NotImplementedException : public std::runtime_error
@@ -97,7 +102,14 @@ private:
 	int m_column;
 };
 
-CoilCl::Semer::Semer(std::shared_ptr<CoilCl::Profile>& profile, AST::AST&& ast, ConditionTracker::Tracker& tracker)
+namespace CoilCl
+{
+
+using namespace Cry::Algorithm;
+using namespace CryCC::Program;
+using namespace CryCC::AST;
+
+Semer::Semer(std::shared_ptr<CoilCl::Profile>& profile, AST&& ast, ConditionTracker::Tracker& tracker)
 	: Stage{ this, StageType::Type::SemanticAnalysis, tracker }
 	, m_profile{ profile }
 	, m_ast{ std::move(ast) }
@@ -110,13 +122,14 @@ CoilCl::Semer& CoilCl::Semer::CheckCompatibility()
 	return (*this);
 }
 
+//TODO: move into AST:: ?
 namespace
 {
 
-template<typename NodeType>
-std::shared_ptr<NodeType> Closest(std::shared_ptr<CoilCl::AST::ASTNode>& node)
+template<typename NodeType, typename = typename std::enable_if<IsASTNode<NodeType>::value>::type>
+std::shared_ptr<NodeType> Closest(std::shared_ptr<ASTNode>& node)
 {
-	AST::Compare::Equal<NodeType> eqOp;
+	Compare::Equal<NodeType> eqOp;
 	if (auto parent = node->Parent().lock()) {
 		if (!eqOp(PTR_NATIVE(parent))) {
 			return Closest<NodeType>(parent);
@@ -133,7 +146,7 @@ template<size_t Idx = 0, typename ParentNode, typename ChildNode>
 void IsConversionRequired(std::shared_ptr<ParentNode> parent, std::shared_ptr<ChildNode> child)
 {
 	// Skip if an converter is already injected.
-	if (AST::NodeID::IMPLICIT_CONVERTION_EXPR_ID == child->Label()) { return; }
+	if (NodeID::IMPLICIT_CONVERTION_EXPR_ID == child->Label()) { return; }
 
 	auto retBase = std::dynamic_pointer_cast<Returnable>(parent);
 	auto retInit = std::dynamic_pointer_cast<Returnable>(child);
@@ -152,7 +165,7 @@ void IsConversionRequired(std::shared_ptr<ParentNode> parent, std::shared_ptr<Ch
 template<typename ParentNode, typename ChildNode>
 void SetConversion(std::shared_ptr<ParentNode> parent, std::shared_ptr<ChildNode> child)
 {
-	assert(AST::NodeID::CAST_EXPR_ID == parent->Label());
+	assert(NodeID::CAST_EXPR_ID == parent->Label());
 
 	auto retBase = std::dynamic_pointer_cast<Returnable>(parent);
 	auto retInit = std::dynamic_pointer_cast<Returnable>(child);
@@ -161,9 +174,9 @@ void SetConversion(std::shared_ptr<ParentNode> parent, std::shared_ptr<ChildNode
 		const Typedef::TypeFacade& initType = retInit->ReturnType();
 
 		assert(baseType.HasValue() && initType.HasValue());
-		Conv::Cast::Tag m_tag = Conv::Cast::Tag::NONE_CAST;
+		CryCC::SubValue::Conv::Cast::Tag m_tag = CryCC::SubValue::Conv::Cast::Tag::NONE_CAST;
 		if (baseType != initType) {
-			m_tag = Conv::Cast::Transmute(baseType, initType);
+			m_tag = CryCC::SubValue::Conv::Cast::Transmute(baseType, initType);
 		}
 
 		parent->SetConverterOperation(m_tag);
@@ -175,7 +188,7 @@ void SetConversion(std::shared_ptr<ParentNode> parent, std::shared_ptr<ChildNode
 // Run all semantic checks that defines the language,
 // this comprises type checking, object scope validation,
 // implicit casting and identifier resolving.
-CoilCl::Semer& CoilCl::Semer::PreliminaryAssert()
+Semer& Semer::PreliminaryAssert()
 {
 	//
 	// Annotate tree.
@@ -206,9 +219,9 @@ CoilCl::Semer& CoilCl::Semer::PreliminaryAssert()
 	this->m_resolveList[GLOBAL_DEFS][r] = nullptr;
 
 // Resolve all static expresions, and remove the result with the call.
-void CoilCl::Semer::StaticResolve()
+void Semer::StaticResolve()
 {
-	AST::Compare::Equal<BuiltinExpr> eqOp;
+	Compare::Equal<BuiltinExpr> eqOp;
 	MatchIf(m_ast.begin(), m_ast.end(), eqOp, [](AST::AST::iterator itr)
 	{
 		auto builtinExpr = Util::NodeCast<BuiltinExpr>(itr.shared_ptr());
@@ -223,9 +236,9 @@ void CoilCl::Semer::StaticResolve()
 	this->CompletePhase(ConditionTracker::STATIC_RESOLVED);
 }
 
-void CoilCl::Semer::FuncToSymbol(std::function<void(const std::string, const std::shared_ptr<CoilCl::AST::ASTNode>& node)> insert)
+void Semer::FuncToSymbol(std::function<void(const std::string, const std::shared_ptr<ASTNode>& node)> insert)
 {
-	AST::Compare::Equal<FunctionDecl> eqOp;
+	Compare::Equal<FunctionDecl> eqOp;
 	MatchIf(m_ast.begin(), m_ast.end(), eqOp, [&insert](AST::AST::iterator itr)
 	{
 		auto func = Util::NodeCast<FunctionDecl>(itr.shared_ptr());
@@ -239,15 +252,15 @@ void CoilCl::Semer::FuncToSymbol(std::function<void(const std::string, const std
 
 // Extract identifiers from declarations and stash them per scoped block.
 // All declaration nodes have an identifier, which could be empty.
-void CoilCl::Semer::NamedDeclaration()
+void Semer::NamedDeclaration()
 {
 	RESERVE_BUILTIN_ROUTINE("sizeof");
 	RESERVE_BUILTIN_ROUTINE("static_assert");
 
 	//FUTURE: Hook in known indentifiers and show warning if they are not defined.
 
-	AST::Compare::Equal<TranslationUnitDecl> traunOp;
-	AST::Compare::Derived<Decl> drivdOp;
+	Compare::Equal<TranslationUnitDecl> traunOp;
+	Compare::Derived<Decl> drivdOp;
 	MatchIf(m_ast.begin(), m_ast.end(), drivdOp, [&traunOp, this](AST::AST::iterator itr)
 	{
 		auto node = itr.shared_ptr();
@@ -278,9 +291,9 @@ void CoilCl::Semer::NamedDeclaration()
 	});
 }
 
-void CoilCl::Semer::ResolveIdentifier()
+void Semer::ResolveIdentifier()
 {
-	AST::Compare::Equal<DeclRefExpr> eqOp;
+	Compare::Equal<DeclRefExpr> eqOp;
 	MatchIf(m_ast.begin(), m_ast.end(), eqOp, [=](AST::AST::iterator itr)
 	{
 		boost::format semfmt{ "use of undeclared identifier '%1%'" };
@@ -332,10 +345,10 @@ void CoilCl::Semer::ResolveIdentifier()
 	});
 }
 
-void CoilCl::Semer::BindPrototype()
+void Semer::BindPrototype()
 {
-	AST::Compare::Equal<FunctionDecl> eqOp;
-	Stash<CoilCl::AST::ASTNode> m_resolFuncProto;
+	Compare::Equal<FunctionDecl> eqOp;
+	Stash<ASTNode> m_resolFuncProto;
 
 	MatchIf(m_ast.begin(), m_ast.end(), eqOp, [&m_resolFuncProto](AST::AST::iterator itr)
 	{
@@ -361,11 +374,11 @@ void CoilCl::Semer::BindPrototype()
 // Determine and set the return types and signatures for expressions,
 // operators and functions based on connected nodes. The order of processing
 // is important as returnable objects are processed from the bottom up.
-void CoilCl::Semer::DeduceTypes()
+void Semer::DeduceTypes()
 {
 	// Set signature in function definition.
-	AST::Compare::Equal<FunctionDecl> eqOp;
-	AST::Compare::Equal<VariadicDecl> eqVaria;
+	Compare::Equal<FunctionDecl> eqOp;
+	Compare::Equal<VariadicDecl> eqVaria;
 	MatchIf(m_ast.begin(), m_ast.end(), eqOp, [&eqVaria](AST::AST::iterator itr)
 	{
 		std::vector<Typedef::TypeFacade> paramTypeList;
@@ -392,7 +405,7 @@ void CoilCl::Semer::DeduceTypes()
 	});
 
 	// Set return type on call expression.
-	AST::Compare::Equal<CallExpr> eqCall;
+	Compare::Equal<CallExpr> eqCall;
 	MatchIf(m_ast.begin(), m_ast.end(), eqCall, [](AST::AST::iterator itr)
 	{
 		auto call = Util::NodeCast<CallExpr>(itr.shared_ptr());
@@ -407,7 +420,7 @@ void CoilCl::Semer::DeduceTypes()
 	});
 
 	// Set return type on list initializers.
-	AST::Compare::Equal<InitListExpr> eqList;
+	Compare::Equal<InitListExpr> eqList;
 	MatchIf(m_ast.begin(), m_ast.end(), eqList, [](AST::AST::iterator itr)
 	{
 		auto list = Util::NodeCast<InitListExpr>(itr.shared_ptr());
@@ -431,7 +444,7 @@ void CoilCl::Semer::DeduceTypes()
 	});
 
 	// Set return type on array accessor.
-	AST::Compare::Equal<ArraySubscriptExpr> eqArr;
+	Compare::Equal<ArraySubscriptExpr> eqArr;
 	MatchIf(m_ast.begin(), m_ast.end(), eqArr, [](AST::AST::iterator itr)
 	{
 		auto subscr = Util::NodeCast<ArraySubscriptExpr>(itr.shared_ptr());
@@ -446,7 +459,7 @@ void CoilCl::Semer::DeduceTypes()
 	});
 
 	// Set return type on enum declaration variable.
-	AST::Compare::Derived<EnumConstantDecl> enumOp;
+	Compare::Derived<EnumConstantDecl> enumOp;
 	MatchIf(m_ast.begin(), m_ast.end(), enumOp, [](AST::AST::iterator itr)
 	{
 		auto enumDecl = Util::NodeCast<EnumConstantDecl>(itr.shared_ptr());
@@ -477,13 +490,13 @@ void CoilCl::Semer::DeduceTypes()
 
 	// Set return type on operators and delegate type down the tree. The operator type
 	// is deducted from the first expression with an return type.
-	AST::Compare::Derived<Operator> drvOp;
+	Compare::Derived<Operator> drvOp;
 	MatchIf(m_ast.begin(), m_ast.end(), drvOp, [](AST::AST::iterator itr)
 	{
 		auto opr = Util::NodeCast<Operator>(itr.shared_ptr());
 
-		AST::AST delegate{ opr };
-		AST::Compare::Derived<Returnable> drvRet;
+		AST delegate{ opr };
+		Compare::Derived<Returnable> drvRet;
 		MatchIf(delegate.begin(), delegate.end(), drvRet, [&opr](AST::AST::iterator del_itr)
 		{
 			auto retType = Util::NodeCast<Returnable>(del_itr.shared_ptr());
@@ -496,13 +509,13 @@ void CoilCl::Semer::DeduceTypes()
 	});
 
 	// Set return type on call expression.
-	AST::Compare::Equal<ParenExpr> eqExpr;
+	Compare::Equal<ParenExpr> eqExpr;
 	MatchIf(m_ast.begin(), m_ast.end(), eqExpr, [](AST::AST::iterator itr)
 	{
 		auto paren = Util::NodeCast<ParenExpr>(itr.shared_ptr());
 
-		AST::AST delegate{ paren };
-		AST::Compare::Derived<Returnable> drvRet;
+		AST delegate{ paren };
+		Compare::Derived<Returnable> drvRet;
 		MatchIf(delegate.begin(), delegate.end(), drvRet, [&paren](AST::AST::iterator del_itr)
 		{
 			auto retType = Util::NodeCast<Returnable>(del_itr.shared_ptr());
@@ -515,7 +528,7 @@ void CoilCl::Semer::DeduceTypes()
 	});
 
 	// Inject a type converter for explicit cast.
-	AST::Compare::Equal<CastExpr> eqCast;
+	Compare::Equal<CastExpr> eqCast;
 	MatchIf(m_ast.begin(), m_ast.end(), eqCast, [](AST::AST::iterator itr)
 	{
 		auto cast = Util::NodeCast<CastExpr>(itr.shared_ptr());
@@ -524,7 +537,7 @@ void CoilCl::Semer::DeduceTypes()
 
 	//TODO: remove RecordDecl from tree after conversion.
 	// Convert record declaration into record type and set the type as return type.
-	AST::Compare::Equal<RecordDecl> eqRec;
+	Compare::Equal<RecordDecl> eqRec;
 	MatchIf(m_ast.begin(), m_ast.end(), eqRec, [this](AST::AST::iterator itr)
 	{
 		auto recordDecl = Util::NodeCast<RecordDecl>(itr.shared_ptr());
@@ -542,7 +555,7 @@ void CoilCl::Semer::DeduceTypes()
 		//TODO: only current valdecl scope
 		//TODO: does not continue loop
 		// Set return type on every declaration using the record declaration.
-		AST::Compare::Equal<VarDecl> eqVal;
+		Compare::Equal<VarDecl> eqVal;
 		MatchIf(m_ast.begin(), m_ast.end(), eqVal, [&recordDecl, &recordType](AST::AST::iterator rec_itr)
 		{
 			auto retType = Util::NodeCast<Returnable>(rec_itr.shared_ptr());
@@ -562,10 +575,10 @@ void CoilCl::Semer::DeduceTypes()
 // Check if all datatypes are convertible and inject type conversions in the tree
 // when two types can be casted. This method should only perform readonly operations
 // on the tree.
-void CoilCl::Semer::CheckDataType()
+void Semer::CheckDataType()
 {
 	// Compare function with its prototype, if exist.
-	AST::Compare::Equal<FunctionDecl> eqFuncOp;
+	Compare::Equal<FunctionDecl> eqFuncOp;
 	MatchIf(m_ast.begin(), m_ast.end(), eqFuncOp, [](AST::AST::iterator itr)
 	{
 		auto func = Util::NodeCast<FunctionDecl>(itr.shared_ptr());
@@ -585,7 +598,7 @@ void CoilCl::Semer::CheckDataType()
 	});
 
 	// Match function signature with caller.
-	AST::Compare::Equal<CallExpr> eqCallOp;
+	Compare::Equal<CallExpr> eqCallOp;
 	MatchIf(m_ast.begin(), m_ast.end(), eqCallOp, [](AST::AST::iterator itr)
 	{
 		auto call = Util::NodeCast<CallExpr>(itr.shared_ptr());
@@ -599,7 +612,7 @@ void CoilCl::Semer::CheckDataType()
 
 		auto arguments = call->HasArguments()
 			? call->ArgumentStatement()->Children()
-			: std::vector<std::weak_ptr<AST::ASTNode>>{};
+			: std::vector<std::weak_ptr<ASTNode>>{};
 
 		// Make an exception for variadic argument.
 		bool canHaveTooMany = true;
@@ -618,7 +631,7 @@ void CoilCl::Semer::CheckDataType()
 
 	//FUTURE: Check if list item can be converted to item type.
 	// Test if all the list items have the same datatype.
-	AST::Compare::Equal<InitListExpr> eqList;
+	Compare::Equal<InitListExpr> eqList;
 	MatchIf(m_ast.begin(), m_ast.end(), eqList, [](AST::AST::iterator itr)
 	{
 		auto list = Util::NodeCast<InitListExpr>(itr.shared_ptr());
@@ -634,7 +647,7 @@ void CoilCl::Semer::CheckDataType()
 
 	//TODO: move to DeduceTypes?
 	// Inject type converter in vardecl.
-	AST::Compare::Equal<VarDecl> eqVar;
+	Compare::Equal<VarDecl> eqVar;
 	MatchIf(m_ast.begin(), m_ast.end(), eqVar, [](AST::AST::iterator itr)
 	{
 		auto decl = Util::NodeCast<VarDecl>(itr.shared_ptr());
@@ -648,7 +661,7 @@ void CoilCl::Semer::CheckDataType()
 
 	//TODO: move to DeduceTypes?
 	// Inject type converter in operator.
-	AST::Compare::Derived<BinaryOperator> eqOp;
+	Compare::Derived<BinaryOperator> eqOp;
 	MatchIf(m_ast.begin(), m_ast.end(), eqOp, [](AST::AST::iterator itr)
 	{
 		enum
@@ -682,7 +695,7 @@ void CoilCl::Semer::CheckDataType()
 
 	//TODO: move to DeduceTypes?
 	// Check function return type.
-	AST::Compare::Equal<ReturnStmt> eqRet;
+	Compare::Equal<ReturnStmt> eqRet;
 	MatchIf(m_ast.begin(), m_ast.end(), eqRet, [&eqFuncOp](AST::AST::iterator itr)
 	{
 		auto node = itr.shared_ptr();
@@ -710,7 +723,7 @@ void CoilCl::Semer::CheckDataType()
 
 		// Return type must be either operator, expression or literal.
 		const auto intializer = stmt->Expression();
-		AST::Compare::MultiDerive<Operator, Expr, Literal> baseNodeOp;
+		Compare::MultiDerive<Operator, Expr, Literal> baseNodeOp;
 		if (!baseNodeOp(PTR_NATIVE(intializer))) {
 			throw SemanticException{ "expected operator, expression or literal", 0, 0 };
 		}
@@ -719,18 +732,20 @@ void CoilCl::Semer::CheckDataType()
 	});
 }
 
-void CoilCl::Semer::IllFormedConstruction()
+void Semer::IllFormedConstruction()
 {
 	//
 }
 
-CoilCl::Semer& CoilCl::Semer::StandardCompliance()
+Semer& CoilCl::Semer::StandardCompliance()
 {
 	this->CompletePhase(ConditionTracker::COMPLIANT);
 	return (*this);
 }
 
-CoilCl::Semer& CoilCl::Semer::PedanticCompliance()
+Semer& CoilCl::Semer::PedanticCompliance()
 {
 	return (*this);
 }
+
+} // namespace CoilCl

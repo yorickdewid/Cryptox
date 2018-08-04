@@ -11,10 +11,9 @@
 
 #include "Preprocessor.h"
 #include "DirectiveScanner.h" //TODO: remove, only used for tokens
-#include "IntrusiveScopedPtr.h"
 
-#include "Cry/Config.h"
 #include <Cry/Cry.h>
+#include <Cry/Config.h>
 #include <Cry/ByteOrder.h>
 
 #include <boost/logic/tribool.hpp>
@@ -43,6 +42,7 @@
 #undef Yield
 
 using namespace CoilCl;
+using namespace CryCC::SubValue::Typedef;
 
 namespace CoilCl
 {
@@ -70,6 +70,7 @@ static const std::map<std::string, std::function<TokenProcessor::DataType()>> g_
 	{ "__COUNTER__", CoilCl::MacroHelper::DynamicGlobalCounter },
 };
 
+//TODO: move into cry/Algorithm
 namespace Cry
 {
 namespace Algorithm
@@ -518,14 +519,14 @@ class ConditionalStatement : public AbstractDirective
 			case TK_CONSTANT:
 			{
 				assert(it->HasData());
-				switch (it->Data().Type().DataType<CoilCl::Typedef::BuiltinType>()->TypeSpecifier()) {
-				case CoilCl::Typedef::BuiltinType::Specifier::INT:
+				switch (it->Data().Type().DataType<BuiltinType>()->TypeSpecifier()) {
+				case BuiltinType::Specifier::INT:
 				{
 					stack[0] = it->Data().As<int>();
 					consensusAction.Consolidate(stack[0]);
 					break;
 				}
-				case CoilCl::Typedef::BuiltinType::Specifier::CHAR:
+				case BuiltinType::Specifier::CHAR:
 				{
 					const std::string definition = Util::IsArray(it->Data().Type())
 						? it->Data().As<std::string>()
@@ -861,8 +862,8 @@ public:
 } // namespace LocalMethod
 } // namespace CoilCl
 
-Preprocessor::Preprocessor(std::shared_ptr<CoilCl::Profile>& profile, ConditionTracker::Tracker tracker)
-	: Stage{ this, StageType::Type::TokenProcessor, tracker }
+Preprocessor::Preprocessor(std::shared_ptr<CoilCl::Profile>& profile, CryCC::Program::ConditionTracker::Tracker tracker)
+	: Stage{ this, CryCC::Program::StageType::Type::TokenProcessor, tracker }
 	, m_profile{ profile }
 {
 	RegisterMacros();

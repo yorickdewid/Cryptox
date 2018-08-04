@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include "Valuedef.h"
+#include <CryCC/SubValue.h>
 
 #include <functional>
 
@@ -24,7 +24,7 @@ struct Tokenizer
 	using ErrorHandler = std::function<void(const std::string& msg, char token, int line, int column)>;
 	
 	// Pointer type to data object.
-	using ValuePointer = Valuedef::Value;
+	using ValuePointer = CryCC::SubValue::Valuedef::Value;
 
 	// Register error handler.
 	inline void RegisterErrorHandler(const ErrorHandler errHandler) { errHandlerFunc = errHandler; }

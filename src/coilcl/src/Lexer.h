@@ -10,8 +10,9 @@
 
 #include "Profile.h"
 #include "Tokenizer.h"
-#include "Valuedef.h"
-#include "ValueHelper.h"
+
+// Project includes.
+#include <CryCC/SubValue.h>
 
 #include <boost/optional.hpp>
 
@@ -24,20 +25,22 @@
 #define CONTINUE_NEXT_TOKEN -1
 #define END_OF_UNIT 0
 
+//TODO: namespace CoilCl {
+
 class Parser;
 
 enum Token
 {
-	// Program halt
+	// Program halt.
 	TK_HALT = 0,
 
-	// Constant value
+	// Constant value.
 	TK_CONSTANT = 20,
 
-	// Identifier
+	// Identifier.
 	TK_IDENTIFIER = 30,
 
-	// Keywords
+	// Keywords.
 	TK_AUTO = 50,      // auto
 	TK_BOOL = 51,      // _Bool
 	TK_BREAK = 52,     // break
@@ -76,7 +79,7 @@ enum Token
 	TK_VOLATILE = 85,  // volatile
 	TK_WHILE = 86,     // while
 
-	// Operators
+	// Operators.
 	TK_ELLIPSIS = 200,        // ...
 	TK_RIGHT_ASSIGN = 201,    // >>=
 	TK_LEFT_ASSIGN = 202,     // <<=
@@ -257,7 +260,7 @@ protected:
 
 protected:
 	std::shared_ptr<CoilCl::Profile>& m_profile;
-	boost::optional<CoilCl::Valuedef::Value> m_data;
+	boost::optional<CryCC::SubValue::Valuedef::Value> m_data;
 	std::stack<AnalysisContext> m_context;
 	bool m_isEndofInput = false;
 };

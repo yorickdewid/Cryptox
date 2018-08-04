@@ -7,12 +7,18 @@
 // copied and/or distributed without the express of the author.
 
 #include "Sequencer.h"
-#include "ASTFactory.h"
 
 #include <iostream>
 #include <map>
 
-using namespace CoilCl::Emit::Sequencer;
+namespace CoilCl
+{
+namespace Emit
+{
+namespace Sequencer
+{
+
+using namespace CryCC::AST;
 
 //TODO: const
 // AIIPX marker to recognize this particular sequencer
@@ -29,8 +35,8 @@ class Visitor : public Serializable::Interface
 	int nodeId;
 	int parentId;
 	std::stringstream ss;
-	std::multimap<int, std::function<void(const std::shared_ptr<AST::ASTNode>&)>> m_nodeHookList;
-	std::map<int, std::shared_ptr<AST::ASTNode>> m_passedList;
+	std::multimap<int, std::function<void(const std::shared_ptr<ASTNode>&)>> m_nodeHookList;
+	std::map<int, std::shared_ptr<ASTNode>> m_passedList;
 	InputCallback inputCallback;
 
 	friend ChildGroup;
@@ -58,20 +64,20 @@ class Visitor : public Serializable::Interface
 	void ReadProxy(NativeType& value);
 
 public:
-	// Default constructor
+	// Default constructor.
 	Visitor();
 
-	// Initialize with input callback
+	// Initialize with input callback.
 	Visitor(InputCallback& _inputCallback);
 
-	// Copy and increment level
+	// Copy and increment level.
 	Visitor(Visitor& other);
 
-	// Prohibit indirect moves
+	// Prohibit indirect moves.
 	Visitor(Visitor&&) = delete;
 
 	int Level() { return level; }
-	// Clear internal buffer
+	// Clear internal buffer.
 	void Clear() noexcept { ss = std::stringstream{}; }
 
 	// Create list of child groups and write the number of groups to the 
@@ -84,13 +90,13 @@ public:
 	// Set the node id
 	virtual void SetId(int id) { nodeId = id; }
 	// Invoke registered callbacks
-	virtual void FireDependencies(std::shared_ptr<AST::ASTNode>&);
+	virtual void FireDependencies(std::shared_ptr<ASTNode>&);
 
 	// Stream node data into visitor
 	virtual void operator<<(int);
 	virtual void operator<<(double);
 	virtual void operator<<(bool);
-	virtual void operator<<(AST::NodeID);
+	virtual void operator<<(NodeID);
 	virtual void operator<<(std::string);
 	virtual void operator<<(std::vector<uint8_t>);
 
@@ -98,12 +104,12 @@ public:
 	virtual void operator>>(int&);
 	virtual void operator>>(double&);
 	virtual void operator>>(bool&);
-	virtual void operator>>(AST::NodeID&);
+	virtual void operator>>(NodeID&);
 	virtual void operator>>(std::string&);
 	virtual void operator>>(std::vector<uint8_t>&);
 
 	// Callback operations
-	virtual void operator<<=(std::pair<int, std::function<void(const std::shared_ptr<AST::ASTNode>&)>>);
+	virtual void operator<<=(std::pair<int, std::function<void(const std::shared_ptr<ASTNode>&)>>);
 
 	// Write output to streaming backend
 	void WriteOutput(OutputCallback& outputCallback);
@@ -203,14 +209,14 @@ void Visitor::ReadProxy(std::vector<uint8_t>& value)
 void Visitor::operator<<(int i) { WriteProxy(reinterpret_cast<const char *>(&i), sizeof(uint32_t)); }
 void Visitor::operator<<(double d) { WriteProxy(d); }
 void Visitor::operator<<(bool b) { WriteProxy(b); }
-void Visitor::operator<<(AST::NodeID n) { WriteProxy(reinterpret_cast<const char *>(&n), sizeof(AST::NodeID)); }
+void Visitor::operator<<(NodeID n) { WriteProxy(reinterpret_cast<const char *>(&n), sizeof(NodeID)); }
 void Visitor::operator<<(std::string s) { WriteProxy(s); }
 void Visitor::operator<<(std::vector<uint8_t> b) { WriteProxy(b); }
 
 void Visitor::operator>>(int& i) { ReadProxy(reinterpret_cast<char *>(&i), sizeof(uint32_t)); }
 void Visitor::operator>>(double& d) { ReadProxy(d); }
 void Visitor::operator>>(bool& b) { ReadProxy(b); }
-void Visitor::operator>>(AST::NodeID& n) { ReadProxy(reinterpret_cast<char *>(&n), sizeof(AST::NodeID)); }
+void Visitor::operator>>(NodeID& n) { ReadProxy(reinterpret_cast<char *>(&n), sizeof(NodeID)); }
 void Visitor::operator>>(std::string& s) { ReadProxy(s); }
 void Visitor::operator>>(std::vector<uint8_t>& b) { ReadProxy(b); }
 
@@ -245,7 +251,7 @@ public:
 	{
 	}
 
-	virtual void SaveNode(std::shared_ptr<AST::ASTNode>& node)
+	virtual void SaveNode(std::shared_ptr<ASTNode>& node)
 	{
 		m_visitor.WriteProxy(reinterpret_cast<const char *>(&node->Id()), sizeof(uint32_t));
 		m_nodeIdList.push_back(node->Id());
@@ -336,7 +342,7 @@ Serializable::GroupListType Visitor::GetChildGroups()
 	return group;
 }
 
-void Visitor::FireDependencies(std::shared_ptr<AST::ASTNode>& node)
+void Visitor::FireDependencies(std::shared_ptr<ASTNode>& node)
 {
 	const auto range = m_nodeHookList.equal_range(node->Id());
 	for (auto it = range.first; it != range.second; ++it)
@@ -347,7 +353,7 @@ void Visitor::FireDependencies(std::shared_ptr<AST::ASTNode>& node)
 	m_passedList.emplace(node->Id(), node);
 }
 
-void Visitor::operator<<=(std::pair<int, std::function<void(const std::shared_ptr<AST::ASTNode>&)>> value)
+void Visitor::operator<<=(std::pair<int, std::function<void(const std::shared_ptr<ASTNode>&)>> value)
 {
 	if (!value.first) { return; }
 	auto it = m_passedList.find(value.first);
@@ -370,7 +376,7 @@ void Visitor::WriteOutput(std::function<void(std::vector<uint8_t>&)>& outputCall
 	outputCallback(t);
 }
 
-void CompressNode(AST::ASTNode *node, Visitor visitor, OutputCallback callback)
+void CompressNode(ASTNode *node, Visitor visitor, OutputCallback callback)
 {
 	//std::cout << "visitor.Level " << visitor.Level() << std::endl;
 
@@ -385,10 +391,9 @@ void CompressNode(AST::ASTNode *node, Visitor visitor, OutputCallback callback)
 	}
 }
 
-AST::AST UncompressNode(Visitor *visitor, InputCallback callback)
+AST UncompressNode(Visitor *visitor, InputCallback callback)
 {
-	using AST::ASTFactory;
-	std::shared_ptr<AST::ASTNode> root;
+	std::shared_ptr<ASTNode> root;
 
 	try
 	{
@@ -414,7 +419,7 @@ AST::AST UncompressNode(Visitor *visitor, InputCallback callback)
 	return nullptr;
 }
 
-void AIIPX::PackAST(AST::AST tree)
+void AIIPX::PackAST(AST tree)
 {
 	Visitor visit;
 
@@ -423,7 +428,7 @@ void AIIPX::PackAST(AST::AST tree)
 	CompressNode((*tree), visit, m_outputCallback);
 }
 
-void AIIPX::UnpackAST(AST::AST& tree)
+void AIIPX::UnpackAST(AST& tree)
 {
 	// Initialize visitor with input stream
 	Visitor visit{ m_inputCallback };
@@ -441,3 +446,7 @@ void AIIPX::UnpackAST(AST::AST& tree)
 	// Move resulting tree into AST
 	tree = std::move(UncompressNode(&visit, m_inputCallback));
 }
+
+} // namespace Emit
+} // namespace Sequencer
+} // namespace CoilCl

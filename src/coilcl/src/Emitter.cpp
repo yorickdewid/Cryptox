@@ -6,12 +6,17 @@
 // that can be found in the LICENSE file. Content can not be 
 // copied and/or distributed without the express of the author.
 
-#include "AST.h"
 #include "Emitter.h"
 
-using namespace CoilCl::Emit;
+namespace CoilCl
+{
+namespace Emit
+{
 
-Emitter::Emitter(std::shared_ptr<Profile>& profile, AST::AST&& ast, ConditionTracker::Tracker& tracker)
+using namespace CryCC::Program;
+using namespace CryCC::AST;
+
+Emitter::Emitter(std::shared_ptr<Profile>& profile, AST&& ast, ConditionTracker::Tracker& tracker)
 	: Stage{ this, StageType::Type::Emitter, tracker }
 	, m_profile{ profile }
 	, m_ast{ std::move(ast) }
@@ -24,7 +29,7 @@ Emitter& Emitter::CheckCompatibility()
 	return (*this);
 }
 
-AST::AST Emitter::Strategy(ModuleInterface::ModulePerm permission)
+AST Emitter::Strategy(ModuleInterface::ModulePerm permission)
 {
 	switch (permission)
 	{
@@ -37,7 +42,7 @@ AST::AST Emitter::Strategy(ModuleInterface::ModulePerm permission)
 		return std::move(m_ast);
 
 	case ModuleInterface::Substitute: {
-		std::shared_ptr<CoilCl::AST::ASTNode> k; //TODO
+		std::shared_ptr<ASTNode> k; //TODO
 		m_ast.swap(k);
 		return std::move(m_ast);
 	}
@@ -59,7 +64,7 @@ Emitter& Emitter::Process()
 	for (auto& mod : m_mods)
 	{
 		// Determine AST strategy
-		AST::AST astWrapper = Strategy(mod.first);
+		AST astWrapper = Strategy(mod.first);
 
 		try {
 			// Call module with tree
@@ -82,3 +87,6 @@ Emitter& Emitter::RegisterModule(Module<Sequencer::Interface>&& module)
 	m_mods.push_back({ permInfo, std::move(module) });
 	return (*this);
 }
+
+} // namespace CoilCl
+} // namespace Emit

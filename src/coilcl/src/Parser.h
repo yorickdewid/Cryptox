@@ -11,9 +11,12 @@
 #include "Profile.h"
 #include "Tokenizer.h"
 #include "Lexer.h"
-#include "ASTNode.h"
-#include "Stage.h"
-#include "LockPipe.h"
+
+#include <CryCC/AST.h>
+#include <CryCC/Program.h>
+
+#include <Cry/Functional.h>
+#include <Cry/LockPipe.h>
 
 #include <boost/optional.hpp>
 
@@ -21,16 +24,11 @@
 #include <stack>
 #include <map>
 
-using namespace CoilCl::Valuedef;
+namespace Typedef = CryCC::SubValue::Typedef;
+namespace Valuedef = CryCC::SubValue::Valuedef;
 
-//TODO: move to cry/functional
-template<typename Type>
-struct is_stack : public std::false_type {};
-
-template<typename Type, typename Alloc>
-struct is_stack<std::stack<Type, Alloc>> : public std::true_type {};
-
-template<typename Type, class = typename std::enable_if<is_stack<Type>::value>::type>
+// Pop all stack values as long as the stack contains elements.
+template<typename Type, typename = typename std::enable_if<Cry::Functional::IsStack<Type>::value>::type>
 inline void ClearStack(Type& c)
 {
 	while (!c.empty()) { c.pop(); }
@@ -40,7 +38,7 @@ inline void ClearStack(Type& c)
 class TokenState
 {
 	Token m_currentToken;
-	boost::optional<Value> m_currentData;
+	boost::optional<Valuedef::Value> m_currentData;
 	int m_line{ 0 }; //TODO: remplac with location thing
 	int m_column{ 0 };  //TODO: remplac with location thing
 
@@ -54,7 +52,7 @@ public:
 	{
 	}
 
-	TokenState(Token currentToken, Value& currentData, int line = 0, int column = 0)
+	TokenState(Token currentToken, Valuedef::Value& currentData, int line = 0, int column = 0)
 		: m_currentToken{ currentToken }
 		, m_currentData{ currentData }
 		, m_line{ line }
@@ -62,7 +60,7 @@ public:
 	{
 	}
 
-	TokenState(Token currentToken, Value&& currentData, std::pair<int, int>&& location)
+	TokenState(Token currentToken, Valuedef::Value&& currentData, std::pair<int, int>&& location)
 		: m_currentToken{ currentToken }
 		, m_currentData{ std::move(currentData) }
 		, m_line{ location.first }
@@ -77,7 +75,7 @@ public:
 	inline bool HasData() const { return (!!m_currentData); }
 
 	// Fetch data from current token state
-	inline const Value& FetchData() { return m_currentData.get(); }
+	inline const Valuedef::Value& FetchData() { return m_currentData.get(); }
 
 	// Fetch token from current token state
 	inline auto FetchToken() const { return m_currentToken; }
@@ -226,10 +224,10 @@ struct CompareStringPair
 	}
 };
 
-class Parser : public Stage<Parser>
+class Parser : public CryCC::Program::Stage<Parser>
 {
 public:
-	Parser(std::shared_ptr<CoilCl::Profile>& profile, TokenizerPtr tokenizer, ConditionTracker::Tracker&);
+	Parser(std::shared_ptr<CoilCl::Profile>& profile, CoilCl::TokenizerPtr tokenizer, CryCC::Program::ConditionTracker::Tracker&);
 
 	std::string Name() const { return "Parser"; }
 
@@ -320,16 +318,16 @@ private:
 	void TranslationUnit();
 
 private:
-	TokenizerPtr lex;
+	CoilCl::TokenizerPtr lex;
 	std::shared_ptr<TranslationUnitDecl> m_ast;
 	StateContainer<TokenState> m_comm;
 	std::shared_ptr<CoilCl::Profile> m_profile;
 
-	// Temporary parser containers
+	// Temporary parser containers.
 	size_t m_pointerCounter = 0;
 	std::map<std::pair<std::string, int>, std::shared_ptr<RecordDecl>, CompareStringPair> m_recordList;
 	std::map<std::string, std::shared_ptr<Typedef::TypedefBase>> m_typedefList;
 	std::stack<std::shared_ptr<Typedef::TypedefBase>> m_typeStack;
 	std::stack<std::string> m_identifierStack;
-	LockPipe<std::shared_ptr<CoilCl::AST::ASTNode>> m_elementDescentPipe;
+	Cry::LockPipe<std::shared_ptr<CryCC::AST::ASTNode>> m_elementDescentPipe;
 };

@@ -12,6 +12,7 @@ constexpr char EndOfUnit = '\0';
 
 using namespace CoilCl;
 
+//TODO: move
 namespace Cry
 {
 namespace Algorithm
@@ -93,7 +94,7 @@ public:
 
 template<typename _Ty>
 template<typename... ArgTypes>
-TokenProcessorProxy<_Ty>::TokenProcessorProxy(std::shared_ptr<Profile>& profile, ConditionTracker::Tracker& tracker, ArgTypes&&... args)
+TokenProcessorProxy<_Ty>::TokenProcessorProxy(std::shared_ptr<Profile>& profile, CryCC::Program::ConditionTracker::Tracker& tracker, ArgTypes&&... args)
 	: m_profile{ std::shared_ptr<Profile>{ new ProfileWrapper{ profile, std::forward<ArgTypes>(args)... } } }
 	, tokenProcessor{ m_profile, tracker }
 {
@@ -271,9 +272,9 @@ int DirectiveScanner::Lex()
 	});
 }
 
-DirectiveScanner::DirectiveScanner(std::shared_ptr<Profile>& profile, ConditionTracker::Tracker& tracker)
+DirectiveScanner::DirectiveScanner(std::shared_ptr<Profile>& profile, CryCC::Program::ConditionTracker::Tracker& tracker)
 	: Lexer{ profile }
-, m_proxy{ profile, tracker,  [this](const std::string& source) -> bool { this->SwapSource(source); return true; /*TODO: Unmock*/ } }
+	, m_proxy{ profile, tracker,  [this](const std::string& source) -> bool { this->SwapSource(source); return true; /*TODO: Unmock*/ } }
 {
 	AddKeyword("include", TK_PP_INCLUDE);
 	AddKeyword("define", TK_PP_DEFINE);

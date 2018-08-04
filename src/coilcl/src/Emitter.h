@@ -9,9 +9,12 @@
 #pragma once
 
 #include "Profile.h"
-#include "Stage.h"
 #include "EmitterStream.h"
 #include "Sequencer.h"
+
+// Project includes.
+#include <CryCC/Program.h>
+#include <CryCC/AST.h>
 
 #include <vector>
 
@@ -42,7 +45,7 @@ struct ModuleInterface
 	}
 
 	// Call the module
-	virtual void Invoke(AST::AST) = 0;
+	virtual void Invoke(CryCC::AST::AST) = 0;
 };
 
 template<typename SequnecTy>
@@ -108,7 +111,7 @@ public:
 	}
 
 	// Should only invoke from the sequencer interface
-	virtual void Invoke(AST::AST)
+	virtual void Invoke(CryCC::AST::AST)
 	{
 	}
 };
@@ -133,7 +136,7 @@ public:
 		return ModuleInterface::RequestPermissionInfo();
 	}
 
-	virtual void Invoke(AST::AST astWrapper)
+	virtual void Invoke(CryCC::AST::AST astWrapper)
 	{
 		m_sequencer->Execute(astWrapper);
 	}
@@ -154,12 +157,12 @@ public:
 // The emitter serves as a forfront for the modules. The modules
 // can update, alter or copy the abstract syntax tree. Depending
 // on the module operation the invokation order is determined.
-class Emitter : public Stage<Emitter>
+class Emitter : public CryCC::Program::Stage<Emitter>
 {
 	using ModulePair = std::pair<ModuleInterface::ModulePerm, Module<Sequencer::Interface>>;
 
 public:
-	Emitter(std::shared_ptr<CoilCl::Profile>& profile, AST::AST&& ast, ConditionTracker::Tracker&);
+	Emitter(std::shared_ptr<CoilCl::Profile>& profile, CryCC::AST::AST&& ast, CryCC::Program::ConditionTracker::Tracker&);
 
 	std::string Name() const { return "Emitter"; }
 
@@ -176,10 +179,10 @@ public:
 
 private:
 	Emitter & RegisterModule(Module<Sequencer::Interface>&&);
-	AST::AST Strategy(ModuleInterface::ModulePerm);
+	CryCC::AST::AST Strategy(ModuleInterface::ModulePerm);
 
 private:
-	AST::AST m_ast;
+	CryCC::AST::AST m_ast;
 	std::vector<ModulePair> m_mods;
 	std::shared_ptr<CoilCl::Profile> m_profile;
 };

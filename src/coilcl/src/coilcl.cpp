@@ -18,6 +18,10 @@
 #include "NonFatal.h"
 
 // Project includes.
+#include <CryCC/Program.h>
+#include <CryCC/AST.h>
+
+// Framework includes.
 #include <EventLog.h>
 #include <Cry/Cry.h>
 #include <Cry/Config.h>
@@ -52,6 +56,9 @@ CoilCl::DefaultNoticeList CoilCl::g_warningQueue;
 namespace CoilCl
 {
 
+namespace Program = CryCC::Program;
+namespace AST = CryCC::AST;
+
 class Compiler final
 	: public Profile
 	, public std::enable_shared_from_this<Compiler>
@@ -75,7 +82,7 @@ class Compiler final
 	};
 
 public:
-	using ProgramPtr = std::unique_ptr<Program>;
+	using ProgramPtr = std::unique_ptr<Program::Program>;
 
 private:
 	StageOptions<codegen> stageOne;
@@ -157,7 +164,7 @@ public:
 		auto profile = Profile::DeriveInterface(compiler);
 
 		// Create an empty program for the first stage.
-		ProgramPtr program = Program::MakeProgram();
+		ProgramPtr program = Program::Program::MakeProgram();
 
 		// Clear all warnings for this session.
 		g_warningQueue.Clear();
@@ -167,7 +174,7 @@ public:
 			// different program phases. The compiler stages move the tracker into
 			// a new phase when the stage is done. When an compiler anomaly occurs
 			// the program is checked until its last recorded phase.
-			ConditionTracker::Tracker tracker{ program->Condition() };
+			Program::ConditionTracker::Tracker tracker{ program->Condition() };
 
 			// The frontend will not perform any substitutions, but instead
 			// return the tokenizer required for the requested language.
@@ -184,7 +191,7 @@ public:
 				.DumpAST();
 
 			// Move abstract syntax tree into program.
-			Program::Bind(program, CAPTURE(ast));
+			Program::Program::Bind(program, CAPTURE(ast));
 
 #ifdef CRY_DEBUG_TRACE
 			// In trace mode dump the contents to screen.
@@ -221,7 +228,7 @@ public:
 
 #ifdef CRY_DEBUG_TRACE
 			// In trace mode dump the contents to screen.
-			program->AstPassthrough()->Print<CoilCl::AST::ASTNode::Traverse::STAGE_LAST>();
+			program->AstPassthrough()->Print<AST::ASTNode::Traverse::STAGE_LAST>();
 #endif
 #ifdef CRY_DEBUG_TESTING
 			// Add console output stream to module.
@@ -230,7 +237,7 @@ public:
 #endif
 
 			// Add program memory block to module.
-			auto& aiipxResult = program->GetResultSection(Program::ResultSection::AIIPX);
+			auto& aiipxResult = program->GetResultSection(Program::Program::ResultSection::AIIPX);
 			auto memoryStream = Emit::Stream::MakeStream<Emit::Stream::MemoryBlock>(aiipxResult.Data());
 			AIIPXMod.AddStream(memoryStream);
 
@@ -298,7 +305,7 @@ inline auto WrapMeta(WrapperPointerType *metaPtr)
 }
 
 // Release program pointer from managed resource.
-void AssimilateProgram(program_t *out_program, Compiler::ProgramPtr&& in_program)
+void AssimilateProgram(program_t *out_program, CoilCl::Compiler::ProgramPtr&& in_program)
 {
 	assert(out_program);
 	assert(!out_program->program_ptr);
@@ -379,7 +386,7 @@ COILCLAPI void ReleaseProgram(program_t *program) NOTHROW
 {
 	assert(program);
 	if (program->program_ptr) {
-		delete static_cast<Program *>(program->program_ptr);
+		delete static_cast<CryCC::Program::Program *>(program->program_ptr);
 		program->program_ptr = nullptr;
 	}
 }
@@ -396,7 +403,7 @@ COILCLAPI void ProgramInfo(program_info_t *program_info) NOTHROW
 		return;
 	}
 
-	Program *program = static_cast<Program *>(program_info->program.program_ptr);
+	CryCC::Program::Program *program = static_cast<CryCC::Program::Program *>(program_info->program.program_ptr);
 	program_info->is_healthy = program->HasSymbols() && program->operator bool() && program->IsLocked();
 	program_info->is_locked = program->IsLocked();
 	program_info->symbols = program->SymbolCount();
@@ -409,6 +416,8 @@ COILCLAPI void ProgramInfo(program_info_t *program_info) NOTHROW
 // API entry; get a resultset section.
 COILCLAPI void GetResultSection(result_t *result_inquery) NOTHROW
 {
+	using namespace CryCC::Program;
+
 	assert(result_inquery);
 	Program::ResultSection::Tag mTag = Program::ResultSection::COMPLEMENTARY;
 	switch (result_inquery->tag)

@@ -6,9 +6,14 @@
 // that can be found in the LICENSE file. Content can not be 
 // copied and/or distributed without the express of the author.
 
-#include "AST.h"
+// Local includes.
 #include "Parser.h"
 
+// Project includes.
+#include <CryCC/AST.h>
+#include <CryCC/SubValue.h>
+
+// Language includes.
 #include <iostream>
 #include <exception>
 #include <sstream>
@@ -22,7 +27,13 @@
 
 #define AST_ROOT() m_ast
 
-#define MAKE_RESV_REF() CoilCl::AST::MakeASTNode<DeclRefExpr>(m_identifierStack.top()); m_identifierStack.pop();
+#define MAKE_RESV_REF() Util::MakeASTNode<DeclRefExpr>(m_identifierStack.top()); m_identifierStack.pop();
+
+using namespace CoilCl;
+using namespace CryCC::Program;
+using namespace CryCC::AST;
+using namespace CryCC::SubValue::Typedef;
+using namespace CryCC::SubValue::Valuedef;
 
 class UnexpectedTokenException : public std::exception
 {
@@ -141,7 +152,7 @@ private:
 	int m_column;
 };
 
-Parser::Parser(std::shared_ptr<CoilCl::Profile>& profile, TokenizerPtr tokenizer, ConditionTracker::Tracker& tracker)
+Parser::Parser(std::shared_ptr<Profile>& profile, TokenizerPtr tokenizer, ConditionTracker::Tracker& tracker)
 	: Stage{ this, StageType::Type::SyntacticAnalysis, tracker }
 	, m_profile{ profile }
 	, lex{ tokenizer }
@@ -209,8 +220,6 @@ void Parser::ExpectIdentifier()
 // Storage class specifiers determine the lifetime and scope of the object
 auto Parser::StorageClassSpecifier()
 {
-	using namespace Typedef;
-
 	switch (CURRENT_TOKEN()) {
 	case TK_EXTERN:
 		return TypedefBase::StorageClassSpecifier::EXTERN;
@@ -230,8 +239,6 @@ auto Parser::StorageClassSpecifier()
 // Type specifiers determine size of the object in memory.
 bool Parser::TypeSpecifier()
 {
-	using namespace Typedef;
-
 	switch (CURRENT_TOKEN()) {
 	case TK_VOID:
 		m_typeStack.push(Util::MakeBuiltinType(BuiltinType::Specifier::VOID_T));
@@ -290,8 +297,6 @@ bool Parser::TypeSpecifier()
 // Specifying type correctness
 auto Parser::TypeQualifier()
 {
-	using namespace Typedef;
-
 	switch (CURRENT_TOKEN()) {
 	case TK_CONST:
 		return TypedefBase::TypeQualifier::CONST_T;
@@ -310,8 +315,6 @@ auto IsSet(_Ty v) -> bool
 
 bool Parser::DeclarationSpecifiers()
 {
-	using namespace Typedef;
-
 	TypedefBase::StorageClassSpecifier tmpSCP = TypedefBase::StorageClassSpecifier::NONE;
 	std::vector<TypedefBase::TypeQualifier> tmpTQ;
 	auto typeCount = m_typeStack.size();
@@ -409,7 +412,7 @@ bool Parser::TypenameSpecifier()
 
 bool Parser::StructOrUnionSpecifier()
 {
-	using Specifier = Typedef::RecordType::Specifier;
+	using Specifier = RecordType::Specifier;
 	auto isUnion = false;
 
 	switch (CURRENT_TOKEN()) {
@@ -434,7 +437,7 @@ bool Parser::StructOrUnionSpecifier()
 		using RecType = RecordDecl::RecordType;
 
 		NextToken();
-		auto rec = CoilCl::AST::MakeASTNode<RecordDecl>(isUnion ? RecType::UNION : RecType::STRUCT);
+		auto rec = Util::MakeASTNode<RecordDecl>(isUnion ? RecType::UNION : RecType::STRUCT);
 		rec->SetLocation(CURRENT_LOCATION());
 
 		if (!name.empty()) {
@@ -450,7 +453,7 @@ bool Parser::StructOrUnionSpecifier()
 
 				const auto decl = m_identifierStack.top();
 				m_identifierStack.pop();
-				auto field = CoilCl::AST::MakeASTNode<FieldDecl>(decl, m_typeStack.top());
+				auto field = Util::MakeASTNode<FieldDecl>(decl, m_typeStack.top());
 				field->SetLocation(CURRENT_LOCATION());
 				field->UpdateReturnType().SetPointer(m_pointerCounter);
 				m_pointerCounter = 0;
@@ -495,14 +498,14 @@ bool Parser::StructOrUnionSpecifier()
 	}
 
 	//TODO: Build record type?
-	m_typeStack.push(Util::MakeRecordType(name, isUnion ? Specifier::UNION : Specifier::STRUCT));
+	m_typeStack.push(Util::MakeRecordType(name, isUnion ?  Specifier::UNION : Specifier::STRUCT));
 
 	return true;
 }
 
 void Parser::SpecifierQualifierList()
 {
-	std::vector<CoilCl::Typedef::TypedefBase::TypeQualifier> tmpTQ;
+	std::vector<TypedefBase::TypeQualifier> tmpTQ;
 	auto typeCount = m_typeStack.size();
 
 	bool cont = false;
@@ -518,7 +521,7 @@ void Parser::SpecifierQualifierList()
 
 		// Can have multiple type qualifiers, list them
 		auto tq = TypeQualifier();
-		if (tq != Typedef::TypedefBase::TypeQualifier::NONE) {
+		if (tq != TypedefBase::TypeQualifier::NONE) {
 			NextToken();
 			tmpTQ.push_back(tq);
 			cont = true;
@@ -542,7 +545,7 @@ bool Parser::EnumSpecifier()
 	if (MATCH_TOKEN(TK_ENUM)) {
 		NextToken();
 
-		auto enm = CoilCl::AST::MakeASTNode<EnumDecl>();
+		auto enm = Util::MakeASTNode<EnumDecl>();
 		enm->SetLocation(CURRENT_LOCATION());
 
 		if (MATCH_TOKEN(TK_IDENTIFIER)) {
@@ -555,7 +558,7 @@ bool Parser::EnumSpecifier()
 				NextToken();
 
 				if (MATCH_TOKEN(TK_IDENTIFIER)) {
-					auto enmConst = CoilCl::AST::MakeASTNode<EnumConstantDecl>(CURRENT_DATA().As<std::string>());
+					auto enmConst = Util::MakeASTNode<EnumConstantDecl>(CURRENT_DATA().As<std::string>());
 					enmConst->SetLocation(CURRENT_LOCATION());
 
 					NextToken();
@@ -586,6 +589,8 @@ bool Parser::EnumSpecifier()
 
 bool Parser::UnaryOperator()
 {
+	using UnaryOperatorNode = CryCC::AST::UnaryOperator;
+
 	switch (CURRENT_TOKEN()) {
 	case TK_AMPERSAND:
 	{
@@ -594,7 +599,7 @@ bool Parser::UnaryOperator()
 
 		auto resv = m_elementDescentPipe.next();
 		m_elementDescentPipe.pop();
-		auto unaryOp = CoilCl::AST::MakeASTNode<CoilCl::AST::UnaryOperator>(CoilCl::AST::UnaryOperator::UnaryOperator::ADDR, CoilCl::AST::UnaryOperator::OperandSide::PREFIX, resv);
+		auto unaryOp = Util::MakeASTNode<UnaryOperatorNode>(UnaryOperator::UnaryOperator::ADDR, UnaryOperator::OperandSide::PREFIX, resv);
 		unaryOp->SetLocation(CURRENT_LOCATION());
 		m_elementDescentPipe.push(unaryOp);
 		break;
@@ -606,7 +611,7 @@ bool Parser::UnaryOperator()
 
 		auto resv = m_elementDescentPipe.next();
 		m_elementDescentPipe.pop();
-		auto unaryOp = CoilCl::AST::MakeASTNode<CoilCl::AST::UnaryOperator>(CoilCl::AST::UnaryOperator::UnaryOperator::PTRVAL, CoilCl::AST::UnaryOperator::OperandSide::PREFIX, resv);
+		auto unaryOp = Util::MakeASTNode<UnaryOperatorNode>(UnaryOperator::UnaryOperator::PTRVAL, UnaryOperator::OperandSide::PREFIX, resv);
 		unaryOp->SetLocation(CURRENT_LOCATION());
 		m_elementDescentPipe.push(unaryOp);
 		break;
@@ -618,7 +623,7 @@ bool Parser::UnaryOperator()
 
 		auto resv = m_elementDescentPipe.next();
 		m_elementDescentPipe.pop();
-		auto unaryOp = CoilCl::AST::MakeASTNode<CoilCl::AST::UnaryOperator>(CoilCl::AST::UnaryOperator::UnaryOperator::INTPOS, CoilCl::AST::UnaryOperator::OperandSide::PREFIX, resv);
+		auto unaryOp = Util::MakeASTNode<UnaryOperatorNode>(UnaryOperator::UnaryOperator::INTPOS, UnaryOperator::OperandSide::PREFIX, resv);
 		unaryOp->SetLocation(CURRENT_LOCATION());
 		m_elementDescentPipe.push(unaryOp);
 		break;
@@ -630,7 +635,7 @@ bool Parser::UnaryOperator()
 
 		auto resv = m_elementDescentPipe.next();
 		m_elementDescentPipe.pop();
-		auto unaryOp = CoilCl::AST::MakeASTNode<CoilCl::AST::UnaryOperator>(CoilCl::AST::UnaryOperator::UnaryOperator::INTNEG, CoilCl::AST::UnaryOperator::OperandSide::PREFIX, resv);
+		auto unaryOp = Util::MakeASTNode<UnaryOperatorNode>(UnaryOperator::UnaryOperator::INTNEG, UnaryOperator::OperandSide::PREFIX, resv);
 		unaryOp->SetLocation(CURRENT_LOCATION());
 		m_elementDescentPipe.push(unaryOp);
 		break;
@@ -642,7 +647,7 @@ bool Parser::UnaryOperator()
 
 		auto resv = m_elementDescentPipe.next();
 		m_elementDescentPipe.pop();
-		auto unaryOp = CoilCl::AST::MakeASTNode<CoilCl::AST::UnaryOperator>(CoilCl::AST::UnaryOperator::UnaryOperator::BITNOT, CoilCl::AST::UnaryOperator::OperandSide::PREFIX, resv);
+		auto unaryOp = Util::MakeASTNode<UnaryOperatorNode>(UnaryOperator::UnaryOperator::BITNOT, UnaryOperator::OperandSide::PREFIX, resv);
 		unaryOp->SetLocation(CURRENT_LOCATION());
 		m_elementDescentPipe.push(unaryOp);
 		break;
@@ -654,7 +659,7 @@ bool Parser::UnaryOperator()
 
 		auto resv = m_elementDescentPipe.next();
 		m_elementDescentPipe.pop();
-		auto unaryOp = CoilCl::AST::MakeASTNode<CoilCl::AST::UnaryOperator>(CoilCl::AST::UnaryOperator::UnaryOperator::BOOLNOT, CoilCl::AST::UnaryOperator::OperandSide::PREFIX, resv);
+		auto unaryOp = Util::MakeASTNode<UnaryOperatorNode>(UnaryOperator::UnaryOperator::BOOLNOT, UnaryOperator::OperandSide::PREFIX, resv);
 		unaryOp->SetLocation(CURRENT_LOCATION());
 		m_elementDescentPipe.push(unaryOp);
 		break;
@@ -671,7 +676,7 @@ bool Parser::AssignmentOperator()
 	switch (CURRENT_TOKEN()) {
 	case TK_ASSIGN:
 	{
-		auto binOp = CoilCl::AST::MakeASTNode<BinaryOperator>(BinaryOperator::BinOperand::ASSGN, m_elementDescentPipe.next());
+		auto binOp = Util::MakeASTNode<BinaryOperator>(BinaryOperator::BinOperand::ASSGN, m_elementDescentPipe.next());
 		binOp->SetLocation(CURRENT_LOCATION());
 		m_elementDescentPipe.pop();
 
@@ -686,7 +691,7 @@ bool Parser::AssignmentOperator()
 	case TK_MUL_ASSIGN:
 	{
 		auto resv = Util::NodeCast<DeclRefExpr>(m_elementDescentPipe.next());
-		auto comOp = CoilCl::AST::MakeASTNode<CompoundAssignOperator>(CompoundAssignOperator::CompoundAssignOperand::MUL, resv);
+		auto comOp = Util::MakeASTNode<CompoundAssignOperator>(CompoundAssignOperator::CompoundAssignOperand::MUL, resv);
 		comOp->SetLocation(CURRENT_LOCATION());
 		m_elementDescentPipe.pop();
 
@@ -701,7 +706,7 @@ bool Parser::AssignmentOperator()
 	case TK_DIV_ASSIGN:
 	{
 		auto resv = Util::NodeCast<DeclRefExpr>(m_elementDescentPipe.next());
-		auto comOp = CoilCl::AST::MakeASTNode<CompoundAssignOperator>(CompoundAssignOperator::CompoundAssignOperand::DIV, resv);
+		auto comOp = Util::MakeASTNode<CompoundAssignOperator>(CompoundAssignOperator::CompoundAssignOperand::DIV, resv);
 		comOp->SetLocation(CURRENT_LOCATION());
 		m_elementDescentPipe.pop();
 
@@ -716,7 +721,7 @@ bool Parser::AssignmentOperator()
 	case TK_MOD_ASSIGN:
 	{
 		auto resv = Util::NodeCast<DeclRefExpr>(m_elementDescentPipe.next());
-		auto comOp = CoilCl::AST::MakeASTNode<CompoundAssignOperator>(CompoundAssignOperator::CompoundAssignOperand::MOD, resv);
+		auto comOp = Util::MakeASTNode<CompoundAssignOperator>(CompoundAssignOperator::CompoundAssignOperand::MOD, resv);
 		comOp->SetLocation(CURRENT_LOCATION());
 		m_elementDescentPipe.pop();
 
@@ -731,7 +736,7 @@ bool Parser::AssignmentOperator()
 	case TK_ADD_ASSIGN:
 	{
 		auto resv = Util::NodeCast<DeclRefExpr>(m_elementDescentPipe.next());
-		auto comOp = CoilCl::AST::MakeASTNode<CompoundAssignOperator>(CompoundAssignOperator::CompoundAssignOperand::ADD, resv);
+		auto comOp = Util::MakeASTNode<CompoundAssignOperator>(CompoundAssignOperator::CompoundAssignOperand::ADD, resv);
 		comOp->SetLocation(CURRENT_LOCATION());
 		m_elementDescentPipe.pop();
 
@@ -746,7 +751,7 @@ bool Parser::AssignmentOperator()
 	case TK_SUB_ASSIGN:
 	{
 		auto resv = Util::NodeCast<DeclRefExpr>(m_elementDescentPipe.next());
-		auto comOp = CoilCl::AST::MakeASTNode<CompoundAssignOperator>(CompoundAssignOperator::CompoundAssignOperand::SUB, resv);
+		auto comOp = Util::MakeASTNode<CompoundAssignOperator>(CompoundAssignOperator::CompoundAssignOperand::SUB, resv);
 		comOp->SetLocation(CURRENT_LOCATION());
 		m_elementDescentPipe.pop();
 
@@ -761,7 +766,7 @@ bool Parser::AssignmentOperator()
 	case TK_LEFT_ASSIGN:
 	{
 		auto resv = Util::NodeCast<DeclRefExpr>(m_elementDescentPipe.next());
-		auto comOp = CoilCl::AST::MakeASTNode<CompoundAssignOperator>(CompoundAssignOperator::CompoundAssignOperand::LEFT, resv);
+		auto comOp = Util::MakeASTNode<CompoundAssignOperator>(CompoundAssignOperator::CompoundAssignOperand::LEFT, resv);
 		comOp->SetLocation(CURRENT_LOCATION());
 		m_elementDescentPipe.pop();
 
@@ -777,7 +782,7 @@ bool Parser::AssignmentOperator()
 	case TK_RIGHT_ASSIGN:
 	{
 		auto resv = Util::NodeCast<DeclRefExpr>(m_elementDescentPipe.next());
-		auto comOp = CoilCl::AST::MakeASTNode<CompoundAssignOperator>(CompoundAssignOperator::CompoundAssignOperand::RIGHT, resv);
+		auto comOp = Util::MakeASTNode<CompoundAssignOperator>(CompoundAssignOperator::CompoundAssignOperand::RIGHT, resv);
 		comOp->SetLocation(CURRENT_LOCATION());
 		m_elementDescentPipe.pop();
 
@@ -792,7 +797,7 @@ bool Parser::AssignmentOperator()
 	case TK_AND_ASSIGN:
 	{
 		auto resv = Util::NodeCast<DeclRefExpr>(m_elementDescentPipe.next());
-		auto comOp = CoilCl::AST::MakeASTNode<CompoundAssignOperator>(CompoundAssignOperator::CompoundAssignOperand::AND, resv);
+		auto comOp = Util::MakeASTNode<CompoundAssignOperator>(CompoundAssignOperator::CompoundAssignOperand::AND, resv);
 		comOp->SetLocation(CURRENT_LOCATION());
 		m_elementDescentPipe.pop();
 
@@ -807,7 +812,7 @@ bool Parser::AssignmentOperator()
 	case TK_XOR_ASSIGN:
 	{
 		auto resv = Util::NodeCast<DeclRefExpr>(m_elementDescentPipe.next());
-		auto comOp = CoilCl::AST::MakeASTNode<CompoundAssignOperator>(CompoundAssignOperator::CompoundAssignOperand::XOR, resv);
+		auto comOp = Util::MakeASTNode<CompoundAssignOperator>(CompoundAssignOperator::CompoundAssignOperand::XOR, resv);
 		comOp->SetLocation(CURRENT_LOCATION());
 		m_elementDescentPipe.pop();
 
@@ -822,7 +827,7 @@ bool Parser::AssignmentOperator()
 	case TK_OR_ASSIGN:
 	{
 		auto resv = Util::NodeCast<DeclRefExpr>(m_elementDescentPipe.next());
-		auto comOp = CoilCl::AST::MakeASTNode<CompoundAssignOperator>(CompoundAssignOperator::CompoundAssignOperand::OR, resv);
+		auto comOp = Util::MakeASTNode<CompoundAssignOperator>(CompoundAssignOperator::CompoundAssignOperand::OR, resv);
 		comOp->SetLocation(CURRENT_LOCATION());
 		m_elementDescentPipe.pop();
 
@@ -843,8 +848,6 @@ bool Parser::AssignmentOperator()
 
 void Parser::PrimaryExpression()
 {
-	using Typedef::BuiltinType;
-
 	switch (CURRENT_TOKEN()) {
 	case TK_IDENTIFIER:
 		m_identifierStack.push(CURRENT_DATA().As<std::string>());
@@ -855,21 +858,21 @@ void Parser::PrimaryExpression()
 		switch (CURRENT_DATA().Type().DataType<BuiltinType>()->TypeSpecifier()) {
 		case BuiltinType::Specifier::INT:
 		{
-			auto literal = CoilCl::AST::MakeASTNode<IntegerLiteral>(std::move(CURRENT_DATA()));
+			auto literal = Util::MakeASTNode<IntegerLiteral>(std::move(CURRENT_DATA()));
 			literal->SetLocation(CURRENT_LOCATION());
 			m_elementDescentPipe.push(literal);
 			break;
 		}
 		case BuiltinType::Specifier::DOUBLE:
 		{
-			auto literal = CoilCl::AST::MakeASTNode<FloatingLiteral>(std::move(CURRENT_DATA()));
+			auto literal = Util::MakeASTNode<FloatingLiteral>(std::move(CURRENT_DATA()));
 			literal->SetLocation(CURRENT_LOCATION());
 			m_elementDescentPipe.push(literal);
 			break;
 		}
 		case BuiltinType::Specifier::CHAR:
 		{
-			auto literal = CoilCl::AST::MakeASTNode<StringLiteral>(CURRENT_DATA());
+			auto literal = Util::MakeASTNode<StringLiteral>(CURRENT_DATA());
 			literal->SetLocation(CURRENT_LOCATION());
 			m_elementDescentPipe.push(literal);
 			break;
@@ -882,7 +885,7 @@ void Parser::PrimaryExpression()
 		NextToken();
 		Expression();
 
-		auto parenthesis = CoilCl::AST::MakeASTNode<ParenExpr>(m_elementDescentPipe.next());
+		auto parenthesis = Util::MakeASTNode<ParenExpr>(m_elementDescentPipe.next());
 		parenthesis->SetLocation(CURRENT_LOCATION());
 		m_elementDescentPipe.pop();
 		m_elementDescentPipe.push(parenthesis);
@@ -921,7 +924,7 @@ void Parser::CompoundLiteral()
 			// Remove snapshot since we can continue this path
 			m_comm.DisposeSnapshot();
 
-			auto list = CoilCl::AST::MakeASTNode<InitListExpr>();
+			auto list = Util::MakeASTNode<InitListExpr>();
 			list->SetLocation(CURRENT_LOCATION());
 
 			for (;;) {
@@ -938,7 +941,7 @@ void Parser::CompoundLiteral()
 			}
 			ExpectToken(TK_BRACE_CLOSE);
 
-			auto comp = CoilCl::AST::MakeASTNode<CompoundLiteralExpr>(list);
+			auto comp = Util::MakeASTNode<CompoundLiteralExpr>(list);
 			comp->SetLocation(CURRENT_LOCATION());
 			m_elementDescentPipe.push(comp);
 		}
@@ -952,144 +955,152 @@ void Parser::CompoundLiteral()
 
 void Parser::PostfixExpression()
 {
+	using UnaryOperatorNode = CryCC::AST::UnaryOperator;
+
 	CompoundLiteral();
 
 	auto startSz = m_identifierStack.size();
 
 	PrimaryExpression();
 
-	switch (CURRENT_TOKEN()) {
-	case TK_BRACKET_OPEN:
-	{
-		NextToken();
-
-		auto resv = MAKE_RESV_REF();
-		resv->SetLocation(CURRENT_LOCATION());
-
-		Expression();
-		ExpectToken(TK_BRACKET_CLOSE);
-
-		auto arrsub = CoilCl::AST::MakeASTNode<ArraySubscriptExpr>(resv, m_elementDescentPipe.next());
-		arrsub->SetLocation(CURRENT_LOCATION());
-		m_elementDescentPipe.pop();
-		m_elementDescentPipe.push(arrsub);
-		break;
-	}
-	case TK_PARENTHESE_OPEN:
-	{
-		NextToken();
-
-		auto resv = MAKE_RESV_REF();
-		resv->SetLocation(CURRENT_LOCATION());
-
-		if (MATCH_TOKEN(TK_PARENTHESE_CLOSE)) {
+	for (;;) {
+		switch (CURRENT_TOKEN()) {
+		case TK_BRACKET_OPEN:
+		{
 			NextToken();
-			auto call = CoilCl::AST::MakeASTNode<CallExpr>(resv);
-			call->SetLocation(CURRENT_LOCATION());
-			m_elementDescentPipe.push(call);
-		}
-		else {
-			auto startState = m_elementDescentPipe.state();
-			ArgumentExpressionList();
-			m_elementDescentPipe.release_until(startState);
-			ExpectToken(TK_PARENTHESE_CLOSE);
 
-			auto arg = CoilCl::AST::MakeASTNode<ArgumentStmt>();
-			arg->SetLocation(CURRENT_LOCATION());
-			while (!m_elementDescentPipe.empty()) {
-				arg->AppendArgument(m_elementDescentPipe.next());
-				m_elementDescentPipe.pop();
+			auto resv = MAKE_RESV_REF();
+			resv->SetLocation(CURRENT_LOCATION());
+
+			Expression();
+			ExpectToken(TK_BRACKET_CLOSE);
+
+			auto arrsub = Util::MakeASTNode<ArraySubscriptExpr>(resv, m_elementDescentPipe.next());
+			arrsub->SetLocation(CURRENT_LOCATION());
+			m_elementDescentPipe.pop();
+			m_elementDescentPipe.push(arrsub);
+			break;
+		}
+		case TK_PARENTHESE_OPEN:
+		{
+			NextToken();
+
+			auto resv = MAKE_RESV_REF();
+			resv->SetLocation(CURRENT_LOCATION());
+
+			if (MATCH_TOKEN(TK_PARENTHESE_CLOSE)) {
+				NextToken();
+				auto call = Util::MakeASTNode<CallExpr>(resv);
+				call->SetLocation(CURRENT_LOCATION());
+				m_elementDescentPipe.push(call);
 			}
-
-			auto call = CoilCl::AST::MakeASTNode<CallExpr>(resv, arg);
-			call->SetLocation(CURRENT_LOCATION());
-			m_elementDescentPipe.push(call);
-		}
-		break;
-	}
-	case TK_DOT:
-	{
-		auto resv = MAKE_RESV_REF();
-		resv->SetLocation(CURRENT_LOCATION());
-
-		NextToken();
-		//ExpectIdentifier();
-
-		auto member = CURRENT_DATA().As<std::string>();
-		auto expr = CoilCl::AST::MakeASTNode<MemberExpr>(MemberExpr::MemberType::REFERENCE, member, resv);
-		expr->SetLocation(CURRENT_LOCATION());
-		m_elementDescentPipe.push(expr);
-		NextToken();
-		break;
-	}
-	case TK_PTR_OP:
-	{
-		auto resv = MAKE_RESV_REF();
-		resv->SetLocation(CURRENT_LOCATION());
-
-		NextToken();
-		//ExpectIdentifier();
-
-		auto member = CURRENT_DATA().As<std::string>();
-		auto expr = CoilCl::AST::MakeASTNode<MemberExpr>(MemberExpr::MemberType::POINTER, member, resv);
-		expr->SetLocation(CURRENT_LOCATION());
-		m_elementDescentPipe.push(expr);
-		NextToken();
-		break;
-	}
-	case TK_INC_OP:
-	{
-		if (m_identifierStack.size() == startSz) {
-			throw ParseException{ "expression is not assignable", 0, 0 };
-		}
-
-		auto resv = MAKE_RESV_REF();
-		resv->SetLocation(CURRENT_LOCATION());
-		auto unaryOp = CoilCl::AST::MakeASTNode<CoilCl::AST::UnaryOperator>(CoilCl::AST::UnaryOperator::UnaryOperator::INC, CoilCl::AST::UnaryOperator::OperandSide::POSTFIX, std::dynamic_pointer_cast<CoilCl::AST::ASTNode>(resv));
-		unaryOp->SetLocation(CURRENT_LOCATION());
-		m_elementDescentPipe.push(unaryOp);
-
-		NextToken();
-		break;
-	}
-	case TK_DEC_OP:
-	{
-		if (m_identifierStack.size() == startSz) {
-			throw ParseException{ "expression is not assignable", 0, 0 };
-		}
-
-		auto resv = MAKE_RESV_REF();
-		resv->SetLocation(CURRENT_LOCATION());
-		auto unaryOp = CoilCl::AST::MakeASTNode<CoilCl::AST::UnaryOperator>(CoilCl::AST::UnaryOperator::UnaryOperator::DEC, CoilCl::AST::UnaryOperator::OperandSide::POSTFIX, std::dynamic_pointer_cast<CoilCl::AST::ASTNode>(resv));
-		unaryOp->SetLocation(CURRENT_LOCATION());
-		m_elementDescentPipe.push(unaryOp);
-
-		NextToken();
-		break;
-	}
-	default:
-		// An identifier was found without any postfix expression thereafter.
-		// This is either a referenced identifier or typedef specifier. Check
-		// typedef first before assuming referenced identifier. If no typedef
-		// was found wrap the declaration in a declaration reference.
-		if (m_identifierStack.size() > startSz) {
-			if (m_typedefList[m_identifierStack.top()] == nullptr) {
-				auto resv = MAKE_RESV_REF();
-				resv->SetLocation(CURRENT_LOCATION());
-				m_elementDescentPipe.push(resv);
-			}
-			// Identifier is typedef specifier, shift back and pop identifier
-			// stack as typedef cannot be used as statement expression.
 			else {
-				m_comm.ShiftBackward();
-				m_identifierStack.pop();
+				auto startState = m_elementDescentPipe.state();
+				ArgumentExpressionList();
+				m_elementDescentPipe.release_until(startState);
+				ExpectToken(TK_PARENTHESE_CLOSE);
+
+				auto arg = Util::MakeASTNode<ArgumentStmt>();
+				arg->SetLocation(CURRENT_LOCATION());
+				while (!m_elementDescentPipe.empty()) {
+					arg->AppendArgument(m_elementDescentPipe.next());
+					m_elementDescentPipe.pop();
+				}
+
+				auto call = Util::MakeASTNode<CallExpr>(resv, arg);
+				call->SetLocation(CURRENT_LOCATION());
+				m_elementDescentPipe.push(call);
 			}
+			break;
+		}
+		case TK_DOT:
+		{
+			auto resv = MAKE_RESV_REF();
+			resv->SetLocation(CURRENT_LOCATION());
+
+			NextToken();
+			//ExpectIdentifier();
+
+			auto member = CURRENT_DATA().As<std::string>();
+			auto expr = Util::MakeASTNode<MemberExpr>(MemberExpr::MemberType::REFERENCE, member, resv);
+			expr->SetLocation(CURRENT_LOCATION());
+			m_elementDescentPipe.push(expr);
+			NextToken();
+			break;
+		}
+		case TK_PTR_OP:
+		{
+			auto resv = MAKE_RESV_REF();
+			resv->SetLocation(CURRENT_LOCATION());
+
+			NextToken();
+			//ExpectIdentifier();
+
+			auto member = CURRENT_DATA().As<std::string>();
+			auto expr = Util::MakeASTNode<MemberExpr>(MemberExpr::MemberType::POINTER, member, resv);
+			expr->SetLocation(CURRENT_LOCATION());
+			m_elementDescentPipe.push(expr);
+			NextToken();
+			break;
+		}
+		case TK_INC_OP:
+		{
+			if (m_identifierStack.size() == startSz) {
+				throw ParseException{ "expression is not assignable", 0, 0 };
+			}
+
+			//auto resv = Util::MakeASTNode<DeclRefExpr>(m_identifierStack.top()); m_identifierStack.pop();
+			auto resv = MAKE_RESV_REF();
+			resv->SetLocation(CURRENT_LOCATION());
+			auto unaryOp = Util::MakeASTNode<UnaryOperatorNode>(UnaryOperator::UnaryOperator::INC, UnaryOperator::OperandSide::POSTFIX, std::dynamic_pointer_cast<ASTNode>(resv));
+			unaryOp->SetLocation(CURRENT_LOCATION());
+			m_elementDescentPipe.push(unaryOp);
+
+			NextToken();
+			break;
+		}
+		case TK_DEC_OP:
+		{
+			if (m_identifierStack.size() == startSz) {
+				throw ParseException{ "expression is not assignable", 0, 0 };
+			}
+
+			auto resv = MAKE_RESV_REF();
+			resv->SetLocation(CURRENT_LOCATION());
+			auto unaryOp = Util::MakeASTNode<UnaryOperatorNode>(UnaryOperator::UnaryOperator::DEC, UnaryOperator::OperandSide::POSTFIX, std::dynamic_pointer_cast<ASTNode>(resv));
+			unaryOp->SetLocation(CURRENT_LOCATION());
+			m_elementDescentPipe.push(unaryOp);
+
+			NextToken();
+			break;
+		}
+		default:
+			// An identifier was found without any postfix expression thereafter.
+			// This is either a referenced identifier or typedef specifier. Check
+			// typedef first before assuming referenced identifier. If no typedef
+			// was found wrap the declaration in a declaration reference.
+			if (m_identifierStack.size() > startSz) {
+				if (m_typedefList[m_identifierStack.top()] == nullptr) {
+					auto resv = MAKE_RESV_REF();
+					resv->SetLocation(CURRENT_LOCATION());
+					m_elementDescentPipe.push(resv);
+				}
+				// Identifier is typedef specifier, shift back and pop identifier
+				// stack as typedef cannot be used as statement expression.
+				else {
+					m_comm.ShiftBackward();
+					m_identifierStack.pop();
+				}
+			}
+			return;
 		}
 	}
 }
 
 void Parser::UnaryExpression()
 {
+	using UnaryOperatorNode = CryCC::AST::UnaryOperator;
+
 	//auto startSz = m_identifierStack.size();
 
 	switch (CURRENT_TOKEN()) {
@@ -1102,7 +1113,7 @@ void Parser::UnaryExpression()
 			throw ParseException{ "expression is not assignable", 0, 0 };
 		}*/
 
-		auto unaryOp = CoilCl::AST::MakeASTNode<CoilCl::AST::UnaryOperator>(CoilCl::AST::UnaryOperator::UnaryOperator::INC, CoilCl::AST::UnaryOperator::OperandSide::PREFIX, m_elementDescentPipe.next());
+		auto unaryOp = Util::MakeASTNode<UnaryOperatorNode>(UnaryOperator::UnaryOperator::INC, UnaryOperator::OperandSide::PREFIX, m_elementDescentPipe.next());
 		unaryOp->SetLocation(CURRENT_LOCATION());
 		m_elementDescentPipe.pop();
 		m_elementDescentPipe.push(unaryOp);
@@ -1118,7 +1129,7 @@ void Parser::UnaryExpression()
 			throw ParseException{ "expression is not assignable", 0, 0 };
 		}*/
 
-		auto unaryOp = CoilCl::AST::MakeASTNode<CoilCl::AST::UnaryOperator>(CoilCl::AST::UnaryOperator::UnaryOperator::DEC, CoilCl::AST::UnaryOperator::OperandSide::PREFIX, m_elementDescentPipe.next());
+		auto unaryOp = Util::MakeASTNode<UnaryOperatorNode>(UnaryOperator::UnaryOperator::DEC, UnaryOperator::OperandSide::PREFIX, m_elementDescentPipe.next());
 		unaryOp->SetLocation(CURRENT_LOCATION());
 		m_elementDescentPipe.pop();
 		m_elementDescentPipe.push(unaryOp);
@@ -1129,9 +1140,9 @@ void Parser::UnaryExpression()
 	{
 		NextToken();
 
-		auto ref = CoilCl::AST::MakeASTNode<DeclRefExpr>("sizeof");
+		auto ref = Util::MakeASTNode<DeclRefExpr>("sizeof");
 		ref->SetLocation(CURRENT_LOCATION());
-		auto func = CoilCl::AST::MakeASTNode<BuiltinExpr>(ref);
+		auto func = Util::MakeASTNode<BuiltinExpr>(ref);
 		func->SetLocation(CURRENT_LOCATION());
 
 		// Snapshot current state in case of rollback
@@ -1190,7 +1201,7 @@ void Parser::CastExpression()
 			// Remove snapshot since we can continue this path.
 			m_comm.DisposeSnapshot();
 
-			auto cast = CoilCl::AST::MakeASTNode<CastExpr>(m_elementDescentPipe.next(), m_typeStack.top());
+			auto cast = Util::MakeASTNode<CastExpr>(m_elementDescentPipe.next(), m_typeStack.top());
 			cast->SetLocation(CURRENT_LOCATION());
 			m_elementDescentPipe.pop();
 			m_typeStack.pop();
@@ -1214,7 +1225,7 @@ void Parser::MultiplicativeExpression()
 		switch (CURRENT_TOKEN()) {
 		case TK_ASTERISK:
 		{
-			auto binOp = CoilCl::AST::MakeASTNode<BinaryOperator>(BinaryOperator::BinOperand::MUL, m_elementDescentPipe.next());
+			auto binOp = Util::MakeASTNode<BinaryOperator>(BinaryOperator::BinOperand::MUL, m_elementDescentPipe.next());
 			binOp->SetLocation(CURRENT_LOCATION());
 			m_elementDescentPipe.pop();
 
@@ -1228,7 +1239,7 @@ void Parser::MultiplicativeExpression()
 		}
 		case TK_SLASH:
 		{
-			auto binOp = CoilCl::AST::MakeASTNode<BinaryOperator>(BinaryOperator::BinOperand::DIV, m_elementDescentPipe.next());
+			auto binOp = Util::MakeASTNode<BinaryOperator>(BinaryOperator::BinOperand::DIV, m_elementDescentPipe.next());
 			binOp->SetLocation(CURRENT_LOCATION());
 			m_elementDescentPipe.pop();
 
@@ -1242,7 +1253,7 @@ void Parser::MultiplicativeExpression()
 		}
 		case TK_PERCENT:
 		{
-			auto binOp = CoilCl::AST::MakeASTNode<BinaryOperator>(BinaryOperator::BinOperand::MOD, m_elementDescentPipe.next());
+			auto binOp = Util::MakeASTNode<BinaryOperator>(BinaryOperator::BinOperand::MOD, m_elementDescentPipe.next());
 			binOp->SetLocation(CURRENT_LOCATION());
 			m_elementDescentPipe.pop();
 
@@ -1268,7 +1279,7 @@ void Parser::AdditiveExpression()
 		switch (CURRENT_TOKEN()) {
 		case TK_PLUS:
 		{
-			auto binOp = CoilCl::AST::MakeASTNode<BinaryOperator>(BinaryOperator::BinOperand::PLUS, m_elementDescentPipe.next());
+			auto binOp = Util::MakeASTNode<BinaryOperator>(BinaryOperator::BinOperand::PLUS, m_elementDescentPipe.next());
 			binOp->SetLocation(CURRENT_LOCATION());
 			m_elementDescentPipe.pop();
 
@@ -1282,7 +1293,7 @@ void Parser::AdditiveExpression()
 		}
 		case TK_MINUS:
 		{
-			auto binOp = CoilCl::AST::MakeASTNode<BinaryOperator>(BinaryOperator::BinOperand::MINUS, m_elementDescentPipe.next());
+			auto binOp = Util::MakeASTNode<BinaryOperator>(BinaryOperator::BinOperand::MINUS, m_elementDescentPipe.next());
 			binOp->SetLocation(CURRENT_LOCATION());
 			m_elementDescentPipe.pop();
 
@@ -1308,7 +1319,7 @@ void Parser::ShiftExpression()
 		switch (CURRENT_TOKEN()) {
 		case TK_LEFT_OP:
 		{
-			auto binOp = CoilCl::AST::MakeASTNode<BinaryOperator>(BinaryOperator::BinOperand::SLEFT, m_elementDescentPipe.next());
+			auto binOp = Util::MakeASTNode<BinaryOperator>(BinaryOperator::BinOperand::SLEFT, m_elementDescentPipe.next());
 			binOp->SetLocation(CURRENT_LOCATION());
 			m_elementDescentPipe.pop();
 
@@ -1322,7 +1333,7 @@ void Parser::ShiftExpression()
 		}
 		case TK_RIGHT_OP:
 		{
-			auto binOp = CoilCl::AST::MakeASTNode<BinaryOperator>(BinaryOperator::BinOperand::SRIGHT, m_elementDescentPipe.next());
+			auto binOp = Util::MakeASTNode<BinaryOperator>(BinaryOperator::BinOperand::SRIGHT, m_elementDescentPipe.next());
 			binOp->SetLocation(CURRENT_LOCATION());
 			m_elementDescentPipe.pop();
 
@@ -1348,7 +1359,7 @@ void Parser::RelationalExpression()
 		switch (CURRENT_TOKEN()) {
 		case TK_LESS_THAN:
 		{
-			auto binOp = CoilCl::AST::MakeASTNode<BinaryOperator>(BinaryOperator::BinOperand::LT, m_elementDescentPipe.next());
+			auto binOp = Util::MakeASTNode<BinaryOperator>(BinaryOperator::BinOperand::LT, m_elementDescentPipe.next());
 			binOp->SetLocation(CURRENT_LOCATION());
 			m_elementDescentPipe.pop();
 
@@ -1362,7 +1373,7 @@ void Parser::RelationalExpression()
 		}
 		case TK_GREATER_THAN:
 		{
-			auto binOp = CoilCl::AST::MakeASTNode<BinaryOperator>(BinaryOperator::BinOperand::GT, m_elementDescentPipe.next());
+			auto binOp = Util::MakeASTNode<BinaryOperator>(BinaryOperator::BinOperand::GT, m_elementDescentPipe.next());
 			binOp->SetLocation(CURRENT_LOCATION());
 			m_elementDescentPipe.pop();
 
@@ -1376,7 +1387,7 @@ void Parser::RelationalExpression()
 		}
 		case TK_LE_OP:
 		{
-			auto binOp = CoilCl::AST::MakeASTNode<BinaryOperator>(BinaryOperator::BinOperand::LE, m_elementDescentPipe.next());
+			auto binOp = Util::MakeASTNode<BinaryOperator>(BinaryOperator::BinOperand::LE, m_elementDescentPipe.next());
 			binOp->SetLocation(CURRENT_LOCATION());
 			m_elementDescentPipe.pop();
 
@@ -1390,7 +1401,7 @@ void Parser::RelationalExpression()
 		}
 		case TK_GE_OP:
 		{
-			auto binOp = CoilCl::AST::MakeASTNode<BinaryOperator>(BinaryOperator::BinOperand::GE, m_elementDescentPipe.next());
+			auto binOp = Util::MakeASTNode<BinaryOperator>(BinaryOperator::BinOperand::GE, m_elementDescentPipe.next());
 			binOp->SetLocation(CURRENT_LOCATION());
 			m_elementDescentPipe.pop();
 
@@ -1416,7 +1427,7 @@ void Parser::EqualityExpression()
 		switch (CURRENT_TOKEN()) {
 		case TK_EQ_OP:
 		{
-			auto binOp = CoilCl::AST::MakeASTNode<BinaryOperator>(BinaryOperator::BinOperand::EQ, m_elementDescentPipe.next());
+			auto binOp = Util::MakeASTNode<BinaryOperator>(BinaryOperator::BinOperand::EQ, m_elementDescentPipe.next());
 			binOp->SetLocation(CURRENT_LOCATION());
 			m_elementDescentPipe.pop();
 
@@ -1430,7 +1441,7 @@ void Parser::EqualityExpression()
 		}
 		case TK_NE_OP:
 		{
-			auto binOp = CoilCl::AST::MakeASTNode<BinaryOperator>(BinaryOperator::BinOperand::NEQ, m_elementDescentPipe.next());
+			auto binOp = Util::MakeASTNode<BinaryOperator>(BinaryOperator::BinOperand::NEQ, m_elementDescentPipe.next());
 			binOp->SetLocation(CURRENT_LOCATION());
 			m_elementDescentPipe.pop();
 
@@ -1453,7 +1464,7 @@ void Parser::AndExpression()
 	EqualityExpression();
 
 	while (MATCH_TOKEN(TK_AMPERSAND)) {
-		auto binOp = CoilCl::AST::MakeASTNode<BinaryOperator>(BinaryOperator::BinOperand::AND, m_elementDescentPipe.next());
+		auto binOp = Util::MakeASTNode<BinaryOperator>(BinaryOperator::BinOperand::AND, m_elementDescentPipe.next());
 		binOp->SetLocation(CURRENT_LOCATION());
 		m_elementDescentPipe.pop();
 
@@ -1471,7 +1482,7 @@ void Parser::ExclusiveOrExpression()
 	AndExpression();
 
 	while (MATCH_TOKEN(TK_CARET)) {
-		auto binOp = CoilCl::AST::MakeASTNode<BinaryOperator>(BinaryOperator::BinOperand::XOR, m_elementDescentPipe.next());
+		auto binOp = Util::MakeASTNode<BinaryOperator>(BinaryOperator::BinOperand::XOR, m_elementDescentPipe.next());
 		binOp->SetLocation(CURRENT_LOCATION());
 		m_elementDescentPipe.pop();
 
@@ -1489,7 +1500,7 @@ void Parser::InclusiveOrExpression()
 	ExclusiveOrExpression();
 
 	while (MATCH_TOKEN(TK_VERTIAL_BAR)) {
-		auto binOp = CoilCl::AST::MakeASTNode<BinaryOperator>(BinaryOperator::BinOperand::OR, m_elementDescentPipe.next());
+		auto binOp = Util::MakeASTNode<BinaryOperator>(BinaryOperator::BinOperand::OR, m_elementDescentPipe.next());
 		binOp->SetLocation(CURRENT_LOCATION());
 		m_elementDescentPipe.pop();
 
@@ -1507,7 +1518,7 @@ void Parser::LogicalAndExpression()
 	InclusiveOrExpression();
 
 	while (MATCH_TOKEN(TK_AND_OP)) {
-		auto binOp = CoilCl::AST::MakeASTNode<BinaryOperator>(BinaryOperator::BinOperand::LAND, m_elementDescentPipe.next());
+		auto binOp = Util::MakeASTNode<BinaryOperator>(BinaryOperator::BinOperand::LAND, m_elementDescentPipe.next());
 		binOp->SetLocation(CURRENT_LOCATION());
 		m_elementDescentPipe.pop();
 
@@ -1525,7 +1536,7 @@ void Parser::LogicalOrExpression()
 	LogicalAndExpression();
 
 	while (MATCH_TOKEN(TK_OR_OP)) {
-		auto binOp = CoilCl::AST::MakeASTNode<BinaryOperator>(BinaryOperator::BinOperand::LOR, m_elementDescentPipe.next());
+		auto binOp = Util::MakeASTNode<BinaryOperator>(BinaryOperator::BinOperand::LOR, m_elementDescentPipe.next());
 		binOp->SetLocation(CURRENT_LOCATION());
 		m_elementDescentPipe.pop();
 
@@ -1543,7 +1554,7 @@ void Parser::ConditionalExpression()
 	LogicalOrExpression();
 
 	if (MATCH_TOKEN(TK_QUESTION_MARK)) {
-		auto conOp = CoilCl::AST::MakeASTNode<ConditionalOperator>(m_elementDescentPipe.next());
+		auto conOp = Util::MakeASTNode<ConditionalOperator>(m_elementDescentPipe.next());
 		conOp->SetLocation(CURRENT_LOCATION());
 		m_elementDescentPipe.pop();
 
@@ -1594,7 +1605,7 @@ bool Parser::JumpStatement()
 
 		//ExpectIdentifier();//XXX: possible optimization
 
-		auto stmt = CoilCl::AST::MakeASTNode<GotoStmt>(CURRENT_DATA().As<std::string>());
+		auto stmt = Util::MakeASTNode<GotoStmt>(CURRENT_DATA().As<std::string>());
 		stmt->SetLocation(CURRENT_LOCATION());
 		m_elementDescentPipe.push(stmt);
 		NextToken();
@@ -1603,7 +1614,7 @@ bool Parser::JumpStatement()
 	case TK_CONTINUE:
 	{
 		NextToken();
-		auto stmt = CoilCl::AST::MakeASTNode<ContinueStmt>();
+		auto stmt = Util::MakeASTNode<ContinueStmt>();
 		stmt->SetLocation(CURRENT_LOCATION());
 		m_elementDescentPipe.push(stmt);
 		break;
@@ -1611,7 +1622,7 @@ bool Parser::JumpStatement()
 	case TK_BREAK:
 	{
 		NextToken();
-		auto stmt = CoilCl::AST::MakeASTNode<BreakStmt>();
+		auto stmt = Util::MakeASTNode<BreakStmt>();
 		stmt->SetLocation(CURRENT_LOCATION());
 		m_elementDescentPipe.push(stmt);
 		break;
@@ -1620,14 +1631,14 @@ bool Parser::JumpStatement()
 	{
 		NextToken();
 		if (MATCH_TOKEN(TK_COMMIT)) {
-			auto stmt = CoilCl::AST::MakeASTNode<ReturnStmt>();
+			auto stmt = Util::MakeASTNode<ReturnStmt>();
 			stmt->SetLocation(CURRENT_LOCATION());
 			m_elementDescentPipe.push(stmt);
 		}
 		else {
 			Expression();
 
-			auto returnStmt = CoilCl::AST::MakeASTNode<ReturnStmt>();
+			auto returnStmt = Util::MakeASTNode<ReturnStmt>();
 			returnStmt->SetLocation(CURRENT_LOCATION());
 			while (!m_elementDescentPipe.empty()) {
 				returnStmt->SetReturnNode(m_elementDescentPipe.next());
@@ -1655,7 +1666,7 @@ bool Parser::IterationStatement()
 		NextToken();
 		ExpectToken(TK_PARENTHESE_OPEN);
 		Expression();
-		auto stmt = CoilCl::AST::MakeASTNode<WhileStmt>(m_elementDescentPipe.next());
+		auto stmt = Util::MakeASTNode<WhileStmt>(m_elementDescentPipe.next());
 		stmt->SetLocation(CURRENT_LOCATION());
 		ExpectToken(TK_PARENTHESE_CLOSE);
 		m_elementDescentPipe.pop();
@@ -1675,7 +1686,7 @@ bool Parser::IterationStatement()
 		NextToken();
 		Statement();
 
-		auto stmt = CoilCl::AST::MakeASTNode<DoStmt>(m_elementDescentPipe.next());
+		auto stmt = Util::MakeASTNode<DoStmt>(m_elementDescentPipe.next());
 		stmt->SetLocation(CURRENT_LOCATION());
 		m_elementDescentPipe.pop();
 
@@ -1695,9 +1706,9 @@ bool Parser::IterationStatement()
 		NextToken();
 		ExpectToken(TK_PARENTHESE_OPEN);
 
-		std::shared_ptr<CoilCl::AST::ASTNode> node1;
-		std::shared_ptr<CoilCl::AST::ASTNode> node2;
-		std::shared_ptr<CoilCl::AST::ASTNode> node3;
+		std::shared_ptr<ASTNode> node1;
+		std::shared_ptr<ASTNode> node2;
+		std::shared_ptr<ASTNode> node3;
 
 		Declaration();
 		if (!m_elementDescentPipe.empty()) {
@@ -1732,7 +1743,7 @@ bool Parser::IterationStatement()
 
 		ExpectToken(TK_PARENTHESE_CLOSE);
 
-		auto stmt = CoilCl::AST::MakeASTNode<ForStmt>(node1, node2, node3);
+		auto stmt = Util::MakeASTNode<ForStmt>(node1, node2, node3);
 		stmt->SetLocation(CURRENT_LOCATION());
 
 		Statement();
@@ -1761,7 +1772,7 @@ bool Parser::SelectionStatement()
 		Expression();
 		ExpectToken(TK_PARENTHESE_CLOSE);
 
-		auto stmt = CoilCl::AST::MakeASTNode<IfStmt>(m_elementDescentPipe.next());
+		auto stmt = Util::MakeASTNode<IfStmt>(m_elementDescentPipe.next());
 		stmt->SetLocation(CURRENT_LOCATION());
 		m_elementDescentPipe.pop();
 
@@ -1794,7 +1805,7 @@ bool Parser::SelectionStatement()
 		Expression();
 		ExpectToken(TK_PARENTHESE_CLOSE);
 
-		auto stmt = CoilCl::AST::MakeASTNode<SwitchStmt>(m_elementDescentPipe.next());
+		auto stmt = Util::MakeASTNode<SwitchStmt>(m_elementDescentPipe.next());
 		stmt->SetLocation(CURRENT_LOCATION());
 		m_elementDescentPipe.pop();
 
@@ -1841,7 +1852,7 @@ bool Parser::CompoundStatement()
 
 		// Squash all stack elements in compound statment
 		// body and push compound on the stack
-		auto stmt = CoilCl::AST::MakeASTNode<CompoundStmt>();
+		auto stmt = Util::MakeASTNode<CompoundStmt>();
 		stmt->SetLocation(CURRENT_LOCATION());
 		while (!m_elementDescentPipe.empty()) {
 			stmt->AppendChild(m_elementDescentPipe.next());
@@ -1876,7 +1887,7 @@ bool Parser::LabeledStatement()
 				throw ParseException{ "expected statement", 0, 0 };
 			}
 
-			auto stmt = CoilCl::AST::MakeASTNode<LabelStmt>(lblName, m_elementDescentPipe.next());
+			auto stmt = Util::MakeASTNode<LabelStmt>(lblName, m_elementDescentPipe.next());
 			stmt->SetLocation(CURRENT_LOCATION());
 			m_elementDescentPipe.pop();
 			m_elementDescentPipe.push(stmt);
@@ -1903,7 +1914,7 @@ bool Parser::LabeledStatement()
 			throw ParseException{ "label at end of compound statement", 0, 0 };
 		}
 
-		auto stmt = CoilCl::AST::MakeASTNode<CaseStmt>(lblLiteral, m_elementDescentPipe.next());
+		auto stmt = Util::MakeASTNode<CaseStmt>(lblLiteral, m_elementDescentPipe.next());
 		stmt->SetLocation(CURRENT_LOCATION());
 		m_elementDescentPipe.pop();
 		m_elementDescentPipe.push(stmt);
@@ -1920,7 +1931,7 @@ bool Parser::LabeledStatement()
 			throw ParseException{ "label at end of compound statement", 0, 0 };
 		}
 
-		auto stmt = CoilCl::AST::MakeASTNode<DefaultStmt>(m_elementDescentPipe.next());
+		auto stmt = Util::MakeASTNode<DefaultStmt>(m_elementDescentPipe.next());
 		stmt->SetLocation(CURRENT_LOCATION());
 		m_elementDescentPipe.pop();
 		m_elementDescentPipe.push(stmt);
@@ -1978,12 +1989,12 @@ void Parser::Declaration()
 		NextToken();
 	}
 	// Check if the specifier results yield a typedef.
-	else if (m_typeStack.top()->StorageClass() == Typedef::BuiltinType::StorageClassSpecifier::TYPEDEF) {
+	else if (m_typeStack.top()->StorageClass() == BuiltinType::StorageClassSpecifier::TYPEDEF) {
 		if (Declarator()) {
 			ExpectToken(TK_COMMIT);
 
 			auto name = m_identifierStack.top();
-			auto decl = CoilCl::AST::MakeASTNode<TypedefDecl>(name, m_typeStack.top());
+			auto decl = Util::MakeASTNode<TypedefDecl>(name, m_typeStack.top());
 			decl->SetLocation(CURRENT_LOCATION());
 			decl->UpdateReturnType().SetPointer(m_pointerCounter);
 			m_pointerCounter = 0;
@@ -2001,7 +2012,7 @@ void Parser::Declaration()
 		if (m_elementDescentPipe.is_changed(initState)) {
 			m_elementDescentPipe.release_until(initState);
 
-			auto decl = CoilCl::AST::MakeASTNode<DeclStmt>();
+			auto decl = Util::MakeASTNode<DeclStmt>();
 			decl->SetLocation(CURRENT_LOCATION());
 			while (!m_elementDescentPipe.empty()) {
 				decl->AddDeclaration(Util::NodeCast<VarDecl>(m_elementDescentPipe.next()));
@@ -2035,7 +2046,7 @@ void Parser::InitDeclaratorList()
 			Initializer();
 			m_elementDescentPipe.release_until(startState);
 
-			auto decl = CoilCl::AST::MakeASTNode<VarDecl>(m_identifierStack.top(), m_typeStack.top(), m_elementDescentPipe.next());
+			auto decl = Util::MakeASTNode<VarDecl>(m_identifierStack.top(), m_typeStack.top(), m_elementDescentPipe.next());
 			decl->SetLocation(CURRENT_LOCATION());
 			decl->UpdateReturnType().SetPointer(m_pointerCounter);
 			m_pointerCounter = 0;
@@ -2046,7 +2057,7 @@ void Parser::InitDeclaratorList()
 			m_elementDescentPipe.lock();
 		}
 		else {
-			auto decl = CoilCl::AST::MakeASTNode<VarDecl>(m_identifierStack.top(), m_typeStack.top());
+			auto decl = Util::MakeASTNode<VarDecl>(m_identifierStack.top(), m_typeStack.top());
 			decl->SetLocation(CURRENT_LOCATION());
 			decl->UpdateReturnType().SetPointer(m_pointerCounter);
 			m_pointerCounter = 0;
@@ -2157,7 +2168,7 @@ void Parser::Initializer()
 
 		m_elementDescentPipe.release_until(startState);
 
-		auto expr = CoilCl::AST::MakeASTNode<InitListExpr>();
+		auto expr = Util::MakeASTNode<InitListExpr>();
 		expr->SetLocation(CURRENT_LOCATION());
 		while (!m_elementDescentPipe.empty()) {
 			expr->AddListItem(m_elementDescentPipe.next());
@@ -2262,7 +2273,7 @@ bool Parser::DirectDeclarator()
 			if (MATCH_TOKEN(TK_PARENTHESE_CLOSE)) {
 				NextToken();
 
-				auto decl = CoilCl::AST::MakeASTNode<FunctionDecl>(m_identifierStack.top(), m_typeStack.top());
+				auto decl = Util::MakeASTNode<FunctionDecl>(m_identifierStack.top(), m_typeStack.top());
 				decl->SetLocation(CURRENT_LOCATION());
 				decl->UpdateReturnType().SetPointer(m_pointerCounter);
 				m_pointerCounter = 0;
@@ -2287,7 +2298,7 @@ bool Parser::DirectDeclarator()
 					}
 				}
 
-				auto decl = CoilCl::AST::MakeASTNode<FunctionDecl>(m_identifierStack.top(), m_typeStack.top());
+				auto decl = Util::MakeASTNode<FunctionDecl>(m_identifierStack.top(), m_typeStack.top());
 				decl->SetLocation(CURRENT_LOCATION());
 				decl->SetParameterStatement(Util::NodeCast<ParamStmt>(m_elementDescentPipe.next()));
 				decl->UpdateReturnType().SetPointer(m_pointerCounter);
@@ -2354,7 +2365,7 @@ break_loop:
 // Continue until a type qualifier was found.
 void Parser::TypeQualifierList()
 {
-	while (TypeQualifier() != Typedef::TypedefBase::TypeQualifier::NONE);
+	while (TypeQualifier() != TypedefBase::TypeQualifier::NONE);
 }
 
 //TODO: Match the identifiers with the param declarations
@@ -2382,7 +2393,7 @@ bool Parser::PostParameterTypeList()
 	m_elementDescentPipe.release_until(startState);
 
 	if (rs) {
-		auto stmt = AST::MakeASTNode<ParamStmt>();
+		auto stmt = Util::MakeASTNode<ParamStmt>();
 		stmt->SetLocation(CURRENT_LOCATION());
 		while (!m_elementDescentPipe.empty()) {
 			stmt->AppendParamter(m_elementDescentPipe.next());
@@ -2407,7 +2418,7 @@ bool Parser::ParameterTypeList()
 		if (MATCH_TOKEN(TK_ELLIPSIS)) {
 			NextToken();
 
-			auto decl = CoilCl::AST::MakeASTNode<VariadicDecl>();
+			auto decl = Util::MakeASTNode<VariadicDecl>();
 			decl->SetLocation(CURRENT_LOCATION());
 			m_elementDescentPipe.push(decl);
 			rs = true;
@@ -2428,7 +2439,7 @@ bool Parser::ParameterTypeList()
 	m_elementDescentPipe.release_until(startState);
 
 	if (rs) {
-		auto stmt = CoilCl::AST::MakeASTNode<ParamStmt>();
+		auto stmt = Util::MakeASTNode<ParamStmt>();
 		stmt->SetLocation(CURRENT_LOCATION());
 		while (!m_elementDescentPipe.empty()) {
 			stmt->AppendParamter(m_elementDescentPipe.next());
@@ -2454,7 +2465,7 @@ bool Parser::ParameterDeclaration()
 	// If a declarator was found, create the parameter and pop all used lists
 	// since the next parameter cannot depend on this data.
 	if (Declarator()) {
-		auto decl = CoilCl::AST::MakeASTNode<ParamDecl>(m_identifierStack.top(), m_typeStack.top());
+		auto decl = Util::MakeASTNode<ParamDecl>(m_identifierStack.top(), m_typeStack.top());
 		decl->SetLocation(CURRENT_LOCATION());
 		decl->UpdateReturnType().SetPointer(m_pointerCounter);
 		m_pointerCounter = 0;
@@ -2468,7 +2479,7 @@ bool Parser::ParameterDeclaration()
 
 	// Found a type, but no identifier. Add type as abstract declaration.
 	AbstractDeclarator();
-	auto decl = CoilCl::AST::MakeASTNode<ParamDecl>(m_typeStack.top());
+	auto decl = Util::MakeASTNode<ParamDecl>(m_typeStack.top());
 	decl->SetLocation(CURRENT_LOCATION());
 	decl->UpdateReturnType().SetPointer(m_pointerCounter);
 	m_pointerCounter = 0;
@@ -2549,7 +2560,7 @@ void Parser::ExternalDeclaration()
 	}
 
 	// At top level, release all locks
-	m_elementDescentPipe.release_until(LockPipe<decltype(m_elementDescentPipe)>::begin);
+	m_elementDescentPipe.release_until(Cry::LockPipe<decltype(m_elementDescentPipe)>::begin);
 	assert(!m_elementDescentPipe.empty());
 }
 
