@@ -317,7 +317,7 @@ void CryExe::Executable::AddSection(Section *section)
 	rawSection.identifier = static_cast<Structure::CexSection::SectionIdentifier>(typePair.first);
 	rawSection.flags = Structure::SectionCharacteristic::SC_NONE;
 	rawSection.offsetToSection = UNASSIGNED;
-	rawSection.sizeOfArray = section->Size();
+	rawSection.sizeOfArray = static_cast<uint32_t>(section->Size());
 	SETSTRUCTSZ(rawSection, Structure::CexSection);
 
 	// Save current image offset to stack

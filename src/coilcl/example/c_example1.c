@@ -56,6 +56,8 @@ void file_write(datachunk_t *data, const char *out)
 /* This callback is invoked when the backend encounters an error */
 static void error_handler(void *user_data, const char *message, int fatal)
 {
+	((void*)user_data);
+
 	if (!fatal) {
 		fprintf(stderr, "Compiler warning: %s\n", message);
 		return;
@@ -83,6 +85,8 @@ static datachunk_t *get_next_source_buffer(void *user_data)
  */
 int load_source(void *user_data, const char *source)
 {
+	((void*)user_data);
+	((void*)source);
 	return 0;
 }
 

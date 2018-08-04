@@ -8,6 +8,10 @@
 
 #include <stdint.h>
 
+#ifdef _WIN32
+# undef PC_NONE
+#endif
+
 #pragma pack(push, 1)
 
 #define IMAGE_VERSION_MAJOR	0x0
@@ -51,7 +55,7 @@ enum class ImageFlags : std::uint16_t
 	CCH_BIN_REPRODUCE = 1 << 2,
 };
 
-// Size: 20 bytes aligned
+// Size: 20 bytes aligned.
 struct CexImageHeader final
 {
 	// The first and constant header must always be identifiable by its
@@ -99,7 +103,7 @@ enum class ProgramCharacteristic : std::uint16_t
 	PC_ALLOW_AUTO_FALLBACK = 1 << 5,
 };
 
-// Size: 40 bytes aligned
+// Size: 40 bytes aligned.
 struct CexProgramHeader final
 {
 	// Magic value must always have the same value. The value is used to exclude any

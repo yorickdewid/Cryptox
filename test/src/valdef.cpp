@@ -6,8 +6,7 @@
 // that can be found in the LICENSE file. Content can not be 
 // copied and/or distributed without the express of the author.
 
-#include "../src/Valuedef.h"
-#include "../src/ValueHelper.h"
+#include <CryCC/SubValue.h>
 
 #include <boost/test/unit_test.hpp>
 
@@ -20,44 +19,45 @@
 //               full test coverage.
 //
 
-using namespace CoilCl;
+using namespace CryCC::SubValue::Typedef;
+using namespace CryCC::SubValue::Valuedef;
 
 BOOST_AUTO_TEST_SUITE(ValueDefinition)
 
 BOOST_AUTO_TEST_CASE(ValDefBasicReworkDissected)
 {
 	{
-		auto builtin = Util::MakeBuiltinType(Typedef::BuiltinType::Specifier::INT);
-		Typedef::TypeFacade facade{ builtin };
-		Valuedef::Value val{ facade, Valuedef::Value::ValueVariantSingle{ 8612 } };
+		auto builtin = Util::MakeBuiltinType(BuiltinType::Specifier::INT);
+		TypeFacade facade{ builtin };
+		Value val{ facade, Value::ValueVariantSingle{ 8612 } };
 
 		BOOST_CHECK(!val.Empty());
 		BOOST_REQUIRE_EQUAL(8612, val.As<int>());
 	}
 
 	{
-		auto builtin = Util::MakeBuiltinType(Typedef::BuiltinType::Specifier::INT);
-		Valuedef::Value val{ Typedef::TypeFacade{ builtin }, Valuedef::Value::ValueVariantSingle{ 919261 } };
+		auto builtin = Util::MakeBuiltinType(BuiltinType::Specifier::INT);
+		Value val{ TypeFacade{ builtin }, Value::ValueVariantSingle{ 919261 } };
 
 		BOOST_CHECK(!val.Empty());
 		BOOST_REQUIRE_NO_THROW(val.As<int>());
-		BOOST_CHECK_THROW(val.As<char>(), Valuedef::Value::InvalidTypeCastException);
+		BOOST_CHECK_THROW(val.As<char>(), Value::InvalidTypeCastException);
 	}
 
 	{
-		auto builtin = Util::MakeBuiltinType(Typedef::BuiltinType::Specifier::SHORT);
-		Valuedef::Value val{ Typedef::TypeFacade{ builtin } };
+		auto builtin = Util::MakeBuiltinType(BuiltinType::Specifier::SHORT);
+		Value val{ TypeFacade{ builtin } };
 
 		BOOST_CHECK(!val);
 		BOOST_CHECK(val.Empty());
-		BOOST_CHECK_THROW(val.As<char>(), Valuedef::Value::UninitializedValueException);
+		BOOST_CHECK_THROW(val.As<char>(), Value::UninitializedValueException);
 	}
 
 	{
 		std::vector<int> a{ 8612, 812, 2383, 96, 12 };
 
-		Valuedef::Value val{Typedef::TypeFacade{ Util::MakeBuiltinType(Typedef::BuiltinType::Specifier::INT) }
-			, Valuedef::Value::ValueVariantMulti{ a } };
+		Value val{ TypeFacade{ Util::MakeBuiltinType(BuiltinType::Specifier::INT) }
+			, Value::ValueVariantMulti{ a } };
 
 		BOOST_CHECK(!val.Empty());
 		BOOST_CHECK(Util::IsArray(val.Type()));
@@ -70,8 +70,8 @@ BOOST_AUTO_TEST_CASE(ValDefBasicReworkDissected)
 	{
 		std::vector<char> a{ 'X', 'O', 'A', 'N', 'B' };
 
-		Valuedef::Value val{Typedef::TypeFacade{ Util::MakeBuiltinType(Typedef::BuiltinType::Specifier::CHAR) }
-			, Valuedef::Value::ValueVariantMulti{ a } };
+		Value val{ TypeFacade{ Util::MakeBuiltinType(BuiltinType::Specifier::CHAR) }
+			, Value::ValueVariantMulti{ a } };
 
 		BOOST_CHECK(!val.Empty());
 		BOOST_CHECK(Util::IsArray(val.Type()));
@@ -82,18 +82,18 @@ BOOST_AUTO_TEST_CASE(ValDefBasicReworkDissected)
 	}
 
 	{
-		Valuedef::Value val1{Typedef::TypeFacade{ Util::MakeBuiltinType(Typedef::BuiltinType::Specifier::CHAR) }
-			, Valuedef::Value::ValueVariantSingle{ 19 } };
+		Value val1{ TypeFacade{ Util::MakeBuiltinType(BuiltinType::Specifier::CHAR) }
+			, Value::ValueVariantSingle{ 19 } };
 
 		BOOST_CHECK(val1);
 
-		Valuedef::Value val2{Typedef::TypeFacade{ Util::MakeBuiltinType(Typedef::BuiltinType::Specifier::CHAR) }
-			, Valuedef::Value::ValueVariantSingle{ 12 } };
+		Value val2{ TypeFacade{ Util::MakeBuiltinType(BuiltinType::Specifier::CHAR) }
+			, Value::ValueVariantSingle{ 12 } };
 
 		BOOST_CHECK(val2);
 
-		Valuedef::Value val3{Typedef::TypeFacade{ Util::MakeBuiltinType(Typedef::BuiltinType::Specifier::CHAR) }
-			, Valuedef::Value::ValueVariantSingle{ 19 } };
+		Value val3{ TypeFacade{ Util::MakeBuiltinType(BuiltinType::Specifier::CHAR) }
+			, Value::ValueVariantSingle{ 19 } };
 
 		BOOST_CHECK(val3);
 
@@ -218,7 +218,7 @@ BOOST_AUTO_TEST_CASE(ValDefReworkPointer)
 
 		BOOST_CHECK(!valPtr.Empty());
 		BOOST_REQUIRE(valPtr.IsReference());
-		BOOST_REQUIRE_EQUAL(1547483642, valPtr.As<Valuedef::Value>().As<int>());
+		BOOST_REQUIRE_EQUAL(1547483642, valPtr.As<Value>().As<int>());
 	}
 
 	{
@@ -229,8 +229,8 @@ BOOST_AUTO_TEST_CASE(ValDefReworkPointer)
 		BOOST_CHECK(!valPtr.Empty());
 		BOOST_REQUIRE(valPtr.IsReference());
 		BOOST_REQUIRE(!valPtr.IsArray());
-		BOOST_REQUIRE(Util::IsArray(valPtr.As<Valuedef::Value>().Type()));
-		BOOST_REQUIRE(_valDoubleArray == valPtr.As<Valuedef::Value>().As<std::vector<double>>());
+		BOOST_REQUIRE(Util::IsArray(valPtr.As<Value>().Type()));
+		BOOST_REQUIRE(_valDoubleArray == valPtr.As<Value>().As<std::vector<double>>());
 	}
 }
 
@@ -239,17 +239,17 @@ BOOST_AUTO_TEST_CASE(ValDefReworkRecord)
 	auto valInt = Util::MakeInt(4234761);
 	auto valFloatArray = Util::MakeFloatArray({ 125.233f, 1.9812f, 89.8612f });
 
-	Valuedef::RecordValue record{ "somestruct" };
-	record.AddField({ "i", Valuedef::RecordValue::AutoValue(valInt) });
-	record.AddField({ "j", Valuedef::RecordValue::AutoValue(valFloatArray) });
+	RecordValue record{ "somestruct" };
+	record.AddField({ "i", RecordValue::AutoValue(valInt) });
+	record.AddField({ "j", RecordValue::AutoValue(valFloatArray) });
 
-	Valuedef::RecordValue record2{ record };
+	RecordValue record2{ record };
 
 	auto valStruct = Util::MakeStruct(std::move(record));
 	BOOST_REQUIRE(Util::IsStruct(valStruct.Type()));
 
 	BOOST_CHECK(!valStruct.Empty());
-	BOOST_REQUIRE_EQUAL(record2, valStruct.As<Valuedef::RecordValue>());
+	BOOST_REQUIRE_EQUAL(record2, valStruct.As<RecordValue>());
 }
 
 BOOST_AUTO_TEST_CASE(ValDefReworkReplace)
@@ -258,15 +258,15 @@ BOOST_AUTO_TEST_CASE(ValDefReworkReplace)
 		auto valInt = Util::MakeInt(982734);
 		valInt = Util::MakeInt(17);
 		BOOST_REQUIRE_EQUAL(17, valInt.As<int>());
-		BOOST_REQUIRE(Typedef::BuiltinType::Specifier::INT == valInt.Type().DataType<Typedef::BuiltinType>()->TypeSpecifier());
+		BOOST_REQUIRE(BuiltinType::Specifier::INT == valInt.Type().DataType<BuiltinType>()->TypeSpecifier());
 		valInt = Util::MakeInt(7862138);
-		BOOST_REQUIRE(Typedef::BuiltinType::Specifier::INT == valInt.Type().DataType<Typedef::BuiltinType>()->TypeSpecifier());
-		BOOST_REQUIRE_THROW(valInt = Util::MakeFloat(12.23f), Valuedef::Value::InvalidTypeCastException);
+		BOOST_REQUIRE(BuiltinType::Specifier::INT == valInt.Type().DataType<BuiltinType>()->TypeSpecifier());
+		BOOST_REQUIRE_THROW(valInt = Util::MakeFloat(12.23f), Value::InvalidTypeCastException);
 	}
 
 	{
 		auto valDouble = CaptureValue(8273.87123);
-		Valuedef::Value val2 = valDouble;
+		Value val2 = valDouble;
 		BOOST_CHECK(valDouble);
 		BOOST_REQUIRE_EQUAL(8273.87123, val2.As<double>());
 	}
@@ -285,14 +285,13 @@ BOOST_AUTO_TEST_CASE(ValDefReworkMisc)
 		BOOST_REQUIRE(!Util::EvaluateValueAsBoolean(Util::MakeInt(0)));
 		BOOST_REQUIRE_EQUAL(762386, Util::EvaluateValueAsInteger(Util::MakeInt(762386)));
 		BOOST_REQUIRE_EQUAL(0, Util::EvaluateValueAsInteger(Util::MakeInt(0)));
-		BOOST_REQUIRE_THROW(Util::EvaluateValueAsInteger(Util::MakeIntArray({ 12,23 })), Valuedef::Value::UninitializedValueException);
-		BOOST_REQUIRE_THROW(Util::EvaluateValueAsInteger(Util::MakeFloat(8.12f)), Valuedef::Value::InvalidTypeCastException);
+		BOOST_REQUIRE_THROW(Util::EvaluateValueAsInteger(Util::MakeIntArray({ 12,23 })), Value::UninitializedValueException);
+		BOOST_REQUIRE_THROW(Util::EvaluateValueAsInteger(Util::MakeFloat(8.12f)), Value::InvalidTypeCastException);
 	}
 }
 
 BOOST_AUTO_TEST_CASE(ValDefReworkSerialize)
 {
-	using namespace Valuedef;
 	using namespace Util;
 
 	{
@@ -328,11 +327,11 @@ BOOST_AUTO_TEST_CASE(ValDefReworkSerialize)
 	}
 
 	{
-		Valuedef::RecordValue record{ "struct" };
-		record.AddField({ "o", Valuedef::RecordValue::AutoValue(Util::MakeInt(82371)) });
-		record.AddField({ "p", Valuedef::RecordValue::AutoValue(Util::MakeInt(19)) });
+		RecordValue record{ "struct" };
+		record.AddField({ "o", RecordValue::AutoValue(Util::MakeInt(82371)) });
+		record.AddField({ "p", RecordValue::AutoValue(Util::MakeInt(19)) });
 
-		Valuedef::RecordValue record2{ record };
+		RecordValue record2{ record };
 
 		auto val = Util::MakeStruct(std::move(record));
 		Cry::ByteArray buffer = val.Serialize();
@@ -348,7 +347,7 @@ BOOST_AUTO_TEST_CASE(ValDefReworkSerialize)
 
 		const Value val2 = ValueFactory::MakeValue(buffer);
 		BOOST_REQUIRE(val2.IsReference());
-		BOOST_REQUIRE_EQUAL(796162, val2.As<Valuedef::Value>().As<int>());
+		BOOST_REQUIRE_EQUAL(796162, val2.As<Value>().As<int>());
 	}
 }
 

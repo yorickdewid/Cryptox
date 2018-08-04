@@ -6,12 +6,12 @@
 // that can be found in the LICENSE file. Content can not be 
 // copied and/or distributed without the express of the author.
 
-#include "../src/ValueHelper.h"
-#include "../src/RecordValue.h"
+#include <CryCC/SubValue.h>
 
 #include <boost/test/unit_test.hpp>
 
 //
+// Key         : ValRec
 // Test        : Record value unitttest
 // Type        : unit
 // Description : Test cases for the record value system. The Record
@@ -19,19 +19,19 @@
 //               The unit test should test most functionality.
 //
 
-using namespace CoilCl;
+using namespace CryCC::SubValue::Valuedef;
 
 BOOST_AUTO_TEST_SUITE(ValueRecord)
 
 BOOST_AUTO_TEST_CASE(ValRecBasic)
 {
 	{
-		BOOST_REQUIRE_EQUAL(0, Valuedef::RecordValue{}.Size());
+		BOOST_REQUIRE_EQUAL(0, RecordValue{}.Size());
 	}
 
 	{
-		Valuedef::RecordValue record{ "struct" };
-		record.EmplaceField("f", Valuedef::RecordValue::AutoValue(Util::MakeInt(12)));
+		RecordValue record{ "struct" };
+		record.EmplaceField("f", RecordValue::AutoValue(Util::MakeInt(12)));
 		
 		BOOST_REQUIRE(record.HasRecordName());
 		BOOST_REQUIRE_EQUAL(record.Size(), 1);
@@ -39,25 +39,25 @@ BOOST_AUTO_TEST_CASE(ValRecBasic)
 
 	{
 		auto valInt = Util::MakeInt(12);
-		Valuedef::RecordValue anonRecord;
-		anonRecord.EmplaceField("field", Valuedef::RecordValue::AutoValue(valInt));
+		RecordValue anonRecord;
+		anonRecord.EmplaceField("field", RecordValue::AutoValue(valInt));
 
 		BOOST_REQUIRE(!anonRecord.HasRecordName());
 		BOOST_REQUIRE_EQUAL(anonRecord.Size(), 1);
 
-		Valuedef::RecordValue anonRecord2;
-		anonRecord2.EmplaceField("field", Valuedef::RecordValue::AutoValue(valInt));
+		RecordValue anonRecord2;
+		anonRecord2.EmplaceField("field", RecordValue::AutoValue(valInt));
 		BOOST_REQUIRE_EQUAL(anonRecord, anonRecord2);
 	}
 
 	{
 		auto valDouble = Util::MakeDouble(8723.7612);
-		Valuedef::RecordValue record{ "testrec" };
-		record.EmplaceField("i", Valuedef::RecordValue::AutoValue(valDouble));
+		RecordValue record{ "testrec" };
+		record.EmplaceField("i", RecordValue::AutoValue(valDouble));
 
 		auto valDouble2 = Util::MakeDouble(81.7213);
-		Valuedef::RecordValue record2{ "testrec" };
-		record2.EmplaceField("i", Valuedef::RecordValue::AutoValue(valDouble2));
+		RecordValue record2{ "testrec" };
+		record2.EmplaceField("i", RecordValue::AutoValue(valDouble2));
 		BOOST_REQUIRE_NE(record, record2);
 	}
 }
@@ -65,12 +65,12 @@ BOOST_AUTO_TEST_CASE(ValRecBasic)
 BOOST_AUTO_TEST_CASE(ValRecError)
 {
 	{
-		auto value = Valuedef::RecordValue::AutoValue(Util::MakeInt(81827));
+		auto value = RecordValue::AutoValue(Util::MakeInt(81827));
 
-		Valuedef::RecordValue record{ "record" };
+		RecordValue record{ "record" };
 		record.AddField({ "i", value });
 
-		BOOST_REQUIRE_THROW(record.AddField({ "i", value }), Valuedef::RecordValue::FieldExistException);
+		BOOST_REQUIRE_THROW(record.AddField({ "i", value }), RecordValue::FieldExistException);
 	}
 }
 
@@ -78,25 +78,25 @@ BOOST_AUTO_TEST_CASE(ValRecSerialize)
 {
 	{
 		Cry::ByteArray buffer;
-		Valuedef::RecordValue record{ "record" };
-		Valuedef::RecordValue::Serialize(record, buffer);
+		RecordValue record{ "record" };
+		RecordValue::Serialize(record, buffer);
 
-		Valuedef::RecordValue record2;
-		Valuedef::RecordValue::Deserialize(record2, buffer);
+		RecordValue record2;
+		RecordValue::Deserialize(record2, buffer);
 		
 		BOOST_REQUIRE_EQUAL(record, record2);
 	}
 
 	{
 		Cry::ByteArray buffer;
-		Valuedef::RecordValue record;
-		record.AddField({ "x", Valuedef::RecordValue::AutoValue(Util::MakeInt(834)) });
-		record.AddField({ "y", Valuedef::RecordValue::AutoValue(Util::MakeChar('Y')) });
-		record.AddField({ "z", Valuedef::RecordValue::AutoValue(Util::MakeInt(0)) });
-		Valuedef::RecordValue::Serialize(record, buffer);
+		RecordValue record;
+		record.AddField({ "x", RecordValue::AutoValue(Util::MakeInt(834)) });
+		record.AddField({ "y", RecordValue::AutoValue(Util::MakeChar('Y')) });
+		record.AddField({ "z", RecordValue::AutoValue(Util::MakeInt(0)) });
+		RecordValue::Serialize(record, buffer);
 
-		Valuedef::RecordValue record2;
-		Valuedef::RecordValue::Deserialize(record2, buffer);
+		RecordValue record2;
+		RecordValue::Deserialize(record2, buffer);
 
 		BOOST_REQUIRE_EQUAL(3, record2.Size());
 		BOOST_REQUIRE_EQUAL(record, record2);

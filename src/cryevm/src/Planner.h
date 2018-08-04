@@ -11,7 +11,7 @@
 #include "UniquePreservePtr.h"
 #include "State.h"
 
-#include "../../coilcl/src/Program.h"
+#include <CryCC/Program.h>
 
 #include <boost/variant.hpp>
 
@@ -20,7 +20,7 @@
 # define EXIT_FAILURE 1
 #endif
 
-using ProgramPtr = Detail::UniquePreservePtr<CoilCl::Program>;
+using ProgramPtr = Detail::UniquePreservePtr<CryCC::Program::Program>;
 using Argument = boost::variant<int, std::string>;
 using ArgumentList = std::vector<Argument>;
 

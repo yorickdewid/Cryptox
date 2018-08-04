@@ -8,8 +8,7 @@
 
 #pragma once
 
-#include "../../coilcl/src/ASTNode.h"
-#include "../../coilcl/src/ValueHelper.h"
+#include <CryCC/AST.h>
 
 #include <string>
 #include <functional>

@@ -10,8 +10,7 @@
 
 #include "ExternalMethod.h"
 
-#include "../../coilcl/src/ASTNode.h"
-#include "../../coilcl/src/ValueHelper.h"
+#include <CryCC/AST.h>
 
 #include <string>
 #include <cassert>

@@ -19,6 +19,7 @@ include(ProjectPrep)
 enable_unsecure_crt()
 
 # External includes
+include_directories(${CryCC_INCLUDE_DIRS})
 include_directories(${CoilCl_INCLUDE_DIRS})
 
 add_library(${PROJECT_NAME} SHARED

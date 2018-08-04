@@ -19,6 +19,7 @@ include(ProjectPrep)
 enable_unsecure_crt()
 
 # External includes
+include_directories(${CryCC_INCLUDE_DIRS})
 include_directories(${CoilCl_INCLUDE_DIRS})
 include_directories(${CryEVM_INCLUDE_DIRS})
 
@@ -40,6 +41,7 @@ set_target_properties(${PROJECT_NAME}
 )
 
 target_link_libraries(${PROJECT_NAME}
+	CryCC
 	CoilCl
 	CryEVM
 	${Boost_FILESYSTEM_LIBRARY}

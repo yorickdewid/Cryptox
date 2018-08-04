@@ -26,6 +26,7 @@ endforeach()
 enable_unsecure_crt()
 
 # External includes
+include_directories(${CryCC_INCLUDE_DIRS})
 include_directories(${CryEVM_INCLUDE_DIRS})
 
 add_library(${PROJECT_NAME} SHARED

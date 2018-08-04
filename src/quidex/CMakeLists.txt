@@ -18,6 +18,7 @@ include(ProjectPrep)
 #enable_unsecure_crt()
 
 # External includes
+include_directories(${CryCC_INCLUDE_DIRS})
 include_directories(${CryEVM_INCLUDE_DIRS})
 include_directories(${3RD_PROJECT_DIR}/QUID/include)
 include_directories(${3RD_PROJECT_DIR}/QUID/quidpp)
@@ -40,8 +41,8 @@ set_target_properties(${PROJECT_NAME}
 )
 
 target_link_libraries(${PROJECT_NAME}
+	CryCC
 	quid_a
-	CommonValue
 )
 
 # Set project options

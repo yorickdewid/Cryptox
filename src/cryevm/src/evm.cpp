@@ -6,6 +6,7 @@
 // that can be found in the LICENSE file. Content can not be 
 // copied and/or distributed without the express of the author.
 
+// Local includes.
 #include "evm.h"
 #include "Functional.h"
 #include "ExternalMethod.h"
@@ -14,9 +15,10 @@
 #include "Planner.h"
 #include "UniquePreservePtr.h"
 
-#include "../../coilcl/src/Program.h"
-
 // Project includes.
+#include <CryCC/Program.h>
+
+// Framework includes.
 #include <Cry/Cry.h>
 #include <Cry/Config.h>
 #include <Cry/Loader.h>
@@ -39,7 +41,7 @@
 
 namespace Loader = Cry::Module;
 
-using ProgramPtr = Detail::UniquePreservePtr<CoilCl::Program>;
+using ProgramPtr = Detail::UniquePreservePtr<CryCC::Program::Program>;
 
 #ifdef AUTO_CONVERT
 bool has_digits(const std::string& s)

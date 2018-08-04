@@ -98,7 +98,7 @@ class ExecuteAdapter final
 		for (size_t i = 0; i < argsz; ++i) {
 			settings->args[i] = datalist_item_new();
 			settings->args[i]->ptr = m_args[i].data();
-			settings->args[i]->size = m_args[i].size();
+			settings->args[i]->size = static_cast<unsigned int>(m_args[i].size());
 		}
 	}
 

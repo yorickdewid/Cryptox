@@ -9,9 +9,11 @@
 #include "Interpreter.h"
 #include "ExternalMethod.h"
 
-#include <Cry/Except.h>
+#include <CryCC/AST.h>
+#include <CryCC/SubValue.h>
 
-#include "../../coilcl/src/ValueHelper.h"
+#include <Cry/Cry.h>
+#include <Cry/Except.h>
 
 #include <numeric>
 #include <set>
@@ -32,11 +34,13 @@
 		return std::make_shared<ContextType>(shared_from_this(), std::forward<ArgTypes>(args)...); \
 	}
 
-using namespace EVM;
+using namespace CryCC::AST;
+//using namespace CryCC::SubValue::Typedef;
+using namespace CryCC::SubValue::Valuedef;
 
-inline bool IsTranslationUnitNode(const AST::ASTNode& node) noexcept
+inline bool IsTranslationUnitNode(const CryCC::AST::ASTNode& node) noexcept
 {
-	return node.Label() == AST::NodeID::TRANSLATION_UNIT_DECL_ID;
+	return node.Label() == CryCC::AST::NodeID::TRANSLATION_UNIT_DECL_ID;
 }
 
 class IdentifierNotFoundException : public std::exception
@@ -56,7 +60,7 @@ private:
 	std::string m_msg;
 };
 
-Interpreter::Interpreter(Planner& planner)
+EVM::Interpreter::Interpreter(Planner& planner)
 	: Strategy{ planner }
 {
 }
@@ -67,7 +71,7 @@ Interpreter::Interpreter(Planner& planner)
 // interpreter. This operation does *not* verify
 // the correctness of the program, and it is assumed
 // that anything passed in is valid by definition.
-bool Interpreter::IsRunnable() const noexcept
+bool EVM::Interpreter::IsRunnable() const noexcept
 {
 	return (Program()->Condition().IsRunnable()
 		&& Program()->AstPassthrough()->ChildrenCount()
@@ -368,7 +372,7 @@ std::set<DeclarationRegistry::OpaqueAddress> DeclarationRegistry::s_global;
 struct SymbolRegistry
 {
 protected:
-	std::map<std::string, std::weak_ptr<AST::ASTNode>> m_symbolTable;
+	std::map<std::string, std::weak_ptr<ASTNode>> m_symbolTable;
 };
 
 class AbstractContext
@@ -412,7 +416,7 @@ public:
 public:
 	// Create and position a value in the special space.
 	template<size_t Position>
-	void CreateSpecialVar(CoilCl::Valuedef::Value value, bool override = false)
+	void CreateSpecialVar(Value value, bool override = false)
 	{
 		if (!m_specialType[Position] || override) {
 			m_specialType[Position] = std::move(value);
@@ -454,7 +458,7 @@ private:
 	Context::tag m_tag;
 
 protected:
-	std::array<boost::optional<CoilCl::Valuedef::Value>, 1> m_specialType;
+	std::array<boost::optional<Value>, 1> m_specialType;
 	std::shared_ptr<AbstractContext> m_parentContext;
 };
 
@@ -751,7 +755,7 @@ class Runnable
 		// Convert paramters.
 		if (!funcNode->HasParameters()) { return; }
 		for (const auto& child : funcNode->ParameterStatement()->Children()) {
-			if (child.lock()->Label() == AST::NodeID::VARIADIC_DECL_ID) {
+			if (child.lock()->Label() == NodeID::VARIADIC_DECL_ID) {
 				m_paramList.emplace_back("__va_list__");
 			}
 			else {
@@ -762,7 +766,7 @@ class Runnable
 		}
 	}
 
-	void ConvertExternalMethod(const ExternalMethod *exfuncRef)
+	void ConvertExternalMethod(const EVM::ExternalMethod *exfuncRef)
 	{
 		assert(exfuncRef);
 		m_isExternal = true;
@@ -785,7 +789,7 @@ public:
 	}
 
 	// Construct runnable from external method.
-	explicit Runnable(const ExternalMethod *exfuncRef)
+	explicit Runnable(const EVM::ExternalMethod *exfuncRef)
 	{
 		ConvertExternalMethod(exfuncRef);
 	}
@@ -796,7 +800,7 @@ public:
 		return (*this);
 	}
 
-	Runnable& operator=(const ExternalMethod *method)
+	Runnable& operator=(const EVM::ExternalMethod *method)
 	{
 		ConvertExternalMethod(method);
 		return (*this);
@@ -809,7 +813,7 @@ public:
 	// Query if runnable is external method.
 	inline bool IsExternal() const noexcept { return m_isExternal; }
 	// Get the parameter list.
-	const ExternalMethod::ParameterList& Parameters() const noexcept { return m_paramList; }
+	const EVM::ExternalMethod::ParameterList& Parameters() const noexcept { return m_paramList; }
 
 	template<typename CastType>
 	auto Data() const { return boost::get<CastType>(m_functionData); }
@@ -818,14 +822,14 @@ public:
 
 private:
 	bool m_isExternal = false;
-	boost::variant<std::shared_ptr<FunctionDecl>, const ExternalMethod*> m_functionData;
-	ExternalMethod::ParameterList m_paramList;
+	boost::variant<std::shared_ptr<FunctionDecl>, const EVM::ExternalMethod*> m_functionData;
+	EVM::ExternalMethod::ParameterList m_paramList;
 };
 
-Context::Unit InitializeContext(AST::AST& ast, std::shared_ptr<GlobalContext>& ctx)
+EVM::Context::Unit InitializeContext(AST& ast, std::shared_ptr<EVM::GlobalContext>& ctx)
 {
 	auto func = static_cast<TranslationUnitDecl&>(ast.Front());
-	return ctx->MakeContext<UnitContext>(func.Identifier());
+	return ctx->MakeContext<EVM::UnitContext>(func.Identifier());
 }
 
 class Evaluator
@@ -833,30 +837,30 @@ class Evaluator
 	void Unit(const TranslationUnitDecl&);
 
 public:
-	Evaluator(AST::AST&&, std::shared_ptr<GlobalContext>&);
-	Evaluator(AST::AST&&, std::shared_ptr<GlobalContext>&&);
+	Evaluator(AST&&, std::shared_ptr<EVM::GlobalContext>&);
+	Evaluator(AST&&, std::shared_ptr<EVM::GlobalContext>&&);
 
 	Evaluator& CallRoutine(const std::string&, const ArgumentList&);
 	int YieldResult();
 
-	static int CallFunction(AST::AST&&, const std::string&, const ArgumentList&);
+	static int CallFunction(AST&&, const std::string&, const ArgumentList&);
 
 private:
-	AST::AST&& m_ast;
-	Context::Unit m_unitContext;
+	AST&& m_ast;
+	EVM::Context::Unit m_unitContext;
 };
 
-Evaluator::Evaluator(AST::AST&& ast, std::shared_ptr<GlobalContext>&& ctx)
+Evaluator::Evaluator(AST&& ast, std::shared_ptr<EVM::GlobalContext>&& ctx)
 	: Evaluator{ std::move(ast), ctx }
 {
 }
 
-Evaluator::Evaluator(AST::AST&& ast, std::shared_ptr<GlobalContext>& ctx)
+Evaluator::Evaluator(AST&& ast, std::shared_ptr<EVM::GlobalContext>& ctx)
 	: m_ast{ std::move(ast) }
 	, m_unitContext{ InitializeContext(m_ast, ctx) }
 {
 	assert(IsTranslationUnitNode(m_ast.Front()));
-	DeclarationRegistry::ClearGlobalObject();
+	EVM::DeclarationRegistry::ClearGlobalObject();
 	Unit(static_cast<TranslationUnitDecl&>(m_ast.Front()));
 }
 
@@ -864,8 +868,6 @@ Evaluator::Evaluator(AST::AST&& ast, std::shared_ptr<GlobalContext>& ctx)
 // toplevel objects such as records, variables and functions.
 void Evaluator::Unit(const TranslationUnitDecl& node)
 {
-	using namespace AST;
-
 	assert(m_unitContext);
 	for (const auto& weaknode : node.Children()) {
 		if (const auto ptr = weaknode.lock()) {
@@ -911,7 +913,7 @@ void Evaluator::Unit(const TranslationUnitDecl& node)
 	}
 }
 
-using Parameters = std::vector<CoilCl::Valuedef::Value>;
+using Parameters = std::vector<Value>;
 
 template<typename Type>
 struct BitLeftShift
@@ -1020,13 +1022,15 @@ struct OperandFactory
 namespace ExternalRoutine
 {
 
+using namespace EVM;
+
 void Invoke(const ExternalMethod *method, Context::Function& ctx)
 {
 	assert(method);
 
 	Context::Compound compCtx = ctx->MakeContext<CompoundContext>();
 	ctx->AttachCompound(compCtx);
-	ExternalFunctionContext exCtx{ [&compCtx](const std::string& name) -> std::shared_ptr<CoilCl::Valuedef::Value>
+	ExternalFunctionContext exCtx{ [&compCtx](const std::string& name) -> std::shared_ptr<Value>
 	{
 		return compCtx->ValueByIdentifier(name).lock();
 	} };
@@ -1045,31 +1049,33 @@ void Invoke(const ExternalMethod *method, Context::Function& ctx)
 namespace InternalRoutine
 {
 
+using namespace EVM;
+
 enum { RETURN_NORMAL, RETURN_BREAK, RETURN_RETURN };
 
-int ExecuteStatement(const std::shared_ptr<AST::ASTNode>&, Context::Compound&);
+int ExecuteStatement(const std::shared_ptr<ASTNode>&, Context::Compound&);
 
 template<typename ContextType>
-std::shared_ptr<Valuedef::Value> DeclarationReference(const std::shared_ptr<AST::ASTNode>& node, ContextType& ctx)
+std::shared_ptr<Value> DeclarationReference(const std::shared_ptr<ASTNode>& node, ContextType& ctx)
 {
 	std::shared_ptr<DeclRefExpr> declRef;
 
 	switch (node->Label()) {
-	case AST::NodeID::DECL_REF_EXPR_ID: {
+	case NodeID::DECL_REF_EXPR_ID: {
 		declRef = Util::NodeCast<DeclRefExpr>(node);
 		return ctx->ValueByIdentifier(declRef->Identifier()).lock();
 	}
-	case AST::NodeID::MEMBER_EXPR_ID: {
+	case NodeID::MEMBER_EXPR_ID: {
 		const auto member = Util::NodeCast<MemberExpr>(node);
-		std::shared_ptr<Valuedef::Value> value = ctx->ValueByIdentifier(member->RecordRef()->Identifier()).lock(); //TODO: RecordRef -> RecordDeclaration
+		std::shared_ptr<Value> value = ctx->ValueByIdentifier(member->RecordRef()->Identifier()).lock(); //TODO: RecordRef -> RecordDeclaration
 		return RecordProxy::MemberValue(value, member->FieldName());
 	}
-	case AST::NodeID::ARRAY_SUBSCRIPT_EXPR_ID: {
+	case NodeID::ARRAY_SUBSCRIPT_EXPR_ID: {
 		const auto subscr = Util::NodeCast<ArraySubscriptExpr>(node);
-		std::shared_ptr<Valuedef::Value> value = ctx->ValueByIdentifier(subscr->ArrayDeclaration()->Identifier()).lock();
-		CoilCl::Valuedef::Value offset = ResolveExpression(subscr->OffsetExpression(), ctx);
+		std::shared_ptr<Value> value = ctx->ValueByIdentifier(subscr->ArrayDeclaration()->Identifier()).lock();
+		Value offset = ResolveExpression(subscr->OffsetExpression(), ctx);
 		auto array = value->As<std::vector<int>>(); //TODO: could be any type
-		return std::make_shared<Valuedef::Value>(Util::MakeInt(array[offset.As<int>()])); //TODO: could be any integral type
+		return std::make_shared<Value>(Util::MakeInt(array[offset.As<int>()])); //TODO: could be any integral type
 	}
 	}
 
@@ -1077,7 +1083,7 @@ std::shared_ptr<Valuedef::Value> DeclarationReference(const std::shared_ptr<AST:
 }
 
 template<typename OperandPred, typename ContainerType = CoilCl::Valuedef::Value>
-static CoilCl::Valuedef::Value BinaryOperation(OperandPred predicate, ContainerType&& valuesLHS, ContainerType&& valuesRHS)
+static Value BinaryOperation(OperandPred predicate, ContainerType&& valuesLHS, ContainerType&& valuesRHS)
 {
 	typename OperandPred::result_type result = predicate(
 		valuesLHS.As<OperandPred::result_type>(),
@@ -1086,22 +1092,22 @@ static CoilCl::Valuedef::Value BinaryOperation(OperandPred predicate, ContainerT
 	return Util::MakeInt(result); //TODO: not always an integer
 }
 
-// Inverse the boolea result.
-CoilCl::Valuedef::Value EvaluateInverse(const CoilCl::Valuedef::Value& value)
+// Inverse the boolean result.
+Value EvaluateInverse(const Value& value)
 {
 	return Util::MakeBool(!Util::EvaluateValueAsBoolean(value));
 }
 
 //FUTURE: both operations can be improved.
 template<int Increment, typename OperandPred, typename ContextType>
-CoilCl::Valuedef::Value ValueAlteration(OperandPred predicate, AST::UnaryOperator::OperandSide side, std::shared_ptr<AST::ASTNode> node, ContextType& ctx)
+Value ValueAlteration(OperandPred predicate, UnaryOperator::OperandSide side, std::shared_ptr<ASTNode> node, ContextType& ctx)
 {
-	std::shared_ptr<CoilCl::Valuedef::Value> value = DeclarationReference(node, ctx);
+	std::shared_ptr<Value> value = DeclarationReference(node, ctx);
 	int result = predicate(value->As<int>(), Increment); //TODO: not always an integer
 
 	// On postfix operand, copy the original first.
-	if (side == AST::UnaryOperator::OperandSide::POSTFIX) {
-		auto origvalue = CoilCl::Valuedef::Value{ (*value.get()) };
+	if (side == UnaryOperator::OperandSide::POSTFIX) {
+		auto origvalue = Value{ (*value.get()) };
 		(*value) = Util::MakeInt(result); //TODO: not always an integer
 		return origvalue;
 	}
@@ -1112,7 +1118,7 @@ CoilCl::Valuedef::Value ValueAlteration(OperandPred predicate, AST::UnaryOperato
 }
 
 template<typename ContextType>
-CoilCl::Valuedef::Value ValueReference(std::shared_ptr<AST::ASTNode> node, ContextType& ctx)
+Value ValueReference(std::shared_ptr<ASTNode> node, ContextType& ctx)
 {
 	const auto declRef = Util::NodeCast<DeclRefExpr>(node);
 	DeclarationRegistry::OpaqueAddress address = ctx->AddressByIdentifier(declRef->Identifier());
@@ -1123,7 +1129,7 @@ CoilCl::Valuedef::Value ValueReference(std::shared_ptr<AST::ASTNode> node, Conte
 }
 
 template<typename ContextType>
-CoilCl::Valuedef::Value ResolveExpression(std::shared_ptr<AST::ASTNode> node, ContextType& ctx)
+Value ResolveExpression(std::shared_ptr<ASTNode> node, ContextType& ctx)
 {
 	switch (node->Label())
 	{
@@ -1133,22 +1139,22 @@ CoilCl::Valuedef::Value ResolveExpression(std::shared_ptr<AST::ASTNode> node, Co
 			//
 		}
 
-	case AST::NodeID::CHARACTER_LITERAL_ID: {
+	case NodeID::CHARACTER_LITERAL_ID: {
 		return Util::NodeCast<CharacterLiteral>(node)->Value();
 	}
-	case AST::NodeID::STRING_LITERAL_ID: {
+	case NodeID::STRING_LITERAL_ID: {
 		return Util::NodeCast<StringLiteral>(node)->Value();
 	}
-	case AST::NodeID::INTEGER_LITERAL_ID: {
+	case NodeID::INTEGER_LITERAL_ID: {
 		return Util::NodeCast<IntegerLiteral>(node)->Value();
 	}
-	case AST::NodeID::FLOAT_LITERAL_ID: {
+	case NodeID::FLOAT_LITERAL_ID: {
 		return Util::NodeCast<FloatingLiteral>(node)->Value();
 	}
-	case AST::NodeID::INIT_LIST_EXPR_ID: {
+	case NodeID::INIT_LIST_EXPR_ID: {
 		std::vector<int> dummyArray; //TODO: only only integer
 		const auto list = Util::NodeCast<InitListExpr>(node)->List();
-		std::transform(list.cbegin(), list.cend(), std::back_inserter(dummyArray), [&ctx](const std::shared_ptr<AST::ASTNode>& value) -> int
+		std::transform(list.cbegin(), list.cend(), std::back_inserter(dummyArray), [&ctx](const std::shared_ptr<ASTNode>& value) -> int
 		{
 			return ResolveExpression(value, ctx).As<int>();
 		});
@@ -1162,7 +1168,7 @@ CoilCl::Valuedef::Value ResolveExpression(std::shared_ptr<AST::ASTNode> node, Co
 		//
 	}
 
-	case AST::NodeID::BINARY_OPERATOR_ID: {
+	case NodeID::BINARY_OPERATOR_ID: {
 		const auto op = std::dynamic_pointer_cast<BinaryOperator>(node);
 
 		// If the binary operand is an assignment do it right now.
@@ -1182,7 +1188,7 @@ CoilCl::Valuedef::Value ResolveExpression(std::shared_ptr<AST::ASTNode> node, Co
 		auto rhsValue = ResolveExpression(op->RHS(), ctx);
 		return BinaryOperation(OperandFactory<int>(op->Operand()), lhsValue, rhsValue); //TODO: not always an integer
 	}
-	case AST::NodeID::CONDITIONAL_OPERATOR_ID: {
+	case NodeID::CONDITIONAL_OPERATOR_ID: {
 		const auto op = std::dynamic_pointer_cast<ConditionalOperator>(node);
 		auto value = ResolveExpression(op->Expression(), ctx);
 		if (Util::EvaluateValueAsBoolean(value)) {
@@ -1192,13 +1198,13 @@ CoilCl::Valuedef::Value ResolveExpression(std::shared_ptr<AST::ASTNode> node, Co
 		// Handle alternative path.
 		return ResolveExpression(op->AltStatement(), ctx);
 	}
-	case AST::NodeID::UNARY_OPERATOR_ID: {
-		const auto op = std::dynamic_pointer_cast<AST::UnaryOperator>(node);
+	case NodeID::UNARY_OPERATOR_ID: {
+		const auto op = std::dynamic_pointer_cast<UnaryOperator>(node);
 		switch (op->Operand())
 		{
-		case AST::UnaryOperator::UnaryOperand::INC:
+		case UnaryOperator::UnaryOperand::INC:
 			return ValueAlteration<1>(std::plus<int>(), op->OperationSide(), op->Expression(), ctx); //TODO: not always an integer
-		case AST::UnaryOperator::UnaryOperand::DEC:
+		case UnaryOperator::UnaryOperand::DEC:
 			return ValueAlteration<1>(std::minus<int>(), op->OperationSide(), op->Expression(), ctx); //TODO: not always an integer
 
 			/*
@@ -1208,19 +1214,19 @@ CoilCl::Valuedef::Value ResolveExpression(std::shared_ptr<AST::ASTNode> node, Co
 				return ValueSignedness();
 			*/
 
-		case AST::UnaryOperator::UnaryOperand::ADDR:
+		case UnaryOperator::UnaryOperand::ADDR:
 			return ValueReference(op->Expression(), ctx);
-		case AST::UnaryOperator::UnaryOperand::PTRVAL:
+		case UnaryOperator::UnaryOperand::PTRVAL:
 			//ValueIndirection();
 			break;
 
 			//case AST::UnaryOperator::UnaryOperand::BITNOT:
-		case AST::UnaryOperator::UnaryOperand::BOOLNOT:
+		case UnaryOperator::UnaryOperand::BOOLNOT:
 			return EvaluateInverse(ResolveExpression(op->Expression(), ctx));
 		}
 		CryImplExcept(); //TODO:
 	}
-	case AST::NodeID::COMPOUND_ASSIGN_OPERATOR_ID: {
+	case NodeID::COMPOUND_ASSIGN_OPERATOR_ID: {
 		Util::NodeCast<CompoundAssignOperator>(node);
 		break;
 	}
@@ -1231,7 +1237,7 @@ CoilCl::Valuedef::Value ResolveExpression(std::shared_ptr<AST::ASTNode> node, Co
 		//
 	}
 
-	case AST::NodeID::CALL_EXPR_ID: {
+	case NodeID::CALL_EXPR_ID: {
 		auto op = Util::NodeCast<CallExpr>(node);
 		Context::Function funcCtx = CallExpression(op, ctx);
 		if (!funcCtx->HasReturnValue()) {
@@ -1246,8 +1252,8 @@ CoilCl::Valuedef::Value ResolveExpression(std::shared_ptr<AST::ASTNode> node, Co
 		//
 	}
 
-	case AST::NodeID::MEMBER_EXPR_ID:
-	case AST::NodeID::DECL_REF_EXPR_ID: {
+	case NodeID::MEMBER_EXPR_ID:
+	case NodeID::DECL_REF_EXPR_ID: {
 		const auto value = DeclarationReference(node, ctx);
 		return (*value.get());
 	}
@@ -1258,7 +1264,7 @@ CoilCl::Valuedef::Value ResolveExpression(std::shared_ptr<AST::ASTNode> node, Co
 		//
 	}
 
-	case AST::NodeID::IMPLICIT_CONVERTION_EXPR_ID: {
+	case NodeID::IMPLICIT_CONVERTION_EXPR_ID: {
 		auto convRef = Util::NodeCast<ImplicitConvertionExpr>(node);
 		CRY_UNUSED(convRef);
 		return Util::MakeInt(12); //TODO: for now
@@ -1270,7 +1276,7 @@ CoilCl::Valuedef::Value ResolveExpression(std::shared_ptr<AST::ASTNode> node, Co
 		//
 	}
 
-	case AST::NodeID::PAREN_EXPR_ID: {
+	case NodeID::PAREN_EXPR_ID: {
 		auto expr = Util::NodeCast<ParenExpr>(node);
 		assert(expr->HasExpression());
 		return ResolveExpression(expr->Expression(), ctx);
@@ -1318,7 +1324,7 @@ Context::Function CallExpression(const std::shared_ptr<CallExpr>& callNode, Cont
 		assert(callNode->ArgumentStatement()->ChildrenCount());
 		const auto argsDecls = callNode->ArgumentStatement()->Children();
 
-		// Sanity check, should have been done by semer
+		// Sanity check, should have been done by semer.
 		if (function.ArgumentSize() > argsDecls.size()) {
 			CryImplExcept(); //TODO: source.c:0:0: error: too many arguments to function 'funcNode'
 		}
@@ -1326,7 +1332,7 @@ Context::Function CallExpression(const std::shared_ptr<CallExpr>& callNode, Cont
 			CryImplExcept(); //TODO: source.c:0:0: error: too few arguments to function 'funcNode'
 		}
 
-		// Assign function arguments to parameters
+		// Assign function arguments to parameters.
 		int i = 0;
 		auto itArgs = argsDecls.cbegin();
 		while (itArgs != argsDecls.cend()) {
@@ -1410,7 +1416,7 @@ void Invoke(std::shared_ptr<FunctionDecl>& funcNode, Context::Function& ctx)
 }
 
 // If all else fails, try the node as expression.
-void ProcessExpression(const std::shared_ptr<AST::ASTNode>& node, Context::Compound& ctx)
+void ProcessExpression(const std::shared_ptr<ASTNode>& node, Context::Compound& ctx)
 {
 	// Only execute the expression and ignore the result.
 	ResolveExpression(node, ctx);
@@ -1444,7 +1450,7 @@ int ProcessCondition(std::shared_ptr<IfStmt>& node, Context::Compound& ctx)
 				ProcessCompound(compoundNode, ctx);
 			}
 			else {
-				auto compoundNode = Util::NodeCast<AST::ASTNode>(continueNode);
+				auto compoundNode = Util::NodeCast<ASTNode>(continueNode);
 				return ExecuteStatement(compoundNode, ctx);
 			}
 		}
@@ -1457,7 +1463,7 @@ int ProcessCondition(std::shared_ptr<IfStmt>& node, Context::Compound& ctx)
 			ProcessCompound(compoundNode, ctx);
 		}
 		else {
-			auto compoundNode = Util::NodeCast<AST::ASTNode>(continueNode);
+			auto compoundNode = Util::NodeCast<ASTNode>(continueNode);
 			return ExecuteStatement(compoundNode, ctx);
 		}
 	}
@@ -1471,7 +1477,7 @@ int ProcessSwitch(std::shared_ptr<SwitchStmt>& node, Context::Compound& ctx)
 	if (!node->HasBodyExpression()) { return RETURN_NORMAL; } //TODO: set warning about useless statement
 
 	// Body node must be compound in order to be executable.
-	if (node->BodyExpression()->Label() != AST::NodeID::COMPOUND_STMT_ID) {
+	if (node->BodyExpression()->Label() != NodeID::COMPOUND_STMT_ID) {
 		//TODO: set warning about non-executable
 		return RETURN_NORMAL;
 	}
@@ -1491,7 +1497,7 @@ int ProcessSwitch(std::shared_ptr<SwitchStmt>& node, Context::Compound& ctx)
 		// Process each child node.
 		for (const auto& childNode : body) {
 			auto child = childNode.lock();
-			if (child->Label() != AST::NodeID::CASE_STMT_ID) {
+			if (child->Label() != NodeID::CASE_STMT_ID) {
 				continue; //TODO: set warning: statement will never be executed
 			}
 			auto caseNode = Util::NodeCast<CaseStmt>(child);
@@ -1555,7 +1561,7 @@ void ProcessReturn(std::shared_ptr<ReturnStmt>& node, Context::Function& ctx)
 }
 
 // Create new compound context.
-void CreateCompound(const std::shared_ptr<AST::ASTNode>& node, Context::Compound& ctx)
+void CreateCompound(const std::shared_ptr<ASTNode>& node, Context::Compound& ctx)
 {
 	auto compNode = Util::NodeCast<CompoundStmt>(node);
 	Context::Compound compCtx = ctx->MakeContext<CompoundContext>();
@@ -1564,10 +1570,8 @@ void CreateCompound(const std::shared_ptr<AST::ASTNode>& node, Context::Compound
 }
 
 // Run the statement.
-int ExecuteStatement(const std::shared_ptr<AST::ASTNode>& childNode, Context::Compound& ctx)
+int ExecuteStatement(const std::shared_ptr<ASTNode>& childNode, Context::Compound& ctx)
 {
-	using namespace AST;
-
 	switch (childNode->Label())
 	{
 	case NodeID::COMPOUND_STMT_ID: {
@@ -1639,17 +1643,15 @@ namespace
 // Convert user defined argument list items to parameters.
 Parameters ConvertToValueDef(const ArgumentList&& args)
 {
-	using namespace CoilCl::Util;
-
 	struct Converter final : public boost::static_visitor<>
 	{
 		void operator()(int i) const
 		{
-			m_paramList.push_back(MakeInt(i));
+			m_paramList.push_back(Util::MakeInt(i));
 		}
 		void operator()(std::string s) const
 		{
-			m_paramList.push_back(MakeString(s));
+			m_paramList.push_back(Util::MakeString(s));
 		}
 
 		Converter(Parameters& params)
@@ -1668,7 +1670,7 @@ Parameters ConvertToValueDef(const ArgumentList&& args)
 	}
 
 	return params;
-}
+} // namespace
 
 // Warp startup parameters in program arguments format. To If no arguments are
 // passed to the startup the parameters are ignored. The program contract
@@ -1676,7 +1678,7 @@ Parameters ConvertToValueDef(const ArgumentList&& args)
 //   1.) argc, the argument count.
 //   2.) argv, an array to string literal parameters.
 //   3.) envp, an array to string literal environment variables.
-void FormatStartupParameters(std::array<std::string, 3> mapper, Parameters&& params, Context::Function& ctx)
+void FormatStartupParameters(std::array<std::string, 3> mapper, Parameters&& params, EVM::Context::Function& ctx)
 {
 	if (params.empty()) { return; }
 
@@ -1692,6 +1694,8 @@ void FormatStartupParameters(std::array<std::string, 3> mapper, Parameters&& par
 // Call program routine from external context.
 Evaluator& Evaluator::CallRoutine(const std::string& symbol, const ArgumentList& args)
 {
+	using namespace EVM;
+
 	auto funcNode = m_unitContext->LookupSymbol<FunctionDecl>(symbol);
 	Context::Function funcCtx = m_unitContext->MakeContext<FunctionContext>(funcNode->Identifier());
 
@@ -1731,7 +1735,7 @@ Evaluator& Evaluator::CallRoutine(const std::string& symbol, const ArgumentList&
 int Evaluator::YieldResult()
 {
 	try {
-		auto globalCtx = m_unitContext->ParentAs<GlobalContext>();
+		auto globalCtx = m_unitContext->ParentAs<EVM::GlobalContext>();
 		if (globalCtx->HasReturnValue()) {
 			return globalCtx->ReturnValue().As<int>();
 		}
@@ -1745,12 +1749,15 @@ int Evaluator::YieldResult()
 	return EXIT_SUCCESS;
 }
 
-int Evaluator::CallFunction(AST::AST&& ast, const std::string& symbol, const ArgumentList& args)
+int Evaluator::CallFunction(AST&& ast, const std::string& symbol, const ArgumentList& args)
 {
-	return Evaluator{ std::move(ast), Context::MakeGlobalContext() }
+	return Evaluator{ std::move(ast), EVM::Context::MakeGlobalContext() }
 		.CallRoutine(symbol, args)
 		.YieldResult();
 }
+
+namespace EVM
+{
 
 void Interpreter::PreliminaryCheck(const std::string& entry)
 {
@@ -1778,3 +1785,5 @@ Interpreter::ReturnCode Interpreter::Execute(const std::string& entry, const Arg
 
 	return Evaluator::CallFunction(Program()->Ast(), entry, args);
 }
+
+} // namespace EVM
