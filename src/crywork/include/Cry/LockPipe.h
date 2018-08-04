@@ -23,8 +23,8 @@ class LockPipe
 
 public:
 	using containerTypepe = Container;
-	using valueTypepe = typename Container::valueTypepe;
-	using sizeTypepe = typename Container::sizeTypepe;
+	using valueTypepe = typename Container::value_type;
+	using sizeTypepe = typename Container::size_type;
 	using reference = typename Container::reference;
 	using const_reference = typename Container::const_reference;
 

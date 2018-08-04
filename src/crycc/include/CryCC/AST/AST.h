@@ -375,4 +375,3 @@ auto NodeCast(const std::weak_ptr<ASTNode>& node)
 }
 
 } // namespace Util
-

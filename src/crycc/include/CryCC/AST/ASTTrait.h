@@ -23,10 +23,10 @@ struct RootNodeTag
 namespace Detail
 {
 
-template <typename Node, typename = void>
+template<typename Node, typename = void>
 struct is_root_node : std::false_type {};
 
-template <typename Node>
+template<typename Node>
 struct is_root_node<Node, std::enable_if_t<std::is_same<typename Node::NodeTrait, RootNodeTag>::value>> : std::true_type {};
 
 } // namespace detail
@@ -38,5 +38,12 @@ template<class Node>
 constexpr bool is_root_node_v = is_root_node<Node>::value;
 
 } // namespace Trait
+
+template<typename Node>
+struct IsASTNode
+{
+    constexpr static const bool value = std::is_base_of<ASTNode, Node>::value;
+};
+
 } // namespace AST
 } // namespace CryCC
