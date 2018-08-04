@@ -22,9 +22,6 @@ Decl::~Decl() {}
 Expr::~Expr() {}
 Stmt::~Stmt() {}
 
-// Unique object counter initialization.
-int UniqueObj::s_id = 100;
-
 ASTNode::ASTNode(int _line, int _col)
 	: line{ _line }
 	, col{ _col }

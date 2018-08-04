@@ -12,6 +12,7 @@
 
 #include <CryCC/AST/RefCount.h>
 #include <CryCC/AST/NodeId.h>
+#include <CryCC/AST/Unique.h>
 #include <CryCC/AST/ASTState.h>
 #include <CryCC/AST/ASTTrait.h>
 
@@ -101,36 +102,6 @@ protected:
 	{
 		return this->shared_from_this();
 	}
-};
-
-class UniqueObj
-{
-public:
-	using unique_type = int;
-
-private:
-	mutable unique_type id;
-
-public:
-	inline UniqueObj()
-	{
-		id = ++s_id;
-	}
-
-	inline auto& Id() const noexcept { return id; }
-
-	bool operator==(const UniqueObj& other) const noexcept
-	{
-		return id == other.id;
-	}
-
-	bool operator!=(const UniqueObj& other) const noexcept
-	{
-		return id != other.id;
-	}
-
-private:
-	static int s_id;
 };
 
 class Returnable
@@ -276,7 +247,7 @@ struct Serializable
 		void Next() { ++m_it; }
 		void Previous() { --m_it; }
 
-		// Get or set element size in group
+		// Get or set element size in group.
 		size_t Size(size_t sz = 0) //TODO: DEPRECATED: FIXME: REMOVE
 		{
 			if (sz > 0) {

@@ -19,10 +19,11 @@
 
 #include <CryCC/AST/RefCount.h>
 #include <CryCC/AST/NodeId.h>
+#include <CryCC/AST/Unique.h>
 #include <CryCC/AST/ASTState.h>
 #include <CryCC/AST/ASTNode.h>
 #include <CryCC/AST/ASTTrait.h>
 #include <CryCC/AST/AST.h>
-#include <CryCC/AST/ASTFactory>
+#include <CryCC/AST/ASTFactory.h>
 
 #endif // CRYCC_AST_H_
