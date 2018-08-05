@@ -35,7 +35,6 @@
 	}
 
 using namespace CryCC::AST;
-//using namespace CryCC::SubValue::Typedef;
 using namespace CryCC::SubValue::Valuedef;
 
 inline bool IsTranslationUnitNode(const CryCC::AST::ASTNode& node) noexcept

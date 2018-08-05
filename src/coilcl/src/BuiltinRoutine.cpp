@@ -28,10 +28,22 @@ BUILTIN_ROUTINE_IMPL(sizeof)
 		assert(Util::NodeCast<DeclRefExpr>(expr)->IsResolved());
 		auto ref = Util::NodeCast<DeclRefExpr>(expr)->Reference();
 
+		switch (ref->Label())
+		{
+		case NodeID::VAR_DECL_ID: {
+			assert(std::dynamic_pointer_cast<VarDecl>(ref)->HasExpression());
+			const auto value = Util::NodeCast<Literal>(std::dynamic_pointer_cast<VarDecl>(ref)->Expression())->Value();
+			//TODO: get size from value.
+			break;
+		}
+		default:
+			break;
+		}
+
 		//CryImplExcept(); //TODO
 		//return;
 	}
-	
+
 	// No expression, use sizeof typename.
 
 	// Replace static builtin operation with integer result.

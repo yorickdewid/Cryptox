@@ -13,12 +13,24 @@ set(${PROJECT_NAME}_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/${${PROJECT_NAME}_I
     CACHE INTERNAL "${PROJECT_NAME}: Include Directories" FORCE)
 
 # File groups
-source_group("External Header Files" FILES ${${PROJECT_NAME}_h})
-source_group("Project Related Files" FILES ${${PROJECT_NAME}_rel})
+set(EXTERNAL_HEADER_GROUP "External Header Files")
+set(RELATED_FILES_GROUP "Project Related Files")
+
+source_group(${RELATED_FILES_GROUP} FILES ${${PROJECT_NAME}_rel})
+foreach(SOURCE IN ITEMS ${${PROJECT_NAME}_h})
+	get_filename_component(SOURCE_PATH ${SOURCE} PATH)
+	file(RELATIVE_PATH SOURCE_PATH_SINGLE ${CMAKE_CURRENT_SOURCE_DIR}/include ${SOURCE_PATH})
+	if(SOURCE_PATH_SINGLE)
+		string(REPLACE "/" "\\" GROUP_PATH ${SOURCE_PATH_SINGLE})
+		source_group(${EXTERNAL_HEADER_GROUP}\\${GROUP_PATH} FILES ${SOURCE})
+	else()
+		source_group(${EXTERNAL_HEADER_GROUP} FILES ${SOURCE})
+	endif()
+endforeach()
 
 # Figure out the target type
 get_target_property(PROJECT_TARGET_TYPE ${PROJECT_NAME} TYPE)
-if (PROJECT_TARGET_TYPE STREQUAL SHARED_LIBRARY)
+if(PROJECT_TARGET_TYPE STREQUAL SHARED_LIBRARY)
 	message(STATUS "Target compiling as shared library")
 	target_compile_definitions(${PROJECT_NAME} PRIVATE TARGET_SHARED_LIBRARY)
 elseif(PROJECT_TARGET_TYPE STREQUAL EXECUTABLE)
@@ -31,6 +43,7 @@ else()
 	message(FATAL_ERROR "Unknown target ${PROJECT_TARGET_TYPE}")
 endif()
 
+# On all projects, include the Cry Framework
 if(NOT ${PROJECT_NAME} STREQUAL CryWork)
 	target_link_libraries(${PROJECT_NAME}
 		CryWork

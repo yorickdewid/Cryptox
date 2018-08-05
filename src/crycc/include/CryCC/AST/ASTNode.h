@@ -75,12 +75,9 @@ namespace Valuedef = CryCC::SubValue::Valuedef;
 template<typename ClassName>
 constexpr std::string RemoveClassFromName(ClassName *_name)
 {
-	constexpr const char stripClassStr[] = "class";
-	std::string f{ _name };
-	if (const size_t pos = f.find_last_of(stripClassStr) != std::string::npos) {
-		return f.substr(pos + sizeof(stripClassStr) - 1);
-	}
-	return f;
+	std::string className{ _name };
+	auto const pos = className.find_last_of(':');
+	return className.substr(pos + 1);
 }
 
 template<typename Node, typename BaseNode = CryCC::AST::ASTNode>

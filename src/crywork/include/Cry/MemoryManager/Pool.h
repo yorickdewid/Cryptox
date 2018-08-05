@@ -94,7 +94,7 @@ protected:
 		size_t contiguousBlocks = blocks;
 		for (size_t i = 0; i < m_free.size(); ++i) {
 			if (!m_free[i]) {
-				MemoryPointer *memPtrv = nullptr;
+				MemoryPointer *memPtr = nullptr;
 				for (size_t j = i; j < contiguousBlocks + i; ++j) {
 					if (j >= m_free.size()) {
 						throw OutOfMemoryException{ size };
