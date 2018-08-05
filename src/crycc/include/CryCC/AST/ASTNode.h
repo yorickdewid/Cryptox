@@ -104,6 +104,8 @@ class CompoundStmt;
 class ArgumentStmt;
 class ParamStmt;
 
+using ASTNodeType = std::shared_ptr<ASTNode>;
+
 class ASTNode
 	: public UniqueObj
 	, public VisitorInterface

@@ -2569,26 +2569,26 @@ void Parser::ExternalDeclaration()
 // only a single translation unit is supported
 void Parser::TranslationUnit()
 {
-	// Returns file name of current lexer input, this can also be an include
-	auto localAst = TranslationUnitDecl::Make(m_profile->MetaInfo()->name);
+	// Returns file name of current lexer input, this can also be an include.
+	ASTNodeType localAst = Util::MakeSyntaxTree(m_profile->MetaInfo()->name);
 	localAst->SetLocation(0, 0);
 
-	// Set translation unit as top level tree root
+	// Set translation unit as top level tree root.
 	if (!AST_ROOT()) {
 		AST_ROOT() = localAst;
 	}
 
 	do {
-		// All the translation units start with a declaration
+		// All the translation units start with a declaration.
 		ExternalDeclaration();
 
-		// Move elements from list into AST root
+		// Move elements from list into AST root.
 		while (!m_elementDescentPipe.empty()) {
 			AST_ROOT()->AppendChild(m_elementDescentPipe.next());
 			m_elementDescentPipe.pop();
 		}
 
-		// Clear all lists where possible before adding new items
+		// Clear all lists where possible before adding new items.
 		m_pointerCounter = 0;
 		m_elementDescentPipe.clear();
 		ClearStack(m_typeStack);

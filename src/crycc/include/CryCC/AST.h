@@ -27,5 +27,6 @@
 #include <CryCC/AST/ASTTrait.h>
 #include <CryCC/AST/AST.h>
 #include <CryCC/AST/ASTFactory.h>
+#include <CryCC/AST/ASTHelper.h>
 
 #endif // CRYCC_AST_H_

@@ -11,9 +11,16 @@
 
 #include <boost/test/unit_test.hpp>
 
+//
+// Key         : Cry
+// Test        : Unit tests for Cry Framework
+// Type        : unit
+// Description : -
+//
+
 BOOST_AUTO_TEST_SUITE(CryCommon)
 
-BOOST_AUTO_TEST_CASE(CommonHeaderDefinitions)
+BOOST_AUTO_TEST_CASE(CryCommonHeaderDefinitions)
 {
 	{
 		BOOST_REQUIRE_EQUAL(CRY_UNASSIGNED, 0);
@@ -54,7 +61,7 @@ BOOST_AUTO_TEST_CASE(CommonHeaderDefinitions)
 	}
 }
 
-BOOST_AUTO_TEST_CASE(ByteOrder)
+BOOST_AUTO_TEST_CASE(CryByteOrder)
 {
 	{
 		uint16_t o = 49531;
