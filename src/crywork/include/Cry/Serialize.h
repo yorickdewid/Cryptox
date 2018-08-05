@@ -192,7 +192,7 @@ public:
 	}
 
 	//
-	// Assignment operators
+	// Assignment operators.
 	//
 
 	BasicArrayBuffer& operator=(const BasicArrayBuffer& other)
@@ -209,16 +209,16 @@ public:
 	}
 
 	//
-	// Offset Operations
+	// Offset Operations.
 	//
 
 	enum { AUTO = -1 };
 
-	// Set start offset
+	// Set start offset.
 	void SetOffset(OffsetType offset) { m_offset += offset; }
-	// Set start offset
+	// Set start offset.
 	void StartOffset(OffsetType offset) { m_offset = offset; }
-	// Get current offset
+	// Get current offset.
 	int Offset() const noexcept { return m_offset; }
 
 	BasicArrayBuffer& operator++()
@@ -244,40 +244,40 @@ public:
 		return (*copy);
 	}
 
-	// Set magic value
+	// Set magic value.
 	void SetMagic(Byte magic)
 	{
 		BaseType::push_back(magic);
 	}
 
-	// Validate magic value
+	// Validate magic value.
 	bool ValidateMagic(Byte magic, OffsetType idx = -1)
 	{
 		if (idx == -1) {
 			idx = m_offset;
 		}
 		m_offset += sizeof(Byte);
-		return at(idx) == magic;
+		return this->at(idx) == magic;
 	}
 
-	// Create a new checkpoint
+	// Create a new checkpoint.
 	void MakeCheckpoint()
 	{
 		BaseType::insert(this->cend(), { CHECKPOINT_TAG_1, CHECKPOINT_TAG_2 });
 	}
 
-	// Validate checkpoint
+	// Validate checkpoint.
 	bool ValidateCheckpoint(OffsetType idx = -1)
 	{
 		if (idx == -1) {
 			idx = m_offset;
 		}
 		m_offset += (sizeof(Byte) * 2);
-		return at(idx) == CHECKPOINT_TAG_1
-			&& at(idx + 1) == CHECKPOINT_TAG_2;
+		return this->at(idx) == CHECKPOINT_TAG_1
+			&& this->at(idx + 1) == CHECKPOINT_TAG_2;
 	}
 
-	// Encode platform characteristics
+	// Encode platform characteristics.
 	void SetPlatformCompat()
 	{
 		Byte flags = 0;
@@ -299,7 +299,7 @@ public:
 		Serialize(flags);
 	}
 
-	// Check if current platform is compatible
+	// Check if current platform is compatible.
 	bool IsPlatformCompat();
 
 	void Serialize(Byte i)

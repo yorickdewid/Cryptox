@@ -9,6 +9,7 @@
 #pragma once
 
 #include <Cry/Cry.h>
+#include <Cry/MemoryManager/Except.h>
 #include <Cry/MemoryManager/Interface.h>
 
 #include <bitset>
@@ -93,6 +94,7 @@ protected:
 		size_t contiguousBlocks = blocks;
 		for (size_t i = 0; i < m_free.size(); ++i) {
 			if (!m_free[i]) {
+				MemoryPointer *memPtrv = nullptr;
 				for (size_t j = i; j < contiguousBlocks + i; ++j) {
 					if (j >= m_free.size()) {
 						throw OutOfMemoryException{ size };
@@ -105,7 +107,7 @@ protected:
 					m_free.set(j);
 				}
 
-				MemoryPointer *memPtr = (MemoryPointer*)(((uint8_t*)m_block) + (i * chunkSize));
+				memPtr = (MemoryPointer*)(((uint8_t*)m_block) + (i * chunkSize));
 				memPtr->blocks = blocks;
 				return memPtr + sizeof(MemoryPointer);
 			skip_block: {}

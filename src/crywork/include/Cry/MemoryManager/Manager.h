@@ -26,22 +26,6 @@ namespace MemoryManager
 
 using ResourceType = void*;
 
-struct OutOfMemoryException : public std::exception
-{
-	size_t m_allocatedSize;
-
-public:
-	OutOfMemoryException(size_t size)
-		: m_allocatedSize{ size }
-	{
-	}
-
-	virtual char const *what() const
-	{
-		return ""; //TODO
-	}
-};
-
 // Memory manager delegating block allocation to memory pools.
 class MultiPoolMemoryManager : public MemoryManagerInterface
 {
