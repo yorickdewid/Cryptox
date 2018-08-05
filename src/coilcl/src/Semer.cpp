@@ -33,7 +33,7 @@ void InjectConverter(std::shared_ptr<ParentType> parent, std::shared_ptr<ChildTy
 {
 	try {
 		CryCC::SubValue::Conv::Cast::Tag methodTag = CryCC::SubValue::Conv::Cast::Transmute(baseType, initType);
-		auto converter = Util::MakeASTNode<ImplicitConvertionExpr>(child, methodTag);
+		auto converter = Util::MakeASTNode<CryCC::AST::ImplicitConvertionExpr>(child, methodTag);
 		converter->SetReturnType(baseType);
 		parent->Emplace(Idx, converter);
 	}

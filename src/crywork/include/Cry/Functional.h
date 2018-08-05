@@ -47,5 +47,8 @@ struct IsStack : public std::false_type {};
 template<typename Type, typename Alloc>
 struct IsStack<std::stack<Type, Alloc>> : public std::true_type {};
 
+template<typename Type>
+struct Identity { using type = typename Type::value_type; };
+
 } // namespace Functional
 } // namespace Cry

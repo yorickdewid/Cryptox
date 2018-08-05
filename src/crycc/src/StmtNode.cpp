@@ -8,6 +8,11 @@
 
 #include <CryCC/AST/ASTNode.h>
 
+namespace CryCC
+{
+namespace AST
+{
+
 void ReturnStmt::SetReturnNode(std::shared_ptr<ASTNode>& node)
 {
 	ASTNode::AppendChild(node);
@@ -40,7 +45,7 @@ void ReturnStmt::Serialize(Serializable::Interface& pack)
 
 void ReturnStmt::Deserialize(Serializable::Interface& pack)
 {
-	CryCC::AST::NodeID _nodeId;
+	NodeID _nodeId;
 	pack >> _nodeId;
 	AssertNode(_nodeId, nodeId);
 
@@ -107,7 +112,7 @@ void IfStmt::Serialize(Serializable::Interface& pack)
 
 void IfStmt::Deserialize(Serializable::Interface& pack)
 {
-	CryCC::AST::NodeID _nodeId;
+	NodeID _nodeId;
 	pack >> _nodeId;
 	AssertNode(_nodeId, nodeId);
 
@@ -184,7 +189,7 @@ void SwitchStmt::Serialize(Serializable::Interface& pack)
 
 void SwitchStmt::Deserialize(Serializable::Interface& pack)
 {
-	CryCC::AST::NodeID _nodeId;
+	NodeID _nodeId;
 	pack >> _nodeId;
 	AssertNode(_nodeId, nodeId);
 
@@ -239,7 +244,7 @@ void WhileStmt::Serialize(Serializable::Interface& pack)
 
 void WhileStmt::Deserialize(Serializable::Interface& pack)
 {
-	CryCC::AST::NodeID _nodeId;
+	NodeID _nodeId;
 	pack >> _nodeId;
 	AssertNode(_nodeId, nodeId);
 
@@ -294,7 +299,7 @@ void DoStmt::Serialize(Serializable::Interface& pack)
 
 void DoStmt::Deserialize(Serializable::Interface& pack)
 {
-	CryCC::AST::NodeID _nodeId;
+	NodeID _nodeId;
 	pack >> _nodeId;
 	AssertNode(_nodeId, nodeId);
 
@@ -356,7 +361,7 @@ void ForStmt::Serialize(Serializable::Interface& pack)
 
 void ForStmt::Deserialize(Serializable::Interface& pack)
 {
-	CryCC::AST::NodeID _nodeId;
+	NodeID _nodeId;
 	pack >> _nodeId;
 	AssertNode(_nodeId, nodeId);
 
@@ -406,7 +411,7 @@ void DefaultStmt::Serialize(Serializable::Interface& pack)
 
 void DefaultStmt::Deserialize(Serializable::Interface& pack)
 {
-	CryCC::AST::NodeID _nodeId;
+	NodeID _nodeId;
 	pack >> _nodeId;
 	AssertNode(_nodeId, nodeId);
 
@@ -445,7 +450,7 @@ void CaseStmt::Serialize(Serializable::Interface& pack)
 
 void CaseStmt::Deserialize(Serializable::Interface& pack)
 {
-	CryCC::AST::NodeID _nodeId;
+	NodeID _nodeId;
 	pack >> _nodeId;
 	AssertNode(_nodeId, nodeId);
 
@@ -488,7 +493,7 @@ void DeclStmt::Serialize(Serializable::Interface& pack)
 
 void DeclStmt::Deserialize(Serializable::Interface& pack)
 {
-	CryCC::AST::NodeID _nodeId;
+	NodeID _nodeId;
 	pack >> _nodeId;
 	AssertNode(_nodeId, nodeId);
 
@@ -540,7 +545,7 @@ void ArgumentStmt::Serialize(Serializable::Interface& pack)
 
 void ArgumentStmt::Deserialize(Serializable::Interface& pack)
 {
-	CryCC::AST::NodeID _nodeId;
+	NodeID _nodeId;
 	pack >> _nodeId;
 	AssertNode(_nodeId, nodeId);
 
@@ -580,7 +585,7 @@ void ParamStmt::Serialize(Serializable::Interface& pack)
 
 void ParamStmt::Deserialize(Serializable::Interface& pack)
 {
-	CryCC::AST::NodeID _nodeId;
+	NodeID _nodeId;
 	pack >> _nodeId;
 	AssertNode(_nodeId, nodeId);
 
@@ -618,7 +623,7 @@ void LabelStmt::Serialize(Serializable::Interface& pack)
 
 void LabelStmt::Deserialize(Serializable::Interface& pack)
 {
-	CryCC::AST::NodeID _nodeId;
+	NodeID _nodeId;
 	pack >> _nodeId;
 	AssertNode(_nodeId, nodeId);
 
@@ -648,7 +653,7 @@ void GotoStmt::Serialize(Serializable::Interface& pack)
 
 void GotoStmt::Deserialize(Serializable::Interface& pack)
 {
-	CryCC::AST::NodeID _nodeId;
+	NodeID _nodeId;
 	pack >> _nodeId;
 	AssertNode(_nodeId, nodeId);
 
@@ -686,7 +691,7 @@ void CompoundStmt::Serialize(Serializable::Interface& pack)
 
 void CompoundStmt::Deserialize(Serializable::Interface& pack)
 {
-	CryCC::AST::NodeID _nodeId;
+	NodeID _nodeId;
 	pack >> _nodeId;
 	AssertNode(_nodeId, nodeId);
 
@@ -701,3 +706,6 @@ void CompoundStmt::Deserialize(Serializable::Interface& pack)
 
 	Stmt::Deserialize(pack);
 }
+
+} // namespace CryCC
+} // namespace AST

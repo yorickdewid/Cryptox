@@ -75,7 +75,7 @@ public:
 		: m_ast{ new AST::AST{ std::move(tree) } }
 	{
 	}
-	Program(Program&& other, std::shared_ptr<TranslationUnitDecl>&& ast)
+	Program(Program&& other, std::shared_ptr<CryCC::AST::TranslationUnitDecl>&& ast)
 		: m_ast{ new AST::AST{ std::move(ast) } }
 		, m_treeCondition{ other.m_treeCondition }
 		, m_lastStage{ other.m_lastStage }

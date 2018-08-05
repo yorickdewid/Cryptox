@@ -10,6 +10,11 @@
 
 #include <boost/format.hpp>
 
+namespace CryCC
+{
+namespace AST
+{
+
 void Decl::Serialize(Serializable::Interface& pack)
 {
 	pack << nodeId;
@@ -30,7 +35,7 @@ void Decl::Serialize(Serializable::Interface& pack)
 
 void Decl::Deserialize(Serializable::Interface& pack)
 {
-	CryCC::AST::NodeID _nodeId;
+	NodeID _nodeId;
 	pack >> _nodeId;
 	AssertNode(_nodeId, nodeId);
 
@@ -79,7 +84,7 @@ void VarDecl::Serialize(Serializable::Interface& pack)
 
 void VarDecl::Deserialize(Serializable::Interface& pack)
 {
-	CryCC::AST::NodeID _nodeId;
+	NodeID _nodeId;
 	pack >> _nodeId;
 	AssertNode(_nodeId, nodeId);
 
@@ -118,7 +123,7 @@ void ParamDecl::Serialize(Serializable::Interface& pack)
 
 void ParamDecl::Deserialize(Serializable::Interface& pack)
 {
-	CryCC::AST::NodeID _nodeId;
+	NodeID _nodeId;
 	pack >> _nodeId;
 	AssertNode(_nodeId, nodeId);
 
@@ -145,7 +150,7 @@ void VariadicDecl::Serialize(Serializable::Interface& pack)
 
 void VariadicDecl::Deserialize(Serializable::Interface& pack)
 {
-	CryCC::AST::NodeID _nodeId;
+	NodeID _nodeId;
 
 	pack >> _nodeId;
 	AssertNode(_nodeId, nodeId);
@@ -167,7 +172,7 @@ void TypedefDecl::Serialize(Serializable::Interface& pack)
 
 void TypedefDecl::Deserialize(Serializable::Interface& pack)
 {
-	CryCC::AST::NodeID _nodeId;
+	NodeID _nodeId;
 	pack >> _nodeId;
 	AssertNode(_nodeId, nodeId);
 
@@ -212,7 +217,7 @@ void FieldDecl::Serialize(Serializable::Interface& pack)
 
 void FieldDecl::Deserialize(Serializable::Interface& pack)
 {
-	CryCC::AST::NodeID _nodeId;
+	NodeID _nodeId;
 	pack >> _nodeId;
 	AssertNode(_nodeId, nodeId);
 
@@ -286,7 +291,7 @@ void RecordDecl::Serialize(Serializable::Interface& pack)
 
 void RecordDecl::Deserialize(Serializable::Interface& pack)
 {
-	CryCC::AST::NodeID _nodeId;
+	NodeID _nodeId;
 	pack >> _nodeId;
 	AssertNode(_nodeId, nodeId);
 
@@ -344,7 +349,7 @@ void EnumConstantDecl::Serialize(Serializable::Interface& pack)
 
 void EnumConstantDecl::Deserialize(Serializable::Interface& pack)
 {
-	CryCC::AST::NodeID _nodeId;
+	NodeID _nodeId;
 
 	pack >> _nodeId;
 	AssertNode(_nodeId, nodeId);
@@ -407,7 +412,7 @@ void EnumDecl::Serialize(Serializable::Interface& pack)
 
 void EnumDecl::Deserialize(Serializable::Interface& pack)
 {
-	CryCC::AST::NodeID _nodeId;
+	NodeID _nodeId;
 
 	pack >> _nodeId;
 	AssertNode(_nodeId, nodeId);
@@ -512,7 +517,7 @@ void FunctionDecl::Serialize(Serializable::Interface& pack)
 
 void FunctionDecl::Deserialize(Serializable::Interface& pack)
 {
-	CryCC::AST::NodeID _nodeId;
+	NodeID _nodeId;
 
 	pack >> _nodeId;
 	AssertNode(_nodeId, nodeId);
@@ -613,7 +618,7 @@ void TranslationUnitDecl::Serialize(Serializable::Interface& pack)
 
 void TranslationUnitDecl::Deserialize(Serializable::Interface& pack)
 {
-	CryCC::AST::NodeID _nodeId;
+	NodeID _nodeId;
 	pack >> _nodeId;
 	AssertNode(_nodeId, nodeId);
 
@@ -628,3 +633,6 @@ void TranslationUnitDecl::Deserialize(Serializable::Interface& pack)
 
 	Decl::Deserialize(pack);
 }
+
+} // namespace CryCC
+} // namespace AST

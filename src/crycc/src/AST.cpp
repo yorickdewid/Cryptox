@@ -8,7 +8,10 @@
 
 #include <CryCC/AST/AST.h>
 
-using namespace CryCC::AST;
+namespace CryCC
+{
+namespace AST
+{
 
 void ForwardItemTree::ForwardInternalTree(std::shared_ptr<ASTNode>& node)
 {
@@ -59,3 +62,5 @@ void ForwardItemTree::ForwardInternalTree(std::shared_ptr<ASTNode>& node)
 	}
 }
 
+} // namespace CryCC
+} // namespace AST

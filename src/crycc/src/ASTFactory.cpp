@@ -14,11 +14,11 @@ namespace CryCC
 namespace AST
 {
 
-AST::NodeID GetNodeId(Serializable::Interface *visitor)
+NodeID GetNodeId(Serializable::Interface *visitor)
 {
-	AST::NodeID _nodeId = AST::NodeID::INVAL;
+	NodeID _nodeId = NodeID::INVAL;
 	(*visitor) >> _nodeId;
-	if (_nodeId == AST::NodeID::INVAL) {
+	if (_nodeId == NodeID::INVAL) {
 		return _nodeId;
 	}
 	(*visitor) << _nodeId;

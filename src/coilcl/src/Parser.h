@@ -235,7 +235,7 @@ public:
 	Parser& CheckCompatibility();
 
 	// Dump AST to program structure
-	std::shared_ptr<TranslationUnitDecl> DumpAST() const
+	std::shared_ptr<CryCC::AST::TranslationUnitDecl> DumpAST() const
 	{
 		if (m_ast == nullptr) {
 			throw StageBase::StageException{ Name(), "abstract program is empty" };
@@ -319,13 +319,13 @@ private:
 
 private:
 	CoilCl::TokenizerPtr lex;
-	std::shared_ptr<TranslationUnitDecl> m_ast;
+	std::shared_ptr<CryCC::AST::TranslationUnitDecl> m_ast;
 	StateContainer<TokenState> m_comm;
 	std::shared_ptr<CoilCl::Profile> m_profile;
 
 	// Temporary parser containers.
 	size_t m_pointerCounter = 0;
-	std::map<std::pair<std::string, int>, std::shared_ptr<RecordDecl>, CompareStringPair> m_recordList;
+	std::map<std::pair<std::string, int>, std::shared_ptr<CryCC::AST::RecordDecl>, CompareStringPair> m_recordList;
 	std::map<std::string, std::shared_ptr<Typedef::TypedefBase>> m_typedefList;
 	std::stack<std::shared_ptr<Typedef::TypedefBase>> m_typeStack;
 	std::stack<std::string> m_identifierStack;

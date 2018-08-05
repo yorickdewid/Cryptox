@@ -10,6 +10,11 @@
 
 #include <boost/format.hpp>
 
+namespace CryCC
+{
+namespace AST
+{
+
 void Literal::Serialize(Serializable::Interface& pack)
 {
 	pack << nodeId;
@@ -29,7 +34,7 @@ void Literal::Serialize(Serializable::Interface& pack)
 
 void Literal::Deserialize(Serializable::Interface& pack)
 {
-	CryCC::AST::NodeID _nodeId;
+	NodeID _nodeId;
 	pack >> _nodeId;
 	AssertNode(_nodeId, nodeId);
 
@@ -43,3 +48,6 @@ void Literal::Deserialize(Serializable::Interface& pack)
 
 	ASTNode::Deserialize(pack);
 }
+
+} // namespace CryCC
+} // namespace AST

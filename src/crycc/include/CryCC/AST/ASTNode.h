@@ -12,7 +12,9 @@
 
 #include <CryCC/AST/RefCount.h>
 #include <CryCC/AST/NodeId.h>
+#include <CryCC/AST/NodeInterface.h>
 #include <CryCC/AST/Unique.h>
+#include <CryCC/AST/Serialize.h>
 #include <CryCC/AST/ASTState.h>
 #include <CryCC/AST/ASTTrait.h>
 
@@ -38,7 +40,7 @@
 	}
 
 #define NODE_UPCAST(c) \
-	std::dynamic_pointer_cast<ASTNode>(c)
+	std::static_pointer_cast<ASTNode>(c)
 
 #define POLY_IMPL() \
 	std::shared_ptr<ASTNode> PolySelf() \
@@ -50,10 +52,10 @@
 	m_state.Bump((*this));
 
 #define NODE_ID(i) \
-	static const CryCC::AST::NodeID nodeId = i;
+	static const NodeID nodeId = i;
 
 #define LABEL() \
-	virtual CryCC::AST::NodeID Label() const noexcept override { return nodeId; }
+	virtual NodeID Label() const noexcept override { return nodeId; }
 
 #define SERIALIZE(p) \
 	virtual void Serialize(Serializable::Interface& pack) \
@@ -64,7 +66,7 @@
 #define DESERIALIZE(p) \
 	virtual void Deserialize(Serializable::Interface& pack) \
 	{ \
-		CryCC::AST::NodeID _nodeId; pack >> _nodeId; AssertNode(_nodeId, nodeId); p::Deserialize(pack); \
+		NodeID _nodeId; pack >> _nodeId; AssertNode(_nodeId, nodeId); p::Deserialize(pack); \
 	}
 
 namespace Typedef = CryCC::SubValue::Typedef;
@@ -81,19 +83,6 @@ constexpr std::string RemoveClassFromName(ClassName *_name)
 	return f;
 }
 
-namespace CryCC
-{
-namespace AST
-{
-
-class ASTNode;
-
-} // namespace CryCC
-} // namespace AST
-
-template <typename _Ty>
-struct Identity { using type = typename _Ty::value_type; };
-
 template<typename Node, typename BaseNode = CryCC::AST::ASTNode>
 class SelfReference : public std::enable_shared_from_this<Node>
 {
@@ -104,213 +93,19 @@ protected:
 	}
 };
 
-class Returnable
-{
-	Typedef::TypeFacade m_returnType;
-
-protected:
-	// Take no return type by default. The caller can query this
-	// interface to ask if an return type was set.
-	Returnable() = default;
-
-	// Initialize object with return type.
-	Returnable(Typedef::TypeFacade type)
-		: m_returnType{ type }
-	{
-	}
-
-public:
-	virtual bool HasReturnType() const { return m_returnType.HasValue(); }
-	virtual void SetReturnType(Typedef::TypeFacade type) { m_returnType = type; }
-	virtual const Typedef::TypeFacade& ReturnType() const { return m_returnType; }
-	virtual Typedef::TypeFacade& UpdateReturnType() { return m_returnType; }
-};
-
-struct Serializable
-{
-	struct ChildGroupInterface
-	{
-		virtual void SaveNode(std::shared_ptr<CryCC::AST::ASTNode>&) = 0;
-		virtual void SaveNode(nullptr_t) = 0;
-		virtual int LoadNode(int) = 0;
-
-		// Set size interface.
-		virtual void SetSize(size_t sz) = 0;
-		// Get size interface.
-		virtual size_t GetSize() noexcept = 0;
-	};
-
-	class ChildGroupFacade;
-
-	using GroupListType = std::vector<std::shared_ptr<ChildGroupInterface>>;
-
-	class Interface
-	{
-		GroupListType m_childGroups;
-
-		virtual GroupListType CreateChildGroups(size_t size) = 0;
-		virtual GroupListType GetChildGroups() = 0;
-
-	public:
-		// Set the node id.
-		virtual void SetId(int id) = 0;
-		// Invoke registered callbacks.
-		virtual void FireDependencies(std::shared_ptr<CryCC::AST::ASTNode>&) = 0;
-
-		// Stream out operators.
-		virtual void operator<<(int) = 0;
-		virtual void operator<<(double) = 0;
-		virtual void operator<<(bool) = 0;
-		virtual void operator<<(CryCC::AST::NodeID) = 0;
-		virtual void operator<<(std::string) = 0;
-		virtual void operator<<(std::vector<uint8_t>) = 0;
-
-		// Stream in operators.
-		virtual void operator>>(int&) = 0;
-		virtual void operator>>(double&) = 0;
-		virtual void operator>>(bool&) = 0;
-		virtual void operator>>(CryCC::AST::NodeID&) = 0;
-		virtual void operator>>(std::string&) = 0;
-		virtual void operator>>(std::vector<uint8_t>&) = 0;
-
-		// Callback operations.
-		virtual void operator<<=(std::pair<int, std::function<void(const std::shared_ptr<CryCC::AST::ASTNode>&)>>) = 0;
-
-		ChildGroupFacade ChildGroups(size_t size = 0)
-		{
-			if (size > 0) {
-				// Create child groups
-				m_childGroups = CreateChildGroups(size);
-			}
-			else {
-				// Retrieve child groups
-				m_childGroups = GetChildGroups();
-			}
-			return m_childGroups.begin();
-		}
-	};
-
-	//FUTURE: More methods and operators to communicate data back and forth
-	class ChildGroupFacade final
-	{
-		GroupListType::iterator m_it;
-		GroupListType::iterator m_beginIt;
-
-	public:
-		ChildGroupFacade(GroupListType::iterator it)
-			: m_it{ it }
-			, m_beginIt{ it }
-		{
-			assert(m_it == m_beginIt);
-		}
-
-		// Get group id.
-		auto Id() const { return std::distance(m_beginIt, m_it) + 1; }
-
-		template<typename _Ty, typename = typename std::enable_if<std::is_base_of<CryCC::AST::ASTNode, _Ty>::value>::type>
-		void operator<<(std::shared_ptr<_Ty> ptr)
-		{
-			if (!ptr) {
-				(*m_it)->SaveNode(nullptr);
-				return;
-			}
-
-			auto astNode = std::dynamic_pointer_cast<CryCC::AST::ASTNode>(ptr);
-			(*m_it)->SaveNode(astNode);
-		}
-		template<typename _Ty, typename = typename std::enable_if<std::is_base_of<CryCC::AST::ASTNode, _Ty>::value>::type>
-		void operator<<(std::weak_ptr<_Ty> ptr)
-		{
-			if (std::shared_ptr<CryCC::AST::ASTNode> astNode = ptr.lock()) {
-				(*m_it)->SaveNode(astNode);
-				return;
-			}
-
-			(*m_it)->SaveNode(nullptr);
-		}
-
-		// Return node id.
-		int operator[](size_t idx)
-		{
-			return (*m_it)->LoadNode(static_cast<int>(idx));
-		}
-
-		// Move iterator forward.
-		void operator++() { ++m_it; }
-		void operator++(int) { m_it++; }
-
-		// Move iterator backward.
-		void operator--() { --m_it; }
-		void operator--(int) { m_it--; }
-
-		// Move iterator.
-		void Next() { ++m_it; }
-		void Previous() { --m_it; }
-
-		// Get or set element size in group.
-		size_t Size(size_t sz = 0) //TODO: DEPRECATED: FIXME: REMOVE
-		{
-			if (sz > 0) {
-				(*m_it)->SetSize(sz);
-				return sz;
-			}
-
-			return (*m_it)->GetSize();
-		}
-
-		// Set the number of elements in this group.
-		void SetSize(size_t sz) { (*m_it)->SetSize(sz); }
-		// Get the number of elements in this group.
-		size_t GetSize() { return (*m_it)->GetSize(); }
-
-		std::vector<std::shared_ptr<CryCC::AST::ASTNode>> Children() { return {}; }
-	};
-
-	// Serialize interface.
-	virtual void Serialize(Interface&) = 0;
-	// Deserialize interface.
-	virtual void Deserialize(Interface&) = 0;
-
-protected:
-	void AssertNode(const CryCC::AST::NodeID& got, const CryCC::AST::NodeID& exp)
-	{
-		if (got != exp) {
-			throw 2; //TODO: throw something usefull
-		}
-	}
-};
-
-struct ModifierInterface
-{
-	// Emplace object, and push current object one stage down.
-	virtual void Emplace(size_t, const std::shared_ptr<CryCC::AST::ASTNode>&&) = 0;
-	// Get modifier count.
-	virtual size_t ModifierCount() const = 0;
-};
-
-struct VisitorInterface
-{
-	struct AbstractVisitor
-	{
-		//void Visit();
-	};
-
-	virtual void Apply(AbstractVisitor&) {}
-};
-
 //
 // Forward declarations.
 //
-
-class DeclRefExpr;
-class CompoundStmt;
-class ArgumentStmt;
-class ParamStmt;
 
 namespace CryCC
 {
 namespace AST
 {
+
+class DeclRefExpr;
+class CompoundStmt;
+class ArgumentStmt;
+class ParamStmt;
 
 class ASTNode
 	: public UniqueObj
@@ -318,10 +113,7 @@ class ASTNode
 	, public ModifierInterface
 	, virtual public Serializable
 {
-	NODE_ID(CryCC::AST::NodeID::AST_NODE_ID);
-
-protected:
-	using _MyTy = ASTNode;
+	NODE_ID(NodeID::AST_NODE_ID);
 
 protected:
 	//TODO: Replace with Util::SourceLocation
@@ -411,8 +203,8 @@ public:
 		return children;
 	}
 
-	template<typename _Ty, typename = typename std::enable_if<std::is_pointer<_Ty>::value>::type>
-	void AddUserData(_Ty data)
+	template<typename UserType, typename = typename std::enable_if<std::is_pointer<_Ty>::value>::type>
+	void AddUserData(UserType data)
 	{
 		m_userData.emplace_back(data);
 	}
@@ -462,14 +254,11 @@ protected:
 	}
 
 protected:
-	CryCC::AST::ASTState<_MyTy> m_state;
-	std::vector<std::weak_ptr<_MyTy>> children;
-	std::weak_ptr<_MyTy> m_parent;
+	ASTState<ASTNode> m_state;
+	std::vector<std::weak_ptr<ASTNode>> children;
+	std::weak_ptr<ASTNode> m_parent;
 	std::vector<CryCC::SubValue::UserDataWrapper> m_userData;
 };
-
-} // namespace CryCC
-} // namespace AST
 
 //
 // Operator nodes.
@@ -477,9 +266,9 @@ protected:
 
 class Operator
 	: public Returnable
-	, public CryCC::AST::ASTNode
+	, public ASTNode
 {
-	NODE_ID(CryCC::AST::NodeID::OPERATOR_ID);
+	NODE_ID(NodeID::OPERATOR_ID);
 
 protected:
 	SERIALIZE(ASTNode);
@@ -491,7 +280,7 @@ class BinaryOperator
 	: public Operator
 	, public SelfReference<BinaryOperator>
 {
-	NODE_ID(CryCC::AST::NodeID::BINARY_OPERATOR_ID);
+	NODE_ID(NodeID::BINARY_OPERATOR_ID);
 	std::shared_ptr<ASTNode> m_lhs;
 	std::shared_ptr<ASTNode> m_rhs;
 
@@ -556,7 +345,7 @@ class ConditionalOperator
 	: public Operator
 	, public SelfReference<ConditionalOperator>
 {
-	NODE_ID(CryCC::AST::NodeID::CONDITIONAL_OPERATOR_ID);
+	NODE_ID(NodeID::CONDITIONAL_OPERATOR_ID);
 	std::shared_ptr<ASTNode> m_evalNode;
 	std::shared_ptr<ASTNode> m_truthStmt;
 	std::shared_ptr<ASTNode> m_altStmt;
@@ -586,16 +375,11 @@ private:
 	POLY_IMPL();
 };
 
-namespace CryCC
-{
-namespace AST
-{
-
 class UnaryOperator
 	: public Operator
 	, public SelfReference<UnaryOperator>
 {
-	NODE_ID(CryCC::AST::NodeID::UNARY_OPERATOR_ID);
+	NODE_ID(NodeID::UNARY_OPERATOR_ID);
 	std::shared_ptr<ASTNode> m_body;
 
 public:
@@ -648,14 +432,11 @@ private:
 	POLY_IMPL();
 };
 
-} // namespace AST
-} // namespace CryCC
-
 class CompoundAssignOperator
 	: public Operator
 	, public SelfReference<CompoundAssignOperator>
 {
-	NODE_ID(CryCC::AST::NodeID::COMPOUND_ASSIGN_OPERATOR_ID);
+	NODE_ID(NodeID::COMPOUND_ASSIGN_OPERATOR_ID);
 	std::shared_ptr<ASTNode> m_body;
 	std::shared_ptr<DeclRefExpr> m_identifier;
 
@@ -700,14 +481,14 @@ private:
 };
 
 //
-// Literal nodes
+// Literal nodes.
 //
 
 class Literal
 	: public Returnable
-	, public CryCC::AST::ASTNode
+	, public ASTNode
 {
-	NODE_ID(CryCC::AST::NodeID::LITERAL_ID);
+	NODE_ID(NodeID::LITERAL_ID);
 
 public:
 	//virtual std::shared_ptr<CryCC::Valuedef::Value> Type2() const noexcept = 0; //TODO: rename
@@ -740,7 +521,7 @@ protected:
 	{
 	}
 
-	template<CryCC::AST::NodeID NodeId>
+	template<NodeID NodeId>
 	void SerializeImpl(Serializable::Interface& pack)
 	{
 		pack << NodeId;
@@ -751,10 +532,10 @@ protected:
 		Literal::Serialize(pack);
 	}
 
-	template<CryCC::AST::NodeID NodeId>
+	template<NodeID NodeId>
 	void DeserializeImpl(Serializable::Interface& pack)
 	{
-		CryCC::AST::NodeID _nodeId;
+		NodeID _nodeId;
 
 		pack >> _nodeId;
 		AssertNode(_nodeId, NodeId);
@@ -787,7 +568,7 @@ class CharacterLiteral
 	: public Literal
 	, public SelfReference<CharacterLiteral>
 {
-	NODE_ID(CryCC::AST::NodeID::CHARACTER_LITERAL_ID);
+	NODE_ID(NodeID::CHARACTER_LITERAL_ID);
 
 public:
 	explicit CharacterLiteral(Serializable::Interface& pack)
@@ -813,11 +594,11 @@ public:
 
 	virtual void Serialize(Serializable::Interface& pack)
 	{
-		SerializeImpl<CryCC::AST::NodeID::CHARACTER_LITERAL_ID>(pack);
+		SerializeImpl<NodeID::CHARACTER_LITERAL_ID>(pack);
 	}
 	virtual void Deserialize(Serializable::Interface& pack)
 	{
-		DeserializeImpl<CryCC::AST::NodeID::CHARACTER_LITERAL_ID>(pack);
+		DeserializeImpl<NodeID::CHARACTER_LITERAL_ID>(pack);
 	}
 
 	const std::string NodeName() const
@@ -835,7 +616,7 @@ class StringLiteral
 	: public Literal
 	, public SelfReference<StringLiteral>
 {
-	NODE_ID(CryCC::AST::NodeID::STRING_LITERAL_ID);
+	NODE_ID(NodeID::STRING_LITERAL_ID);
 
 public:
 	explicit StringLiteral(Serializable::Interface& pack)
@@ -861,11 +642,11 @@ public:
 
 	virtual void Serialize(Serializable::Interface& pack)
 	{
-		SerializeImpl<CryCC::AST::NodeID::STRING_LITERAL_ID>(pack);
+		SerializeImpl<NodeID::STRING_LITERAL_ID>(pack);
 	}
 	virtual void Deserialize(Serializable::Interface& pack)
 	{
-		DeserializeImpl<CryCC::AST::NodeID::STRING_LITERAL_ID>(pack);
+		DeserializeImpl<NodeID::STRING_LITERAL_ID>(pack);
 	}
 
 	const std::string NodeName() const
@@ -883,7 +664,7 @@ class IntegerLiteral
 	: public Literal
 	, public SelfReference<IntegerLiteral>
 {
-	NODE_ID(CryCC::AST::NodeID::INTEGER_LITERAL_ID);
+	NODE_ID(NodeID::INTEGER_LITERAL_ID);
 
 public:
 	explicit IntegerLiteral(Serializable::Interface& pack)
@@ -909,11 +690,11 @@ public:
 
 	virtual void Serialize(Serializable::Interface& pack)
 	{
-		SerializeImpl<CryCC::AST::NodeID::INTEGER_LITERAL_ID>(pack);
+		SerializeImpl<NodeID::INTEGER_LITERAL_ID>(pack);
 	}
 	virtual void Deserialize(Serializable::Interface& pack)
 	{
-		DeserializeImpl<CryCC::AST::NodeID::INTEGER_LITERAL_ID>(pack);
+		DeserializeImpl<NodeID::INTEGER_LITERAL_ID>(pack);
 	}
 
 	const std::string NodeName() const
@@ -931,7 +712,7 @@ class FloatingLiteral
 	: public Literal
 	, public SelfReference<FloatingLiteral>
 {
-	NODE_ID(CryCC::AST::NodeID::FLOAT_LITERAL_ID);
+	NODE_ID(NodeID::FLOAT_LITERAL_ID);
 
 public:
 	explicit FloatingLiteral(Serializable::Interface& pack)
@@ -957,11 +738,11 @@ public:
 
 	virtual void Serialize(Serializable::Interface& pack)
 	{
-		SerializeImpl<CryCC::AST::NodeID::FLOAT_LITERAL_ID>(pack);
+		SerializeImpl<NodeID::FLOAT_LITERAL_ID>(pack);
 	}
 	virtual void Deserialize(Serializable::Interface& pack)
 	{
-		DeserializeImpl<CryCC::AST::NodeID::FLOAT_LITERAL_ID>(pack);
+		DeserializeImpl<NodeID::FLOAT_LITERAL_ID>(pack);
 	}
 
 	const std::string NodeName() const
@@ -981,10 +762,10 @@ private:
 
 class Decl
 	: public Returnable
-	, public CryCC::AST::ASTNode
-	, public CryCC::AST::RefCount
+	, public ASTNode
+	, public RefCount
 {
-	NODE_ID(CryCC::AST::NodeID::DECL_ID);
+	NODE_ID(NodeID::DECL_ID);
 
 protected:
 	std::string m_identifier;
@@ -1025,7 +806,7 @@ class VarDecl
 	: public Decl
 	, public SelfReference<VarDecl>
 {
-	NODE_ID(CryCC::AST::NodeID::VAR_DECL_ID);
+	NODE_ID(NodeID::VAR_DECL_ID);
 	std::shared_ptr<ASTNode> m_body;
 
 public:
@@ -1056,7 +837,7 @@ class ParamDecl
 	: public Decl
 	, public SelfReference<ParamDecl>
 {
-	NODE_ID(CryCC::AST::NodeID::PARAM_DECL_ID);
+	NODE_ID(NodeID::PARAM_DECL_ID);
 
 public:
 	explicit ParamDecl(Serializable::Interface& pack)
@@ -1089,7 +870,7 @@ class VariadicDecl
 	: public Decl
 	, public SelfReference<VariadicDecl>
 {
-	NODE_ID(CryCC::AST::NodeID::VARIADIC_DECL_ID);
+	NODE_ID(NodeID::VARIADIC_DECL_ID);
 
 public:
 	explicit VariadicDecl(Serializable::Interface& pack)
@@ -1117,7 +898,7 @@ class TypedefDecl
 	: public Decl
 	, public SelfReference<TypedefDecl>
 {
-	NODE_ID(CryCC::AST::NodeID::TYPEDEF_DECL_ID);
+	NODE_ID(NodeID::TYPEDEF_DECL_ID);
 
 public:
 	TypedefDecl(const std::string& name, std::shared_ptr<Typedef::TypedefBase> type);
@@ -1142,7 +923,7 @@ class FieldDecl
 	: public Decl
 	, public SelfReference<FieldDecl>
 {
-	NODE_ID(CryCC::AST::NodeID::FIELD_DECL_ID);
+	NODE_ID(NodeID::FIELD_DECL_ID);
 	std::shared_ptr<IntegerLiteral> m_bits;
 
 public:
@@ -1170,7 +951,7 @@ class RecordDecl
 	: public Decl
 	, public SelfReference<RecordDecl>
 {
-	NODE_ID(CryCC::AST::NodeID::RECORD_DECL_ID);
+	NODE_ID(NodeID::RECORD_DECL_ID);
 	std::vector<std::shared_ptr<FieldDecl>> m_fields;
 
 public:
@@ -1218,7 +999,7 @@ class EnumConstantDecl
 	: public Decl
 	, public SelfReference<EnumConstantDecl>
 {
-	NODE_ID(CryCC::AST::NodeID::ENUM_CONSTANT_DECL_ID);
+	NODE_ID(NodeID::ENUM_CONSTANT_DECL_ID);
 	std::shared_ptr<ASTNode> m_body;
 
 public:
@@ -1246,7 +1027,7 @@ class EnumDecl
 	: public Decl
 	, public SelfReference<EnumDecl>
 {
-	NODE_ID(CryCC::AST::NodeID::ENUM_DECL_ID);
+	NODE_ID(NodeID::ENUM_DECL_ID);
 	std::vector<std::shared_ptr<EnumConstantDecl>> m_constants;
 
 public:
@@ -1278,7 +1059,7 @@ class FunctionDecl
 	: public Decl
 	, public SelfReference<FunctionDecl>
 {
-	NODE_ID(CryCC::AST::NodeID::FUNCTION_DECL_ID);
+	NODE_ID(NodeID::FUNCTION_DECL_ID);
 	std::shared_ptr<ParamStmt> m_params;
 	std::shared_ptr<CompoundStmt> m_body;
 	std::weak_ptr<FunctionDecl> m_protoRef;
@@ -1333,7 +1114,7 @@ class TranslationUnitDecl
 	: public Decl
 	, public SelfReference<TranslationUnitDecl>
 {
-	NODE_ID(CryCC::AST::NodeID::TRANSLATION_UNIT_DECL_ID);
+	NODE_ID(NodeID::TRANSLATION_UNIT_DECL_ID);
 	std::list<std::shared_ptr<ASTNode>> m_children;
 
 private:
@@ -1343,7 +1124,7 @@ private:
 	}
 
 public:
-	using NodeTrait = CryCC::AST::Trait::RootNodeTag;
+	using NodeTrait = Trait::RootNodeTag;
 
 public:
 	explicit TranslationUnitDecl(Serializable::Interface& pack)
@@ -1378,9 +1159,9 @@ private:
 
 class Expr
 	: public Returnable
-	, public CryCC::AST::ASTNode
+	, public ASTNode
 {
-	NODE_ID(CryCC::AST::NodeID::EXPR_ID);
+	NODE_ID(NodeID::EXPR_ID);
 
 protected:
 	SERIALIZE(ASTNode);
@@ -1392,7 +1173,7 @@ class ResolveRefExpr
 	: public Expr
 	, public SelfReference<ResolveRefExpr>
 {
-	NODE_ID(CryCC::AST::NodeID::RESOLVE_REF_EXPR_ID);
+	NODE_ID(NodeID::RESOLVE_REF_EXPR_ID);
 	std::string m_identifier;
 
 public:
@@ -1417,7 +1198,7 @@ private:
 class DeclRefExpr
 	: public ResolveRefExpr
 {
-	NODE_ID(CryCC::AST::NodeID::DECL_REF_EXPR_ID);
+	NODE_ID(NodeID::DECL_REF_EXPR_ID);
 	std::weak_ptr<Decl> m_ref; //TODO: expand to AST::ASTNode
 
 public:
@@ -1470,7 +1251,7 @@ class CallExpr
 	: public Expr
 	, public SelfReference<CallExpr>
 {
-	NODE_ID(CryCC::AST::NodeID::CALL_EXPR_ID);
+	NODE_ID(NodeID::CALL_EXPR_ID);
 	std::shared_ptr<DeclRefExpr> m_funcRef;
 	std::shared_ptr<ArgumentStmt> m_args;
 
@@ -1486,7 +1267,7 @@ public:
 		ASTNode::AppendChild(NODE_UPCAST(func));
 		m_funcRef = func;
 
-		if (args != nullptr) {
+		if (args) {
 			ASTNode::AppendChild(NODE_UPCAST(args));
 			m_args = args;
 		}
@@ -1515,7 +1296,7 @@ private:
 class BuiltinExpr final
 	: public CallExpr
 {
-	NODE_ID(CryCC::AST::NodeID::BUILTIN_EXPR_ID);
+	NODE_ID(NodeID::BUILTIN_EXPR_ID);
 	std::shared_ptr<ASTNode> m_body;
 	Typedef::TypeFacade m_typenameType;
 
@@ -1573,7 +1354,7 @@ class CastExpr
 	, public Convertible
 	, public SelfReference<CastExpr>
 {
-	NODE_ID(CryCC::AST::NodeID::CAST_EXPR_ID);
+	NODE_ID(NodeID::CAST_EXPR_ID);
 	std::shared_ptr<ASTNode> m_body;
 
 public:
@@ -1603,7 +1384,7 @@ class ImplicitConvertionExpr
 	, public Convertible
 	, public SelfReference<ImplicitConvertionExpr>
 {
-	NODE_ID(CryCC::AST::NodeID::IMPLICIT_CONVERTION_EXPR_ID);
+	NODE_ID(NodeID::IMPLICIT_CONVERTION_EXPR_ID);
 	std::shared_ptr<ASTNode> m_body;
 
 public:
@@ -1628,7 +1409,7 @@ class ParenExpr
 	: public Expr
 	, public SelfReference<ParenExpr>
 {
-	NODE_ID(CryCC::AST::NodeID::PAREN_EXPR_ID);
+	NODE_ID(NodeID::PAREN_EXPR_ID);
 	std::shared_ptr<ASTNode> m_body;
 
 public:
@@ -1656,7 +1437,7 @@ class InitListExpr
 	: public Expr
 	, public SelfReference<InitListExpr>
 {
-	NODE_ID(CryCC::AST::NodeID::INIT_LIST_EXPR_ID);
+	NODE_ID(NodeID::INIT_LIST_EXPR_ID);
 	std::vector<std::shared_ptr<ASTNode>> m_children;
 
 public:
@@ -1685,7 +1466,7 @@ class CompoundLiteralExpr
 	: public Expr
 	, public SelfReference<CompoundLiteralExpr>
 {
-	NODE_ID(CryCC::AST::NodeID::COMPOUND_LITERAL_EXPR_ID);
+	NODE_ID(NodeID::COMPOUND_LITERAL_EXPR_ID);
 	std::shared_ptr<InitListExpr> m_body;
 
 public:
@@ -1710,7 +1491,7 @@ class ArraySubscriptExpr
 	: public Expr
 	, public SelfReference<ArraySubscriptExpr>
 {
-	NODE_ID(CryCC::AST::NodeID::ARRAY_SUBSCRIPT_EXPR_ID);
+	NODE_ID(NodeID::ARRAY_SUBSCRIPT_EXPR_ID);
 	std::shared_ptr<DeclRefExpr> m_identifier;
 	std::shared_ptr<ASTNode> m_offset;
 
@@ -1740,7 +1521,7 @@ class MemberExpr
 	: public Expr
 	, public SelfReference<MemberExpr>
 {
-	NODE_ID(CryCC::AST::NodeID::MEMBER_EXPR_ID);
+	NODE_ID(NodeID::MEMBER_EXPR_ID);
 	std::string m_name;
 	std::shared_ptr<DeclRefExpr> m_record;
 
@@ -1777,9 +1558,9 @@ private:
 // Statement nodes
 //
 
-class Stmt : public CryCC::AST::ASTNode
+class Stmt : public ASTNode
 {
-	NODE_ID(CryCC::AST::NodeID::STMT_ID);
+	NODE_ID(NodeID::STMT_ID);
 
 protected:
 	SERIALIZE(ASTNode);
@@ -1791,7 +1572,7 @@ class ContinueStmt
 	: public Stmt
 	, public SelfReference<ContinueStmt>
 {
-	NODE_ID(CryCC::AST::NodeID::CONTINUE_STMT_ID);
+	NODE_ID(NodeID::CONTINUE_STMT_ID);
 
 public:
 	explicit ContinueStmt(Serializable::Interface& pack)
@@ -1814,7 +1595,7 @@ class ReturnStmt
 	: public Stmt
 	, public SelfReference<ReturnStmt>
 {
-	NODE_ID(CryCC::AST::NodeID::RETURN_STMT_ID);
+	NODE_ID(NodeID::RETURN_STMT_ID);
 	std::shared_ptr<ASTNode> m_returnExpr;
 
 public:
@@ -1846,7 +1627,7 @@ class IfStmt
 	: public Stmt
 	, public SelfReference<IfStmt>
 {
-	NODE_ID(CryCC::AST::NodeID::IF_STMT_ID);
+	NODE_ID(NodeID::IF_STMT_ID);
 	std::shared_ptr<ASTNode> m_evalNode;
 	std::shared_ptr<ASTNode> m_truthStmt;
 	std::shared_ptr<ASTNode> m_altStmt;
@@ -1882,7 +1663,7 @@ class SwitchStmt
 	: public Stmt
 	, public SelfReference<SwitchStmt>
 {
-	NODE_ID(CryCC::AST::NodeID::SWITCH_STMT_ID);
+	NODE_ID(NodeID::SWITCH_STMT_ID);
 	std::shared_ptr<ASTNode> evalNode;
 	std::shared_ptr<ASTNode> m_body;
 
@@ -1914,7 +1695,7 @@ class WhileStmt
 	: public Stmt
 	, public SelfReference<WhileStmt>
 {
-	NODE_ID(CryCC::AST::NodeID::WHILE_STMT_ID);
+	NODE_ID(NodeID::WHILE_STMT_ID);
 	std::shared_ptr<ASTNode> evalNode;
 	std::shared_ptr<ASTNode> m_body;
 
@@ -1946,7 +1727,7 @@ class DoStmt
 	: public Stmt
 	, public SelfReference<DoStmt>
 {
-	NODE_ID(CryCC::AST::NodeID::DO_STMT_ID);
+	NODE_ID(NodeID::DO_STMT_ID);
 	std::shared_ptr<ASTNode> evalNode;
 	std::shared_ptr<ASTNode> m_body;
 
@@ -1978,7 +1759,7 @@ class ForStmt
 	: public Stmt
 	, public SelfReference<ForStmt>
 {
-	NODE_ID(CryCC::AST::NodeID::FOR_STMT_ID);
+	NODE_ID(NodeID::FOR_STMT_ID);
 	std::shared_ptr<ASTNode> m_node1;
 	std::shared_ptr<ASTNode> m_node2;
 	std::shared_ptr<ASTNode> m_node3;
@@ -2014,7 +1795,7 @@ class BreakStmt
 	: public Stmt
 	, public SelfReference<BreakStmt>
 {
-	NODE_ID(CryCC::AST::NodeID::BREAK_STMT_ID);
+	NODE_ID(NodeID::BREAK_STMT_ID);
 
 public:
 	explicit BreakStmt(Serializable::Interface& pack)
@@ -2038,7 +1819,7 @@ class DefaultStmt
 	: public Stmt
 	, public SelfReference<DefaultStmt>
 {
-	NODE_ID(CryCC::AST::NodeID::DEFAULT_STMT_ID);
+	NODE_ID(NodeID::DEFAULT_STMT_ID);
 	std::shared_ptr<ASTNode> m_body;
 
 public:
@@ -2063,7 +1844,7 @@ class CaseStmt
 	: public Stmt
 	, public SelfReference<CaseStmt>
 {
-	NODE_ID(CryCC::AST::NodeID::CASE_STMT_ID);
+	NODE_ID(NodeID::CASE_STMT_ID);
 	std::shared_ptr<ASTNode> m_identifier;
 	std::shared_ptr<ASTNode> m_body;
 
@@ -2093,7 +1874,7 @@ class DeclStmt
 	: public Stmt
 	, public SelfReference<DeclStmt>
 {
-	NODE_ID(CryCC::AST::NodeID::DECL_STMT_ID);
+	NODE_ID(NodeID::DECL_STMT_ID);
 	std::list<std::shared_ptr<VarDecl>> m_var;
 
 public:
@@ -2120,7 +1901,7 @@ class ArgumentStmt
 	: public Stmt
 	, public SelfReference<ArgumentStmt>
 {
-	NODE_ID(CryCC::AST::NodeID::ARGUMENT_STMT_ID);
+	NODE_ID(NodeID::ARGUMENT_STMT_ID);
 	std::vector<std::shared_ptr<ASTNode>> m_arg;
 
 public:
@@ -2149,7 +1930,7 @@ class ParamStmt
 	: public Stmt
 	, public SelfReference<ParamStmt>
 {
-	NODE_ID(CryCC::AST::NodeID::PARAM_STMT_ID);
+	NODE_ID(NodeID::PARAM_STMT_ID);
 	std::vector<std::shared_ptr<ASTNode>> m_param; //TODO: vector of paramDecl?
 
 public:
@@ -2176,7 +1957,7 @@ class LabelStmt
 	: public Stmt
 	, public SelfReference<LabelStmt>
 {
-	NODE_ID(CryCC::AST::NodeID::LABEL_STMT_ID);
+	NODE_ID(NodeID::LABEL_STMT_ID);
 	std::string m_name;
 	std::shared_ptr<ASTNode> m_body;
 
@@ -2202,7 +1983,7 @@ class GotoStmt
 	: public Stmt
 	, public SelfReference<GotoStmt>
 {
-	NODE_ID(CryCC::AST::NodeID::GOTO_STMT_ID);
+	NODE_ID(NodeID::GOTO_STMT_ID);
 	std::string m_labelName;
 
 public:
@@ -2227,7 +2008,7 @@ class CompoundStmt
 	: public Stmt
 	, public SelfReference<CompoundStmt>
 {
-	NODE_ID(CryCC::AST::NodeID::COMPOUND_STMT_ID);
+	NODE_ID(NodeID::COMPOUND_STMT_ID);
 	std::list<std::shared_ptr<ASTNode>> m_children;
 
 public:
@@ -2249,3 +2030,6 @@ public:
 private:
 	POLY_IMPL();
 };
+
+} // namespace AST
+} // namespace CryCC

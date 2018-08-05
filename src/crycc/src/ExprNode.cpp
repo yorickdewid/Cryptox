@@ -10,6 +10,11 @@
 
 #include <boost/format.hpp>
 
+namespace CryCC
+{
+namespace AST
+{
+
 ResolveRefExpr::ResolveRefExpr(const std::string& identifier)
 	: m_identifier{ identifier }
 {
@@ -24,7 +29,7 @@ void ResolveRefExpr::Serialize(Serializable::Interface& pack)
 
 void ResolveRefExpr::Deserialize(Serializable::Interface& pack)
 {
-	CryCC::AST::NodeID _nodeId;
+	NodeID _nodeId;
 	pack >> _nodeId;
 	AssertNode(_nodeId, nodeId);
 
@@ -84,7 +89,7 @@ void DeclRefExpr::Serialize(Serializable::Interface& pack)
 
 void DeclRefExpr::Deserialize(Serializable::Interface& pack)
 {
-	CryCC::AST::NodeID _nodeId;
+	NodeID _nodeId;
 	pack >> _nodeId;
 	AssertNode(_nodeId, nodeId);
 
@@ -133,7 +138,7 @@ void CallExpr::Serialize(Serializable::Interface& pack)
 
 void CallExpr::Deserialize(Serializable::Interface& pack)
 {
-	CryCC::AST::NodeID _nodeId;
+	NodeID _nodeId;
 	pack >> _nodeId;
 	AssertNode(_nodeId, nodeId);
 
@@ -206,7 +211,7 @@ void BuiltinExpr::Serialize(Serializable::Interface& pack)
 
 void BuiltinExpr::Deserialize(Serializable::Interface& pack)
 {
-	CryCC::AST::NodeID _nodeId;
+	NodeID _nodeId;
 	pack >> _nodeId;
 	AssertNode(_nodeId, nodeId);
 
@@ -251,7 +256,7 @@ void CastExpr::Serialize(Serializable::Interface& pack)
 
 void CastExpr::Deserialize(Serializable::Interface& pack)
 {
-	CryCC::AST::NodeID _nodeId;
+	NodeID _nodeId;
 	pack >> _nodeId;
 	AssertNode(_nodeId, nodeId);
 
@@ -308,7 +313,7 @@ void ImplicitConvertionExpr::Serialize(Serializable::Interface& pack)
 
 void ImplicitConvertionExpr::Deserialize(Serializable::Interface& pack)
 {
-	CryCC::AST::NodeID _nodeId;
+	NodeID _nodeId;
 	pack >> _nodeId;
 	AssertNode(_nodeId, nodeId);
 
@@ -355,7 +360,7 @@ void ParenExpr::Serialize(Serializable::Interface& pack)
 
 void ParenExpr::Deserialize(Serializable::Interface& pack)
 {
-	CryCC::AST::NodeID _nodeId;
+	NodeID _nodeId;
 	pack >> _nodeId;
 	AssertNode(_nodeId, nodeId);
 
@@ -382,7 +387,7 @@ const std::string ParenExpr::NodeName() const
 	return _node;
 }
 
-std::vector<std::shared_ptr<CryCC::AST::ASTNode>> InitListExpr::List() const noexcept
+std::vector<std::shared_ptr<ASTNode>> InitListExpr::List() const noexcept
 {
 	return m_children;
 }
@@ -410,7 +415,7 @@ void InitListExpr::Serialize(Serializable::Interface& pack)
 
 void InitListExpr::Deserialize(Serializable::Interface& pack)
 {
-	CryCC::AST::NodeID _nodeId;
+	NodeID _nodeId;
 	pack >> _nodeId;
 	AssertNode(_nodeId, nodeId);
 
@@ -446,7 +451,7 @@ void CompoundLiteralExpr::Serialize(Serializable::Interface& pack)
 
 void CompoundLiteralExpr::Deserialize(Serializable::Interface& pack)
 {
-	CryCC::AST::NodeID _nodeId;
+	NodeID _nodeId;
 	pack >> _nodeId;
 	AssertNode(_nodeId, nodeId);
 
@@ -468,7 +473,7 @@ ArraySubscriptExpr::ArraySubscriptExpr(std::shared_ptr<DeclRefExpr>& ref, std::s
 	ASTNode::AppendChild(expr);
 }
 
-std::shared_ptr<CryCC::AST::ASTNode> ArraySubscriptExpr::OffsetExpression() const noexcept
+std::shared_ptr<ASTNode> ArraySubscriptExpr::OffsetExpression() const noexcept
 {
 	return m_offset;
 }
@@ -495,7 +500,7 @@ void ArraySubscriptExpr::Serialize(Serializable::Interface& pack)
 
 void ArraySubscriptExpr::Deserialize(Serializable::Interface& pack)
 {
-	CryCC::AST::NodeID _nodeId;
+	NodeID _nodeId;
 	pack >> _nodeId;
 	AssertNode(_nodeId, nodeId);
 
@@ -548,7 +553,7 @@ void MemberExpr::Serialize(Serializable::Interface& pack)
 
 void MemberExpr::Deserialize(Serializable::Interface& pack)
 {
-	CryCC::AST::NodeID _nodeId;
+	NodeID _nodeId;
 	pack >> _nodeId;
 	AssertNode(_nodeId, nodeId);
 
@@ -576,3 +581,6 @@ const std::string MemberExpr::NodeName() const
 		% (m_memberType == MemberType::REFERENCE ? "." : "->")
 		% m_name);
 }
+
+} // namespace CryCC
+} // namespace AST

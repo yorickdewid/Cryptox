@@ -11,7 +11,7 @@
 // Project includes.
 #include <CryCC/AST.h>
 
-#define BUILTIN_ROUTINE_IMPL(r) void static_##r(std::shared_ptr<BuiltinExpr>& builtinExpr)
+#define BUILTIN_ROUTINE_IMPL(r) void static_##r(std::shared_ptr<CryCC::AST::BuiltinExpr>& builtinExpr)
 
 namespace CoilCl
 {

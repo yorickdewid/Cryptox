@@ -10,6 +10,11 @@
 
 #include <boost/format.hpp>
 
+namespace CryCC
+{
+namespace AST
+{
+
 const char *BinaryOperator::BinOperandStr(BinOperand operand) const
 {
 	switch (operand) {
@@ -69,7 +74,7 @@ void BinaryOperator::SetRightSide(const std::shared_ptr<ASTNode>& node)
 	ASTNode::UpdateDelegate();
 }
 
-void BinaryOperator::Emplace(size_t idx, const std::shared_ptr<ASTNode>&& node) 
+void BinaryOperator::Emplace(size_t idx, const std::shared_ptr<ASTNode>&& node)
 {
 	assert(idx == 0 || idx == 1);
 	BUMP_STATE();
@@ -105,7 +110,7 @@ void BinaryOperator::Serialize(Serializable::Interface& pack)
 
 void BinaryOperator::Deserialize(Serializable::Interface& pack)
 {
-	CryCC::AST::NodeID _nodeId;
+	NodeID _nodeId;
 	pack >> _nodeId;
 	AssertNode(_nodeId, nodeId);
 
@@ -197,7 +202,7 @@ void ConditionalOperator::Serialize(Serializable::Interface& pack)
 
 void ConditionalOperator::Deserialize(Serializable::Interface& pack)
 {
-	CryCC::AST::NodeID _nodeId;
+	NodeID _nodeId;
 	pack >> _nodeId;
 	AssertNode(_nodeId, nodeId);
 
@@ -228,11 +233,6 @@ const std::string ConditionalOperator::NodeName() const
 		% line % col);
 }
 
-
-namespace CryCC
-{
-namespace AST
-{
 
 const char *UnaryOperator::UnaryOperandStr(UnaryOperand operand) const
 {
@@ -281,7 +281,7 @@ void UnaryOperator::Serialize(Serializable::Interface& pack)
 
 void UnaryOperator::Deserialize(Serializable::Interface& pack)
 {
-	CryCC::AST::NodeID _nodeId;
+	NodeID _nodeId;
 	pack >> _nodeId;
 	AssertNode(_nodeId, nodeId);
 
@@ -311,9 +311,6 @@ const std::string UnaryOperator::NodeName() const
 		% (m_side == UnaryOperator::POSTFIX ? "postfix" : "prefix")
 		% UnaryOperandStr(m_operand));
 }
-
-} // namespace CryCC
-} // namespace AST
 
 
 const char *CompoundAssignOperator::CompoundAssignOperandStr(CompoundAssignOperand operand) const
@@ -377,7 +374,7 @@ void CompoundAssignOperator::Serialize(Serializable::Interface& pack)
 
 void CompoundAssignOperator::Deserialize(Serializable::Interface& pack)
 {
-	CryCC::AST::NodeID _nodeId;
+	NodeID _nodeId;
 	pack >> _nodeId;
 	AssertNode(_nodeId, nodeId);
 
@@ -407,3 +404,6 @@ const std::string CompoundAssignOperator::NodeName() const
 		% line % col
 		% CompoundAssignOperandStr(m_operand));
 }
+
+} // namespace CryCC
+} // namespace AST

@@ -19,7 +19,9 @@
 
 #include <CryCC/AST/RefCount.h>
 #include <CryCC/AST/NodeId.h>
+#include <CryCC/AST/NodeInterface.h>
 #include <CryCC/AST/Unique.h>
+#include <CryCC/AST/Serialize.h>
 #include <CryCC/AST/ASTState.h>
 #include <CryCC/AST/ASTNode.h>
 #include <CryCC/AST/ASTTrait.h>
