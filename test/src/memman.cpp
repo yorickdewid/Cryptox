@@ -11,6 +11,7 @@
 #include <boost/test/unit_test.hpp>
 
 //
+// Key         : MM
 // Test        : Memory manager unitttest
 // Type        : unit
 // Description : Test the memory manager.

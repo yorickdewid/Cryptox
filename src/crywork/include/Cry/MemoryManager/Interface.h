@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include "../NonCopyable.h"
+#include <Cry/NonCopyable.h>
 
 namespace Cry
 {

@@ -435,7 +435,7 @@ void AIIPX::UnpackAST(AST& tree)
 
 	uint8_t _initMarker[sizeof(initMarker)];
 	CRY_MEMZERO(_initMarker, sizeof(initMarker));
-	assert(!tree.has_tree());
+	//assert(!tree.has_tree()); //TODO: find something else
 
 	// Read marker from input stream
 	m_inputCallback(&_initMarker[0], sizeof(initMarker));

@@ -211,33 +211,33 @@ public:
 		bool operator>=(const ConstIterator& other) const { return cNode >= other.cNode; }
 	};
 
-	//TODO: BidirectionalIterator
+	//FUTURE: BidirectionalIterator
 
 public:
 	using iterator = Iterator;
 	using const_iterator = ConstIterator;
 
-	// Wrapper without tree
+	// Wrapper without tree.
 	AST() = default;
 	AST(nullptr_t)
 	{
 	}
 
-	// Move tree into AST wrapper
+	// Move tree into AST wrapper.
 	template<typename Node>
 	AST(std::shared_ptr<Node>&& tree)
 		: m_tree{ std::move(tree) }
 	{
 	}
 
-	// Link new AST object to internal tree
+	// Link new AST object to internal tree.
 	template<typename Node>
 	AST(const std::shared_ptr<Node>& tree)
 		: m_tree{ tree }
 	{
 	}
 
-	// Iterator interfaces
+	// Iterator interfaces.
 	iterator Begin() { return Iterator{ m_tree }; }
 	iterator End() { return Iterator{}; }
 	const_iterator Begin() const { return ConstIterator{ m_tree }; }
@@ -245,7 +245,7 @@ public:
 	const_iterator Cbegin() const { return ConstIterator{ m_tree }; }
 	const_iterator Cend() const { return ConstIterator{}; }
 
-	// Iterator interfaces
+	// Iterator interfaces.
 	iterator begin() { return Begin(); }
 	iterator end() { return End(); }
 	const_iterator begin() const { return Begin(); }
@@ -259,14 +259,14 @@ public:
 		return (*m_tree.get());
 	}
 
-	// Overload default swap via ADL
+	// Overload default swap via ADL.
 	void swap(std::shared_ptr<ASTNode>& rhs) noexcept { Swap(rhs); }
 	void Swap(std::shared_ptr<ASTNode>& rhs) noexcept
 	{
 		std::swap(m_tree, rhs);
 	}
 
-	// Capacity
+	// Capacity.
 	size_type size() const { return Size(); }
 	size_type Size() const
 	{
@@ -274,16 +274,13 @@ public:
 		return std::distance(this->cbegin(), this->cend());
 	}
 
-	// Is empty check
+	// Is empty check.
 	bool empty() const { return Empty(); }
 	bool Empty() const
 	{
 		if (!m_tree) { return false; }
 		return std::distance(this->cbegin(), this->cend()) == 0;
 	}
-
-	//[[deprecated]] // TODO: remove
-	inline bool has_tree() const noexcept { return !!m_tree; }
 
 	//TODO: limit access or remove?
 	// Direct tree access
