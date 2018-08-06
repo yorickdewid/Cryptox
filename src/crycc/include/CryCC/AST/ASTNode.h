@@ -43,7 +43,7 @@
 	std::static_pointer_cast<ASTNode>(c)
 
 #define POLY_IMPL() \
-	std::shared_ptr<ASTNode> PolySelf() \
+	ASTNodeType PolySelf() \
 	{ \
 		return this->GetSharedSelf(); \
 	}
@@ -130,7 +130,7 @@ public:
 	inline size_t ChildrenCount() const noexcept { return children.size(); }
 	inline size_t ModifierCount() const { return m_state.Alteration(); }
 
-	virtual void Emplace(size_t idx, const std::shared_ptr<ASTNode>&& node)
+	virtual void Emplace(size_t idx, const ASTNodeType&& node)
 	{
 		CRY_UNUSED(idx);
 		CRY_UNUSED(node);
@@ -158,7 +158,7 @@ public:
 	// Get node name.
 	virtual const std::string NodeName() const = 0;
 	// Copy self and cast as base node.
-	virtual std::shared_ptr<ASTNode> PolySelf() = 0;
+	virtual ASTNodeType PolySelf() = 0;
 
 	enum struct Traverse
 	{
@@ -236,7 +236,7 @@ public:
 	virtual void Deserialize(Serializable::Interface& pack);
 
 protected:
-	virtual void AppendChild(const std::shared_ptr<ASTNode>& node)
+	virtual void AppendChild(const ASTNodeType& node)
 	{
 		children.push_back(node);
 	}
@@ -247,7 +247,7 @@ protected:
 		children.erase(children.begin() + idx);
 	}
 
-	void SetParent(const std::shared_ptr<ASTNode>&& node)
+	void SetParent(const ASTNodeType&& node)
 	{
 		m_parent = node;
 	}
@@ -280,8 +280,8 @@ class BinaryOperator
 	, public SelfReference<BinaryOperator>
 {
 	NODE_ID(NodeID::BINARY_OPERATOR_ID);
-	std::shared_ptr<ASTNode> m_lhs;
-	std::shared_ptr<ASTNode> m_rhs;
+	ASTNodeType m_lhs;
+	ASTNodeType m_rhs;
 
 public:
 	enum BinOperand
@@ -314,7 +314,7 @@ public:
 	const char *BinOperandStr(BinOperand operand) const;
 
 public:
-	BinaryOperator(BinOperand operand, const std::shared_ptr<ASTNode>& leftSide);
+	BinaryOperator(BinOperand operand, const ASTNodeType& leftSide);
 
 	explicit BinaryOperator(Serializable::Interface& pack)
 	{
@@ -326,9 +326,9 @@ public:
 
 	BinOperand Operand() const noexcept { return m_operand; };
 
-	void SetRightSide(const std::shared_ptr<ASTNode>& node);
+	void SetRightSide(const ASTNodeType& node);
 
-	void Emplace(size_t idx, const std::shared_ptr<ASTNode>&& node) override;
+	void Emplace(size_t idx, const ASTNodeType&& node) override;
 
 	virtual void Serialize(Serializable::Interface& pack);
 	virtual void Deserialize(Serializable::Interface& pack);
@@ -345,12 +345,12 @@ class ConditionalOperator
 	, public SelfReference<ConditionalOperator>
 {
 	NODE_ID(NodeID::CONDITIONAL_OPERATOR_ID);
-	std::shared_ptr<ASTNode> m_evalNode;
-	std::shared_ptr<ASTNode> m_truthStmt;
-	std::shared_ptr<ASTNode> m_altStmt;
+	ASTNodeType m_evalNode;
+	ASTNodeType m_truthStmt;
+	ASTNodeType m_altStmt;
 
 public:
-	ConditionalOperator(std::shared_ptr<ASTNode>& eval, std::shared_ptr<ASTNode> truth = nullptr, std::shared_ptr<ASTNode> alt = nullptr);
+	ConditionalOperator(ASTNodeType& eval, ASTNodeType truth = nullptr, ASTNodeType alt = nullptr);
 
 	explicit ConditionalOperator(Serializable::Interface& pack)
 	{
@@ -361,8 +361,8 @@ public:
 	auto& TruthStatement() const { return m_truthStmt; }
 	auto& AltStatement() const { return m_altStmt; }
 
-	void SetTruthCompound(const std::shared_ptr<ASTNode>& node); //TODO: rename to ...Statement
-	void SetAltCompound(const std::shared_ptr<ASTNode>& node);
+	void SetTruthCompound(const ASTNodeType& node); //TODO: rename to ...Statement
+	void SetAltCompound(const ASTNodeType& node);
 
 	virtual void Serialize(Serializable::Interface& pack);
 	virtual void Deserialize(Serializable::Interface& pack);
@@ -379,7 +379,7 @@ class UnaryOperator
 	, public SelfReference<UnaryOperator>
 {
 	NODE_ID(NodeID::UNARY_OPERATOR_ID);
-	std::shared_ptr<ASTNode> m_body;
+	ASTNodeType m_body;
 
 public:
 	enum UnaryOperand
@@ -412,7 +412,7 @@ public:
 		Deserialize(pack);
 	}
 
-	UnaryOperator(UnaryOperand operand, OperandSide side, const std::shared_ptr<ASTNode>& node);
+	UnaryOperator(UnaryOperand operand, OperandSide side, const ASTNodeType& node);
 
 	auto Expression() const noexcept { return m_body; }
 
@@ -436,7 +436,7 @@ class CompoundAssignOperator
 	, public SelfReference<CompoundAssignOperator>
 {
 	NODE_ID(NodeID::COMPOUND_ASSIGN_OPERATOR_ID);
-	std::shared_ptr<ASTNode> m_body;
+	ASTNodeType m_body;
 	std::shared_ptr<DeclRefExpr> m_identifier;
 
 public:
@@ -466,7 +466,7 @@ public:
 
 	CompoundAssignOperand Operand() const noexcept { return m_operand; };
 
-	void SetRightSide(const std::shared_ptr<ASTNode>& node);
+	void SetRightSide(const ASTNodeType& node);
 
 	virtual void Serialize(Serializable::Interface& pack);
 	virtual void Deserialize(Serializable::Interface& pack);
@@ -806,7 +806,7 @@ class VarDecl
 	, public SelfReference<VarDecl>
 {
 	NODE_ID(NodeID::VAR_DECL_ID);
-	std::shared_ptr<ASTNode> m_body;
+	ASTNodeType m_body;
 
 public:
 	explicit VarDecl(Serializable::Interface& pack)
@@ -815,12 +815,12 @@ public:
 		Deserialize(pack);
 	}
 
-	VarDecl(const std::string& name, std::shared_ptr<Typedef::TypedefBase> type, std::shared_ptr<ASTNode> node = nullptr);
+	VarDecl(const std::string& name, std::shared_ptr<Typedef::TypedefBase> type, ASTNodeType node = nullptr);
 
 	bool HasExpression() const { return m_body != nullptr; }
 	auto& Expression() const { return m_body; }
 
-	void Emplace(size_t idx, const std::shared_ptr<ASTNode>&& node) override;
+	void Emplace(size_t idx, const ASTNodeType&& node) override;
 
 	virtual void Serialize(Serializable::Interface& pack);
 	virtual void Deserialize(Serializable::Interface& pack);
@@ -999,7 +999,7 @@ class EnumConstantDecl
 	, public SelfReference<EnumConstantDecl>
 {
 	NODE_ID(NodeID::ENUM_CONSTANT_DECL_ID);
-	std::shared_ptr<ASTNode> m_body;
+	ASTNodeType m_body;
 
 public:
 	explicit EnumConstantDecl(Serializable::Interface& pack)
@@ -1010,7 +1010,7 @@ public:
 
 	EnumConstantDecl(const std::string& name);
 
-	void SetAssignment(std::shared_ptr<ASTNode>& node);
+	void SetAssignment(ASTNodeType& node);
 
 	virtual void Serialize(Serializable::Interface& pack);
 	virtual void Deserialize(Serializable::Interface& pack);
@@ -1114,33 +1114,24 @@ class TranslationUnitDecl
 	, public SelfReference<TranslationUnitDecl>
 {
 	NODE_ID(NodeID::TRANSLATION_UNIT_DECL_ID);
-	std::list<std::shared_ptr<ASTNode>> m_children;
-
-private:
-	TranslationUnitDecl(const std::string& sourceName)
-		: Decl{ sourceName }
-	{
-	}
+	std::list<ASTNodeType> m_children;
 
 public:
 	using NodeTrait = Trait::RootNodeTag;
 
 public:
+	TranslationUnitDecl(const std::string& sourceName)
+		: Decl{ sourceName }
+	{
+	}
+
 	explicit TranslationUnitDecl(Serializable::Interface& pack)
 		: Decl{ pack }
 	{
 		Deserialize(pack);
 	}
 
-	void AppendChild(const std::shared_ptr<ASTNode>& node) final;
-
-	template<typename... ArgTypes>
-	static std::shared_ptr<TranslationUnitDecl> Make(ArgTypes&&... args)
-	{
-		auto ptr = std::shared_ptr<TranslationUnitDecl>{ new TranslationUnitDecl{ std::forward<ArgTypes>(args)... } };
-		ptr->UpdateDelegate();
-		return ptr;
-	}
+	void AppendChild(const ASTNodeType&) final;
 
 	virtual void Serialize(Serializable::Interface& pack);
 	virtual void Deserialize(Serializable::Interface& pack);
@@ -1222,7 +1213,7 @@ public:
 	auto IsResolved() const { return !m_ref.expired(); }
 	auto Reference() const { return m_ref.lock(); }
 
-	void Resolve(const std::shared_ptr<ASTNode>& ref);
+	void Resolve(const ASTNodeType& ref);
 
 	// If reference resolves there is an return type
 	bool HasReturnType() const override;
@@ -1240,7 +1231,7 @@ public:
 	LABEL();
 	const std::string NodeName() const;
 
-	std::shared_ptr<ASTNode> PolySelf()
+	ASTNodeType PolySelf()
 	{
 		return std::dynamic_pointer_cast<ASTNode>(ResolveRefExpr::GetSharedSelf());
 	}
@@ -1296,7 +1287,7 @@ class BuiltinExpr final
 	: public CallExpr
 {
 	NODE_ID(NodeID::BUILTIN_EXPR_ID);
-	std::shared_ptr<ASTNode> m_body;
+	ASTNodeType m_body;
 	Typedef::TypeFacade m_typenameType;
 
 public:
@@ -1308,7 +1299,7 @@ public:
 
 	BuiltinExpr(std::shared_ptr<DeclRefExpr>& func, std::shared_ptr<DeclRefExpr> expr = nullptr, std::shared_ptr<ArgumentStmt> args = nullptr);
 
-	void SetExpression(const std::shared_ptr<ASTNode>& node);
+	void SetExpression(const ASTNodeType& node);
 
 	//TODO: move?
 	void SetTypename(std::shared_ptr<Typedef::TypedefBase>& type);
@@ -1324,7 +1315,7 @@ public:
 	LABEL();
 	const std::string NodeName() const final;
 
-	std::shared_ptr<ASTNode> PolySelf()
+	ASTNodeType PolySelf()
 	{
 		return std::dynamic_pointer_cast<ASTNode>(CallExpr::GetSharedSelf());
 	}
@@ -1354,7 +1345,7 @@ class CastExpr
 	, public SelfReference<CastExpr>
 {
 	NODE_ID(NodeID::CAST_EXPR_ID);
-	std::shared_ptr<ASTNode> m_body;
+	ASTNodeType m_body;
 
 public:
 	explicit CastExpr(Serializable::Interface& pack)
@@ -1362,7 +1353,7 @@ public:
 		Deserialize(pack);
 	}
 
-	CastExpr(std::shared_ptr<ASTNode>& node, std::shared_ptr<Typedef::TypedefBase> type);
+	CastExpr(ASTNodeType& node, std::shared_ptr<Typedef::TypedefBase> type);
 
 	auto& Expression() const { return m_body; }
 
@@ -1384,7 +1375,7 @@ class ImplicitConvertionExpr
 	, public SelfReference<ImplicitConvertionExpr>
 {
 	NODE_ID(NodeID::IMPLICIT_CONVERTION_EXPR_ID);
-	std::shared_ptr<ASTNode> m_body;
+	ASTNodeType m_body;
 
 public:
 	explicit ImplicitConvertionExpr(Serializable::Interface& pack)
@@ -1392,7 +1383,7 @@ public:
 		Deserialize(pack);
 	}
 
-	ImplicitConvertionExpr(std::shared_ptr<ASTNode>& node, CryCC::SubValue::Conv::Cast::Tag convOp);
+	ImplicitConvertionExpr(ASTNodeType& node, CryCC::SubValue::Conv::Cast::Tag convOp);
 
 	virtual void Serialize(Serializable::Interface& pack);
 	virtual void Deserialize(Serializable::Interface& pack);
@@ -1409,7 +1400,7 @@ class ParenExpr
 	, public SelfReference<ParenExpr>
 {
 	NODE_ID(NodeID::PAREN_EXPR_ID);
-	std::shared_ptr<ASTNode> m_body;
+	ASTNodeType m_body;
 
 public:
 	explicit ParenExpr(Serializable::Interface& pack)
@@ -1417,7 +1408,7 @@ public:
 		Deserialize(pack);
 	}
 
-	ParenExpr(std::shared_ptr<ASTNode>& node);
+	ParenExpr(ASTNodeType& node);
 
 	bool HasExpression() const { return m_body != nullptr; }
 	auto& Expression() const { return m_body; }
@@ -1437,7 +1428,7 @@ class InitListExpr
 	, public SelfReference<InitListExpr>
 {
 	NODE_ID(NodeID::INIT_LIST_EXPR_ID);
-	std::vector<std::shared_ptr<ASTNode>> m_children;
+	std::vector<ASTNodeType> m_children;
 
 public:
 	explicit InitListExpr(Serializable::Interface& pack)
@@ -1447,9 +1438,9 @@ public:
 
 	InitListExpr() = default;
 
-	std::vector<std::shared_ptr<ASTNode>> List() const noexcept;
+	std::vector<ASTNodeType> List() const noexcept;
 
-	void AddListItem(const std::shared_ptr<ASTNode>& node);
+	void AddListItem(const ASTNodeType& node);
 
 	virtual void Serialize(Serializable::Interface& pack);
 	virtual void Deserialize(Serializable::Interface& pack);
@@ -1492,7 +1483,7 @@ class ArraySubscriptExpr
 {
 	NODE_ID(NodeID::ARRAY_SUBSCRIPT_EXPR_ID);
 	std::shared_ptr<DeclRefExpr> m_identifier;
-	std::shared_ptr<ASTNode> m_offset;
+	ASTNodeType m_offset;
 
 public:
 	explicit ArraySubscriptExpr(Serializable::Interface& pack)
@@ -1500,9 +1491,9 @@ public:
 		Deserialize(pack);
 	}
 
-	ArraySubscriptExpr(std::shared_ptr<DeclRefExpr>& ref, std::shared_ptr<ASTNode>& expr);
+	ArraySubscriptExpr(std::shared_ptr<DeclRefExpr>& ref, ASTNodeType& expr);
 
-	std::shared_ptr<ASTNode> OffsetExpression() const noexcept;
+	ASTNodeType OffsetExpression() const noexcept;
 
 	std::shared_ptr<DeclRefExpr> ArrayDeclaration() const noexcept;
 
@@ -1595,7 +1586,7 @@ class ReturnStmt
 	, public SelfReference<ReturnStmt>
 {
 	NODE_ID(NodeID::RETURN_STMT_ID);
-	std::shared_ptr<ASTNode> m_returnExpr;
+	ASTNodeType m_returnExpr;
 
 public:
 	explicit ReturnStmt(Serializable::Interface& pack)
@@ -1605,12 +1596,12 @@ public:
 
 	ReturnStmt() = default;
 
-	void SetReturnNode(std::shared_ptr<ASTNode>& node);
+	void SetReturnNode(ASTNodeType& node);
 
 	auto HasExpression() const { return m_returnExpr != nullptr; }
 	auto& Expression() const { return m_returnExpr; }
 
-	void Emplace(size_t idx, const std::shared_ptr<ASTNode>&& node) override;
+	void Emplace(size_t idx, const ASTNodeType&& node) override;
 
 	virtual void Serialize(Serializable::Interface& pack);
 	virtual void Deserialize(Serializable::Interface& pack);
@@ -1627,12 +1618,12 @@ class IfStmt
 	, public SelfReference<IfStmt>
 {
 	NODE_ID(NodeID::IF_STMT_ID);
-	std::shared_ptr<ASTNode> m_evalNode;
-	std::shared_ptr<ASTNode> m_truthStmt;
-	std::shared_ptr<ASTNode> m_altStmt;
+	ASTNodeType m_evalNode;
+	ASTNodeType m_truthStmt;
+	ASTNodeType m_altStmt;
 
 public:
-	IfStmt(std::shared_ptr<ASTNode>& eval, std::shared_ptr<ASTNode> truth = nullptr, std::shared_ptr<ASTNode> alt = nullptr);
+	IfStmt(ASTNodeType& eval, ASTNodeType truth = nullptr, ASTNodeType alt = nullptr);
 
 	explicit IfStmt(Serializable::Interface& pack)
 	{
@@ -1645,8 +1636,8 @@ public:
 	bool HasAltCompound() const { return m_altStmt != nullptr; }
 	auto& AltCompound() const { return m_altStmt; }
 
-	void SetTruthCompound(const std::shared_ptr<ASTNode>& node);
-	void SetAltCompound(const std::shared_ptr<ASTNode>& node);
+	void SetTruthCompound(const ASTNodeType& node);
+	void SetAltCompound(const ASTNodeType& node);
 
 	virtual void Serialize(Serializable::Interface& pack);
 	virtual void Deserialize(Serializable::Interface& pack);
@@ -1663,11 +1654,11 @@ class SwitchStmt
 	, public SelfReference<SwitchStmt>
 {
 	NODE_ID(NodeID::SWITCH_STMT_ID);
-	std::shared_ptr<ASTNode> evalNode;
-	std::shared_ptr<ASTNode> m_body;
+	ASTNodeType evalNode;
+	ASTNodeType m_body;
 
 public:
-	SwitchStmt(std::shared_ptr<ASTNode>& eval, std::shared_ptr<ASTNode> body = nullptr);
+	SwitchStmt(ASTNodeType& eval, ASTNodeType body = nullptr);
 
 	explicit SwitchStmt(Serializable::Interface& pack)
 	{
@@ -1678,7 +1669,7 @@ public:
 	bool HasBodyExpression() const { return m_body != nullptr; }
 	auto& BodyExpression() const { return m_body; }
 
-	void SetBody(const std::shared_ptr<ASTNode>& node);
+	void SetBody(const ASTNodeType& node);
 
 	virtual void Serialize(Serializable::Interface& pack);
 	virtual void Deserialize(Serializable::Interface& pack);
@@ -1695,11 +1686,11 @@ class WhileStmt
 	, public SelfReference<WhileStmt>
 {
 	NODE_ID(NodeID::WHILE_STMT_ID);
-	std::shared_ptr<ASTNode> evalNode;
-	std::shared_ptr<ASTNode> m_body;
+	ASTNodeType evalNode;
+	ASTNodeType m_body;
 
 public:
-	WhileStmt(std::shared_ptr<ASTNode>& eval, std::shared_ptr<ASTNode> body = nullptr);
+	WhileStmt(ASTNodeType& eval, ASTNodeType body = nullptr);
 
 	explicit WhileStmt(Serializable::Interface& pack)
 	{
@@ -1710,7 +1701,7 @@ public:
 	bool HasBodyExpression() const { return m_body != nullptr; }
 	auto& BodyExpression() const { return m_body; }
 
-	void SetBody(const std::shared_ptr<ASTNode>& node);
+	void SetBody(const ASTNodeType& node);
 
 	virtual void Serialize(Serializable::Interface& pack);
 	virtual void Deserialize(Serializable::Interface& pack);
@@ -1727,11 +1718,11 @@ class DoStmt
 	, public SelfReference<DoStmt>
 {
 	NODE_ID(NodeID::DO_STMT_ID);
-	std::shared_ptr<ASTNode> evalNode;
-	std::shared_ptr<ASTNode> m_body;
+	ASTNodeType evalNode;
+	ASTNodeType m_body;
 
 public:
-	DoStmt(std::shared_ptr<ASTNode>& body, std::shared_ptr<ASTNode> eval = nullptr);
+	DoStmt(ASTNodeType& body, ASTNodeType eval = nullptr);
 
 	explicit DoStmt(Serializable::Interface& pack)
 	{
@@ -1742,7 +1733,7 @@ public:
 	bool HasBodyExpression() const { return m_body != nullptr; }
 	auto& BodyExpression() const { return m_body; }
 
-	void SetEval(const std::shared_ptr<ASTNode>& node);
+	void SetEval(const ASTNodeType& node);
 
 	virtual void Serialize(Serializable::Interface& pack);
 	virtual void Deserialize(Serializable::Interface& pack);
@@ -1759,13 +1750,13 @@ class ForStmt
 	, public SelfReference<ForStmt>
 {
 	NODE_ID(NodeID::FOR_STMT_ID);
-	std::shared_ptr<ASTNode> m_node1;
-	std::shared_ptr<ASTNode> m_node2;
-	std::shared_ptr<ASTNode> m_node3;
-	std::shared_ptr<ASTNode> m_body;
+	ASTNodeType m_node1;
+	ASTNodeType m_node2;
+	ASTNodeType m_node3;
+	ASTNodeType m_body;
 
 public:
-	ForStmt(std::shared_ptr<ASTNode>& node1, std::shared_ptr<ASTNode>& node2, std::shared_ptr<ASTNode>& node3);
+	ForStmt(ASTNodeType& node1, ASTNodeType& node2, ASTNodeType& node3);
 
 	explicit ForStmt(Serializable::Interface& pack)
 	{
@@ -1778,7 +1769,7 @@ public:
 	bool HasBodyExpression() const { return m_body != nullptr; }
 	auto& BodyExpression() const { return m_body; }
 
-	void SetBody(const std::shared_ptr<ASTNode>& node);
+	void SetBody(const ASTNodeType& node);
 
 	virtual void Serialize(Serializable::Interface& pack);
 	virtual void Deserialize(Serializable::Interface& pack);
@@ -1819,7 +1810,7 @@ class DefaultStmt
 	, public SelfReference<DefaultStmt>
 {
 	NODE_ID(NodeID::DEFAULT_STMT_ID);
-	std::shared_ptr<ASTNode> m_body;
+	ASTNodeType m_body;
 
 public:
 	explicit DefaultStmt(Serializable::Interface& pack)
@@ -1827,7 +1818,7 @@ public:
 		Deserialize(pack);
 	}
 
-	DefaultStmt(const std::shared_ptr<ASTNode>& body);
+	DefaultStmt(const ASTNodeType& body);
 
 	virtual void Serialize(Serializable::Interface& pack);
 	virtual void Deserialize(Serializable::Interface& pack);
@@ -1844,11 +1835,11 @@ class CaseStmt
 	, public SelfReference<CaseStmt>
 {
 	NODE_ID(NodeID::CASE_STMT_ID);
-	std::shared_ptr<ASTNode> m_identifier;
-	std::shared_ptr<ASTNode> m_body;
+	ASTNodeType m_identifier;
+	ASTNodeType m_body;
 
 public:
-	CaseStmt(std::shared_ptr<ASTNode>& name, std::shared_ptr<ASTNode>& body);
+	CaseStmt(ASTNodeType& name, ASTNodeType& body);
 
 	explicit CaseStmt(Serializable::Interface& pack)
 	{
@@ -1901,7 +1892,7 @@ class ArgumentStmt
 	, public SelfReference<ArgumentStmt>
 {
 	NODE_ID(NodeID::ARGUMENT_STMT_ID);
-	std::vector<std::shared_ptr<ASTNode>> m_arg;
+	std::vector<ASTNodeType> m_arg;
 
 public:
 	ArgumentStmt() = default;
@@ -1911,9 +1902,9 @@ public:
 		Deserialize(pack);
 	}
 
-	void AppendArgument(const std::shared_ptr<ASTNode>& node);
+	void AppendArgument(const ASTNodeType& node);
 
-	void Emplace(size_t idx, const std::shared_ptr<ASTNode>&& node) override final;
+	void Emplace(size_t idx, const ASTNodeType&& node) override final;
 
 	virtual void Serialize(Serializable::Interface& pack);
 	virtual void Deserialize(Serializable::Interface& pack);
@@ -1930,7 +1921,7 @@ class ParamStmt
 	, public SelfReference<ParamStmt>
 {
 	NODE_ID(NodeID::PARAM_STMT_ID);
-	std::vector<std::shared_ptr<ASTNode>> m_param; //TODO: vector of paramDecl?
+	std::vector<ASTNodeType> m_param; //TODO: vector of paramDecl?
 
 public:
 	ParamStmt() = default;
@@ -1940,7 +1931,7 @@ public:
 		Deserialize(pack);
 	}
 
-	void AppendParamter(const std::shared_ptr<ASTNode>& node);
+	void AppendParamter(const ASTNodeType& node);
 
 	virtual void Serialize(Serializable::Interface& pack);
 	virtual void Deserialize(Serializable::Interface& pack);
@@ -1958,7 +1949,7 @@ class LabelStmt
 {
 	NODE_ID(NodeID::LABEL_STMT_ID);
 	std::string m_name;
-	std::shared_ptr<ASTNode> m_body;
+	ASTNodeType m_body;
 
 public:
 	explicit LabelStmt(Serializable::Interface& pack)
@@ -1966,7 +1957,7 @@ public:
 		Deserialize(pack);
 	}
 
-	LabelStmt(const std::string& name, std::shared_ptr<ASTNode>& node);
+	LabelStmt(const std::string& name, ASTNodeType& node);
 
 	virtual void Serialize(Serializable::Interface& pack);
 	virtual void Deserialize(Serializable::Interface& pack);
@@ -2008,7 +1999,7 @@ class CompoundStmt
 	, public SelfReference<CompoundStmt>
 {
 	NODE_ID(NodeID::COMPOUND_STMT_ID);
-	std::list<std::shared_ptr<ASTNode>> m_children;
+	std::list<ASTNodeType> m_children;
 
 public:
 	CompoundStmt() = default;
@@ -2018,7 +2009,7 @@ public:
 		Deserialize(pack);
 	}
 
-	void AppendChild(const std::shared_ptr<ASTNode>& node) final;
+	void AppendChild(const ASTNodeType& node) final;
 
 	virtual void Serialize(Serializable::Interface& pack);
 	virtual void Deserialize(Serializable::Interface& pack);

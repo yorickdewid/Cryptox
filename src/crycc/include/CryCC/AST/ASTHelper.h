@@ -103,9 +103,9 @@ inline auto MakeASTNode(ArgTypes&&... args)
 }
 
 template<typename... ArgTypes>
-inline auto MakeSyntaxTree(ArgTypes&&... args)
+inline auto MakeUnitTree(ArgTypes&&... args)
 {
-	return TranslationUnitDecl::Make(std::forward<ArgTypes>(args)...);
+	return MakeASTNode<TranslationUnitDecl>(std::forward<ArgTypes>(args)...);
 }
 
 template<typename NodeType, typename = typename std::enable_if<std::is_convertible<NodeType, ASTNode>::value

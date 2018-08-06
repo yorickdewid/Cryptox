@@ -20,7 +20,7 @@ class ForwardItemTree
 protected:
 	ForwardItemTree() = default;
 
-	static void ForwardInternalTree(std::shared_ptr<ASTNode>& node);
+	static void ForwardInternalTree(ASTNodeType& node);
 };
 
 // The AST class provides a wrapper around the tree and the tree
@@ -44,7 +44,7 @@ public: // Member types
 public:
 	class Iterator : private ForwardItemTree
 	{
-		std::shared_ptr<ASTNode> cNode;
+		ASTNodeType cNode;
 
 	private:
 		using _MyTy = Iterator;
@@ -58,7 +58,7 @@ public:
 
 		// Constructors
 		Iterator() : cNode{ nullptr } {}
-		Iterator(const std::shared_ptr<ASTNode>& node) : cNode{ node } {}
+		Iterator(const ASTNodeType& node) : cNode{ node } {}
 		Iterator(const Iterator&) = default;
 
 		_MyTy& operator++()
@@ -93,7 +93,7 @@ public:
 
 	class ConstIterator : private ForwardItemTree
 	{
-		std::shared_ptr<ASTNode> cNode;
+		ASTNodeType cNode;
 
 	private:
 		using _MyTy = ConstIterator;
@@ -107,7 +107,7 @@ public:
 
 		// Constructors
 		ConstIterator() : cNode{ nullptr } {}
-		ConstIterator(const std::shared_ptr<ASTNode>& node) : cNode{ node } {}
+		ConstIterator(const ASTNodeType& node) : cNode{ node } {}
 		ConstIterator(const ConstIterator&) = default;
 
 		const _MyTy& operator++()
@@ -189,8 +189,8 @@ public:
 	}
 
 	// Overload default swap via ADL.
-	void swap(std::shared_ptr<ASTNode>& rhs) noexcept { Swap(rhs); }
-	void Swap(std::shared_ptr<ASTNode>& rhs) noexcept
+	void swap(ASTNodeType& rhs) noexcept { Swap(rhs); }
+	void Swap(ASTNodeType& rhs) noexcept
 	{
 		std::swap(m_tree, rhs);
 	}
@@ -222,17 +222,17 @@ public:
 
 	//TODO: Remove this method in favor of copy ctor
 	// Copy self with new reference to tree
-	//[[deprecated]]
+	[[deprecated]]
 	AST tree_ref()
 	{
 		AST copy{ m_tree };
 		return copy;
 	}
 
-	//TODO: DeepCopy()
+	//FUTURE: DeepCopy()
 
 private:
-	std::shared_ptr<ASTNode> m_tree;
+	ASTNodeType m_tree;
 };
 
 } // namespace AST

@@ -2570,7 +2570,7 @@ void Parser::ExternalDeclaration()
 void Parser::TranslationUnit()
 {
 	// Returns file name of current lexer input, this can also be an include.
-	ASTNodeType localAst = Util::MakeSyntaxTree(m_profile->MetaInfo()->name);
+	auto localAst = Util::MakeUnitTree(m_profile->MetaInfo()->name);
 	localAst->SetLocation(0, 0);
 
 	// Set translation unit as top level tree root.
