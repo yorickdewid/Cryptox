@@ -21,9 +21,12 @@
 
 // On Windows, include some of the Windows API. The Windows API is required
 // to include specific Windows macros being abstracted in the Cry Framework.
+// On Unix like systemd inlcude the universal standard header.
 #ifdef _WIN32
 # define WIN32_LEAN_AND_MEAN 1
 # include <Windows.h>
+#else
+# include <unistd.h>
 #endif
 
 // Remove to disable automaic include of common header files.
