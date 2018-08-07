@@ -49,9 +49,29 @@ BOOST_AUTO_TEST_CASE(ASTBasicTree)
 {
 	auto tree = Util::MakeUnitTree("source");
 
-	auto compond = Util::MakeASTNode<CompoundStmt>();
+	auto compond1 = Util::MakeASTNode<CompoundStmt>();
+	tree->AppendChild(compond1);
+	auto compond2 = Util::MakeASTNode<CompoundStmt>();
+	tree->AppendChild(compond2);
+	auto stmt = Util::MakeASTNode<ReturnStmt>();
+	compond2->AppendChild(stmt);
+	BOOST_REQUIRE_EQUAL(2, tree->ChildrenCount());
+	BOOST_REQUIRE_EQUAL(tree, compond1->Parent().lock());
+	BOOST_REQUIRE_EQUAL(tree->operator[](1).lock(), compond2);
+}
 
-	tree->AppendChild(compond);
+BOOST_AUTO_TEST_CASE(ASTEmplaceNode)
+{
+	auto arg = Util::MakeASTNode<ArgumentStmt>();
+	auto param1 = Util::MakeASTNode<ParamStmt>();
+	arg->AppendArgument(param1);
+	auto param2 = Util::MakeASTNode<ParamStmt>();
+	arg->AppendArgument(param2);
+	BOOST_REQUIRE(NodeID::PARAM_STMT_ID == arg->Children().front().lock()->Label());
+	BOOST_REQUIRE_EQUAL(2, arg->ChildrenCount());
+	arg->Emplace(1, Util::MakeASTNode<ReturnStmt>());
+	BOOST_REQUIRE(NodeID::RETURN_STMT_ID == arg->Children().back().lock()->Label());
+	BOOST_REQUIRE(1, arg->ModifierCount());
 }
 
 BOOST_AUTO_TEST_CASE(ASTIterator)
