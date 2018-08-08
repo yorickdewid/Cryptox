@@ -14,6 +14,9 @@ namespace CryCC
 namespace AST
 {
 
+namespace
+{
+
 NodeID GetNodeId(Serializable::Interface *visitor)
 {
 	NodeID _nodeId = NodeID::INVAL;
@@ -21,18 +24,20 @@ NodeID GetNodeId(Serializable::Interface *visitor)
 	if (_nodeId == NodeID::INVAL) {
 		return _nodeId;
 	}
-	(*visitor) << _nodeId;
+	(*visitor) << _nodeId; //TODO: FIXME: visitor should be const at this point.
 
 	return _nodeId;
 }
 
 template<typename NodeType, typename = typename std::enable_if<std::is_base_of<ASTNode, NodeType>::value>::type>
-std::shared_ptr<ASTNode> ReturnNode(Serializable::Interface *visitor)
+ASTNodeType ReturnNode(Serializable::Interface *visitor)
 {
 	std::shared_ptr<ASTNode> node = std::shared_ptr<NodeType>{ new NodeType{ (*visitor) } };
 	visitor->FireDependencies(node);
 	return std::move(node);
 }
+
+} // namespace
 
 std::shared_ptr<ASTNode> ASTFactory::MakeNode(Serializable::Interface *visitor)
 {

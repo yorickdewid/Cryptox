@@ -29,7 +29,7 @@ using InputCallback = std::function<void(uint8_t *data, size_t sz)>;
 
 class ChildGroup;
 
-class Visitor : public Serializable::Interface
+class Visitor final : public Serializable::Interface
 {
 	int level;
 	int nodeId;

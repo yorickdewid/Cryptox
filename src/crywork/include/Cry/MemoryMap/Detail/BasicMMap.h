@@ -50,7 +50,7 @@ struct basic_mmap
 
 private:
 	// Points to the first requested byte, and not to the actual start of the mapping.
-	pointer data_ = nullptr;
+	pointer data_{ nullptr };
 
 	// Length, in bytes, requested by user, which may not be the length of the full
 	// mapping, and the entire length of the full mapping.

@@ -10,6 +10,8 @@
 
 #include <CryCC/AST/NodeId.h>
 
+#include <Cry/Cry.h>
+
 #include <functional>
 #include <memory>
 #include <vector>
@@ -40,20 +42,33 @@ struct Serializable
 
 	using GroupListType = std::vector<std::shared_ptr<ChildGroupInterface>>;
 
+	// TODO: rename to VisitorInterface.
+	// The interface is used by the AST nodes on serialize and deserialize
+	// operations. The interface must be implemented by the caller and is
+	// invoked by the callee (node) and includes both serialization and 
+	// deserialization methods.
 	class Interface
 	{
 		GroupListType m_childGroups;
 
-		virtual GroupListType CreateChildGroups(size_t size) = 0;
+		// Create new child group in implementation.
+		virtual GroupListType CreateChildGroups(size_t) = 0;
+		// Return all child groups from implementation.
 		virtual GroupListType GetChildGroups() = 0;
 
 	public:
-		// Set the node id.
-		virtual void SetId(int id) = 0;
+		using IdType = int;
+		using SizeType = size_t;
+
+		// Node id set by the callee.
+		virtual void SetId(IdType) = 0;
 		// Invoke registered callbacks.
 		virtual void FireDependencies(std::shared_ptr<ASTNode>&) = 0;
 
+		//
 		// Stream out operators.
+		//
+
 		virtual void operator<<(int) = 0;
 		virtual void operator<<(double) = 0;
 		virtual void operator<<(bool) = 0;
@@ -61,7 +76,10 @@ struct Serializable
 		virtual void operator<<(std::string) = 0;
 		virtual void operator<<(std::vector<uint8_t>) = 0;
 
+		//
 		// Stream in operators.
+		//
+
 		virtual void operator>>(int&) = 0;
 		virtual void operator>>(double&) = 0;
 		virtual void operator>>(bool&) = 0;
@@ -70,18 +88,21 @@ struct Serializable
 		virtual void operator>>(std::vector<uint8_t>&) = 0;
 
 		// Callback operations.
-		virtual void operator<<=(std::pair<int, std::function<void(const std::shared_ptr<ASTNode>&)>>) = 0;
+		virtual void operator<<=(std::pair<IdType, std::function<void(const std::shared_ptr<ASTNode>&)>>) = 0;
 
-		ChildGroupFacade ChildGroups(size_t size = 0)
+		// Create or retrieve child groups. This method is called from the node
+		// and the creating and retrieving methods must be implemented by the caller.
+		ChildGroupFacade ChildGroups(SizeType size = 0)
 		{
 			if (size > 0) {
-				// Create child groups
+				// Create child groups.
 				m_childGroups = CreateChildGroups(size);
 			}
 			else {
-				// Retrieve child groups
+				// Retrieve child groups.
 				m_childGroups = GetChildGroups();
 			}
+
 			return m_childGroups.begin();
 		}
 	};
@@ -103,8 +124,8 @@ struct Serializable
 		// Get group id.
 		auto Id() const { return std::distance(m_beginIt, m_it) + 1; }
 
-		template<typename _Ty, typename = typename std::enable_if<std::is_base_of<ASTNode, _Ty>::value>::type>
-		void operator<<(std::shared_ptr<_Ty> ptr)
+		template<typename NodeType, typename = typename std::enable_if<std::is_base_of<ASTNode, NodeType>::value>::type>
+		void operator<<(std::shared_ptr<NodeType> ptr)
 		{
 			if (!ptr) {
 				(*m_it)->SaveNode(nullptr);
@@ -114,8 +135,8 @@ struct Serializable
 			auto astNode = std::dynamic_pointer_cast<ASTNode>(ptr);
 			(*m_it)->SaveNode(astNode);
 		}
-		template<typename _Ty, typename = typename std::enable_if<std::is_base_of<ASTNode, _Ty>::value>::type>
-		void operator<<(std::weak_ptr<_Ty> ptr)
+		template<typename NodeType, typename = typename std::enable_if<std::is_base_of<ASTNode, NodeType>::value>::type>
+		void operator<<(std::weak_ptr<NodeType> ptr)
 		{
 			if (std::shared_ptr<ASTNode> astNode = ptr.lock()) {
 				(*m_it)->SaveNode(astNode);
@@ -168,10 +189,11 @@ struct Serializable
 	virtual void Deserialize(Interface&) = 0;
 
 protected:
+	// Test if te node matches the node id. If not throw an exception.
 	void AssertNode(const NodeID& got, const NodeID& exp)
 	{
 		if (got != exp) {
-			throw 2; //TODO: throw something usefull
+			CryImplExcept(); //TODO: throw something usefull
 		}
 	}
 };

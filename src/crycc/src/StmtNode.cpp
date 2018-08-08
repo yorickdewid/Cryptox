@@ -590,8 +590,7 @@ void ParamStmt::Deserialize(Serializable::Interface& pack)
 	AssertNode(_nodeId, nodeId);
 
 	auto group = pack.ChildGroups();
-	for (size_t i = 0; i < group.GetSize(); ++i)
-	{
+	for (size_t i = 0; i < group.GetSize(); ++i) {
 		int childNodeId = group[i];
 		pack <<= {childNodeId, [=](const std::shared_ptr<ASTNode>& node) {
 			AppendParamter(node);
