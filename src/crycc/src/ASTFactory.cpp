@@ -32,7 +32,7 @@ NodeID GetNodeId(Serializable::Interface *visitor)
 template<typename NodeType, typename = typename std::enable_if<std::is_base_of<ASTNode, NodeType>::value>::type>
 ASTNodeType ReturnNode(Serializable::Interface *visitor)
 {
-	std::shared_ptr<ASTNode> node = std::shared_ptr<NodeType>{ new NodeType{ (*visitor) } };
+	std::shared_ptr<ASTNode> node = std::shared_ptr<NodeType>{ new NodeType{ (*visitor) } }; //TOOD: make shared?
 	visitor->FireDependencies(node);
 	return std::move(node);
 }
@@ -159,6 +159,20 @@ std::shared_ptr<ASTNode> ASTFactory::MakeNode(Serializable::Interface *visitor)
 	}
 
 	throw 1; //TODO
+}
+
+Serializable::ChildGroupFacade Serializable::Interface::ChildGroups(SizeType size)
+{
+	if (size > 0) {
+		// Create child groups.
+		m_childGroups = this->CreateChildGroups(size);
+	}
+	else {
+		// Retrieve child groups.
+		m_childGroups = this->GetChildGroups();
+	}
+
+	return m_childGroups.begin();
 }
 
 } // namespace AST

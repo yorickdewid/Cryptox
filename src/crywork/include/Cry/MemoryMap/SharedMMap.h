@@ -18,11 +18,11 @@ namespace Cry
 namespace MemoryMap
 {
 
-// Exposes (nearly) the same interface as `basic_mmap`, but endowes it with
-// `std::shared_ptr` semantics.
+// Exposes (nearly) the same interface as 'basic_mmap', but endowes it with
+// 'std::shared_ptr' semantics.
 //
-// This is not the default behaviour of `basic_mmap` to avoid allocating on the heap if
-// shared semantics are not required.
+// This is not the default behaviour of 'basic_mmap' to avoid allocating on
+// the heap if shared semantics are not required.
 template<access_mode AccessMode, typename ByteT>
 class basic_shared_mmap
 {
@@ -77,10 +77,8 @@ public:
 		return *this;
 	}
 
-	/**
-	* The same as invoking the `map` function, except any error that may occur while
-	* establishing the mapping is thrown.
-	*/
+	// The same as invoking the 'map' function, except any error that may occur while
+	// establishing the mapping is thrown.
 	template<typename String>
 	basic_shared_mmap(const String& path, const size_type offset, const size_type length)
 	{
@@ -89,10 +87,8 @@ public:
 		if (error) { throw error; }
 	}
 
-	/**
-	* The same as invoking the `map` function, except any error that may occur while
-	* establishing the mapping is thrown.
-	*/
+	// The same as invoking the 'map' function, except any error that may occur while
+	// establishing the mapping is thrown.
 	basic_shared_mmap(const handle_type handle, const size_type offset, const size_type length)
 	{
 		std::error_code error;
@@ -102,7 +98,7 @@ public:
 
 	~basic_shared_mmap() = default;
 
-	/** Returns the underlying `std::shared_ptr` instance that holds the mmap. */
+	// Returns the underlying 'std::shared_ptr' instance that holds the mmap.
 	std::shared_ptr<mmap_type> get_shared_ptr() { return pimpl_; }
 
 	/**
@@ -124,8 +120,8 @@ public:
 	bool empty() const noexcept { return !pimpl_ || pimpl_->empty(); }
 
 	/**
-	* `size` and `length` both return the logical length, i.e. the number of bytes
-	* user requested to be mapped, while `mapped_length` returns the actual number of
+	* 'size' and 'length' both return the logical length, i.e. the number of bytes
+	* user requested to be mapped, while 'mapped_length' returns the actual number of
 	* bytes that were mapped which is a multiple of the underlying operating system's
 	* page allocation granularity.
 	*/
@@ -143,7 +139,7 @@ public:
 	size_type offset() const noexcept { return pimpl_ ? pimpl_->offset() : 0; }
 
 	/**
-	* Returns a pointer to the first requested byte, or `nullptr` if no memory mapping
+	* Returns a pointer to the first requested byte, or 'nullptr' if no memory mapping
 	* exists.
 	*/
 	template<
@@ -195,8 +191,8 @@ public:
 	const_reverse_iterator crend() const noexcept { return pimpl_->crend(); }
 
 	/**
-	* Returns a reference to the `i`th byte from the first requested byte (as returned
-	* by `data`). If this is invoked when no valid memory mapping has been created
+	* Returns a reference to the 'i'th byte from the first requested byte (as returned
+	* by 'data'). If this is invoked when no valid memory mapping has been created
 	* prior to this call, undefined behaviour ensues.
 	*/
 	reference operator[](const size_type i) noexcept { return (*pimpl_)[i]; }
@@ -204,22 +200,22 @@ public:
 
 	/**
 	* Establishes a memory mapping with AccessMode. If the mapping is unsuccesful, the
-	* reason is reported via `error` and the object remains in a state as if this
+	* reason is reported via 'error' and the object remains in a state as if this
 	* function hadn't been called.
 	*
-	* `path`, which must be a path to an existing file, is used to retrieve a file
-	* handle (which is closed when the object destructs or `unmap` is called), which is
-	* then used to memory map the requested region. Upon failure, `error` is set to
+	* 'path', which must be a path to an existing file, is used to retrieve a file
+	* handle (which is closed when the object destructs or 'unmap' is called), which is
+	* then used to memory map the requested region. Upon failure, 'error' is set to
 	* indicate the reason and the object remains in an unmapped state.
 	*
-	* `offset` is the number of bytes, relative to the start of the file, where the
+	* 'offset' is the number of bytes, relative to the start of the file, where the
 	* mapping should begin. When specifying it, there is no need to worry about
 	* providing a value that is aligned with the operating system's page allocation
 	* granularity. This is adjusted by the implementation such that the first requested
-	* byte (as returned by `data` or `begin`), so long as `offset` is valid, will be at
-	* `offset` from the start of the file.
+	* byte (as returned by 'data' or 'begin'), so long as 'offset' is valid, will be at
+	* 'offset' from the start of the file.
 	*
-	* `length` is the number of bytes to map. It may be `map_entire_file`, in which
+	* 'length' is the number of bytes to map. It may be 'map_entire_file', in which
 	* case a mapping of the entire file is created.
 	*/
 	template<typename String>
@@ -231,21 +227,21 @@ public:
 
 	/**
 	* Establishes a memory mapping with AccessMode. If the mapping is unsuccesful, the
-	* reason is reported via `error` and the object remains in a state as if this
+	* reason is reported via 'error' and the object remains in a state as if this
 	* function hadn't been called.
 	*
-	* `handle`, which must be a valid file handle, which is used to memory map the
-	* requested region. Upon failure, `error` is set to indicate the reason and the
+	* 'handle', which must be a valid file handle, which is used to memory map the
+	* requested region. Upon failure, 'error' is set to indicate the reason and the
 	* object remains in an unmapped state.
 	*
-	* `offset` is the number of bytes, relative to the start of the file, where the
+	* 'offset' is the number of bytes, relative to the start of the file, where the
 	* mapping should begin. When specifying it, there is no need to worry about
 	* providing a value that is aligned with the operating system's page allocation
 	* granularity. This is adjusted by the implementation such that the first requested
-	* byte (as returned by `data` or `begin`), so long as `offset` is valid, will be at
-	* `offset` from the start of the file.
+	* byte (as returned by 'data' or 'begin'), so long as 'offset' is valid, will be at
+	* 'offset' from the start of the file.
 	*
-	* `length` is the number of bytes to map. It may be `map_entire_file`, in which
+	* 'length' is the number of bytes to map. It may be 'map_entire_file', in which
 	* case a mapping of the entire file is created.
 	*/
 	void map(const handle_type handle, const size_type offset,
@@ -267,13 +263,15 @@ public:
 
 	void swap(basic_shared_mmap& other) { pimpl_.swap(other.pimpl_); }
 
-	/** Flushes the memory mapped page to disk. Errors are reported via `error`. */
+	/** Flushes the memory mapped page to disk. Errors are reported via 'error'. */
 	template<
 		access_mode A = AccessMode,
 		typename = typename std::enable_if<A == access_mode::write>::type
 	> void sync(std::error_code& error) { if (pimpl_) pimpl_->sync(error); }
 
-	/** All operators compare the underlying `basic_mmap`'s addresses. */
+	//
+	// All operators compare the underlying 'basic_mmap''s addresses.
+	//
 
 	friend bool operator==(const basic_shared_mmap& a, const basic_shared_mmap& b)
 	{

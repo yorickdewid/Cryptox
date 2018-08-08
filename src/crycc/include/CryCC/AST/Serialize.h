@@ -43,6 +43,8 @@ struct Serializable
 	using GroupListType = std::vector<std::shared_ptr<ChildGroupInterface>>;
 
 	// TODO: rename to VisitorInterface.
+	// Visitor interface between the caller and the callee.
+	//
 	// The interface is used by the AST nodes on serialize and deserialize
 	// operations. The interface must be implemented by the caller and is
 	// invoked by the callee (node) and includes both serialization and 
@@ -87,26 +89,19 @@ struct Serializable
 		virtual void operator>>(std::string&) = 0;
 		virtual void operator>>(std::vector<uint8_t>&) = 0;
 
-		// Callback operations.
+		// The caller must implement the callback functor with the node id. On deserialize this
+		// operator is called to register the callback for every node id. Later in the process when
+		// the node with the registered node id is created by the factory the corresponding functor must
+		// should be invoked with the just-created node as an argument. This structure allows the
+		// reconstuction of parent-child relationships.
 		virtual void operator<<=(std::pair<IdType, std::function<void(const std::shared_ptr<ASTNode>&)>>) = 0;
 
 		// Create or retrieve child groups. This method is called from the node
 		// and the creating and retrieving methods must be implemented by the caller.
-		ChildGroupFacade ChildGroups(SizeType size = 0)
-		{
-			if (size > 0) {
-				// Create child groups.
-				m_childGroups = CreateChildGroups(size);
-			}
-			else {
-				// Retrieve child groups.
-				m_childGroups = GetChildGroups();
-			}
-
-			return m_childGroups.begin();
-		}
+		ChildGroupFacade ChildGroups(SizeType size = 0);
 	};
 
+	//TODO: rename += Iterator
 	//FUTURE: More methods and operators to communicate data back and forth
 	class ChildGroupFacade final
 	{
@@ -114,6 +109,19 @@ struct Serializable
 		GroupListType::iterator m_beginIt;
 
 	public:
+		using value_type = typename GroupListType::value_type;
+		using allocator_type = typename GroupListType::allocator_type;
+		using size_type = typename GroupListType::size_type;
+		using difference_type = typename GroupListType::size_type;
+		using reference = typename GroupListType::reference;
+		using const_reference = typename GroupListType::const_reference;
+		using pointer = typename GroupListType::pointer;
+		using const_pointer = typename GroupListType::const_pointer;
+		using iterator = typename GroupListType::iterator;
+		using const_iterator = typename GroupListType::const_iterator;
+		using reverse_iterator = typename GroupListType::reverse_iterator;
+		using const_reverse_iterator = typename GroupListType::const_reverse_iterator;
+
 		ChildGroupFacade(GroupListType::iterator it)
 			: m_it{ it }
 			, m_beginIt{ it }
@@ -147,7 +155,7 @@ struct Serializable
 		}
 
 		// Return node id.
-		int operator[](size_t idx)
+		int operator[](size_type idx)
 		{
 			return (*m_it)->LoadNode(static_cast<int>(idx));
 		}
@@ -165,7 +173,7 @@ struct Serializable
 		void Previous() { --m_it; }
 
 		// Get or set element size in group.
-		size_t Size(size_t sz = 0) //TODO: DEPRECATED: FIXME: REMOVE
+		size_type Size(size_type sz = 0) //TODO: DEPRECATED: FIXME: REMOVE
 		{
 			if (sz > 0) {
 				(*m_it)->SetSize(sz);
@@ -176,9 +184,9 @@ struct Serializable
 		}
 
 		// Set the number of elements in this group.
-		void SetSize(size_t sz) { (*m_it)->SetSize(sz); }
+		void SetSize(size_type sz) { (*m_it)->SetSize(sz); }
 		// Get the number of elements in this group.
-		size_t GetSize() { return (*m_it)->GetSize(); }
+		size_type GetSize() { return (*m_it)->GetSize(); }
 
 		std::vector<std::shared_ptr<ASTNode>> Children() { return {}; }
 	};
