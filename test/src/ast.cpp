@@ -20,8 +20,6 @@
 //
 
 //TODO:
-// - Children
-// - Alteration
 // - Iterator
 // - Serialize/Deserialize
 // - User Data
@@ -35,6 +33,7 @@ BOOST_AUTO_TEST_CASE(ASTBasicNode)
 	ASTNodeType node = Util::MakeASTNode<TranslationUnitDecl>("source");
 	node->SetLocation(12, 721);
 
+	BOOST_REQUIRE_LT(0, node->Id());
 	BOOST_REQUIRE_EQUAL(0, node->ChildrenCount());
 	BOOST_REQUIRE_EQUAL(0, node->ModifierCount());
 	BOOST_REQUIRE_EQUAL(12, node->Location().first);
@@ -71,13 +70,45 @@ BOOST_AUTO_TEST_CASE(ASTEmplaceNode)
 	BOOST_REQUIRE_EQUAL(2, arg->ChildrenCount());
 	arg->Emplace(1, Util::MakeASTNode<ReturnStmt>());
 	BOOST_REQUIRE(NodeID::RETURN_STMT_ID == arg->Children().back().lock()->Label());
-	BOOST_REQUIRE(1, arg->ModifierCount());
+	BOOST_REQUIRE_EQUAL(1, arg->ModifierCount());
+}
+
+BOOST_AUTO_TEST_CASE(ASTLiteral)
+{
+	static const std::string lstr{ "string" };
+	auto str = Util::MakeASTNode<StringLiteral>(lstr);
+	BOOST_REQUIRE(Util::IsNodeLiteral(str));
+	BOOST_REQUIRE_EQUAL(lstr, str->Value().As<std::string>());
 }
 
 BOOST_AUTO_TEST_CASE(ASTIterator)
 {
 	auto tree = Util::MakeUnitTree("source");
-	CryCC::AST::AST{ tree };
+	tree->AppendChild(Util::MakeASTNode<VariadicDecl>());
+	tree->AppendChild(Util::MakeASTNode<VariadicDecl>());
+	tree->AppendChild(Util::MakeASTNode<VariadicDecl>());
+	tree->AppendChild(Util::MakeASTNode<VariadicDecl>());
+	tree->AppendChild(Util::MakeASTNode<VariadicDecl>());
+	tree->AppendChild(Util::MakeASTNode<VariadicDecl>());
+
+	CryCC::AST::AST ast{ tree };
+	for (auto it = ast.cbegin(); it < ast.cend(); ++it) {
+		if (it->Label() == NodeID::TRANSLATION_UNIT_DECL_ID) {
+			continue;
+		}
+		BOOST_REQUIRE(it->Label() == NodeID::VARIADIC_DECL_ID);
+	}
+}
+
+BOOST_AUTO_TEST_CASE(ASTMisc)
+{
+	std::shared_ptr<CompoundStmt> compond = Util::MakeASTNode<CompoundStmt>();
+	std::shared_ptr<FunctionDecl> func = Util::MakeASTNode<FunctionDecl>("func", compond);
+	ASTNodeType breakNode = Util::MakeASTNode<BreakStmt>();
+
+	BOOST_REQUIRE_EQUAL(Util::NodeCast<BreakStmt>(breakNode)->Id(), breakNode->Id());
+	BOOST_REQUIRE(Util::IsNodeCompound(compond));
+	BOOST_REQUIRE(Util::IsNodeFunction(func));
 }
 
 BOOST_AUTO_TEST_SUITE_END()

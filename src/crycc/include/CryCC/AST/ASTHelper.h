@@ -108,7 +108,7 @@ inline auto MakeUnitTree(ArgTypes&&... args)
 	return MakeASTNode<TranslationUnitDecl>(std::forward<ArgTypes>(args)...);
 }
 
-template<typename NodeType, typename = typename std::enable_if<std::is_convertible<NodeType, ASTNode>::value
+template<typename NodeType, typename = typename std::enable_if<std::is_base_of<ASTNode, NodeType>::value
 	|| std::is_same<NodeType, ASTNode>::value>::type>
 	bool IsNodeLiteral(const std::shared_ptr<NodeType>& type)
 {
@@ -124,19 +124,19 @@ template<typename NodeType, typename = typename std::enable_if<std::is_convertib
 
 	return false;
 }
-template<typename NodeType, typename = typename std::enable_if<std::is_convertible<NodeType, ASTNode>::value
+template<typename NodeType, typename = typename std::enable_if<std::is_base_of<ASTNode, NodeType>::value
 	|| std::is_same<NodeType, ASTNode>::value>::type>
 	inline bool IsNodeFunction(const std::shared_ptr<NodeType>& type)
 {
 	return type->Label() == NodeID::FUNCTION_DECL_ID;
 }
-template<typename NodeType, typename = typename std::enable_if<std::is_convertible<NodeType, ASTNode>::value
+template<typename NodeType, typename = typename std::enable_if<std::is_base_of<ASTNode, NodeType>::value
 	|| std::is_same<NodeType, ASTNode>::value>::type>
 	inline bool IsNodeTranslationUnit(const std::shared_ptr<NodeType>& type)
 {
 	return type->Label() == NodeID::TRANSLATION_UNIT_DECL_ID;
 }
-template<typename NodeType, typename = typename std::enable_if<std::is_convertible<NodeType, ASTNode>::value
+template<typename NodeType, typename = typename std::enable_if<std::is_base_of<ASTNode, NodeType>::value
 	|| std::is_same<NodeType, ASTNode>::value>::type>
 	inline bool IsNodeCompound(const std::shared_ptr<NodeType>& type)
 {

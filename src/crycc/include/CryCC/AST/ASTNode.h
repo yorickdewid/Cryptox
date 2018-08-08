@@ -756,7 +756,7 @@ private:
 };
 
 //
-// Declaration nodes
+// Declaration nodes.
 //
 
 class Decl
@@ -772,7 +772,7 @@ protected:
 protected:
 	virtual ~Decl() = 0;
 
-	// Default initializer with empty identifier
+	// Default initializer with empty identifier.
 	Decl() = default;
 
 	// Constructor only available for deserialization
