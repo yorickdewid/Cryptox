@@ -40,13 +40,19 @@ public:
 public:
 	ASTState() = default;
 
-	// Iterator interfaces
+	//
+	// Iterator interfaces.
+	//
+
 	iterator begin() noexcept { return m_mementoList.begin(); }
 	const_iterator begin() const noexcept { return m_mementoList.cbegin(); }
 	iterator end() noexcept { return m_mementoList.end(); }
 	const_iterator end() const noexcept { return m_mementoList.cend(); }
 
-	// Iterator interfaces
+	//
+	// Iterator interfaces.
+	//
+
 	reference front() { return m_mementoList.front(); }
 	const_reference front() const { return m_mementoList.front(); }
 	reference back() { return m_mementoList.back(); }
@@ -56,13 +62,19 @@ public:
 	inline auto Alteration() const { return m_mementoList.size(); };
 	inline auto HasAlteration() const { return !m_mementoList.empty(); };
 
-	template<typename _Ty>
-	void Bump(_Ty objectCpyState)
+	//
+	// Capacity operations.
+	//
+
+	size_type size() const noexcept { return m_mementoList.size(); }
+	bool empty() const noexcept { return m_mementoList.empty(); }
+
+	template<typename Type>
+	void Bump(Type objectCpyState)
 	{
-		std::unique_ptr<_Ty> origPtr{ new _Ty{ objectCpyState } };
+		std::unique_ptr<Type> origPtr{ new Type{ objectCpyState } };
 
 		auto ptrBase = Cry::StaticUniquePointerCast<BaseTy>(std::move(origPtr));
-
 		m_mementoList.push_back(std::move(ptrBase));
 	}
 

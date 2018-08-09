@@ -38,7 +38,7 @@ struct Serializable
 		virtual size_t GetSize() noexcept = 0;
 	};
 
-	class ChildGroupFacade;
+	class ChildGroupIterator;
 
 	using GroupListType = std::vector<std::shared_ptr<ChildGroupInterface>>;
 
@@ -62,9 +62,12 @@ struct Serializable
 		using IdType = int;
 		using SizeType = size_t;
 
-		// Node id set by the callee.
-		virtual void SetId(IdType) = 0;
-		// Invoke registered callbacks.
+		// Node id set by the callee. This is for internal bookkeeping and
+		// should no be commited to any storage. This method is optional.
+		virtual void SetId(IdType) {}
+		// Retrieve the first commited node identifier.
+		virtual NodeID GetNodeId() = 0;
+		// Invoke registered callbacks by the node construction helper.
 		virtual void FireDependencies(std::shared_ptr<ASTNode>&) = 0;
 
 		//
@@ -98,12 +101,11 @@ struct Serializable
 
 		// Create or retrieve child groups. This method is called from the node
 		// and the creating and retrieving methods must be implemented by the caller.
-		ChildGroupFacade ChildGroups(SizeType size = 0);
+		ChildGroupIterator ChildGroups(SizeType size = 0);
 	};
 
-	//TODO: rename += Iterator
 	//FUTURE: More methods and operators to communicate data back and forth
-	class ChildGroupFacade final
+	class ChildGroupIterator final
 	{
 		GroupListType::iterator m_it;
 		GroupListType::iterator m_beginIt;
@@ -122,7 +124,7 @@ struct Serializable
 		using reverse_iterator = typename GroupListType::reverse_iterator;
 		using const_reverse_iterator = typename GroupListType::const_reverse_iterator;
 
-		ChildGroupFacade(GroupListType::iterator it)
+		ChildGroupIterator(GroupListType::iterator it)
 			: m_it{ it }
 			, m_beginIt{ it }
 		{
@@ -187,8 +189,6 @@ struct Serializable
 		void SetSize(size_type sz) { (*m_it)->SetSize(sz); }
 		// Get the number of elements in this group.
 		size_type GetSize() { return (*m_it)->GetSize(); }
-
-		std::vector<std::shared_ptr<ASTNode>> Children() { return {}; }
 	};
 
 	// Serialize interface.
@@ -198,12 +198,7 @@ struct Serializable
 
 protected:
 	// Test if te node matches the node id. If not throw an exception.
-	void AssertNode(const NodeID& got, const NodeID& exp)
-	{
-		if (got != exp) {
-			CryImplExcept(); //TODO: throw something usefull
-		}
-	}
+	void AssertNode(const NodeID& got, const NodeID& exp);
 };
 
 } // namespace AST

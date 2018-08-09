@@ -8,6 +8,9 @@
 
 #include <CryCC/AST.h>
 
+#include <Cry/Algorithm.h>
+#include <Cry/Serialize.h>
+
 #include <boost/test/unit_test.hpp>
 
 //
@@ -20,8 +23,6 @@
 //
 
 //TODO:
-// - Iterator
-// - Serialize/Deserialize
 // - User Data
 
 using namespace CryCC::AST;
@@ -98,6 +99,118 @@ BOOST_AUTO_TEST_CASE(ASTIterator)
 		}
 		BOOST_REQUIRE(it->Label() == NodeID::VARIADIC_DECL_ID);
 	}
+}
+
+class NodePacker final : public Serializable::Interface
+{
+	Cry::ByteArray buffer;
+	std::map<IdType, std::function<void(const std::shared_ptr<ASTNode>&)>> callbacks;
+
+	class Group : public Serializable::ChildGroupInterface
+	{
+		std::vector<std::shared_ptr<ASTNode>> m_astList;
+
+		void SaveNode(std::shared_ptr<ASTNode>& node)
+		{
+			m_astList.push_back(node);
+		}
+
+		void SaveNode(nullptr_t)
+		{
+			// Not implemented.
+		}
+
+		int LoadNode(int i)
+		{
+			return m_astList.at(i)->Id();
+		}
+
+		void SetSize(size_t)
+		{
+			// Not implemented.
+		}
+
+		size_t GetSize() noexcept
+		{
+			return m_astList.size();
+		}
+	};
+
+	Serializable::GroupListType m_groups;
+
+public:
+	Serializable::GroupListType CreateChildGroups(size_t size)
+	{
+		for (size_t i = 0; i < size; ++i) {
+			m_groups.push_back(std::make_shared<Group>());
+		}
+
+		return m_groups;
+	}
+
+	Serializable::GroupListType GetChildGroups()
+	{
+		return m_groups;
+	}
+
+	NodeID GetNodeId()
+	{
+		auto offset = buffer.Offset();
+		auto v = static_cast<NodeID>(buffer.Deserialize<Cry::Byte>());
+		buffer.StartOffset(offset);
+		return v;
+	}
+
+	void FireDependencies(std::shared_ptr<ASTNode>& node)
+	{
+		auto it = callbacks.find(node->Id());
+		if (it != callbacks.end()) {
+			callbacks[node->Id()](node);
+		}
+	}
+
+	virtual void operator<<(int v) { buffer.Serialize(static_cast<Cry::DoubleWord>(v)); }
+	virtual void operator<<(double v) { buffer.Serialize(static_cast<Cry::DoubleWord>(v)); }
+	virtual void operator<<(bool v) { buffer.Serialize(static_cast<Cry::Byte>(v)); }
+	virtual void operator<<(NodeID v) { buffer.Serialize(static_cast<Cry::Byte>(v)); }
+	virtual void operator<<(std::string) {}
+	virtual void operator<<(std::vector<uint8_t>) {}
+
+	virtual void operator>>(int& v) { v = static_cast<int>(buffer.Deserialize<Cry::DoubleWord>()); }
+	virtual void operator>>(double& v) { v = static_cast<double>(buffer.Deserialize<Cry::DoubleWord>()); }
+	virtual void operator>>(bool& v) { v = static_cast<bool>(buffer.Deserialize<Cry::Byte>()); }
+	virtual void operator>>(NodeID& v) { v = static_cast<NodeID>(buffer.Deserialize<Cry::Byte>()); }
+	virtual void operator>>(std::string&) {}
+	virtual void operator>>(std::vector<uint8_t>&) {}
+
+	virtual void operator<<=(std::pair<IdType, std::function<void(const std::shared_ptr<ASTNode>&)>> cb)
+	{
+		callbacks.insert(cb);
+	}
+};
+
+BOOST_AUTO_TEST_CASE(ASTSerialize)
+{
+	auto param = Util::MakeASTNode<ParamStmt>();
+	auto brk1 = Util::MakeASTNode<BreakStmt>();
+	param->AppendParamter(brk1);
+	auto brk2 = Util::MakeASTNode<BreakStmt>();
+	param->AppendParamter(brk2);
+
+	NodePacker packer;
+	param->Serialize(packer);
+	brk1->Serialize(packer);
+	brk2->Serialize(packer);
+
+	auto param2_node = ASTFactory::MakeNode(&packer);
+	auto brk12_node = ASTFactory::MakeNode(&packer);
+	auto brk22_node = ASTFactory::MakeNode(&packer);
+	auto param2 = Util::NodeCast<ParamStmt>(param2_node);
+	auto brk12 = Util::NodeCast<BreakStmt>(brk12_node);
+	auto brk22 = Util::NodeCast<BreakStmt>(brk22_node);
+	BOOST_REQUIRE((*param.get()) == (*param2.get()));
+	BOOST_REQUIRE((*brk1.get()) == (*brk12.get()));
+	BOOST_REQUIRE((*brk2.get()) == (*brk22.get()));
 }
 
 BOOST_AUTO_TEST_CASE(ASTMisc)

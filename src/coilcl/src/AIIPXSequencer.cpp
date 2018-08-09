@@ -68,10 +68,10 @@ public:
 	Visitor();
 
 	// Initialize with input callback.
-	Visitor(InputCallback& _inputCallback);
+	Visitor(InputCallback&);
 
 	// Copy and increment level.
-	Visitor(Visitor& other);
+	Visitor(Visitor&);
 
 	// Prohibit indirect moves.
 	Visitor(Visitor&&) = delete;
@@ -88,7 +88,9 @@ public:
 	virtual Serializable::GroupListType GetChildGroups();
 
 	// Set the node id
-	virtual void SetId(int id) { nodeId = id; }
+	virtual void SetId(int id) override { nodeId = id; }
+	// Retrieve the first commited node identifier.
+	virtual NodeID GetNodeId();
 	// Invoke registered callbacks
 	virtual void FireDependencies(std::shared_ptr<ASTNode>&);
 
@@ -342,11 +344,18 @@ Serializable::GroupListType Visitor::GetChildGroups()
 	return group;
 }
 
+// !!!!!!!!!!!!! THIS IS A BUG IN THE MAKING, TODO, FIXME
+NodeID Visitor::GetNodeId()
+{
+	NodeID node;
+	ReadProxy(reinterpret_cast<char *>(&node), sizeof(NodeID));
+	return node;
+}
+
 void Visitor::FireDependencies(std::shared_ptr<ASTNode>& node)
 {
 	const auto range = m_nodeHookList.equal_range(node->Id());
-	for (auto it = range.first; it != range.second; ++it)
-	{
+	for (auto it = range.first; it != range.second; ++it) {
 		it->second(node);
 	}
 	m_nodeHookList.erase(range.first, range.second);
@@ -440,7 +449,7 @@ void AIIPX::UnpackAST(AST& tree)
 	// Read marker from input stream
 	m_inputCallback(&_initMarker[0], sizeof(initMarker));
 	if (memcmp(_initMarker, initMarker, sizeof(initMarker))) {
-		throw 1; //TODO
+		CryImplExcept(); //TODO
 	}
 
 	// Move resulting tree into AST

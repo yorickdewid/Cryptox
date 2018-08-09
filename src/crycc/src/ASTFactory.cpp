@@ -17,31 +17,19 @@ namespace AST
 namespace
 {
 
-NodeID GetNodeId(Serializable::Interface *visitor)
-{
-	NodeID _nodeId = NodeID::INVAL;
-	(*visitor) >> _nodeId;
-	if (_nodeId == NodeID::INVAL) {
-		return _nodeId;
-	}
-	(*visitor) << _nodeId; //TODO: FIXME: visitor should be const at this point.
-
-	return _nodeId;
-}
-
 template<typename NodeType, typename = typename std::enable_if<std::is_base_of<ASTNode, NodeType>::value>::type>
 ASTNodeType ReturnNode(Serializable::Interface *visitor)
 {
-	std::shared_ptr<ASTNode> node = std::shared_ptr<NodeType>{ new NodeType{ (*visitor) } }; //TOOD: make shared?
+	std::shared_ptr<ASTNode> node = std::make_shared<NodeType>(*visitor);
 	visitor->FireDependencies(node);
-	return std::move(node);
+	return node;
 }
 
 } // namespace
 
 std::shared_ptr<ASTNode> ASTFactory::MakeNode(Serializable::Interface *visitor)
 {
-	switch (GetNodeId(visitor))
+	switch (visitor->GetNodeId())
 	{
 		// The invalid node is hit when there is no data left in the input stream.
 		// In order to signal the end of input, throw an exception.
@@ -146,8 +134,8 @@ std::shared_ptr<ASTNode> ASTFactory::MakeNode(Serializable::Interface *visitor)
 	case NodeID::COMPOUND_STMT_ID:
 		return ReturnNode<CompoundStmt>(visitor);
 
-		// The intermediate nodes cannot be instantiated
-		// and therefore indicates an erorr.
+		// NOTE: The intermediate nodes cannot be instantiated
+		//       and therefore indicates an erorr.
 	case NodeID::AST_NODE_ID:
 	case NodeID::OPERATOR_ID:
 	case NodeID::LITERAL_ID:
@@ -158,17 +146,24 @@ std::shared_ptr<ASTNode> ASTFactory::MakeNode(Serializable::Interface *visitor)
 		break;
 	}
 
-	throw 1; //TODO
+	CryImplExcept(); //TODO
 }
 
-Serializable::ChildGroupFacade Serializable::Interface::ChildGroups(SizeType size)
+void Serializable::AssertNode(const NodeID& got, const NodeID& exp)
 {
+	if (got != exp) {
+		CryImplExcept(); //TODO: throw something usefull
+	}
+}
+
+Serializable::ChildGroupIterator Serializable::Interface::ChildGroups(SizeType size)
+{
+	// Create child groups.
 	if (size > 0) {
-		// Create child groups.
 		m_childGroups = this->CreateChildGroups(size);
 	}
+	// Retrieve child groups.
 	else {
-		// Retrieve child groups.
 		m_childGroups = this->GetChildGroups();
 	}
 

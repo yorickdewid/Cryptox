@@ -28,6 +28,15 @@ ASTNode::ASTNode(int _line, int _col)
 {
 }
 
+bool ASTNode::operator==(const ASTNode& other) const noexcept
+{
+	return (nodeId == other.nodeId)
+		&& (line = other.line)
+		&& (col = other.col)
+		&& (m_state.size() == other.m_state.size())
+		&& (children.size() == other.children.size());
+}
+
 // Print the AST tree to screen
 void ASTNode::Print(int version, int level, bool last, std::vector<int> ignore) const
 {

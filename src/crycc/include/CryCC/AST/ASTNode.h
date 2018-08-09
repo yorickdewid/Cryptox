@@ -123,6 +123,8 @@ public:
 	ASTNode() = default;
 	ASTNode(int _line, int _col);
 
+	bool operator==(const ASTNode&) const noexcept;
+
 	//
 	// Node modifiers.
 	//
