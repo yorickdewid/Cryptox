@@ -122,24 +122,8 @@ CoilCl::Semer& CoilCl::Semer::CheckCompatibility()
 	return (*this);
 }
 
-//TODO: move into AST:: ?
 namespace
 {
-
-template<typename NodeType, typename = typename std::enable_if<IsASTNode<NodeType>::value>::type>
-std::shared_ptr<NodeType> Closest(std::shared_ptr<ASTNode>& node)
-{
-	Compare::Equal<NodeType> eqOp;
-	if (auto parent = node->Parent().lock()) {
-		if (!eqOp(PTR_NATIVE(parent))) {
-			return Closest<NodeType>(parent);
-		}
-
-		return Util::NodeCast<NodeType>(parent);
-	}
-
-	return nullptr;
-}
 
 // Test if the return statement type matches the function return type, if not inject a converter.
 template<size_t Idx = 0, typename ParentNode, typename ChildNode>

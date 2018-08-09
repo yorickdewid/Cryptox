@@ -9,6 +9,7 @@
 #pragma once
 
 #include <CryCC/AST/ASTNode.h>
+#include <CryCC/AST/ASTTrait.h>
 
 namespace CryCC
 {
@@ -86,6 +87,23 @@ using MultiDerive = MultiDeriveImpl<ASTNode, _VariaTy...>;
 
 } // namespace Compare
 
+// Find the closest node in the parent chain. If the root node is reached and no match is found
+// the function returns a nullptr. Otherwise a shared pointer to the node is returned.
+template<typename NodeType, typename = typename std::enable_if<IsASTNode<NodeType>::value>::type>
+std::shared_ptr<NodeType> Closest(const std::shared_ptr<ASTNode>& node)
+{
+	Compare::Equal<NodeType> eqOp;
+	if (const ASTNodeType parent = node->Parent().lock()) {
+		if (!eqOp(*parent.get())) {
+			return Closest<NodeType>(parent);
+		}
+
+		return Util::NodeCast<NodeType>(parent);
+	}
+
+	return nullptr;
+}
+
 } // namespace AST
 } // namespace CryCC
 
@@ -94,6 +112,8 @@ namespace Util
 
 using namespace CryCC::AST;
 
+// Create a new node instance and list this node as the parent node for each child.
+// Child nodes can already exist if they are passed in the constructor of the node.
 template<typename NodeType, typename... ArgTypes>
 inline auto MakeASTNode(ArgTypes&&... args)
 {
@@ -102,12 +122,14 @@ inline auto MakeASTNode(ArgTypes&&... args)
 	return ptr;
 }
 
+// Create a new unit scoped tree. This is the recommended manner to create a new tree.
 template<typename... ArgTypes>
 inline auto MakeUnitTree(ArgTypes&&... args)
 {
 	return MakeASTNode<TranslationUnitDecl>(std::forward<ArgTypes>(args)...);
 }
 
+// Test if the AST node is a literal node.
 template<typename NodeType, typename = typename std::enable_if<std::is_base_of<ASTNode, NodeType>::value
 	|| std::is_same<NodeType, ASTNode>::value>::type>
 	bool IsNodeLiteral(const std::shared_ptr<NodeType>& type)

@@ -8,46 +8,15 @@
 
 #include "DirectiveScanner.h"
 
+#include <Cry/Algorithm.h>
+
 constexpr char EndOfUnit = '\0';
 
-using namespace CoilCl;
-
-//TODO: move
-namespace Cry
-{
-namespace Algorithm
+namespace CoilCl
 {
 
-template<typename _Ty, _Ty _Val>
-struct MatchStatic
-{
-	constexpr bool operator()(const _Ty& _Match) const
-	{
-		return (_Match == _Val);
-	}
-};
-
-template<typename _Ty>
-struct MatchOn
-{
-	const _Ty& m_val;
-
-	constexpr MatchOn(_Ty val)
-		: m_val{ val }
-	{
-	}
-
-	constexpr bool operator()(const _Ty& val) const
-	{
-		return (val == m_val);
-	}
-};
-
-} // namespace Algorithm
-} // namespace std
-
-template<typename _Ty>
-class TokenProcessorProxy<_Ty>::ProfileWrapper : public CoilCl::Profile
+template<typename PreprocessorClass>
+class TokenProcessorProxy<PreprocessorClass>::ProfileWrapper : public CoilCl::Profile
 {
 	std::shared_ptr<Profile>& m_profileOrigin;
 	std::function<bool(const std::string&)> m_sourceIncludeCb;
@@ -92,16 +61,16 @@ public:
 	}
 };
 
-template<typename _Ty>
+template<typename PreprocessorClass>
 template<typename... ArgTypes>
-TokenProcessorProxy<_Ty>::TokenProcessorProxy(std::shared_ptr<Profile>& profile, CryCC::Program::ConditionTracker::Tracker& tracker, ArgTypes&&... args)
+TokenProcessorProxy<PreprocessorClass>::TokenProcessorProxy(std::shared_ptr<Profile>& profile, CryCC::Program::ConditionTracker::Tracker& tracker, ArgTypes&&... args)
 	: m_profile{ std::shared_ptr<Profile>{ new ProfileWrapper{ profile, std::forward<ArgTypes>(args)... } } }
 	, tokenProcessor{ m_profile, tracker }
 {
 }
 
-template<typename _Ty>
-TokenProcessor::TokenDataPair<TokenProcessor::TokenType, const TokenProcessor::DataType> TokenProcessorProxy<_Ty>::ProcessBacklog()
+template<typename PreprocessorClass>
+TokenProcessor::TokenDataPair<TokenProcessor::TokenType, const TokenProcessor::DataType> TokenProcessorProxy<PreprocessorClass>::ProcessBacklog()
 {
 	assert(m_tokenBacklog && !m_tokenBacklog->empty());
 
@@ -116,8 +85,8 @@ TokenProcessor::TokenDataPair<TokenProcessor::TokenType, const TokenProcessor::D
 }
 
 //TODO: Too much magic, refactor
-template<typename _Ty>
-int TokenProcessorProxy<_Ty>::operator()(
+template<typename PreprocessorClass>
+int TokenProcessorProxy<PreprocessorClass>::operator()(
 	std::function<int()> lexerLexCall,
 	std::function<bool()> lexerHasDataCall,
 	std::function<Tokenizer::ValuePointer()> lexerDataCall,
@@ -274,7 +243,7 @@ int DirectiveScanner::Lex()
 
 DirectiveScanner::DirectiveScanner(std::shared_ptr<Profile>& profile, CryCC::Program::ConditionTracker::Tracker& tracker)
 	: Lexer{ profile }
-	, m_proxy{ profile, tracker,  [this](const std::string& source) -> bool { this->SwapSource(source); return true; /*TODO: Unmock*/ } }
+, m_proxy{ profile, tracker,  [this](const std::string& source) -> bool { this->SwapSource(source); return true; /*TODO: Unmock*/ } }
 {
 	AddKeyword("include", TK_PP_INCLUDE);
 	AddKeyword("define", TK_PP_DEFINE);
@@ -289,3 +258,5 @@ DirectiveScanner::DirectiveScanner(std::shared_ptr<Profile>& profile, CryCC::Pro
 	AddKeyword("warning", TK_PP_WARNING);
 	AddKeyword("error", TK_PP_ERROR);
 }
+
+} // namespace CoilCl

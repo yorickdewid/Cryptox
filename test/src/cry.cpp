@@ -8,6 +8,7 @@
 
 #include <Cry/Cry.h>
 #include <Cry/ByteOrder.h>
+#include <Cry/Algorithm.h>
 
 #include <boost/test/unit_test.hpp>
 
@@ -17,6 +18,8 @@
 // Type        : unit
 // Description : -
 //
+
+using namespace Cry::Algorithm;
 
 BOOST_AUTO_TEST_SUITE(CryCommon)
 
@@ -83,6 +86,27 @@ BOOST_AUTO_TEST_CASE(CryByteOrder)
 		uint64_t e = BSWAP64(i);
 		BOOST_REQUIRE_EQUAL(o, e);
 	}
+}
+
+BOOST_AUTO_TEST_CASE(CryAlgMatchIf)
+{
+	std::vector<int> v{ 12, 34, 129, 8912, 81, 7, 51, 56, 912, 71 };
+	MatchIf(v.cbegin(), v.cend(), [](auto i) { return i % 2 == 0; }, [](auto it)
+	{
+		BOOST_REQUIRE((*it) % 2 == 0);
+	});
+}
+
+BOOST_AUTO_TEST_CASE(CryAlgMatchStatic)
+{
+	MatchStatic<int, 17> predicate;
+	BOOST_REQUIRE(predicate(17));
+}
+
+BOOST_AUTO_TEST_CASE(CryAlgMatchOn)
+{
+	MatchOn<int> predicate{ 17 };
+	BOOST_REQUIRE(predicate(17));
 }
 
 BOOST_AUTO_TEST_SUITE_END()
