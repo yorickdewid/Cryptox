@@ -12,6 +12,7 @@
 
 #include <CryCC/Program/ConditionTracker.h>
 #include <CryCC/Program/Stage.h>
+#include <CryCC/Program/Result.h>
 
 #include <Cry/Cry.h>
 #include <Cry/Serialize.h>
@@ -34,22 +35,16 @@ namespace Program
 class Program final
 {
 public:
-	class ResultSection
+	class ResultSection : public ResultInterface
 	{
-		using SizeType = size_t;
-		using BufferType = Cry::ByteArray;
-
-	private:
-		BufferType m_content;
-
 	public:
-		enum Tag
+		enum Tag //TODO: this is compiler implementation defined
 		{
 			AIIPX,         // Resulting section for AIIPX content.
 			CASM,          // Resulting section for CASM content.
 			NATIVE,        // Resulting section for native content.
 			COMPLEMENTARY, // Resulting section for additional content.
-		} m_tag;
+		};
 
 	public:
 		ResultSection(Tag tag = Tag::COMPLEMENTARY)
@@ -58,9 +53,13 @@ public:
 		}
 
 		// Get size of section content.
-		inline SizeType Size() const noexcept { return m_content.size(); }
+		inline size_type Size() const noexcept { return m_content.size(); }
 		// Get context object.
-		inline BufferType& Data() noexcept { return m_content; }
+		inline value_type& Data() noexcept { return m_content; }
+
+	private:
+		Tag m_tag;
+		value_type m_content;
 	};
 
 	struct AccessViolationException : public std::exception
@@ -71,17 +70,13 @@ public:
 	Program() = default;
 	Program(const Program&) = delete;
 	Program(Program&&) = default;
-	Program(AST::AST&& tree)
-		: m_ast{ new AST::AST{ std::move(tree) } }
-	{
-	}
-	Program(Program&& other, std::shared_ptr<CryCC::AST::TranslationUnitDecl>&& ast)
-		: m_ast{ new AST::AST{ std::move(ast) } }
-		, m_treeCondition{ other.m_treeCondition }
-		, m_lastStage{ other.m_lastStage }
-		, m_locked{ other.m_locked }
-	{
-	}
+
+	// Move AST into program.
+	Program(AST::AST&&);
+
+	// OBSOLETE, REMOVE, TODO, FIXME
+	// Create program from other program and unit tree.
+	Program(Program&&, AST::ASTNodeType&&);
 
 	//
 	// Disable assignment operators.
@@ -103,7 +98,9 @@ public:
 	// Symbol operations.
 	//
 
+#ifdef CRY_DEBUG
 	void PrintSymbols();
+#endif // CRY_DEBUG
 	bool MatchSymbol(const std::string&);
 	inline bool HasSymbols() const noexcept { return !m_symbols.empty(); }
 	inline bool SymbolCount() const noexcept { return m_symbols.size(); }
@@ -116,8 +113,12 @@ public:
 
 	// Retieve program condition.
 	inline const ConditionTracker& Condition() const { return m_treeCondition; }
-
+	// Test if a tree is set.
 	operator bool() const noexcept { return !!m_ast; }
+
+	//
+	// Access operations.
+	//
 
 	// Lock the program and throw on modifier methods.
 	void Lock() { m_locked = true; }
@@ -132,6 +133,7 @@ public:
 		program->m_ast = std::make_unique<AST::AST>(std::forward<ArgTypes>(args)...);
 	}
 
+	//TODO: REMOVE, OBSOLETE
 	// Allocate a new program.
 	template<typename... ArgTypes>
 	static std::unique_ptr<Program> MakeProgram(ArgTypes&&... args)
@@ -139,7 +141,7 @@ public:
 		return std::make_unique<Program>(std::forward<ArgTypes>(args)...);
 	}
 
-	//TODO: Health check
+	//FUTURE: Health check
 
 private:
 	ConditionTracker m_treeCondition;
@@ -147,8 +149,8 @@ private:
 	bool m_locked{ false };
 
 private:
-	std::map<std::string, std::shared_ptr<CryCC::AST::ASTNode>> m_symbols;
-	std::unique_ptr<AST::AST> m_ast{ nullptr };
+	std::map<std::string, AST::ASTNodeType> m_symbols;
+	std::unique_ptr<AST::AST> m_ast{ nullptr }; //TODO: Point to an ASTNode directly
 	std::vector<ResultSection> m_resultSet;
 };
 

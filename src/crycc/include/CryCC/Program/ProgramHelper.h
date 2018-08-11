@@ -6,22 +6,23 @@
 // that can be found in the LICENSE file. Content can not be 
 // copied and/or distributed without the express of the author.
 
-#ifndef CRYCC_PROGRAM_H_
-#define CRYCC_PROGRAM_H_
-
-#if defined(_MSC_VER)
 #pragma once
-#endif
 
-//
-// namespace CryCC::Program
-//
-
-#include <CryCC/Program/ConditionTracker.h>
-#include <CryCC/Program/Stage.h>
-#include <CryCC/Program/Type.h>
-#include <CryCC/Program/Result.h>
 #include <CryCC/Program/Program.h>
-#include <CryCC/Program/ProgramHelper.h>
+#include <CryCC/Program/Type.h>
 
-#endif // CRYCC_PROGRAM_H_
+#include <memory>
+
+namespace Util
+{
+
+using namespace CryCC::Program;
+
+// Allocate a new program.
+template<typename... ArgTypes>
+ProgramType MakeProgram(ArgTypes&&... args)
+{
+    return std::make_unique<CryCC::Program::Program>(std::forward<ArgTypes>(args)...);
+}
+
+} // namespace Util
