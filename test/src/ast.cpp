@@ -15,7 +15,7 @@
 
 //
 // Key         : AST
-// Test        : Abstract Syntax Tree unitttest
+// Test        : Abstract Syntax Tree unit test
 // Type        : unit
 // Description : Test the abstract syntax tree structure and all
 //               the helper methods. The AST is linchpin for the entire
@@ -222,6 +222,88 @@ BOOST_AUTO_TEST_CASE(ASTMisc)
 	BOOST_REQUIRE_EQUAL(Util::NodeCast<BreakStmt>(breakNode)->Id(), breakNode->Id());
 	BOOST_REQUIRE(Util::IsNodeCompound(compond));
 	BOOST_REQUIRE(Util::IsNodeFunction(func));
+}
+
+BOOST_AUTO_TEST_SUITE_END()
+
+BOOST_AUTO_TEST_SUITE(Loc)
+
+//
+// Key         : Loc
+// Test        : Source location unit test
+// Type        : unit
+// Description : -.
+//
+
+BOOST_AUTO_TEST_CASE(LocAll)
+{
+	// Equal operator / not equal operator.
+	{
+		CryCC::SourceLocation loc1{ 12, 23 };
+		CryCC::SourceLocation loc2{ 12, 23 };
+		CryCC::SourceLocation loc3{ 12, 24 };
+
+		BOOST_REQUIRE(loc1 == loc2);
+		BOOST_REQUIRE(loc1 != loc3);
+	}
+
+	// Less operator.
+	{
+		CryCC::SourceLocation loc1{ 8, 192 };
+		CryCC::SourceLocation loc2{ 9, 12 };
+		CryCC::SourceLocation loc3{ 9, 88 };
+		BOOST_REQUIRE(loc1 < loc2);
+		BOOST_REQUIRE(loc2 < loc3);
+	}
+
+	// Greater operator.
+	{
+		CryCC::SourceLocation loc1{ 45, 9 };
+		CryCC::SourceLocation loc2{ 34, 56 };
+		CryCC::SourceLocation loc3{ 34, 23 };
+		BOOST_REQUIRE(loc1 > loc2);
+		BOOST_REQUIRE(loc2 > loc3);
+	}
+
+	// Less or equal operator.
+	{
+		CryCC::SourceLocation loc1{ 1162, 19 };
+		CryCC::SourceLocation loc2{ 8261, 5 };
+		CryCC::SourceLocation loc3{ 1162, 20 };
+		BOOST_REQUIRE(loc1 <= loc1);
+		BOOST_REQUIRE(loc1 <= loc2);
+		BOOST_REQUIRE(loc1 <= loc3);
+	}
+
+	// Greater or equal operator.
+	{
+		CryCC::SourceLocation loc1{ 120, 18 };
+		CryCC::SourceLocation loc2{ 91, 72 };
+		CryCC::SourceLocation loc3{ 120, 17 };
+		BOOST_REQUIRE(loc1 >= loc1);
+		BOOST_REQUIRE(loc1 >= loc2);
+		BOOST_REQUIRE(loc1 >= loc3);
+	}
+
+	// Addition operator.
+	{
+		CryCC::SourceLocation loc1{ 120, 18 };
+		CryCC::SourceLocation loc2{ 91, 72 };
+
+		CryCC::SourceLocation loc3 = loc1 + loc2;
+		CryCC::SourceLocation loc4{ 211, 90 };
+		BOOST_REQUIRE(loc3 == loc4);
+	}
+
+	// Minus operator.
+	{
+		CryCC::SourceLocation loc1{ 927, 61 };
+		CryCC::SourceLocation loc2{ 173, 15 };
+
+		CryCC::SourceLocation loc3 = loc1 - loc2;
+		CryCC::SourceLocation loc4{ 754, 46 };
+		BOOST_REQUIRE(loc3 == loc4);
+	}
 }
 
 BOOST_AUTO_TEST_SUITE_END()
