@@ -7,7 +7,7 @@
 // copied and/or distributed without the express of the author.
 
 #include <CryCC/AST/ASTNode.h>
-#include <CryCC/AST/ASTFactory.h>
+#include <CryCC/AST/Factory.h>
 
 namespace CryCC
 {
@@ -37,7 +37,7 @@ std::shared_ptr<ASTNode> ASTFactory::MakeNode(Serializable::Interface *visitor)
 		//         not done. There must be a more reliable method to test of the
 		//         end of input stream.
 	case NodeID::INVAL:
-		throw EndOfStreamException{};
+		throw InvalidStreamException{};
 
 	case NodeID::BINARY_OPERATOR_ID:
 		return ReturnNode<BinaryOperator>(visitor);
@@ -147,27 +147,6 @@ std::shared_ptr<ASTNode> ASTFactory::MakeNode(Serializable::Interface *visitor)
 	}
 
 	CryImplExcept(); //TODO
-}
-
-void Serializable::AssertNode(const NodeID& got, const NodeID& exp)
-{
-	if (got != exp) {
-		CryImplExcept(); //TODO: throw something usefull
-	}
-}
-
-Serializable::ChildGroupIterator Serializable::Interface::ChildGroups(SizeType size)
-{
-	// Create child groups.
-	if (size > 0) {
-		m_childGroups = this->CreateChildGroups(size);
-	}
-	// Retrieve child groups.
-	else {
-		m_childGroups = this->GetChildGroups();
-	}
-
-	return m_childGroups.begin();
 }
 
 } // namespace AST

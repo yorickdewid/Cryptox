@@ -17,7 +17,7 @@ namespace AST
 
 struct ASTFactory
 {
-	struct EndOfStreamException
+	struct InvalidStreamException
 	{
 	};
 

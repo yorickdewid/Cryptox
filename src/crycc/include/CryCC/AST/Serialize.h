@@ -15,7 +15,6 @@
 #include <functional>
 #include <memory>
 #include <vector>
-#include <cassert>
 
 namespace CryCC
 {
@@ -124,15 +123,11 @@ struct Serializable
 		using reverse_iterator = typename GroupListType::reverse_iterator;
 		using const_reverse_iterator = typename GroupListType::const_reverse_iterator;
 
-		ChildGroupIterator(GroupListType::iterator it)
-			: m_it{ it }
-			, m_beginIt{ it }
-		{
-			assert(m_it == m_beginIt);
-		}
+		// Constructor receives group type iterator
+		ChildGroupIterator(GroupListType::iterator);
 
-		// Get group id.
-		auto Id() const { return std::distance(m_beginIt, m_it) + 1; }
+		// Get group identifier.
+		difference_type Id() const;
 
 		template<typename NodeType, typename = typename std::enable_if<std::is_base_of<ASTNode, NodeType>::value>::type>
 		void operator<<(std::shared_ptr<NodeType> ptr)
@@ -175,15 +170,7 @@ struct Serializable
 		void Previous() { --m_it; }
 
 		// Get or set element size in group.
-		size_type Size(size_type sz = 0) //TODO: DEPRECATED: FIXME: REMOVE
-		{
-			if (sz > 0) {
-				(*m_it)->SetSize(sz);
-				return sz;
-			}
-
-			return (*m_it)->GetSize();
-		}
+		size_type Size(size_type sz = 0); //TODO: DEPRECATED: FIXME: REMOVE
 
 		// Set the number of elements in this group.
 		void SetSize(size_type sz) { (*m_it)->SetSize(sz); }
