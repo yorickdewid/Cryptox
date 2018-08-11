@@ -8,6 +8,7 @@
 
 #pragma once
 
+#include <CryCC/SubValue/UserData.h>
 #include <CryCC/SubValue/TypeFacade.h>
 
 namespace CryCC
@@ -41,14 +42,6 @@ public:
 	virtual Typedef::TypeFacade& UpdateReturnType() { return m_returnType; }
 };
 
-struct ModifierInterface
-{
-	// Emplace object, and push current object one stage down.
-	virtual void Emplace(size_t, const std::shared_ptr<ASTNode>&&) = 0;
-	// Get modifier count.
-	virtual size_t ModifierCount() const = 0;
-};
-
 struct VisitorInterface
 {
 	struct AbstractVisitor
@@ -57,6 +50,32 @@ struct VisitorInterface
 	};
 
 	virtual void Apply(AbstractVisitor&) {}
+};
+
+struct ModifierInterface
+{
+	// Emplace object, and push current object one stage down.
+	virtual void Emplace(size_t, const std::shared_ptr<ASTNode>&&) = 0;
+	// Get modifier count.
+	virtual size_t ModifierCount() const = 0;
+};
+
+class UserDataAbstract
+{
+	std::vector<CryCC::SubValue::UserDataWrapper> m_userDataTracker;
+	
+public:
+	template<typename UserType, typename = typename std::enable_if<std::is_pointer<_Ty>::value>::type>
+	void AddUserData(UserType data)
+	{
+		m_userData.emplace_back(data);
+	}
+
+	/*template<typename Pred>
+	auto UserData(Pred predicate)
+	{
+		return std::find_if(m_userData.begin(), m_userData.end(), predicate);
+	}*/
 };
 
 } // namespace AST

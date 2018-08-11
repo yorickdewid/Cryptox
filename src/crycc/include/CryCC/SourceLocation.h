@@ -19,34 +19,43 @@ namespace Detail
 template<typename Type = int, typename = typename std::enable_if<std::is_integral<Type>::value>::type>
 struct SourceLocationImpl : private std::pair<Type, Type>
 {
-	using ValueType = Type;
-	using SelfType = SourceLocationImpl<Type>;
-	using BaseType = std::pair<Type, Type>;
+	using base_type = std::pair<Type, Type>;
+	using value_type = typename base_type::first_type;
+	using self_type = SourceLocationImpl<Type>;
 
-	SourceLocationImpl() = default;
-	inline SourceLocationImpl(const ValueType Line, const ValueType Col)
-		: BaseType{ Line, Col }
+	SourceLocationImpl()
+		: base_type{ -1, -1 }
+	{
+	}
+	
+	inline SourceLocationImpl(const value_type line, const value_type col)
+		: base_type{ line, col }
 	{
 	}
 
-	inline SourceLocationImpl(const SelfType& Other)
-		: BaseType{ Other }
+	inline SourceLocationImpl(const std::pair<value_type, value_type>& location)
+		: base_type{ location.first, location.second }
 	{
 	}
 
-	inline SourceLocationImpl(SelfType&& other)
-		: BaseType{ std::move(other) }
+	inline SourceLocationImpl(const self_type& other)
+		: base_type{ other }
 	{
 	}
 
-	SourceLocationImpl& operator=(const SelfType& other)
+	inline SourceLocationImpl(self_type&& other)
+		: base_type{ std::move(other) }
+	{
+	}
+
+	SourceLocationImpl& operator=(const self_type& other)
 	{
 		this->first = other.first;
 		this->second = other.second;
 		return (*this);
 	}
 
-	SourceLocationImpl& operator=(SelfType&& other)
+	SourceLocationImpl& operator=(self_type&& other)
 	{
 		this->first = std::move(other.first);
 		this->second = std::move(other.second);
@@ -57,8 +66,21 @@ struct SourceLocationImpl : private std::pair<Type, Type>
 	// Access location properties.
 	//
 
-	ValueType Line() const noexcept { return this->first; }
-	ValueType Column() const noexcept { return this->second; }
+	value_type Line() const noexcept { return this->first; }
+	value_type Column() const noexcept { return this->second; }
+
+	//
+	// Compare operations.
+	//
+
+	bool operator==(const SourceLocationImpl& other) const noexcept
+	{
+		return this->first == other.first && this->second == other.second;
+	}
+	bool operator!=(const SourceLocationImpl& other) const noexcept
+	{
+		return !this->operator==(other);
+	}
 };
 
 } // namespace Detail

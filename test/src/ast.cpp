@@ -37,8 +37,8 @@ BOOST_AUTO_TEST_CASE(ASTBasicNode)
 	BOOST_REQUIRE_LT(0, node->Id());
 	BOOST_REQUIRE_EQUAL(0, node->ChildrenCount());
 	BOOST_REQUIRE_EQUAL(0, node->ModifierCount());
-	BOOST_REQUIRE_EQUAL(12, node->Location().first);
-	BOOST_REQUIRE_EQUAL(721, node->Location().second);
+	BOOST_REQUIRE_EQUAL(12, node->Location().Line());
+	BOOST_REQUIRE_EQUAL(721, node->Location().Column());
 	BOOST_REQUIRE(node->Parent().expired());
 	BOOST_REQUIRE_NE(std::string::npos, node->NodeName().find("TranslationUnitDecl"));
 	BOOST_REQUIRE(NodeID::TRANSLATION_UNIT_DECL_ID == node->Label());

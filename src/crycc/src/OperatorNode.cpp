@@ -136,7 +136,7 @@ const std::string BinaryOperator::NodeName() const
 {
 	std::string _node{ RemoveClassFromName(typeid(BinaryOperator).name()) };
 	_node += " {" + std::to_string(m_state.Alteration()) + "}";
-	_node += " <line:" + std::to_string(line) + ",col:" + std::to_string(col) + "> ";
+	_node += " <line:" + std::to_string(m_location.Line()) + ",col:" + std::to_string(m_location.Column()) + "> ";
 
 	if (Operator::ReturnType().HasValue()) {
 		_node += "'" + Operator::ReturnType().TypeName() + "' ";
@@ -230,7 +230,7 @@ const std::string ConditionalOperator::NodeName() const
 	return boost::str(boost::format("%1$s {%2$d} <line:%3$d,col:%4$d>")
 		% RemoveClassFromName(typeid(ConditionalOperator).name())
 		% m_state.Alteration()
-		% line % col);
+		% m_location.Line() % m_location.Column());
 }
 
 
@@ -307,7 +307,7 @@ const std::string UnaryOperator::NodeName() const
 	return boost::str(boost::format("%1$s {%2$d} <line:%3$d,col:%4$d> %5% '%6%'")
 		% RemoveClassFromName(typeid(UnaryOperator).name())
 		% m_state.Alteration()
-		% line % col
+		% m_location.Line() % m_location.Column()
 		% (m_side == UnaryOperator::POSTFIX ? "postfix" : "prefix")
 		% UnaryOperandStr(m_operand));
 }
@@ -401,7 +401,7 @@ const std::string CompoundAssignOperator::NodeName() const
 	return boost::str(boost::format("%1$s {%2$d} <line:%3$d,col:%4$d> '%5%'")
 		% RemoveClassFromName(typeid(CompoundAssignOperator).name())
 		% m_state.Alteration()
-		% line % col
+		% m_location.Line() % m_location.Column()
 		% CompoundAssignOperandStr(m_operand));
 }
 

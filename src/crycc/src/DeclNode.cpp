@@ -101,7 +101,7 @@ const std::string VarDecl::NodeName() const
 {
 	std::string _node{ RemoveClassFromName(typeid(VarDecl).name()) };
 	_node += " {" + std::to_string(m_state.Alteration()) + "}";
-	_node += " <line:" + std::to_string(line) + ",col:" + std::to_string(col) + "> ";
+	_node += " <line:" + std::to_string(m_location.Line()) + ",col:" + std::to_string(m_location.Column()) + "> ";
 
 	if (RefCount::IsUsed()) {
 		_node += "used ";
@@ -135,7 +135,7 @@ const std::string ParamDecl::NodeName() const
 	return boost::str(boost::format("%1$s {%2$d} <line:%3$d,col:%4$d> %5% '%6%' %7%")
 		% RemoveClassFromName(typeid(ParamDecl).name())
 		% m_state.Alteration()
-		% line % col
+		% m_location.Line() % m_location.Column()
 		% (m_identifier.empty() ? "abstract" : m_identifier)
 		% ReturnType().TypeName()
 		% ReturnType()->StorageClassName());
@@ -184,7 +184,7 @@ const std::string TypedefDecl::NodeName() const
 	return boost::str(boost::format("%1$s {%2$d} <line:%3$d,col:%4$d> %5% '%6%' %7%")
 		% RemoveClassFromName(typeid(TypedefDecl).name())
 		% m_state.Alteration()
-		% line % col
+		% m_location.Line() % m_location.Column()
 		% m_identifier
 		% ReturnType().TypeName()
 		% ReturnType()->StorageClassName());
@@ -235,7 +235,7 @@ const std::string FieldDecl::NodeName() const
 	return boost::str(boost::format("%1$s {%2$d} <line:%3$d,col:%4$d> %5% '%6%' %7%")
 		% RemoveClassFromName(typeid(FieldDecl).name())
 		% m_state.Alteration()
-		% line % col
+		% m_location.Line() % m_location.Column()
 		% m_identifier
 		% ReturnType().TypeName()
 		% ReturnType()->StorageClassName());
@@ -317,7 +317,7 @@ const std::string RecordDecl::NodeName() const
 	return boost::str(boost::format("%1$s {%2$d} <line:%3$d,col:%4$d> %5% %6%")
 		% RemoveClassFromName(typeid(RecordDecl).name())
 		% m_state.Alteration()
-		% line % col
+		% m_location.Line() % m_location.Column()
 		% (m_type == RecordType::STRUCT ? "struct" : "union")
 		% (IsAnonymous() ? "anonymous" : m_identifier));
 }
@@ -367,7 +367,7 @@ const std::string EnumConstantDecl::NodeName() const
 {
 	std::string _node{ RemoveClassFromName(typeid(EnumConstantDecl).name()) };
 	_node += " {" + std::to_string(m_state.Alteration()) + "}";
-	_node += " <line:" + std::to_string(line) + ",col:" + std::to_string(col) + "> ";
+	_node += " <line:" + std::to_string(m_location.Line()) + ",col:" + std::to_string(m_location.Column()) + "> ";
 	_node += m_identifier;
 
 	if (HasReturnType()) {
@@ -434,7 +434,7 @@ const std::string EnumDecl::NodeName() const
 	return boost::str(boost::format("%1$s {%2$d} <line:%3$d,col:%4$d> %5%")
 		% RemoveClassFromName(typeid(EnumDecl).name())
 		% m_state.Alteration()
-		% line % col
+		% m_location.Line() % m_location.Column()
 		% (IsAnonymous() ? "anonymous" : m_identifier));
 }
 
@@ -561,7 +561,7 @@ const std::string FunctionDecl::NodeName() const
 	std::stringstream ss;
 	ss << RemoveClassFromName(typeid(FunctionDecl).name());
 	ss << " {" + std::to_string(m_state.Alteration()) + "}";
-	ss << " <line:" << line << ",col:" << col << "> ";
+	ss << " <line:" << m_location.Line() << ",col:" << m_location.Column() << "> ";
 
 	if (IsPrototypeDefinition()) {
 		ss << "proto ";

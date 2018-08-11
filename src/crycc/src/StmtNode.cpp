@@ -139,7 +139,7 @@ const std::string IfStmt::NodeName() const
 {
 	std::string _node{ RemoveClassFromName(typeid(IfStmt).name()) };
 	_node += " {" + std::to_string(m_state.Alteration()) + "}";
-	_node += " <line:" + std::to_string(line) + ",col:" + std::to_string(col) + "> ";
+	_node += " <line:" + std::to_string(m_location.Line()) + ",col:" + std::to_string(m_location.Column()) + "> ";
 
 	if (m_truthStmt) {
 		_node += "notruth ";
@@ -663,7 +663,7 @@ void GotoStmt::Deserialize(Serializable::Interface& pack)
 
 const std::string GotoStmt::NodeName() const
 {
-	return std::string{ RemoveClassFromName(typeid(GotoStmt).name()) } +" {" + std::to_string(m_state.Alteration()) + "}" + " <line:" + std::to_string(line) + ",col:" + std::to_string(col) + "> '" + m_labelName + "'";
+	return std::string{ RemoveClassFromName(typeid(GotoStmt).name()) } +" {" + std::to_string(m_state.Alteration()) + "}" + " <line:" + std::to_string(m_location.Line()) + ",col:" + std::to_string(m_location.Column()) + "> '" + m_labelName + "'";
 }
 
 

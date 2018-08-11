@@ -43,7 +43,7 @@ const std::string ResolveRefExpr::NodeName() const
 	return boost::str(boost::format("%1$s {%2$d} <line:%3$d,col:%4$d> '%5%'")
 		% RemoveClassFromName(typeid(ResolveRefExpr).name())
 		% m_state.Alteration()
-		% line % col
+		% m_location.Line() % m_location.Column()
 		% m_identifier);
 }
 
@@ -106,7 +106,7 @@ const std::string DeclRefExpr::NodeName() const
 	if (IsResolved()) {
 		std::string _node{ RemoveClassFromName(typeid(DeclRefExpr).name()) };
 		_node += " {" + std::to_string(m_state.Alteration()) + "}";
-		_node += " <line:" + std::to_string(line) + ",col:" + std::to_string(col) + "> ";
+		_node += " <line:" + std::to_string(m_location.Line()) + ",col:" + std::to_string(m_location.Column()) + "> ";
 		_node += "linked '" + m_ref.lock()->Identifier() + "' ";
 
 		if (Reference()->ReturnType().HasValue()) {
@@ -163,7 +163,7 @@ const std::string CallExpr::NodeName() const
 {
 	std::string _node{ RemoveClassFromName(typeid(CallExpr).name()) };
 	_node += " {" + std::to_string(m_state.Alteration()) + "}";
-	_node += " <line:" + std::to_string(line) + ",col:" + std::to_string(col) + "> ";
+	_node += " <line:" + std::to_string(m_location.Line()) + ",col:" + std::to_string(m_location.Column()) + "> ";
 
 	if (ReturnType().HasValue()) {
 		_node += "'" + ReturnType().TypeName() + "' ";
@@ -230,7 +230,7 @@ const std::string BuiltinExpr::NodeName() const
 	return boost::str(boost::format("%1$s {%2$d} <line:%3$d,col:%4$d>")
 		% RemoveClassFromName(typeid(BuiltinExpr).name())
 		% m_state.Alteration()
-		% line % col);
+		% m_location.Line() % m_location.Column());
 }
 
 
@@ -278,13 +278,13 @@ const std::string CastExpr::NodeName() const
 		return boost::str(boost::format("%1$s {%2$d} <line:%3$d,col:%4$d>")
 			% RemoveClassFromName(typeid(CastExpr).name())
 			% m_state.Alteration()
-			% line % col);
+			% m_location.Line() % m_location.Column());
 	}
 	else {
 		return boost::str(boost::format("%1$s {%2$d} <line:%3$d,col:%4$d> '%5%' %6%")
 			% RemoveClassFromName(typeid(CastExpr).name())
 			% m_state.Alteration()
-			% line % col
+			% m_location.Line() % m_location.Column()
 			% ReturnType().TypeName()
 			% ReturnType()->StorageClassName());
 	}
@@ -334,7 +334,7 @@ const std::string ImplicitConvertionExpr::NodeName() const
 	return boost::str(boost::format("%1$s {%2$d} <line:%3$d,col:%4$d> '%5%' %6% [%7%]")
 		% RemoveClassFromName(typeid(ImplicitConvertionExpr).name())
 		% m_state.Alteration()
-		% line % col
+		% m_location.Line() % m_location.Column()
 		% ReturnType().TypeName()
 		% ReturnType()->StorageClassName()
 		% CryCC::SubValue::Conv::Cast::PrintTag(Converter()));
@@ -377,7 +377,7 @@ const std::string ParenExpr::NodeName() const
 {
 	std::string _node{ RemoveClassFromName(typeid(ParenExpr).name()) };
 	_node += " {" + std::to_string(m_state.Alteration()) + "}";
-	_node += " <line:" + std::to_string(line) + ",col:" + std::to_string(col) + "> ";
+	_node += " <line:" + std::to_string(m_location.Line()) + ",col:" + std::to_string(m_location.Column()) + "> ";
 
 	if (ReturnType().HasValue()) {
 		_node += "'" + ReturnType().TypeName() + "' ";
@@ -577,7 +577,7 @@ const std::string MemberExpr::NodeName() const
 	return boost::str(boost::format("%1$s {%2$d} <line:%3$d,col:%4$d> %5% %6%")
 		% RemoveClassFromName(typeid(MemberExpr).name())
 		% m_state.Alteration()
-		% line % col
+		% m_location.Line() % m_location.Column()
 		% (m_memberType == MemberType::REFERENCE ? "." : "->")
 		% m_name);
 }

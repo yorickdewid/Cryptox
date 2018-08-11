@@ -18,7 +18,6 @@
 #include <CryCC/AST/ASTState.h>
 #include <CryCC/AST/ASTTrait.h>
 
-#include <CryCC/SubValue/UserData.h>
 #include <CryCC/SubValue/TypeFacade.h>
 #include <CryCC/SubValue/Converter.h>
 #include <CryCC/SubValue/Valuedef.h>
@@ -36,7 +35,10 @@
 #define PRINT_NODE(n) \
 	virtual const std::string NodeName() const \
 	{ \
-		return std::string{ RemoveClassFromName(typeid(n).name()) } + " {" + std::to_string(m_state.Alteration()) + "}" + " <line:" + std::to_string(line) + ",col:" + std::to_string(col) + ">"; \
+		return std::string{ RemoveClassFromName(typeid(n).name()) } \
+			+ " {" + std::to_string(m_state.Alteration()) + "}" \
+			+ " <line:" + std::to_string(m_location.Line()) + ",col:" \
+			+ std::to_string(m_location.Column()) + ">"; \
 	}
 
 #define NODE_UPCAST(c) \
@@ -110,19 +112,16 @@ class ASTNode
 	: public UniqueObj
 	, public VisitorInterface
 	, public ModifierInterface
+	, public UserDataAbstract
 	, virtual public Serializable
 {
 	NODE_ID(NodeID::AST_NODE_ID);
 
-protected:
-	//TODO: Replace with Util::SourceLocation
-	mutable int line = -1;
-	mutable int col = -1;
-
 public:
 	ASTNode() = default;
-	ASTNode(int _line, int _col);
+	ASTNode(SourceLocation::value_type, SourceLocation::value_type);
 
+	// Equality test.
 	bool operator==(const ASTNode&) const noexcept;
 
 	//
@@ -132,26 +131,21 @@ public:
 	inline size_t ChildrenCount() const noexcept { return children.size(); }
 	inline size_t ModifierCount() const { return m_state.Alteration(); }
 
-	virtual void Emplace(size_t idx, const ASTNodeType&& node)
-	{
-		CRY_UNUSED(idx);
-		CRY_UNUSED(node);
-
-		assert(0);
-	}
+	// Emplace node at child offset position. This method is optional to implement.
+	virtual void Emplace(size_t, const ASTNodeType&&) {}
 
 	//
 	// Source location operations.
 	//
 
 	// Set source location.
-	void SetLocation(int, int) const;
+	void SetLocation(int, int);
 	// Set source location as pair.
-	void SetLocation(const std::pair<int, int>&) const;
+	void SetLocation(const std::pair<SourceLocation::value_type, SourceLocation::value_type>&);
 	// Set source location as object.
 	void SetLocation(CryCC::SourceLocation&&);
 	// Get source location.
-	std::pair<int, int> Location() const;
+	SourceLocation Location() const;
 
 	//
 	// Abstract function interfaces.
@@ -204,18 +198,6 @@ public:
 		return children;
 	}
 
-	template<typename UserType, typename = typename std::enable_if<std::is_pointer<_Ty>::value>::type>
-	void AddUserData(UserType data)
-	{
-		m_userData.emplace_back(data);
-	}
-
-	/*template<typename _Pred>
-	auto UserData(_Pred predicate)
-	{
-		return std::find_if(m_userData.begin(), m_userData.end(), predicate);
-	}*/
-
 	virtual NodeID Label() const noexcept { return nodeId; }
 
 	//TODO: friend
@@ -255,10 +237,10 @@ protected:
 	}
 
 protected:
+	SourceLocation m_location;
 	ASTState<ASTNode> m_state;
 	std::vector<std::weak_ptr<ASTNode>> children;
 	std::weak_ptr<ASTNode> m_parent;
-	std::vector<CryCC::SubValue::UserDataWrapper> m_userData;
 };
 
 //
@@ -555,7 +537,7 @@ protected:
 		std::stringstream ss;
 		ss << RemoveClassFromName(typeid(DerivedType).name());
 		ss << " {" + std::to_string(m_state.Alteration()) + "}";
-		ss << " <line:" << line << ",col:" << col << "> ";
+		ss << " <line:" << m_location.Line() << ",col:" << m_location.Column() << "> ";
 		ss << "'" << ReturnType()->TypeName() << "' ";
 		ss << "\"" << m_value.Print() << "\"";
 
@@ -1077,7 +1059,7 @@ public:
 		: Decl{ pack }
 	{
 		Deserialize(pack);
-	}
+}
 
 	FunctionDecl(const std::string& name, std::shared_ptr<CompoundStmt>& node);
 	FunctionDecl(const std::string& name, std::shared_ptr<Typedef::TypedefBase> type);
