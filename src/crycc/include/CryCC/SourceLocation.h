@@ -73,13 +73,42 @@ struct SourceLocationImpl : private std::pair<Type, Type>
 	// Compare operations.
 	//
 
-	bool operator==(const SourceLocationImpl& other) const noexcept
+	inline bool operator==(const SourceLocationImpl& other) const noexcept
 	{
 		return this->first == other.first && this->second == other.second;
 	}
-	bool operator!=(const SourceLocationImpl& other) const noexcept
+	inline bool operator!=(const SourceLocationImpl& other) const noexcept
 	{
 		return !this->operator==(other);
+	}
+	inline bool operator<(const SourceLocationImpl& other) const noexcept
+	{
+		return this->first < other.first || (this->first == other.first && this->second < other.second);
+	}
+	inline bool operator>(const SourceLocationImpl& other) const noexcept
+	{
+		return this->first > other.first || (this->first == other.first && this->second > other.second);
+	}
+	inline bool operator<=(const SourceLocationImpl& other) const noexcept
+	{
+		return this->operator<(other) || this->operator==(other);
+	}
+	inline bool operator>=(const SourceLocationImpl& other) const noexcept
+	{
+		return this->operator>(other) || this->operator==(other);
+	}
+
+	//
+	// Arithmetic operations.
+	//
+
+	SourceLocationImpl operator+(const SourceLocationImpl& other) const noexcept
+	{
+		return self_type{ this->first + other.first, this->second + other.second };
+	}
+	SourceLocationImpl operator-(const SourceLocationImpl& other) const noexcept
+	{
+		return self_type{ this->first - other.first, this->second - other.second };
 	}
 };
 
