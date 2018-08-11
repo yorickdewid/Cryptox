@@ -92,7 +92,7 @@ void BinaryOperator::Emplace(size_t idx, const std::shared_ptr<ASTNode>&& node)
 	ASTNode::UpdateDelegate();
 }
 
-void BinaryOperator::Serialize(Serializable::Interface& pack)
+void BinaryOperator::Serialize(Serializable::VisitorInterface& pack)
 {
 	pack << nodeId;
 	pack << m_operand;
@@ -108,7 +108,7 @@ void BinaryOperator::Serialize(Serializable::Interface& pack)
 	Operator::Serialize(pack);
 }
 
-void BinaryOperator::Deserialize(Serializable::Interface& pack)
+void BinaryOperator::Deserialize(Serializable::VisitorInterface& pack)
 {
 	NodeID _nodeId;
 	pack >> _nodeId;
@@ -181,7 +181,7 @@ void ConditionalOperator::SetAltCompound(const std::shared_ptr<ASTNode>& node)
 	ASTNode::UpdateDelegate();
 }
 
-void ConditionalOperator::Serialize(Serializable::Interface& pack)
+void ConditionalOperator::Serialize(Serializable::VisitorInterface& pack)
 {
 	pack << nodeId;
 
@@ -200,7 +200,7 @@ void ConditionalOperator::Serialize(Serializable::Interface& pack)
 	Operator::Serialize(pack);
 }
 
-void ConditionalOperator::Deserialize(Serializable::Interface& pack)
+void ConditionalOperator::Deserialize(Serializable::VisitorInterface& pack)
 {
 	NodeID _nodeId;
 	pack >> _nodeId;
@@ -266,7 +266,7 @@ UnaryOperator::UnaryOperator(UnaryOperand operand, OperandSide side, const std::
 	m_body = node;
 }
 
-void UnaryOperator::Serialize(Serializable::Interface& pack)
+void UnaryOperator::Serialize(Serializable::VisitorInterface& pack)
 {
 	pack << nodeId;
 	pack << m_operand;
@@ -279,7 +279,7 @@ void UnaryOperator::Serialize(Serializable::Interface& pack)
 	Operator::Serialize(pack);
 }
 
-void UnaryOperator::Deserialize(Serializable::Interface& pack)
+void UnaryOperator::Deserialize(Serializable::VisitorInterface& pack)
 {
 	NodeID _nodeId;
 	pack >> _nodeId;
@@ -356,7 +356,7 @@ void CompoundAssignOperator::SetRightSide(const std::shared_ptr<ASTNode>& node)
 	ASTNode::UpdateDelegate();
 }
 
-void CompoundAssignOperator::Serialize(Serializable::Interface& pack)
+void CompoundAssignOperator::Serialize(Serializable::VisitorInterface& pack)
 {
 	pack << nodeId;
 	pack << m_operand;
@@ -372,7 +372,7 @@ void CompoundAssignOperator::Serialize(Serializable::Interface& pack)
 	Operator::Serialize(pack);
 }
 
-void CompoundAssignOperator::Deserialize(Serializable::Interface& pack)
+void CompoundAssignOperator::Deserialize(Serializable::VisitorInterface& pack)
 {
 	NodeID _nodeId;
 	pack >> _nodeId;

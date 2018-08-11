@@ -101,7 +101,7 @@ BOOST_AUTO_TEST_CASE(ASTIterator)
 	}
 }
 
-class NodePacker final : public Serializable::Interface
+class NodePacker final : public Serializable::VisitorInterface
 {
 	Cry::ByteArray buffer;
 	std::map<IdType, std::function<void(const std::shared_ptr<ASTNode>&)>> callbacks;

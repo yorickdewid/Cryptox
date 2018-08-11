@@ -32,7 +32,7 @@ void ReturnStmt::Emplace(size_t idx, const std::shared_ptr<ASTNode>&& node)
 	ASTNode::UpdateDelegate();
 }
 
-void ReturnStmt::Serialize(Serializable::Interface& pack)
+void ReturnStmt::Serialize(Serializable::VisitorInterface& pack)
 {
 	pack << nodeId;
 
@@ -43,7 +43,7 @@ void ReturnStmt::Serialize(Serializable::Interface& pack)
 	Stmt::Serialize(pack);
 }
 
-void ReturnStmt::Deserialize(Serializable::Interface& pack)
+void ReturnStmt::Deserialize(Serializable::VisitorInterface& pack)
 {
 	NodeID _nodeId;
 	pack >> _nodeId;
@@ -91,7 +91,7 @@ void IfStmt::SetAltCompound(const std::shared_ptr<ASTNode>& node)
 	ASTNode::UpdateDelegate();
 }
 
-void IfStmt::Serialize(Serializable::Interface& pack)
+void IfStmt::Serialize(Serializable::VisitorInterface& pack)
 {
 	pack << nodeId;
 
@@ -110,7 +110,7 @@ void IfStmt::Serialize(Serializable::Interface& pack)
 	Stmt::Serialize(pack);
 }
 
-void IfStmt::Deserialize(Serializable::Interface& pack)
+void IfStmt::Deserialize(Serializable::VisitorInterface& pack)
 {
 	NodeID _nodeId;
 	pack >> _nodeId;
@@ -172,7 +172,7 @@ void SwitchStmt::SetBody(const std::shared_ptr<ASTNode>& node)
 	ASTNode::UpdateDelegate();
 }
 
-void SwitchStmt::Serialize(Serializable::Interface& pack)
+void SwitchStmt::Serialize(Serializable::VisitorInterface& pack)
 {
 	pack << nodeId;
 
@@ -187,7 +187,7 @@ void SwitchStmt::Serialize(Serializable::Interface& pack)
 	Stmt::Serialize(pack);
 }
 
-void SwitchStmt::Deserialize(Serializable::Interface& pack)
+void SwitchStmt::Deserialize(Serializable::VisitorInterface& pack)
 {
 	NodeID _nodeId;
 	pack >> _nodeId;
@@ -227,7 +227,7 @@ void WhileStmt::SetBody(const std::shared_ptr<ASTNode>& node)
 	ASTNode::UpdateDelegate();
 }
 
-void WhileStmt::Serialize(Serializable::Interface& pack)
+void WhileStmt::Serialize(Serializable::VisitorInterface& pack)
 {
 	pack << nodeId;
 
@@ -242,7 +242,7 @@ void WhileStmt::Serialize(Serializable::Interface& pack)
 	Stmt::Serialize(pack);
 }
 
-void WhileStmt::Deserialize(Serializable::Interface& pack)
+void WhileStmt::Deserialize(Serializable::VisitorInterface& pack)
 {
 	NodeID _nodeId;
 	pack >> _nodeId;
@@ -282,7 +282,7 @@ void DoStmt::SetEval(const std::shared_ptr<ASTNode>& node)
 	ASTNode::UpdateDelegate();
 }
 
-void DoStmt::Serialize(Serializable::Interface& pack)
+void DoStmt::Serialize(Serializable::VisitorInterface& pack)
 {
 	pack << nodeId;
 
@@ -297,7 +297,7 @@ void DoStmt::Serialize(Serializable::Interface& pack)
 	Stmt::Serialize(pack);
 }
 
-void DoStmt::Deserialize(Serializable::Interface& pack)
+void DoStmt::Deserialize(Serializable::VisitorInterface& pack)
 {
 	NodeID _nodeId;
 	pack >> _nodeId;
@@ -336,7 +336,7 @@ void ForStmt::SetBody(const std::shared_ptr<ASTNode>& node)
 	ASTNode::UpdateDelegate();
 }
 
-void ForStmt::Serialize(Serializable::Interface& pack)
+void ForStmt::Serialize(Serializable::VisitorInterface& pack)
 {
 	pack << nodeId;
 
@@ -359,7 +359,7 @@ void ForStmt::Serialize(Serializable::Interface& pack)
 	Stmt::Serialize(pack);
 }
 
-void ForStmt::Deserialize(Serializable::Interface& pack)
+void ForStmt::Deserialize(Serializable::VisitorInterface& pack)
 {
 	NodeID _nodeId;
 	pack >> _nodeId;
@@ -398,7 +398,7 @@ DefaultStmt::DefaultStmt(const std::shared_ptr<ASTNode>& body)
 	ASTNode::AppendChild(body);
 }
 
-void DefaultStmt::Serialize(Serializable::Interface& pack)
+void DefaultStmt::Serialize(Serializable::VisitorInterface& pack)
 {
 	pack << nodeId;
 
@@ -409,7 +409,7 @@ void DefaultStmt::Serialize(Serializable::Interface& pack)
 	Stmt::Serialize(pack);
 }
 
-void DefaultStmt::Deserialize(Serializable::Interface& pack)
+void DefaultStmt::Deserialize(Serializable::VisitorInterface& pack)
 {
 	NodeID _nodeId;
 	pack >> _nodeId;
@@ -433,7 +433,7 @@ CaseStmt::CaseStmt(std::shared_ptr<ASTNode>& name, std::shared_ptr<ASTNode>& bod
 	ASTNode::AppendChild(body);
 }
 
-void CaseStmt::Serialize(Serializable::Interface& pack)
+void CaseStmt::Serialize(Serializable::VisitorInterface& pack)
 {
 	pack << nodeId;
 
@@ -448,7 +448,7 @@ void CaseStmt::Serialize(Serializable::Interface& pack)
 	Stmt::Serialize(pack);
 }
 
-void CaseStmt::Deserialize(Serializable::Interface& pack)
+void CaseStmt::Deserialize(Serializable::VisitorInterface& pack)
 {
 	NodeID _nodeId;
 	pack >> _nodeId;
@@ -478,7 +478,7 @@ void DeclStmt::AddDeclaration(const std::shared_ptr<VarDecl>& node)
 	ASTNode::UpdateDelegate();
 }
 
-void DeclStmt::Serialize(Serializable::Interface& pack)
+void DeclStmt::Serialize(Serializable::VisitorInterface& pack)
 {
 	pack << nodeId;
 
@@ -491,7 +491,7 @@ void DeclStmt::Serialize(Serializable::Interface& pack)
 	Stmt::Serialize(pack);
 }
 
-void DeclStmt::Deserialize(Serializable::Interface& pack)
+void DeclStmt::Deserialize(Serializable::VisitorInterface& pack)
 {
 	NodeID _nodeId;
 	pack >> _nodeId;
@@ -530,7 +530,7 @@ void ArgumentStmt::Emplace(size_t idx, const std::shared_ptr<ASTNode>&& node)
 	ASTNode::UpdateDelegate();
 }
 
-void ArgumentStmt::Serialize(Serializable::Interface& pack)
+void ArgumentStmt::Serialize(Serializable::VisitorInterface& pack)
 {
 	pack << nodeId;
 
@@ -543,7 +543,7 @@ void ArgumentStmt::Serialize(Serializable::Interface& pack)
 	Stmt::Serialize(pack);
 }
 
-void ArgumentStmt::Deserialize(Serializable::Interface& pack)
+void ArgumentStmt::Deserialize(Serializable::VisitorInterface& pack)
 {
 	NodeID _nodeId;
 	pack >> _nodeId;
@@ -570,7 +570,7 @@ void ParamStmt::AppendParamter(const std::shared_ptr<ASTNode>& node)
 	ASTNode::UpdateDelegate();
 }
 
-void ParamStmt::Serialize(Serializable::Interface& pack)
+void ParamStmt::Serialize(Serializable::VisitorInterface& pack)
 {
 	pack << nodeId;
 
@@ -583,7 +583,7 @@ void ParamStmt::Serialize(Serializable::Interface& pack)
 	Stmt::Serialize(pack);
 }
 
-void ParamStmt::Deserialize(Serializable::Interface& pack)
+void ParamStmt::Deserialize(Serializable::VisitorInterface& pack)
 {
 	NodeID _nodeId;
 	pack >> _nodeId;
@@ -608,7 +608,7 @@ LabelStmt::LabelStmt(const std::string& name, std::shared_ptr<ASTNode>& node)
 	ASTNode::AppendChild(node);
 }
 
-void LabelStmt::Serialize(Serializable::Interface& pack)
+void LabelStmt::Serialize(Serializable::VisitorInterface& pack)
 {
 	pack << nodeId;
 	pack << m_name;
@@ -620,7 +620,7 @@ void LabelStmt::Serialize(Serializable::Interface& pack)
 	Stmt::Serialize(pack);
 }
 
-void LabelStmt::Deserialize(Serializable::Interface& pack)
+void LabelStmt::Deserialize(Serializable::VisitorInterface& pack)
 {
 	NodeID _nodeId;
 	pack >> _nodeId;
@@ -643,14 +643,14 @@ GotoStmt::GotoStmt(const std::string& name)
 {
 }
 
-void GotoStmt::Serialize(Serializable::Interface& pack)
+void GotoStmt::Serialize(Serializable::VisitorInterface& pack)
 {
 	pack << nodeId;
 	pack << m_labelName;
 	Stmt::Serialize(pack);
 }
 
-void GotoStmt::Deserialize(Serializable::Interface& pack)
+void GotoStmt::Deserialize(Serializable::VisitorInterface& pack)
 {
 	NodeID _nodeId;
 	pack >> _nodeId;
@@ -675,7 +675,7 @@ void CompoundStmt::AppendChild(const std::shared_ptr<ASTNode>& node)
 	ASTNode::UpdateDelegate();
 }
 
-void CompoundStmt::Serialize(Serializable::Interface& pack)
+void CompoundStmt::Serialize(Serializable::VisitorInterface& pack)
 {
 	pack << nodeId;
 
@@ -688,7 +688,7 @@ void CompoundStmt::Serialize(Serializable::Interface& pack)
 	Stmt::Serialize(pack);
 }
 
-void CompoundStmt::Deserialize(Serializable::Interface& pack)
+void CompoundStmt::Deserialize(Serializable::VisitorInterface& pack)
 {
 	NodeID _nodeId;
 	pack >> _nodeId;

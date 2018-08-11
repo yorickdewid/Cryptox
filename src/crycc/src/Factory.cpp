@@ -18,7 +18,7 @@ namespace
 {
 
 template<typename NodeType, typename = typename std::enable_if<std::is_base_of<ASTNode, NodeType>::value>::type>
-ASTNodeType ReturnNode(Serializable::Interface *visitor)
+ASTNodeType ReturnNode(Serializable::VisitorInterface *visitor)
 {
 	std::shared_ptr<ASTNode> node = std::make_shared<NodeType>(*visitor);
 	visitor->FireDependencies(node);
@@ -27,7 +27,7 @@ ASTNodeType ReturnNode(Serializable::Interface *visitor)
 
 } // namespace
 
-std::shared_ptr<ASTNode> ASTFactory::MakeNode(Serializable::Interface *visitor)
+std::shared_ptr<ASTNode> ASTFactory::MakeNode(Serializable::VisitorInterface *visitor)
 {
 	switch (visitor->GetNodeId())
 	{

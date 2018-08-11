@@ -48,7 +48,7 @@ struct Serializable
 	// operations. The interface must be implemented by the caller and is
 	// invoked by the callee (node) and includes both serialization and 
 	// deserialization methods.
-	class Interface
+	class VisitorInterface
 	{
 		GroupListType m_childGroups;
 
@@ -179,9 +179,9 @@ struct Serializable
 	};
 
 	// Serialize interface.
-	virtual void Serialize(Interface&) = 0;
+	virtual void Serialize(VisitorInterface&) = 0;
 	// Deserialize interface.
-	virtual void Deserialize(Interface&) = 0;
+	virtual void Deserialize(VisitorInterface&) = 0;
 
 protected:
 	// Test if te node matches the node id. If not throw an exception.

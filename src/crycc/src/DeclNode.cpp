@@ -15,7 +15,7 @@ namespace CryCC
 namespace AST
 {
 
-void Decl::Serialize(Serializable::Interface& pack)
+void Decl::Serialize(Serializable::VisitorInterface& pack)
 {
 	pack << nodeId;
 	pack << m_identifier;
@@ -33,7 +33,7 @@ void Decl::Serialize(Serializable::Interface& pack)
 	ASTNode::Serialize(pack);
 }
 
-void Decl::Deserialize(Serializable::Interface& pack)
+void Decl::Deserialize(Serializable::VisitorInterface& pack)
 {
 	NodeID _nodeId;
 	pack >> _nodeId;
@@ -71,7 +71,7 @@ void VarDecl::Emplace(size_t idx, const std::shared_ptr<ASTNode>&& node)
 	ASTNode::UpdateDelegate();
 }
 
-void VarDecl::Serialize(Serializable::Interface& pack)
+void VarDecl::Serialize(Serializable::VisitorInterface& pack)
 {
 	pack << nodeId;
 
@@ -82,7 +82,7 @@ void VarDecl::Serialize(Serializable::Interface& pack)
 	Decl::Serialize(pack);
 }
 
-void VarDecl::Deserialize(Serializable::Interface& pack)
+void VarDecl::Deserialize(Serializable::VisitorInterface& pack)
 {
 	NodeID _nodeId;
 	pack >> _nodeId;
@@ -115,13 +115,13 @@ const std::string VarDecl::NodeName() const
 }
 
 
-void ParamDecl::Serialize(Serializable::Interface& pack)
+void ParamDecl::Serialize(Serializable::VisitorInterface& pack)
 {
 	pack << nodeId;
 	Decl::Serialize(pack);
 }
 
-void ParamDecl::Deserialize(Serializable::Interface& pack)
+void ParamDecl::Deserialize(Serializable::VisitorInterface& pack)
 {
 	NodeID _nodeId;
 	pack >> _nodeId;
@@ -142,13 +142,13 @@ const std::string ParamDecl::NodeName() const
 }
 
 
-void VariadicDecl::Serialize(Serializable::Interface& pack)
+void VariadicDecl::Serialize(Serializable::VisitorInterface& pack)
 {
 	pack << nodeId;
 	ASTNode::Serialize(pack);
 }
 
-void VariadicDecl::Deserialize(Serializable::Interface& pack)
+void VariadicDecl::Deserialize(Serializable::VisitorInterface& pack)
 {
 	NodeID _nodeId;
 
@@ -164,13 +164,13 @@ TypedefDecl::TypedefDecl(const std::string& name, std::shared_ptr<Typedef::Typed
 {
 }
 
-void TypedefDecl::Serialize(Serializable::Interface& pack)
+void TypedefDecl::Serialize(Serializable::VisitorInterface& pack)
 {
 	pack << nodeId;
 	ASTNode::Serialize(pack);
 }
 
-void TypedefDecl::Deserialize(Serializable::Interface& pack)
+void TypedefDecl::Deserialize(Serializable::VisitorInterface& pack)
 {
 	NodeID _nodeId;
 	pack >> _nodeId;
@@ -204,7 +204,7 @@ void FieldDecl::SetBitField(const std::shared_ptr<IntegerLiteral>& node)
 	ASTNode::UpdateDelegate();
 }
 
-void FieldDecl::Serialize(Serializable::Interface& pack)
+void FieldDecl::Serialize(Serializable::VisitorInterface& pack)
 {
 	pack << nodeId;
 
@@ -215,7 +215,7 @@ void FieldDecl::Serialize(Serializable::Interface& pack)
 	Decl::Serialize(pack);
 }
 
-void FieldDecl::Deserialize(Serializable::Interface& pack)
+void FieldDecl::Deserialize(Serializable::VisitorInterface& pack)
 {
 	NodeID _nodeId;
 	pack >> _nodeId;
@@ -275,7 +275,7 @@ RecordDecl::RecordType RecordDecl::Type() const
 	return m_type;
 }
 
-void RecordDecl::Serialize(Serializable::Interface& pack)
+void RecordDecl::Serialize(Serializable::VisitorInterface& pack)
 {
 	pack << nodeId;
 	pack << m_type;
@@ -289,7 +289,7 @@ void RecordDecl::Serialize(Serializable::Interface& pack)
 	Decl::Serialize(pack);
 }
 
-void RecordDecl::Deserialize(Serializable::Interface& pack)
+void RecordDecl::Deserialize(Serializable::VisitorInterface& pack)
 {
 	NodeID _nodeId;
 	pack >> _nodeId;
@@ -336,7 +336,7 @@ void EnumConstantDecl::SetAssignment(std::shared_ptr<ASTNode>& node)
 	ASTNode::UpdateDelegate();
 }
 
-void EnumConstantDecl::Serialize(Serializable::Interface& pack)
+void EnumConstantDecl::Serialize(Serializable::VisitorInterface& pack)
 {
 	pack << nodeId;
 
@@ -347,7 +347,7 @@ void EnumConstantDecl::Serialize(Serializable::Interface& pack)
 	ASTNode::Serialize(pack);
 }
 
-void EnumConstantDecl::Deserialize(Serializable::Interface& pack)
+void EnumConstantDecl::Deserialize(Serializable::VisitorInterface& pack)
 {
 	NodeID _nodeId;
 
@@ -397,7 +397,7 @@ void EnumDecl::AddConstant(std::shared_ptr<EnumConstantDecl>& node)
 	ASTNode::UpdateDelegate();
 }
 
-void EnumDecl::Serialize(Serializable::Interface& pack)
+void EnumDecl::Serialize(Serializable::VisitorInterface& pack)
 {
 	pack << nodeId;
 
@@ -410,7 +410,7 @@ void EnumDecl::Serialize(Serializable::Interface& pack)
 	ASTNode::Serialize(pack);
 }
 
-void EnumDecl::Deserialize(Serializable::Interface& pack)
+void EnumDecl::Deserialize(Serializable::VisitorInterface& pack)
 {
 	NodeID _nodeId;
 
@@ -488,7 +488,7 @@ void FunctionDecl::BindPrototype(const std::shared_ptr<FunctionDecl>& node)
 	m_protoRef = node;
 }
 
-void FunctionDecl::Serialize(Serializable::Interface& pack)
+void FunctionDecl::Serialize(Serializable::VisitorInterface& pack)
 {
 	pack << nodeId;
 	pack << m_isPrototype;
@@ -515,7 +515,7 @@ void FunctionDecl::Serialize(Serializable::Interface& pack)
 	Decl::Serialize(pack);
 }
 
-void FunctionDecl::Deserialize(Serializable::Interface& pack)
+void FunctionDecl::Deserialize(Serializable::VisitorInterface& pack)
 {
 	NodeID _nodeId;
 
@@ -603,7 +603,7 @@ void TranslationUnitDecl::AppendChild(const std::shared_ptr<ASTNode>& node)
 	ASTNode::UpdateDelegate();
 }
 
-void TranslationUnitDecl::Serialize(Serializable::Interface& pack)
+void TranslationUnitDecl::Serialize(Serializable::VisitorInterface& pack)
 {
 	pack << nodeId;
 
@@ -616,7 +616,7 @@ void TranslationUnitDecl::Serialize(Serializable::Interface& pack)
 	Decl::Serialize(pack);
 }
 
-void TranslationUnitDecl::Deserialize(Serializable::Interface& pack)
+void TranslationUnitDecl::Deserialize(Serializable::VisitorInterface& pack)
 {
 	NodeID _nodeId;
 	pack >> _nodeId;

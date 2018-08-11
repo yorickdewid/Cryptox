@@ -21,7 +21,7 @@ struct ASTFactory
 	{
 	};
 
-	static std::shared_ptr<ASTNode> MakeNode(Serializable::Interface *visitor);
+	static std::shared_ptr<ASTNode> MakeNode(Serializable::VisitorInterface *visitor);
 };
 
 } // namespace AST

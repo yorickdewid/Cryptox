@@ -11,6 +11,10 @@
 #include <iostream>
 #include <map>
 
+// TODO:
+// - Visitor can be simplified
+// - Split AIIPX and visitor
+
 namespace CoilCl
 {
 namespace Emit
@@ -29,7 +33,7 @@ using InputCallback = std::function<void(uint8_t *data, size_t sz)>;
 
 class ChildGroup;
 
-class Visitor final : public Serializable::Interface
+class Visitor final : public Serializable::VisitorInterface
 {
 	int level;
 	int nodeId;
@@ -296,8 +300,8 @@ Visitor::Visitor()
 {
 }
 
-Visitor::Visitor(InputCallback& _inputCallback)
-	: inputCallback{ _inputCallback }
+Visitor::Visitor(InputCallback& inputCallback)
+	: inputCallback{ inputCallback }
 	, level{ 0 }
 	, nodeId{ 0 }
 	, parentId{ 0 }
@@ -344,11 +348,11 @@ Serializable::GroupListType Visitor::GetChildGroups()
 	return group;
 }
 
-// !!!!!!!!!!!!! THIS IS A BUG IN THE MAKING, TODO, FIXME
 NodeID Visitor::GetNodeId()
 {
 	NodeID node;
 	ReadProxy(reinterpret_cast<char *>(&node), sizeof(NodeID));
+	WriteProxy(reinterpret_cast<const char *>(&node), sizeof(NodeID));
 	return node;
 }
 
@@ -402,7 +406,7 @@ void CompressNode(ASTNode *node, Visitor visitor, OutputCallback callback)
 
 AST UncompressNode(Visitor *visitor, InputCallback callback)
 {
-	std::shared_ptr<ASTNode> root;
+	ASTNodeType root;
 
 	try
 	{
@@ -418,7 +422,7 @@ AST UncompressNode(Visitor *visitor, InputCallback callback)
 			}
 		} while (true);
 	}
-	catch (ASTFactory::EndOfStreamException&)
+	catch (ASTFactory::InvalidStreamException&)
 	{
 		// Return root as program tree. The AST wrapper
 		// will incorporate the root as tree.

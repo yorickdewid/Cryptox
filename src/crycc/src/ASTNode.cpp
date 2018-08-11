@@ -100,7 +100,7 @@ CryCC::SourceLocation ASTNode::Location() const
 	return m_location;
 }
 
-void ASTNode::Serialize(Serializable::Interface& pack)
+void ASTNode::Serialize(Serializable::VisitorInterface& pack)
 {
 	pack.SetId(UniqueObj::Id());
 	pack << nodeId;
@@ -113,7 +113,7 @@ void ASTNode::Serialize(Serializable::Interface& pack)
 	}*/
 }
 
-void ASTNode::Deserialize(Serializable::Interface& pack)
+void ASTNode::Deserialize(Serializable::VisitorInterface& pack)
 {
 	AST::NodeID _nodeId;
 	pack >> _nodeId;

@@ -20,14 +20,14 @@ ResolveRefExpr::ResolveRefExpr(const std::string& identifier)
 {
 }
 
-void ResolveRefExpr::Serialize(Serializable::Interface& pack)
+void ResolveRefExpr::Serialize(Serializable::VisitorInterface& pack)
 {
 	pack << nodeId;
 	pack << m_identifier;
 	Expr::Serialize(pack);
 }
 
-void ResolveRefExpr::Deserialize(Serializable::Interface& pack)
+void ResolveRefExpr::Deserialize(Serializable::VisitorInterface& pack)
 {
 	NodeID _nodeId;
 	pack >> _nodeId;
@@ -76,7 +76,7 @@ Typedef::TypeFacade& DeclRefExpr::UpdateReturnType()
 	return Reference()->UpdateReturnType();
 }
 
-void DeclRefExpr::Serialize(Serializable::Interface& pack)
+void DeclRefExpr::Serialize(Serializable::VisitorInterface& pack)
 {
 	pack << nodeId;
 
@@ -87,7 +87,7 @@ void DeclRefExpr::Serialize(Serializable::Interface& pack)
 	ResolveRefExpr::Serialize(pack);
 }
 
-void DeclRefExpr::Deserialize(Serializable::Interface& pack)
+void DeclRefExpr::Deserialize(Serializable::VisitorInterface& pack)
 {
 	NodeID _nodeId;
 	pack >> _nodeId;
@@ -121,7 +121,7 @@ const std::string DeclRefExpr::NodeName() const
 }
 
 
-void CallExpr::Serialize(Serializable::Interface& pack)
+void CallExpr::Serialize(Serializable::VisitorInterface& pack)
 {
 	pack << nodeId;
 
@@ -136,7 +136,7 @@ void CallExpr::Serialize(Serializable::Interface& pack)
 	Expr::Serialize(pack);
 }
 
-void CallExpr::Deserialize(Serializable::Interface& pack)
+void CallExpr::Deserialize(Serializable::VisitorInterface& pack)
 {
 	NodeID _nodeId;
 	pack >> _nodeId;
@@ -196,7 +196,7 @@ void BuiltinExpr::SetTypename(std::shared_ptr<Typedef::TypedefBase>& type)
 	m_typenameType = type;
 }
 
-void BuiltinExpr::Serialize(Serializable::Interface& pack)
+void BuiltinExpr::Serialize(Serializable::VisitorInterface& pack)
 {
 	pack << nodeId;
 
@@ -209,7 +209,7 @@ void BuiltinExpr::Serialize(Serializable::Interface& pack)
 	Expr::Serialize(pack);
 }
 
-void BuiltinExpr::Deserialize(Serializable::Interface& pack)
+void BuiltinExpr::Deserialize(Serializable::VisitorInterface& pack)
 {
 	NodeID _nodeId;
 	pack >> _nodeId;
@@ -241,7 +241,7 @@ CastExpr::CastExpr(std::shared_ptr<ASTNode>& node, std::shared_ptr<Typedef::Type
 	m_body = node;
 }
 
-void CastExpr::Serialize(Serializable::Interface& pack)
+void CastExpr::Serialize(Serializable::VisitorInterface& pack)
 {
 	pack << nodeId;
 
@@ -254,7 +254,7 @@ void CastExpr::Serialize(Serializable::Interface& pack)
 	Expr::Serialize(pack);
 }
 
-void CastExpr::Deserialize(Serializable::Interface& pack)
+void CastExpr::Deserialize(Serializable::VisitorInterface& pack)
 {
 	NodeID _nodeId;
 	pack >> _nodeId;
@@ -298,7 +298,7 @@ ImplicitConvertionExpr::ImplicitConvertionExpr(std::shared_ptr<ASTNode>& node, C
 	ASTNode::AppendChild(node);
 }
 
-void ImplicitConvertionExpr::Serialize(Serializable::Interface& pack)
+void ImplicitConvertionExpr::Serialize(Serializable::VisitorInterface& pack)
 {
 	pack << nodeId;
 
@@ -311,7 +311,7 @@ void ImplicitConvertionExpr::Serialize(Serializable::Interface& pack)
 	Expr::Serialize(pack);
 }
 
-void ImplicitConvertionExpr::Deserialize(Serializable::Interface& pack)
+void ImplicitConvertionExpr::Deserialize(Serializable::VisitorInterface& pack)
 {
 	NodeID _nodeId;
 	pack >> _nodeId;
@@ -347,7 +347,7 @@ ParenExpr::ParenExpr(std::shared_ptr<ASTNode>& node)
 	ASTNode::AppendChild(node);
 }
 
-void ParenExpr::Serialize(Serializable::Interface& pack)
+void ParenExpr::Serialize(Serializable::VisitorInterface& pack)
 {
 	pack << nodeId;
 
@@ -358,7 +358,7 @@ void ParenExpr::Serialize(Serializable::Interface& pack)
 	Expr::Serialize(pack);
 }
 
-void ParenExpr::Deserialize(Serializable::Interface& pack)
+void ParenExpr::Deserialize(Serializable::VisitorInterface& pack)
 {
 	NodeID _nodeId;
 	pack >> _nodeId;
@@ -400,7 +400,7 @@ void InitListExpr::AddListItem(const std::shared_ptr<ASTNode>& node)
 	ASTNode::UpdateDelegate();
 }
 
-void InitListExpr::Serialize(Serializable::Interface& pack)
+void InitListExpr::Serialize(Serializable::VisitorInterface& pack)
 {
 	pack << nodeId;
 
@@ -413,7 +413,7 @@ void InitListExpr::Serialize(Serializable::Interface& pack)
 	Expr::Serialize(pack);
 }
 
-void InitListExpr::Deserialize(Serializable::Interface& pack)
+void InitListExpr::Deserialize(Serializable::VisitorInterface& pack)
 {
 	NodeID _nodeId;
 	pack >> _nodeId;
@@ -438,7 +438,7 @@ CompoundLiteralExpr::CompoundLiteralExpr(std::shared_ptr<InitListExpr>& node)
 	ASTNode::AppendChild(NODE_UPCAST(node));
 }
 
-void CompoundLiteralExpr::Serialize(Serializable::Interface& pack)
+void CompoundLiteralExpr::Serialize(Serializable::VisitorInterface& pack)
 {
 	pack << nodeId;
 
@@ -449,7 +449,7 @@ void CompoundLiteralExpr::Serialize(Serializable::Interface& pack)
 	Expr::Serialize(pack);
 }
 
-void CompoundLiteralExpr::Deserialize(Serializable::Interface& pack)
+void CompoundLiteralExpr::Deserialize(Serializable::VisitorInterface& pack)
 {
 	NodeID _nodeId;
 	pack >> _nodeId;
@@ -483,7 +483,7 @@ std::shared_ptr<DeclRefExpr> ArraySubscriptExpr::ArrayDeclaration() const noexce
 	return m_identifier;
 }
 
-void ArraySubscriptExpr::Serialize(Serializable::Interface& pack)
+void ArraySubscriptExpr::Serialize(Serializable::VisitorInterface& pack)
 {
 	pack << nodeId;
 
@@ -498,7 +498,7 @@ void ArraySubscriptExpr::Serialize(Serializable::Interface& pack)
 	Expr::Serialize(pack);
 }
 
-void ArraySubscriptExpr::Deserialize(Serializable::Interface& pack)
+void ArraySubscriptExpr::Deserialize(Serializable::VisitorInterface& pack)
 {
 	NodeID _nodeId;
 	pack >> _nodeId;
@@ -538,7 +538,7 @@ std::shared_ptr<DeclRefExpr> MemberExpr::RecordRef()
 	return m_record;
 }
 
-void MemberExpr::Serialize(Serializable::Interface& pack)
+void MemberExpr::Serialize(Serializable::VisitorInterface& pack)
 {
 	pack << nodeId;
 	pack << m_name;
@@ -551,7 +551,7 @@ void MemberExpr::Serialize(Serializable::Interface& pack)
 	Expr::Serialize(pack);
 }
 
-void MemberExpr::Deserialize(Serializable::Interface& pack)
+void MemberExpr::Deserialize(Serializable::VisitorInterface& pack)
 {
 	NodeID _nodeId;
 	pack >> _nodeId;

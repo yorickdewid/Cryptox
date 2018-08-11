@@ -22,7 +22,7 @@ void Serializable::AssertNode(const NodeID& got, const NodeID& exp)
 	}
 }
 
-Serializable::ChildGroupIterator Serializable::Interface::ChildGroups(SizeType size)
+Serializable::ChildGroupIterator Serializable::VisitorInterface::ChildGroups(SizeType size)
 {
 	// Create child groups.
 	if (size > 0) {

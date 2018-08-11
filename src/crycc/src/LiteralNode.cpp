@@ -15,7 +15,7 @@ namespace CryCC
 namespace AST
 {
 
-void Literal::Serialize(Serializable::Interface& pack)
+void Literal::Serialize(Serializable::VisitorInterface& pack)
 {
 	pack << nodeId;
 
@@ -32,7 +32,7 @@ void Literal::Serialize(Serializable::Interface& pack)
 	ASTNode::Serialize(pack);
 }
 
-void Literal::Deserialize(Serializable::Interface& pack)
+void Literal::Deserialize(Serializable::VisitorInterface& pack)
 {
 	NodeID _nodeId;
 	pack >> _nodeId;

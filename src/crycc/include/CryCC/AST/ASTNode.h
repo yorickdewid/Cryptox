@@ -60,13 +60,13 @@
 	virtual NodeID Label() const noexcept override { return nodeId; }
 
 #define SERIALIZE(p) \
-	virtual void Serialize(Serializable::Interface& pack) \
+	virtual void Serialize(Serializable::VisitorInterface& pack) \
 	{ \
 		pack << nodeId; p::Serialize(pack); \
 	}
 
 #define DESERIALIZE(p) \
-	virtual void Deserialize(Serializable::Interface& pack) \
+	virtual void Deserialize(Serializable::VisitorInterface& pack) \
 	{ \
 		NodeID _nodeId; pack >> _nodeId; AssertNode(_nodeId, nodeId); p::Deserialize(pack); \
 	}
@@ -215,9 +215,9 @@ public:
 	//
 
 	// Serialize base node.
-	virtual void Serialize(Serializable::Interface& pack);
+	virtual void Serialize(Serializable::VisitorInterface& pack);
 	// Deserialzie base node.
-	virtual void Deserialize(Serializable::Interface& pack);
+	virtual void Deserialize(Serializable::VisitorInterface& pack);
 
 protected:
 	virtual void AppendChild(const ASTNodeType& node)
@@ -300,7 +300,7 @@ public:
 public:
 	BinaryOperator(BinOperand operand, const ASTNodeType& leftSide);
 
-	explicit BinaryOperator(Serializable::Interface& pack)
+	explicit BinaryOperator(Serializable::VisitorInterface& pack)
 	{
 		Deserialize(pack);
 	}
@@ -314,8 +314,8 @@ public:
 
 	void Emplace(size_t idx, const ASTNodeType&& node) override;
 
-	virtual void Serialize(Serializable::Interface& pack);
-	virtual void Deserialize(Serializable::Interface& pack);
+	virtual void Serialize(Serializable::VisitorInterface& pack);
+	virtual void Deserialize(Serializable::VisitorInterface& pack);
 
 	LABEL();
 	const std::string NodeName() const;
@@ -336,7 +336,7 @@ class ConditionalOperator
 public:
 	ConditionalOperator(ASTNodeType& eval, ASTNodeType truth = nullptr, ASTNodeType alt = nullptr);
 
-	explicit ConditionalOperator(Serializable::Interface& pack)
+	explicit ConditionalOperator(Serializable::VisitorInterface& pack)
 	{
 		Deserialize(pack);
 	}
@@ -348,8 +348,8 @@ public:
 	void SetTruthCompound(const ASTNodeType& node); //TODO: rename to ...Statement
 	void SetAltCompound(const ASTNodeType& node);
 
-	virtual void Serialize(Serializable::Interface& pack);
-	virtual void Deserialize(Serializable::Interface& pack);
+	virtual void Serialize(Serializable::VisitorInterface& pack);
+	virtual void Deserialize(Serializable::VisitorInterface& pack);
 
 	LABEL();
 	virtual const std::string NodeName() const;
@@ -391,7 +391,7 @@ public:
 	};
 
 public:
-	explicit UnaryOperator(Serializable::Interface& pack)
+	explicit UnaryOperator(Serializable::VisitorInterface& pack)
 	{
 		Deserialize(pack);
 	}
@@ -403,8 +403,8 @@ public:
 	UnaryOperand Operand() const noexcept { return m_operand; };
 	OperandSide OperationSide() const noexcept { return m_side; };
 
-	virtual void Serialize(Serializable::Interface& pack);
-	virtual void Deserialize(Serializable::Interface& pack);
+	virtual void Serialize(Serializable::VisitorInterface& pack);
+	virtual void Deserialize(Serializable::VisitorInterface& pack);
 
 	virtual NodeID Label() const noexcept override { return nodeId; }
 	const std::string NodeName() const;
@@ -441,7 +441,7 @@ public:
 	const char *CompoundAssignOperandStr(CompoundAssignOperand operand) const;
 
 public:
-	explicit CompoundAssignOperator(Serializable::Interface& pack)
+	explicit CompoundAssignOperator(Serializable::VisitorInterface& pack)
 	{
 		Deserialize(pack);
 	}
@@ -452,8 +452,8 @@ public:
 
 	void SetRightSide(const ASTNodeType& node);
 
-	virtual void Serialize(Serializable::Interface& pack);
-	virtual void Deserialize(Serializable::Interface& pack);
+	virtual void Serialize(Serializable::VisitorInterface& pack);
+	virtual void Deserialize(Serializable::VisitorInterface& pack);
 
 	LABEL();
 	const std::string NodeName() const;
@@ -481,8 +481,8 @@ public:
 	}
 
 	//TODO: protected?
-	virtual void Serialize(Serializable::Interface& pack);
-	virtual void Deserialize(Serializable::Interface& pack);
+	virtual void Serialize(Serializable::VisitorInterface& pack);
+	virtual void Deserialize(Serializable::VisitorInterface& pack);
 
 protected:
 	virtual ~Literal() = 0;
@@ -499,13 +499,13 @@ protected:
 	{
 	}
 
-	explicit Literal(Serializable::Interface&)
+	explicit Literal(Serializable::VisitorInterface&)
 		: m_value{ Util::MakeInt(0) } //TOOD: temporary fix
 	{
 	}
 
 	template<NodeID NodeId>
-	void SerializeImpl(Serializable::Interface& pack)
+	void SerializeImpl(Serializable::VisitorInterface& pack)
 	{
 		pack << NodeId;
 
@@ -516,7 +516,7 @@ protected:
 	}
 
 	template<NodeID NodeId>
-	void DeserializeImpl(Serializable::Interface& pack)
+	void DeserializeImpl(Serializable::VisitorInterface& pack)
 	{
 		NodeID _nodeId;
 
@@ -554,7 +554,7 @@ class CharacterLiteral
 	NODE_ID(NodeID::CHARACTER_LITERAL_ID);
 
 public:
-	explicit CharacterLiteral(Serializable::Interface& pack)
+	explicit CharacterLiteral(Serializable::VisitorInterface& pack)
 		: Literal{ pack }
 	{
 		Deserialize(pack);
@@ -575,11 +575,11 @@ public:
 	{
 	}
 
-	virtual void Serialize(Serializable::Interface& pack)
+	virtual void Serialize(Serializable::VisitorInterface& pack)
 	{
 		SerializeImpl<NodeID::CHARACTER_LITERAL_ID>(pack);
 	}
-	virtual void Deserialize(Serializable::Interface& pack)
+	virtual void Deserialize(Serializable::VisitorInterface& pack)
 	{
 		DeserializeImpl<NodeID::CHARACTER_LITERAL_ID>(pack);
 	}
@@ -602,7 +602,7 @@ class StringLiteral
 	NODE_ID(NodeID::STRING_LITERAL_ID);
 
 public:
-	explicit StringLiteral(Serializable::Interface& pack)
+	explicit StringLiteral(Serializable::VisitorInterface& pack)
 		: Literal{ pack }
 	{
 		Deserialize(pack);
@@ -623,11 +623,11 @@ public:
 	{
 	}
 
-	virtual void Serialize(Serializable::Interface& pack)
+	virtual void Serialize(Serializable::VisitorInterface& pack)
 	{
 		SerializeImpl<NodeID::STRING_LITERAL_ID>(pack);
 	}
-	virtual void Deserialize(Serializable::Interface& pack)
+	virtual void Deserialize(Serializable::VisitorInterface& pack)
 	{
 		DeserializeImpl<NodeID::STRING_LITERAL_ID>(pack);
 	}
@@ -650,7 +650,7 @@ class IntegerLiteral
 	NODE_ID(NodeID::INTEGER_LITERAL_ID);
 
 public:
-	explicit IntegerLiteral(Serializable::Interface& pack)
+	explicit IntegerLiteral(Serializable::VisitorInterface& pack)
 		: Literal{ pack }
 	{
 		Deserialize(pack);
@@ -671,11 +671,11 @@ public:
 	{
 	}
 
-	virtual void Serialize(Serializable::Interface& pack)
+	virtual void Serialize(Serializable::VisitorInterface& pack)
 	{
 		SerializeImpl<NodeID::INTEGER_LITERAL_ID>(pack);
 	}
-	virtual void Deserialize(Serializable::Interface& pack)
+	virtual void Deserialize(Serializable::VisitorInterface& pack)
 	{
 		DeserializeImpl<NodeID::INTEGER_LITERAL_ID>(pack);
 	}
@@ -698,7 +698,7 @@ class FloatingLiteral
 	NODE_ID(NodeID::FLOAT_LITERAL_ID);
 
 public:
-	explicit FloatingLiteral(Serializable::Interface& pack)
+	explicit FloatingLiteral(Serializable::VisitorInterface& pack)
 		: Literal{ pack }
 	{
 		Deserialize(pack);
@@ -719,11 +719,11 @@ public:
 	{
 	}
 
-	virtual void Serialize(Serializable::Interface& pack)
+	virtual void Serialize(Serializable::VisitorInterface& pack)
 	{
 		SerializeImpl<NodeID::FLOAT_LITERAL_ID>(pack);
 	}
-	virtual void Deserialize(Serializable::Interface& pack)
+	virtual void Deserialize(Serializable::VisitorInterface& pack)
 	{
 		DeserializeImpl<NodeID::FLOAT_LITERAL_ID>(pack);
 	}
@@ -762,12 +762,12 @@ protected:
 	// Constructor only available for deserialization
 	// operations. This constructor should never be called
 	// direct, and is only available to derived classes.
-	explicit Decl(Serializable::Interface&)
+	explicit Decl(Serializable::VisitorInterface&)
 	{
 	}
 
-	virtual void Serialize(Serializable::Interface& pack);
-	virtual void Deserialize(Serializable::Interface& pack);
+	virtual void Serialize(Serializable::VisitorInterface& pack);
+	virtual void Deserialize(Serializable::VisitorInterface& pack);
 
 	//TODO: temp, remove afterwards
 	Decl(const std::string& name)
@@ -793,7 +793,7 @@ class VarDecl
 	ASTNodeType m_body;
 
 public:
-	explicit VarDecl(Serializable::Interface& pack)
+	explicit VarDecl(Serializable::VisitorInterface& pack)
 		: Decl{ pack }
 	{
 		Deserialize(pack);
@@ -806,8 +806,8 @@ public:
 
 	void Emplace(size_t idx, const ASTNodeType&& node) override;
 
-	virtual void Serialize(Serializable::Interface& pack);
-	virtual void Deserialize(Serializable::Interface& pack);
+	virtual void Serialize(Serializable::VisitorInterface& pack);
+	virtual void Deserialize(Serializable::VisitorInterface& pack);
 
 	LABEL();
 	virtual const std::string NodeName() const;
@@ -823,7 +823,7 @@ class ParamDecl
 	NODE_ID(NodeID::PARAM_DECL_ID);
 
 public:
-	explicit ParamDecl(Serializable::Interface& pack)
+	explicit ParamDecl(Serializable::VisitorInterface& pack)
 		: Decl{ pack }
 	{
 		Deserialize(pack);
@@ -839,8 +839,8 @@ public:
 	{
 	}
 
-	virtual void Serialize(Serializable::Interface& pack);
-	virtual void Deserialize(Serializable::Interface& pack);
+	virtual void Serialize(Serializable::VisitorInterface& pack);
+	virtual void Deserialize(Serializable::VisitorInterface& pack);
 
 	LABEL();
 	virtual const std::string NodeName() const;
@@ -856,7 +856,7 @@ class VariadicDecl
 	NODE_ID(NodeID::VARIADIC_DECL_ID);
 
 public:
-	explicit VariadicDecl(Serializable::Interface& pack)
+	explicit VariadicDecl(Serializable::VisitorInterface& pack)
 		: Decl{ pack }
 	{
 		Deserialize(pack);
@@ -867,8 +867,8 @@ public:
 	{
 	}
 
-	virtual void Serialize(Serializable::Interface& pack);
-	virtual void Deserialize(Serializable::Interface& pack);
+	virtual void Serialize(Serializable::VisitorInterface& pack);
+	virtual void Deserialize(Serializable::VisitorInterface& pack);
 
 	LABEL();
 	PRINT_NODE(VariadicDecl);
@@ -886,14 +886,14 @@ class TypedefDecl
 public:
 	TypedefDecl(const std::string& name, std::shared_ptr<Typedef::TypedefBase> type);
 
-	explicit TypedefDecl(Serializable::Interface& pack)
+	explicit TypedefDecl(Serializable::VisitorInterface& pack)
 		: Decl{ pack }
 	{
 		Deserialize(pack);
 	}
 
-	virtual void Serialize(Serializable::Interface& pack);
-	virtual void Deserialize(Serializable::Interface& pack);
+	virtual void Serialize(Serializable::VisitorInterface& pack);
+	virtual void Deserialize(Serializable::VisitorInterface& pack);
 
 	LABEL();
 	virtual const std::string NodeName() const;
@@ -910,7 +910,7 @@ class FieldDecl
 	std::shared_ptr<IntegerLiteral> m_bits;
 
 public:
-	explicit FieldDecl(Serializable::Interface& pack)
+	explicit FieldDecl(Serializable::VisitorInterface& pack)
 		: Decl{ pack }
 	{
 		Deserialize(pack);
@@ -920,8 +920,8 @@ public:
 
 	void SetBitField(const std::shared_ptr<IntegerLiteral>& node);
 
-	virtual void Serialize(Serializable::Interface& pack);
-	virtual void Deserialize(Serializable::Interface& pack);
+	virtual void Serialize(Serializable::VisitorInterface& pack);
+	virtual void Deserialize(Serializable::VisitorInterface& pack);
 
 	LABEL();
 	virtual const std::string NodeName() const;
@@ -948,7 +948,7 @@ private:
 	RecordType m_type = RecordType::STRUCT;
 
 public:
-	explicit RecordDecl(Serializable::Interface& pack)
+	explicit RecordDecl(Serializable::VisitorInterface& pack)
 		: Decl{ pack }
 	{
 		Deserialize(pack);
@@ -968,8 +968,8 @@ public:
 
 	RecordType Type() const;
 
-	virtual void Serialize(Serializable::Interface& pack);
-	virtual void Deserialize(Serializable::Interface& pack);
+	virtual void Serialize(Serializable::VisitorInterface& pack);
+	virtual void Deserialize(Serializable::VisitorInterface& pack);
 
 	LABEL();
 	virtual const std::string NodeName() const;
@@ -986,7 +986,7 @@ class EnumConstantDecl
 	ASTNodeType m_body;
 
 public:
-	explicit EnumConstantDecl(Serializable::Interface& pack)
+	explicit EnumConstantDecl(Serializable::VisitorInterface& pack)
 		: Decl{ pack }
 	{
 		Deserialize(pack);
@@ -996,8 +996,8 @@ public:
 
 	void SetAssignment(ASTNodeType& node);
 
-	virtual void Serialize(Serializable::Interface& pack);
-	virtual void Deserialize(Serializable::Interface& pack);
+	virtual void Serialize(Serializable::VisitorInterface& pack);
+	virtual void Deserialize(Serializable::VisitorInterface& pack);
 
 	LABEL();
 	const std::string NodeName() const;
@@ -1014,7 +1014,7 @@ class EnumDecl
 	std::vector<std::shared_ptr<EnumConstantDecl>> m_constants;
 
 public:
-	explicit EnumDecl(Serializable::Interface& pack)
+	explicit EnumDecl(Serializable::VisitorInterface& pack)
 		: Decl{ pack }
 	{
 		Deserialize(pack);
@@ -1028,8 +1028,8 @@ public:
 
 	void AddConstant(std::shared_ptr<EnumConstantDecl>& node);
 
-	virtual void Serialize(Serializable::Interface& pack);
-	virtual void Deserialize(Serializable::Interface& pack);
+	virtual void Serialize(Serializable::VisitorInterface& pack);
+	virtual void Deserialize(Serializable::VisitorInterface& pack);
 
 	LABEL();
 	const std::string NodeName() const;
@@ -1055,7 +1055,7 @@ class FunctionDecl
 #endif
 
 public:
-	explicit FunctionDecl(Serializable::Interface& pack)
+	explicit FunctionDecl(Serializable::VisitorInterface& pack)
 		: Decl{ pack }
 	{
 		Deserialize(pack);
@@ -1081,8 +1081,8 @@ public:
 	// Bind function body to prototype definition
 	void BindPrototype(const std::shared_ptr<FunctionDecl>& node);
 
-	virtual void Serialize(Serializable::Interface& pack);
-	virtual void Deserialize(Serializable::Interface& pack);
+	virtual void Serialize(Serializable::VisitorInterface& pack);
+	virtual void Deserialize(Serializable::VisitorInterface& pack);
 
 	LABEL();
 	const std::string NodeName() const;
@@ -1109,7 +1109,7 @@ public:
 	{
 	}
 
-	explicit TranslationUnitDecl(Serializable::Interface& pack)
+	explicit TranslationUnitDecl(Serializable::VisitorInterface& pack)
 		: Decl{ pack }
 	{
 		Deserialize(pack);
@@ -1117,8 +1117,8 @@ public:
 
 	void AppendChild(const ASTNodeType&) final;
 
-	virtual void Serialize(Serializable::Interface& pack);
-	virtual void Deserialize(Serializable::Interface& pack);
+	virtual void Serialize(Serializable::VisitorInterface& pack);
+	virtual void Deserialize(Serializable::VisitorInterface& pack);
 
 	LABEL();
 	PRINT_NODE(TranslationUnitDecl);
@@ -1158,8 +1158,8 @@ public:
 	std::string Identifier() const noexcept { return m_identifier; }
 
 protected:
-	virtual void Serialize(Serializable::Interface& pack);
-	virtual void Deserialize(Serializable::Interface& pack);
+	virtual void Serialize(Serializable::VisitorInterface& pack);
+	virtual void Deserialize(Serializable::VisitorInterface& pack);
 
 	LABEL();
 	const std::string NodeName() const;
@@ -1176,7 +1176,7 @@ class DeclRefExpr
 	std::weak_ptr<Decl> m_ref; //TODO: expand to AST::ASTNode
 
 public:
-	explicit DeclRefExpr(Serializable::Interface& pack)
+	explicit DeclRefExpr(Serializable::VisitorInterface& pack)
 	{
 		Deserialize(pack);
 	}
@@ -1209,8 +1209,8 @@ public:
 
 	Typedef::TypeFacade& UpdateReturnType() override;
 
-	virtual void Serialize(Serializable::Interface& pack);
-	virtual void Deserialize(Serializable::Interface& pack);
+	virtual void Serialize(Serializable::VisitorInterface& pack);
+	virtual void Deserialize(Serializable::VisitorInterface& pack);
 
 	LABEL();
 	const std::string NodeName() const;
@@ -1230,7 +1230,7 @@ class CallExpr
 	std::shared_ptr<ArgumentStmt> m_args;
 
 public:
-	explicit CallExpr(Serializable::Interface& pack)
+	explicit CallExpr(Serializable::VisitorInterface& pack)
 	{
 		Deserialize(pack);
 	}
@@ -1247,8 +1247,8 @@ public:
 		}
 	}
 
-	virtual void Serialize(Serializable::Interface& pack);
-	virtual void Deserialize(Serializable::Interface& pack);
+	virtual void Serialize(Serializable::VisitorInterface& pack);
+	virtual void Deserialize(Serializable::VisitorInterface& pack);
 
 	LABEL();
 	const std::string NodeName() const;
@@ -1276,7 +1276,7 @@ class BuiltinExpr final
 
 public:
 	//TODO:?
-	/*explicit BuiltinExpr(Serializable::Interface& pack)
+	/*explicit BuiltinExpr(Serializable::VisitorInterface& pack)
 	{
 		Deserialize(pack);
 	}*/
@@ -1293,8 +1293,8 @@ public:
 	auto Expression() const { return m_body; }
 	auto TypeName() const { return m_typenameType; }
 
-	virtual void Serialize(Serializable::Interface& pack);
-	virtual void Deserialize(Serializable::Interface& pack);
+	virtual void Serialize(Serializable::VisitorInterface& pack);
+	virtual void Deserialize(Serializable::VisitorInterface& pack);
 
 	LABEL();
 	const std::string NodeName() const final;
@@ -1332,7 +1332,7 @@ class CastExpr
 	ASTNodeType m_body;
 
 public:
-	explicit CastExpr(Serializable::Interface& pack)
+	explicit CastExpr(Serializable::VisitorInterface& pack)
 	{
 		Deserialize(pack);
 	}
@@ -1341,8 +1341,8 @@ public:
 
 	auto& Expression() const { return m_body; }
 
-	virtual void Serialize(Serializable::Interface& pack);
-	virtual void Deserialize(Serializable::Interface& pack);
+	virtual void Serialize(Serializable::VisitorInterface& pack);
+	virtual void Deserialize(Serializable::VisitorInterface& pack);
 
 	LABEL();
 	const std::string NodeName() const;
@@ -1362,15 +1362,15 @@ class ImplicitConvertionExpr
 	ASTNodeType m_body;
 
 public:
-	explicit ImplicitConvertionExpr(Serializable::Interface& pack)
+	explicit ImplicitConvertionExpr(Serializable::VisitorInterface& pack)
 	{
 		Deserialize(pack);
 	}
 
 	ImplicitConvertionExpr(ASTNodeType& node, CryCC::SubValue::Conv::Cast::Tag convOp);
 
-	virtual void Serialize(Serializable::Interface& pack);
-	virtual void Deserialize(Serializable::Interface& pack);
+	virtual void Serialize(Serializable::VisitorInterface& pack);
+	virtual void Deserialize(Serializable::VisitorInterface& pack);
 
 	LABEL();
 	virtual const std::string NodeName() const;
@@ -1387,7 +1387,7 @@ class ParenExpr
 	ASTNodeType m_body;
 
 public:
-	explicit ParenExpr(Serializable::Interface& pack)
+	explicit ParenExpr(Serializable::VisitorInterface& pack)
 	{
 		Deserialize(pack);
 	}
@@ -1397,8 +1397,8 @@ public:
 	bool HasExpression() const { return m_body != nullptr; }
 	auto& Expression() const { return m_body; }
 
-	virtual void Serialize(Serializable::Interface& pack);
-	virtual void Deserialize(Serializable::Interface& pack);
+	virtual void Serialize(Serializable::VisitorInterface& pack);
+	virtual void Deserialize(Serializable::VisitorInterface& pack);
 
 	LABEL();
 	virtual const std::string NodeName() const;
@@ -1415,7 +1415,7 @@ class InitListExpr
 	std::vector<ASTNodeType> m_children;
 
 public:
-	explicit InitListExpr(Serializable::Interface& pack)
+	explicit InitListExpr(Serializable::VisitorInterface& pack)
 	{
 		Deserialize(pack);
 	}
@@ -1426,8 +1426,8 @@ public:
 
 	void AddListItem(const ASTNodeType& node);
 
-	virtual void Serialize(Serializable::Interface& pack);
-	virtual void Deserialize(Serializable::Interface& pack);
+	virtual void Serialize(Serializable::VisitorInterface& pack);
+	virtual void Deserialize(Serializable::VisitorInterface& pack);
 
 	LABEL();
 	PRINT_NODE(InitListExpr);
@@ -1444,15 +1444,15 @@ class CompoundLiteralExpr
 	std::shared_ptr<InitListExpr> m_body;
 
 public:
-	explicit CompoundLiteralExpr(Serializable::Interface& pack)
+	explicit CompoundLiteralExpr(Serializable::VisitorInterface& pack)
 	{
 		Deserialize(pack);
 	}
 
 	CompoundLiteralExpr(std::shared_ptr<InitListExpr>& node);
 
-	virtual void Serialize(Serializable::Interface& pack);
-	virtual void Deserialize(Serializable::Interface& pack);
+	virtual void Serialize(Serializable::VisitorInterface& pack);
+	virtual void Deserialize(Serializable::VisitorInterface& pack);
 
 	LABEL();
 	PRINT_NODE(CompoundLiteralExpr);
@@ -1470,7 +1470,7 @@ class ArraySubscriptExpr
 	ASTNodeType m_offset;
 
 public:
-	explicit ArraySubscriptExpr(Serializable::Interface& pack)
+	explicit ArraySubscriptExpr(Serializable::VisitorInterface& pack)
 	{
 		Deserialize(pack);
 	}
@@ -1481,8 +1481,8 @@ public:
 
 	std::shared_ptr<DeclRefExpr> ArrayDeclaration() const noexcept;
 
-	void Serialize(Serializable::Interface& pack);
-	void Deserialize(Serializable::Interface& pack);
+	void Serialize(Serializable::VisitorInterface& pack);
+	void Deserialize(Serializable::VisitorInterface& pack);
 
 	LABEL();
 	PRINT_NODE(ArraySubscriptExpr);
@@ -1507,7 +1507,7 @@ public:
 	} m_memberType;
 
 public:
-	explicit MemberExpr(Serializable::Interface& pack)
+	explicit MemberExpr(Serializable::VisitorInterface& pack)
 	{
 		Deserialize(pack);
 	}
@@ -1518,8 +1518,8 @@ public:
 
 	std::shared_ptr<DeclRefExpr> RecordRef();
 
-	virtual void Serialize(Serializable::Interface& pack);
-	virtual void Deserialize(Serializable::Interface& pack);
+	virtual void Serialize(Serializable::VisitorInterface& pack);
+	virtual void Deserialize(Serializable::VisitorInterface& pack);
 
 	LABEL();
 	const std::string NodeName() const;
@@ -1549,7 +1549,7 @@ class ContinueStmt
 	NODE_ID(NodeID::CONTINUE_STMT_ID);
 
 public:
-	explicit ContinueStmt(Serializable::Interface& pack)
+	explicit ContinueStmt(Serializable::VisitorInterface& pack)
 	{
 		Deserialize(pack);
 	}
@@ -1573,7 +1573,7 @@ class ReturnStmt
 	ASTNodeType m_returnExpr;
 
 public:
-	explicit ReturnStmt(Serializable::Interface& pack)
+	explicit ReturnStmt(Serializable::VisitorInterface& pack)
 	{
 		Deserialize(pack);
 	}
@@ -1587,8 +1587,8 @@ public:
 
 	void Emplace(size_t idx, const ASTNodeType&& node) override;
 
-	virtual void Serialize(Serializable::Interface& pack);
-	virtual void Deserialize(Serializable::Interface& pack);
+	virtual void Serialize(Serializable::VisitorInterface& pack);
+	virtual void Deserialize(Serializable::VisitorInterface& pack);
 
 	LABEL();
 	PRINT_NODE(ReturnStmt);
@@ -1609,7 +1609,7 @@ class IfStmt
 public:
 	IfStmt(ASTNodeType& eval, ASTNodeType truth = nullptr, ASTNodeType alt = nullptr);
 
-	explicit IfStmt(Serializable::Interface& pack)
+	explicit IfStmt(Serializable::VisitorInterface& pack)
 	{
 		Deserialize(pack);
 	}
@@ -1623,8 +1623,8 @@ public:
 	void SetTruthCompound(const ASTNodeType& node);
 	void SetAltCompound(const ASTNodeType& node);
 
-	virtual void Serialize(Serializable::Interface& pack);
-	virtual void Deserialize(Serializable::Interface& pack);
+	virtual void Serialize(Serializable::VisitorInterface& pack);
+	virtual void Deserialize(Serializable::VisitorInterface& pack);
 
 	LABEL();
 	virtual const std::string NodeName() const;
@@ -1644,7 +1644,7 @@ class SwitchStmt
 public:
 	SwitchStmt(ASTNodeType& eval, ASTNodeType body = nullptr);
 
-	explicit SwitchStmt(Serializable::Interface& pack)
+	explicit SwitchStmt(Serializable::VisitorInterface& pack)
 	{
 		Deserialize(pack);
 	}
@@ -1655,8 +1655,8 @@ public:
 
 	void SetBody(const ASTNodeType& node);
 
-	virtual void Serialize(Serializable::Interface& pack);
-	virtual void Deserialize(Serializable::Interface& pack);
+	virtual void Serialize(Serializable::VisitorInterface& pack);
+	virtual void Deserialize(Serializable::VisitorInterface& pack);
 
 	LABEL();
 	PRINT_NODE(SwitchStmt);
@@ -1676,7 +1676,7 @@ class WhileStmt
 public:
 	WhileStmt(ASTNodeType& eval, ASTNodeType body = nullptr);
 
-	explicit WhileStmt(Serializable::Interface& pack)
+	explicit WhileStmt(Serializable::VisitorInterface& pack)
 	{
 		Deserialize(pack);
 	}
@@ -1687,8 +1687,8 @@ public:
 
 	void SetBody(const ASTNodeType& node);
 
-	virtual void Serialize(Serializable::Interface& pack);
-	virtual void Deserialize(Serializable::Interface& pack);
+	virtual void Serialize(Serializable::VisitorInterface& pack);
+	virtual void Deserialize(Serializable::VisitorInterface& pack);
 
 	LABEL();
 	PRINT_NODE(WhileStmt);
@@ -1708,7 +1708,7 @@ class DoStmt
 public:
 	DoStmt(ASTNodeType& body, ASTNodeType eval = nullptr);
 
-	explicit DoStmt(Serializable::Interface& pack)
+	explicit DoStmt(Serializable::VisitorInterface& pack)
 	{
 		Deserialize(pack);
 	}
@@ -1719,8 +1719,8 @@ public:
 
 	void SetEval(const ASTNodeType& node);
 
-	virtual void Serialize(Serializable::Interface& pack);
-	virtual void Deserialize(Serializable::Interface& pack);
+	virtual void Serialize(Serializable::VisitorInterface& pack);
+	virtual void Deserialize(Serializable::VisitorInterface& pack);
 
 	LABEL();
 	PRINT_NODE(DoStmt);
@@ -1742,7 +1742,7 @@ class ForStmt
 public:
 	ForStmt(ASTNodeType& node1, ASTNodeType& node2, ASTNodeType& node3);
 
-	explicit ForStmt(Serializable::Interface& pack)
+	explicit ForStmt(Serializable::VisitorInterface& pack)
 	{
 		Deserialize(pack);
 	}
@@ -1755,8 +1755,8 @@ public:
 
 	void SetBody(const ASTNodeType& node);
 
-	virtual void Serialize(Serializable::Interface& pack);
-	virtual void Deserialize(Serializable::Interface& pack);
+	virtual void Serialize(Serializable::VisitorInterface& pack);
+	virtual void Deserialize(Serializable::VisitorInterface& pack);
 
 	LABEL();
 	PRINT_NODE(ForStmt);
@@ -1772,7 +1772,7 @@ class BreakStmt
 	NODE_ID(NodeID::BREAK_STMT_ID);
 
 public:
-	explicit BreakStmt(Serializable::Interface& pack)
+	explicit BreakStmt(Serializable::VisitorInterface& pack)
 	{
 		Deserialize(pack);
 	}
@@ -1797,15 +1797,15 @@ class DefaultStmt
 	ASTNodeType m_body;
 
 public:
-	explicit DefaultStmt(Serializable::Interface& pack)
+	explicit DefaultStmt(Serializable::VisitorInterface& pack)
 	{
 		Deserialize(pack);
 	}
 
 	DefaultStmt(const ASTNodeType& body);
 
-	virtual void Serialize(Serializable::Interface& pack);
-	virtual void Deserialize(Serializable::Interface& pack);
+	virtual void Serialize(Serializable::VisitorInterface& pack);
+	virtual void Deserialize(Serializable::VisitorInterface& pack);
 
 	LABEL();
 	PRINT_NODE(DefaultStmt);
@@ -1825,7 +1825,7 @@ class CaseStmt
 public:
 	CaseStmt(ASTNodeType& name, ASTNodeType& body);
 
-	explicit CaseStmt(Serializable::Interface& pack)
+	explicit CaseStmt(Serializable::VisitorInterface& pack)
 	{
 		Deserialize(pack);
 	}
@@ -1834,8 +1834,8 @@ public:
 
 	auto& Expression() const { return m_body; }
 
-	virtual void Serialize(Serializable::Interface& pack);
-	virtual void Deserialize(Serializable::Interface& pack);
+	virtual void Serialize(Serializable::VisitorInterface& pack);
+	virtual void Deserialize(Serializable::VisitorInterface& pack);
 
 	LABEL();
 	PRINT_NODE(CaseStmt);
@@ -1852,7 +1852,7 @@ class DeclStmt
 	std::list<std::shared_ptr<VarDecl>> m_var;
 
 public:
-	explicit DeclStmt(Serializable::Interface& pack)
+	explicit DeclStmt(Serializable::VisitorInterface& pack)
 	{
 		Deserialize(pack);
 	}
@@ -1861,8 +1861,8 @@ public:
 
 	void AddDeclaration(const std::shared_ptr<VarDecl>& node);
 
-	virtual void Serialize(Serializable::Interface& pack);
-	virtual void Deserialize(Serializable::Interface& pack);
+	virtual void Serialize(Serializable::VisitorInterface& pack);
+	virtual void Deserialize(Serializable::VisitorInterface& pack);
 
 	LABEL();
 	PRINT_NODE(DeclStmt);
@@ -1881,7 +1881,7 @@ class ArgumentStmt
 public:
 	ArgumentStmt() = default;
 
-	explicit ArgumentStmt(Serializable::Interface& pack)
+	explicit ArgumentStmt(Serializable::VisitorInterface& pack)
 	{
 		Deserialize(pack);
 	}
@@ -1890,8 +1890,8 @@ public:
 
 	void Emplace(size_t idx, const ASTNodeType&& node) override final;
 
-	virtual void Serialize(Serializable::Interface& pack);
-	virtual void Deserialize(Serializable::Interface& pack);
+	virtual void Serialize(Serializable::VisitorInterface& pack);
+	virtual void Deserialize(Serializable::VisitorInterface& pack);
 
 	LABEL();
 	PRINT_NODE(ArgumentStmt);
@@ -1910,15 +1910,15 @@ class ParamStmt
 public:
 	ParamStmt() = default;
 
-	explicit ParamStmt(Serializable::Interface& pack)
+	explicit ParamStmt(Serializable::VisitorInterface& pack)
 	{
 		Deserialize(pack);
 	}
 
 	void AppendParamter(const ASTNodeType& node);
 
-	virtual void Serialize(Serializable::Interface& pack);
-	virtual void Deserialize(Serializable::Interface& pack);
+	virtual void Serialize(Serializable::VisitorInterface& pack);
+	virtual void Deserialize(Serializable::VisitorInterface& pack);
 
 	LABEL();
 	PRINT_NODE(ParamStmt);
@@ -1936,15 +1936,15 @@ class LabelStmt
 	ASTNodeType m_body;
 
 public:
-	explicit LabelStmt(Serializable::Interface& pack)
+	explicit LabelStmt(Serializable::VisitorInterface& pack)
 	{
 		Deserialize(pack);
 	}
 
 	LabelStmt(const std::string& name, ASTNodeType& node);
 
-	virtual void Serialize(Serializable::Interface& pack);
-	virtual void Deserialize(Serializable::Interface& pack);
+	virtual void Serialize(Serializable::VisitorInterface& pack);
+	virtual void Deserialize(Serializable::VisitorInterface& pack);
 
 	LABEL();
 	PRINT_NODE(LabelStmt);
@@ -1961,15 +1961,15 @@ class GotoStmt
 	std::string m_labelName;
 
 public:
-	explicit GotoStmt(Serializable::Interface& pack)
+	explicit GotoStmt(Serializable::VisitorInterface& pack)
 	{
 		Deserialize(pack);
 	}
 
 	GotoStmt(const std::string& name);
 
-	virtual void Serialize(Serializable::Interface& pack);
-	virtual void Deserialize(Serializable::Interface& pack);
+	virtual void Serialize(Serializable::VisitorInterface& pack);
+	virtual void Deserialize(Serializable::VisitorInterface& pack);
 
 	LABEL();
 	virtual const std::string NodeName() const;
@@ -1988,15 +1988,15 @@ class CompoundStmt
 public:
 	CompoundStmt() = default;
 
-	explicit CompoundStmt(Serializable::Interface& pack)
+	explicit CompoundStmt(Serializable::VisitorInterface& pack)
 	{
 		Deserialize(pack);
 	}
 
 	void AppendChild(const ASTNodeType& node) final;
 
-	virtual void Serialize(Serializable::Interface& pack);
-	virtual void Deserialize(Serializable::Interface& pack);
+	virtual void Serialize(Serializable::VisitorInterface& pack);
+	virtual void Deserialize(Serializable::VisitorInterface& pack);
 
 	LABEL();
 	PRINT_NODE(CompoundStmt);
