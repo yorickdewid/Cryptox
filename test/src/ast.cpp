@@ -213,6 +213,17 @@ BOOST_AUTO_TEST_CASE(ASTSerialize)
 	BOOST_REQUIRE((*brk2.get()) == (*brk22.get()));
 }
 
+BOOST_AUTO_TEST_CASE(ASTWalker)
+{
+	ASTNodeType brk = Util::MakeASTNode<BreakStmt>();
+	auto gt = Util::MakeASTNode<GotoStmt>("test");
+	auto dflt = Util::MakeASTNode<DefaultStmt>(gt);
+	auto root = Util::MakeASTNode<SwitchStmt>(brk, dflt);
+
+	ASTNodeType swh = Closest<SwitchStmt>(gt);
+	BOOST_REQUIRE_EQUAL(root, swh);
+}
+
 BOOST_AUTO_TEST_CASE(ASTMisc)
 {
 	std::shared_ptr<CompoundStmt> compond = Util::MakeASTNode<CompoundStmt>();
