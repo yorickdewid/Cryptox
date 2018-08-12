@@ -39,14 +39,18 @@ BOOST_AUTO_TEST_CASE(ProgBasic)
 
 BOOST_AUTO_TEST_CASE(ProgSymbols)
 {
+	ASTNodeType tree = Util::MakeUnitTree("test");
 	ProgramType prog = Util::MakeProgram();
-	auto& symbolMap = prog->FillSymbols();
-	symbolMap.insert({ "test", {} });
-	symbolMap.insert({ "test2", {} });
-	symbolMap.insert({ "test3", {} });
+	SymbolMap& symbolMap = prog->SymbolTable();
+	symbolMap.Insert({ "test", {} });
+	symbolMap.Insert({ "test2", {} });
+	symbolMap << SymbolMap::symbol_type{ "test3", {} };
+	symbolMap << SymbolMap::symbol_type{ "test4", tree };
 	BOOST_REQUIRE(prog->HasSymbols());
-	BOOST_REQUIRE(prog->HasSymbol("test2"));
+	BOOST_REQUIRE(prog->SymbolTable().Contains("test2"));
 	BOOST_REQUIRE_EQUAL(1, prog->SymbolCount());
+	BOOST_REQUIRE_EQUAL(nullptr, prog->SymbolTable().GetNode("test3"));
+	BOOST_REQUIRE_EQUAL(tree, prog->SymbolTable().GetNode("test4"));
 }
 
 BOOST_AUTO_TEST_CASE(ProgAST)

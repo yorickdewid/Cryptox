@@ -13,6 +13,7 @@
 #include <CryCC/Program/ConditionTracker.h>
 #include <CryCC/Program/Stage.h>
 #include <CryCC/Program/Result.h>
+#include <CryCC/Program/Symbol.h>
 
 #include <Cry/Cry.h>
 #include <Cry/Serialize.h>
@@ -46,7 +47,7 @@ public:
 			CASM,          // Resulting section for CASM content.
 			NATIVE,        // Resulting section for native content.
 			COMPLEMENTARY, // Resulting section for additional content.
-		}m_tag;
+		} m_tag;
 
 	public:
 		ResultSection(Tag tag = Tag::COMPLEMENTARY)
@@ -96,14 +97,10 @@ public:
 	// Symbol operations.
 	//
 
-#ifdef CRY_DEBUG
-	void PrintSymbols();
-#endif // CRY_DEBUG
-	bool MatchSymbol(const std::string&);
-	inline bool HasSymbols() const noexcept { return !m_symbols.empty(); }
-	inline bool SymbolCount() const noexcept { return m_symbols.size(); }
-	inline bool HasSymbol(const std::string& name) const { return m_symbols.find(name) != m_symbols.end(); }
-	auto& FillSymbols() { CHECK_LOCK(); return m_symbols; } //TODO: friend?
+	inline bool HasSymbols() const noexcept { return !m_symbols.Empty(); }
+	inline bool SymbolCount() const noexcept { return m_symbols.Count(); }
+	SymbolMap& SymbolTable() { CHECK_LOCK(); return m_symbols; }
+	const SymbolMap& SymbolTable() const { return m_symbols; }
 
 	// TODO return const if locked
 	// Get memory block.
@@ -147,7 +144,7 @@ private:
 	bool m_locked{ false };
 
 private:
-	std::map<std::string, AST::ASTNodeType> m_symbols;
+	SymbolMap m_symbols;
 	std::unique_ptr<AST::AST> m_ast{ nullptr }; //TODO: Point to an ASTNode directly
 	std::vector<ResultSection> m_resultSet;
 };

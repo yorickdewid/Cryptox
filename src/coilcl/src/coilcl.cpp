@@ -206,7 +206,7 @@ public:
 				.PreliminaryAssert()
 				.StandardCompliance()
 				.PedanticCompliance()
-				.ExtractSymbols(program->FillSymbols());
+				.ExtractSymbols(program->SymbolTable());
 
 			// The optimizer removes unused objects, replaces tree substructures and
 			// rewrites processing orders to improve overal execution speed. This step
@@ -372,7 +372,7 @@ COILCLAPI void Compile(compiler_info_t *cl_info) NOTHROW
 		EventLog::Log(EventLevel::Level::Warning, "Program: NOT runnable");
 	}
 	if (program->HasSymbols()) {
-		program->PrintSymbols();
+		program->SymbolTable().Print();
 	}
 #endif
 

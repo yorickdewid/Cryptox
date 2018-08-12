@@ -1761,7 +1761,7 @@ namespace EVM
 void Interpreter::PreliminaryCheck(const std::string& entry)
 {
 	assert(Program()->HasSymbols());
-	if (!Program()->MatchSymbol(entry)) {
+	if (!Program()->SymbolTable().Contains(entry)) {
 		CryImplExcept();
 	}
 }

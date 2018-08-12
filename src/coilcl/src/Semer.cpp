@@ -220,7 +220,7 @@ void Semer::StaticResolve()
 	this->CompletePhase(ConditionTracker::STATIC_RESOLVED);
 }
 
-void Semer::FuncToSymbol(std::function<void(const std::string, const std::shared_ptr<ASTNode>& node)> insert)
+void Semer::FuncToSymbol(std::function<void(const std::string, const ASTNodeType& node)> insert)
 {
 	Compare::Equal<FunctionDecl> eqOp;
 	MatchIf(m_ast.begin(), m_ast.end(), eqOp, [&insert](AST::AST::iterator itr)

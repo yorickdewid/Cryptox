@@ -69,18 +69,18 @@ public:
 	Semer& StandardCompliance();
 	Semer& PedanticCompliance();
 	
-	template<typename _Optimizer>
+	template<typename Optimizer>
 	Semer& Optimize()
 	{
 		return (*this);
 	}
 
-	template<typename MapType>
-	Semer& ExtractSymbols(MapType& map)
+	//TODO: rewrite with back inserter
+	Semer& ExtractSymbols(CryCC::Program::SymbolMap& map)
 	{
 		auto callback = [&map](const std::string name, const CryCC::AST::ASTNodeType& node)
 		{
-			map[name] = node;
+			map << CryCC::Program::SymbolMap::symbol_type{ name, node };
 		};
 
 		FuncToSymbol(callback);
@@ -95,7 +95,7 @@ private:
 	void DeduceTypes();
 	void CheckDataType();
 	void IllFormedConstruction();
-	void FuncToSymbol(std::function<void(const std::string, const std::shared_ptr<CryCC::AST::ASTNode>& node)>);
+	void FuncToSymbol(std::function<void(const std::string, const CryCC::AST::ASTNodeType& node)>);
 
 	inline void ClearnInternalState()
 	{

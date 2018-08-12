@@ -32,20 +32,6 @@ Program::Program(Program&& other, AST::ASTNodeType&& ast)
 {
 }
 
-#ifdef CRY_DEBUG
-void Program::PrintSymbols()
-{
-	for (const auto& node : m_symbols) {
-		std::cout << "Symbol: " << node.first << std::endl;
-	}
-}
-#endif // CRY_DEBUG
-
-bool Program::MatchSymbol(const std::string& symbol)
-{
-	return m_symbols.find(symbol) != m_symbols.cend();
-}
-
 Program::ResultSection& Program::GetResultSection(ResultSection::Tag tag)
 {
 	// If set is empty, insert element and return.
