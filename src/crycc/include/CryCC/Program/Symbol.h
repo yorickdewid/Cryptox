@@ -48,7 +48,7 @@ struct SymbolMap : private std::map<std::string, AST::ASTNodeType>
     bool Empty() const noexcept { return this->empty(); }
 	
 #ifdef CRY_DEBUG
-	void Print();
+	void Print() const;
 #endif // CRY_DEBUG
 
 	// Insert symbol into symbol map.
@@ -59,6 +59,12 @@ struct SymbolMap : private std::map<std::string, AST::ASTNodeType>
 	bool Contains(const symbol_type::first_type&) const noexcept;
 	// Retrieve the corresponding node from the key.
 	symbol_type::second_type GetNode(const symbol_type::first_type&) const noexcept;
+
+	template<typename... ArgTypes>
+	void Emplace(ArgTypes&&... args)
+	{
+		this->emplace(std::forward<ArgTypes>(args)...);
+	}
 
 	// Streaming insert operation.
 	SymbolMap& operator<<(const symbol_type&);

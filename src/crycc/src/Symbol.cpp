@@ -16,10 +16,10 @@ namespace Program
 {
 
 #ifdef CRY_DEBUG
-void SymbolMap::Print()
+void SymbolMap::Print() const
 {
 	for (const auto& node : (*this)) {
-		std::cout << "Symbol: " << node.first << std::endl;
+		std::cout << "symbol: " << node.first << std::endl;
 	}
 }
 #endif // CRY_DEBUG

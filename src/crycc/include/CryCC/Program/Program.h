@@ -100,7 +100,7 @@ public:
 	inline bool HasSymbols() const noexcept { return !m_symbols.Empty(); }
 	inline bool SymbolCount() const noexcept { return m_symbols.Count(); }
 	SymbolMap& SymbolTable() { CHECK_LOCK(); return m_symbols; }
-	const SymbolMap& SymbolTable() const { return m_symbols; }
+	const SymbolMap& StaticSymbolTable() const { return m_symbols; }
 
 	// TODO return const if locked
 	// Get memory block.
@@ -126,14 +126,6 @@ public:
 	{
 		assert(!program->m_ast);
 		program->m_ast = std::make_unique<AST::AST>(std::forward<ArgTypes>(args)...);
-	}
-
-	//TODO: REMOVE, OBSOLETE
-	// Allocate a new program.
-	template<typename... ArgTypes>
-	static std::unique_ptr<Program> MakeProgram(ArgTypes&&... args)
-	{
-		return std::make_unique<Program>(std::forward<ArgTypes>(args)...);
 	}
 
 	//FUTURE: Health check

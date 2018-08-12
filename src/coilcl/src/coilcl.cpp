@@ -164,7 +164,7 @@ public:
 		auto profile = Profile::DeriveInterface(compiler);
 
 		// Create an empty program for the first stage.
-		ProgramPtr program = Program::Program::MakeProgram();
+		Program::ProgramType program = ::Util::MakeProgram();
 
 		// Clear all warnings for this session.
 		g_warningQueue.Clear();
@@ -224,7 +224,7 @@ public:
 			// The emitter utilizes a sequencer to transform the tree into an flat format. This
 			// is usefull if the tree needs to be exported to another process, or when the program
 			// must be kept as a persistent result.
-			Emit::Module<Emit::Sequencer::AIIPX> AIIPXMod;
+			Emit::Module<Emit::Sequencer::AIIPX> AIIPXModule;
 
 #ifdef CRY_DEBUG_TRACE
 			// In trace mode dump the contents to screen.
@@ -233,18 +233,18 @@ public:
 #ifdef CRY_DEBUG_TESTING
 			// Add console output stream to module.
 			auto consoleStream = Emit::Stream::MakeStream<Emit::Stream::Console>();
-			AIIPXMod.AddStream(consoleStream);
+			AIIPXModule.AddStream(consoleStream);
 #endif
 
 			// Add program memory block to module.
-			auto& aiipxResult = program->GetResultSection(Program::Program::ResultSection::AIIPX);
+			Program::ResultInterface& aiipxResult = program->GetResultSection(Program::Program::ResultSection::AIIPX);
 			auto memoryStream = Emit::Stream::MakeStream<Emit::Stream::MemoryBlock>(aiipxResult.Data());
-			AIIPXMod.AddStream(memoryStream);
+			AIIPXModule.AddStream(memoryStream);
 
 			// Run the emitting sequence.
 			Emit::Emitter{ profile, CAPTURE(program->Ast()), tracker }
 				.MoveStage()
-				.AddModule(AIIPXMod)
+				.AddModule(AIIPXModule)
 				.Process();
 
 #ifdef CRY_DEBUG_TESTING
@@ -300,7 +300,7 @@ ResultType CaptureChunk(const datachunk_t *dataPtrStrct)
 template<typename WrapperPointerType>
 inline auto WrapMeta(WrapperPointerType *metaPtr)
 {
-	static_assert(std::is_pod<WrapperPointerType>::value, "");
+	static_assert(std::is_pod<WrapperPointerType>::value, "must be a pod object");
 	return std::shared_ptr<WrapperPointerType>{ metaPtr };
 }
 
@@ -353,10 +353,10 @@ COILCLAPI void Compile(compiler_info_t *cl_info) NOTHROW
 		cl_info->error_handler(USER_DATA(cl_info), message.c_str(), isFatal);
 	}).Object();
 
-	// Store pointer to original object
+	// Store pointer to original object.
 	coilcl->CaptureBackRefPtr(cl_info);
 
-	// Start compiler and return the program as result
+	// Start compiler and return the program as result.
 	Compiler::ProgramPtr program = Compiler::Dispatch(std::move(coilcl));
 
 #ifdef CRY_DEBUG_TRACE
@@ -372,9 +372,9 @@ COILCLAPI void Compile(compiler_info_t *cl_info) NOTHROW
 		EventLog::Log(EventLevel::Level::Warning, "Program: NOT runnable");
 	}
 	if (program->HasSymbols()) {
-		program->SymbolTable().Print();
+		program->StaticSymbolTable().Print();
 	}
-#endif
+#endif // CRY_DEBUG_TRACE
 
 	// Pass program to frontend.
 	InterOpHelper::AssimilateProgram(&cl_info->program, std::move(program));
