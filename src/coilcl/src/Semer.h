@@ -75,10 +75,10 @@ public:
 		return (*this);
 	}
 
-	template<typename _MapTy>
-	Semer& ExtractSymbols(_MapTy& map)
+	template<typename MapType>
+	Semer& ExtractSymbols(MapType& map)
 	{
-		auto callback = [&map](const std::string name, const std::shared_ptr<CryCC::AST::ASTNode>& node)
+		auto callback = [&map](const std::string name, const CryCC::AST::ASTNodeType& node)
 		{
 			map[name] = node;
 		};

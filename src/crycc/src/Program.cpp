@@ -55,7 +55,7 @@ Program::ResultSection& Program::GetResultSection(ResultSection::Tag tag)
 	}
 
 	// Find resulting section based on tag.
-	auto isRulsetPresent = [=](const auto& tag) -> std::pair<bool, std::vector<ResultSection>::iterator>
+	auto IsRulsetPresent = [=](const auto& tag) -> std::pair<bool, std::vector<ResultSection>::iterator>
 	{
 		auto it = std::find_if(m_resultSet.begin(), m_resultSet.end(), [&tag](const ResultSection& res)
 		{
@@ -71,12 +71,12 @@ Program::ResultSection& Program::GetResultSection(ResultSection::Tag tag)
 	switch (tag)
 	{
 	case ResultSection::AIIPX: {
-		auto rs = isRulsetPresent(ResultSection::AIIPX);
+		auto rs = IsRulsetPresent(ResultSection::AIIPX);
 		if (rs.first) { return (*rs.second); }
 		break;
 	}
 	case ResultSection::CASM: {
-		auto rs = isRulsetPresent(ResultSection::CASM);
+		auto rs = IsRulsetPresent(ResultSection::CASM);
 		if (rs.first) { return (*rs.second); }
 		break;
 	}

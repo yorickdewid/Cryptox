@@ -37,6 +37,18 @@ BOOST_AUTO_TEST_CASE(ProgBasic)
 	BOOST_REQUIRE(prog->IsLocked());
 }
 
+BOOST_AUTO_TEST_CASE(ProgSymbols)
+{
+	ProgramType prog = Util::MakeProgram();
+	auto& symbolMap = prog->FillSymbols();
+	symbolMap.insert({ "test", {} });
+	symbolMap.insert({ "test2", {} });
+	symbolMap.insert({ "test3", {} });
+	BOOST_REQUIRE(prog->HasSymbols());
+	BOOST_REQUIRE(prog->HasSymbol("test2"));
+	BOOST_REQUIRE_EQUAL(1, prog->SymbolCount());
+}
+
 BOOST_AUTO_TEST_CASE(ProgAST)
 {
 	ASTNodeType tree = Util::MakeUnitTree("test");

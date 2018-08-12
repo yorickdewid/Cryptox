@@ -37,6 +37,8 @@ class Program final
 public:
 	class ResultSection : public ResultInterface
 	{
+		value_type m_content;
+
 	public:
 		enum Tag //TODO: this is compiler implementation defined
 		{
@@ -44,7 +46,7 @@ public:
 			CASM,          // Resulting section for CASM content.
 			NATIVE,        // Resulting section for native content.
 			COMPLEMENTARY, // Resulting section for additional content.
-		};
+		}m_tag;
 
 	public:
 		ResultSection(Tag tag = Tag::COMPLEMENTARY)
@@ -56,10 +58,6 @@ public:
 		inline size_type Size() const noexcept { return m_content.size(); }
 		// Get context object.
 		inline value_type& Data() noexcept { return m_content; }
-
-	private:
-		Tag m_tag;
-		value_type m_content;
 	};
 
 	struct AccessViolationException : public std::exception
