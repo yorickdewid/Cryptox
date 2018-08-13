@@ -53,6 +53,87 @@ BOOST_AUTO_TEST_CASE(ProgSymbols)
 	BOOST_REQUIRE_EQUAL(tree, prog->SymbolTable().GetNode("test4"));
 }
 
+enum : ResultInterface::slot_type
+{
+	TESTSET_SET = 1,
+};
+
+class TestSet final : public ResultInterface
+{
+	value_type m_buffer;
+
+public:
+	TestSet(size_type init = 0)
+	{
+		if (init) {
+			m_buffer.resize(init);
+		}
+	}
+
+	void Resize(size_type sz)
+	{
+		m_buffer.resize(sz);
+	}
+
+	size_type Size() const
+	{
+		return m_buffer.size() + 10;
+	}
+
+	value_type& Data()
+	{
+		return m_buffer;
+	}
+};
+
+BOOST_AUTO_TEST_CASE(ProgResultSet)
+{
+	ProgramType prog = Util::MakeProgram();
+
+	// Create set and recast to change local properties.
+	{
+		ResultInterface& set = prog->ResultSectionSlot<TestSet, TESTSET_SET>();
+		BOOST_REQUIRE_EQUAL(10, set.Size());
+		dynamic_cast<TestSet&>(set).Resize(20);
+	}
+
+	// Access existing set.
+	{
+		ResultInterface& set = prog->ResultSectionSlot<TestSet, TESTSET_SET>();
+		BOOST_REQUIRE_EQUAL(30, set.Size());
+	}
+
+	// Create new set with constructor.
+	{
+		ResultInterface& set = prog->ResultSectionSlot<TestSet, TESTSET_SET + 1>(90);
+		BOOST_REQUIRE_EQUAL(100, set.Size());
+	}
+
+	// Unload set from program memory.
+	{
+		prog->ResultSectionSlotRelease<TESTSET_SET>();
+		ResultInterface& set = prog->ResultSectionSlot<TestSet, TESTSET_SET>();
+		BOOST_REQUIRE_EQUAL(10, set.Size());
+	}
+}
+
+BOOST_AUTO_TEST_CASE(ProgScratchPad)
+{
+	ProgramType prog = Util::MakeProgram();
+
+	{
+		ScratchPad<SCRATCHPAD_1> pad1{ prog };
+		pad1 << "test" << "string";
+		std::string text = pad1.ToString();
+		BOOST_REQUIRE_EQUAL("teststring", text);
+	}
+
+	{
+		ScratchPad<SCRATCHPAD_1> pad1{ prog };
+		BOOST_REQUIRE_EQUAL("teststring", pad1.ToString());
+	}
+}
+
 BOOST_AUTO_TEST_CASE(ProgAST)
 {
 	ASTNodeType tree = Util::MakeUnitTree("test");

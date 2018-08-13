@@ -22,6 +22,7 @@
 #include <CryCC/Program/Type.h>
 #include <CryCC/Program/Result.h>
 #include <CryCC/Program/Program.h>
+#include <CryCC/Program/ScratchPad.h>
 #include <CryCC/Program/ProgramHelper.h>
 
 #endif // CRYCC_PROGRAM_H_

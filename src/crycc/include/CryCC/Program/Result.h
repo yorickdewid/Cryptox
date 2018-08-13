@@ -18,6 +18,7 @@ namespace Program
 
 struct ResultInterface
 {
+    using slot_type = int;
     using size_type = size_t;
     using value_type = Cry::ByteArray;
 

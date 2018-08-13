@@ -209,7 +209,7 @@ public:
 	}
 
 	//
-	// Offset Operations.
+	// Offset operations.
 	//
 
 	enum { AUTO = -1 };
