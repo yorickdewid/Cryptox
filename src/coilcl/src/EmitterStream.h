@@ -27,27 +27,21 @@ inline auto MakeStream(ArgTypes&&... args)
 	return std::make_shared<StreamType>(std::forward<ArgTypes>(args)...);
 }
 
-// Stream input contract
-class InputStream
+// Stream input contract.
+struct InputStream
 {
-	virtual void Read(std::vector<uint8_t>& vector)
-	{
-		CRY_UNUSED(vector);
-	}
-
-public:
+	// Called when reading is done. This method is optional to implement.
+	virtual void ReadDone() {}
+	// Read a datachunck 'vector' of size 'sz'.
 	virtual void Read(uint8_t *vector, size_t sz) = 0;
 };
 
-// Stream output contract
-class OutputStream
+// Stream output contract.
+struct OutputStream
 {
-	virtual void Write(std::vector<uint8_t>& vector)
-	{
-		CRY_UNUSED(vector);
-	}
-
-public:
+	// Called when writing is done. This method is optional to implement.
+	virtual void WriteDone() {}
+	// Write a datachunck 'vector' of size 'sz'.
 	virtual void Write(uint8_t *vector, size_t sz) = 0;
 };
 
@@ -60,11 +54,10 @@ class Console
 	: public OutputStream
 {
 public:
-	// Write data stream to console output
+	// Write data stream to console output.
 	virtual void Write(uint8_t *vector, size_t sz)
 	{
-		for (size_t i = 0; i < sz; i++)
-		{
+		for (size_t i = 0; i < sz; ++i) {
 			const int ch = static_cast<int>(static_cast<unsigned char>(vector[i]));
 			std::cout << std::hex << std::setfill('0') << std::setw(2) << ch;
 		}
@@ -72,7 +65,7 @@ public:
 	}
 };
 
-// Write or read data to file
+// Write or read data to file.
 class File
 	//: public InputStream
 	: public OutputStream
@@ -126,7 +119,7 @@ public:
 
 public:
 	MemoryBlock(size_t capacity = 0)
-		: m_block{ new MemoryPool{} }
+		: m_block{ new MemoryPool }
 		, m_doFree{ true }
 	{
 		if (capacity > 0) {
@@ -136,7 +129,7 @@ public:
 		ReserveMemory();
 	}
 
-	// Write into the caller provided block.
+	// Write into the caller-provided memory block.
 	explicit MemoryBlock(MemoryPool& block)
 		: m_block{ &block }
 		, m_doFree{ false }
@@ -148,7 +141,7 @@ public:
 	MemoryBlock(MemoryBlock&& other)
 	{
 		LocalFree();
-		m_block = std::move(other.m_block);
+		std::swap(m_block, other.m_block);
 		ReserveMemory();
 	}
 
@@ -165,7 +158,7 @@ public:
 	inline bool IsEoS() const noexcept { return m_readOffset == m_block->size(); }
 
 	// Lock the memory block from buffer alteration.
-	void WriteDone()
+	virtual void WriteDone() override
 	{
 		Shrink();
 		m_acl = AccessControl::READ_ONLY;

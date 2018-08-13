@@ -48,37 +48,83 @@ struct ModuleInterface
 	virtual void Invoke(CryCC::AST::AST) = 0;
 };
 
-template<typename SequnecTy>
+template<typename SequenceType>
 class Module : public ModuleInterface
 {
 	friend Module<Sequencer::Interface>;
 
-	using _MyTy = Module<SequnecTy>;
+	using self_type = Module<SequenceType>;
 
-	std::vector<std::shared_ptr<Stream::OutputStream>> m_streamOut;
+	std::list<std::shared_ptr<Stream::OutputStream>> m_streamOut;
 	std::shared_ptr<Stream::InputStream> m_streamIn;
-	std::shared_ptr<SequnecTy> m_sequencer;
+	std::shared_ptr<SequenceType> m_sequencer;
+
+	// Write output to streams all registered streams.
+	void RelayOutput(uint8_t *data, size_t sz)
+	{
+		for (auto& outputStream : m_streamOut) {
+			outputStream->Write(data, sz);
+		}
+	}
+
+	// Read input from stream.
+	void RelayInput(uint8_t *data, size_t sz)
+	{
+		if (m_streamIn) {
+			m_streamIn->Read(data, sz);
+		}
+	}
+
+	// ...
+	void DoneOutput()
+	{
+		for (auto& outputStream : m_streamOut) {
+			outputStream->WriteDone();
+		}
+	}
+
+	// ...
+	void DoneInput()
+	{
+		if (m_streamIn) {
+			m_streamIn->ReadDone();
+		}
+	}
+
+	// Should only invoke from the sequencer interface.
+	virtual void Invoke(CryCC::AST::AST)
+	{
+		throw Cry::Except::UnsupportedOperationException{ "Module::Invoke" };
+	}
 
 public:
 	Module()
 	{
-		const auto out = [this](uint8_t *data, size_t sz) {
+		const auto out = [this](uint8_t *data, size_t sz)
+		{
 			this->RelayOutput(data, sz);
 		};
-		const auto in = [this](uint8_t *data, size_t sz) {
+		const auto in = [this](uint8_t *data, size_t sz)
+		{
 			this->RelayInput(data, sz);
 		};
 
-		m_sequencer = std::make_shared<SequnecTy>(std::move(out), std::move(in));
+		m_sequencer = std::make_shared<SequenceType>(std::move(out), std::move(in));
 	}
 
-	// Only add stream to list of output streams
+	~Module()
+	{
+		DoneOutput();
+		DoneInput();
+	}
+
+	// Only add stream to list of output streams.
 	void AddStreamOut(std::shared_ptr<Stream::OutputStream>&& ptr)
 	{
-		m_streamOut.push_back(std::move(ptr));
+		m_streamOut.emplace_back(std::move(ptr));
 	}
 
-	// Set input stream if none configured, otherwise skip
+	// Set input stream if none configured, otherwise skip.
 	void AddStreamIn(std::shared_ptr<Stream::InputStream>&& ptr)
 	{
 		if (!m_streamIn) {
@@ -92,28 +138,6 @@ public:
 		AddStreamOut(std::dynamic_pointer_cast<Stream::OutputStream>(ptr));
 		AddStreamIn(std::dynamic_pointer_cast<Stream::InputStream>(ptr));
 	}
-
-	// Write output to streams
-	void RelayOutput(uint8_t *data, size_t sz)
-	{
-		for (auto& outputStream : m_streamOut)
-		{
-			outputStream->Write(data, sz);
-		}
-	}
-
-	// Read input from streams
-	void RelayInput(uint8_t *data, size_t sz)
-	{
-		if (m_streamIn) {
-			m_streamIn->Read(data, sz);
-		}
-	}
-
-	// Should only invoke from the sequencer interface
-	virtual void Invoke(CryCC::AST::AST)
-	{
-	}
 };
 
 template<>
@@ -124,8 +148,8 @@ class Module<Sequencer::Interface> : public ModuleInterface
 public:
 	Module() = default;
 
-	template<typename _SeqTy>
-	Module(Module<_SeqTy>&& sequencer)
+	template<typename SequenceType>
+	Module(Module<SequenceType>&& sequencer)
 		: m_sequencer{ std::move(sequencer.m_sequencer) }
 	{
 	}
@@ -169,8 +193,8 @@ public:
 	Emitter& CheckCompatibility();
 	Emitter& Process();
 
-	template<typename _Ty>
-	Emitter& AddModule(Module<_Ty>& ptr)
+	template<typename ModuleType>
+	Emitter& AddModule(Module<ModuleType>& ptr)
 	{
 		Module<Sequencer::Interface> modIface{ std::move(ptr) };
 

@@ -56,18 +56,17 @@ AST Emitter::Strategy(ModuleInterface::ModulePerm permission)
 
 Emitter& Emitter::Process()
 {
-	// Reorder modules so that the most destructive modules are called first
+	// Reorder modules so that the most destructive modules are called first.
 	std::sort(m_mods.begin(), m_mods.end(), [](ModulePair lhs, ModulePair rhs) {
 		return lhs.first > rhs.first;
 	});
 
-	for (auto& mod : m_mods)
-	{
-		// Determine AST strategy
+	for (auto& mod : m_mods) {
+		// Determine AST strategy.
 		AST astWrapper = Strategy(mod.first);
 
 		try {
-			// Call module with tree
+			// Call module with tree.
 			mod.second.Invoke(astWrapper);
 		}
 		catch (const ModuleException&) {
@@ -80,10 +79,10 @@ Emitter& Emitter::Process()
 
 Emitter& Emitter::RegisterModule(Module<Sequencer::Interface>&& module)
 {
-	// Request module permissions so we can register the module
+	// Request module permissions so we can register the module.
 	const auto permInfo = module.RequestPermissionInfo();
 
-	// Push module on list
+	// Push module on list.
 	m_mods.push_back({ permInfo, std::move(module) });
 	return (*this);
 }

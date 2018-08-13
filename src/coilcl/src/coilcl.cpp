@@ -403,7 +403,7 @@ COILCLAPI void ProgramInfo(program_info_t *program_info) NOTHROW
 
 	// Early return if program pointer is empty.
 	if (!program_info->program.program_ptr) {
-		program_info->is_healthy = 0;
+		program_info->is_healthy = false;
 		return;
 	}
 
@@ -411,9 +411,9 @@ COILCLAPI void ProgramInfo(program_info_t *program_info) NOTHROW
 	program_info->is_healthy = program->HasSymbols() && program->operator bool() && program->IsLocked();
 	program_info->is_locked = program->IsLocked();
 	program_info->symbols = program->SymbolCount();
-	program_info->result_sets = 0;
-	program_info->last_phase = 0;
-	program_info->last_stage = 0;
+	program_info->result_sets = false;
+	program_info->last_phase = false;
+	program_info->last_stage = false;
 }
 
 namespace
@@ -454,7 +454,7 @@ COILCLAPI void GetResultSection(result_t *result_inquery) NOTHROW
 		Cry::ByteArray& content = result.Data();
 		result_inquery->content.ptr = reinterpret_cast<const char *>(content.data());
 		result_inquery->content.size = static_cast<unsigned int>(content.size());
-		result_inquery->content.unmanaged_res = 0;
+		result_inquery->content.unmanaged_res = false;
 		result_inquery->content.deallocVPtr = nullptr;
 	}
 	catch (const std::exception&)
