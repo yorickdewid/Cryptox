@@ -12,6 +12,7 @@
 
 #include <CryCC/Program/ConditionTracker.h>
 #include <CryCC/Program/Stage.h>
+#include <CryCC/Program/Type.h>
 #include <CryCC/Program/Result.h>
 #include <CryCC/Program/Symbol.h>
 
@@ -35,32 +36,6 @@ namespace Program
 // is run, or the program structure is dissected in an analyzer.
 class Program final
 {
-public:
-	class ResultSection : public ResultInterface
-	{
-		value_type m_content;
-
-	public:
-		enum Tag //TODO: this is compiler implementation defined
-		{
-			AIIPX,         // Resulting section for AIIPX content.
-			CASM,          // Resulting section for CASM content.
-			NATIVE,        // Resulting section for native content.
-			COMPLEMENTARY, // Resulting section for additional content.
-		} m_tag;
-
-	public:
-		ResultSection(Tag tag = Tag::COMPLEMENTARY)
-			: m_tag{ tag }
-		{
-		}
-
-		// Get size of section content.
-		inline size_type Size() const noexcept { return m_content.size(); }
-		// Get context object.
-		inline value_type& Data() noexcept { return m_content; }
-	};
-
 	struct AccessViolationException : public std::exception
 	{
 	};
@@ -102,9 +77,45 @@ public:
 	SymbolMap& SymbolTable() { CHECK_LOCK(); return m_symbols; }
 	const SymbolMap& StaticSymbolTable() const { return m_symbols; }
 
-	// TODO return const if locked
-	// Get memory block.
-	ResultSection& GetResultSection(ResultSection::Tag tag = ResultSection::Tag::COMPLEMENTARY);
+	//
+	// Resultset operations.
+	//
+
+	//TODO: lock
+	// Request or allocate a program owned result set.
+	//
+	// The program structure holds a map with an infinite number of
+	// unallocated result set slots. Once a slot is requested by the
+	// caller, the query will yield and existing result set object, or
+	// a new result set is instantiated. The additional parameters in
+	// function call serve as constructor parameters and will be 
+	// forwarded down to the object. The object must implement the
+	// interface or the compiler will ignore the routine.
+	template<typename SetType, ResultInterface::slot_type Slot, typename... ArgTypes>
+	ResultInterface& ResultSectionSlot(ArgTypes&&... args)
+	{
+		static_assert(std::is_base_of<ResultInterface, SetType>::value, "must inherit ResultInterface");
+
+		// Query map for existing set in this slot.
+		const auto& itExisting = m_resultSet.find(Slot);
+		if (itExisting != m_resultSet.end()) {
+			return (*itExisting->second);
+		}
+
+		// Allocate a new object in this slot and return it to the caller.
+		const auto& itNew = m_resultSet.emplace(Slot, std::make_unique<SetType>(std::forward<ArgTypes>(args)...)).first;
+		return (*itNew->second);
+	}
+
+	// Release a resultset from the slot position it occupies. This
+	// call is a no-op when the slot is unallocated.
+	template<ResultInterface::slot_type Slot>
+	void ResultSectionSlotRelease()
+	{
+		const auto& it = m_resultSet.find(Slot);
+		if (it == m_resultSet.end()) { return; }
+		m_resultSet.erase(Slot);
+	}
 
 	// Retieve program condition.
 	inline const ConditionTracker& Condition() const { return m_treeCondition; }
@@ -122,7 +133,7 @@ public:
 
 	// Bind a tree struture to program, but only once.
 	template<typename... ArgTypes>
-	static void Bind(std::unique_ptr<Program>& program, ArgTypes&&... args)
+	static void Bind(ProgramType& program, ArgTypes&&... args)
 	{
 		assert(!program->m_ast);
 		program->m_ast = std::make_unique<AST::AST>(std::forward<ArgTypes>(args)...);
@@ -138,7 +149,7 @@ private:
 private:
 	SymbolMap m_symbols;
 	std::unique_ptr<AST::AST> m_ast{ nullptr }; //TODO: Point to an ASTNode directly
-	std::vector<ResultSection> m_resultSet;
+	std::map<ResultInterface::slot_type, std::unique_ptr<ResultInterface>> m_resultSet;
 };
 
 } // namespace Program

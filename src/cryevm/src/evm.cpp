@@ -100,7 +100,8 @@ private:
 #define CHECK_API_VERSION(u) \
 	if (u->apiVer != EVMAPIVER) { fprintf(stderr, "API version mismatch"); abort(); }
 
-// API entry; Execute program.
+// [ API ENTRY ]
+// Program executor.
 EVMAPI int ExecuteProgram(runtime_settings_t *runtime) noexcept
 {
 	using namespace EVM;
@@ -162,7 +163,8 @@ EVMAPI int ExecuteProgram(runtime_settings_t *runtime) noexcept
 	return RETURN_OK;
 }
 
-// API entry; get library information.
+// [ API ENTRY ]
+// Get library information.
 EVMAPI void GetLibraryInfo(library_info_t *info) NOTHROW
 {
 	info->version_number.major = PRODUCT_VERSION_MAJOR;

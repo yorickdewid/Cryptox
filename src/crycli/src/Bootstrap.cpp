@@ -214,16 +214,16 @@ void GetSectionMemoryBlock(const char *tag, void *programRaw, std::function<void
 
 	std::string stag = tag;
 	if (stag == "AIIPX") {
-		result_inquery.tag = resultsection_tag::AIIPX;
+		result_inquery.tag = result_section_tag::AIIPX;
 	}
 	else if (stag == "CASM") {
-		result_inquery.tag = resultsection_tag::CASM;
+		result_inquery.tag = result_section_tag::CASM;
 	}
 	else if (stag == "NATIVE") {
-		result_inquery.tag = resultsection_tag::NATIVE;
+		result_inquery.tag = result_section_tag::NATIVE;
 	}
 	else if (stag == "COMPLEMENTARY") {
-		result_inquery.tag = resultsection_tag::COMPLEMENTARY;
+		result_inquery.tag = result_section_tag::COMPLEMENTARY;
 	}
 	else {
 		throw 1; //TODO

@@ -33,14 +33,14 @@
 extern "C" {
 #endif
 
-	// Languange standard.
+	// Language standard.
 	enum cil_standard
 	{
-		cil = 10,
-		c89 = 89,
-		c99 = 99,
-		c11 = 11,
-		c17 = 17,
+		cil = 10,     // CIL facto.
+		c89 = 89,     // C98 standard.
+		c99 = 99,     // C99 standard.
+		c11 = 11,     // C11 standard.
+		c17 = 17,     // C17 standard.
 	};
 
 	// Optimization level.
@@ -162,20 +162,20 @@ extern "C" {
 	// Get program information.
 	COILCLAPI void ProgramInfo(program_info_t *) NOTHROW;
 
-	// Result section tag.
-	enum resultsection_tag
+	// Tag the resulting section in the program data exchange.
+	enum result_section_tag
 	{
-		AIIPX,
-		CASM,
-		NATIVE,
-		COMPLEMENTARY,
+		AIIPX = 100,          // Resulting section for AIIPX content.
+		CASM = 101,           // Resulting section for CASM content.
+		NATIVE = 102,         // Resulting section for native content.
+		COMPLEMENTARY = 103,  // Resulting section for additional content.
 	};
 
 	// Result inquery.
 	typedef struct
 	{
 		// Query result set tag.
-		enum resultsection_tag tag;
+		enum result_section_tag tag;
 		// Compiler resulting output.
 		program_t program;
 		// Pointer to the requested contents.

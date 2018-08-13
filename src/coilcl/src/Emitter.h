@@ -32,19 +32,19 @@ struct ModuleInterface
 {
 	enum ModulePerm
 	{
-		ReadOnly,    // Request data only (default)
-		AppendData,  // Append non-executable data to the tree
-		CopyOnWrite, // Copy-in new or altered node when touched
-		Substitute,	 // Substitue the entire tree
+		ReadOnly,    // Request data only (default).
+		AppendData,  // Append non-executable data to the tree.
+		CopyOnWrite, // Copy-in new or altered node when touched.
+		Substitute,	 // Substitue the entire tree.
 	};
 
-	// Request the required permission
+	// Request the required permission.
 	virtual ModulePerm RequestPermissionInfo()
 	{
 		return ModulePerm::ReadOnly;
 	}
 
-	// Call the module
+	// Call the module.
 	virtual void Invoke(CryCC::AST::AST) = 0;
 };
 

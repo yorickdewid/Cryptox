@@ -32,46 +32,5 @@ Program::Program(Program&& other, AST::ASTNodeType&& ast)
 {
 }
 
-Program::ResultSection& Program::GetResultSection(ResultSection::Tag tag)
-{
-	// If set is empty, insert element and return.
-	if (m_resultSet.empty()) {
-		auto it = m_resultSet.emplace(m_resultSet.cend(), tag);
-		return (*it);
-	}
-
-	// Find resulting section based on tag.
-	auto IsRulsetPresent = [=](const auto& tag) -> std::pair<bool, std::vector<ResultSection>::iterator>
-	{
-		auto it = std::find_if(m_resultSet.begin(), m_resultSet.end(), [&tag](const ResultSection& res)
-		{
-			return res.m_tag == tag;
-		});
-
-		return { it != m_resultSet.end(), it };
-	};
-
-	// Some tags allow for only one section. If it is already filled, return
-	// the section so that additional data can be appended to the section. The
-	// tags listed below only allow for single content.
-	switch (tag)
-	{
-	case ResultSection::AIIPX: {
-		auto rs = IsRulsetPresent(ResultSection::AIIPX);
-		if (rs.first) { return (*rs.second); }
-		break;
-	}
-	case ResultSection::CASM: {
-		auto rs = IsRulsetPresent(ResultSection::CASM);
-		if (rs.first) { return (*rs.second); }
-		break;
-	}
-	}
-
-	// Create new instance of the tag.
-	auto it = m_resultSet.emplace(m_resultSet.cend(), tag);
-	return (*it);
-}
-
 } // namespace Program
 } // namespace CryCC

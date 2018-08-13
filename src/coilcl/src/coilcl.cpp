@@ -237,7 +237,7 @@ public:
 #endif
 
 			// Add program memory block to module.
-			Program::ResultInterface& aiipxResult = program->GetResultSection(Program::Program::ResultSection::AIIPX);
+			Program::ResultInterface& aiipxResult = program->ResultSectionSlot<Emit::Sequencer::AIIPX::ResultSection, Emit::Sequencer::AIIPX::ResultSection::slot_tag>();
 			auto memoryStream = Emit::Stream::MakeStream<Emit::Stream::MemoryBlock>(aiipxResult.Data());
 			AIIPXModule.AddStream(memoryStream);
 
@@ -320,7 +320,8 @@ void AssimilateProgram(program_t *out_program, CoilCl::Compiler::ProgramPtr&& in
 
 #define USER_DATA(u) u->user_data
 
-// API entry; compiler interface.
+// [ API ENTRY ]
+// Compiler backend interface.
 COILCLAPI void Compile(compiler_info_t *cl_info) NOTHROW
 {
 	using CoilCl::Compiler;
@@ -380,8 +381,9 @@ COILCLAPI void Compile(compiler_info_t *cl_info) NOTHROW
 	InterOpHelper::AssimilateProgram(&cl_info->program, std::move(program));
 }
 
-//FUTURE: move
-// API entry; release program.
+//FUTURE: move into CryCC::Program::
+// [ API ENTRY ]
+// Release program resources.
 COILCLAPI void ReleaseProgram(program_t *program) NOTHROW
 {
 	assert(program);
@@ -391,13 +393,15 @@ COILCLAPI void ReleaseProgram(program_t *program) NOTHROW
 	}
 }
 
-//FUTURE: move
-// API entry; program info.
+//FUTURE: move into CryCC::Program::
+// [ API ENTRY ]
+// Retrieve status and health information from program structure. The
+// returning result is pushed into a stateless strucutre.
 COILCLAPI void ProgramInfo(program_info_t *program_info) NOTHROW
 {
 	assert(program_info);
 
-	// Early return if program is empty.
+	// Early return if program pointer is empty.
 	if (!program_info->program.program_ptr) {
 		program_info->is_healthy = 0;
 		return;
@@ -412,42 +416,55 @@ COILCLAPI void ProgramInfo(program_info_t *program_info) NOTHROW
 	program_info->last_stage = 0;
 }
 
-//FUTURE: move
-// API entry; get a resultset section.
+namespace
+{
+
+CryCC::Program::ResultInterface& SequenceResultSection(CryCC::Program::Program *program, result_section_tag tag)
+{
+	using namespace CoilCl::Emit::Sequencer;
+
+	//FUTURE: We can do better..
+	switch (tag)
+	{
+	case result_section_tag::AIIPX:
+		return program->ResultSectionSlot<AIIPX::ResultSection, AIIPX::ResultSection::slot_tag>();
+	case result_section_tag::CASM:
+		return program->ResultSectionSlot<CASM::ResultSection, CASM::ResultSection::slot_tag>();
+	case result_section_tag::NATIVE:
+	case result_section_tag::COMPLEMENTARY:
+	default:
+		CryImplExcept();
+	}
+}
+
+} // namespace
+
+// [ API ENTRY ]
+// Get a resultset section from the program matching the emitter sequencer.
 COILCLAPI void GetResultSection(result_t *result_inquery) NOTHROW
 {
 	using namespace CryCC::Program;
 
 	assert(result_inquery);
-	Program::ResultSection::Tag mTag = Program::ResultSection::COMPLEMENTARY;
-	switch (result_inquery->tag)
-	{
-	case AIIPX:
-		mTag = Program::ResultSection::AIIPX;
-		break;
-	case CASM:
-		mTag = Program::ResultSection::CASM;
-		break;
-	case NATIVE:
-		mTag = Program::ResultSection::NATIVE;
-		break;
-	case COMPLEMENTARY:
-		mTag = Program::ResultSection::COMPLEMENTARY;
-		break;
-	default:
-		//TODO: log something?
-		break;
-	}
 
-	Program *program = static_cast<Program *>(result_inquery->program.program_ptr);
-	Cry::ByteArray& content = program->GetResultSection(mTag).Data();
-	result_inquery->content.ptr = reinterpret_cast<const char *>(content.data());
-	result_inquery->content.size = static_cast<unsigned int>(content.size());
-	result_inquery->content.unmanaged_res = 0;
-	result_inquery->content.deallocVPtr = nullptr;
+	try
+	{
+		Program *program = static_cast<Program *>(result_inquery->program.program_ptr);
+		ResultInterface& result = SequenceResultSection(program, result_inquery->tag);
+		Cry::ByteArray& content = result.Data();
+		result_inquery->content.ptr = reinterpret_cast<const char *>(content.data());
+		result_inquery->content.size = static_cast<unsigned int>(content.size());
+		result_inquery->content.unmanaged_res = 0;
+		result_inquery->content.deallocVPtr = nullptr;
+	}
+	catch (const std::exception&)
+	{
+		// TODO: Uhm ... error?
+	}
 }
 
-// API entry; get library information.
+// [ API ENTRY ]
+// Get library information.
 COILCLAPI void GetLibraryInfo(library_info_t *info) NOTHROW
 {
 	info->version_number.major = PRODUCT_VERSION_MAJOR;

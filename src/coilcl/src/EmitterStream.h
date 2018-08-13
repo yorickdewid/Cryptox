@@ -86,7 +86,7 @@ public:
 	}
 };
 
-// Write or read data from memory slab
+// Write or read data from memory slab.
 class MemoryBlock
 	: public InputStream
 	, public OutputStream
@@ -101,7 +101,7 @@ class MemoryBlock
 		}
 	}
 
-	// Reserve enough memory
+	// Reserve enough memory.
 	void ReserveMemory()
 	{
 		if (m_block->capacity() < DEFAULT_MEMORY_BLOCK / 2) {
@@ -136,7 +136,7 @@ public:
 		ReserveMemory();
 	}
 
-	// Write into the caller provided block
+	// Write into the caller provided block.
 	explicit MemoryBlock(MemoryPool& block)
 		: m_block{ &block }
 		, m_doFree{ false }
@@ -157,21 +157,21 @@ public:
 		LocalFree();
 	}
 
-	// Memory data size
+	// Memory data size.
 	inline size_t Size() const noexcept { return m_block->size(); }
-	// Shrink the capacity to size
+	// Shrink the capacity to size.
 	inline void Shrink() { m_block->shrink_to_fit(); }
-	// Check if stream is depleted
+	// Check if stream is depleted.
 	inline bool IsEoS() const noexcept { return m_readOffset == m_block->size(); }
 
-	// Lock the memory block from buffer alteration
+	// Lock the memory block from buffer alteration.
 	void WriteDone()
 	{
 		Shrink();
 		m_acl = AccessControl::READ_ONLY;
 	}
 
-	// Write data stream to memory block
+	// Write data stream to memory block.
 	virtual void Write(uint8_t *vector, size_t sz)
 	{
 		if (m_acl != AccessControl::READ_WRITE) {
@@ -185,7 +185,7 @@ public:
 		}
 	}
 
-	// Read data stream from memory block
+	// Read data stream from memory block.
 	virtual void Read(uint8_t *vector, size_t sz) override
 	{
 		if (sz < 1) { return; }
@@ -199,7 +199,7 @@ public:
 		m_readOffset += sz;
 	}
 
-	// Copy entire memory block
+	// Copy entire memory block.
 	std::shared_ptr<MemoryBlock> DeepCopy()
 	{
 		auto ptr = std::make_shared<MemoryBlock>(this->m_block->size());
@@ -209,8 +209,8 @@ public:
 
 private:
 	bool m_doFree;
-	size_t m_readOffset = 0;
-	MemoryPool *m_block = nullptr;
+	size_t m_readOffset{ 0 };
+	MemoryPool *m_block{ nullptr };
 	AccessControl m_acl{ AccessControl::READ_WRITE };
 };
 
