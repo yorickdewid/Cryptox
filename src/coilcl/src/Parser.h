@@ -34,6 +34,9 @@ inline void ClearStack(Type& c)
 	while (!c.empty()) { c.pop(); }
 }
 
+namespace CoilCl
+{
+
 //TODO: replace token & value with tokenDataPair
 class TokenState
 {
@@ -71,22 +74,22 @@ public:
 	TokenState(const TokenState& other) = default;
 	TokenState(TokenState&& other) = default;
 
-	// Test if current token state contains data
+	// Test if current token state contains data.
 	inline bool HasData() const { return (!!m_currentData); }
 
-	// Fetch data from current token state
+	// Fetch data from current token state.
 	inline const Valuedef::Value& FetchData() { return m_currentData.get(); }
 
-	// Fetch token from current token state
+	// Fetch token from current token state.
 	inline auto FetchToken() const { return m_currentToken; }
 
-	// Fetch source line from current token state
+	// Fetch source line from current token state.
 	inline auto FetchLine() const { return m_line; }
 
-	// Fetch source column from current token state
+	// Fetch source column from current token state.
 	inline auto FetchColumn() const { return m_column; }
 
-	// Fetch source location as pair
+	// Fetch source location as pair.
 	inline auto FetchLocation() const { return std::make_pair(m_line, m_column); }
 };
 
@@ -331,3 +334,5 @@ private:
 	std::stack<std::string> m_identifierStack;
 	Cry::LockPipe<std::shared_ptr<CryCC::AST::ASTNode>> m_elementDescentPipe;
 };
+
+} // namespace CoilCl

@@ -29,11 +29,13 @@
 
 #define MAKE_RESV_REF() Util::MakeASTNode<DeclRefExpr>(m_identifierStack.top()); m_identifierStack.pop();
 
-using namespace CoilCl;
 using namespace CryCC::Program;
 using namespace CryCC::AST;
 using namespace CryCC::SubValue::Typedef;
 using namespace CryCC::SubValue::Valuedef;
+
+namespace CoilCl
+{
 
 class UnexpectedTokenException : public std::exception
 {
@@ -2611,3 +2613,5 @@ Parser& Parser::Execute()
 	this->CompletePhase(ConditionTracker::VALIDATION);
 	return (*this);
 }
+
+} // namespace CoilCl
