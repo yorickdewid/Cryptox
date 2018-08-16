@@ -431,6 +431,8 @@ COILCLAPI void GetResultSection(result_t *result_inquery) NOTHROW
 // Get library information.
 COILCLAPI void GetLibraryInfo(library_info_t *info) NOTHROW
 {
+	assert(info);
+
 	info->version_number.major = PRODUCT_VERSION_MAJOR;
 	info->version_number.minor = PRODUCT_VERSION_MINOR;
 	info->version_number.patch = PRODUCT_VERSION_PATCH;

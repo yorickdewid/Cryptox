@@ -166,8 +166,6 @@ extern "C" {
 
 	// C function defines.
 #define coilcl_compile(p) Compile(p)
-#define coilcl_free_program(p) ReleaseProgram(p)
-#define coilcl_program_info(p) ProgramInfo(p)
 #define coilcl_get_result_section(p) GetResultSection(p)
 #define coilcl_get_library_info(p) GetLibraryInfo(p)
 

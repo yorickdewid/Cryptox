@@ -32,6 +32,7 @@
 CPRGAPI void ReleaseProgram(program_t *program) NOTHROW
 {
 	assert(program);
+
 	if (program->program_ptr) {
 		delete static_cast<CryCC::Program::Program *>(program->program_ptr);
 		program->program_ptr = nullptr;
@@ -57,15 +58,17 @@ CPRGAPI void ProgramInfo(program_info_t *program_info) NOTHROW
 	program_info->is_healthy = program->HasSymbols() && program->operator bool() && program->IsLocked();
 	program_info->is_locked = program->IsLocked();
 	program_info->symbols = program->SymbolCount();
-	program_info->result_sets = false;
-	program_info->last_phase = false;
-	program_info->last_stage = false;
+	program_info->result_sets = 0;
+	program_info->last_phase = 0;
+	program_info->last_stage = 0;
 }
 
 // [ API ENTRY ]
 // Get library information.
 CPRGAPI void GetLibraryInfo(library_info_t *info) NOTHROW
 {
+	assert(info);
+
 	info->version_number.major = PRODUCT_VERSION_MAJOR;
 	info->version_number.minor = PRODUCT_VERSION_MINOR;
 	info->version_number.patch = PRODUCT_VERSION_PATCH;

@@ -164,6 +164,8 @@ EVMAPI int ExecuteProgram(runtime_settings_t *runtime) noexcept
 // Get library information.
 EVMAPI void GetLibraryInfo(library_info_t *info) NOTHROW
 {
+	assert(info);
+
 	info->version_number.major = PRODUCT_VERSION_MAJOR;
 	info->version_number.minor = PRODUCT_VERSION_MINOR;
 	info->version_number.patch = PRODUCT_VERSION_PATCH;

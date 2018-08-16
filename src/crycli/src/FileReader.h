@@ -17,7 +17,7 @@
 
 namespace fs = boost::filesystem;
 
-class FileReader : public Reader
+class FileReader : public ReaderInterface
 {
 public:
 	FileReader() = default;
@@ -26,8 +26,8 @@ public:
 		AppendFileToList(filename);
 	}
 
-	// Implement interface reader
-	virtual std::string FetchNextChunk(size_t sizeHint)
+	// Implement interface reader.
+	virtual InputDataType FetchNextChunk(size_t sizeHint)
 	{
 		auto content = m_unitList.top()->Read(sizeHint);
 		if (content.empty()) {
@@ -37,13 +37,13 @@ public:
 		return content;
 	}
 
-	// Implement interface meta info request
+	// Implement interface meta info request.
 	virtual std::string FetchMetaInfo()
 	{
 		return UnitSourceName();
 	}
 
-	// Implement interface, switch to source
+	// Implement interface, switch to source.
 	virtual void SwitchSource(const std::string& source)
 	{
 		AppendFileToList(source);
@@ -52,7 +52,7 @@ public:
 protected:
 	void AppendFileToList(const std::string&);
 
-	// Append source unit to unit stack
+	// Append source unit to unit stack.
 	void AppendFileToList(SourceUnit&& unit)
 	{
 		m_unitList.push(std::make_unique<SourceUnit>(std::move(unit)));

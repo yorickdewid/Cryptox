@@ -27,17 +27,17 @@ public:
 	{
 	}
 
-	// All local members can be moved implicitly
+	// All local members can be moved implicitly.
 	VirtualSourceUnit(const VirtualSourceUnit&) = default;
 	VirtualSourceUnit(VirtualSourceUnit&&) = default;
 
-	// There is nothing to close, but prevent base to close file descriptor
+	// There is nothing to close, but prevent base to close file descriptor.
 	virtual inline void Close() override
 	{
 	}
 
-	// Return the size of the memory allocated code stub
-	virtual inline size_t Size() const override
+	// Return the size of the memory allocated code stub.
+	virtual inline size_t Size() const noexcept override
 	{
 		return m_content.size();
 	}
@@ -54,7 +54,7 @@ protected:
 	std::string m_content;
 
 private:
-	size_t offset = 0;
+	size_t offset{ 0 };
 };
 
 struct StringReader : public FileReader

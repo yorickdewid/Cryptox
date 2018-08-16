@@ -15,7 +15,7 @@
 
 #include <functional>
 
-using BaseReader = std::shared_ptr<Reader>;
+using BaseReader = std::shared_ptr<ReaderInterface>;
 
 struct CompilerAbstraction;
 
@@ -48,10 +48,10 @@ private:
 };
 
 // Create a new stream reader object. 
-template<typename _Ty, typename... _ArgsTy, typename = typename std::enable_if<std::is_base_of<Reader, _Ty>::value>::type>
-inline auto MakeReader(_ArgsTy&&... args) -> BaseReader
+template<typename Type, typename... ArgTypes, typename = typename std::enable_if<std::is_base_of<ReaderInterface, Type>::value>::type>
+inline auto MakeReader(ArgTypes&&... args) -> BaseReader
 {
-	return std::make_shared<_Ty>(std::forward<_ArgsTy>(args)...);
+	return std::make_shared<Type>(std::forward<ArgTypes>(args)...);
 }
 
 void GetSectionMemoryBlock(const char *tag, void *program, std::function<void(const char *, size_t)>);

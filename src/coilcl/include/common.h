@@ -26,8 +26,14 @@
 extern "C" {
 #endif
 
+	// API version type used in most API calls.
 	typedef unsigned short api_t;
 
+	// Error handler signature. 'user_data' is set by the caller and can be any pointer
+	// to caller allocated memory. This parameter is optional and should otherwise be
+	// NULL. The 'message' is a character string with the error message. 'is_fatal'
+	// parameter indicats if the error was a fatal error, one which halts all further
+	// operations and returns as quick as possible.
 	typedef void(*error_handler_t)(void *user_data, const char *message, int is_fatal);
 
 	typedef struct
@@ -45,7 +51,7 @@ extern "C" {
 		} version_number;
 
 		// API version number.
-		api_t api_version;
+		api_t api_version; //TODO: api_ref
 		// Product name.
 		const char *product;
 		// Product description.
