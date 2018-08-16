@@ -62,7 +62,7 @@ struct ModifierInterface
 
 class UserDataAbstract
 {
-	std::vector<CryCC::SubValue::UserDataWrapper> m_userDataTracker;
+	std::vector<CryCC::SubValue::UserDataPtr> m_userDataTracker;
 	
 public:
 	template<typename UserType, typename = typename std::enable_if<std::is_pointer<_Ty>::value>::type>

@@ -25,8 +25,8 @@ class TypeFacade
 {
 	Typedef::BaseType m_type; //TODO: Remove pointer if possible at all
 	//Typedef::TypedefBase& m_type2;
-	size_t m_ptrCount = 0;
-	size_t m_arrayElement = 0;
+	size_t m_ptrCount{ 0 };
+	size_t m_arrayElement{ 0 };
 
 public:
 	//FUTURE: maybe remove

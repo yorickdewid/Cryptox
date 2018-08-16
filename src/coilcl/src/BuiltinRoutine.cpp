@@ -28,6 +28,7 @@ BUILTIN_ROUTINE_IMPL(sizeof)
 		assert(Util::NodeCast<DeclRefExpr>(expr)->IsResolved());
 		auto ref = Util::NodeCast<DeclRefExpr>(expr)->Reference();
 
+		// TODO: somehow find the value.
 		switch (ref->Label())
 		{
 		case NodeID::VAR_DECL_ID: {
@@ -40,7 +41,6 @@ BUILTIN_ROUTINE_IMPL(sizeof)
 			break;
 		}
 
-		//CryImplExcept(); //TODO
 		//return;
 	}
 

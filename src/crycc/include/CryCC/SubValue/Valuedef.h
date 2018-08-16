@@ -116,6 +116,7 @@ protected:
 		ValueSelect() = default; //TODO: for now
 		ValueSelect(const ValueSelect&) = default;
 		ValueSelect(ValueSelect&&) = default;
+
 		ValueSelect(ValueVariantSingle value)
 			: singleValue{ value }
 		{

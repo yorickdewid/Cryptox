@@ -473,36 +473,19 @@ class Literal
 {
 	NODE_ID(NodeID::LITERAL_ID);
 
-public:
-	//virtual std::shared_ptr<CryCC::Valuedef::Value> Type2() const noexcept = 0; //TODO: rename
-	const Valuedef::Value& Value() const noexcept
-	{
-		return m_value;
-	}
+protected:
+	Valuedef::Value m_value;
 
-	//TODO: protected?
-	virtual void Serialize(Serializable::VisitorInterface& pack);
-	virtual void Deserialize(Serializable::VisitorInterface& pack);
+public:
+	const Valuedef::Value& Value() const noexcept { return m_value; }
 
 protected:
 	virtual ~Literal() = 0;
 
-	Literal(const Valuedef::Value& value)
-		: Returnable{ value.Type() }
-		, m_value{ value }
-	{
-	}
+	Literal(const Valuedef::Value&);
+	Literal(Valuedef::Value&&);
 
-	Literal(Valuedef::Value&& value)
-		: Returnable{ value.Type() }
-		, m_value{ std::move(value) }
-	{
-	}
-
-	explicit Literal(Serializable::VisitorInterface&)
-		: m_value{ Util::MakeInt(0) } //TOOD: temporary fix
-	{
-	}
+	explicit Literal(Serializable::VisitorInterface&);
 
 	template<NodeID NodeId>
 	void SerializeImpl(Serializable::VisitorInterface& pack)
@@ -532,19 +515,17 @@ protected:
 	}
 
 	template<typename DerivedType>
-	const std::string NodeNameImpl() const
+	inline const std::string NodeName() const
 	{
-		std::stringstream ss;
-		ss << RemoveClassFromName(typeid(DerivedType).name());
-		ss << " {" + std::to_string(m_state.Alteration()) + "}";
-		ss << " <line:" << m_location.Line() << ",col:" << m_location.Column() << "> ";
-		ss << "'" << ReturnType()->TypeName() << "' ";
-		ss << "\"" << m_value.Print() << "\"";
-
-		return ss.str();
+		return NodeNameImpl(typeid(DerivedType).name());
 	}
 
-	Valuedef::Value m_value;
+	//TODO: protected?
+	virtual void Serialize(Serializable::VisitorInterface&);
+	virtual void Deserialize(Serializable::VisitorInterface&);
+
+private:
+	const std::string NodeNameImpl(const char *className) const;
 };
 
 class CharacterLiteral
@@ -554,40 +535,17 @@ class CharacterLiteral
 	NODE_ID(NodeID::CHARACTER_LITERAL_ID);
 
 public:
-	explicit CharacterLiteral(Serializable::VisitorInterface& pack)
-		: Literal{ pack }
-	{
-		Deserialize(pack);
-	}
+	CharacterLiteral(const Valuedef::Value&);
+	CharacterLiteral(Valuedef::Value&&);
 
-	CharacterLiteral(const Valuedef::Value& value)
-		: Literal{ value }
-	{
-	}
+	CharacterLiteral(char);
 
-	CharacterLiteral(Valuedef::Value&& value)
-		: Literal{ std::move(value) }
-	{
-	}
+	explicit CharacterLiteral(Serializable::VisitorInterface&);
 
-	CharacterLiteral(char value)
-		: Literal{ Util::MakeChar(value) }
-	{
-	}
+	virtual void Serialize(Serializable::VisitorInterface&);
+	virtual void Deserialize(Serializable::VisitorInterface&);
 
-	virtual void Serialize(Serializable::VisitorInterface& pack)
-	{
-		SerializeImpl<NodeID::CHARACTER_LITERAL_ID>(pack);
-	}
-	virtual void Deserialize(Serializable::VisitorInterface& pack)
-	{
-		DeserializeImpl<NodeID::CHARACTER_LITERAL_ID>(pack);
-	}
-
-	const std::string NodeName() const
-	{
-		return NodeNameImpl<CharacterLiteral>();
-	}
+	const std::string NodeName() const;
 
 	LABEL();
 
@@ -602,40 +560,17 @@ class StringLiteral
 	NODE_ID(NodeID::STRING_LITERAL_ID);
 
 public:
-	explicit StringLiteral(Serializable::VisitorInterface& pack)
-		: Literal{ pack }
-	{
-		Deserialize(pack);
-	}
+	StringLiteral(const Valuedef::Value&);
+	StringLiteral(Valuedef::Value&&);
 
-	StringLiteral(const Valuedef::Value& value)
-		: Literal{ value }
-	{
-	}
+	StringLiteral(const std::string&);
 
-	StringLiteral(Valuedef::Value&& value)
-		: Literal{ std::move(value) }
-	{
-	}
+	explicit StringLiteral(Serializable::VisitorInterface&);
 
-	StringLiteral(const std::string& value)
-		: Literal{ Util::MakeString(value) }
-	{
-	}
+	virtual void Serialize(Serializable::VisitorInterface&);
+	virtual void Deserialize(Serializable::VisitorInterface&);
 
-	virtual void Serialize(Serializable::VisitorInterface& pack)
-	{
-		SerializeImpl<NodeID::STRING_LITERAL_ID>(pack);
-	}
-	virtual void Deserialize(Serializable::VisitorInterface& pack)
-	{
-		DeserializeImpl<NodeID::STRING_LITERAL_ID>(pack);
-	}
-
-	const std::string NodeName() const
-	{
-		return NodeNameImpl<StringLiteral>();
-	}
+	const std::string NodeName() const;
 
 	LABEL();
 
@@ -650,40 +585,17 @@ class IntegerLiteral
 	NODE_ID(NodeID::INTEGER_LITERAL_ID);
 
 public:
-	explicit IntegerLiteral(Serializable::VisitorInterface& pack)
-		: Literal{ pack }
-	{
-		Deserialize(pack);
-	}
+	IntegerLiteral(const Valuedef::Value&);
+	IntegerLiteral(Valuedef::Value&&);
 
-	IntegerLiteral(const Valuedef::Value& value)
-		: Literal{ value }
-	{
-	}
+	IntegerLiteral(int);
 
-	IntegerLiteral(Valuedef::Value&& value)
-		: Literal{ std::move(value) }
-	{
-	}
+	explicit IntegerLiteral(Serializable::VisitorInterface&);
 
-	IntegerLiteral(int value)
-		: Literal{ Util::MakeInt(value) }
-	{
-	}
+	virtual void Serialize(Serializable::VisitorInterface&);
+	virtual void Deserialize(Serializable::VisitorInterface&);
 
-	virtual void Serialize(Serializable::VisitorInterface& pack)
-	{
-		SerializeImpl<NodeID::INTEGER_LITERAL_ID>(pack);
-	}
-	virtual void Deserialize(Serializable::VisitorInterface& pack)
-	{
-		DeserializeImpl<NodeID::INTEGER_LITERAL_ID>(pack);
-	}
-
-	const std::string NodeName() const
-	{
-		return NodeNameImpl<IntegerLiteral>();
-	}
+	const std::string NodeName() const;
 
 	LABEL();
 
@@ -698,40 +610,17 @@ class FloatingLiteral
 	NODE_ID(NodeID::FLOAT_LITERAL_ID);
 
 public:
-	explicit FloatingLiteral(Serializable::VisitorInterface& pack)
-		: Literal{ pack }
-	{
-		Deserialize(pack);
-	}
+	FloatingLiteral(const Valuedef::Value&);
+	FloatingLiteral(Valuedef::Value&&);
 
-	FloatingLiteral(const Valuedef::Value& value)
-		: Literal{ value }
-	{
-	}
+	FloatingLiteral(float);
 
-	FloatingLiteral(Valuedef::Value&& value)
-		: Literal{ std::move(value) }
-	{
-	}
+	explicit FloatingLiteral(Serializable::VisitorInterface&);
 
-	FloatingLiteral(float value)
-		: Literal{ Util::MakeFloat(value) }
-	{
-	}
+	virtual void Serialize(Serializable::VisitorInterface&);
+	virtual void Deserialize(Serializable::VisitorInterface&);
 
-	virtual void Serialize(Serializable::VisitorInterface& pack)
-	{
-		SerializeImpl<NodeID::FLOAT_LITERAL_ID>(pack);
-	}
-	virtual void Deserialize(Serializable::VisitorInterface& pack)
-	{
-		DeserializeImpl<NodeID::FLOAT_LITERAL_ID>(pack);
-	}
-
-	const std::string NodeName() const
-	{
-		return NodeNameImpl<FloatingLiteral>();
-	}
+	const std::string NodeName() const;
 
 	LABEL();
 
@@ -1059,7 +948,7 @@ public:
 		: Decl{ pack }
 	{
 		Deserialize(pack);
-}
+	}
 
 	FunctionDecl(const std::string& name, std::shared_ptr<CompoundStmt>& node);
 	FunctionDecl(const std::string& name, std::shared_ptr<Typedef::TypedefBase> type);
