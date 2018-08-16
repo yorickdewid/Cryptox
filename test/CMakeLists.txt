@@ -17,8 +17,9 @@ include(ProjectPrep)
 
 # External includes
 include_directories(${PfBase_INCLUDE_DIRS})
-include_directories(${CryCC_INCLUDE_DIRS})
 include_directories(${CoilCEX_INCLUDE_DIRS})
+include_directories(${CryCC_INCLUDE_DIRS})
+include_directories(${CryProg_INCLUDE_DIRS})
 include_directories(${CoilCl_INCLUDE_DIRS})
 include_directories(${CryEVM_INCLUDE_DIRS})
 
@@ -53,6 +54,7 @@ target_link_libraries(${PROJECT_NAME}
 	PfBase
 	CoilCEX
 	CryCC
+	CryProg
 	CoilCl
 	CryEVM
 	${Boost_UNIT_TEST_FRAMEWORK_LIBRARY}

@@ -19,15 +19,11 @@
 # define NOTHROW
 #endif
 
+#define CHECK_API_VERSION(u,v) \
+	if (u->api_ref != v) { fprintf(stderr, "API version mismatch"); abort(); }
+
 #ifdef __cplusplus
 extern "C" {
-#endif
-
-//TODO: CRY_MAX_FILENAME_SZ
-#ifdef FILENAME_MAX
-# define MAX_FILENAME_SZ FILENAME_MAX
-#else
-# define MAX_FILENAME_SZ 128
 #endif
 
 	typedef unsigned short api_t;

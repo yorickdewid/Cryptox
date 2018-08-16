@@ -120,7 +120,7 @@ void run_source_file(const char *file, const char *out) {
 	}
 
 	// Supply compiler information
-	info.apiVer = COILCLAPIVER;
+	info.api_ref = COILCLAPIVER;
 	info.code_opt.standard = c99;
 	info.code_opt.optimization = NONE;
 	info.streamReaderVPtr = &get_next_source_buffer;

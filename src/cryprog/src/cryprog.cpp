@@ -45,6 +45,8 @@ CPRGAPI void ProgramInfo(program_info_t *program_info) NOTHROW
 {
 	assert(program_info);
 
+	CHECK_API_VERSION(program_info, CPRGAPIVER);
+
 	// Early return if program pointer is empty.
 	if (!program_info->program.program_ptr) {
 		program_info->is_healthy = false;

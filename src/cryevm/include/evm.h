@@ -50,7 +50,7 @@ extern "C" {
 	typedef struct
 	{
 		// API version between executable and library.
-		api_t apiVer;
+		api_t api_ref;
 
 		// Virtual machine runtime configuration settings.
 		struct vm_config cfg;

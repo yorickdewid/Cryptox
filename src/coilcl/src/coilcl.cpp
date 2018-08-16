@@ -315,9 +315,6 @@ void AssimilateProgram(program_t *out_program, CoilCl::Compiler::ProgramPtr&& in
 
 } // namespace InterOpHelper
 
-#define CHECK_API_VERSION(u) \
-	if (u->apiVer != COILCLAPIVER) { fprintf(stderr, "API version mismatch"); abort(); }
-
 #define USER_DATA(u) u->user_data
 
 // [ API ENTRY ]
@@ -328,7 +325,7 @@ COILCLAPI void Compile(compiler_info_t *cl_info) NOTHROW
 
 	assert(cl_info);
 
-	CHECK_API_VERSION(cl_info);
+	CHECK_API_VERSION(cl_info, COILCLAPIVER);
 
 	assert(cl_info->streamReaderVPtr);
 	assert(cl_info->loadStreamRequestVPtr);
@@ -381,41 +378,6 @@ COILCLAPI void Compile(compiler_info_t *cl_info) NOTHROW
 	InterOpHelper::AssimilateProgram(&cl_info->program, std::move(program));
 }
 
-//FUTURE: move into CryCC::Program::
-// [ API ENTRY ]
-// Release program resources.
-COILCLAPI void ReleaseProgram(program_t *program) NOTHROW
-{
-	assert(program);
-	if (program->program_ptr) {
-		delete static_cast<CryCC::Program::Program *>(program->program_ptr);
-		program->program_ptr = nullptr;
-	}
-}
-
-//FUTURE: move into CryCC::Program::
-// [ API ENTRY ]
-// Retrieve status and health information from program structure. The
-// returning result is pushed into a stateless strucutre.
-COILCLAPI void ProgramInfo(program_info_t *program_info) NOTHROW
-{
-	assert(program_info);
-
-	// Early return if program pointer is empty.
-	if (!program_info->program.program_ptr) {
-		program_info->is_healthy = false;
-		return;
-	}
-
-	CryCC::Program::Program *program = static_cast<CryCC::Program::Program *>(program_info->program.program_ptr);
-	program_info->is_healthy = program->HasSymbols() && program->operator bool() && program->IsLocked();
-	program_info->is_locked = program->IsLocked();
-	program_info->symbols = program->SymbolCount();
-	program_info->result_sets = false;
-	program_info->last_phase = false;
-	program_info->last_stage = false;
-}
-
 namespace
 {
 
@@ -446,6 +408,8 @@ COILCLAPI void GetResultSection(result_t *result_inquery) NOTHROW
 	using namespace CryCC::Program;
 
 	assert(result_inquery);
+
+	CHECK_API_VERSION(result_inquery, COILCLAPIVER);
 
 	try
 	{

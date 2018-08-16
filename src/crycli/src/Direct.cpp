@@ -13,14 +13,17 @@
 
 #include <Cry/Indep.h>
 
+#include <cprg.h>
+
 #include <memory>
 #include <iostream>
 
 namespace Version
 {
 
-LibraryInfo g_compilerInfo;
-//VirtualMachineInfo g_evmInfo; //TODO
+//TODO: LibraryInfoProg
+LibraryInfo g_compilerInfo; //TODO: LibraryInfoCoilCL
+//LibraryInfoEVM g_evmInfo; //TODO
 
 std::string Compiler()
 {
@@ -58,7 +61,7 @@ public:
 	// Release program resources.
 	~ProgramWrapper()
 	{
-		ReleaseProgram(this);
+		::ReleaseProgram(this);
 	}
 };
 
@@ -91,8 +94,9 @@ public:
 	Executor& AssertProgram()
 	{
 		program_info_t info;
+		info.api_ref = CPRGAPIVER;
 		info.program.program_ptr = (*m_program);
-		ProgramInfo(&info);
+		::ProgramInfo(&info);
 
 		if (!info.is_healthy) {
 			throw std::exception{};

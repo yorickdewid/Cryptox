@@ -40,7 +40,7 @@ class StreamReaderAdapter final
 	program_t Compose() noexcept
 	{
 		compiler_info_t info;
-		info.apiVer = COILCLAPIVER;
+		info.api_ref = COILCLAPIVER;
 		info.code_opt.standard = cil_standard::c99;
 		info.code_opt.optimization = optimization::NONE;
 		info.streamReaderVPtr = &CCBFetchChunk;
@@ -203,10 +203,11 @@ CompilerAbstraction& CompilerAbstraction::SetBuffer(size_t size)
 	return (*this);
 }
 
-//TODO: ugly refactor
+//TODO: ugly refactor & move into Direct
 void GetSectionMemoryBlock(const char *tag, void *programRaw, std::function<void(const char *, size_t)> callback)
 {
 	result_t result_inquery;
+	result_inquery.api_ref = COILCLAPIVER;
 	result_inquery.program.program_ptr = programRaw;
 	result_inquery.content.ptr = nullptr;
 	result_inquery.content.size = 0;
@@ -229,8 +230,8 @@ void GetSectionMemoryBlock(const char *tag, void *programRaw, std::function<void
 		throw 1; //TODO
 	}
 
-	// Query the program for resulting section
-	GetResultSection(&result_inquery);
+	// Query the program for resulting section.
+	::GetResultSection(&result_inquery);
 
 	size_t offset = 0;
 	size_t left = result_inquery.content.size;
@@ -244,7 +245,7 @@ void GetSectionMemoryBlock(const char *tag, void *programRaw, std::function<void
 		left -= write;
 	}
 
-	// Free unmanaged resource
+	// Free unmanaged resource.
 	if (result_inquery.content.unmanaged_res) {
 		delete result_inquery.content.ptr;
 	}
@@ -253,7 +254,7 @@ void GetSectionMemoryBlock(const char *tag, void *programRaw, std::function<void
 LibraryInfo::LibraryInfo()
 {
 	library_info_t info;
-	GetLibraryInfo(&info);
+	::GetLibraryInfo(&info);
 
 	version = {
 		info.version_number.major,

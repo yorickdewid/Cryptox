@@ -6,6 +6,7 @@
 // that can be found in the LICENSE file. Content can not be 
 // copied and/or distributed without the express of the author.
 
+#include <cprg.h>
 #include <coilcl.h>
 #include <evm.h>
 
@@ -27,6 +28,7 @@
 // - Test cast
 // - Test double cast (int)(char)
 // - All binary operators
+// - ProgramInfo
 
 class CompilerHelper
 {
@@ -66,7 +68,7 @@ class CompilerHelper
 		return meta_info;
 	}
 
-	// Throw any errors as an exception so we can catch it
+	// Throw any errors as an exception so we can catch it.
 	static void ErrorHandler(void *user_data, const char *message, int fatal)
 	{
 		CRY_UNUSED(user_data);
@@ -74,11 +76,11 @@ class CompilerHelper
 		throw std::runtime_error{ message };
 	}
 
-	// Call the compiler
+	// Call the compiler.
 	void CallCompiler()
 	{
 		compiler_info_t info;
-		info.apiVer = COILCLAPIVER;
+		info.api_ref = COILCLAPIVER;
 		info.code_opt.standard = cil_standard::cil;
 		info.code_opt.optimization = optimization::NONE;
 		info.streamReaderVPtr = &CompilerHelper::GetSource;
@@ -87,15 +89,15 @@ class CompilerHelper
 		info.error_handler = &CompilerHelper::ErrorHandler;
 		info.program.program_ptr = nullptr;
 		info.user_data = this;
-		Compile(&info);
+		::Compile(&info);
 		m_program = info.program;
 	}
 
-	// Call the VM
+	// Call the VM.
 	void CallVM()
 	{
 		runtime_settings_t settings;
-		settings.apiVer = EVMAPIVER;
+		settings.api_ref = EVMAPIVER;
 		settings.entry_point = nullptr;
 		settings.return_code = EXIT_FAILURE;
 		settings.error_handler = &CompilerHelper::ErrorHandler;
@@ -103,7 +105,7 @@ class CompilerHelper
 		settings.args = nullptr;
 		settings.envs = nullptr;
 		settings.user_data = this;
-		m_vmResult = ExecuteProgram(&settings);
+		m_vmResult = ::ExecuteProgram(&settings);
 		m_programResult = settings.return_code;
 	}
 
@@ -115,7 +117,7 @@ public:
 
 	~CompilerHelper()
 	{
-		ReleaseProgram(&m_program);
+		::ReleaseProgram(&m_program);
 	}
 
 	CompilerHelper& RunCompiler()

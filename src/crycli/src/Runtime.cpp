@@ -48,7 +48,7 @@ class ExecuteAdapter final
 	std::pair<int, int> Compose()
 	{
 		runtime_settings_t settings;
-		settings.apiVer = EVMAPIVER;
+		settings.api_ref = EVMAPIVER;
 		settings.entry_point = entrySymbol;
 		settings.return_code = EXIT_FAILURE;
 		settings.error_handler = &CCBErrorHandler;
@@ -61,7 +61,7 @@ class ExecuteAdapter final
 		MapProgramArguments(&settings);
 
 		// Invoke compiler with environment and compiler settings.
-		int vmResult = ExecuteProgram(&settings);
+		int vmResult = ::ExecuteProgram(&settings);
 
 		// Free allocated program arguments.
 		FreeDataLists(&settings);

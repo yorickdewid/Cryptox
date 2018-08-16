@@ -97,9 +97,6 @@ private:
 	struct vm_config *m_config;
 };
 
-#define CHECK_API_VERSION(u) \
-	if (u->apiVer != EVMAPIVER) { fprintf(stderr, "API version mismatch"); abort(); }
-
 // [ API ENTRY ]
 // Program executor.
 EVMAPI int ExecuteProgram(runtime_settings_t *runtime) noexcept
@@ -108,7 +105,7 @@ EVMAPI int ExecuteProgram(runtime_settings_t *runtime) noexcept
 
 	assert(runtime);
 
-	CHECK_API_VERSION(runtime);
+	CHECK_API_VERSION(runtime, EVMAPIVER);
 
 	assert(runtime->error_handler);
 	assert(runtime->program.program_ptr);

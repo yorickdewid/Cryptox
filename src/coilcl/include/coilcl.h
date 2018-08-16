@@ -33,6 +33,13 @@
 extern "C" {
 #endif
 
+//TODO: CRY_MAX_FILENAME_SZ
+#ifdef FILENAME_MAX
+# define MAX_FILENAME_SZ FILENAME_MAX
+#else
+# define MAX_FILENAME_SZ 128
+#endif
+
 	// Language standard.
 	enum cil_standard
 	{
@@ -82,7 +89,8 @@ extern "C" {
 	typedef struct
 	{
 		// API version between executable and library.
-		api_t apiVer; //TODO: rename
+		api_t api_ref;
+
 		// Code generation options set in the frontend.
 		struct codegen code_opt;
 
@@ -125,43 +133,6 @@ extern "C" {
 	// Compiler entry point.
 	COILCLAPI void Compile(compiler_info_t *) NOTHROW;
 
-	// Release program object.
-	COILCLAPI void ReleaseProgram(program_t *) NOTHROW;
-
-	// Source unit metadata.
-	typedef struct
-	{
-		// Compiler resulting output. This structure is set by the compiler
-		// interface and should be freed by the caller. The structure cannot
-		// be used directly, but shall be passed to program compatible components.
-		program_t program;
-
-		// Check if the program is healty. A non zero result indicates the program
-		// passed basic assertions and is runnable.
-		int is_healthy;
-
-		// A non zero value indicates if the program is locked.
-		int is_locked;
-
-		// Number of function symbols. Zero means program contains no symbols. This
-		// check is important for futher program processing.
-		int symbols;
-
-		// Number of resultsets. A resultset is the product of a program translation
-		// into another data format.
-		int result_sets;
-
-		// Last program phase recorded by a stage. This essentially serves as a
-		// checkpoint in case the program experiences an anomaly.
-		unsigned int last_phase;
-
-		// Last compiler stage processing the program.
-		unsigned int last_stage;
-	} program_info_t;
-
-	// Get program information.
-	COILCLAPI void ProgramInfo(program_info_t *) NOTHROW;
-
 	// Tag the resulting section in the program data exchange.
 	enum result_section_tag
 	{
@@ -174,10 +145,15 @@ extern "C" {
 	// Result inquery.
 	typedef struct
 	{
+		// API version between executable and library.
+		api_t api_ref;
+
 		// Query result set tag.
 		enum result_section_tag tag;
+
 		// Compiler resulting output.
 		program_t program;
+
 		// Pointer to the requested contents.
 		datachunk_t content;
 	} result_t;

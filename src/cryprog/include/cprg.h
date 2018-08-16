@@ -38,6 +38,9 @@ extern "C" {
 	// Source unit metadata.
 	typedef struct
 	{
+		// API version between executable and library.
+		api_t api_ref;
+
 		// Compiler resulting output. This structure is set by the compiler
 		// interface and should be freed by the caller. The structure cannot
 		// be used directly, but shall be passed to program compatible components.
