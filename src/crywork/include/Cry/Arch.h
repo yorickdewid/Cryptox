@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include "Cry.h"
+#include <Cry/Cry.h>
 
 // Check windows
 #if defined(_WIN32) || defined(_WIN64)

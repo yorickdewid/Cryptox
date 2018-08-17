@@ -20,38 +20,38 @@ namespace MemoryMap
 
 // This value may be provided as the 'length' parameter to the constructor or
 // 'map', in which case a memory mapping of the entire file is created.
-using Detail::map_entire_file;
+//using Detail::map_entire_file;
 
 template<access_mode AccessMode, typename ByteType>
-class basic_mmap
+class BasicMMap
 {
-	using ImplType = detail::basic_mmap<ByteType>;
-	ImplType impl_;
+	using self_type = Detail::BasicMMap<ByteType>;
+	self_type impl_;
 
 public:
-	using value_type = typename ImplType::value_type;
-	using size_type = typename ImplType::size_type;
-	using reference = typename ImplType::reference;
-	using const_reference = typename ImplType::const_reference;
-	using pointer = typename ImplType::pointer;
-	using const_pointer = typename ImplType::const_pointer;
-	using difference_type = typename ImplType::difference_type;
-	using iterator = typename ImplType::iterator;
-	using const_iterator = typename ImplType::const_iterator;
-	using reverse_iterator = typename ImplType::reverse_iterator;
-	using const_reverse_iterator = typename ImplType::const_reverse_iterator;
-	using iterator_category = typename ImplType::iterator_category;
-	using handle_type = typename ImplType::handle_type;
+	using value_type = typename self_type::value_type;
+	using size_type = typename self_type::size_type;
+	using reference = typename self_type::reference;
+	using const_reference = typename self_type::const_reference;
+	using pointer = typename self_type::pointer;
+	using const_pointer = typename self_type::const_pointer;
+	using difference_type = typename self_type::difference_type;
+	using iterator = typename self_type::iterator;
+	using const_iterator = typename self_type::const_iterator;
+	using reverse_iterator = typename self_type::reverse_iterator;
+	using const_reverse_iterator = typename self_type::const_reverse_iterator;
+	using iterator_category = typename self_type::iterator_category;
+	using handle_type = typename self_type::handle_type;
 
 	// The default constructed mmap object is in a non-mapped state, that is, any
 	// operation that attempts to access nonexistent underlying data will result in
 	// undefined behaviour/segmentation faults.
-	basic_mmap() = default;
+	BasicMMap() = default;
 
 	// The same as invoking the 'map' function, except any error that may occur while
 	// establishing the mapping is thrown.
 	template<typename String>
-	basic_mmap(const String& path, const size_type offset, const size_type length)
+	BasicMMap(const String& path, const size_type offset, const size_type length)
 	{
 		std::error_code error;
 		map(path, offset, length, error);
@@ -60,22 +60,20 @@ public:
 
 	// The same as invoking the 'map' function, except any error that may occur while
 	// establishing the mapping is thrown.
-	basic_mmap(const handle_type handle, const size_type offset, const size_type length)
+	BasicMMap(const handle_type handle, const size_type offset, const size_type length)
 	{
 		std::error_code error;
 		map(handle, offset, length, error);
 		if (error) { throw error; }
 	}
 
-	/**
-	* This class has single-ownership semantics, so transferring ownership may only be
-	* accomplished by moving the object.
-	*/
-	basic_mmap(basic_mmap&&) = default;
-	basic_mmap& operator=(basic_mmap&&) = default;
+	// This class has single-ownership semantics, so transferring ownership may only be
+	// accomplished by moving the object.
+	BasicMMap(BasicMMap&&) = default;
+	BasicMMap& operator=(BasicMMap&&) = default;
 
 	// The destructor invokes unmap.
-	~basic_mmap() = default;
+	~BasicMMap() = default;
 
 	// On UNIX systems 'file_handle' and 'mapping_handle' are the same. On Windows,
 	// however, a mapped region of a file gets its own handle, which is returned by
@@ -91,12 +89,10 @@ public:
 	// provided so that this class has Container semantics.
 	bool empty() const noexcept { return impl_.empty(); }
 
-	/**
-	* 'size' and 'length' both return the logical length, i.e. the number of bytes
-	* user requested to be mapped, while 'mapped_length' returns the actual number of
-	* bytes that were mapped which is a multiple of the underlying operating system's
-	* page allocation granularity.
-	*/
+	// 'size' and 'length' both return the logical length, i.e. the number of bytes
+	// user requested to be mapped, while 'mapped_length' returns the actual number of
+	// bytes that were mapped which is a multiple of the underlying operating system's
+	// page allocation granularity.
 	size_type size() const noexcept { return impl_.length(); }
 	size_type length() const noexcept { return impl_.length(); }
 	size_type mapped_length() const noexcept { return impl_.mapped_length(); }
@@ -110,48 +106,32 @@ public:
 	pointer data() noexcept { return impl_.data(); }
 	const_pointer data() const noexcept { return impl_.data(); }
 
-	/**
-	* Returns an iterator to the first requested byte, if a valid memory mapping
-	* exists, otherwise this function call is undefined behaviour.
-	*/
-	template<
-		access_mode A = AccessMode,
-		typename = typename std::enable_if<A == access_mode::write>::type
-	> iterator begin() noexcept { return impl_.begin(); }
+	// Returns an iterator to the first requested byte, if a valid memory mapping
+	// exists, otherwise this function call is undefined behaviour.
+	template<access_mode A = AccessMode, typename = typename std::enable_if<A == access_mode::write>::type>
+	iterator begin() noexcept { return impl_.begin(); }
 	const_iterator begin() const noexcept { return impl_.begin(); }
 	const_iterator cbegin() const noexcept { return impl_.cbegin(); }
 
-	/**
-	* Returns an iterator one past the last requested byte, if a valid memory mapping
-	* exists, otherwise this function call is undefined behaviour.
-	*/
-	template<
-		access_mode A = AccessMode,
-		typename = typename std::enable_if<A == access_mode::write>::type
-	> iterator end() noexcept { return impl_.end(); }
+	// Returns an iterator one past the last requested byte, if a valid memory mapping
+	// exists, otherwise this function call is undefined behaviour.
+	template<access_mode A = AccessMode, typename = typename std::enable_if<A == access_mode::write>::type>
+	iterator end() noexcept { return impl_.end(); }
 	const_iterator end() const noexcept { return impl_.end(); }
 	const_iterator cend() const noexcept { return impl_.cend(); }
 
-	/**
-	* Returns a reverse iterator to the last memory mapped byte, if a valid
-	* memory mapping exists, otherwise this function call is undefined
-	* behaviour.
-	*/
-	template<
-		access_mode A = AccessMode,
-		typename = typename std::enable_if<A == access_mode::write>::type
-	> reverse_iterator rbegin() noexcept { return impl_.rbegin(); }
+	// Returns a reverse iterator to the last memory mapped byte, if a valid
+	// memory mapping exists, otherwise this function call is undefined
+	// behaviour.
+	template<access_mode A = AccessMode, typename = typename std::enable_if<A == access_mode::write>::type>
+	reverse_iterator rbegin() noexcept { return impl_.rbegin(); }
 	const_reverse_iterator rbegin() const noexcept { return impl_.rbegin(); }
 	const_reverse_iterator crbegin() const noexcept { return impl_.crbegin(); }
 
-	/**
-	* Returns a reverse iterator past the first mapped byte, if a valid memory
-	* mapping exists, otherwise this function call is undefined behaviour.
-	*/
-	template<
-		access_mode A = AccessMode,
-		typename = typename std::enable_if<A == access_mode::write>::type
-	> reverse_iterator rend() noexcept { return impl_.rend(); }
+	// Returns a reverse iterator past the first mapped byte, if a valid memory
+	// mapping exists, otherwise this function call is undefined behaviour.
+	template<access_mode A = AccessMode, typename = typename std::enable_if<A == access_mode::write>::type>
+	reverse_iterator rend() noexcept { return impl_.rend(); }
 	const_reverse_iterator rend() const noexcept { return impl_.rend(); }
 	const_reverse_iterator crend() const noexcept { return impl_.crend(); }
 
@@ -180,33 +160,29 @@ public:
 	// 'length' is the number of bytes to map. It may be 'map_entire_file', in which
 	// case a mapping of the entire file is created.
 	template<typename String>
-	void map(const String& path, const size_type offset,
-		const size_type length, std::error_code& error)
+	void map(const String& path, const size_type offset, const size_type length, std::error_code& error)
 	{
 		impl_.map(path, offset, length, AccessMode, error);
 	}
 
-	/**
-	* Establishes a memory mapping with AccessMode. If the mapping is unsuccesful, the
-	* reason is reported via 'error' and the object remains in a state as if this
-	* function hadn't been called.
-	*
-	* 'handle', which must be a valid file handle, which is used to memory map the
-	* requested region. Upon failure, 'error' is set to indicate the reason and the
-	* object remains in an unmapped state.
-	*
-	* 'offset' is the number of bytes, relative to the start of the file, where the
-	* mapping should begin. When specifying it, there is no need to worry about
-	* providing a value that is aligned with the operating system's page allocation
-	* granularity. This is adjusted by the implementation such that the first requested
-	* byte (as returned by 'data' or 'begin'), so long as 'offset' is valid, will be at
-	* 'offset' from the start of the file.
-	*
-	* 'length' is the number of bytes to map. It may be 'map_entire_file', in which
-	* case a mapping of the entire file is created.
-	*/
-	void map(const handle_type handle, const size_type offset,
-		const size_type length, std::error_code& error)
+	// Establishes a memory mapping with AccessMode. If the mapping is unsuccesful, the
+	// reason is reported via 'error' and the object remains in a state as if this
+	// function hadn't been called.
+	//
+	// 'handle', which must be a valid file handle, which is used to memory map the
+	// requested region. Upon failure, 'error' is set to indicate the reason and the
+	// object remains in an unmapped state.
+	//
+	// 'offset' is the number of bytes, relative to the start of the file, where the
+	// mapping should begin. When specifying it, there is no need to worry about
+	// providing a value that is aligned with the operating system's page allocation
+	// granularity. This is adjusted by the implementation such that the first requested
+	// byte (as returned by 'data' or 'begin'), so long as 'offset' is valid, will be at
+	// 'offset' from the start of the file.
+	//
+	// 'length' is the number of bytes to map. It may be 'map_entire_file', in which
+	// case a mapping of the entire file is created.
+	void map(const handle_type handle, const size_type offset, const size_type length, std::error_code& error)
 	{
 		impl_.map(handle, offset, length, AccessMode, error);
 	}
@@ -220,58 +196,56 @@ public:
 	// file handle was used to create the mapping, the file handle is not closed.
 	void unmap() { impl_.unmap(); }
 
-	void swap(basic_mmap& other) { impl_.swap(other.impl_); }
+	void swap(BasicMMap& other) { impl_.swap(other.impl_); }
 
 	// Flushes the memory mapped page to disk. Errors are reported via 'error'.
-	template<
-		access_mode A = AccessMode,
-		typename = typename std::enable_if<A == access_mode::write>::type
-	> void sync(std::error_code& error) { impl_.sync(error); }
+	template<access_mode A = AccessMode, typename = typename std::enable_if<A == access_mode::write>::type>
+	void sync(std::error_code& error) { impl_.sync(error); }
 
 	//
 	// All operators compare the address of the first byte and size of the two mapped regions.
 	//
 
-	friend bool operator==(const basic_mmap& a, const basic_mmap& b)
+	friend bool operator==(const BasicMMap& a, const BasicMMap& b)
 	{
 		return a.impl_ == b.impl_;
 	}
 
-	friend bool operator!=(const basic_mmap& a, const basic_mmap& b)
+	friend bool operator!=(const BasicMMap& a, const BasicMMap& b)
 	{
 		return !(a == b);
 	}
 
-	friend bool operator<(const basic_mmap& a, const basic_mmap& b)
+	friend bool operator<(const BasicMMap& a, const BasicMMap& b)
 	{
 		return a.impl_ < b.impl_;
 	}
 
-	friend bool operator<=(const basic_mmap& a, const basic_mmap& b)
+	friend bool operator<=(const BasicMMap& a, const BasicMMap& b)
 	{
 		return a.impl_ <= b.impl_;
 	}
 
-	friend bool operator>(const basic_mmap& a, const basic_mmap& b)
+	friend bool operator>(const BasicMMap& a, const BasicMMap& b)
 	{
 		return a.impl_ > b.impl_;
 	}
 
-	friend bool operator>=(const basic_mmap& a, const basic_mmap& b)
+	friend bool operator>=(const BasicMMap& a, const BasicMMap& b)
 	{
 		return a.impl_ >= b.impl_;
 	}
 };
 
 // This is the basis for all read-only mmap objects and should be preferred over
-// directly using basic_mmap.
+// directly using BasicMMap.
 template<typename ByteType>
-using basic_mmap_source = basic_mmap<access_mode::read, ByteType>;
+using basic_mmap_source = BasicMMap<access_mode::read, ByteType>;
 
 // This is the basis for all read-write mmap objects and should be preferred over
-// directly using basic_mmap.
+// directly using BasicMMap.
 template<typename ByteType>
-using basic_mmap_sink = basic_mmap<access_mode::write, ByteType>;
+using basic_mmap_sink = BasicMMap<access_mode::write, ByteType>;
 
 // These aliases cover the most common use cases, both representing a raw byte stream
 // (either with a char or an unsigned char/uint8_t).
@@ -281,7 +255,7 @@ using ummap_source = basic_mmap_source<unsigned char>;
 using mmap_sink = basic_mmap_sink<char>;
 using ummap_sink = basic_mmap_sink<unsigned char>;
 
-// Convenience factory method that constructs a mapping for any basic_mmap<> type.
+// Convenience factory method that constructs a mapping for any BasicMMap<> type.
 template<typename MMap, typename MappingToken>
 MMap MakeMMap(const MappingToken& token, int64_t offset, int64_t length, std::error_code& error)
 {

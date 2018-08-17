@@ -8,8 +8,8 @@
 
 #pragma once
 
-#include "Cry.h"
-#include "ByteOrder.h"
+#include <Cry/Cry.h>
+#include <Cry/ByteOrder.h>
 
 #include <stdint.h>
 #include <vector>

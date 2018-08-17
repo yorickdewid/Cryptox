@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include "Cry.h"
+#include <Cry/Cry.h>
 
 // Break in debugging mode if this point is touched by normal program
 // flow. This identifier should *NEVER* be used in production code, and
@@ -29,3 +29,8 @@
 #else
 # define CryImplExcept() {printf("UNIMPL EXCEPT %s:%d", __FILE__,__LINE__);CSTD abort();throw(-1);}
 #endif // CRY_DEBUG
+
+// Retrieve the upper half of bits from the integer.
+#define INT64_HIGH(i) (i >> 32)
+// Retrieve the lower half of bits from the integer.
+#define INT64_LOW(i) (i >> 0xffffffff)

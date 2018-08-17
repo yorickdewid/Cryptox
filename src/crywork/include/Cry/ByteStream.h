@@ -8,8 +8,8 @@
 
 #pragma once
 
-#include "Cry.h"
-#include "Serialize.h"
+#include <Cry/Cry.h>
+#include <Cry/Serialize.h>
 
 #include <fstream>
 #include <string>

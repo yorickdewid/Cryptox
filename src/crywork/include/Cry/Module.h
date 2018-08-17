@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include <Cry/Cry.h>
+
 #include <string>
 
 #define EXPORT_SYMBOL _cry_mod_init

@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include "Cry.h"
+#include <Cry/Cry.h>
 
 #include <boost/program_options.hpp>
 #include <boost/algorithm/string.hpp>

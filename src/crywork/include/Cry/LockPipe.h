@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include <Cry/Cry.h>
+
 #include <deque>
 #include <stack>
 

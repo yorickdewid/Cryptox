@@ -17,7 +17,7 @@
 # if defined(DEBUG) || defined(_DEBUG) || !defined(NDEBUG)
 #  define CRY_DEBUG 1
 # endif
-#endif
+#endif // CRY_DEBUG
 
 // On Windows, include some of the Windows API. The Windows API is required
 // to include specific Windows macros being abstracted in the Cry Framework.
@@ -27,7 +27,7 @@
 # include <Windows.h>
 #else
 # include <unistd.h>
-#endif
+#endif // _WIN32
 
 // Remove to disable automaic include of common header files.
 #define AUTO_INCLUDE 1
@@ -35,8 +35,9 @@
 // Include common core files by default. Anything that should be loaded
 // throughout the entire Cry Framrwork must be enlisted below.
 #ifdef AUTO_INCLUDE
-# include "Indep.h"
-# include "OS.h"
-# include "Arch.h"
-# include "Macro.h"
-#endif
+# include <Cry/Indep.h>
+# include <Cry/OS.h>
+# include <Cry/Arch.h>
+# include <Cry/Macro.h>
+# include <Cry/Util.h>
+#endif // AUTO_INCLUDE

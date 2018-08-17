@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include "Cry.h"
+#include <Cry/Cry.h>
 
 namespace Cry
 {
