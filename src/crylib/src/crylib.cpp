@@ -8,7 +8,7 @@
 
 #include "Functional.h"
 
-#include <RuntimeInterface.h>
+#include <CryEVM/RuntimeInterface.h>
 
 #define MOD_NAME         "crylib"
 #define MOD_AUTHOR       "Blub Corp."

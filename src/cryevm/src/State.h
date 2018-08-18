@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include "ExternalMethod.h"
+#include <CryEVM/ExternalMethod.h>
 
 namespace EVM
 {

@@ -6,11 +6,11 @@
 // that can be found in the LICENSE file. Content can not be 
 // copied and/or distributed without the express of the author.
 
+#include <Cry/Cry.h>
+
 #include <cprg.h>
 #include <coilcl.h>
-#include <evm.h>
-
-#include <Cry/Cry.h>
+#include <CryEVM/evm.h>
 
 #include <boost/test/unit_test.hpp>
 

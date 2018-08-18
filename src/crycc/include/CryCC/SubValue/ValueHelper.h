@@ -9,6 +9,7 @@
 #pragma once
 
 #include <CryCC/SubValue/Valuedef.h>
+#include <CryCC/SubValue/AutoValue.h>
 
 #ifdef CRY_DEBUG
 #include <iostream>

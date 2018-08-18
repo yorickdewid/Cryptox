@@ -6,9 +6,9 @@
 // that can be found in the LICENSE file. Content can not be 
 // copied and/or distributed without the express of the author.
 
-#include <ExternalMethod.h>
-#include <ExternalValue.h>
-#include <RuntimeInterface.h>
+#include <CryEVM/ExternalMethod.h>
+#include <CryEVM/ExternalValue.h>
+#include <CryEVM/RuntimeInterface.h>
 
 #define MOD_NAME         "quidex"
 #define MOD_AUTHOR       "Blub Corp."

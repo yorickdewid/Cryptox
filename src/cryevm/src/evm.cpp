@@ -7,10 +7,10 @@
 // copied and/or distributed without the express of the author.
 
 // Local includes.
-#include "evm.h"
+#include <CryEVM/evm.h> //TODO: move down
 #include "Functional.h"
-#include "ExternalMethod.h"
-#include "RuntimeInterface.h"
+#include <CryEVM/ExternalMethod.h>  //TODO: move down
+#include <CryEVM/RuntimeInterface.h>  //TODO: move down
 #include "State.h"
 #include "Planner.h"
 #include "UniquePreservePtr.h"

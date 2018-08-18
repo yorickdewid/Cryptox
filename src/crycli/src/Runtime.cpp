@@ -11,7 +11,7 @@
 #include <Cry/Indep.h>
 #include <Cry/NonCopyable.h>
 
-#include <evm.h>
+#include <CryEVM/evm.h>
 
 #include <iostream>
 

@@ -8,8 +8,8 @@
 
 #pragma once
 
-#include "ExternalMethod.h"
-#include "ExternalValue.h"
+#include <CryEVM/ExternalMethod.h>
+#include <CryEVM/ExternalValue.h>
 
 #include <list>
 

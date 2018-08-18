@@ -7,7 +7,8 @@
 // copied and/or distributed without the express of the author.
 
 #include "Interpreter.h"
-#include "ExternalMethod.h"
+
+#include <CryEVM/ExternalMethod.h>
 
 #include <CryCC/AST.h>
 #include <CryCC/SubValue.h>
@@ -95,10 +96,12 @@ class FunctionContext;
 // record value, return the value immediately.
 class RecordProxy
 {
+	using RecordType = CryCC::SubValue::Typedef::RecordType;
+
 	// Crate new record field value from record type.
 	static std::shared_ptr<Valuedef::Value> MemberFromType(const std::shared_ptr<Valuedef::Value>& recordValue, const std::string& name)
 	{
-		Typedef::RecordType *recType = ((Typedef::RecordType*)recordValue->Type().operator->());
+		RecordType *recType = ((RecordType*)recordValue->Type().operator->());
 		const auto fields = recType->Fields();
 		auto it = std::find_if(fields.cbegin(), fields.cend(), [=](auto pair) {
 			return name == pair.first;
@@ -115,7 +118,7 @@ class RecordProxy
 	// record type was setup with a name, copy the name to the record value.
 	static void AssignNewRecord(const std::shared_ptr<Valuedef::Value>& recordValue, Valuedef::RecordValue&& record)
 	{
-		Typedef::RecordType *recType = ((Typedef::RecordType*)recordValue->Type().operator->());
+		RecordType *recType = ((RecordType*)recordValue->Type().operator->());
 
 		// Set record name if known.
 		if (!recType->IsAnonymous()) {
@@ -125,7 +128,7 @@ class RecordProxy
 		}
 
 		// Assign record value to passed record.
-		(*recordValue) = (recType->TypeSpecifier() == Typedef::RecordType::Specifier::STRUCT)
+		(*recordValue) = (recType->TypeSpecifier() == RecordType::Specifier::STRUCT)
 			? Util::MakeStruct(std::move(record))
 			: Util::MakeUnion(std::move(record));
 	}
@@ -1081,7 +1084,7 @@ std::shared_ptr<Value> DeclarationReference(const std::shared_ptr<ASTNode>& node
 	CryImplExcept(); //TODO
 }
 
-template<typename OperandPred, typename ContainerType = CoilCl::Valuedef::Value>
+template<typename OperandPred, typename ContainerType = Valuedef::Value>
 static Value BinaryOperation(OperandPred predicate, ContainerType&& valuesLHS, ContainerType&& valuesRHS)
 {
 	typename OperandPred::result_type result = predicate(
