@@ -32,7 +32,7 @@ BOOST_AUTO_TEST_CASE(ValRecBasic)
 	{
 		RecordValue record{ "struct" };
 		record.EmplaceField("f", RecordValue::AutoValue(Util::MakeInt(12)));
-		
+
 		BOOST_REQUIRE(record.HasRecordName());
 		BOOST_REQUIRE_EQUAL(record.Size(), 1);
 	}
@@ -64,14 +64,12 @@ BOOST_AUTO_TEST_CASE(ValRecBasic)
 
 BOOST_AUTO_TEST_CASE(ValRecError)
 {
-	{
-		auto value = RecordValue::AutoValue(Util::MakeInt(81827));
+	auto value = RecordValue::AutoValue(Util::MakeInt(81827));
 
-		RecordValue record{ "record" };
-		record.AddField({ "i", value });
+	RecordValue record{ "record" };
+	record.AddField({ "i", value });
 
-		BOOST_REQUIRE_THROW(record.AddField({ "i", value }), RecordValue::FieldExistException);
-	}
+	BOOST_REQUIRE_THROW(record.AddField({ "i", value }), RecordValue::FieldExistException);
 }
 
 BOOST_AUTO_TEST_CASE(ValRecSerialize)
@@ -83,7 +81,7 @@ BOOST_AUTO_TEST_CASE(ValRecSerialize)
 
 		RecordValue record2;
 		RecordValue::Deserialize(record2, buffer);
-		
+
 		BOOST_REQUIRE_EQUAL(record, record2);
 	}
 

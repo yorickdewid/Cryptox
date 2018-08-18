@@ -65,7 +65,9 @@ public:
 		m_fields.push_back(std::move(val));
 	}
 
-	// Add field to record directly.
+	// Add field to record directly. Although this method can benefit
+	// from forwarding semantics it is recommended to use the 'AddField'
+	// method when adding a field to the record.
 	template<typename... ArgsType>
 	void EmplaceField(ArgsType&&... args)
 	{
@@ -73,19 +75,19 @@ public:
 	}
 
 	// Check if record has name.
-	bool HasRecordName() const noexcept { return !m_name.empty(); }
+	inline bool HasRecordName() const noexcept { return !m_name.empty(); }
 	// Get record name.
-	std::string RecordName() const noexcept { return m_name; }
+	inline std::string RecordName() const noexcept { return m_name; }
 	// Set record name.
-	void SetRecordName(const std::string& name) noexcept { m_name = name; }
+	inline void SetRecordName(const std::string& name) noexcept { m_name = name; }
 	// Return number of fields.
-	size_t Size() const noexcept { return m_fields.size(); }
+	inline size_t Size() const noexcept { return m_fields.size(); }
 	// Get the fieldname by index.
-	const std::string FieldName(size_t idx) const { return m_fields.at(idx).first; }
+	inline const std::string FieldName(size_t idx) const { return m_fields.at(idx).first; }
 	// Get the value by index.
-	std::shared_ptr<Value> At(size_t idx) const { return m_fields.at(idx).second; }
+	inline std::shared_ptr<Value> At(size_t idx) const { return m_fields.at(idx).second; }
 	// Get the value by index.
-	std::shared_ptr<Value> operator[](size_t idx) const { return m_fields.at(idx).second; }
+	inline std::shared_ptr<Value> operator[](size_t idx) const { return m_fields.at(idx).second; }
 
 	// Check if field with name already exists in this record.
 	bool HasField(const std::string&) const;
@@ -113,6 +115,7 @@ public:
 		return HasRecordName() ? m_name : "<anonymous record>";
 	}
 
+	// Capture value and wrap inside a managed pointer.
 	template<typename Type>
 	inline static auto AutoValue(Type val) -> std::shared_ptr<Type>
 	{

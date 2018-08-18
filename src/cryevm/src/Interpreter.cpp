@@ -98,7 +98,7 @@ class RecordProxy
 {
 	using RecordType = CryCC::SubValue::Typedef::RecordType;
 
-	// Crate new record field value from record type.
+	// Create new record field value from record type.
 	static std::shared_ptr<Valuedef::Value> MemberFromType(const std::shared_ptr<Valuedef::Value>& recordValue, const std::string& name)
 	{
 		RecordType *recType = ((RecordType*)recordValue->Type().operator->());
