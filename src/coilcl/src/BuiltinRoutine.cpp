@@ -17,6 +17,8 @@ using namespace CryCC::AST;
 
 BUILTIN_ROUTINE_IMPL(sizeof)
 {
+	int substituteSize = -1;
+
 	// If expression, evaluate and inject the result in the tree.
 	if (builtinExpr->HasExpression()) {
 		auto expr = builtinExpr->Expression();
@@ -28,29 +30,33 @@ BUILTIN_ROUTINE_IMPL(sizeof)
 		assert(Util::NodeCast<DeclRefExpr>(expr)->IsResolved());
 		auto ref = Util::NodeCast<DeclRefExpr>(expr)->Reference();
 
-		// TODO: somehow find the value.
+		// Find whatever is being referenced by the declaration and denote the
+		// resulting size.
 		switch (ref->Label())
 		{
 		case NodeID::VAR_DECL_ID: {
 			assert(std::dynamic_pointer_cast<VarDecl>(ref)->HasExpression());
-			const auto value = Util::NodeCast<Literal>(std::dynamic_pointer_cast<VarDecl>(ref)->Expression())->Value();
-			//TODO: get size from value.
+			const Valuedef::Value value = Util::NodeCast<Literal>(std::dynamic_pointer_cast<VarDecl>(ref)->Expression())->Value();
+			substituteSize = static_cast<int>(value.Type().ValuedSize());
 			break;
 		}
 		default:
 			break;
 		}
-
-		//return;
+	}
+	// No expression, get the return size from the node.
+	else {
+		substituteSize = static_cast<int>(builtinExpr->TypeName().Size());
 	}
 
-	// No expression, use sizeof typename.
-
-	// Replace static builtin operation with integer result.
-	auto m_data = Util::MakeInt(static_cast<int>(builtinExpr->TypeName().Size()));
+	// Replace static builtin operation with integer result. First build the integer
+	// value, and create the integer node. The integer node will replace the builtin
+	// operation as if there never was a static builtin method in the first place.
+	Valuedef::Value m_data = Util::MakeInt(substituteSize);
 	auto literal = Util::MakeASTNode<IntegerLiteral>(std::move(m_data));
 
-	// Emplace current object on existing.
+	// Emplace current builtin node with the just created integer literal node. Find
+	// the offset of the current node in the parent children list, and replace the child.
 	if (auto parent = builtinExpr->Parent().lock()) {
 		const auto parentChildren = parent->Children();
 
@@ -61,7 +67,7 @@ BUILTIN_ROUTINE_IMPL(sizeof)
 
 		if (selfListItem != parentChildren.cend()) {
 			size_t idx = std::distance(parentChildren.cbegin(), selfListItem);
-			parent->Emplace(idx, literal);
+			parent->Emplace(idx, std::move(literal));
 		}
 	}
 }

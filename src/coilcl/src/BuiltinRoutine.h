@@ -18,6 +18,17 @@ namespace CoilCl
 namespace BuiltinRoutine
 {
 
+// Any throw of the 'std::exception' type will be caught and wrapped
+// in this exception class. The exception is then thrown up the chain.
+class Exception : public std::runtime_error
+{
+public:
+	Exception(const std::string& routineName, const std::string& what)
+		: std::runtime_error{ routineName + ": " + what }
+	{
+	}
+};
+
 BUILTIN_ROUTINE_IMPL(sizeof);
 BUILTIN_ROUTINE_IMPL(static_assert);
 

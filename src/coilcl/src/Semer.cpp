@@ -211,10 +211,15 @@ void Semer::StaticResolve()
 		auto builtinExpr = Util::NodeCast<BuiltinExpr>(itr.shared_ptr());
 		auto declRefName = builtinExpr->FuncDeclRef()->Identifier();
 
-		BUILTIN_ROUTINE(sizeof);
-		BUILTIN_ROUTINE(static_assert);
+		try {
+			BUILTIN_ROUTINE(sizeof);
+			BUILTIN_ROUTINE(static_assert);
 
-		// NOTE: define any static buildin functions here.
+			// NOTE: define any static buildin functions here.
+		}
+		catch (const std::exception& e) {
+			throw BuiltinRoutine::Exception{ declRefName, e.what() };
+		}
 	});
 
 	this->CompletePhase(ConditionTracker::STATIC_RESOLVED);
