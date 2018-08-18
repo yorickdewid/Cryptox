@@ -57,9 +57,10 @@ BOOST_AUTO_TEST_CASE(ValDefBasicReworkDissected)
 		std::vector<int> a{ 8612, 812, 2383, 96, 12 };
 
 		Value val{ TypeFacade{ Util::MakeBuiltinType(BuiltinType::Specifier::INT) }
-			, Value::ValueVariantMulti{ a } };
+			, Value::ValueVariantMulti{ a }, a.size() };
 
 		BOOST_CHECK(!val.Empty());
+		BOOST_CHECK_EQUAL(a.size(), val.Type().ArraySize());
 		BOOST_CHECK(Util::IsArray(val.Type()));
 
 		std::vector<int> b = val.As<std::vector<int>>();
@@ -71,9 +72,10 @@ BOOST_AUTO_TEST_CASE(ValDefBasicReworkDissected)
 		std::vector<char> a{ 'X', 'O', 'A', 'N', 'B' };
 
 		Value val{ TypeFacade{ Util::MakeBuiltinType(BuiltinType::Specifier::CHAR) }
-			, Value::ValueVariantMulti{ a } };
+			, Value::ValueVariantMulti{ a }, a.size() };
 
 		BOOST_CHECK(!val.Empty());
+		BOOST_CHECK_EQUAL(a.size(), val.Type().ArraySize());
 		BOOST_CHECK(Util::IsArray(val.Type()));
 
 		std::vector<char> b = val.As<std::vector<char>>();
@@ -142,6 +144,11 @@ BOOST_AUTO_TEST_CASE(ValDefReworkDeclarationArray)
 	BOOST_CHECK(Util::IsArray(valFloatArray.Type()));
 	BOOST_CHECK(Util::IsArray(valDoubleArray.Type()));
 	BOOST_CHECK(Util::IsArray(valBoolArray.Type()));
+
+	BOOST_CHECK_EQUAL(_valIntArray.size(), valIntArray.Type().ArraySize());
+	BOOST_CHECK_EQUAL(_valFloatArray.size(), valFloatArray.Type().ArraySize());
+	BOOST_CHECK_EQUAL(_valDoubleArray.size(), valDoubleArray.Type().ArraySize());
+	BOOST_CHECK_EQUAL(_valBoolArray.size(), valBoolArray.Type().ArraySize());
 
 	BOOST_REQUIRE(_valIntArray == valIntArray.As<std::vector<int>>());
 	BOOST_REQUIRE(_valFloatArray == valFloatArray.As<std::vector<float>>());

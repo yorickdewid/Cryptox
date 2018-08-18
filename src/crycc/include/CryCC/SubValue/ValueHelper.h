@@ -40,7 +40,7 @@ inline auto MakeString(const std::string& v)
 	std::vector<char> ve(v.begin(), v.end());
 	ve.shrink_to_fit();
 	const auto builtin = MakeBuiltinType(BuiltinType::Specifier::CHAR);
-	return Value{ TypeFacade{ builtin }, Value::ValueVariantMulti{ std::move(ve) } };
+	return Value{ TypeFacade{ builtin }, Value::ValueVariantMulti{ std::move(ve) }, ve.size() };
 }
 inline auto MakeInt(int v)
 {
@@ -83,27 +83,27 @@ inline auto MakeIntArray(int v[])
 {
 	const auto builtin = MakeBuiltinType(BuiltinType::Specifier::INT);
 	std::vector<int> ve(v, v + sizeof(v) / sizeof(v[0]));
-	return Value{ TypeFacade{ builtin }, Value::ValueVariantMulti{ std::move(ve) } };
+	return Value{ TypeFacade{ builtin }, Value::ValueVariantMulti{ std::move(ve) }, ve.size() };
 }
 inline auto MakeIntArray(std::vector<int> v)
 {
 	const auto builtin = MakeBuiltinType(BuiltinType::Specifier::INT);
-	return Value{ TypeFacade{ builtin }, Value::ValueVariantMulti{ v } };
+	return Value{ TypeFacade{ builtin }, Value::ValueVariantMulti{ v }, v.size() };
 }
 inline auto MakeFloatArray(std::vector<float> v)
 {
 	const auto builtin = MakeBuiltinType(BuiltinType::Specifier::FLOAT);
-	return Value{ TypeFacade{ builtin }, Value::ValueVariantMulti{ v } };
+	return Value{ TypeFacade{ builtin }, Value::ValueVariantMulti{ v }, v.size() };
 }
 inline auto MakeDoubleArray(std::vector<double> v)
 {
 	const auto builtin = MakeBuiltinType(BuiltinType::Specifier::DOUBLE);
-	return Value{ TypeFacade{ builtin }, Value::ValueVariantMulti{ v } };
+	return Value{ TypeFacade{ builtin }, Value::ValueVariantMulti{ v }, v.size() };
 }
 inline auto MakeBoolArray(std::vector<bool> v)
 {
 	const auto builtin = MakeBuiltinType(BuiltinType::Specifier::BOOL);
-	return Value{ TypeFacade{ builtin }, Value::ValueVariantMulti{ v } };
+	return Value{ TypeFacade{ builtin }, Value::ValueVariantMulti{ v }, v.size() };
 }
 
 //

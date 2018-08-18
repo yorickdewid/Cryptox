@@ -268,7 +268,7 @@ public:
 	// Value declaration and initialization.
 	Value(Typedef::TypeFacade, ValueVariantSingle&&);
 	// Value declaration and initialization.
-	Value(Typedef::TypeFacade, ValueVariantMulti&&);
+	Value(Typedef::TypeFacade, ValueVariantMulti&&, size_t elements);
 	// Value declaration and initialization.
 	Value(Typedef::TypeFacade, RecordValue&&);
 	// Pointer value declaration and initialization.
@@ -360,14 +360,14 @@ struct ValueDeductor
 	Valuedef::Value MakeMultiValue(NativeRawType&& value)
 	{
 		return Valuedef::Value{TypeFacade{ Util::MakeBuiltinType(Specifier) }
-			, Valuedef::Value::ValueVariantMulti{ std::move(value) } };
+			, Valuedef::Value::ValueVariantMulti{ std::move(value) }, value.size() };
 	}
 
 	template<typename PlainType>
 	Valuedef::Value ConvertNativeType(PlainType value);
 
 	template<typename NativeType>
-	void DeduceTypeQualifier(Valuedef::Value internalValue, NativeType&&)
+	void DeduceTypeQualifier(Valuedef::Value& internalValue, NativeType&&)
 	{
 		if (std::is_const<NativeType>::value) {
 			internalValue.Type()->SetQualifier(TypedefBase::TypeQualifier::CONST_T);
@@ -384,7 +384,7 @@ public:
 	template<typename NativeType, typename = typename std::enable_if<Valuedef::Trait::IsAllowedType<NativeType>::value>::type>
 	auto operator()(NativeType&& value)
 	{
-		const auto internalValue = ConvertNativeType<RawType<NativeType>>(const_cast<RawType<NativeType>&>(value));
+		Valuedef::Value internalValue = ConvertNativeType<RawType<NativeType>>(const_cast<RawType<NativeType>&>(value));
 		DeduceTypeQualifier(internalValue, std::forward<NativeType>(value));
 		return internalValue;
 	}

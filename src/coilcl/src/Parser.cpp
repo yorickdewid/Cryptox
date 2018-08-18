@@ -1853,7 +1853,7 @@ bool Parser::CompoundStatement()
 		}
 
 		// Squash all stack elements in compound statment
-		// body and push compound on the stack
+		// body and push compound on the stack.
 		auto stmt = Util::MakeASTNode<CompoundStmt>();
 		stmt->SetLocation(CURRENT_LOCATION());
 		while (!m_elementDescentPipe.empty()) {
@@ -1868,20 +1868,20 @@ bool Parser::CompoundStatement()
 	return false;
 }
 
-// Labeled statements
+// Labeled statements.
 bool Parser::LabeledStatement()
 {
 	switch (CURRENT_TOKEN()) {
 	case TK_IDENTIFIER:
 	{
-		// Snapshot current state in case of rollback
+		// Snapshot current state in case of rollback.
 		m_comm.Snapshot();
 		try {
 			auto lblName = CURRENT_DATA().As<std::string>();
 			NextToken();
 			ExpectToken(TK_COLON);
 
-			// Remove snapshot since we can continue this path
+			// Remove snapshot since we can continue this path.
 			m_comm.DisposeSnapshot();
 			Statement();
 
@@ -1894,7 +1894,7 @@ bool Parser::LabeledStatement()
 			m_elementDescentPipe.pop();
 			m_elementDescentPipe.push(stmt);
 		}
-		// Not a label, rollback the command state
+		// Not a label, rollback the command state.
 		catch (const UnexpectedTokenException&) {
 			m_comm.Revert();
 		}

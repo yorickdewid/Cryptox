@@ -400,7 +400,7 @@ int Lexer::Lex()
 		return token;
 	}
 
-	// Halt if enf of unit is reached
+	// Halt if enf of unit is reached.
 	return TK_HALT;
 }
 
@@ -479,13 +479,13 @@ int Lexer::ReadID()
 		Next();
 	} while (std::isalnum(static_cast<int>(context.m_currentChar)) || context.m_currentChar == '_');
 
-	// Match string as keyword
+	// Match string as keyword.
 	auto result = m_keywords.find(str);
 	if (result != m_keywords.end()) {
 		return static_cast<int>(result->second.m_token);
 	}
 
-	// Save string as identifier
+	// Save string as identifier.
 	m_data = Util::MakeString(str);
 	return Token::TK_IDENTIFIER;
 }
@@ -518,7 +518,7 @@ int Lexer::LexScalar()
 
 	Next();
 
-	// Check if we dealing with an octal or hex. If not then we know it is some integer
+	// Check if we dealing with an octal or hex. If not then we know it is some integer.
 	if (firstchar == '0' && (std::toupper(static_cast<int>(context.m_currentChar)) == 'X'
 		|| isdigit(static_cast<int>(context.m_currentChar)))) {
 		if (IsODigit(context.m_currentChar)) {

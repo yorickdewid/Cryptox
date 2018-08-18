@@ -24,30 +24,48 @@ namespace Typedef
 class TypeFacade
 {
 	Typedef::BaseType m_type; //TODO: Remove pointer if possible at all
-	//Typedef::TypedefBase& m_type2;
+	//Typedef::TypedefBase&& m_type2; ?
 	size_t m_ptrCount{ 0 };
 	size_t m_arrayElement{ 0 };
 
 public:
-	//FUTURE: maybe remove
-	TypeFacade() = default;
-	TypeFacade(const Typedef::BaseType& type)
+	using base_type = decltype(m_type);
+	using typedef_type = typename decltype(m_type)::element_type;
+	using typedef_pointer = typedef_type * ;
+	using size_type = size_t;
+
+	TypeFacade() = default; //FUTURE: maybe remove
+	TypeFacade(const base_type& type)
 		: m_type{ type }
 	{
 	}
 
+	// Check if type is initialized.
+	inline bool HasValue() const noexcept { return m_type != nullptr; }
+
 	//
-	// Fetch type information.
+	// Pointer operations.
 	//
 
-	inline bool HasValue() const noexcept { return m_type != nullptr; }
 	inline bool IsPointer() const noexcept { return m_ptrCount > 0; }
-	inline size_t PointerCount() const noexcept { return m_ptrCount; }
-	inline void SetPointer(size_t ptrCount) { m_ptrCount = ptrCount; }
+	inline size_type PointerCount() const noexcept { return m_ptrCount; }
+	inline void SetPointer(size_type ptrCount) noexcept { m_ptrCount = ptrCount; }
+
+	//
+	// Array operations.
+	//
+
 	inline bool IsArray() const noexcept { return m_arrayElement > 0; }
-	inline size_t ArraySize() const noexcept { return m_arrayElement; }
-	inline void SetArraySize(size_t element) { m_arrayElement = element; }
-	inline size_t Size() const { return m_type->UnboxedSize(); }
+	inline size_type ArraySize() const noexcept { return m_arrayElement; }
+	inline void SetArraySize(size_type element) noexcept { m_arrayElement = element; }
+
+	// Single type native allocation size.
+	Typedef::BaseType::element_type::size_type Size() const { return m_type->UnboxedSize(); }
+	// Size of entire value object in allocation space.
+	Typedef::BaseType::element_type::size_type ValuedSize() const
+	{
+		return IsArray() ? Size() * ArraySize() : Size();
+	}
 
 	// Concat type base name and pointer counter for convenience.
 	std::string TypeName() const
@@ -57,7 +75,7 @@ public:
 	}
 
 	// Access native type base.
-	Typedef::TypedefBase *operator->() const
+	typedef_pointer operator->() const
 	{
 		if (!HasValue()) { return nullptr; }
 		return m_type.get();
@@ -69,9 +87,9 @@ public:
 	auto DataType() const { return std::dynamic_pointer_cast<CastType>(m_type); }
 
 	// Convert type into data stream.
-	static void Serialize(int,const TypeFacade&, Cry::ByteArray&);
+	static void Serialize(int, const TypeFacade&, Cry::ByteArray&);
 	// Convert data stream into type.
-	static void Deserialize(int,TypeFacade&, Cry::ByteArray&);
+	static void Deserialize(int, TypeFacade&, Cry::ByteArray&);
 
 	//TODO: REMOVE: FIXME: DEPRECATED
 	const std::type_info& Type() const
@@ -81,13 +99,22 @@ public:
 	}
 
 	// Comparison equal operator.
-	bool operator==(const TypeFacade& other) const { return m_type->Equals(other.m_type.get()); }
+	bool operator==(const TypeFacade&) const;
 	// Comparison not equal operator.
-	bool operator!=(const TypeFacade& other) const { return !m_type->Equals(other.m_type.get()); }
+	bool operator!=(const TypeFacade&) const;
 
 private:
 	std::string PointerName() const;
 };
+
+inline bool TypeFacade::operator==(const TypeFacade& other) const
+{
+	return m_type->Equals(other.m_type.get());
+}
+inline bool TypeFacade::operator!=(const TypeFacade& other) const
+{
+	return !m_type->Equals(other.m_type.get());
+}
 
 } // namespace Typedef
 } // namespace SubValue

@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include <cstdint>
+
 namespace CryCC
 {
 namespace SubValue
@@ -60,6 +62,8 @@ public:
 	virtual void Serialize() { m_ptr->Serialize(); }
 	// Deserialize passthrough.
 	virtual void Deserialize() { m_ptr->Deserialize(); }
+	// Size passthrough.
+	virtual size_type Size() { return m_ptr->Size(); }
 
 	//
 	// Access internal pointer.

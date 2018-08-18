@@ -1252,7 +1252,8 @@ Value ResolveExpression(std::shared_ptr<ASTNode> node, ContextType& ctx)
 	}
 
 	case NodeID::MEMBER_EXPR_ID:
-	case NodeID::DECL_REF_EXPR_ID: {
+	case NodeID::DECL_REF_EXPR_ID:
+	case NodeID::ARRAY_SUBSCRIPT_EXPR_ID: {
 		const auto value = DeclarationReference(node, ctx);
 		return (*value.get());
 	}
@@ -1428,12 +1429,14 @@ void ProcessDeclaration(std::shared_ptr<DeclStmt>& declNode, Context::Compound& 
 		auto node = Util::NodeCast<VarDecl>(child);
 		assert(node->HasReturnType());
 
-		auto value = Valuedef::Value{ node->ReturnType() };
 		if (node->HasExpression()) {
-			value = ResolveExpression(node->Expression(), ctx);
+			Valuedef::Value value = ResolveExpression(node->Expression(), ctx);
+			ctx->PushVar(node->Identifier(), std::move(value));
 		}
-
-		ctx->PushVar(node->Identifier(), value);
+		else {
+			Valuedef::Value value = Valuedef::Value{ node->ReturnType() };
+			ctx->PushVar(node->Identifier(), std::move(value));
+		}
 	}
 }
 

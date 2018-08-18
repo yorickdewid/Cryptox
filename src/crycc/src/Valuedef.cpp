@@ -26,21 +26,25 @@ Value::Value(Typedef::TypeFacade typeBase)
 	: m_internalType{ typeBase }
 {
 }
+
 // Value declaration and initialization.
 Value::Value(Typedef::TypeFacade typeBase, ValueVariantSingle&& value)
 	: m_internalType{ typeBase }
 	, m_value{ ValueSelect{ std::move(value) } }
 {
 }
-// Value declaration and initialization.
-Value::Value(Typedef::TypeFacade typeBase, ValueVariantMulti&& value)
+
+// Value declaration and initialization. Pass elements to value type in order for 
+// the array size to match with the value storage.
+Value::Value(Typedef::TypeFacade typeBase, ValueVariantMulti&& value, size_t elements)
 	: m_internalType{ typeBase }
 	, m_value{ ValueSelect{ std::move(value) } }
 {
-	m_internalType.SetArraySize(1);
+	m_internalType.SetArraySize(elements);
 }
 
-// Value declaration and initialization.
+// Value declaration and initialization. Convert the record value definition
+// to the record type.
 Value::Value(Typedef::TypeFacade typeBase, RecordValue&& value)
 	: m_internalType{ typeBase }
 	, m_value{ ValueSelect{ std::move(value) } }
@@ -49,7 +53,7 @@ Value::Value(Typedef::TypeFacade typeBase, RecordValue&& value)
 	assert(record);
 
 	//FUTURE: Improve this structure and copy the record with transform to recordtype.
-	const auto recordValue = As<RecordValue>();
+	const auto recordValue = this->As<RecordValue>();
 	for (size_t i = 0; i < recordValue.Size(); ++i) {
 		const auto fieldTypeFacade = std::make_shared<Typedef::TypeFacade>(recordValue.At(i)->Type());
 		record->AddField(recordValue.FieldName(i), fieldTypeFacade);
@@ -456,7 +460,8 @@ void Value::Deserialize(Value& value, Cry::ByteArray& buffer)
 	ValueSelect::Unpack(value.m_value, buffer);
 }
 
-// Copy other value into this value.
+// Copy other value into this value, but leave the
+// type as is.
 Value& Value::operator=(const Value& other)
 {
 	if (m_internalType != other.m_internalType) {
@@ -467,7 +472,8 @@ Value& Value::operator=(const Value& other)
 	return (*this);
 }
 
-// Move other value into this value.
+// Move other value into this value, but leave the
+// type as is.
 Value& Value::operator=(Value&& other)
 {
 	if (m_internalType != other.m_internalType) {
