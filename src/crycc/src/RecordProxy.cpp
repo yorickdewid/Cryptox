@@ -31,13 +31,14 @@ using namespace CryCC::SubValue::Typedef;
 // Since the value type (record type) holds the record structure in the type definition, the
 // record value can be constructed from this and the operations below use the type as a strucutre
 // template.
-class RecordProxy
+class RecordProxy final
 {
 	// Create new record field value from record type.
-	static Valuedef::Value MemberFromType(const Valuedef::Value& recordValue, const std::string& name)
+	static Value MemberFromType(const Value& value, const std::string& name)
 	{
-		const auto recordType = recordValue.Type().DataType<RecordType>();
+		const auto recordType = value.Type().DataType<RecordType>();
 
+		// Find the type field matching the field name.
 		const auto fields = recordType->Fields();
 		auto it = std::find_if(fields.cbegin(), fields.cend(), [=](auto pair) {
 			return name == pair.first;
@@ -52,9 +53,9 @@ class RecordProxy
 
 	// Create a new record value and assign it to the passed value. This initializes the value as a record. If the 
 	// record type was setup with a name, copy the name to the record value.
-	static void AssignNewRecord(Valuedef::Value& recordValue, Valuedef::RecordValue&& record)
+	static void AssignNewRecord(Value& value, RecordValue&& record)
 	{
-		const auto recordType = recordValue.Type().DataType<RecordType>();
+		const auto recordType = value.Type().DataType<RecordType>();
 
 		// Set record name if known.
 		if (!recordType->IsAnonymous()) {
@@ -64,38 +65,45 @@ class RecordProxy
 		}
 
 		// Assign record value to passed record.
-		Valuedef::Value newValue = (recordType->TypeSpecifier() == RecordType::Specifier::STRUCT)
+		Value newValue = (recordType->TypeSpecifier() == RecordType::Specifier::STRUCT)
 			? Util::MakeStruct(std::move(record))
 			: Util::MakeUnion(std::move(record));
-		recordValue = newValue;
+		value = newValue;
 	}
 
 public:
-	static Valuedef::Value MemberValue(Valuedef::Value& recordValue, const std::string& name)
+	// A pointer to the value is returned to the caller so that the inner record field
+	// value van be altered outside the scope of the record.
+	static std::shared_ptr<Value> MemberValue(Value& value, const std::string& name)
 	{
 		// Test if value holds a record value.
-		if (!recordValue.Empty()) {
-			Valuedef::RecordValue recVal = recordValue.As<Valuedef::RecordValue>();
+		if (!value.Empty()) {
+			RecordValue recVal = value.As<RecordValue>();
 			if (recVal.HasField(name)) {
-				return (*recVal.GetField(name));
+				return recVal.GetField(name);
 			}
 			else {
-				auto memberValue = MemberFromType(recordValue, name);
-				recVal.AddField({ name, Valuedef::RecordValue::AutoValue(memberValue) });
-				AssignNewRecord(recordValue, std::move(recVal));
+				auto memberValue = RecordValue::AutoValue(MemberFromType(value, name));
+				recVal.AddField({ name, memberValue });
+				AssignNewRecord(value, std::move(recVal));
 				return memberValue;
 			}
 		}
 		// Create a new record value.
 		else {
-			Valuedef::RecordValue recVal;
-			auto memberValue = MemberFromType(recordValue, name);
-			recVal.AddField({ name, Valuedef::RecordValue::AutoValue(memberValue) });
-			AssignNewRecord(recordValue, std::move(recVal));
+			RecordValue record;
+			auto memberValue = RecordValue::AutoValue(MemberFromType(value, name));
+			record.AddField({ name, memberValue });
+			AssignNewRecord(value, std::move(record));
 			return memberValue;
 		}
 	}
 };
+
+std::shared_ptr<Value> RecordMemberValue(Value& value, const std::string& name)
+{
+	return RecordProxy::MemberValue(value, name);
+}
 
 } // namespace Valuedef
 } // namespace SubValue

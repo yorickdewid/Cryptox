@@ -19,6 +19,20 @@
 
 #define CaptureValue(s) Util::CaptureValueRaw(std::move(s))
 
+namespace CryCC
+{
+namespace SubValue
+{
+namespace Valuedef
+{
+	
+// Request the value at the record field with 'name'.
+std::shared_ptr<Value> RecordMemberValue(Value& value, const std::string& name);
+
+} // namespace Valuedef
+} // namespace SubValue
+} // namespace CryCC
+
 // The value helper functions ease the creation and modification of the
 // value objects as well as some functions to query specific properties.
 // In any case should the helper functions be used instead of accessing

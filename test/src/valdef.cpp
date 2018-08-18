@@ -256,6 +256,7 @@ BOOST_AUTO_TEST_CASE(ValDefReworkRecord)
 	BOOST_REQUIRE(Util::IsStruct(valStruct.Type()));
 
 	BOOST_CHECK(!valStruct.Empty());
+	BOOST_CHECK_EQUAL(valInt, (*valStruct.As<RecordValue>().GetField("i")));
 	BOOST_REQUIRE_EQUAL(record2, valStruct.As<RecordValue>());
 }
 
@@ -294,6 +295,40 @@ BOOST_AUTO_TEST_CASE(ValDefReworkMisc)
 		BOOST_REQUIRE_EQUAL(0, Util::EvaluateValueAsInteger(Util::MakeInt(0)));
 		BOOST_REQUIRE_THROW(Util::EvaluateValueAsInteger(Util::MakeIntArray({ 12,23 })), Value::UninitializedValueException);
 		BOOST_REQUIRE_THROW(Util::EvaluateValueAsInteger(Util::MakeFloat(8.12f)), Value::InvalidTypeCastException);
+	}
+}
+
+BOOST_AUTO_TEST_CASE(ValDefRecordMemberValue)
+{
+	// Test if existing value can be access via 'RecordMemberValue'.
+	{
+		auto valInt = Util::MakeInt(7261);
+		auto valString = Util::MakeString("teststring");
+
+		RecordValue record{ "union" };
+		record.AddField({ "int", RecordValue::AutoValue(valInt) });
+		record.AddField({ "str", RecordValue::AutoValue(valString) });
+
+		auto valUnion = Util::MakeUnion(std::move(record));
+
+		auto valMemInt = RecordMemberValue(valUnion, "int");
+		BOOST_REQUIRE_EQUAL(valInt, (*valMemInt));
+	}
+
+	// Create record value and member in value.
+	{
+		auto record = Util::MakeRecordType("union", RecordType::Specifier::UNION);
+		record->AddField("int", std::make_shared<BaseType2::element_type>(Util::MakeBuiltinType(BuiltinType::Specifier::INT)));
+		record->AddField("char", std::make_shared<BaseType2::element_type>(Util::MakeBuiltinType(BuiltinType::Specifier::CHAR)));
+
+		Value valUninit{ TypeFacade{ record } };
+
+		auto valMemInt = RecordMemberValue(valUninit, "int");
+		BOOST_CHECK(valMemInt->Empty());
+		(*valMemInt) = Util::MakeInt(17);
+
+		auto valMemInt2 = RecordMemberValue(valUninit, "int");
+		BOOST_REQUIRE_EQUAL(Util::MakeInt(17), (*valMemInt2));
 	}
 }
 

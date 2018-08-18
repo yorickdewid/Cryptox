@@ -154,6 +154,7 @@ protected:
 				&& recordValue == other.recordValue
 				&& referenceValue == other.referenceValue;
 		}
+
 		// Comparison not equal operator.
 		bool operator!=(const ValueSelect& other) const
 		{

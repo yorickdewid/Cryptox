@@ -365,12 +365,14 @@ void Semer::BindPrototype()
 // is important as returnable objects are processed from the bottom up.
 void Semer::DeduceTypes()
 {
+	namespace CryTypedef = CryCC::SubValue::Typedef;
+
 	// Set signature in function definition.
 	Compare::Equal<FunctionDecl> eqOp;
 	Compare::Equal<VariadicDecl> eqVaria;
 	MatchIf(m_ast.begin(), m_ast.end(), eqOp, [&eqVaria](AST::AST::iterator itr)
 	{
-		std::vector<Typedef::TypeFacade> paramTypeList;
+		std::vector<CryTypedef::TypeFacade> paramTypeList;
 
 		// Skip if there are no parameters, or signature was already set.
 		auto func = Util::NodeCast<FunctionDecl>(itr.shared_ptr());
@@ -413,7 +415,7 @@ void Semer::DeduceTypes()
 	MatchIf(m_ast.begin(), m_ast.end(), eqList, [](AST::AST::iterator itr)
 	{
 		auto list = Util::NodeCast<InitListExpr>(itr.shared_ptr());
-		Typedef::TypeFacade listType;
+		CryTypedef::TypeFacade listType;
 
 		// Set list type based on first item type.
 		if (!list->List().empty()) {
@@ -462,16 +464,16 @@ void Semer::DeduceTypes()
 			}
 
 			// Enum initializer must be type of integer.
-			if (!rdecl->ReturnType()->Equals(Util::MakeBuiltinType(Typedef::BuiltinType::Specifier::INT).get())
-				&& !rdecl->ReturnType()->Equals(Util::MakeBuiltinType(Typedef::BuiltinType::Specifier::CHAR).get())) {
+			if (!rdecl->ReturnType()->Equals(Util::MakeBuiltinType(CryTypedef::BuiltinType::Specifier::INT).get())
+				&& !rdecl->ReturnType()->Equals(Util::MakeBuiltinType(CryTypedef::BuiltinType::Specifier::CHAR).get())) {
 				throw SemanticException{ "initializer must be integer constant expression", 0, 0 };
 			}
 
 			enumDecl->SetReturnType(rdecl->ReturnType());
 		}
 		else {
-			auto integer = std::dynamic_pointer_cast<Typedef::TypedefBase>(Util::MakeBuiltinType(Typedef::BuiltinType::Specifier::INT));
-			enumDecl->SetReturnType(Typedef::TypeFacade{ integer });
+			auto integer = std::dynamic_pointer_cast<CryTypedef::TypedefBase>(Util::MakeBuiltinType(CryTypedef::BuiltinType::Specifier::INT));
+			enumDecl->SetReturnType(CryTypedef::TypeFacade{ integer });
 		}
 
 		assert(enumDecl->HasReturnType());
@@ -531,15 +533,15 @@ void Semer::DeduceTypes()
 	{
 		auto recordDecl = Util::NodeCast<RecordDecl>(itr.shared_ptr());
 		auto recordType = Util::MakeRecordType(recordDecl->Identifier(), recordDecl->Type() == RecordDecl::RecordType::STRUCT
-			? Typedef::RecordType::Specifier::STRUCT
-			: Typedef::RecordType::Specifier::UNION);
+			? CryTypedef::RecordType::Specifier::STRUCT
+			: CryTypedef::RecordType::Specifier::UNION);
 
 		for (const auto& field : recordDecl->Fields()) {
-			recordType->AddField(field->Identifier(), std::make_shared<Typedef::BaseType2::element_type>(field->ReturnType()));
+			recordType->AddField(field->Identifier(), std::make_shared<CryTypedef::BaseType2::element_type>(field->ReturnType()));
 		}
 
-		// Set the return type on the declaration
-		recordDecl->SetReturnType(Typedef::TypeFacade{ recordType });
+		// Set the return type on the declaration.
+		recordDecl->SetReturnType(CryTypedef::TypeFacade{ recordType });
 
 		//TODO: only current valdecl scope
 		//TODO: does not continue loop
@@ -552,7 +554,7 @@ void Semer::DeduceTypes()
 			if (!retType->HasReturnType()) { return; }
 
 			//TODO: dynamic_cast should not be the test to see if this in a record type.
-			if (auto recType = dynamic_cast<Typedef::RecordType*>(retType->ReturnType().operator->())) {
+			if (auto recType = dynamic_cast<CryTypedef::RecordType*>(retType->ReturnType().operator->())) {
 				if (!recType->IsAnonymous() && recType->Name() == recordType->Name()) {
 					retType->SetReturnType(recordDecl->ReturnType());
 				}
@@ -566,6 +568,8 @@ void Semer::DeduceTypes()
 // on the tree.
 void Semer::CheckDataType()
 {
+	namespace CryTypedef = CryCC::SubValue::Typedef;
+
 	// Compare function with its prototype, if exist.
 	Compare::Equal<FunctionDecl> eqFuncOp;
 	MatchIf(m_ast.begin(), m_ast.end(), eqFuncOp, [](AST::AST::iterator itr)
@@ -605,7 +609,7 @@ void Semer::CheckDataType()
 
 		// Make an exception for variadic argument.
 		bool canHaveTooMany = true;
-		if (func->HasSignature() && func->Signature().back().Type() == typeid(Typedef::VariadicType)) { //TODO: FIX
+		if (func->HasSignature() && func->Signature().back().Type() == typeid(CryTypedef::VariadicType)) { //TODO: FIX
 			canHaveTooMany = false;
 		}
 
@@ -626,7 +630,7 @@ void Semer::CheckDataType()
 		auto list = Util::NodeCast<InitListExpr>(itr.shared_ptr());
 		if (list->List().empty()) { return; }
 
-		Typedef::TypeFacade itemType = Util::NodeCast<Returnable>(list->List()[0])->ReturnType();
+		CryTypedef::TypeFacade itemType = Util::NodeCast<Returnable>(list->List()[0])->ReturnType();
 		for (const auto& item : list->List()) {
 			if (Util::NodeCast<Returnable>(item)->ReturnType() != itemType) {
 				throw SemanticException{ "conflicting types for 'x'", 0, 0 };
@@ -697,16 +701,16 @@ void Semer::CheckDataType()
 		}
 
 		// Function expected type from return while void was returned.
-		if (!stmt->HasExpression() && !func->ReturnType()->Equals(Util::MakeBuiltinType(Typedef::BuiltinType::Specifier::VOID_T).get())) {
+		if (!stmt->HasExpression() && !func->ReturnType()->Equals(Util::MakeBuiltinType(CryTypedef::BuiltinType::Specifier::VOID_T).get())) {
 			throw SemanticException{ "function declaration expected expression on return", 0, 0 };
 		}
 
 		// Function expects no returning type while value was returned.
-		if (stmt->HasExpression() && func->ReturnType()->Equals(Util::MakeBuiltinType(Typedef::BuiltinType::Specifier::VOID_T).get())) {
+		if (stmt->HasExpression() && func->ReturnType()->Equals(Util::MakeBuiltinType(CryTypedef::BuiltinType::Specifier::VOID_T).get())) {
 			throw SemanticException{ "unexpected expression on return", 0, 0 };
 		}
 		// If type is void and expresion is empty, continue.
-		else if (func->ReturnType()->Equals(Util::MakeBuiltinType(Typedef::BuiltinType::Specifier::VOID_T).get())) {
+		else if (func->ReturnType()->Equals(Util::MakeBuiltinType(CryTypedef::BuiltinType::Specifier::VOID_T).get())) {
 			return;
 		}
 

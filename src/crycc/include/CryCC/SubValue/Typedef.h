@@ -277,6 +277,10 @@ public:
 	{
 		m_fields.push_back({ field, type });
 	}
+	void AddField(std::string&& field, BaseType2&& type)
+	{
+		m_fields.emplace_back(std::move(field), std::move(type));
+	}
 
 	inline bool IsAnonymous() const noexcept { return m_name.empty(); }
 
