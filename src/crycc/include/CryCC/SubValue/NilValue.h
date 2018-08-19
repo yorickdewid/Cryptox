@@ -22,48 +22,46 @@ namespace SubValue
 namespace Valuedef
 {
 
-// class Value;
-
-class SingleValue : public ValueContract<SingleValue>
+class NilValue : public ValueContract<NilValue>
 {
-    using NativeTypeList = Cry::TypeTrait::TemplateHolder<int, char, float, double, bool>;
-    // using ValueVariant = Cry::TypeTrait::TemplateHolder::template_apply<boost::variant>;
-
 public:
-    using typdef_type = Typedef::BuiltinType;
-    using value_category = ValueCategory::Plural;
+    using typdef_type = nullptr_t;
+    using value_category = ValueCategory::Singular;
 
     // Expose the value variants that this category can process.
-    constexpr static const int value_variant_order = NativeTypeList::size;
+    constexpr static const int value_variant_order = 0;
     // Unique value identifier.
-    constexpr static const int value_category_identifier = 10;
+    constexpr static const int value_category_identifier = 9;
 
-	SingleValue() = default;
+	NilValue() = default;
 
 	// Convert single value into data stream.
-	static void Serialize(const SingleValue&, Cry::ByteArray&)
+	static void Serialize(const NilValue&, Cry::ByteArray&)
     {
-
+        // NOTE: NilValue holds no data, thus serialization can be ignored.
     }
 
 	// Convert data stream into single value.
-	static void Deserialize(SingleValue&, Cry::ByteArray&)
+	static void Deserialize(NilValue&, Cry::ByteArray&)
     {
-
+        // NOTE: NilValue holds no data, thus deserialization can be ignored.
     }
 
-    // Compare to other SingleValue.
-	bool operator==(const SingleValue&) const
+    // Compare to other NilValue.
+	bool operator==(const NilValue&) const
 	{
-		return false;
+		return true;
 	}
 
     // Convert current value to string.
 	std::string ToString() const
 	{
-		return "";
+		return "(nil)";
 	}
 };
+
+static_assert(sizeof(NilValue) == sizeof(NilValue::value_variant_order)
+    + sizeof(NilValue::value_category_identifier), "NilValue cannot hold data");
 
 } // namespace Valuedef
 } // namespace SubValue
