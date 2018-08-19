@@ -15,6 +15,8 @@
 #include <Cry/TypeTrait.h>
 #include <Cry/Serialize.h>
 
+#include <boost/variant.hpp>
+
 namespace CryCC
 {
 namespace SubValue
@@ -22,12 +24,12 @@ namespace SubValue
 namespace Valuedef
 {
 
-// class Value;
-
-class SingleValue : public ValueContract<SingleValue>
+class SingleValue : public AbstractValue<SingleValue>
 {
     using NativeTypeList = Cry::TypeTrait::TemplateHolder<int, char, float, double, bool>;
-    // using ValueVariant = Cry::TypeTrait::TemplateHolder::template_apply<boost::variant>;
+    using ValueVariant = NativeTypeList::template_apply<boost::variant>;
+
+    ValueVariant m_value;
 
 public:
     using typdef_type = Typedef::BuiltinType;
@@ -39,6 +41,23 @@ public:
     constexpr static const int value_category_identifier = 10;
 
 	SingleValue() = default;
+    SingleValue(const SingleValue&) = default;
+    SingleValue(SingleValue&&) = default;
+
+    SingleValue& operator=(const SingleValue&) = default;
+    SingleValue& operator=(SingleValue&&) = default;
+
+    template<typename Type>
+    SingleValue(Type&& value)
+        : m_value{ std::forward<Type>(value) }
+    {
+    }
+
+    template<typename CastType>
+    auto As() //TODO: type cast
+    {
+        return boost::get<CastType>(m_value);
+    }
 
 	// Convert single value into data stream.
 	static void Serialize(const SingleValue&, Cry::ByteArray&)

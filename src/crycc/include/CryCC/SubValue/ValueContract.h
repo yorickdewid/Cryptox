@@ -23,14 +23,19 @@ struct ValueCategory
 
 // The value contract must be implemented by classes that extend
 // the value category system with a custom value implementation.
-template<typename ValueType>
+// The value contract is a pure virtual interface.
 struct ValueContract
+{
+    // Get the type category as string.
+    virtual std::string ToString() const = 0;
+};
+
+// Abstract value is a value category helper.
+template<typename ValueType>
+struct AbstractValue : public ValueContract
 {
     // Type alias to value category type.
     using self_type = ValueType;
-
-    // Get the type category as string.
-    virtual std::string ToString() const = 0;
 };
 
 namespace Trait
@@ -59,12 +64,12 @@ struct HasEqualOperator : HasEqualOperatorImpl<Type, ArgType>::type {};
 template<typename Type>
 struct IsValueContractCompliable
 {
-    constexpr static const bool value = std::is_base_of<ValueContract<Type>, Type>::value
-        && std::is_constructible<SingleValue>::value
-        && std::is_copy_constructible<SingleValue>::value
-        && std::is_move_constructible<SingleValue>::value
-        && std::is_copy_assignable<SingleValue>::value
-        && std::is_move_assignable<SingleValue>::value
+    constexpr static const bool value = std::is_base_of<AbstractValue<Type>, Type>::value
+        && std::is_constructible<Type>::value
+        && std::is_copy_constructible<Type>::value
+        && std::is_move_constructible<Type>::value
+        && std::is_copy_assignable<Type>::value
+        && std::is_move_assignable<Type>::value
         && Trait::HasToString<Type>::value
         && Trait::HasEqualOperator<Type>::value;
 };

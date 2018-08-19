@@ -22,7 +22,7 @@ namespace SubValue
 namespace Valuedef
 {
 
-class NilValue : public ValueContract<NilValue>
+class NilValue : public AbstractValue<NilValue>
 {
 public:
     using typdef_type = nullptr_t;
