@@ -67,6 +67,26 @@ Value::Value(Typedef::TypeFacade typeBase, Value&& value)
 {
 }
 
+Value::ValueSelect::ValueSelect(ValueVariantSingle value)
+	: singleValue{ value }
+{
+}
+
+Value::ValueSelect::ValueSelect(ValueVariantMulti value)
+	: multiValue{ value }
+{
+}
+
+Value::ValueSelect::ValueSelect(RecordValue&& value)
+	: recordValue{ std::move(value) }
+{
+}
+
+Value::ValueSelect::ValueSelect(Value&& value)
+	: referenceValue{ std::make_shared<Value>(value) }
+{
+}
+
 // Make the value uninitialized by unsetting all current values.
 void Value::ValueSelect::Clear()
 {
@@ -385,7 +405,7 @@ void Value::ValueSelect::Unpack(ValueSelect& value, Cry::ByteArray& buffer)
 	case ValueSelectType::RECORD: {
 		RecordValue recordVal;
 		RecordValue::Deserialize(recordVal, buffer);
-		value = ValueSelect{ recordVal };
+		value = ValueSelect{ std::move(recordVal) };
 		break;
 	}
 	case ValueSelectType::REFERENCE: {

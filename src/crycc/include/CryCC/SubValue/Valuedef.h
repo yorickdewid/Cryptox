@@ -10,6 +10,8 @@
 
 #include <CryCC/SubValue/RecordValue.h>
 #include <CryCC/SubValue/TypeFacade.h>
+#include <CryCC/SubValue/ValueContract.h>
+#include <CryCC/SubValue/SingleValue.h>
 
 #include <Cry/Serialize.h>
 
@@ -117,25 +119,10 @@ protected:
 		ValueSelect(const ValueSelect&) = default;
 		ValueSelect(ValueSelect&&) = default;
 
-		ValueSelect(ValueVariantSingle value)
-			: singleValue{ value }
-		{
-		}
-
-		ValueSelect(ValueVariantMulti value)
-			: multiValue{ value }
-		{
-		}
-
-		ValueSelect(RecordValue value)
-			: recordValue{ value }
-		{
-		}
-
-		ValueSelect(Value&& value)
-			: referenceValue{ std::make_shared<Value>(value) }
-		{
-		}
+		ValueSelect(ValueVariantSingle);
+		ValueSelect(ValueVariantMulti);
+		ValueSelect(RecordValue&&);
+		ValueSelect(Value&&);
 
 		// Check if all of the values are empty.
 		bool Empty() const noexcept
@@ -180,6 +167,14 @@ protected:
 		// Clear any values.
 		void Clear();
 
+		//
+		// Only one of these value categories can be initialized. The values 
+		// implement the value contract. The value selector does not determine how the
+		// value category process the inner state. A value category can hold one or many
+		// value variant.
+		//
+
+		boost::optional<SingleValue> singleNativeValue;
 		boost::optional<ValueVariantSingle> singleValue; //TODO: rename singleNativeValue
 		boost::optional<ValueVariantMulti> multiValue; //TODO: rename multiNativeValue
 		boost::optional<RecordValue> recordValue; //TODO: rename singleRecordValue
@@ -187,6 +182,8 @@ protected:
 		std::shared_ptr<Value> referenceValue; //TODO: rename singleReferenceValue
 		//std::shared_ptr<std::vector<Value>> multiReferenceValue;
 	} m_value;
+
+	static_assert(IsValueContractCompliable<SingleValue>::value, "SingleValue does not implement the full value contract");
 
 private:
 	template<typename CastTypePart>
