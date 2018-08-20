@@ -32,6 +32,12 @@ public:
 	ArrayType(size_t elements, BaseType arrayType);
 	ArrayType(size_t elements, BaseType&& arrayType);
 
+	template<size_t Elements>
+	ArrayType(BaseType&& arrayType)
+		: ArrayType{ Elements, std::move(arrayType) }
+	{
+	}
+
 	// Return the size of the array.
 	inline size_t Order() const noexcept { return m_elements; }
 

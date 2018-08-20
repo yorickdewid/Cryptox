@@ -17,6 +17,12 @@ namespace Typedef
 
 TypedefType::TypedefType(const std::string& name, BaseType& nativeType)
 	: m_name{ name }
+	, m_resolveType{ nativeType }
+{
+}
+
+TypedefType::TypedefType(const std::string& name, BaseType&& nativeType)
+	: m_name{ name }
 	, m_resolveType{ std::move(nativeType) }
 {
 }

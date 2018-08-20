@@ -191,11 +191,13 @@ constexpr uint8_t SetInteralType(TypedefBase::TypeVariation type)
 
 #define REGISTER_TYPE(t)\
 	const uint8_t m_c_internalType = SetInteralType(TypedefBase::TypeVariation::t); \
-	uint8_t TypeIdentifier() const noexcept { return m_c_internalType; }
+	inline uint8_t TypeIdentifier() const noexcept { return m_c_internalType; }
 
 // Builtin types.
 class BuiltinType : public TypedefBase
 {
+	REGISTER_TYPE(BUILTIN);
+
 	// Additional type options.
 	enum
 	{
@@ -208,10 +210,6 @@ class BuiltinType : public TypedefBase
 		IS_IMAGINARY,
 	};
 
-	REGISTER_TYPE(BUILTIN);
-	std::bitset<8> m_typeOptions;
-
-private:
 	// If specifier matches a type option, set the option bit
 	// and default the type to integer.
 	void SpecifierToOptions();
@@ -271,6 +269,7 @@ public:
 
 private:
 	Specifier m_specifier;
+	std::bitset<8> m_typeOptions;
 };
 
 // Record types are types that consist of multiple types mapped to a name.
@@ -332,11 +331,10 @@ private:
 class TypedefType : public TypedefBase
 {
 	REGISTER_TYPE(TYPEDEF);
-	std::string m_name;
-	BaseType m_resolveType; //TODO: should be BaseType2, really?
 
 public:
 	TypedefType(const std::string& name, BaseType& nativeType);
+	TypedefType(const std::string& name, BaseType&& nativeType);
 
 	//
 	// Implement abstract base type methods.
@@ -352,6 +350,10 @@ public:
 	bool Equals(BasePointer) const;
 	// Pack the type into a byte stream.
 	buffer_type TypeEnvelope() const override;
+
+private:
+	std::string m_name;
+	BaseType m_resolveType;
 };
 
 class VariadicType : public TypedefBase
@@ -359,40 +361,61 @@ class VariadicType : public TypedefBase
 	REGISTER_TYPE(VARIADIC);
 
 public:
+	//
+	// Implement abstract base type methods.
+	//
+
 	// Return type identifier.
 	int TypeId() const { return TypeIdentifier(); }
+	// Return type name string.
 	const std::string TypeName() const final { return "..."; }
-
-	size_type UnboxedSize() const
-	{
-		throw Cry::Except::UnsupportedOperationException{ "VariadicType::UnboxedSize" };
-	}
-
+	// Return native size.
+	size_type UnboxedSize() const { return 0; }
+	// Test if types are equal.
 	bool Equals(BasePointer other) const
 	{
 		return dynamic_cast<VariadicType*>(other) != nullptr;
 	}
-
+	// Pack the type into a byte stream.
 	buffer_type TypeEnvelope() const override;
 };
 
-//TODO: How about no?
 class PointerType : public TypedefBase
 {
 	REGISTER_TYPE(POINTER);
 
 public:
+	PointerType(BaseType& nativeType)
+		: m_ptrType{ nativeType }
+	{
+	}
+	PointerType(BaseType&& nativeType)
+		: m_ptrType{ std::move(nativeType) }
+	{
+	}
+
+	BaseType Get() const { return m_ptrType; }
+
+	//
+	// Implement abstract base type methods.
+	//
+
 	// Return type identifier.
 	int TypeId() const { return TypeIdentifier(); }
+	// Return type name string.
 	const std::string TypeName() const final { return "(ptr)"; }
-	size_type UnboxedSize() const { return sizeof(int); } //TODO: not quite
-
+	// Return native size.
+	size_type UnboxedSize() const { return sizeof(intptr_t); }
+	// Test if types are equal.
 	bool Equals(BasePointer other) const
 	{
 		return dynamic_cast<PointerType*>(other) != nullptr;
 	}
-
+	// Pack the type into a byte stream.
 	buffer_type TypeEnvelope() const override;
+
+private:
+	BaseType m_ptrType;
 };
 
 } // namespace Typedef

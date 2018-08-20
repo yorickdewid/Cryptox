@@ -21,6 +21,7 @@ TypedefBase::buffer_type TypedefBase::TypeEnvelope() const
 
 	// Typedef base generic options
 	buffer.push_back(static_cast<uint8_t>(m_isInline));
+	buffer.push_back(static_cast<uint8_t>(m_isSensitive));
 	buffer.push_back(static_cast<uint8_t>(m_storageClass));
 	buffer.push_back(static_cast<uint8_t>(m_typeQualifier[0]));
 	buffer.push_back(static_cast<uint8_t>(m_typeQualifier[1]));
@@ -30,11 +31,16 @@ TypedefBase::buffer_type TypedefBase::TypeEnvelope() const
 const std::string TypedefBase::StorageClassName() const
 {
 	switch (m_storageClass) {
-	case StorageClassSpecifier::AUTO:		return "auto";
-	case StorageClassSpecifier::STATIC:		return "static";
-	case StorageClassSpecifier::EXTERN:		return "extern";
-	case StorageClassSpecifier::REGISTER:	return "register";
-	default:								return "";
+	case StorageClassSpecifier::AUTO:
+		return "auto";
+	case StorageClassSpecifier::STATIC:
+		return "static";
+	case StorageClassSpecifier::EXTERN:
+		return "extern";
+	case StorageClassSpecifier::REGISTER:
+		return "register";
+	default:
+		return "";
 	}
 }
 
@@ -43,8 +49,12 @@ const std::string TypedefBase::QualifierName() const
 	std::string result;
 	for (const auto& qualifier : m_typeQualifier) {
 		switch (qualifier) {
-		case TypeQualifier::CONST_T:		result += "const "; break;
-		case TypeQualifier::VOLATILE:	result += "volatile "; break;
+		case TypeQualifier::CONST_T:
+			result += "const ";
+			break;
+		case TypeQualifier::VOLATILE:
+			result += "volatile ";
+			break;
 		}
 	}
 
@@ -55,7 +65,7 @@ const std::string TypedefBase::QualifierName() const
 // VariadicType.
 //
 
-std::vector<uint8_t> VariadicType::TypeEnvelope() const
+VariadicType::buffer_type VariadicType::TypeEnvelope() const
 {
 	std::vector<uint8_t> buffer = { m_c_internalType };
 	const auto base = TypedefBase::TypeEnvelope();
@@ -67,7 +77,7 @@ std::vector<uint8_t> VariadicType::TypeEnvelope() const
 // PointerType.
 //
 
-std::vector<uint8_t> PointerType::TypeEnvelope() const
+PointerType::buffer_type PointerType::TypeEnvelope() const
 {
 	std::vector<uint8_t> buffer = { m_c_internalType };
 	const auto base = TypedefBase::TypeEnvelope();
@@ -139,11 +149,14 @@ BaseType MakeType(std::vector<uint8_t>&& in)
 		if (static_cast<bool>(in.at(envelopeOffset))) {
 			type->SetInline();
 		}
+		if (static_cast<bool>(in.at(envelopeOffset + 1))) {
+			type->SetSensitive();
+		}
 
-		auto spec = static_cast<TypedefBase::StorageClassSpecifier>(in.at(envelopeOffset + 1));
+		auto spec = static_cast<TypedefBase::StorageClassSpecifier>(in.at(envelopeOffset + 2));
 		type->SetStorageClass(spec);
-		type->SetQualifier(static_cast<TypedefBase::TypeQualifier>(in.at(envelopeOffset + 2)));
 		type->SetQualifier(static_cast<TypedefBase::TypeQualifier>(in.at(envelopeOffset + 3)));
+		type->SetQualifier(static_cast<TypedefBase::TypeQualifier>(in.at(envelopeOffset + 4)));
 	}
 
 	return type;
