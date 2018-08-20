@@ -43,7 +43,7 @@ void Literal::Serialize(Serializable::VisitorInterface& pack)
 	if (HasReturnType()) {
 		pack << true;
 		Cry::ByteArray buffer;
-		Typedef::TypeFacade::Serialize(int{}, ReturnType(), buffer);
+		Typedef::TypeFacade::Serialize(ReturnType(), buffer);
 		pack << buffer;
 	}
 	else {
@@ -64,7 +64,7 @@ void Literal::Deserialize(Serializable::VisitorInterface& pack)
 	if (hasReturn) {
 		Cry::ByteArray buffer;
 		pack >> buffer;
-		Typedef::TypeFacade::Deserialize(int{}, UpdateReturnType(), buffer);
+		Typedef::TypeFacade::Deserialize(UpdateReturnType(), buffer);
 	}
 
 	ASTNode::Deserialize(pack);

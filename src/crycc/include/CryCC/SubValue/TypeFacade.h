@@ -23,8 +23,7 @@ namespace Typedef
 
 class TypeFacade
 {
-	Typedef::BaseType m_type; //TODO: Remove pointer if possible at all
-	//Typedef::TypedefBase&& m_type2; ?
+	BaseType m_type; //TODO: Remove pointer if possible at all
 	size_t m_ptrCount{ 0 };
 	size_t m_arrayElement{ 0 };
 
@@ -35,10 +34,7 @@ public:
 	using size_type = size_t;
 
 	TypeFacade() = default; //FUTURE: maybe remove
-	TypeFacade(const base_type& type)
-		: m_type{ type }
-	{
-	}
+	TypeFacade(const base_type&);
 
 	// Check if type is initialized.
 	inline bool HasValue() const noexcept { return m_type != nullptr; }
@@ -68,11 +64,7 @@ public:
 	}
 
 	// Concat type base name and pointer counter for convenience.
-	std::string TypeName() const
-	{
-		if (!HasValue()) { return {}; }
-		return m_type->TypeName() + PointerName();
-	}
+	std::string TypeName() const;
 
 	// Access native type base.
 	typedef_pointer operator->() const
@@ -85,11 +77,12 @@ public:
 	// zero is returned. The caller must check the value before use.
 	template<typename CastType>
 	auto DataType() const { return std::dynamic_pointer_cast<CastType>(m_type); }
+	auto BaseType() const { return m_type; }
 
 	// Convert type into data stream.
-	static void Serialize(int, const TypeFacade&, Cry::ByteArray&);
+	static void Serialize(const TypeFacade&, Cry::ByteArray&);
 	// Convert data stream into type.
-	static void Deserialize(int, TypeFacade&, Cry::ByteArray&);
+	static void Deserialize(TypeFacade&, Cry::ByteArray&);
 
 	//TODO: REMOVE: FIXME: DEPRECATED
 	const std::type_info& Type() const
@@ -107,15 +100,6 @@ private:
 	std::string PointerName() const;
 };
 
-inline bool TypeFacade::operator==(const TypeFacade& other) const
-{
-	return m_type->Equals(other.m_type.get());
-}
-inline bool TypeFacade::operator!=(const TypeFacade& other) const
-{
-	return !m_type->Equals(other.m_type.get());
-}
-
 } // namespace Typedef
 } // namespace SubValue
 } // namespace CryCC
@@ -125,96 +109,23 @@ namespace Util
 
 using namespace CryCC::SubValue::Typedef;
 
-inline bool IsVoid(const TypeFacade& other) noexcept
-{
-	const auto *builtin = dynamic_cast<BuiltinType *>(other.operator->());
-	if (!builtin) { return false; }
-	return builtin->TypeSpecifier() == BuiltinType::Specifier::VOID_T;
-}
-inline bool IsIntegral(const TypeFacade& other) noexcept
-{
-	const auto *builtin = dynamic_cast<BuiltinType *>(other.operator->());
-	if (!builtin) { return false; }
-	return builtin->TypeSpecifier() == BuiltinType::Specifier::INT;
-}
-inline bool IsFloatingPoint(const TypeFacade& other) noexcept
-{
-	const auto *builtin = dynamic_cast<BuiltinType *>(other.operator->());
-	if (!builtin) { return false; }
-	return builtin->TypeSpecifier() == BuiltinType::Specifier::FLOAT;
-}
-inline bool IsArray(const TypeFacade& other) noexcept
-{
-	return other.IsArray();
-}
-inline bool IsEnum(const TypeFacade& /*other*/) noexcept
-{
-	return false;
-}
-inline bool IsStruct(const TypeFacade& other) noexcept
-{
-	const auto *record = dynamic_cast<RecordType *>(other.operator->());
-	if (!record) { return false; }
-	return record->TypeSpecifier() == RecordType::Specifier::STRUCT;
-}
-inline bool IsUnion(const TypeFacade& other) noexcept
-{
-	const auto *record = dynamic_cast<RecordType *>(other.operator->());
-	if (!record) { return false; }
-	return record->TypeSpecifier() == RecordType::Specifier::UNION;
-}
-inline bool IsPointer(const TypeFacade& other) noexcept
-{
-	return other.IsPointer();
-}
-inline bool IsInline(const TypeFacade& other) noexcept
-{
-	const auto *builtin = dynamic_cast<BuiltinType *>(other.operator->());
-	if (!builtin) { return false; }
-	return builtin->IsInline();
-}
-inline bool IsStatic(const TypeFacade& other) noexcept
-{
-	return other->StorageClass() == TypedefBase::StorageClassSpecifier::STATIC;
-}
-inline bool IsExtern(const TypeFacade& other) noexcept
-{
-	return other->StorageClass() == TypedefBase::StorageClassSpecifier::EXTERN;
-}
-inline bool IsRegister(const TypeFacade& other) noexcept
-{
-	return other->StorageClass() == TypedefBase::StorageClassSpecifier::REGISTER;
-}
-inline bool IsConst(const TypeFacade& other) noexcept
-{
-	for (const auto& qualifier : other->TypeQualifiers()) {
-		if (qualifier == TypedefBase::TypeQualifier::CONST_T) {
-			return true;
-		}
-	}
-	return false;
-}
-inline bool IsVolatile(const TypeFacade& other) noexcept
-{
-	for (const auto& qualifier : other->TypeQualifiers()) {
-		if (qualifier == TypedefBase::TypeQualifier::VOLATILE) {
-			return true;
-		}
-	}
-	return false;
-}
-inline bool IsSigned(const TypeFacade& other) noexcept
-{
-	const auto *builtin = dynamic_cast<BuiltinType *>(other.operator->());
-	if (!builtin) { return false; }
-	return builtin->Unsigned();
-}
-inline bool IsUnsigned(const TypeFacade& other) noexcept
-{
-	return !IsSigned(other);
-}
-
-//TODO: Why pointer? Why? Why? Why? So many questions ... Reference possible?
+bool IsVoid(const TypeFacade&) noexcept;
+bool IsIntegral(const TypeFacade&) noexcept;
+bool IsFloatingPoint(const TypeFacade&) noexcept;
+bool IsArray(const TypeFacade&) noexcept;
+bool IsEnum(const TypeFacade&) noexcept;
+bool IsStruct(const TypeFacade&) noexcept;
+bool IsUnion(const TypeFacade&) noexcept;
+bool IsClass(const TypeFacade&) noexcept;
+bool IsPointer(const TypeFacade&) noexcept;
+bool IsInline(const TypeFacade&) noexcept;
+bool IsStatic(const TypeFacade&) noexcept;
+bool IsExtern(const TypeFacade&) noexcept;
+bool IsRegister(const TypeFacade&) noexcept;
+bool IsConst(const TypeFacade&) noexcept;
+bool IsVolatile(const TypeFacade&) noexcept;
+bool IsSigned(const TypeFacade&) noexcept;
+bool IsUnsigned(const TypeFacade&) noexcept;
 
 //
 // Helpers to create types.
@@ -232,13 +143,21 @@ inline auto MakeTypedefType(const std::string& name, BaseType& type)
 {
 	return std::make_shared<TypedefType>(name, type);
 }
+inline auto MakeTypedefType(const std::string& name, TypeFacade type)
+{
+	return std::make_shared<TypedefType>(name, type.BaseType());
+}
 inline auto MakeVariadicType()
 {
 	return std::make_shared<VariadicType>();
 }
-inline auto MakePointerType()
+inline auto MakePointerType(BaseType& type)
 {
-	return std::make_shared<PointerType>();
+	return std::make_shared<PointerType>(type);
+}
+inline auto MakePointerType(TypeFacade type)
+{
+	return std::make_shared<PointerType>(type.BaseType());
 }
 
 // Create type definition based on byte array.

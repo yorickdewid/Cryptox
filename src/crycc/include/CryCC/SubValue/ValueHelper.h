@@ -127,7 +127,7 @@ inline auto MakeBoolArray(std::vector<bool> v)
 
 inline auto MakePointer(Value&& v)
 {
-	return Value{ TypeFacade{ MakePointerType() }, std::move(v) };
+	return Value{ TypeFacade{ MakePointerType(v.Type()) }, std::move(v) };
 }
 
 //
@@ -154,6 +154,11 @@ inline Value CaptureValueRaw(NativeType&& v)
 {
 	return Detail::ValueDeductor{}(std::forward<NativeType>(v));
 }
+
+//
+// Create empty value with an empty type.
+//
+
 //TODO:
 //template<typename NativeType>
 //inline Value MakeUninitialized()

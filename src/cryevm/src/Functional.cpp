@@ -29,11 +29,13 @@ CRY_METHOD(blub)
 CRY_METHOD(heap_alloc)
 {
 	unsigned int size = ctx.GetParameter<int>("size");
+	CRY_UNUSED(size);
 }
 
 CRY_METHOD(heap_free)
 {
 	intptr_t ptr = ctx.GetParameter<int>("ptr");
+	CRY_UNUSED(ptr);
 }
 
 } // namespace

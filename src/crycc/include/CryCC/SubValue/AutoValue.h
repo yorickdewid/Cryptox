@@ -94,11 +94,12 @@ inline Valuedef::Value ValueDeductor::ConvertNativeType(bool value)
 {
 	return MakeValue<BuiltinType::Specifier::BOOL>(value);
 }
-template<>
-inline Valuedef::Value ValueDeductor::ConvertNativeType(Valuedef::Value value)
-{
-	return Valuedef::Value{ TypeFacade{ Util::MakePointerType() }, std::move(value) };
-}
+//TODO: FIXME:
+//template<>
+//inline Valuedef::Value ValueDeductor::ConvertNativeType(Valuedef::Value value)
+//{
+//	return Valuedef::Value{ TypeFacade{ Util::MakePointerType(value.Type()) }, std::move(value) };
+//}
 
 //
 // MultiValue capture.
