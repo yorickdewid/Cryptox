@@ -368,14 +368,11 @@ public:
 	// Return type identifier.
 	int TypeId() const { return TypeIdentifier(); }
 	// Return type name string.
-	const std::string TypeName() const final { return "..."; }
+	const std::string TypeName() const final;
 	// Return native size.
-	size_type UnboxedSize() const { return 0; }
+	size_type UnboxedSize() const;
 	// Test if types are equal.
-	bool Equals(BasePointer other) const
-	{
-		return dynamic_cast<VariadicType*>(other) != nullptr;
-	}
+	bool Equals(BasePointer other) const;
 	// Pack the type into a byte stream.
 	buffer_type TypeEnvelope() const override;
 };
@@ -385,14 +382,8 @@ class PointerType : public TypedefBase
 	REGISTER_TYPE(POINTER);
 
 public:
-	PointerType(BaseType& nativeType)
-		: m_ptrType{ nativeType }
-	{
-	}
-	PointerType(BaseType&& nativeType)
-		: m_ptrType{ std::move(nativeType) }
-	{
-	}
+	PointerType(BaseType& nativeType);
+	PointerType(BaseType&& nativeType);
 
 	BaseType Get() const { return m_ptrType; }
 
@@ -403,14 +394,11 @@ public:
 	// Return type identifier.
 	int TypeId() const { return TypeIdentifier(); }
 	// Return type name string.
-	const std::string TypeName() const final { return "(ptr)"; }
+	const std::string TypeName() const final;
 	// Return native size.
-	size_type UnboxedSize() const { return sizeof(intptr_t); }
+	size_type UnboxedSize() const;
 	// Test if types are equal.
-	bool Equals(BasePointer other) const
-	{
-		return dynamic_cast<PointerType*>(other) != nullptr;
-	}
+	bool Equals(BasePointer other) const;
 	// Pack the type into a byte stream.
 	buffer_type TypeEnvelope() const override;
 

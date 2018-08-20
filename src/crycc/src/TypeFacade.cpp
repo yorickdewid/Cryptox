@@ -140,6 +140,13 @@ bool IsInline(const TypeFacade& other) noexcept
 	return builtin->IsInline();
 }
 
+bool IsSensitive(const TypeFacade& other) noexcept
+{
+	const auto builtin = other.DataType<BuiltinType>();
+	if (!builtin) { return false; }
+	return builtin->IsSensitive();
+}
+
 bool IsStatic(const TypeFacade& other) noexcept
 {
 	return other->StorageClass() == TypedefBase::StorageClassSpecifier::STATIC;

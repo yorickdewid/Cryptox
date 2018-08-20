@@ -119,6 +119,7 @@ bool IsUnion(const TypeFacade&) noexcept;
 bool IsClass(const TypeFacade&) noexcept;
 bool IsPointer(const TypeFacade&) noexcept;
 bool IsInline(const TypeFacade&) noexcept;
+bool IsSensitive(const TypeFacade&) noexcept;
 bool IsStatic(const TypeFacade&) noexcept;
 bool IsExtern(const TypeFacade&) noexcept;
 bool IsRegister(const TypeFacade&) noexcept;

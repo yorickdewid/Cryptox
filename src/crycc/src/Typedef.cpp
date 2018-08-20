@@ -61,30 +61,6 @@ const std::string TypedefBase::QualifierName() const
 	return result;
 }
 
-//
-// VariadicType.
-//
-
-VariadicType::buffer_type VariadicType::TypeEnvelope() const
-{
-	std::vector<uint8_t> buffer = { m_c_internalType };
-	const auto base = TypedefBase::TypeEnvelope();
-	buffer.insert(buffer.cend(), base.cbegin(), base.cend());
-	return buffer;
-}
-
-//
-// PointerType.
-//
-
-PointerType::buffer_type PointerType::TypeEnvelope() const
-{
-	std::vector<uint8_t> buffer = { m_c_internalType };
-	const auto base = TypedefBase::TypeEnvelope();
-	buffer.insert(buffer.cend(), base.cbegin(), base.cend());
-	return buffer;
-}
-
 } // namespace Typedef
 } // namespace SubValue
 } // namespace CryCC
