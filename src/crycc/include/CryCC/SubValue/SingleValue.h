@@ -53,10 +53,15 @@ public:
     {
     }
 
-    template<typename CastType>
-    auto As() //TODO: type cast
+    template<typename ReturnType>
+	ReturnType As()
     {
-        return boost::get<CastType>(m_value);
+		try {
+			return boost::get<ReturnType>(m_value);
+		}
+		catch (const boost::bad_get&) {
+			throw InvalidTypeCastException{};
+		}
     }
 
 	// Convert single value into data stream.
@@ -80,7 +85,7 @@ public:
     // Convert current value to string.
 	std::string ToString() const
 	{
-		return "";
+		return "REPLACE ME";
 	}
 };
 

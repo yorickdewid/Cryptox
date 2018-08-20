@@ -38,6 +38,14 @@ struct AbstractValue : public ValueContract
     using self_type = ValueType;
 };
 
+struct InvalidTypeCastException : public std::runtime_error
+{
+    explicit InvalidTypeCastException()
+        : runtime_error{ "" } //TODO:
+    {
+    }
+};
+
 namespace Trait
 {
 

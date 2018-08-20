@@ -8,6 +8,7 @@
 
 #include <CryCC/SubValue/Valuedef.h>
 #include <CryCC/SubValue/ValueHelper.h>
+#include <CryCC/SubValue/SingleValue.h>
 
 #include <Cry/Cry.h>
 #include <Cry/ByteOrder.h>
@@ -484,6 +485,8 @@ void Value::Deserialize(Value& value, Cry::ByteArray& buffer)
 // type as is.
 Value& Value::operator=(const Value& other)
 {
+	if (*this == other) { return (*this); }
+
 	if (m_internalType != other.m_internalType) {
 		throw InvalidTypeCastException{};
 	}
@@ -496,6 +499,8 @@ Value& Value::operator=(const Value& other)
 // type as is.
 Value& Value::operator=(Value&& other)
 {
+	if (*this == other) { return (*this); }
+
 	if (m_internalType != other.m_internalType) {
 		throw InvalidTypeCastException{};
 	}

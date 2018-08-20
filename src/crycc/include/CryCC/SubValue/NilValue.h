@@ -22,7 +22,7 @@ namespace SubValue
 namespace Valuedef
 {
 
-class NilValue : public AbstractValue<NilValue>
+class NilValue final : public AbstractValue<NilValue>
 {
 public:
     using typdef_type = nullptr_t;
@@ -35,16 +35,14 @@ public:
 
 	NilValue() = default;
 
-	// Convert single value into data stream.
+	// NOTE: NilValue holds no data, thus serialization can be ignored.
 	static void Serialize(const NilValue&, Cry::ByteArray&)
     {
-        // NOTE: NilValue holds no data, thus serialization can be ignored.
     }
 
-	// Convert data stream into single value.
+	// NOTE: NilValue holds no data, thus deserialization can be ignored.
 	static void Deserialize(NilValue&, Cry::ByteArray&)
     {
-        // NOTE: NilValue holds no data, thus deserialization can be ignored.
     }
 
     // Compare to other NilValue.

@@ -15,7 +15,8 @@
 #include <CryCC/AST.h>
 #include <CryCC/Program.h>
 
-#include <Cry/Functional.h>
+#include <Cry/Cry.h>
+#include <Cry/TypeTrait.h>
 #include <Cry/LockPipe.h>
 
 #include <boost/optional.hpp>
@@ -28,7 +29,7 @@ namespace Typedef = CryCC::SubValue::Typedef;
 namespace Valuedef = CryCC::SubValue::Valuedef;
 
 // Pop all stack values as long as the stack contains elements.
-template<typename Type, typename = typename std::enable_if<Cry::Functional::IsStack<Type>::value>::type>
+template<typename Type, typename = typename std::enable_if<Cry::TypeTrait::IsStack<Type>::value>::type>
 inline void ClearStack(Type& c)
 {
 	while (!c.empty()) { c.pop(); }

@@ -11,6 +11,7 @@
 #include <CryCC/SubValue/RecordValue.h>
 #include <CryCC/SubValue/TypeFacade.h>
 #include <CryCC/SubValue/ValueContract.h>
+#include <CryCC/SubValue/NilValue.h>
 #include <CryCC/SubValue/SingleValue.h>
 
 #include <Cry/Serialize.h>
@@ -119,12 +120,16 @@ protected:
 		ValueSelect(const ValueSelect&) = default;
 		ValueSelect(ValueSelect&&) = default;
 
+		//
+		// Value category initializers.
+		//
+
 		ValueSelect(ValueVariantSingle);
 		ValueSelect(ValueVariantMulti);
 		ValueSelect(RecordValue&&);
 		ValueSelect(Value&&);
 
-		// Check if all of the values are empty.
+		// Check if all values are empty.
 		bool Empty() const noexcept
 		{
 			return !singleValue
@@ -174,7 +179,6 @@ protected:
 		// value variant.
 		//
 
-		boost::optional<SingleValue> singleNativeValue;
 		boost::optional<ValueVariantSingle> singleValue; //TODO: rename singleNativeValue
 		boost::optional<ValueVariantMulti> multiValue; //TODO: rename multiNativeValue
 		boost::optional<RecordValue> recordValue; //TODO: rename singleRecordValue
@@ -182,8 +186,6 @@ protected:
 		std::shared_ptr<Value> referenceValue; //TODO: rename singleReferenceValue
 		//std::shared_ptr<std::vector<Value>> multiReferenceValue;
 	} m_value;
-
-	static_assert(IsValueContractCompliable<SingleValue>::value, "SingleValue does not implement the full value contract");
 
 private:
 	template<typename CastTypePart>
@@ -263,13 +265,9 @@ public:
 
 	// Value declaration without initialization.
 	Value(Typedef::TypeFacade);
-	// Value declaration and initialization.
 	Value(Typedef::TypeFacade, ValueVariantSingle&&);
-	// Value declaration and initialization.
 	Value(Typedef::TypeFacade, ValueVariantMulti&&, size_t elements);
-	// Value declaration and initialization.
 	Value(Typedef::TypeFacade, RecordValue&&);
-	// Pointer value declaration and initialization.
 	Value(Typedef::TypeFacade, Value&&);
 
 	// Access type information.
