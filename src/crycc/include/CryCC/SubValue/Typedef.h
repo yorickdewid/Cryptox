@@ -146,7 +146,7 @@ public:
 
 	virtual const std::string TypeName() const = 0;
 	virtual bool AllowCoalescence() const = 0;
-	virtual void Consolidate(BaseType& type) = 0;
+	virtual void Consolidate(BaseType&) {};
 	virtual size_type UnboxedSize() const = 0;
 	virtual bool Equals(BasePointer) const = 0;
 	virtual buffer_type TypeEnvelope() const;
@@ -155,9 +155,10 @@ public:
 	// Type specifier inputs.
 	//
 
-	inline void SetStorageClass(StorageClassSpecifier storageClass) { m_storageClass = storageClass; }
-	inline void SetQualifier(TypeQualifier typeQualifier) { m_typeQualifier.PushBack(typeQualifier); }
-	inline void SetInline() { m_isInline = true; }
+	virtual void SetStorageClass(StorageClassSpecifier storageClass) noexcept { m_storageClass = storageClass; }
+	virtual void SetQualifier(TypeQualifier typeQualifier) { m_typeQualifier.PushBack(typeQualifier); }
+	virtual void SetInline() noexcept { m_isInline = true; }
+	virtual void SetSensitive() noexcept { m_isSensitive = true; }
 
 	//
 	// Stringify type name.
@@ -173,9 +174,11 @@ public:
 	inline StorageClassSpecifier StorageClass() const noexcept { return m_storageClass; }
 	inline Qualifiers TypeQualifiers() const noexcept { return m_typeQualifier; }
 	inline bool IsInline() const noexcept { return m_isInline; }
+	inline bool IsSensitive() const noexcept { return m_isSensitive; }
 
 protected:
-	bool m_isInline = false;
+	bool m_isInline{ false };
+	bool m_isSensitive{ false };
 	StorageClassSpecifier m_storageClass = StorageClassSpecifier::NONE;
 	Qualifiers m_typeQualifier = { TypeQualifier::NONE, TypeQualifier::NONE };
 };
@@ -187,6 +190,7 @@ constexpr uint8_t SetInteralType(TypedefBase::TypeVariation type)
 
 #define REGISTER_TYPE(t)\
 	const uint8_t m_c_internalType = SetInteralType(TypedefBase::TypeVariation::t); \
+	uint8_t TypeIdentifier() const noexcept { return m_c_internalType; }
 
 // Builtin types.
 class BuiltinType : public TypedefBase
@@ -212,6 +216,7 @@ private:
 	void SpecifierToOptions();
 
 public:
+	//TODO: Add intmax_t, uintmax_t & others
 	enum class Specifier
 	{
 		// TODO: rename to use _T
@@ -251,10 +256,10 @@ public:
 	size_type UnboxedSize() const;
 	// Test if types are equal.
 	bool Equals(BasePointer) const;
-
+	// Pack the type into a byte stream.
 	buffer_type TypeEnvelope() const override;
-
-	void Consolidate(BaseType& type);
+	// Consolidate two types into one.
+	void Consolidate(BaseType& type) override;
 
 private:
 	Specifier m_specifier;
@@ -309,11 +314,6 @@ public:
 
 	buffer_type TypeEnvelope() const override;
 
-	void Consolidate(BaseType&)
-	{
-		throw Cry::Except::UnsupportedOperationException{ "RecordType::Consolidate" };
-	}
-
 private:
 	std::string m_name;
 	Specifier m_specifier;
@@ -341,11 +341,6 @@ public:
 	bool Equals(BasePointer) const;
 
 	buffer_type TypeEnvelope() const override;
-
-	void Consolidate(BaseType&)
-	{
-		throw Cry::Except::UnsupportedOperationException{ "TypedefType::Consolidate" };
-	}
 };
 
 class VariadicType : public TypedefBase
@@ -367,11 +362,6 @@ public:
 	}
 
 	buffer_type TypeEnvelope() const override;
-
-	void Consolidate(BaseType&)
-	{
-		throw Cry::Except::UnsupportedOperationException{ "VariadicType::Consolidate" };
-	}
 };
 
 //TODO: How about no?
@@ -390,11 +380,6 @@ public:
 	}
 
 	buffer_type TypeEnvelope() const override;
-
-	void Consolidate(BaseType&)
-	{
-		throw Cry::Except::UnsupportedOperationException{ "PointerType::Consolidate" };
-	}
 };
 
 } // namespace Typedef

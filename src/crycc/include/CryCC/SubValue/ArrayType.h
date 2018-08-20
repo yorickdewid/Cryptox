@@ -29,31 +29,17 @@ class ArrayType : public TypedefBase
 	REGISTER_TYPE(ARRAY);
 
 public:
-	ArrayType() {}
+	ArrayType();
 
-	const std::string TypeName() const final
-	{
-		return "";
-	}
+	const std::string TypeName() const final;
 
 	bool AllowCoalescence() const final { return false; }
 
 	size_type UnboxedSize() const { return 0; }
 
-	bool Equals(BasePointer) const
-	{
-		return false;
-	}
+	bool Equals(BasePointer) const;
 
-	buffer_type TypeEnvelope() const override
-	{
-		return {};
-	}
-
-	void Consolidate(BaseType&)
-	{
-		throw Cry::Except::UnsupportedOperationException{ "ArrayType::Consolidate" };
-	}
+	buffer_type TypeEnvelope() const override;
 
 private:
 	size_t m_elements;

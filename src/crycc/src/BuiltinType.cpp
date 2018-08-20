@@ -15,9 +15,33 @@ namespace SubValue
 namespace Typedef
 {
 
+template<int Bits, typename Type>
+struct PrimitiveType
+{
+    using type = Type;
+    static const int bit_count = sizeof(Type) * 8;
+};
+
+using CharType = PrimitiveType<8, int8_t>;
+using SignedCharType = PrimitiveType<8, int8_t>;
+using UnsignedCharType = PrimitiveType<8, uint8_t>;
+using ShortType = PrimitiveType<16, int16_t>;
+using UnsignedShortType = PrimitiveType<16, uint16_t>;
+using IntegerType = PrimitiveType<32, int32_t>;
+using UnsignedIntegerType = PrimitiveType<32, uint32_t>;
+using LongType = PrimitiveType<64, int64_t>;
+using UnsignedLongType = PrimitiveType<64, uint64_t>;
+using FloatType = PrimitiveType<32, int32_t>;
+using DoubleType = PrimitiveType<64, int64_t>;
+using LongDoubleType = PrimitiveType<64, int64_t>;
+using UnsignedLongDoubleType = PrimitiveType<64, uint64_t>;
+using IntMaxType = LongType;
+using UnsignedIntMaxType = UnsignedLongType;
+
 BuiltinType::BuiltinType(Specifier specifier)
 	: m_specifier{ specifier }
 {
+    // Convert specifiers into type options.
 	SpecifierToOptions();
 }
 
@@ -120,8 +144,12 @@ void BuiltinType::Consolidate(BaseType& type)
 	assert(type->AllowCoalescence());
 
 	auto otherType = std::dynamic_pointer_cast<BuiltinType>(type);
-	if (otherType->Unsigned()) { m_typeOptions.set(IS_UNSIGNED); }
-	if (otherType->Short()) { m_typeOptions.set(IS_SHORT); }
+	if (otherType->Unsigned()) {
+        m_typeOptions.set(IS_UNSIGNED);
+    }
+	if (otherType->Short()) {
+        m_typeOptions.set(IS_SHORT);
+    }
 	if (otherType->Long()) {
 		if (this->Long()) {
 			m_typeOptions.set(IS_LONG_LONG);
