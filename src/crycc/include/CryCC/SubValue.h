@@ -20,6 +20,7 @@
 #include <CryCC/SubValue/UserData.h>
 #include <CryCC/SubValue/RecordValue.h>
 #include <CryCC/SubValue/Typedef.h>
+#include <CryCC/SubValue/ArrayType.h>
 #include <CryCC/SubValue/TypeFacade.h>
 #include <CryCC/SubValue/Valuedef.h>
 #include <CryCC/SubValue/AutoValue.h>

@@ -31,6 +31,7 @@ class TypedefBase;
 
 using BaseType = std::shared_ptr<Typedef::TypedefBase>;
 using BaseType2 = std::shared_ptr<TypeFacade>;
+using BasePointer = Typedef::TypedefBase*;
 
 // Each internal type must inherit form this abstract type base and
 // implement the mandatory methods. The type systemd is setup for
@@ -41,6 +42,7 @@ class TypedefBase
 {
 public:
 	using size_type = size_t;
+	using buffer_type = std::vector<uint8_t>;
 
 	// Envelope helper to identify type. For every specialization a
 	// type variation must be defined in the base class. The variation
@@ -54,6 +56,7 @@ public:
 		TYPEDEF,
 		VARIADIC,
 		POINTER,
+		ARRAY,
 	};
 
 	// Storage class specifier.
@@ -134,6 +137,8 @@ public:
 		size_type m_offset{ 0 };
 	};
 
+	using Qualifiers = StaticArray<TypeQualifier, 2>;
+
 public:
 	//
 	// Abstract methods.
@@ -143,8 +148,8 @@ public:
 	virtual bool AllowCoalescence() const = 0;
 	virtual void Consolidate(BaseType& type) = 0;
 	virtual size_type UnboxedSize() const = 0;
-	virtual bool Equals(TypedefBase* other) const = 0;
-	virtual std::vector<uint8_t> TypeEnvelope() const;
+	virtual bool Equals(BasePointer) const = 0;
+	virtual buffer_type TypeEnvelope() const;
 
 	//
 	// Type specifier inputs.
@@ -166,13 +171,13 @@ public:
 	//
 
 	inline StorageClassSpecifier StorageClass() const noexcept { return m_storageClass; }
-	inline StaticArray<TypeQualifier, 2> TypeQualifiers() const noexcept { return m_typeQualifier; }
+	inline Qualifiers TypeQualifiers() const noexcept { return m_typeQualifier; }
 	inline bool IsInline() const noexcept { return m_isInline; }
 
 protected:
 	bool m_isInline = false;
 	StorageClassSpecifier m_storageClass = StorageClassSpecifier::NONE;
-	StaticArray<TypeQualifier, 2> m_typeQualifier = { TypeQualifier::NONE, TypeQualifier::NONE };
+	Qualifiers m_typeQualifier = { TypeQualifier::NONE, TypeQualifier::NONE };
 };
 
 constexpr uint8_t SetInteralType(TypedefBase::TypeVariation type)
@@ -225,7 +230,10 @@ public:
 public:
 	BuiltinType(Specifier specifier);
 
+	//
 	// Test type options.
+	//
+
 	inline auto Unsigned() const { return m_typeOptions.test(IS_UNSIGNED); }
 	inline auto Signed() const { return !Unsigned(); }
 	inline auto Short() const { return m_typeOptions.test(IS_SHORT); }
@@ -239,12 +247,12 @@ public:
 	bool AllowCoalescence() const { return m_typeOptions.any(); }
 	// Return the type specifier.
 	Specifier TypeSpecifier() const { return m_specifier; }
-
+	// Return native size.
 	size_type UnboxedSize() const;
+	// Test if types are equal.
+	bool Equals(BasePointer) const;
 
-	bool Equals(TypedefBase* other) const;
-
-	std::vector<uint8_t> TypeEnvelope() const override;
+	buffer_type TypeEnvelope() const override;
 
 	void Consolidate(BaseType& type);
 
@@ -297,9 +305,9 @@ public:
 	//TODO: quite the puzzle
 	size_type UnboxedSize() const { return 0; }
 
-	bool Equals(TypedefBase* other) const;
+	bool Equals(BasePointer) const;
 
-	std::vector<uint8_t> TypeEnvelope() const override;
+	buffer_type TypeEnvelope() const override;
 
 	void Consolidate(BaseType&)
 	{
@@ -316,7 +324,7 @@ class TypedefType : public TypedefBase
 {
 	REGISTER_TYPE(TYPEDEF);
 	std::string m_name;
-	BaseType m_resolveType;
+	BaseType m_resolveType; //TODO: should be BaseType2
 
 public:
 	TypedefType(const std::string& name, BaseType& nativeType);
@@ -330,9 +338,9 @@ public:
 
 	size_type UnboxedSize() const { return m_resolveType->UnboxedSize(); }
 
-	bool Equals(TypedefBase* other) const;
+	bool Equals(BasePointer) const;
 
-	std::vector<uint8_t> TypeEnvelope() const override;
+	buffer_type TypeEnvelope() const override;
 
 	void Consolidate(BaseType&)
 	{
@@ -353,12 +361,12 @@ public:
 		throw Cry::Except::UnsupportedOperationException{ "VariadicType::UnboxedSize" };
 	}
 
-	bool Equals(TypedefBase* other) const
+	bool Equals(BasePointer other) const
 	{
 		return dynamic_cast<VariadicType*>(other) != nullptr;
 	}
 
-	std::vector<uint8_t> TypeEnvelope() const override;
+	buffer_type TypeEnvelope() const override;
 
 	void Consolidate(BaseType&)
 	{
@@ -376,12 +384,12 @@ public:
 	bool AllowCoalescence() const final { return false; }
 	size_type UnboxedSize() const { return sizeof(int); } //TODO: not quite
 
-	bool Equals(TypedefBase* other) const
+	bool Equals(BasePointer other) const
 	{
 		return dynamic_cast<PointerType*>(other) != nullptr;
 	}
 
-	std::vector<uint8_t> TypeEnvelope() const override;
+	buffer_type TypeEnvelope() const override;
 
 	void Consolidate(BaseType&)
 	{
