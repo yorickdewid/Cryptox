@@ -15,47 +15,45 @@ namespace SubValue
 namespace Typedef
 {
 
-RecordType::RecordType(const std::string& name, Specifier specifier)
+TypedefType::TypedefType(const std::string& name, BaseType& nativeType)
 	: m_name{ name }
-	, m_specifier{ specifier }
+	, m_resolveType{ std::move(nativeType) }
 {
 }
 
-//RecordType::RecordType(const std::string& name, Specifier specifier, size_t elements, BaseType type);
-//	: m_name{ name }
-//	, m_specifier{ specifier }
-//{
-//}
-
-const std::string RecordType::TypeName() const
+const std::string TypedefType::TypeName() const
 {
-	return (m_specifier == Specifier::UNION ? "union " : "struct ") + m_name;
+    return m_name + ":" + m_resolveType->TypeName();
 }
 
-//TODO: calculate size
-RecordType::size_type RecordType::UnboxedSize() const
+TypedefType::size_type TypedefType::UnboxedSize() const
 {
-	return 0;
+    return m_resolveType->UnboxedSize();
 }
 
-bool RecordType::Equals(TypedefBase* other) const
+bool TypedefType::Equals(BasePointer other) const
 {
-	auto self = dynamic_cast<RecordType*>(other);
+	auto self = dynamic_cast<TypedefType*>(other);
 	if (self == nullptr) {
 		return false;
 	}
 
-	return m_specifier == self->m_specifier
+	return m_resolveType == self->m_resolveType
 		&& m_name == self->m_name;
 }
 
-RecordType::buffer_type RecordType::TypeEnvelope() const
+TypedefType::buffer_type TypedefType::TypeEnvelope() const
 {
 	std::vector<uint8_t> buffer = { m_c_internalType };
 	buffer.reserve(m_name.size());
 	buffer.push_back(static_cast<uint8_t>(m_name.size())); //FUTURE: Limited to 256
 	buffer.insert(buffer.cend(), m_name.cbegin(), m_name.cend());
-	buffer.push_back(static_cast<uint8_t>(m_specifier));
+
+	if (m_resolveType) {
+		auto envelop = m_resolveType->TypeEnvelope();
+		buffer.insert(buffer.cend(), envelop.cbegin(), envelop.cend());
+	}
+
 	const auto base = TypedefBase::TypeEnvelope();
 	buffer.insert(buffer.cend(), base.cbegin(), base.cend());
 	return buffer;

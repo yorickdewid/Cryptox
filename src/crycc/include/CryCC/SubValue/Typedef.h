@@ -144,8 +144,9 @@ public:
 	// Abstract methods.
 	//
 
+	virtual int TypeId() const = 0;
 	virtual const std::string TypeName() const = 0;
-	virtual bool AllowCoalescence() const = 0;
+	virtual bool AllowCoalescence() const { return false; }
 	virtual void Consolidate(BaseType&) {};
 	virtual size_type UnboxedSize() const = 0;
 	virtual bool Equals(BasePointer) const = 0;
@@ -166,7 +167,7 @@ public:
 
 	const std::string StorageClassName() const;
 	const std::string QualifierName() const;
-	
+
 	//
 	// Additional type specifiers.
 	//
@@ -246,19 +247,26 @@ public:
 	inline auto Complex() const { return m_typeOptions.test(IS_COMPLEX); }
 	inline auto Imaginary() const { return m_typeOptions.test(IS_IMAGINARY); }
 
+	// Return the type specifier.
+	Specifier TypeSpecifier() const { return m_specifier; }
+
+	//
+	// Implement abstract base type methods.
+	//
+
+	// Return type identifier.
+	int TypeId() const { return TypeIdentifier(); }
 	// Return type name string.
 	const std::string TypeName() const;
 	// If any type options are set, allow type coalescence.
-	bool AllowCoalescence() const { return m_typeOptions.any(); }
-	// Return the type specifier.
-	Specifier TypeSpecifier() const { return m_specifier; }
+	bool AllowCoalescence() const override { return m_typeOptions.any(); }
 	// Return native size.
 	size_type UnboxedSize() const;
 	// Test if types are equal.
 	bool Equals(BasePointer) const;
 	// Pack the type into a byte stream.
 	buffer_type TypeEnvelope() const override;
-	// Consolidate two types into one.
+	// Consolidate multiple types into one.
 	void Consolidate(BaseType& type) override;
 
 private:
@@ -275,43 +283,44 @@ public:
 	{
 		STRUCT,
 		UNION,
+		CLASS,
 	};
 
 public:
 	RecordType(const std::string& name, Specifier specifier = Specifier::STRUCT);
 	//RecordType(const std::string& name, Specifier specifier, size_t elements, BaseType type);
 
-	const std::string TypeName() const final
-	{
-		return (m_specifier == Specifier::UNION ? "union " : "struct ") + m_name;
-	}
-
 	void AddField(const std::string& field, const BaseType2& type)
 	{
 		m_fields.push_back({ field, type });
 	}
+
 	void AddField(std::string&& field, BaseType2&& type)
 	{
 		m_fields.emplace_back(std::move(field), std::move(type));
 	}
 
 	inline bool IsAnonymous() const noexcept { return m_name.empty(); }
-
 	inline std::string Name() const noexcept { return m_name; }
-
 	inline size_t FieldSize() const noexcept { return m_fields.size(); }
+	inline auto Fields() const noexcept { return m_fields; }
 
-	inline std::vector<std::pair<std::string, BaseType2>> Fields() const noexcept { return m_fields; }
-
-	bool AllowCoalescence() const final { return false; }
 	// Return the record specifier.
 	Specifier TypeSpecifier() const { return m_specifier; }
 
-	//TODO: quite the puzzle
-	size_type UnboxedSize() const { return 0; }
+	//
+	// Implement abstract base type methods.
+	//
 
+	// Return type identifier.
+	int TypeId() const { return TypeIdentifier(); }
+	// Return type name string.
+	const std::string TypeName() const;
+	// Return native size.
+	size_type UnboxedSize() const;
+	// Test if types are equal.
 	bool Equals(BasePointer) const;
-
+	// Pack the type into a byte stream.
 	buffer_type TypeEnvelope() const override;
 
 private:
@@ -324,22 +333,24 @@ class TypedefType : public TypedefBase
 {
 	REGISTER_TYPE(TYPEDEF);
 	std::string m_name;
-	BaseType m_resolveType; //TODO: should be BaseType2
+	BaseType m_resolveType; //TODO: should be BaseType2, really?
 
 public:
 	TypedefType(const std::string& name, BaseType& nativeType);
 
-	const std::string TypeName() const final
-	{
-		return m_name + ":" + m_resolveType->TypeName();
-	}
+	//
+	// Implement abstract base type methods.
+	//
 
-	bool AllowCoalescence() const final { return false; }
-
-	size_type UnboxedSize() const { return m_resolveType->UnboxedSize(); }
-
+	// Return type identifier.
+	int TypeId() const { return TypeIdentifier(); }
+	// Return type name string.
+	const std::string TypeName() const final;
+	// Return native size.
+	size_type UnboxedSize() const;
+	// Test if types are equal.
 	bool Equals(BasePointer) const;
-
+	// Pack the type into a byte stream.
 	buffer_type TypeEnvelope() const override;
 };
 
@@ -348,8 +359,9 @@ class VariadicType : public TypedefBase
 	REGISTER_TYPE(VARIADIC);
 
 public:
+	// Return type identifier.
+	int TypeId() const { return TypeIdentifier(); }
 	const std::string TypeName() const final { return "..."; }
-	bool AllowCoalescence() const final { return false; }
 
 	size_type UnboxedSize() const
 	{
@@ -370,8 +382,9 @@ class PointerType : public TypedefBase
 	REGISTER_TYPE(POINTER);
 
 public:
+	// Return type identifier.
+	int TypeId() const { return TypeIdentifier(); }
 	const std::string TypeName() const final { return "(ptr)"; }
-	bool AllowCoalescence() const final { return false; }
 	size_type UnboxedSize() const { return sizeof(int); } //TODO: not quite
 
 	bool Equals(BasePointer other) const

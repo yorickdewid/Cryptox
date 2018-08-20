@@ -9,6 +9,8 @@
 #include <CryCC/SubValue/Typedef.h>
 #include <CryCC/SubValue/ArrayType.h>
 
+#include <string>
+
 namespace CryCC
 {
 namespace SubValue
@@ -16,18 +18,31 @@ namespace SubValue
 namespace Typedef
 {
 
-ArrayType::ArrayType()
+ArrayType::ArrayType(size_t elements, BaseType arrayType)
+    : m_elements{ elements }
+    , m_elementType{ arrayType }
+{
+}
+
+ArrayType::ArrayType(size_t elements, BaseType&& arrayType)
+    : m_elements{ elements }
+    , m_elementType{ std::move(arrayType) }
 {
 }
 
 const std::string ArrayType::TypeName() const
 {
-    return "";
+    return "[" + std::to_string(m_elements) + "]";
 }
 
-bool ArrayType::Equals(TypedefBase* other) const
+ArrayType::size_type ArrayType::UnboxedSize() const
 {
-	auto self = dynamic_cast<RecordType*>(other);
+    return m_elements * m_elementType->UnboxedSize();
+}
+
+bool ArrayType::Equals(BasePointer other) const
+{
+	auto self = dynamic_cast<ArrayType*>(other);
 	if (self == nullptr) {
 		return false;
 	}

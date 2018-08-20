@@ -29,21 +29,30 @@ class ArrayType : public TypedefBase
 	REGISTER_TYPE(ARRAY);
 
 public:
-	ArrayType();
+	ArrayType(size_t elements, BaseType arrayType);
+	ArrayType(size_t elements, BaseType&& arrayType);
 
+	// Return the size of the array.
+	inline size_t Order() const noexcept { return m_elements; }
+
+	//
+	// Implement abstract base type methods.
+	//
+
+	// Return type identifier.
+	int TypeId() const { return TypeIdentifier(); }
+	// Return type name string.
 	const std::string TypeName() const final;
-
-	bool AllowCoalescence() const final { return false; }
-
-	size_type UnboxedSize() const { return 0; }
-
+	// Return native size.
+	size_type UnboxedSize() const;
+	// Test if types are equal.
 	bool Equals(BasePointer) const;
-
+	// Pack the type into a byte stream.
 	buffer_type TypeEnvelope() const override;
 
 private:
 	size_t m_elements;
-	BaseType2 m_elementType;
+	BaseType m_elementType;
 };
 
 } // namespace Typedef
