@@ -10,8 +10,8 @@
 
 #include <Cry/Cry.h>
 #include <Cry/ByteOrder.h>
+#include <Cry/Types.h>
 
-#include <stdint.h>
 #include <vector>
 
 #define CHECKPOINT_TAG_1 0xd6
@@ -19,11 +19,6 @@
 
 namespace Cry
 {
-
-using Byte = uint8_t;
-using Short = uint16_t;
-using Word = uint32_t;
-using DoubleWord = uint64_t;
 
 namespace Detail
 {

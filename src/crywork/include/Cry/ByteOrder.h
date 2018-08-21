@@ -15,11 +15,11 @@
 # include <Windows.h>
 #elif defined(BSD)
 #include <sys/endian.h>
-#else
+#else // BSD
 #include <endian.h>
-#endif
+#endif // _MSC_VER
 
-// Determine endianness
+// Determine endianness.
 #if defined(__BYTE_ORDER) && __BYTE_ORDER == __BIG_ENDIAN || \
     defined(REG_DWORD) && REG_DWORD == REG_DWORD_BIG_ENDIAN || \
     defined(__BIG_ENDIAN__) || \
