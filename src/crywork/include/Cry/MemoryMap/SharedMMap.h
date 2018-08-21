@@ -23,7 +23,7 @@ namespace MemoryMap
 //
 // This is not the default behaviour of 'BasicMMap' to avoid allocating on
 // the heap if shared semantics are not required.
-template<access_mode AccessMode, typename ByteType>
+template<AccessModeType AccessMode, typename ByteType>
 class BasicSharedMMap
 {
 	using self_type = BasicMMap<AccessMode, ByteType>;

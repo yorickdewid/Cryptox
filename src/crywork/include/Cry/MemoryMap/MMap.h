@@ -22,7 +22,7 @@ namespace MemoryMap
 // 'map', in which case a memory mapping of the entire file is created.
 //using Detail::map_entire_file;
 
-template<access_mode AccessMode, typename ByteType>
+template<AccessModeType AccessMode, typename ByteType>
 class BasicMMap
 {
 	using self_type = Detail::BasicMMap<ByteType>;
@@ -102,20 +102,20 @@ public:
 	size_type offset() const noexcept { return impl_.offset(); }
 
 	// Returns a pointer to the first requested byte, or 'nullptr' if no memory mapping exists.
-	template<access_mode A = AccessMode, typename = typename std::enable_if<A == access_mode::write>::type>
+	template<AccessModeType A = AccessMode, typename = typename std::enable_if<A == AccessModeType::WRITE>::type>
 	pointer data() noexcept { return impl_.data(); }
 	const_pointer data() const noexcept { return impl_.data(); }
 
 	// Returns an iterator to the first requested byte, if a valid memory mapping
 	// exists, otherwise this function call is undefined behaviour.
-	template<access_mode A = AccessMode, typename = typename std::enable_if<A == access_mode::write>::type>
+	template<AccessModeType A = AccessMode, typename = typename std::enable_if<A == AccessModeType::WRITE>::type>
 	iterator begin() noexcept { return impl_.begin(); }
 	const_iterator begin() const noexcept { return impl_.begin(); }
 	const_iterator cbegin() const noexcept { return impl_.cbegin(); }
 
 	// Returns an iterator one past the last requested byte, if a valid memory mapping
 	// exists, otherwise this function call is undefined behaviour.
-	template<access_mode A = AccessMode, typename = typename std::enable_if<A == access_mode::write>::type>
+	template<AccessModeType A = AccessMode, typename = typename std::enable_if<A == AccessModeType::WRITE>::type>
 	iterator end() noexcept { return impl_.end(); }
 	const_iterator end() const noexcept { return impl_.end(); }
 	const_iterator cend() const noexcept { return impl_.cend(); }
@@ -123,14 +123,14 @@ public:
 	// Returns a reverse iterator to the last memory mapped byte, if a valid
 	// memory mapping exists, otherwise this function call is undefined
 	// behaviour.
-	template<access_mode A = AccessMode, typename = typename std::enable_if<A == access_mode::write>::type>
+	template<AccessModeType A = AccessMode, typename = typename std::enable_if<A == AccessModeType::WRITE>::type>
 	reverse_iterator rbegin() noexcept { return impl_.rbegin(); }
 	const_reverse_iterator rbegin() const noexcept { return impl_.rbegin(); }
 	const_reverse_iterator crbegin() const noexcept { return impl_.crbegin(); }
 
 	// Returns a reverse iterator past the first mapped byte, if a valid memory
 	// mapping exists, otherwise this function call is undefined behaviour.
-	template<access_mode A = AccessMode, typename = typename std::enable_if<A == access_mode::write>::type>
+	template<AccessModeType A = AccessMode, typename = typename std::enable_if<A == AccessModeType::WRITE>::type>
 	reverse_iterator rend() noexcept { return impl_.rend(); }
 	const_reverse_iterator rend() const noexcept { return impl_.rend(); }
 	const_reverse_iterator crend() const noexcept { return impl_.crend(); }
@@ -199,53 +199,53 @@ public:
 	void swap(BasicMMap& other) { impl_.swap(other.impl_); }
 
 	// Flushes the memory mapped page to disk. Errors are reported via 'error'.
-	template<access_mode A = AccessMode, typename = typename std::enable_if<A == access_mode::write>::type>
+	template<AccessModeType A = AccessMode, typename = typename std::enable_if<A == AccessModeType::WRITE>::type>
 	void sync(std::error_code& error) { impl_.sync(error); }
 
 	//
 	// All operators compare the address of the first byte and size of the two mapped regions.
 	//
 
-	friend bool operator==(const BasicMMap& a, const BasicMMap& b)
+	friend bool operator==(const BasicMMap& lhs, const BasicMMap& rhs)
 	{
-		return a.impl_ == b.impl_;
+		return lhs.impl_ == rhs.impl_;
 	}
 
-	friend bool operator!=(const BasicMMap& a, const BasicMMap& b)
+	friend bool operator!=(const BasicMMap& lhs, const BasicMMap& rhs)
 	{
-		return !(a == b);
+		return !(lhs == rhs);
 	}
 
-	friend bool operator<(const BasicMMap& a, const BasicMMap& b)
+	friend bool operator<(const BasicMMap& lhs, const BasicMMap& rhs)
 	{
-		return a.impl_ < b.impl_;
+		return lhs.impl_ < rhs.impl_;
 	}
 
-	friend bool operator<=(const BasicMMap& a, const BasicMMap& b)
+	friend bool operator<=(const BasicMMap& lhs, const BasicMMap& rhs)
 	{
-		return a.impl_ <= b.impl_;
+		return lhs.impl_ <= rhs.impl_;
 	}
 
-	friend bool operator>(const BasicMMap& a, const BasicMMap& b)
+	friend bool operator>(const BasicMMap& lhs, const BasicMMap& rhs)
 	{
-		return a.impl_ > b.impl_;
+		return lhs.impl_ > rhs.impl_;
 	}
 
-	friend bool operator>=(const BasicMMap& a, const BasicMMap& b)
+	friend bool operator>=(const BasicMMap& lhs, const BasicMMap& rhs)
 	{
-		return a.impl_ >= b.impl_;
+		return lhs.impl_ >= rhs.impl_;
 	}
 };
 
 // This is the basis for all read-only mmap objects and should be preferred over
 // directly using BasicMMap.
 template<typename ByteType>
-using basic_mmap_source = BasicMMap<access_mode::read, ByteType>;
+using basic_mmap_source = BasicMMap<AccessModeType::READ, ByteType>;
 
 // This is the basis for all read-write mmap objects and should be preferred over
 // directly using BasicMMap.
 template<typename ByteType>
-using basic_mmap_sink = BasicMMap<access_mode::write, ByteType>;
+using basic_mmap_sink = BasicMMap<AccessModeType::WRITE, ByteType>;
 
 // These aliases cover the most common use cases, both representing a raw byte stream
 // (either with a char or an unsigned char/uint8_t).
