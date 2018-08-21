@@ -7,6 +7,8 @@
 // copied and/or distributed without the express of the author.
 
 #include <CryCC/SubValue/Typedef.h>
+#include <CryCC/SubValue/ArrayType.h>
+#include <CryCC/SubValue/NilType.h>
 
 namespace CryCC
 {
@@ -70,6 +72,7 @@ namespace Util
 
 using namespace CryCC::SubValue::Typedef;
 
+//TODO: This needs more strucutre
 BaseType MakeType(std::vector<uint8_t>&& in)
 {
 	assert(in.size() > 0);
@@ -119,6 +122,16 @@ BaseType MakeType(std::vector<uint8_t>&& in)
 	case TypedefBase::TypeVariation::ARRAY: {
 		//TODO:
 		//type = std::make_shared<PointerType>();
+		break;
+	}
+	case TypedefBase::TypeVariation::VARIANT: {
+		//TODO:
+		//type = std::make_shared<VariantType>();
+		break;
+	}
+	case TypedefBase::TypeVariation::NIL: {
+		//TODO:
+		//type = std::make_shared<NilType>();
 		break;
 	}
 	case TypedefBase::TypeVariation::INVAL:

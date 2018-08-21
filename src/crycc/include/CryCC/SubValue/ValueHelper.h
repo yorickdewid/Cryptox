@@ -11,6 +11,7 @@
 #include <CryCC/SubValue/Valuedef.h>
 #include <CryCC/SubValue/AutoValue.h>
 
+//TODO: replace with function.
 #ifdef CRY_DEBUG
 #include <iostream>
 #define DUMP_VALUE(v) \

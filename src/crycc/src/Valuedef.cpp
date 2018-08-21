@@ -458,7 +458,7 @@ void Value::Serialize(const Value& value, Cry::ByteArray& buffer)
 	buffer.SetPlatformCompat();
 
 	// Serialzie type.
-	Typedef::TypeFacade::Serialize(int{}, value.m_internalType, buffer);
+	Typedef::TypeFacade::Serialize(value.m_internalType, buffer);
 
 	// Serialzie value.
 	ValueSelect::Pack(value.m_value, buffer);
@@ -475,7 +475,7 @@ void Value::Deserialize(Value& value, Cry::ByteArray& buffer)
 	}
 
 	// Convert stream to type.
-	Typedef::TypeFacade::Deserialize(int{}, value.m_internalType, buffer);
+	Typedef::TypeFacade::Deserialize(value.m_internalType, buffer);
 
 	// Convert stream into value.
 	ValueSelect::Unpack(value.m_value, buffer);
