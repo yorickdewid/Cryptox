@@ -10,6 +10,8 @@
 
 #include <CryCC/SubValue/Typedef.h>
 
+#include <vector>
+
 namespace CryCC
 {
 namespace SubValue
@@ -17,22 +19,18 @@ namespace SubValue
 namespace Typedef
 {
 
-// ...
-class ArrayType : public TypedefBase
+// The vaiant holds an array of elements all of which can have a
+// different type. The number of elements must match the number of
+// types.
+class VariantType : public TypedefBase
 {
 	REGISTER_TYPE(ARRAY);
 
 public:
-	ArrayType(size_t elements, BaseType arrayType);
-	ArrayType(size_t elements, BaseType&& arrayType);
+	VariantType(size_t elements, std::vector<BaseType> variantType);
+	VariantType(size_t elements, std::vector<BaseType>&& variantType);
 
-	template<size_t Elements>
-	ArrayType(BaseType&& arrayType)
-		: ArrayType{ Elements, std::move(arrayType) }
-	{
-	}
-
-	// Return the size of the array.
+	// Return the size of the variant.
 	inline size_t Order() const noexcept { return m_elements; }
 
 	//
@@ -52,7 +50,7 @@ public:
 
 private:
 	size_t m_elements;
-	BaseType m_elementType;
+	std::vector<BaseType> m_elementTypes;
 };
 
 } // namespace Typedef

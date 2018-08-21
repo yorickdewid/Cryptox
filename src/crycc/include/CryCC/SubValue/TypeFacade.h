@@ -117,6 +117,7 @@ bool IsEnum(const TypeFacade&) noexcept;
 bool IsStruct(const TypeFacade&) noexcept;
 bool IsUnion(const TypeFacade&) noexcept;
 bool IsClass(const TypeFacade&) noexcept;
+bool IsRecord(const TypeFacade&) noexcept;
 bool IsPointer(const TypeFacade&) noexcept;
 bool IsInline(const TypeFacade&) noexcept;
 bool IsSensitive(const TypeFacade&) noexcept;

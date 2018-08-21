@@ -57,6 +57,8 @@ public:
 		VARIADIC,
 		POINTER,
 		ARRAY,
+		VARIANT,
+		NIL,
 	};
 
 	// Storage class specifier.

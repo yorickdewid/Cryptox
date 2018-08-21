@@ -128,6 +128,11 @@ bool IsClass(const TypeFacade& other) noexcept
 	return record->TypeSpecifier() == RecordType::Specifier::CLASS;
 }
 
+bool IsRecord(const TypeFacade& other) noexcept
+{
+	return IsStruct(other) || IsUnion(other) || IsClass(other);
+}
+
 bool IsPointer(const TypeFacade& other) noexcept
 {
 	return other.IsPointer();
