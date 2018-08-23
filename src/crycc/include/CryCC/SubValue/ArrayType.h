@@ -17,13 +17,12 @@ namespace SubValue
 namespace Typedef
 {
 
-// ...
+// Array of elements.
 class ArrayType : public TypedefBase
 {
 	REGISTER_TYPE(ARRAY);
 
 public:
-	ArrayType(size_t elements, BaseType arrayType);
 	ArrayType(size_t elements, BaseType&& arrayType);
 
 	template<size_t Elements>
@@ -34,6 +33,8 @@ public:
 
 	// Return the size of the array.
 	inline size_t Order() const noexcept { return m_elements; }
+	// Return array base type.
+	inline BaseType Type() const { return m_elementType; }
 
 	//
 	// Implement abstract base type methods.

@@ -18,6 +18,7 @@
 //
 
 #include <CryCC/SubValue/UserData.h>
+#include <CryCC/SubValue/BuiltinValue.h>
 #include <CryCC/SubValue/RecordValue.h>
 #include <CryCC/SubValue/Typedef.h>
 #include <CryCC/SubValue/ArrayType.h>

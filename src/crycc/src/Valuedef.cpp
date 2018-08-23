@@ -8,7 +8,6 @@
 
 #include <CryCC/SubValue/Valuedef.h>
 #include <CryCC/SubValue/ValueHelper.h>
-#include <CryCC/SubValue/SingleValue.h>
 
 #include <Cry/Cry.h>
 #include <Cry/ByteOrder.h>

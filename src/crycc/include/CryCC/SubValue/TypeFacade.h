@@ -34,7 +34,7 @@ public:
 	using size_type = size_t;
 
 	TypeFacade() = default; //FUTURE: maybe remove
-	TypeFacade(const base_type&);
+	TypeFacade(const base_type&); //TODO: no reference, only move, copy
 
 	// Check if type is initialized.
 	inline bool HasValue() const noexcept { return m_type != nullptr; }

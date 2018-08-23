@@ -8,11 +8,10 @@
 
 #pragma once
 
-#include <CryCC/SubValue/RecordValue.h>
+#include <CryCC/SubValue/RecordValue.h> //TODO: can be removed
 #include <CryCC/SubValue/TypeFacade.h>
 #include <CryCC/SubValue/ValueContract.h>
 #include <CryCC/SubValue/NilValue.h>
-#include <CryCC/SubValue/SingleValue.h>
 
 #include <Cry/Serialize.h>
 

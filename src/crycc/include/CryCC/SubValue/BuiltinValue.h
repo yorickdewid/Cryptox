@@ -24,7 +24,7 @@ namespace SubValue
 namespace Valuedef
 {
 
-class SingleValue : public AbstractValue<SingleValue>
+class BuiltinValue : public AbstractValue<BuiltinValue>
 {
     using NativeTypeList = Cry::TypeTrait::TemplateHolder<int, char, float, double, bool>;
     using ValueVariant = NativeTypeList::template_apply<boost::variant>;
@@ -40,15 +40,15 @@ public:
     // Unique value identifier.
     constexpr static const int value_category_identifier = 10;
 
-	SingleValue() = default;
-    SingleValue(const SingleValue&) = default;
-    SingleValue(SingleValue&&) = default;
+	BuiltinValue() = default;
+    BuiltinValue(const BuiltinValue&) = default;
+    BuiltinValue(BuiltinValue&&) = default;
 
-    SingleValue& operator=(const SingleValue&) = default;
-    SingleValue& operator=(SingleValue&&) = default;
+    BuiltinValue& operator=(const BuiltinValue&) = default;
+    BuiltinValue& operator=(BuiltinValue&&) = default;
 
     template<typename Type>
-    SingleValue(Type&& value)
+    BuiltinValue(Type&& value)
         : m_value{ std::forward<Type>(value) }
     {
     }
@@ -65,28 +65,15 @@ public:
     }
 
 	// Convert single value into data stream.
-	static void Serialize(const SingleValue&, Cry::ByteArray&)
-    {
-
-    }
-
+	static void Serialize(const BuiltinValue&, Cry::ByteArray&);
 	// Convert data stream into single value.
-	static void Deserialize(SingleValue&, Cry::ByteArray&)
-    {
+	static void Deserialize(BuiltinValue&, Cry::ByteArray&);
 
-    }
-
-    // Compare to other SingleValue.
-	bool operator==(const SingleValue&) const
-	{
-		return false;
-	}
+    // Compare to other BuiltinValue.
+	bool operator==(const BuiltinValue&) const;
 
     // Convert current value to string.
-	std::string ToString() const
-	{
-		return "REPLACE ME"; //TODO
-	}
+	std::string ToString() const;
 };
 
 } // namespace Valuedef

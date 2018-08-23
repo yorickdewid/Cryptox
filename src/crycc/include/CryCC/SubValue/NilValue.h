@@ -52,10 +52,7 @@ public:
 	}
 
     // Convert current value to string.
-	std::string ToString() const
-	{
-		return "(nil)";
-	}
+	std::string ToString() const { return "(nil)"; }
 };
 
 static_assert(sizeof(NilValue) == sizeof(NilValue::value_variant_order)

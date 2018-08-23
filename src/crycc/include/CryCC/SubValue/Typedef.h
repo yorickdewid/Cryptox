@@ -338,6 +338,9 @@ public:
 	TypedefType(const std::string& name, BaseType& nativeType);
 	TypedefType(const std::string& name, BaseType&& nativeType);
 
+	// Return type referenced base type.
+	inline BaseType MarkType() const { return m_resolveType; }
+
 	//
 	// Implement abstract base type methods.
 	//
@@ -387,7 +390,8 @@ public:
 	PointerType(BaseType& nativeType);
 	PointerType(BaseType&& nativeType);
 
-	BaseType Get() const { return m_ptrType; }
+	// Return pointer type.
+	inline BaseType Get() const { return m_ptrType; }
 
 	//
 	// Implement abstract base type methods.

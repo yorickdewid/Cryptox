@@ -18,12 +18,6 @@ namespace SubValue
 namespace Typedef
 {
 
-ArrayType::ArrayType(size_t elements, BaseType arrayType)
-    : m_elements{ elements }
-    , m_elementType{ arrayType }
-{
-}
-
 ArrayType::ArrayType(size_t elements, BaseType&& arrayType)
     : m_elements{ elements }
     , m_elementType{ std::move(arrayType) }
