@@ -17,6 +17,8 @@
 
 #include <boost/variant.hpp>
 
+#include <cstdint>
+
 namespace CryCC
 {
 namespace SubValue
@@ -26,7 +28,7 @@ namespace Valuedef
 
 class BuiltinValue : public AbstractValue<BuiltinValue>
 {
-    using NativeTypeList = Cry::TypeTrait::TemplateHolder<int, char, float, double, bool>;
+    using NativeTypeList = Cry::TypeTrait::TemplateHolder<int8_t, int16_t, int32_t, int64_t, uint8_t, uint16_t, uint32_t, uint64_t, float, double, long double>;
     using ValueVariant = NativeTypeList::template_apply<boost::variant>;
 
     ValueVariant m_value;
