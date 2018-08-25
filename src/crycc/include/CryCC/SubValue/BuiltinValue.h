@@ -42,7 +42,6 @@ public:
 	// Unique value identifier.
 	constexpr static const int value_category_identifier = 10;
 
-	BuiltinValue() = default; //TODO: remove?
 	BuiltinValue(const BuiltinValue&) = default;
 	BuiltinValue(BuiltinValue&&) = default;
 

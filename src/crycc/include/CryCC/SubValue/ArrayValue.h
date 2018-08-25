@@ -54,7 +54,6 @@ public:
 	// Unique value identifier.
 	constexpr static const int value_category_identifier = 11;
 
-	ArrayValue() = default; //TODO: remove?
 	ArrayValue(const ArrayValue&) = default;
 	ArrayValue(ArrayValue&&) = default;
 

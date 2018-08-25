@@ -33,8 +33,6 @@ public:
     // Unique value identifier.
     constexpr static const int value_category_identifier = 9;
 
-	NilValue() = default;
-
 	// NOTE: NilValue holds no data, thus serialization can be ignored.
 	static void Serialize(const NilValue&, Cry::ByteArray&)
     {
