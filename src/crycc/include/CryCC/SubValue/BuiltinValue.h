@@ -50,7 +50,7 @@ public:
 	BuiltinValue& operator=(BuiltinValue&&) = default;
 
 	// Prevent template constructor from becoming copy/move constructor.
-	template<typename Type, typename = typename std::enable_if<std::is_fundamental<Type>::value>::type>
+	template<typename Type, typename = typename std::enable_if<std::is_fundamental<Type>::value>::type> // TODO: check with NativeTypeList
 	BuiltinValue(Type&&);
 
 	//TODO: for now

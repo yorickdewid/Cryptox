@@ -54,14 +54,30 @@ public:
 	// Unique value identifier.
 	constexpr static const int value_category_identifier = 11;
 
+	ArrayValue() = default; //TODO: remove?
 	ArrayValue(const ArrayValue&) = default;
 	ArrayValue(ArrayValue&&) = default;
 
 	ArrayValue& operator=(const ArrayValue&) = default;
 	ArrayValue& operator=(ArrayValue&&) = default;
 
-	template<typename ValueType>
-	ArrayValue(std::initializer_list<ValueType>&& valueList)
+	template<typename ValueType, typename = typename std::enable_if<std::is_fundamental<ValueType>::value>::type> // TODO: check with NativeTypeList
+	ArrayValue(std::initializer_list<ValueType>&&);
+
+	template<>
+	ArrayValue(std::initializer_list<int>&& valueList)
+		: m_value{ std::move(valueList) }
+	{
+	}
+
+	template<>
+	ArrayValue(std::initializer_list<float>&& valueList)
+		: m_value{ std::move(valueList) }
+	{
+	}
+
+	template<>
+	ArrayValue(std::initializer_list<double>&& valueList)
 		: m_value{ std::move(valueList) }
 	{
 	}
