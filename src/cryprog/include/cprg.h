@@ -13,8 +13,8 @@
 #pragma once
 #endif
 
-#include <common.h>
-#include <program.h>
+#include <CoilCl/common.h>
+#include <CoilCl/program.h>
 
 #ifdef _WIN32
 # if defined(CRYPROG_EXPORTS) || defined(CryProg_EXPORTS)

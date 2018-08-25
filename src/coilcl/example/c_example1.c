@@ -15,7 +15,7 @@
 #include <string.h>
 #include <assert.h>
 
-#include <coilcl.h>
+#include <CoilCl/coilcl.h>
 
 #define PROG_VERSION 1
 

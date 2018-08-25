@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include "coilcl.h"
+#include <CoilCl/coilcl.h>
 
 // Project includes.
 #include <CryCC/AST.h>

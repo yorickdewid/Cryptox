@@ -13,9 +13,9 @@
 #pragma once
 #endif
 
-#include <common.h>
-#include <program.h>
-#include <data.h>
+#include <CoilCl/common.h>
+#include <CoilCl/program.h>
+#include <CoilCl/data.h>
 
 #ifdef _WIN32
 # if defined(EVM_EXPORTS) || defined(CryEVM_EXPORTS)

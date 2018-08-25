@@ -7,9 +7,8 @@
 // copied and/or distributed without the express of the author.
 
 // Local includes.
-#include "coilcl.h"
+#include <CoilCl/coilcl.h>
 #include "Profile.h"
-#include "Program.h"
 #include "Frontend.h"
 #include "Parser.h"
 #include "Semer.h"

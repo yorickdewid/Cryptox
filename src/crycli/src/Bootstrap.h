@@ -11,7 +11,7 @@
 #include "FileReader.h"
 #include "StringReader.h"
 
-#include <coilcl.h>
+#include <CoilCl/coilcl.h>
 
 #include <functional>
 

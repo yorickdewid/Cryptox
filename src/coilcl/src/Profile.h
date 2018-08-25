@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include "coilcl.h" //TODO: should not be a required file
+#include <CoilCl/coilcl.h> //TODO: should not be a required file
 
 #include <string>
 #include <memory>
