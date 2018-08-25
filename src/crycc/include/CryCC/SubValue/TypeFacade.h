@@ -24,8 +24,8 @@ namespace Typedef
 class TypeFacade
 {
 	BaseType m_type; //TODO: Remove pointer if possible at all
-	size_t m_ptrCount{ 0 };
-	size_t m_arrayElement{ 0 };
+	size_t m_ptrCount{ 0 }; //TODO: remove
+	size_t m_arrayElement{ 0 }; //TODO: remove
 
 public:
 	using base_type = decltype(m_type);

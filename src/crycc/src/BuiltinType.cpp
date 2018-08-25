@@ -8,6 +8,8 @@
 
 #include <CryCC/SubValue/Typedef.h>
 
+#define BITS_PER_BYTE 8
+
 namespace CryCC
 {
 namespace SubValue
@@ -15,28 +17,28 @@ namespace SubValue
 namespace Typedef
 {
 
-template<int Bits, typename Type>
+template<typename TypeAlias, typename Type>
 struct PrimitiveType
 {
     using type = Type;
-    static const int bit_count = sizeof(Type) * 8;
+	using alias = typename std::remove_reference<typename std::remove_cv<TypeAlias>::type>::type;
+	static const bool is_unsigned = std::is_unsigned<TypeAlias>::value;
+    static const int bit_count = sizeof(Type) * BITS_PER_BYTE;
 };
 
-using CharType = PrimitiveType<8, int8_t>;
-using SignedCharType = PrimitiveType<8, int8_t>;
-using UnsignedCharType = PrimitiveType<8, uint8_t>;
-using ShortType = PrimitiveType<16, int16_t>;
-using UnsignedShortType = PrimitiveType<16, uint16_t>;
-using IntegerType = PrimitiveType<32, int32_t>;
-using UnsignedIntegerType = PrimitiveType<32, uint32_t>;
-using LongType = PrimitiveType<64, int64_t>;
-using UnsignedLongType = PrimitiveType<64, uint64_t>;
-using FloatType = PrimitiveType<32, int32_t>;
-using DoubleType = PrimitiveType<64, int64_t>;
-using LongDoubleType = PrimitiveType<64, int64_t>;
-using UnsignedLongDoubleType = PrimitiveType<64, uint64_t>;
-using IntMaxType = LongType;
-using UnsignedIntMaxType = UnsignedLongType;
+using CharType = PrimitiveType<char, int8_t>;
+using SignedCharType = PrimitiveType<signed char, int8_t>;
+using UnsignedCharType = PrimitiveType<unsigned char, uint8_t>;
+using ShortType = PrimitiveType<short, int16_t>;
+using UnsignedShortType = PrimitiveType<unsigned short, uint16_t>;
+using IntegerType = PrimitiveType<int, int32_t>;
+using UnsignedIntegerType = PrimitiveType<unsigned int, uint32_t>;
+using LongType = PrimitiveType<long, int64_t>;
+using UnsignedLongType = PrimitiveType<unsigned long, uint64_t>;
+using FloatType = PrimitiveType<float, int32_t>;
+using DoubleType = PrimitiveType<double, int64_t>;
+using LongDoubleType = PrimitiveType<long double, int64_t>;
+using UnsignedLongDoubleType = PrimitiveType<unsigned long double, uint64_t>;
 
 BuiltinType::BuiltinType(Specifier specifier)
 	: m_specifier{ specifier }
