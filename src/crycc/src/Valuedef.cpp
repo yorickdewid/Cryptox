@@ -7,7 +7,7 @@
 // copied and/or distributed without the express of the author.
 
 #include <CryCC/SubValue/Valuedef.h>
-#include <CryCC/SubValue/ValueHelper.h>
+#include <CryCC/SubValue/ValueHelper.h> // << TODO: Maybe remove?
 
 #include <Cry/Cry.h>
 #include <Cry/ByteOrder.h>

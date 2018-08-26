@@ -17,7 +17,6 @@
 #include <Cry/Serialize.h>
 
 #include <boost/variant.hpp>
-#include <boost/variant/polymorphic_get.hpp>
 
 #include <cstdint>
 
@@ -64,7 +63,6 @@ public:
 	template<typename Type, typename = typename std::enable_if<NativeTypeList::has_type<Type>::value>::type>
 	BuiltinValue(Type&&);
 
-	//TODO: for now
 	template<>
 	BuiltinValue(Typedef::IntegerType::alias&& value)
 		: m_value{ std::forward<Typedef::IntegerType::storage_type>(value) }
@@ -101,9 +99,9 @@ public:
 	}
 
 	// Convert single value into data stream.
-	static void Serialize(const BuiltinValue&, Cry::ByteArray&);
+	static void Serialize(const BuiltinValue&, buffer_type&);
 	// Convert data stream into single value.
-	static void Deserialize(BuiltinValue&, Cry::ByteArray&);
+	static void Deserialize(BuiltinValue&, buffer_type&);
 
 	// Compare to other BuiltinValue.
 	bool operator==(const BuiltinValue&) const;

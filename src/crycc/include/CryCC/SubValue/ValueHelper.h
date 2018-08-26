@@ -18,6 +18,7 @@
 	std::cout << v.Type()->TypeName() << " >> " << v.Print() << std::endl;
 #endif
 
+//TODO: remove
 #define CaptureValue(s) Util::CaptureValueRaw(std::move(s))
 
 namespace CryCC
@@ -29,6 +30,8 @@ namespace Valuedef
 	
 // Request the value at the record field with 'name'.
 std::shared_ptr<Value> RecordMemberValue(Value& value, const std::string& name);
+// Request the value at the array offset with 'offset'.
+// std::shared_ptr<Value> ArrayIndexValue(Value& value, size_t offset);
 
 } // namespace Valuedef
 } // namespace SubValue
@@ -47,133 +50,56 @@ namespace Util
 using namespace CryCC::SubValue::Valuedef;
 using namespace CryCC::SubValue::Typedef;
 
-//
-// Create explicit value with automatic type.
-//
-
-inline auto MakeString(const std::string& v)
-{
-	std::vector<char> ve(v.begin(), v.end());
-	ve.shrink_to_fit();
-	const auto builtin = MakeBuiltinType(BuiltinType::Specifier::CHAR);
-	return Value{ TypeFacade{ builtin }, Value::ValueVariantMulti{ std::move(ve) }, ve.size() };
-}
-inline auto MakeInt(int v)
-{
-	const auto builtin = MakeBuiltinType(BuiltinType::Specifier::INT);
-	return Value{ TypeFacade{ builtin }, Value::ValueVariantSingle{ std::move(v) } };
-}
-inline auto MakeFloat(float v)
-{
-	const auto builtin = MakeBuiltinType(BuiltinType::Specifier::FLOAT);
-	return Value{ TypeFacade{ builtin }, Value::ValueVariantSingle{ std::move(v) } };
-}
-inline auto MakeDouble(double v)
-{
-	const auto builtin = MakeBuiltinType(BuiltinType::Specifier::DOUBLE);
-	return Value{ TypeFacade{ builtin }, Value::ValueVariantSingle{ std::move(v) } };
-}
-inline auto MakeChar(char v)
-{
-	const auto builtin = MakeBuiltinType(BuiltinType::Specifier::CHAR);
-	return Value{ TypeFacade{ builtin }, Value::ValueVariantSingle{ std::move(v) } };
-}
-inline auto MakeBool(bool v)
-{
-	const auto builtin = MakeBuiltinType(BuiltinType::Specifier::BOOL);
-	return Value{ TypeFacade{ builtin }, Value::ValueVariantSingle{ std::move(v) } };
-}
-
-//
-// Create explicit array value with automatic type.
-//
-
-//inline auto MakeStringArray(std::vector<std::string> v)
-//{
-//	std::vector<std::vector<char>> ve(v.begin(), v.end());
-//	ve.shrink_to_fit();
-//	const auto builtin = MakeBuiltinType(BuiltinType::Specifier::CHAR);
-//	return Value{ TypeFacade{ builtin }, Value::ValueVariantMulti{ std::move(ve) } };
-//}
-inline auto MakeIntArray(int v[])
-{
-	const auto builtin = MakeBuiltinType(BuiltinType::Specifier::INT);
-	std::vector<int> ve(v, v + sizeof(v) / sizeof(v[0]));
-	return Value{ TypeFacade{ builtin }, Value::ValueVariantMulti{ std::move(ve) }, ve.size() };
-}
-inline auto MakeIntArray(std::vector<int> v)
-{
-	const auto builtin = MakeBuiltinType(BuiltinType::Specifier::INT);
-	return Value{ TypeFacade{ builtin }, Value::ValueVariantMulti{ v }, v.size() };
-}
-inline auto MakeFloatArray(std::vector<float> v)
-{
-	const auto builtin = MakeBuiltinType(BuiltinType::Specifier::FLOAT);
-	return Value{ TypeFacade{ builtin }, Value::ValueVariantMulti{ v }, v.size() };
-}
-inline auto MakeDoubleArray(std::vector<double> v)
-{
-	const auto builtin = MakeBuiltinType(BuiltinType::Specifier::DOUBLE);
-	return Value{ TypeFacade{ builtin }, Value::ValueVariantMulti{ v }, v.size() };
-}
-inline auto MakeBoolArray(std::vector<bool> v)
-{
-	const auto builtin = MakeBuiltinType(BuiltinType::Specifier::BOOL);
-	return Value{ TypeFacade{ builtin }, Value::ValueVariantMulti{ v }, v.size() };
-}
-
-//
-// Create pointer to another value.
-//
-
-inline auto MakePointer(Value&& v)
-{
-	return Value{ TypeFacade{ MakePointerType(v.Type()) }, std::move(v) };
-}
-
-//
-// Create explicit record value with automatic type.
-//
-
-inline auto MakeStruct(RecordValue&& v, const std::string structName = {})
-{
-	const std::string name = v.HasRecordName() ? v.RecordName() : structName;
-	return Value{ TypeFacade{ MakeRecordType(name, RecordType::Specifier::STRUCT) }, std::move(v) };
-}
-inline auto MakeUnion(RecordValue&& v, const std::string structName = {})
-{
-	const std::string name = v.HasRecordName() ? v.RecordName() : structName;
-	return Value{ TypeFacade{ MakeRecordType(name, RecordType::Specifier::UNION) }, std::move(v) };
-}
+// Value MakeUninitialized();
+// Value MakeVoid();
+Value MakeBool(bool);
+Value MakeChar(char);
+// Value MakeSignedChar(signed char);
+// Value MakeUnsignedChar(unsigned char);
+// Value MakeShort(short);
+// Value MakeUnsignedShort(unsigned short);
+Value MakeInt(int);
+// Value MakeUnsignedInt(unsigned int);
+// Value MakeLong(long);
+// Value MakeUnsignedLong(unsigned long);
+Value MakeFloat(float);
+Value MakeDouble(double);
+// Value MakeLongDouble(double);
+// Value MakeUnsignedLongDouble(double);
+Value MakeString(const std::string&);
+//Value MakeStringArray(std::vector<std::string>);
+Value MakeIntArray(int v[]);
+Value MakeIntArray(std::vector<int>);
+Value MakeFloatArray(std::vector<float>);
+Value MakeDoubleArray(std::vector<double>);
+Value MakeBoolArray(std::vector<bool>);
+Value MakePointer(Value&&);
+Value MakeStruct(RecordValue&&, const std::string structName = {});
+Value MakeUnion(RecordValue&&, const std::string structName = {});
 
 //
 // Create implicit value with automatic type.
 //
 
 template<typename NativeType>
-inline Value CaptureValueRaw(NativeType&& v)
+inline Value CaptureValueRaw(NativeType&& v) //TODO: remove
 {
 	return Detail::ValueDeductor{}(std::forward<NativeType>(v));
 }
-
-//
-// Create empty value with an empty type.
-//
-
-//TODO:
-//template<typename NativeType>
-//inline Value MakeUninitialized()
-//{
-//	return Detail::ValueDeductor{}(std::forward<NativeType>());
-//}
+template<typename NativeType>
+inline Value MakeAutoValue(NativeType&& v)
+{
+	Detail::ValueDeductor v;
+	return v(std::forward<NativeType>(v));
+}
 
 //
 // Query value and type properties.
 //
 
-// Evaluate the value as either true or false.
+// Evaluate the 'value' as either true or false.
 bool EvaluateValueAsBoolean(const Value&);
-// Evaluate the value as an integer or throw exception.
+// Evaluate the 'value' as an integer or throw exception.
 int EvaluateValueAsInteger(const Value&);
 
 } // namespace Util

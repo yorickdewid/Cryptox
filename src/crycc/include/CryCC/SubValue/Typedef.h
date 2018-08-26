@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include <CryCC/SubValue/PrimitiveTypes.h> // TODO: remove with BuiltinType
+
 #include <Cry/Cry.h>
 #include <Cry/Except.h>
 
@@ -217,20 +219,38 @@ class BuiltinType : public TypedefBase
 	void SpecifierToOptions();
 
 public:
-	//TODO: Add intmax_t, uintmax_t & others
+	template<typename Type>
+	class TypeWrapper
+	{
+		using type = Type;
+	};
+
 	enum class Specifier
 	{
-		// TODO: rename to use _T
 		VOID_T,
-		CHAR,
-		SHORT,
-		INT,
-		LONG,
-		SIGNED,
-		UNSIGNED,
-		FLOAT,
-		DOUBLE,
-		BOOL,
+		BOOL_T,
+		CHAR_T,
+		SIGNED_CHAR_T,
+		UNSIGNED_CHAR_T,
+		SHORT_T,
+		UNSIGNED_SHORT_T,
+		INT_T,
+		UNSIGNED_INT_T,
+		LONG_T,
+		UNSIGNED_LONG_T,
+		FLOAT_T,
+		DOUBLE_T,
+		LONG_DOUBLE_T,
+		UNSIGNED_LONG_DOUBLE_T,
+		CHAR, //TODO: remove, obsolete
+		SHORT, //TODO: remove, obsolete
+		INT, //TODO: remove, obsolete
+		LONG, //TODO: remove, obsolete
+		SIGNED, //TODO: remove, obsolete
+		UNSIGNED, //TODO: remove, obsolete
+		FLOAT, //TODO: remove, obsolete
+		DOUBLE, //TODO: remove, obsolete
+		BOOL, //TODO: remove, obsolete
 	};
 
 public:
@@ -301,6 +321,7 @@ public:
 		m_fields.emplace_back(std::move(field), std::move(type));
 	}
 
+	inline bool IsAligned() const noexcept { return m_aligned; }
 	inline bool IsAnonymous() const noexcept { return m_name.empty(); }
 	inline std::string Name() const noexcept { return m_name; }
 	inline size_t FieldSize() const noexcept { return m_fields.size(); }
@@ -325,6 +346,7 @@ public:
 	buffer_type TypeEnvelope() const override;
 
 private:
+	bool m_aligned{ false };
 	std::string m_name;
 	Specifier m_specifier;
 	std::vector<std::pair<std::string, BaseType2>> m_fields;

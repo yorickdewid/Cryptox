@@ -8,6 +8,9 @@
 
 #pragma once
 
+#include <Cry/Cry.h>
+#include <Cry/Serialize.h>
+
 #include <string>
 
 namespace CryCC
@@ -36,8 +39,9 @@ struct ValueContract
 template<typename ValueType>
 struct AbstractValue : public ValueContract
 {
-	// Type alias to value category type.
 	using self_type = ValueType;
+	using size_type = size_t;
+	using buffer_type = Cry::ByteArray;
 };
 
 struct InvalidTypeCastException : public std::runtime_error
@@ -58,9 +62,9 @@ template<class Type, class ArgType>
 class HasEqualOperatorImpl
 {
 	template<class LHSType, class RHSType>
-	static auto Test(int) -> decltype(std::declval<LHSType>() == std::declval<RHSType>());
+	constexpr static auto Test(int) -> decltype(std::declval<LHSType>() == std::declval<RHSType>());
 	template<typename, typename>
-	static auto Test(...) -> std::false_type;
+	constexpr static auto Test(...) -> std::false_type;
 
 public:
 	using type = typename std::is_same<bool, decltype(Test<Type, ArgType>(int{}))>::type;
@@ -73,9 +77,9 @@ template<class Type>
 class HasTypedefTypeImpl
 {
 	template <typename ValueType>
-	static auto Test(int) -> typename ValueType::typdef_type;
+	constexpr static auto Test(int) -> typename ValueType::typdef_type;
 	template<typename>
-	static auto Test(...) -> std::false_type;
+	constexpr static auto Test(...) -> std::false_type;
 
 public:
 	constexpr static const bool value = std::is_same<std::false_type, decltype(Test<Type>(int{}))>::value;

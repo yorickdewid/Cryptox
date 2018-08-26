@@ -32,6 +32,8 @@ struct PrimitiveType
     static const int bit_count = sizeof(StorageType) * BITS_PER_BYTE;
 };
 
+using VoidType = PrimitiveType<void, nullptr_t>;
+using BoolType = PrimitiveType<bool, bool>;
 using CharType = PrimitiveType<char, int8_t>;
 using SignedCharType = PrimitiveType<signed char, int8_t>;
 using UnsignedCharType = PrimitiveType<unsigned char, uint8_t>;

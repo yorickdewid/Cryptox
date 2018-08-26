@@ -16,13 +16,13 @@ namespace Valuedef
 {
 
 // Convert single value into data stream.
-void BuiltinValue::Serialize(const BuiltinValue&, Cry::ByteArray&)
+void BuiltinValue::Serialize(const BuiltinValue&, buffer_type&)
 {
 
 }
 
 // Convert data stream into single value.
-void BuiltinValue::Deserialize(BuiltinValue&, Cry::ByteArray&)
+void BuiltinValue::Deserialize(BuiltinValue&, buffer_type&)
 {
 
 }

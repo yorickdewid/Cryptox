@@ -86,7 +86,7 @@ public:
 	ReturnType As()
 	{
 		try {
-			return boost::get<ReturnType>(m_value);
+			return boost::strict_get<ReturnType>(m_value);
 		}
 		catch (const boost::bad_get&) {
 			throw InvalidTypeCastException{};
