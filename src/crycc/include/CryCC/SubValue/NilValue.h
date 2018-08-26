@@ -43,7 +43,7 @@ public:
     {
     }
 
-    // Compare to other NilValue.
+    // All the nil values are the same.
 	bool operator==(const NilValue&) const
 	{
 		return true;

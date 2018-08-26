@@ -31,7 +31,11 @@ struct TemplateHolder
 {
     template <template <typename...> typename Wrapper>
     using template_apply = Wrapper<ArgTypes...>;
-    constexpr static const auto size = sizeof...(ArgTypes);
+	
+	template<typename Test>
+	using has_type = typename std::disjunction<std::is_same<Test, ArgTypes>...>::type;
+	
+	constexpr static const auto size = sizeof...(ArgTypes);
 };
 
 } // namespace TypeTrait

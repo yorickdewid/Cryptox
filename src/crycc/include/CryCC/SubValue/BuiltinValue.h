@@ -9,6 +9,7 @@
 #pragma once
 
 #include <CryCC/SubValue/ValueContract.h>
+#include <CryCC/SubValue/PrimitiveTypes.h>
 #include <CryCC/SubValue/Typedef.h>
 
 #include <Cry/Cry.h>
@@ -16,6 +17,7 @@
 #include <Cry/Serialize.h>
 
 #include <boost/variant.hpp>
+#include <boost/variant/polymorphic_get.hpp>
 
 #include <cstdint>
 
@@ -28,7 +30,17 @@ namespace Valuedef
 
 class BuiltinValue : public AbstractValue<BuiltinValue>
 {
-	using NativeTypeList = Cry::TypeTrait::TemplateHolder<int8_t, int16_t, int32_t, int64_t, uint8_t, uint16_t, uint32_t, uint64_t, float, double, long double>;
+	using NativeTypeList = Cry::TypeTrait::TemplateHolder<Typedef::CharType::storage_type
+		, Typedef::ShortType::storage_type
+		, Typedef::IntegerType::storage_type
+		, Typedef::LongType::storage_type
+		, Typedef::UnsignedCharType::storage_type
+		, Typedef::UnsignedShortType::storage_type
+		, Typedef::UnsignedIntegerType::storage_type
+		, Typedef::UnsignedLongType::storage_type
+		, Typedef::FloatType::storage_type
+		, Typedef::DoubleType::storage_type
+		, Typedef::LongDoubleType::storage_type>;
 	using ValueVariant = NativeTypeList::template_apply<boost::variant>;
 
 	ValueVariant m_value;
@@ -49,37 +61,39 @@ public:
 	BuiltinValue& operator=(BuiltinValue&&) = default;
 
 	// Prevent template constructor from becoming copy/move constructor.
-	template<typename Type, typename = typename std::enable_if<std::is_fundamental<Type>::value>::type> // TODO: check with NativeTypeList
+	template<typename Type, typename = typename std::enable_if<NativeTypeList::has_type<Type>::value>::type>
 	BuiltinValue(Type&&);
 
 	//TODO: for now
 	template<>
-	BuiltinValue(int&& value)
-		: m_value{ std::forward<int32_t>(value) }
+	BuiltinValue(Typedef::IntegerType::alias&& value)
+		: m_value{ std::forward<Typedef::IntegerType::storage_type>(value) }
 	{
 	}
 
-	//TODO: for now
 	template<>
-	BuiltinValue(float&& value)
-		: m_value{ std::forward<float>(value) }
+	BuiltinValue(Typedef::UnsignedIntegerType::alias&& value)
+		: m_value{ std::forward<Typedef::UnsignedIntegerType::storage_type>(value) }
 	{
 	}
 
-	//TODO: for now
 	template<>
-	BuiltinValue(double&& value)
-		: m_value{ std::forward<double>(value) }
+	BuiltinValue(Typedef::FloatType::alias&& value)
+		: m_value{ std::forward<Typedef::FloatType::storage_type>(value) }
 	{
 	}
 
-	//TODO: redirect type aliasses to internal types like int8_t.
+	template<>
+	BuiltinValue(Typedef::DoubleType::alias&& value)
+		: m_value{ std::forward<Typedef::DoubleType::storage_type>(value) }
+	{
+	}
 
 	template<typename ReturnType>
 	ReturnType As()
 	{
 		try {
-			return boost::get<ReturnType>(m_value);
+			return boost::strict_get<ReturnType>(m_value);
 		}
 		catch (const boost::bad_get&) {
 			throw InvalidTypeCastException{};

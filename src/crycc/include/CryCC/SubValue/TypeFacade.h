@@ -30,7 +30,7 @@ class TypeFacade
 public:
 	using base_type = decltype(m_type);
 	using typedef_type = typename decltype(m_type)::element_type;
-	using typedef_pointer = typedef_type * ;
+	using typedef_pointer = std::add_pointer<typedef_type>::type;
 	using size_type = size_t;
 
 	TypeFacade() = default; //FUTURE: maybe remove

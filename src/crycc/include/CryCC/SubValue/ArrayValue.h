@@ -10,6 +10,7 @@
 
 #include <CryCC/SubValue/ValueContract.h>
 #include <CryCC/SubValue/ArrayType.h>
+#include <CryCC/SubValue/PrimitiveTypes.h>
 #include <CryCC/SubValue/Valuedef.h>
 
 #include <Cry/Cry.h>
@@ -29,17 +30,17 @@ namespace Valuedef
 
 class ArrayValue : public AbstractValue<ArrayValue>
 {
-	using ArrayTypeList = Cry::TypeTrait::TemplateHolder<std::vector<int8_t>
-		, std::vector<int16_t>
-		, std::vector<int32_t>
-		, std::vector<int64_t>
-		, std::vector<uint8_t>
-		, std::vector<uint16_t>
-		, std::vector<uint32_t>
-		, std::vector<uint64_t>
-		, std::vector<float>
-		, std::vector<double>
-		, std::vector<long double>
+	using ArrayTypeList = Cry::TypeTrait::TemplateHolder<std::vector<Typedef::CharType::storage_type>
+		, std::vector<Typedef::ShortType::storage_type>
+		, std::vector<Typedef::IntegerType::storage_type>
+		, std::vector<Typedef::LongType::storage_type>
+		, std::vector<Typedef::UnsignedCharType::storage_type>
+		, std::vector<Typedef::UnsignedShortType::storage_type>
+		, std::vector<Typedef::UnsignedIntegerType::storage_type>
+		, std::vector<Typedef::UnsignedLongType::storage_type>
+		, std::vector<Typedef::FloatType::storage_type>
+		, std::vector<Typedef::DoubleType::storage_type>
+		, std::vector<Typedef::LongDoubleType::storage_type>
 		, std::vector<Value2>>;
 	using ValueVariant = ArrayTypeList::template_apply<boost::variant>;
 
@@ -60,23 +61,23 @@ public:
 	ArrayValue& operator=(const ArrayValue&) = default;
 	ArrayValue& operator=(ArrayValue&&) = default;
 
-	template<typename ValueType, typename = typename std::enable_if<std::is_fundamental<ValueType>::value>::type> // TODO: check with NativeTypeList
+	template<typename ValueType, typename = typename std::enable_if<ArrayTypeList::has_type<std::vector<ValueType>>::value>::type>
 	ArrayValue(std::initializer_list<ValueType>&&);
 
 	template<>
-	ArrayValue(std::initializer_list<int>&& valueList)
+	ArrayValue(std::initializer_list<Typedef::IntegerType::alias>&& valueList)
 		: m_value{ std::move(valueList) }
 	{
 	}
 
 	template<>
-	ArrayValue(std::initializer_list<float>&& valueList)
+	ArrayValue(std::initializer_list<Typedef::FloatType::alias>&& valueList)
 		: m_value{ std::move(valueList) }
 	{
 	}
 
 	template<>
-	ArrayValue(std::initializer_list<double>&& valueList)
+	ArrayValue(std::initializer_list<Typedef::DoubleType::alias>&& valueList)
 		: m_value{ std::move(valueList) }
 	{
 	}

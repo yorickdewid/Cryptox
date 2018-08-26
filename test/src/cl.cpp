@@ -9,7 +9,7 @@
 #include <Cry/Cry.h>
 
 #include <cprg.h>
-#include <coilcl.h>
+#include <CoilCl/coilcl.h>
 #include <CryEVM/evm.h>
 
 #include <boost/test/unit_test.hpp>

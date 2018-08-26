@@ -8,37 +8,12 @@
 
 #include <CryCC/SubValue/Typedef.h>
 
-#define BITS_PER_BYTE 8
-
 namespace CryCC
 {
 namespace SubValue
 {
 namespace Typedef
 {
-
-template<typename TypeAlias, typename Type>
-struct PrimitiveType
-{
-    using type = Type;
-	using alias = typename std::remove_reference<typename std::remove_cv<TypeAlias>::type>::type;
-	static const bool is_unsigned = std::is_unsigned<TypeAlias>::value;
-    static const int bit_count = sizeof(Type) * BITS_PER_BYTE;
-};
-
-using CharType = PrimitiveType<char, int8_t>;
-using SignedCharType = PrimitiveType<signed char, int8_t>;
-using UnsignedCharType = PrimitiveType<unsigned char, uint8_t>;
-using ShortType = PrimitiveType<short, int16_t>;
-using UnsignedShortType = PrimitiveType<unsigned short, uint16_t>;
-using IntegerType = PrimitiveType<int, int32_t>;
-using UnsignedIntegerType = PrimitiveType<unsigned int, uint32_t>;
-using LongType = PrimitiveType<long, int64_t>;
-using UnsignedLongType = PrimitiveType<unsigned long, uint64_t>;
-using FloatType = PrimitiveType<float, int32_t>;
-using DoubleType = PrimitiveType<double, int64_t>;
-using LongDoubleType = PrimitiveType<long double, int64_t>;
-using UnsignedLongDoubleType = PrimitiveType<unsigned long double, uint64_t>;
 
 BuiltinType::BuiltinType(Specifier specifier)
 	: m_specifier{ specifier }
