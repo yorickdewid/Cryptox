@@ -33,28 +33,23 @@ public:
     // Unique value identifier.
     constexpr static const int value_category_identifier = 9;
 
-	// NOTE: NilValue holds no data, thus serialization can be ignored.
-	static void Serialize(const NilValue&, Cry::ByteArray&)
-    {
-    }
+	//
+	// Implement value category contract.
+	//
 
+	// NOTE: NilValue holds no data, thus serialization can be ignored.
+	static void Serialize(const NilValue&, buffer_type&) {}
 	// NOTE: NilValue holds no data, thus deserialization can be ignored.
-	static void Deserialize(NilValue&, Cry::ByteArray&)
-    {
-    }
+	static void Deserialize(NilValue&, buffer_type&) {}
 
     // All the nil values are the same.
-	bool operator==(const NilValue&) const
-	{
-		return true;
-	}
+	bool operator==(const NilValue&) const { return true; }
 
     // Convert current value to string.
 	std::string ToString() const { return "(nil)"; }
 };
 
-static_assert(sizeof(NilValue) == sizeof(NilValue::value_variant_order)
-    + sizeof(NilValue::value_category_identifier), "NilValue cannot hold data");
+static_assert(sizeof(NilValue) == sizeof(AbstractValue<NilValue>), "NilValue should not hold data");
 
 } // namespace Valuedef
 } // namespace SubValue

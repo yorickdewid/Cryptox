@@ -98,6 +98,10 @@ public:
 		}
 	}
 
+	//
+	// Implement value category contract.
+	//
+
 	// Convert single value into data stream.
 	static void Serialize(const BuiltinValue&, buffer_type&);
 	// Convert data stream into single value.

@@ -13,6 +13,8 @@
 #include <Cry/Cry.h>
 #include <Cry/Except.h>
 
+#include <Cry/Types.h> // TODO: remove with BuiltinType
+
 #include <cassert>
 #include <array>
 #include <string>
@@ -205,11 +207,11 @@ class BuiltinType : public TypedefBase
 	// Additional type options.
 	enum
 	{
-		IS_SIGNED,
-		IS_UNSIGNED,
-		IS_SHORT,
-		IS_LONG,
-		IS_LONG_LONG,
+		IS_SIGNED, //TODO: remove, obsolete
+		IS_UNSIGNED, //TODO: remove, obsolete
+		IS_SHORT, //TODO: remove, obsolete
+		IS_LONG, //TODO: remove, obsolete
+		IS_LONG_LONG, //TODO: remove, obsolete
 		IS_COMPLEX,
 		IS_IMAGINARY,
 	};
@@ -219,15 +221,9 @@ class BuiltinType : public TypedefBase
 	void SpecifierToOptions();
 
 public:
-	template<typename Type>
-	class TypeWrapper
+	enum class Specifier : Cry::Byte
 	{
-		using type = Type;
-	};
-
-	enum class Specifier
-	{
-		VOID_T,
+		VOID_T = 200,
 		BOOL_T,
 		CHAR_T,
 		SIGNED_CHAR_T,
@@ -252,6 +248,16 @@ public:
 		DOUBLE, //TODO: remove, obsolete
 		BOOL, //TODO: remove, obsolete
 	};
+
+	template<Specifier TypeSpecifier, typename Type>
+	struct TypeWrapper
+	{
+		using type = Type;
+		constexpr static const Specifier specifier = TypeSpecifier;
+	};
+
+	// TypeWrapper<Specifier::VOID_T, VoidType>;
+	// TypeWrapper<Specifier::BOOL_T, BoolType>;
 
 public:
 	BuiltinType(Specifier specifier);

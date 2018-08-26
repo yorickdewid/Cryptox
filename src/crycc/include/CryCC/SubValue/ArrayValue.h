@@ -93,10 +93,14 @@ public:
 		}
 	}
 
+	//
+	// Implement value category contract.
+	//
+
 	// Convert single value into data stream.
-	static void Serialize(const ArrayValue&, Cry::ByteArray&);
+	static void Serialize(const ArrayValue&, buffer_type&);
 	// Convert data stream into single value.
-	static void Deserialize(ArrayValue&, Cry::ByteArray&);
+	static void Deserialize(ArrayValue&, buffer_type&);
 
 	// Compare to other ArrayValue.
 	bool operator==(const ArrayValue&) const;

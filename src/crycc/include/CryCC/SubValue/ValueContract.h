@@ -42,6 +42,11 @@ struct AbstractValue : public ValueContract
 	using self_type = ValueType;
 	using size_type = size_t;
 	using buffer_type = Cry::ByteArray;
+
+	void ReferenceType() {}
+
+protected:
+	int *m_linkType{ nullptr };
 };
 
 struct InvalidTypeCastException : public std::runtime_error
