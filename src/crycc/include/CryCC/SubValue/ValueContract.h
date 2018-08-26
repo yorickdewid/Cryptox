@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include <CryCC/SubValue/TypeFacade.h>
+
 #include <Cry/Cry.h>
 #include <Cry/Serialize.h>
 
@@ -43,10 +45,13 @@ struct AbstractValue : public ValueContract
 	using size_type = size_t;
 	using buffer_type = Cry::ByteArray;
 
-	void ReferenceType() {}
+	void ReferenceType(const Typedef::TypeFacade *ptr)
+	{
+		m_linkType = ptr;
+	}
 
 protected:
-	int *m_linkType{ nullptr };
+	const Typedef::TypeFacade *m_linkType{ nullptr };
 };
 
 struct InvalidTypeCastException : public std::runtime_error

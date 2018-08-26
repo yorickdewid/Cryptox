@@ -20,6 +20,8 @@
 #include <CryCC/SubValue/UserData.h>
 #include <CryCC/SubValue/PrimitiveTypes.h>
 #include <CryCC/SubValue/NilValue.h>
+#include <CryCC/SubValue/ReferenceValue.h>
+#include <CryCC/SubValue/PointerValue.h>
 #include <CryCC/SubValue/BuiltinValue.h>
 #include <CryCC/SubValue/ArrayValue.h>
 #include <CryCC/SubValue/RecordValue.h>

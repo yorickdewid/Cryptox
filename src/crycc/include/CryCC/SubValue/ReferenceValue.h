@@ -10,7 +10,7 @@
 
 #include <CryCC/SubValue/ValueContract.h>
 #include <CryCC/SubValue/Typedef.h>
-#include <CryCC/SubValue/NilType.h>
+#include <CryCC/SubValue/Valuedef.h>
 
 #include <Cry/Cry.h>
 #include <Cry/TypeTrait.h>
@@ -23,34 +23,43 @@ namespace SubValue
 namespace Valuedef
 {
 
-class NilValue final : public AbstractValue<NilValue>
+// A reference value contains another value.
+class ReferenceValue final : public AbstractValue<ReferenceValue>
 {
+    std::unique_ptr<Value> m_refValue;
+
 public:
-    using typdef_type = Typedef::NilType;
+    using typdef_type = nullptr_t;
     using value_category = ValueCategory::Singular;
 
     // Expose the value variants that this category can process.
     constexpr static const int value_variant_order = 0;
     // Unique value identifier.
-    constexpr static const int value_category_identifier = 0;
+    constexpr static const int value_category_identifier = 9;
+
+	ReferenceValue(Value&& value)
+        : m_refValue{ std::make_unique<Value>(std::move(value)) }
+    {
+    }
 
 	//
 	// Implement value category contract.
 	//
 
-	// NOTE: NilValue holds no data, thus serialization can be ignored.
-	static void Serialize(const NilValue&, buffer_type&) {}
-	// NOTE: NilValue holds no data, thus deserialization can be ignored.
-	static void Deserialize(NilValue&, buffer_type&) {}
+	// Convert reference value into data stream.
+	static void Serialize(const ReferenceValue&, buffer_type&) {}
+	// Convert data stream into reference value.
+	static void Deserialize(ReferenceValue&, buffer_type&) {}
 
     // All the nil values are the same.
-	bool operator==(const NilValue&) const { return true; }
+	bool operator==(const ReferenceValue& other) const
+    {
+        return m_refValue == other.m_refValue;
+    }
 
     // Convert current value to string.
-	std::string ToString() const { return "(nil)"; }
+	std::string ToString() const { return "(ref)"; }
 };
-
-static_assert(sizeof(NilValue) == sizeof(AbstractValue<NilValue>), "NilValue should not hold data");
 
 } // namespace Valuedef
 } // namespace SubValue

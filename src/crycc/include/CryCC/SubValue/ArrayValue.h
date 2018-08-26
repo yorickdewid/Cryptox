@@ -71,6 +71,12 @@ public:
 	}
 
 	template<>
+	ArrayValue(std::initializer_list<Typedef::UnsignedIntegerType::alias>&& valueList)
+		: m_value{ std::move(valueList) }
+	{
+	}
+
+	template<>
 	ArrayValue(std::initializer_list<Typedef::FloatType::alias>&& valueList)
 		: m_value{ std::move(valueList) }
 	{

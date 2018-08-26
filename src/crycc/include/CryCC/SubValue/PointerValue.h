@@ -10,7 +10,6 @@
 
 #include <CryCC/SubValue/ValueContract.h>
 #include <CryCC/SubValue/Typedef.h>
-#include <CryCC/SubValue/NilType.h>
 
 #include <Cry/Cry.h>
 #include <Cry/TypeTrait.h>
@@ -23,34 +22,33 @@ namespace SubValue
 namespace Valuedef
 {
 
-class NilValue final : public AbstractValue<NilValue>
+// A pointer value points to a memory chunk containing data.
+class PointerValue final : public AbstractValue<PointerValue>
 {
 public:
-    using typdef_type = Typedef::NilType;
+    using typdef_type = nullptr_t;
     using value_category = ValueCategory::Singular;
 
     // Expose the value variants that this category can process.
     constexpr static const int value_variant_order = 0;
     // Unique value identifier.
-    constexpr static const int value_category_identifier = 0;
+    constexpr static const int value_category_identifier = 12;
 
 	//
 	// Implement value category contract.
 	//
 
-	// NOTE: NilValue holds no data, thus serialization can be ignored.
-	static void Serialize(const NilValue&, buffer_type&) {}
-	// NOTE: NilValue holds no data, thus deserialization can be ignored.
-	static void Deserialize(NilValue&, buffer_type&) {}
+	// NOTE: PointerValue holds no data, thus serialization can be ignored.
+	static void Serialize(const PointerValue&, buffer_type&) {}
+	// NOTE: PointerValue holds no data, thus deserialization can be ignored.
+	static void Deserialize(PointerValue&, buffer_type&) {}
 
     // All the nil values are the same.
-	bool operator==(const NilValue&) const { return true; }
+	bool operator==(const PointerValue&) const { return true; }
 
     // Convert current value to string.
-	std::string ToString() const { return "(nil)"; }
+	std::string ToString() const { return "(ptr)"; }
 };
-
-static_assert(sizeof(NilValue) == sizeof(AbstractValue<NilValue>), "NilValue should not hold data");
 
 } // namespace Valuedef
 } // namespace SubValue
