@@ -14,7 +14,6 @@
 
 #include <Cry/Cry.h>
 #include <Cry/TypeTrait.h>
-#include <Cry/Serialize.h>
 
 #include <boost/variant.hpp>
 
