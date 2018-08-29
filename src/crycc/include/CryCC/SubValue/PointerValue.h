@@ -41,10 +41,10 @@ public:
 	// NOTE: PointerValue holds no data, thus deserialization can be ignored.
 	static void Deserialize(PointerValue&, buffer_type&) {}
 
-    // All the nil values are the same.
+    // TODO:
 	bool operator==(const PointerValue&) const { return true; }
 
-    // Convert current value to string.
+    // TODO:
 	std::string ToString() const { return "(ptr)"; }
 };
 

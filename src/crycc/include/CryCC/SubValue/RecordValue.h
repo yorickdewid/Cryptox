@@ -8,8 +8,11 @@
 
 #pragma once
 
+#include <CryCC/SubValue/ValueContract.h>
+#include <CryCC/SubValue/Typedef.h>
+//#include <CryCC/SubValue/Typedef.h>
+
 #include <Cry/Cry.h>
-#include <Cry/Serialize.h>
 
 #include <vector>
 #include <memory>
@@ -28,9 +31,10 @@ namespace Valuedef
 
 class Value;
 
+//TODO: remove name
 // Pointer to the value since value is not yet defined. The fields are kept in
 // a vector since the order of fields is important.
-class RecordValue
+class RecordValue : public AbstractValue<RecordValue>
 {
 	std::string m_name;
 	std::vector<std::pair<std::string, std::shared_ptr<Value>>> m_fields;
@@ -50,20 +54,20 @@ public:
 	};
 
 public:
-	RecordValue() = default;
-	RecordValue(const std::string& name)
-		: m_name{ name }
-	{
-	}
+	using typdef_type = Typedef::RecordType;
+	using value_category = ValueCategory::Plural;
+
+	// Expose the value variants that this category can process.
+	constexpr static const int value_variant_order = 0;
+	// Unique value identifier.
+	constexpr static const int value_category_identifier = 13;
+
+	RecordValue() = default; //TODO: remove?
+	RecordValue(const std::string& name);
 
 	// Add field to record.
-	void AddField(std::pair<std::string, std::shared_ptr<Value>>&& val)
-	{
-		if (HasField(val.first)) {
-			throw FieldExistException{ val.first };
-		}
-		m_fields.push_back(std::move(val));
-	}
+	void AddField(std::pair<std::string, std::shared_ptr<Value>>&&); //TODO: replace with next line.
+	//void AddField(const std::string&, Value2&&);
 
 	// Add field to record directly. Although this method can benefit
 	// from forwarding semantics it is recommended to use the 'AddField'
@@ -94,26 +98,23 @@ public:
 	// Get the value by field name.
 	std::shared_ptr<Value> GetField(const std::string&) const;
 
+	//
+	// Implement value category contract.
+	//
+
 	// Convert record value into data stream.
-	static void Serialize(const RecordValue&, Cry::ByteArray&);
+	static void Serialize(const RecordValue&, buffer_type&);
 	// Convert data stream into record value.
-	static void Deserialize(RecordValue&, Cry::ByteArray&);
+	static void Deserialize(RecordValue&, buffer_type&);
 
-	bool operator==(const RecordValue& other) const
-	{
-		return Compare(other);
-	}
+	// Compare to other RecordValue.
+	bool operator==(const RecordValue& other) const;
 
-	friend std::ostream& operator<<(std::ostream& os, const RecordValue& other)
-	{
-		os << (other.HasRecordName() ? other.m_name : "<anonymous record>");
-		return os;
-	}
+	// Convert current value to string.
+	std::string ToString() const;
 
-	std::string ToString() const
-	{
-		return HasRecordName() ? m_name : "<anonymous record>";
-	}
+	//TODO: remove
+	friend std::ostream& operator<<(std::ostream&, const RecordValue&);
 
 	// Capture value and wrap inside a managed pointer.
 	template<typename Type>

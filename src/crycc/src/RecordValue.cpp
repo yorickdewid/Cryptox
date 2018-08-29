@@ -12,12 +12,27 @@
 
 #include <algorithm>
 
+#define VALUE_MAGIC 0x8d
+
 namespace CryCC
 {
 namespace SubValue
 {
 namespace Valuedef
 {
+
+RecordValue::RecordValue(const std::string& name)
+	: m_name{ name }
+{
+}
+
+void RecordValue::AddField(std::pair<std::string, std::shared_ptr<Value>>&& val)
+{
+	if (HasField(val.first)) {
+		throw FieldExistException{ val.first };
+	}
+	m_fields.push_back(std::move(val));
+}
 
 bool RecordValue::HasField(const std::string& name) const
 {
@@ -52,23 +67,8 @@ bool RecordValue::Compare(const RecordValue& other) const
 	});
 }
 
-//// Copy assignable
-//RecordValue& RecordValue::operator=(const RecordValue& other)
-//{
-//	m_name = other
-//	return (*this);
-//}
-//
-//// Move assignable
-//RecordValue& RecordValue::operator=(RecordValue&& other)
-//{
-//	return (*this);
-//}
-
-#define VALUE_MAGIC 0x8d
-
 // Convert record value into data stream.
-void RecordValue::Serialize(const RecordValue& value, Cry::ByteArray& buffer)
+void RecordValue::Serialize(const RecordValue& value, buffer_type& buffer)
 {
 	// Since the record value can be used without value the serialize method
 	// functions in a different manner. If the buffer is empty write the magic
@@ -96,7 +96,7 @@ void RecordValue::Serialize(const RecordValue& value, Cry::ByteArray& buffer)
 
 // Convert data stream into record value. The passed buffer must be a subbuffer
 // initialized on zero or an existing buffer configured on an offset.
-void RecordValue::Deserialize(RecordValue& value, Cry::ByteArray& buffer)
+void RecordValue::Deserialize(RecordValue& value, buffer_type& buffer)
 {
 	if (buffer.ValidateMagic(VALUE_MAGIC)) {
 		if (!buffer.IsPlatformCompat()) {
@@ -133,6 +133,24 @@ void RecordValue::Deserialize(RecordValue& value, Cry::ByteArray& buffer)
 	}
 
 	std::swap(value, tmpRec);
+}
+
+// Compare to other RecordValue.
+bool RecordValue::operator==(const RecordValue& other) const
+{
+	return Compare(other);
+}
+
+std::ostream& operator<<(std::ostream& os, const RecordValue& other)
+{
+	os << (other.HasRecordName() ? other.m_name : "<anonymous record>");
+	return os;
+}
+
+// Convert current value to string.
+std::string RecordValue::ToString() const
+{
+	return HasRecordName() ? m_name : "<anonymous record>";
 }
 
 } // namespace Valuedef

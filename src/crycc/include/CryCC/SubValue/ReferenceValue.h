@@ -24,7 +24,7 @@ namespace Valuedef
 // A reference value contains another value.
 class ReferenceValue final : public AbstractValue<ReferenceValue>
 {
-    std::unique_ptr<Value> m_refValue;
+    std::unique_ptr<Value2> m_refValue;
 
 public:
     using typdef_type = nullptr_t;
@@ -35,28 +35,22 @@ public:
     // Unique value identifier.
     constexpr static const int value_category_identifier = 9;
 
-	ReferenceValue(Value&& value)
-        : m_refValue{ std::make_unique<Value>(std::move(value)) }
-    {
-    }
+	ReferenceValue(Value2&&);
 
 	//
 	// Implement value category contract.
 	//
 
 	// Convert reference value into data stream.
-	static void Serialize(const ReferenceValue&, buffer_type&) {}
+	static void Serialize(const ReferenceValue&, buffer_type&);
 	// Convert data stream into reference value.
-	static void Deserialize(ReferenceValue&, buffer_type&) {}
+	static void Deserialize(ReferenceValue&, buffer_type&);
 
-    // All the nil values are the same.
-	bool operator==(const ReferenceValue& other) const
-    {
-        return m_refValue == other.m_refValue;
-    }
+    // Compare to other ReferenceValue.
+	bool operator==(const ReferenceValue& other) const;
 
     // Convert current value to string.
-	std::string ToString() const { return "(ref)"; }
+	std::string ToString() const;
 };
 
 } // namespace Valuedef
