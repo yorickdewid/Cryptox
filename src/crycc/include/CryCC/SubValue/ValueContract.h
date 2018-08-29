@@ -57,6 +57,8 @@ struct AbstractValue : public ValueContract
 		m_linkType = ptr;
 	}
 
+	virtual void ValueInit() {}
+
 protected:
 	const Typedef::TypeFacade *m_linkType{ nullptr };
 };
@@ -136,6 +138,12 @@ struct IsValueContractCompliable
 		&& Trait::HasToString<Type>::value
 		&& Trait::HasEqualOperator<Type>::value
         && Trait::HasTypedefType<Type>::value;
+};
+
+template<typename Type>
+struct IsValueIterable
+{
+	constexpr static const bool value = std::is_base_of<IterableContract, Type>::value;
 };
 
 } // namespace Valuedef

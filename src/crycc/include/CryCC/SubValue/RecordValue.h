@@ -10,10 +10,11 @@
 
 #include <CryCC/SubValue/ValueContract.h>
 #include <CryCC/SubValue/Typedef.h>
-//#include <CryCC/SubValue/Typedef.h>
+// #include <CryCC/SubValue/Valuedef.h>
 
 #include <Cry/Cry.h>
 
+#include <map>
 #include <vector>
 #include <memory>
 #include <ostream>
@@ -37,8 +38,10 @@ class Value;
 class RecordValue : public AbstractValue<RecordValue>, public IterableContract
 {
 	std::vector<std::pair<std::string, std::shared_ptr<Value>>> m_fields; //TODO: only use offsets
+	//std::map<int, Value2> m_fields2;
 
 	bool Compare(const RecordValue&) const;
+	void ConstructFromType();
 
 public:
 	struct FieldExistException : public std::exception
@@ -61,9 +64,16 @@ public:
 	// Unique value identifier.
 	constexpr static const int value_category_identifier = 13;
 
+	virtual void ValueInit() override
+	{
+		ConstructFromType();
+	}
+
+	virtual ~RecordValue() {}
+
 	// Add field to record.
 	void AddField(std::pair<std::string, std::shared_ptr<Value>>&&); //TODO: replace with next line.
-	//void AddField(const std::string&, Value2&&);
+	//void AddField(int, Value2&&);
 
 	// Add field to record directly. Although this method can benefit
 	// from forwarding semantics it is recommended to use the 'AddField'

@@ -19,12 +19,12 @@
 
 #include <CryCC/SubValue/UserData.h>
 #include <CryCC/SubValue/PrimitiveTypes.h>
+#include <CryCC/SubValue/OffsetValue.h>
 #include <CryCC/SubValue/NilValue.h>
 #include <CryCC/SubValue/ReferenceValue.h>
 #include <CryCC/SubValue/PointerValue.h>
 #include <CryCC/SubValue/BuiltinValue.h>
 #include <CryCC/SubValue/ArrayValue.h>
-#include <CryCC/SubValue/OffsetValue.h>
 #include <CryCC/SubValue/RecordValue.h>
 #include <CryCC/SubValue/Typedef.h>
 #include <CryCC/SubValue/ArrayType.h>
@@ -33,6 +33,7 @@
 #include <CryCC/SubValue/Valuedef.h>
 #include <CryCC/SubValue/AutoValue.h>
 #include <CryCC/SubValue/Converter.h>
+#include <CryCC/SubValue/ValueIterator.h>
 #include <CryCC/SubValue/ValueHelper.h>
 
 #endif // CRYCC_SUBVALUE_H_

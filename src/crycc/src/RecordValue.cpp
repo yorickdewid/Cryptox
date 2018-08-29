@@ -21,6 +21,28 @@ namespace SubValue
 namespace Valuedef
 {
 
+bool RecordValue::Compare(const RecordValue& other) const
+{
+	if (m_fields.size() != other.m_fields.size()) { return false; }
+	if (m_fields.empty() || other.m_fields.empty()) {
+		return m_fields.empty() == other.m_fields.empty();
+	}
+
+	return std::equal(m_fields.cbegin(), m_fields.cend()
+		, other.m_fields.cbegin(), other.m_fields.cend()
+		, [](decltype(m_fields)::value_type itFirst, decltype(other.m_fields)::value_type itEnd)
+	{
+		return itFirst.first == itEnd.first
+			&& ((*itFirst.second) == (*itEnd.second));
+	});
+}
+
+void RecordValue::ConstructFromType()
+{
+	//TODO:
+	m_linkType->DataType<typdef_type>();
+}
+
 void RecordValue::AddField(std::pair<std::string, std::shared_ptr<Value>>&& val)
 {
 	if (HasField(val.first)) {
@@ -43,22 +65,6 @@ std::shared_ptr<Value> RecordValue::GetField(const std::string& name) const
 	{
 		return pair.first == name;
 	})->second;
-}
-
-bool RecordValue::Compare(const RecordValue& other) const
-{
-	if (m_fields.size() != other.m_fields.size()) { return false; }
-	if (m_fields.empty() || other.m_fields.empty()) {
-		return m_fields.empty() == other.m_fields.empty();
-	}
-
-	return std::equal(m_fields.cbegin(), m_fields.cend()
-		, other.m_fields.cbegin(), other.m_fields.cend()
-		, [](decltype(m_fields)::value_type itFirst, decltype(other.m_fields)::value_type itEnd)
-	{
-		return itFirst.first == itEnd.first
-			&& ((*itFirst.second) == (*itEnd.second));
-	});
 }
 
 // Convert record value into data stream.

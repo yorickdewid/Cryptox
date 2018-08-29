@@ -9,12 +9,7 @@
 #pragma once
 
 #include <CryCC/SubValue/ValueContract.h>
-#include <CryCC/SubValue/ArrayType.h>
-#include <CryCC/SubValue/ArrayValue.h>
-
-#include <Cry/Cry.h>
-#include <Cry/TypeTrait.h>
-#include <Cry/Serialize.h>
+#include <CryCC/SubValue/NilType.h>
 
 namespace CryCC
 {
@@ -29,6 +24,8 @@ class OffsetValue final : public AbstractValue<OffsetValue>
 {
     size_t m_offset;
     IterableContract& m_iterValue;
+
+    friend class ValueIterator;
 
 public:
     using typdef_type = Typedef::NilType;
@@ -50,16 +47,17 @@ public:
     {
         m_iterValue = other.m_iterValue;
         m_offset = other.m_offset;
-
     } //TODO: 
 	OffsetValue& operator=(OffsetValue&&) = default;
 
-    template<typename ValueCategoryType, typename = typename std::enable_if<std::is_base_of<IterableContract, ValueCategoryType>::value>::type>
-    OffsetValue(ValueCategoryType& value, offset_type offset)
+    template<typename ValueCategoryType, typename = typename std::enable_if<IsValueIterable<ValueCategoryType>::value>::type>
+    OffsetValue(ValueCategoryType& value, offset_type offset = 0)
         : m_iterValue{ value }
         , m_offset{ offset }
     {
     }
+
+    inline size_t Offset() const { return m_offset; }
 
 	//
 	// Implement value category contract.

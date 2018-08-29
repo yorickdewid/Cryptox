@@ -48,6 +48,8 @@ class ArrayValue : public AbstractValue<ArrayValue>, public IterableContract
 
 	struct PackerVisitor;
 
+	friend struct ArrayAccess; //TODO: Still?
+
 public:
 	using typdef_type = Typedef::ArrayType;
 	using value_category = ValueCategory::Plural;

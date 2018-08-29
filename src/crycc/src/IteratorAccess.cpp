@@ -10,6 +10,8 @@
 #include <CryCC/SubValue/Valuedef.h>
 #include <CryCC/SubValue/ValueHelper.h>
 
+#include <boost/variant.hpp>
+
 namespace CryCC
 {
 namespace SubValue
@@ -19,8 +21,37 @@ namespace Valuedef
 
 // using namespace CryCC::SubValue::Typedef;
 
+struct ArrayAccess
+{
+	struct VectorVisitor final : public boost::static_visitor<>
+	{
+		size_t offset;
+
+		VectorVisitor(size_t offset)
+			: offset{ offset }
+		{
+		}
+
+		template<typename Type>
+		void operator()(const std::vector<Type>& value) const
+		{
+			value.at(offset);
+		}
+	};
+
+	static void woei(ArrayValue& value, size_t offset)
+	{
+		VectorVisitor visit{ offset };
+		value.m_value.apply_visitor(visit);
+	}
+};
+
 std::shared_ptr<Value2> ArrayIndexValue(Value2& value, size_t offset)
 {
+	ArrayValue array{ 1,2,3,4,5,6,7,8,9,0 };
+
+	//ArrayAccess::woei(array, offset);
+
 	return nullptr; //RecordProxy::MemberValue(value, name);
 }
 

@@ -12,10 +12,6 @@
 #include <CryCC/SubValue/Typedef.h>
 #include <CryCC/SubValue/NilType.h>
 
-#include <Cry/Cry.h>
-#include <Cry/TypeTrait.h>
-#include <Cry/Serialize.h>
-
 namespace CryCC
 {
 namespace SubValue
