@@ -31,7 +31,7 @@ namespace Valuedef
 // Request the value at the record field with 'name'.
 std::shared_ptr<Value> RecordMemberValue(Value& value, const std::string& name);
 // Request the value at the array offset with 'offset'.
-// std::shared_ptr<Value> ArrayIndexValue(Value& value, size_t offset);
+std::shared_ptr<Value2> ArrayIndexValue(Value2& value, size_t offset);
 
 } // namespace Valuedef
 } // namespace SubValue

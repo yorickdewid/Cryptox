@@ -48,6 +48,11 @@ public:
 	std::string ToString() const { return "(ptr)"; }
 };
 
+static_assert(std::is_copy_constructible<PointerValue>::value, "PointerValue !is_copy_constructible");
+static_assert(std::is_move_constructible<PointerValue>::value, "PointerValue !is_move_constructible");
+static_assert(std::is_copy_assignable<PointerValue>::value, "PointerValue !is_copy_assignable");
+static_assert(std::is_move_assignable<PointerValue>::value, "PointerValue !is_move_assignable");
+
 } // namespace Valuedef
 } // namespace SubValue
 } // namespace CryCC

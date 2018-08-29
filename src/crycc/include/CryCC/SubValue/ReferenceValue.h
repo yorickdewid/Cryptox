@@ -35,6 +35,12 @@ public:
     // Unique value identifier.
     constexpr static const int value_category_identifier = 9;
 
+	ReferenceValue(const ReferenceValue&);
+	ReferenceValue(ReferenceValue&&) = default;
+
+	ReferenceValue& operator=(const ReferenceValue&);
+	ReferenceValue& operator=(ReferenceValue&&) = default;
+
 	ReferenceValue(Value2&&);
 
 	//
@@ -52,6 +58,11 @@ public:
     // Convert current value to string.
 	std::string ToString() const;
 };
+
+static_assert(std::is_copy_constructible<ReferenceValue>::value, "ReferenceValue !is_copy_constructible");
+static_assert(std::is_move_constructible<ReferenceValue>::value, "ReferenceValue !is_move_constructible");
+static_assert(std::is_copy_assignable<ReferenceValue>::value, "ReferenceValue !is_copy_assignable");
+static_assert(std::is_move_assignable<ReferenceValue>::value, "ReferenceValue !is_move_assignable");
 
 } // namespace Valuedef
 } // namespace SubValue

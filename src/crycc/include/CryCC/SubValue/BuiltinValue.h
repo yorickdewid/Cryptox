@@ -116,6 +116,11 @@ public:
 	std::string ToString() const;
 };
 
+static_assert(std::is_copy_constructible<BuiltinValue>::value, "BuiltinValue !is_copy_constructible");
+static_assert(std::is_move_constructible<BuiltinValue>::value, "BuiltinValue !is_move_constructible");
+static_assert(std::is_copy_assignable<BuiltinValue>::value, "BuiltinValue !is_copy_assignable");
+static_assert(std::is_move_assignable<BuiltinValue>::value, "BuiltinValue !is_move_assignable");
+
 } // namespace Valuedef
 } // namespace SubValue
 } // namespace CryCC

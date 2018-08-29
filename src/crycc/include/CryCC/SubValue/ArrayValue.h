@@ -117,6 +117,11 @@ public:
 	std::string ToString() const;
 };
 
+static_assert(std::is_copy_constructible<ArrayValue>::value, "ArrayValue !is_copy_constructible");
+static_assert(std::is_move_constructible<ArrayValue>::value, "ArrayValue !is_move_constructible");
+static_assert(std::is_copy_assignable<ArrayValue>::value, "ArrayValue !is_copy_assignable");
+static_assert(std::is_move_assignable<ArrayValue>::value, "ArrayValue !is_move_assignable");
+
 } // namespace Valuedef
 } // namespace SubValue
 } // namespace CryCC

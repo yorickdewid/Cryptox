@@ -45,7 +45,9 @@ struct AbstractValue : public ValueContract
 	using size_type = size_t;
 	using buffer_type = Cry::ByteArray;
 
-	void ReferenceType(const Typedef::TypeFacade *ptr)
+	// Value categories are encouraged to override this method and
+	// cast the type pointer to the corresponding type.
+	virtual void ReferenceType(const Typedef::TypeFacade *ptr)
 	{
 		m_linkType = ptr;
 	}
@@ -103,6 +105,21 @@ struct HasTypedefType : HasTypedefTypeImpl<Type>::type {};
 
 //TODO:
 // - Test for value_category
+// A value category must conform the value contract and additional
+// clauses. Value categories must have at least:
+//   1.) Be copy constructible.
+//   2.) Be move constructible.
+//   3.) Be copy assignable.
+//   4.) Be move assignable.
+//   5.) Be comparable to another instance of the same object.
+//   6.) Have a string cast method, ofter 'ToString'.
+//   7.) A type definition pointing to the type system.
+//   8.) A value category.
+//   9.) A variant order to communicate the number of variant values.
+//  10.) An unique value category identifier.
+//
+// Within the contract set confinements a value is itself responsible for
+// the processing, storage and structure of the value.
 template<typename Type>
 struct IsValueContractCompliable
 {

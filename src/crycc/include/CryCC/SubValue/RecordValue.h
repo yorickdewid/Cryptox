@@ -36,7 +36,6 @@ class Value;
 // a vector since the order of fields is important.
 class RecordValue : public AbstractValue<RecordValue>
 {
-	std::string m_name;
 	std::vector<std::pair<std::string, std::shared_ptr<Value>>> m_fields;
 
 	bool Compare(const RecordValue&) const;
@@ -62,9 +61,6 @@ public:
 	// Unique value identifier.
 	constexpr static const int value_category_identifier = 13;
 
-	RecordValue() = default; //TODO: remove?
-	RecordValue(const std::string& name);
-
 	// Add field to record.
 	void AddField(std::pair<std::string, std::shared_ptr<Value>>&&); //TODO: replace with next line.
 	//void AddField(const std::string&, Value2&&);
@@ -78,12 +74,6 @@ public:
 		m_fields.emplace_back(std::forward<ArgsType>(args)...);
 	}
 
-	// Check if record has name.
-	inline bool HasRecordName() const noexcept { return !m_name.empty(); }
-	// Get record name.
-	inline std::string RecordName() const noexcept { return m_name; }
-	// Set record name.
-	inline void SetRecordName(const std::string& name) noexcept { m_name = name; }
 	// Return number of fields.
 	inline size_t Size() const noexcept { return m_fields.size(); }
 	// Get the fieldname by index.
@@ -112,9 +102,6 @@ public:
 
 	// Convert current value to string.
 	std::string ToString() const;
-
-	//TODO: remove
-	friend std::ostream& operator<<(std::ostream&, const RecordValue&);
 
 	// Capture value and wrap inside a managed pointer.
 	template<typename Type>
