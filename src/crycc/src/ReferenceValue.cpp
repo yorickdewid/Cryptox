@@ -22,6 +22,16 @@ ReferenceValue::ReferenceValue(Value2&& value)
 {
 }
 
+ReferenceValue::ReferenceValue(const ReferenceValue& other)
+{
+
+}
+
+ReferenceValue::ReferenceValue& operator=(const ReferenceValue& other)
+{
+
+}
+
 // Convert reference value into data stream.
 void ReferenceValue::Serialize(const ReferenceValue&, buffer_type&)
 {

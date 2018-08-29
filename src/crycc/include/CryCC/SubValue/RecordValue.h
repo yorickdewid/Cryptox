@@ -31,12 +31,12 @@ namespace Valuedef
 
 class Value;
 
-//TODO: remove name
+//FUTURE: initialize all fields in one go.
 // Pointer to the value since value is not yet defined. The fields are kept in
 // a vector since the order of fields is important.
-class RecordValue : public AbstractValue<RecordValue>
+class RecordValue : public AbstractValue<RecordValue>, public IterableContract
 {
-	std::vector<std::pair<std::string, std::shared_ptr<Value>>> m_fields;
+	std::vector<std::pair<std::string, std::shared_ptr<Value>>> m_fields; //TODO: only use offsets
 
 	bool Compare(const RecordValue&) const;
 
@@ -75,14 +75,14 @@ public:
 	}
 
 	// Return number of fields.
-	inline size_t Size() const noexcept { return m_fields.size(); }
+	inline size_t Size() const noexcept { return m_fields.size(); } //TODO: nope, only in type
 	// Get the fieldname by index.
 	inline const std::string FieldName(size_t idx) const { return m_fields.at(idx).first; }
 	// Get the value by index.
 	inline std::shared_ptr<Value> At(size_t idx) const { return m_fields.at(idx).second; }
 	// Get the value by index.
 	inline std::shared_ptr<Value> operator[](size_t idx) const { return m_fields.at(idx).second; }
-
+	
 	// Check if field with name already exists in this record.
 	bool HasField(const std::string&) const;
 	// Get the value by field name.

@@ -21,11 +21,6 @@ namespace SubValue
 namespace Valuedef
 {
 
-RecordValue::RecordValue(const std::string& name)
-	: m_name{ name }
-{
-}
-
 void RecordValue::AddField(std::pair<std::string, std::shared_ptr<Value>>&& val)
 {
 	if (HasField(val.first)) {
@@ -52,7 +47,6 @@ std::shared_ptr<Value> RecordValue::GetField(const std::string& name) const
 
 bool RecordValue::Compare(const RecordValue& other) const
 {
-	if (m_name != other.m_name) { return false; }
 	if (m_fields.size() != other.m_fields.size()) { return false; }
 	if (m_fields.empty() || other.m_fields.empty()) {
 		return m_fields.empty() == other.m_fields.empty();
@@ -77,10 +71,6 @@ void RecordValue::Serialize(const RecordValue& value, buffer_type& buffer)
 		buffer.SetMagic(VALUE_MAGIC);
 		buffer.SetPlatformCompat();
 	}
-
-	// Write record name even if empty
-	buffer.SerializeAs<Cry::Word>(value.m_name.size());
-	buffer.insert(buffer.cend(), value.m_name.cbegin(), value.m_name.cend());
 
 	// Write the fields
 	buffer.SerializeAs<Cry::Word>(value.m_fields.size());
@@ -107,16 +97,8 @@ void RecordValue::Deserialize(RecordValue& value, buffer_type& buffer)
 		--buffer;
 	}
 
-	// Read the record name
-	std::string name;
-	const size_t nameSize = buffer.Deserialize<Cry::Word>(Cry::ByteArray::AUTO);
-	if (nameSize) {
-		std::copy(buffer.cbegin() + buffer.Offset(), buffer.cbegin() + buffer.Offset() + nameSize, std::back_inserter(name));
-		buffer.SetOffset(static_cast<int>(nameSize)); //TODO: Make ByteArray do this automatically
-	}
-
-	// Create temporary record
-	RecordValue tmpRec{ name };
+	// Create temporary record.
+	RecordValue tempRecord;
 
 	const size_t fieldSize = buffer.Deserialize<Cry::Word>(Cry::ByteArray::AUTO);
 	for (size_t i = 0; i < fieldSize; ++i) {
@@ -129,10 +111,10 @@ void RecordValue::Deserialize(RecordValue& value, buffer_type& buffer)
 		// Field value
 		Valuedef::Value tmp = Util::MakeInt(0); //TODO: make uninitialized value
 		Value::Deserialize(tmp, buffer);
-		tmpRec.AddField({ fieldName, RecordValue::AutoValue(tmp) });
+		tempRecord.AddField({ fieldName, RecordValue::AutoValue(tmp) });
 	}
 
-	std::swap(value, tmpRec);
+	std::swap(value, tempRecord);
 }
 
 // Compare to other RecordValue.
@@ -141,16 +123,10 @@ bool RecordValue::operator==(const RecordValue& other) const
 	return Compare(other);
 }
 
-std::ostream& operator<<(std::ostream& os, const RecordValue& other)
-{
-	os << (other.HasRecordName() ? other.m_name : "<anonymous record>");
-	return os;
-}
-
 // Convert current value to string.
 std::string RecordValue::ToString() const
 {
-	return HasRecordName() ? m_name : "<anonymous record>";
+	return "(record)";
 }
 
 } // namespace Valuedef

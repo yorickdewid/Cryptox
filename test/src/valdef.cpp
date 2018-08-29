@@ -246,7 +246,7 @@ BOOST_AUTO_TEST_CASE(ValDefReworkRecord)
 	auto valInt = Util::MakeInt(4234761);
 	auto valFloatArray = Util::MakeFloatArray({ 125.233f, 1.9812f, 89.8612f });
 
-	RecordValue record{ "somestruct" };
+	RecordValue record;
 	record.AddField({ "i", RecordValue::AutoValue(valInt) });
 	record.AddField({ "j", RecordValue::AutoValue(valFloatArray) });
 
@@ -256,8 +256,8 @@ BOOST_AUTO_TEST_CASE(ValDefReworkRecord)
 	BOOST_REQUIRE(Util::IsStruct(valStruct.Type()));
 
 	BOOST_CHECK(!valStruct.Empty());
-	BOOST_CHECK_EQUAL(valInt, (*valStruct.As<RecordValue>().GetField("i")));
-	BOOST_REQUIRE_EQUAL(record2, valStruct.As<RecordValue>());
+	BOOST_CHECK(valInt == (*valStruct.As<RecordValue>().GetField("i")));
+	BOOST_REQUIRE(record2 == valStruct.As<RecordValue>());
 }
 
 BOOST_AUTO_TEST_CASE(ValDefReworkReplace)
@@ -300,19 +300,19 @@ BOOST_AUTO_TEST_CASE(ValDefReworkMisc)
 
 BOOST_AUTO_TEST_CASE(ValDefRecordMemberValue)
 {
-	// Test if existing value can be access via 'RecordMemberValue'.
+	// Test if existing value can be accessed via 'RecordMemberValue'.
 	{
 		auto valInt = Util::MakeInt(7261);
 		auto valString = Util::MakeString("teststring");
 
-		RecordValue record{ "union" };
+		RecordValue record;
 		record.AddField({ "int", RecordValue::AutoValue(valInt) });
 		record.AddField({ "str", RecordValue::AutoValue(valString) });
 
 		auto valUnion = Util::MakeUnion(std::move(record));
 
 		auto valMemInt = RecordMemberValue(valUnion, "int");
-		BOOST_REQUIRE_EQUAL(valInt, (*valMemInt));
+		BOOST_REQUIRE(valInt == (*valMemInt));
 	}
 
 	// Create record value and member in value.

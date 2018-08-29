@@ -28,7 +28,7 @@ namespace SubValue
 namespace Valuedef
 {
 
-class ArrayValue : public AbstractValue<ArrayValue>
+class ArrayValue : public AbstractValue<ArrayValue>, public IterableContract
 {
 	using ArrayTypeList = Cry::TypeTrait::TemplateHolder<std::vector<Typedef::CharType::storage_type>
 		, std::vector<Typedef::ShortType::storage_type>

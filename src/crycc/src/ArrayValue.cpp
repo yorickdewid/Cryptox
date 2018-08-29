@@ -7,6 +7,7 @@
 // copied and/or distributed without the express of the author.
 
 #include <CryCC/SubValue/ArrayValue.h>
+#include <CryCC/SubValue/BuiltinValue.h>
 
 namespace CryCC
 {
@@ -188,15 +189,15 @@ struct ArrayValue::PackerVisitor final : public boost::static_visitor<>
 // Convert single value into data stream.
 void ArrayValue::Serialize(const ArrayValue& value, Cry::ByteArray& buffer)
 {
-	PackerVisitor valueVisitor{ buffer };
-	value.m_value.apply_visitor(valueVisitor);
+	PackerVisitor visitor{ buffer };
+	value.m_value.apply_visitor(visitor);
 }
 
 // Convert data stream into single value.
 void ArrayValue::Deserialize(ArrayValue& value, Cry::ByteArray& buffer)
 {
-	PackerVisitor valueVisitor{ buffer };
-	valueVisitor(value.m_value);
+	PackerVisitor visitor{ buffer };
+	visitor(value.m_value);
 }
 
 // Compare to other ArrayValue.

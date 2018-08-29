@@ -51,6 +51,10 @@ public:
 };
 
 static_assert(sizeof(NilValue) == sizeof(AbstractValue<NilValue>), "NilValue should not hold data");
+static_assert(std::is_copy_constructible<NilValue>::value, "NilValue !is_copy_constructible");
+static_assert(std::is_move_constructible<NilValue>::value, "NilValue !is_move_constructible");
+static_assert(std::is_copy_assignable<NilValue>::value, "NilValue !is_copy_assignable");
+static_assert(std::is_move_assignable<NilValue>::value, "NilValue !is_move_assignable");
 
 } // namespace Valuedef
 } // namespace SubValue

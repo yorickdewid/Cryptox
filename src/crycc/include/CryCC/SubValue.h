@@ -24,6 +24,7 @@
 #include <CryCC/SubValue/PointerValue.h>
 #include <CryCC/SubValue/BuiltinValue.h>
 #include <CryCC/SubValue/ArrayValue.h>
+#include <CryCC/SubValue/OffsetValue.h>
 #include <CryCC/SubValue/RecordValue.h>
 #include <CryCC/SubValue/Typedef.h>
 #include <CryCC/SubValue/ArrayType.h>

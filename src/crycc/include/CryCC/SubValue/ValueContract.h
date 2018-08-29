@@ -37,6 +37,11 @@ struct ValueContract
 	virtual std::string ToString() const = 0;
 };
 
+struct IterableContract
+{
+
+};
+
 // Abstract value is a value category helper.
 template<typename ValueType>
 struct AbstractValue : public ValueContract
