@@ -46,6 +46,8 @@ class ArrayValue : public AbstractValue<ArrayValue>
 
 	ValueVariant m_value;
 
+	struct PackerVisitor;
+
 public:
 	using typdef_type = Typedef::ArrayType;
 	using value_category = ValueCategory::Plural;

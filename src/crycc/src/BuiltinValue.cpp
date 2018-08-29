@@ -18,6 +18,7 @@ namespace Valuedef
 using namespace CryCC::SubValue::Typedef;
 
 //FUTURE: Wrap in template method
+//TODO: Encode/decode float/double fully
 struct BuiltinValue::PackerVisitor final : public boost::static_visitor<>
 {
 	Cry::ByteArray& m_buffer;
@@ -90,7 +91,8 @@ struct BuiltinValue::PackerVisitor final : public boost::static_visitor<>
 
 	void operator()(BuiltinValue::ValueVariant& variantValue) const
 	{
-		switch (static_cast<PrimitiveSpecifier>(m_buffer.Deserialize<Cry::Byte>(Cry::ByteArray::AUTO)))
+		PrimitiveSpecifier specifier = static_cast<PrimitiveSpecifier>(m_buffer.Deserialize<Cry::Byte>(Cry::ByteArray::AUTO));
+		switch (specifier)
 		{
 		case CharType::specifier:
 			variantValue = DecodeValue<CharType>();

@@ -22,6 +22,12 @@ namespace Typedef
 
 enum class PrimitiveSpecifier
 {
+    PS_INVAL = 0,
+    PS_RESV1 = 101,
+    PS_RESV2 = 102,
+    PS_RESV3 = 103,
+    PS_RESV4 = 104,
+    PS_RESV5 = 105,
     PS_VOID = 200,
     PS_BOOL,
     PS_CHAR,
