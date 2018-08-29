@@ -28,6 +28,7 @@ namespace Valuedef
 
 class BuiltinValue : public AbstractValue<BuiltinValue>
 {
+	//TODO: missing UnsignedLongDoubleType ?
 	using NativeTypeList = Cry::TypeTrait::TemplateHolder<Typedef::CharType::storage_type
 		, Typedef::ShortType::storage_type
 		, Typedef::IntegerType::storage_type
@@ -42,6 +43,8 @@ class BuiltinValue : public AbstractValue<BuiltinValue>
 	using ValueVariant = NativeTypeList::template_apply<boost::variant>;
 
 	ValueVariant m_value;
+
+	struct PackerVisitor;
 
 public:
 	using typdef_type = Typedef::BuiltinType;
