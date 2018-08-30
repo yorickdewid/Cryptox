@@ -89,14 +89,12 @@ Value MakePointer(Value&& v)
 
 Value MakeStruct(RecordValue&& v, const std::string structName)
 {
-	const std::string name = v.HasRecordName() ? v.RecordName() : structName;
-	return Value{ TypeFacade{ MakeRecordType(name, RecordType::Specifier::STRUCT) }, std::move(v) };
+	return Value{ TypeFacade{ MakeRecordType(structName, RecordType::Specifier::STRUCT) }, std::move(v) };
 }
 
 Value MakeUnion(RecordValue&& v, const std::string structName)
 {
-	const std::string name = v.HasRecordName() ? v.RecordName() : structName;
-	return Value{ TypeFacade{ MakeRecordType(name, RecordType::Specifier::UNION) }, std::move(v) };
+	return Value{ TypeFacade{ MakeRecordType(structName, RecordType::Specifier::UNION) }, std::move(v) };
 }
 
 // Evaluate value as boolean if conversion is possible. If the conversion

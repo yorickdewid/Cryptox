@@ -120,13 +120,6 @@ class RecordProxy
 	{
 		RecordType *recType = ((RecordType*)recordValue->Type().operator->());
 
-		// Set record name if known.
-		if (!recType->IsAnonymous()) {
-			if (!record.HasRecordName()) {
-				record.SetRecordName(recType->Name());
-			}
-		}
-
 		// Assign record value to passed record.
 		(*recordValue) = (recType->TypeSpecifier() == RecordType::Specifier::STRUCT)
 			? Util::MakeStruct(std::move(record))

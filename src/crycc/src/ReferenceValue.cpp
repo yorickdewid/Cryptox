@@ -24,12 +24,13 @@ ReferenceValue::ReferenceValue(Value2&& value)
 
 ReferenceValue::ReferenceValue(const ReferenceValue& other)
 {
-
+	CRY_UNUSED(other);
 }
 
-ReferenceValue::ReferenceValue& operator=(const ReferenceValue& other)
+ReferenceValue& ReferenceValue::operator=(const ReferenceValue& other)
 {
-
+	CRY_UNUSED(other);
+	return (*this);
 }
 
 // Convert reference value into data stream.

@@ -30,10 +30,9 @@ BOOST_AUTO_TEST_CASE(ValRecBasic)
 	}
 
 	{
-		RecordValue record{ "struct" };
+		RecordValue record;
 		record.EmplaceField("f", RecordValue::AutoValue(Util::MakeInt(12)));
 
-		BOOST_REQUIRE(record.HasRecordName());
 		BOOST_REQUIRE_EQUAL(record.Size(), 1);
 	}
 
@@ -42,23 +41,22 @@ BOOST_AUTO_TEST_CASE(ValRecBasic)
 		RecordValue anonRecord;
 		anonRecord.EmplaceField("field", RecordValue::AutoValue(valInt));
 
-		BOOST_REQUIRE(!anonRecord.HasRecordName());
 		BOOST_REQUIRE_EQUAL(anonRecord.Size(), 1);
 
 		RecordValue anonRecord2;
 		anonRecord2.EmplaceField("field", RecordValue::AutoValue(valInt));
-		BOOST_REQUIRE_EQUAL(anonRecord, anonRecord2);
+		BOOST_REQUIRE(anonRecord == anonRecord2);
 	}
 
 	{
 		auto valDouble = Util::MakeDouble(8723.7612);
-		RecordValue record{ "testrec" };
+		RecordValue record;
 		record.EmplaceField("i", RecordValue::AutoValue(valDouble));
 
 		auto valDouble2 = Util::MakeDouble(81.7213);
-		RecordValue record2{ "testrec" };
+		RecordValue record2;
 		record2.EmplaceField("i", RecordValue::AutoValue(valDouble2));
-		BOOST_REQUIRE_NE(record, record2);
+		BOOST_REQUIRE(!(record == record2));
 	}
 }
 
@@ -66,7 +64,7 @@ BOOST_AUTO_TEST_CASE(ValRecError)
 {
 	auto value = RecordValue::AutoValue(Util::MakeInt(81827));
 
-	RecordValue record{ "record" };
+	RecordValue record;
 	record.AddField({ "i", value });
 
 	BOOST_REQUIRE_THROW(record.AddField({ "i", value }), RecordValue::FieldExistException);
@@ -76,13 +74,13 @@ BOOST_AUTO_TEST_CASE(ValRecSerialize)
 {
 	{
 		Cry::ByteArray buffer;
-		RecordValue record{ "record" };
+		RecordValue record;
 		RecordValue::Serialize(record, buffer);
 
 		RecordValue record2;
 		RecordValue::Deserialize(record2, buffer);
 
-		BOOST_REQUIRE_EQUAL(record, record2);
+		BOOST_REQUIRE(record == record2);
 	}
 
 	{
@@ -97,7 +95,7 @@ BOOST_AUTO_TEST_CASE(ValRecSerialize)
 		RecordValue::Deserialize(record2, buffer);
 
 		BOOST_REQUIRE_EQUAL(3, record2.Size());
-		BOOST_REQUIRE_EQUAL(record, record2);
+		BOOST_REQUIRE(record == record2);
 	}
 }
 

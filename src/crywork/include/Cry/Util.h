@@ -10,6 +10,8 @@
 
 #include <Cry/Cry.h>
 
+#include <type_traits>
+
 namespace Cry
 {
 
@@ -35,7 +37,7 @@ bool Empty(const Type& object)
 //}
 
 // Return native data array from object.
-template<typename Type, typename = decltype(std::declval<String>().data())>
+template<typename Type, typename = decltype(std::declval<Type>().data())>
 const char *Data(const Type& path)
 {
 	return path.data();
