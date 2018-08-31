@@ -29,55 +29,55 @@ struct BuiltinValue::PackerVisitor final : public boost::static_visitor<>
 	}
 	
 	template<typename PrimitiveType>
-	void EncodeValue(typename PrimitiveType::storage_type value) const
+	void EncodeValue(const typename PrimitiveType::storage_type& value) const
 	{
 		m_buffer.SerializeAs<Cry::Byte>(PrimitiveType::specifier);
 		m_buffer.SerializeAs<std::make_unsigned<PrimitiveType::storage_type>::type>(value);
 	}
 
-	void operator()(typename CharType::storage_type value) const
+	void operator()(const typename CharType::storage_type& value) const
 	{
 		EncodeValue<CharType>(value);
 	}
-	void operator()(typename ShortType::storage_type value) const
+	void operator()(const typename ShortType::storage_type& value) const
 	{
 		EncodeValue<ShortType>(value);
 	}
-	void operator()(typename IntegerType::storage_type value) const
+	void operator()(const typename IntegerType::storage_type& value) const
 	{
 		EncodeValue<IntegerType>(value);
 	}
-	void operator()(typename LongType::storage_type value) const
+	void operator()(const typename LongType::storage_type& value) const
 	{
 		EncodeValue<LongType>(value);
 	}
-	void operator()(typename UnsignedCharType::storage_type value) const
+	void operator()(const typename UnsignedCharType::storage_type& value) const
 	{
 		EncodeValue<UnsignedCharType>(value);
 	}
-	void operator()(typename UnsignedShortType::storage_type value) const
+	void operator()(const typename UnsignedShortType::storage_type& value) const
 	{
 		EncodeValue<UnsignedShortType>(value);
 	}
-	void operator()(typename UnsignedIntegerType::storage_type value) const
+	void operator()(const typename UnsignedIntegerType::storage_type& value) const
 	{
 		EncodeValue<UnsignedIntegerType>(value);
 	}
-	void operator()(typename UnsignedLongType::storage_type value) const
+	void operator()(const typename UnsignedLongType::storage_type& value) const
 	{
 		EncodeValue<UnsignedLongType>(value);
 	}
-	void operator()(typename FloatType::storage_type value) const
+	void operator()(const typename FloatType::storage_type& value) const
 	{
 		m_buffer.SerializeAs<Cry::Byte>(FloatType::specifier);
 		m_buffer.SerializeAs<Cry::Word>(value);
 	}
-	void operator()(typename DoubleType::storage_type value) const
+	void operator()(const typename DoubleType::storage_type& value) const
 	{
 		m_buffer.SerializeAs<Cry::Byte>(DoubleType::specifier);
 		m_buffer.SerializeAs<Cry::DoubleWord>(value);
 	}
-	void operator()(typename LongDoubleType::storage_type value) const
+	void operator()(const typename LongDoubleType::storage_type& value) const
 	{
 		m_buffer.SerializeAs<Cry::Byte>(LongDoubleType::specifier);
 		m_buffer.SerializeAs<Cry::DoubleWord>(value);

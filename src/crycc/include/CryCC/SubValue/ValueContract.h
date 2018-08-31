@@ -39,7 +39,7 @@ struct ValueContract
 
 struct IterableContract
 {
-
+	using offset_type = size_t;
 };
 
 // Abstract value is a value category helper.
@@ -71,16 +71,24 @@ struct InvalidTypeCastException : public std::runtime_error
 	}
 };
 
+struct OutOfBoundsException : public std::runtime_error
+{
+	explicit OutOfBoundsException()
+		: runtime_error{ "" } //TODO:
+	{
+	}
+};
+
 namespace Trait
 {
 
 template<typename Type>
 using HasToString = std::is_same<decltype(std::declval<Type>().ToString()), std::string>;
 
-template<class Type, class ArgType>
+template<typename Type, typename ArgType>
 class HasEqualOperatorImpl
 {
-	template<class LHSType, class RHSType>
+	template<typename LHSType, typename RHSType>
 	constexpr static auto Test(int) -> decltype(std::declval<LHSType>() == std::declval<RHSType>());
 	template<typename, typename>
 	constexpr static auto Test(...) -> std::false_type;
@@ -89,10 +97,10 @@ public:
 	using type = typename std::is_same<bool, decltype(Test<Type, ArgType>(int{}))>::type;
 };
 
-template<class Type, class ArgType = Type>
+template<typename Type, typename ArgType = Type>
 struct HasEqualOperator : HasEqualOperatorImpl<Type, ArgType>::type {};
 
-template<class Type>
+template<typename Type>
 class HasTypedefTypeImpl
 {
 	template <typename ValueType>
@@ -105,7 +113,7 @@ public:
 	using type = typename std::bool_constant<!bool(value)>::type;
 };
 
-template<class Type>
+template<typename Type>
 struct HasTypedefType : HasTypedefTypeImpl<Type>::type {};
 
 } // namespace Trait

@@ -93,10 +93,44 @@ public:
 	}
 
 	template<typename ReturnType>
-	ReturnType As()
+	auto As() const -> typename std::add_const<ReturnType>::type
 	{
 		try {
 			return boost::strict_get<ReturnType>(m_value);
+		}
+		catch (const boost::bad_get&) {
+			throw InvalidTypeCastException{};
+		}
+	}
+
+	//
+	// Implement iterable contract.
+	//
+
+	template<typename ReturnType>
+	auto At(offset_type offset) const -> typename std::add_const<ReturnType>::type
+	{
+		try {
+			const auto& elementList = boost::strict_get<std::vector<ReturnType>>(m_value);
+			if (elementList.size() < offset + 1) {
+				throw OutOfBoundsException{};
+			}
+			return elementList.at(offset);
+		}
+		catch (const boost::bad_get&) {
+			throw InvalidTypeCastException{};
+		}
+	}
+
+	template<typename PrimitiveType>
+	void Emplace(offset_type offset, PrimitiveType&& value)
+	{
+		try {
+			auto& elementList = boost::strict_get<std::vector<PrimitiveType>>(m_value);
+			if (elementList.size() < offset + 1) {
+				throw OutOfBoundsException{};
+			}
+			elementList.emplace(elementList.begin() + offset, std::forward<PrimitiveType>(value));
 		}
 		catch (const boost::bad_get&) {
 			throw InvalidTypeCastException{};

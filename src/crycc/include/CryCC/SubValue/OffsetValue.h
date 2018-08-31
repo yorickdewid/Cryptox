@@ -40,14 +40,14 @@ public:
 	OffsetValue(const OffsetValue& other)
         : m_iterValue{ other.m_iterValue }
         , m_offset{ other.m_offset }
-    {} //TODO: 
+    {}
 	OffsetValue(OffsetValue&&) = default;
 
 	OffsetValue& operator=(const OffsetValue& other)
     {
         m_iterValue = other.m_iterValue;
         m_offset = other.m_offset;
-    } //TODO: 
+    }
 	OffsetValue& operator=(OffsetValue&&) = default;
 
     template<typename ValueCategoryType, typename = typename std::enable_if<IsValueIterable<ValueCategoryType>::value>::type>
