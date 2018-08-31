@@ -20,6 +20,8 @@ configure_file(${COMMON_DIR}/version.rc.in ${CMAKE_CURRENT_BINARY_DIR}/res/versi
 # Project directories
 set(${PROJECT_NAME}_SRC src)
 set(${PROJECT_NAME}_INCLUDE include)
+set(${PROJECT_NAME}_TEST test)
+set(${PROJECT_NAME}_CONTRIB contrib)
 
 # On Windows include resource files
 if(WIN32)

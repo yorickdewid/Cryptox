@@ -32,5 +32,8 @@ set_target_properties(${PROJECT_NAME}
 	RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
 )
 
+# Enable tests on this target
+enable_auto_test("Cry Framework Test")
+
 # Set project options
 include(ProjectFin)

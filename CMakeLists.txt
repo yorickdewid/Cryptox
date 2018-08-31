@@ -48,6 +48,7 @@ include(CPack)
 include(CTest)
 include(FindOS)
 include(FindGit)
+include(AutoTest)
 include(CheckCXXCompilerFlag)
 
 set(CMAKE_DISABLE_IN_SOURCE_BUILD ON)
