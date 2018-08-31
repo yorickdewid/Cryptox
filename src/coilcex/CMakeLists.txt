@@ -39,5 +39,8 @@ target_link_libraries(${PROJECT_NAME}
 	LZ4xx
 )
 
+# Enable tests on this target
+enable_auto_test("${Cryptox_ID} Executable Format Test")
+
 # Set project options
 include(ProjectFin)

@@ -15,10 +15,10 @@
 // Key         : BA
 // Test        : ByteArray unittest
 // Type        : unit
-// Description : Test the possible combinations and common
-//               usage of the ByteArray structure. The ByteArray
-//               should be used throughout the project whenever
-//               data serialization is required.
+// Description : Test the possible combinations and common usage of the
+//               ByteArray structure. The ByteArray should be used 
+//               throughout the project whenever data serialization
+//               is required.
 //
 
 BOOST_AUTO_TEST_SUITE(ByteArray)

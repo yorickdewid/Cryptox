@@ -7,6 +7,7 @@
 // copied and/or distributed without the express of the author.
 
 #include <Cry/Cry.h>
+#include <Cry/Config.h>
 #include <Cry/ByteOrder.h>
 #include <Cry/Algorithm.h>
 
@@ -16,7 +17,9 @@
 // Key         : Cry
 // Test        : Unit tests for Cry Framework
 // Type        : unit
-// Description : -
+// Description : Tests for the commonly used macros and framework functions.
+//               Since they are used throughout the entire project the
+//               operations *must* behave according to their blueprint.
 //
 
 using namespace Cry::Algorithm;

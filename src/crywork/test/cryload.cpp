@@ -14,11 +14,22 @@
 
 #include <boost/test/unit_test.hpp>
 
+//
+// Key         : ModLoad
+// Test        : Unit tests for Cry Module Loader
+// Type        : unit
+// Description : The module loader loads external modules either with
+//               specific name or an entire directory.
+//
+
+using namespace Cry::Module;
+
 BOOST_AUTO_TEST_SUITE(CryLoader)
 
+// Load a single module.
 BOOST_AUTO_TEST_CASE(ModLoadBasic)
 {
-	Cry::Module::Module<> mod = Cry::Module::LoadSingle(DIST_BINARY_DIR "/mod_example1.dll", ANY_COMPONENT_ID);
+	Module<> mod = LoadSingle(DIST_BINARY_DIR "/mod_example1.dll", ANY_COMPONENT_ID);
 	mod.Load();
 	BOOST_REQUIRE_EQUAL("mod_example1", mod.Name());
 	BOOST_REQUIRE_EQUAL("Blub Corp.", mod.Author());
@@ -26,34 +37,38 @@ BOOST_AUTO_TEST_CASE(ModLoadBasic)
 	mod.Unload();
 }
 
+// Load all modules from a directory matching an interface.
 BOOST_AUTO_TEST_CASE(ModLoadComponent)
 {
 	std::string testString = "somertesttextstring";
-	auto mockMods = Cry::Module::Load<MockInterface>(DIST_BINARY_DIR);
-	Cry::Module::ForEach(mockMods, [&testString](Cry::Module::Module<MockInterface>& mockMod) {
+	auto mockMods = Load<MockInterface>(DIST_BINARY_DIR);
+	ForEach(mockMods, [&testString](Module<MockInterface>& mockMod) {
 		mockMod->Transform(testString);
 	});
 	BOOST_REQUIRE_EQUAL("SOMERTESTTEXTSTRING", testString);
 }
 
+#if 0
+// Load all modules from a recursive directory matching an interface.
 BOOST_AUTO_TEST_CASE(ModLoadRecursive)
 {
-	/*std::string testString = "somertesttextstring";
-	auto mockMods = Cry::Module::LoadRecursive<MockInterface>(BINARY_DIR);
-	Cry::Module::ForEach(mockMods, [&testString](Cry::Module::Module<MockInterface>& mockMod) {
+	std::string testString = "somertesttextstring";
+	auto mockMods = LoadRecursive<MockInterface>(BINARY_DIR);
+	ForEach(mockMods, [&testString](Module<MockInterface>& mockMod) {
 		mockMod->Transform(testString);
 	});
-	BOOST_REQUIRE_EQUAL("SOMERTESTTEXTSTRING", testString);*/
+	BOOST_REQUIRE_EQUAL("SOMERTESTTEXTSTRING", testString);
 }
 
 BOOST_AUTO_TEST_CASE(ModLoadMultiDir)
 {
-	/*std::string testString = "somertesttextstring";
-	auto mockMods = Cry::Module::LoadRecursive<MockInterface>(BINARY_DIR);
-	Cry::Module::ForEach(mockMods, [&testString](Cry::Module::Module<MockInterface>& mockMod) {
+	std::string testString = "somertesttextstring";
+	auto mockMods = LoadRecursive<MockInterface>(BINARY_DIR);
+	ForEach(mockMods, [&testString](Module<MockInterface>& mockMod) {
 	mockMod->Transform(testString);
 	});
-	BOOST_REQUIRE_EQUAL("SOMERTESTTEXTSTRING", testString);*/
+	BOOST_REQUIRE_EQUAL("SOMERTESTTEXTSTRING", testString);
 }
+#endif
 
 BOOST_AUTO_TEST_SUITE_END()
