@@ -85,6 +85,22 @@ namespace Trait
 template<typename Type>
 using HasToString = std::is_same<decltype(std::declval<Type>().ToString()), std::string>;
 
+template<typename Type, typename ReturnType, typename... Args>
+using TestSerializeMethod = std::is_same<decltype(std::declval<Type>().Serialize(std::declval<Args>()...)), ReturnType>;
+
+template<typename Type>
+using HasSerialize = TestSerializeMethod<Type, void
+	, typename std::add_const<typename std::add_lvalue_reference<Type>::type>::type
+	, typename std::add_lvalue_reference<typename Type::buffer_type>::type>;
+
+template<typename Type, typename ReturnType, typename... Args>
+using TestDeserializeMethod = std::is_same<decltype(std::declval<Type>().Deserialize(std::declval<Args>()...)), ReturnType>;
+
+template<typename Type>
+using HasDeserialize = TestDeserializeMethod<Type, void
+	, typename std::add_lvalue_reference<Type>::type
+	, typename std::add_lvalue_reference<typename Type::buffer_type>::type>;
+
 template<typename Type, typename ArgType>
 class HasEqualOperatorImpl
 {
@@ -127,11 +143,13 @@ struct HasTypedefType : HasTypedefTypeImpl<Type>::type {};
 //   3.) Be copy assignable.
 //   4.) Be move assignable.
 //   5.) Be comparable to another instance of the same object.
-//   6.) Have a string cast method, ofter 'ToString'.
-//   7.) A type definition pointing to the type system.
-//   8.) A value category.
-//   9.) A variant order to communicate the number of variant values.
-//  10.) An unique value category identifier.
+//   6.) Have a string cast method, often 'ToString'.
+//   7.) Have a static serialization method, often 'Serialize'.
+//   8.) Have a static deserialization method, often 'Deserialize'.
+//   9.) A type definition pointing to the type system.
+//  10.) A value category.
+//  11.) A variant order to communicate the number of variant values.
+//  12.) An unique value category identifier.
 //
 // Within the contract set confinements a value is itself responsible for
 // the processing, storage and structure of the value.
@@ -144,6 +162,8 @@ struct IsValueContractCompliable
 		&& std::is_copy_assignable<Type>::value
 		&& std::is_move_assignable<Type>::value
 		&& Trait::HasToString<Type>::value
+		&& Trait::HasSerialize<Type>::value
+		&& Trait::HasDeserialize<Type>::value
 		&& Trait::HasEqualOperator<Type>::value
         && Trait::HasTypedefType<Type>::value;
 };

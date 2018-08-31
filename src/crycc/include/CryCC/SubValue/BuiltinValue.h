@@ -90,7 +90,7 @@ public:
 	}
 
 	template<typename ReturnType>
-	ReturnType As()
+	auto As() const -> typename std::add_const<ReturnType>::type
 	{
 		try {
 			return boost::strict_get<ReturnType>(m_value);
