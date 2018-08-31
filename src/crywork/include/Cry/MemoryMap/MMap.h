@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include <Cry/MemoryMap/Detail/BasicMMap.h>
+#include <Cry/MemoryMap/BasicMMap.h>
 #include <Cry/MemoryMap/Page.h>
 
 #include <system_error>

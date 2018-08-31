@@ -33,4 +33,4 @@
 // Retrieve the upper half of bits from the integer.
 #define INT64_HIGH(i) (i >> 32)
 // Retrieve the lower half of bits from the integer.
-#define INT64_LOW(i) (i >> 0xffffffff)
+#define INT64_LOW(i) (i & 0xffffffff)

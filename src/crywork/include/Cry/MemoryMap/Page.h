@@ -20,17 +20,5 @@ enum class AccessModeType
 	WRITE,
 };
 
-// Determines the operating system's page allocation granularity.
-//
-// On the first call to this function, it invokes the operating system specific syscall
-// to determine the page size, caches the value, and returns it. Any subsequent call to
-// this function serves the cached value, so no further syscalls are made.
-//size_t PageSize();
-
-// Alligns `offset` to the operating's system page size such that it subtracts the
-// difference until the nearest page boundary before `offset`, or does nothing if
-// `offset` is already page aligned.
-//size_t MakeOffsetPageAligned(size_t offset) noexcept;
-
 } // namespace Cry
 } // namespace MemoryMap

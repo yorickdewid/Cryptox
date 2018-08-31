@@ -142,8 +142,8 @@ public:
 	void map(handle_type handle, size_type offset, size_type length, AccessModeType mode, std::error_code& error);
 	void unmap();
 
-	void sync(std::error_code& );
-	void swap(BasicMMap& );
+	void sync(std::error_code&);
+	void swap(BasicMMap&);
 
 private:
 	pointer MappingStartAt() noexcept { return !data() ? nullptr : data() - offset(); }

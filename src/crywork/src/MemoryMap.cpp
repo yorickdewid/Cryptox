@@ -8,7 +8,7 @@
 
 #include <Cry/Cry.h>
 #include <Cry/MemoryMap/Page.h>
-#include <Cry/MemoryMap/Detail/BasicMMap.h>
+#include <Cry/MemoryMap/BasicMMap.h>
 
 namespace Cry
 {
@@ -187,6 +187,8 @@ BasicMMap& BasicMMap::operator=(BasicMMap&& other)
 	other.file_mapping_handle_ = INVALID_HANDLE_VALUE;
 #endif
 	other.m_is_handle_internal = false;
+
+	return (*this);
 }
 
 bool BasicMMap::is_mapped() const noexcept
@@ -206,7 +208,7 @@ void BasicMMap::map(handle_type handle, size_type offset, size_type length, Acce
 		return;
 	}
 
-	const auto fileSize = FileSizeHandle(handle, error);
+	const size_type fileSize = static_cast<size_type>(FileSizeHandle(handle, error));
 	if (error) { return; }
 
 	if (length <= MAP_ENTIRE_FILE) {
