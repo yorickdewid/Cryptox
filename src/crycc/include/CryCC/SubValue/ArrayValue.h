@@ -93,7 +93,7 @@ public:
 	}
 
 	template<typename ReturnType>
-	auto As() const -> typename std::add_const<ReturnType>::type
+	auto As() const
 	{
 		try {
 			return boost::strict_get<ReturnType>(m_value);
@@ -108,7 +108,7 @@ public:
 	//
 
 	template<typename ReturnType>
-	auto At(offset_type offset) const -> typename std::add_const<ReturnType>::type
+	auto At(offset_type offset) const
 	{
 		try {
 			const auto& elementList = boost::strict_get<std::vector<ReturnType>>(m_value);

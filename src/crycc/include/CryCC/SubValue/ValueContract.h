@@ -126,7 +126,7 @@ class HasTypedefTypeImpl
 
 public:
 	constexpr static const bool value = std::is_same<std::false_type, decltype(Test<Type>(int{}))>::value;
-	using type = typename std::bool_constant<!bool(value)>::type;
+	using type = typename std::bool_constant<!bool{ value }>::type;
 };
 
 template<typename Type>
@@ -166,6 +166,12 @@ struct IsValueContractCompliable
 		&& Trait::HasDeserialize<Type>::value
 		&& Trait::HasEqualOperator<Type>::value
         && Trait::HasTypedefType<Type>::value;
+};
+
+template<typename Type>
+struct IsValueMultiOrdinal
+{
+	constexpr static const bool value = std::bool_constant<bool{ Type::value_variant_order > 0 }>::value;
 };
 
 template<typename Type>

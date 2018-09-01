@@ -8,7 +8,7 @@
 # copied and/or distributed without the express of the author.
 
 # At least this version of CMake but newer is better
-cmake_minimum_required(VERSION 3.2 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.8 FATAL_ERROR)
 project(Cryptox)
 
 # Define helper keywords
@@ -68,18 +68,18 @@ endif()
 # Compiler check
 if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     # Require at least GCC 4.8
-    if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS 4.8)
-        message(FATAL_ERROR "Compiler does not support C++11")
+    if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS 7)
+        message(FATAL_ERROR "Compiler does not support C++17")
     endif()
 elseif(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
     # Require at least Clang 3.3
-    if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS 3.3)
-        message(FATAL_ERROR "Compiler does not support C++11")
+    if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS 4)
+        message(FATAL_ERROR "Compiler does not support C++17")
 	endif()
 elseif(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
 	# Require at least MSVC 14.0
 	if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS 14.0)
-        message(FATAL_ERROR "Compiler does not support C++11")
+        message(FATAL_ERROR "Compiler does not support C++17")
 	endif()
 else()
     message(WARNING "Unknown compiler")
@@ -233,14 +233,8 @@ if (WIN32)
 endif ()
 
 # Compiler flags
-if(COMPILER_SUPPORTS_CXX17)
-	set(CMAKE_CXX_STANDARD 17)
-	message(STATUS "Using C++17")
-else()
-	set(CMAKE_CXX_STANDARD 14)
-	message(STATUS "Using C++14")
-endif()
-
+message(STATUS "Using ISO C++17")
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 

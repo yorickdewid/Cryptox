@@ -68,7 +68,7 @@ public:
 	BuiltinValue(Type value)
 	 	: m_value{ static_cast<PrimitiveSelectorStorageType<Type>>(value) }
 	{
-		static_assert(NativeTypeList::has_type<PrimitiveSelectorStorageType<Type>>::value, "");
+		static_assert(NativeTypeList::has_type<PrimitiveSelectorStorageType<Type>>::value);
 	}
 
 	template<typename ReturnType>
