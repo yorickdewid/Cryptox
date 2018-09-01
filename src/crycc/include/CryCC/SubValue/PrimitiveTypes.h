@@ -79,6 +79,62 @@ static_assert(DoubleType::bit_count == 64, "requires set number of bits");
 static_assert(LongDoubleType::bit_count == 64, "requires set number of bits");
 static_assert(UnsignedLongDoubleType::bit_count == 64, "requires set number of bits");
 
+template<typename Type>
+class PrimitiveSelector
+{
+	template<typename ValueType>
+	constexpr static auto Test(ValueType);
+    template<typename>
+	constexpr static auto Test(BoolType::alias)->BoolType;
+	template<typename>
+	constexpr static auto Test(CharType::alias)->CharType;
+    template<typename>
+	constexpr static auto Test(SignedCharType::alias)->SignedCharType;
+    template<typename>
+	constexpr static auto Test(UnsignedCharType::alias)->UnsignedCharType;
+	template<typename>
+	constexpr static auto Test(ShortType::alias)->ShortType;
+    template<typename>
+	constexpr static auto Test(UnsignedShortType::alias)->UnsignedShortType;
+	template<typename>
+	constexpr static auto Test(IntegerType::alias)->IntegerType;
+    template<typename>
+	constexpr static auto Test(UnsignedIntegerType::alias)->UnsignedIntegerType;
+    template<typename>
+	constexpr static auto Test(LongType::alias)->LongType;
+    template<typename>
+	constexpr static auto Test(UnsignedLongType::alias)->UnsignedLongType;
+    template<typename>
+	constexpr static auto Test(FloatType::alias)->FloatType;
+    template<typename>
+	constexpr static auto Test(DoubleType::alias)->DoubleType;
+    template<typename>
+	constexpr static auto Test(LongDoubleType::alias)->LongDoubleType;
+    template<typename>
+	constexpr static auto Test(UnsignedLongDoubleType::alias)->UnsignedLongDoubleType;
+
+public:
+	using type = decltype(Test<Type>(Type{}));
+};
+
+template<typename Type>
+using PrimitiveSelectorStorageType = typename PrimitiveSelector<Type>::type::storage_type;
+
+static_assert(std::is_same<PrimitiveSelectorStorageType<bool>, bool>::value, "invalid type translation");
+static_assert(std::is_same<PrimitiveSelectorStorageType<char>, int8_t>::value, "invalid type translation");
+static_assert(std::is_same<PrimitiveSelectorStorageType<signed char>, int8_t>::value, "invalid type translation");
+static_assert(std::is_same<PrimitiveSelectorStorageType<unsigned char>, uint8_t>::value, "invalid type translation");
+static_assert(std::is_same<PrimitiveSelectorStorageType<short>, int16_t>::value, "invalid type translation");
+static_assert(std::is_same<PrimitiveSelectorStorageType<unsigned short>, uint16_t>::value, "invalid type translation");
+static_assert(std::is_same<PrimitiveSelectorStorageType<int>, int32_t>::value, "invalid type translation");
+static_assert(std::is_same<PrimitiveSelectorStorageType<unsigned int>, uint32_t>::value, "invalid type translation");
+static_assert(std::is_same<PrimitiveSelectorStorageType<long>, int64_t>::value, "invalid type translation");
+static_assert(std::is_same<PrimitiveSelectorStorageType<unsigned long>, uint64_t>::value, "invalid type translation");
+static_assert(std::is_same<PrimitiveSelectorStorageType<float>, float>::value, "invalid type translation");
+static_assert(std::is_same<PrimitiveSelectorStorageType<double>, double>::value, "invalid type translation");
+// static_assert(std::is_same<PrimitiveSelectorStorageType<long double>, long double>::value, "invalid type translation");
+// static_assert(std::is_same<PrimitiveSelectorStorageType<unsigned long double>, unsigned long double>::value, "invalid type translation");
+
 } // namespace Typedef
 } // namespace SubValue
 } // namespace CryCC

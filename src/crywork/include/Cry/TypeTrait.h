@@ -29,12 +29,15 @@ struct Identity { using type = typename Type::value_type; };
 template<typename... ArgTypes>
 struct TemplateHolder
 {
-    template <template <typename...> typename Wrapper>
+    template<template<typename...> typename Wrapper>
     using template_apply = Wrapper<ArgTypes...>;
 	
 	template<typename Test>
 	using has_type = typename std::disjunction<std::is_same<Test, ArgTypes>...>::type;
 	
+	template<size_t Offset>
+	using element_type = typename std::tuple_element<Offset, std::tuple<ArgTypes...>>::type;
+
 	constexpr static const auto size = sizeof...(ArgTypes);
 };
 
