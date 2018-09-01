@@ -62,38 +62,20 @@ public:
 	BuiltinValue& operator=(BuiltinValue&&) = default;
 
 	// Prevent template constructor from becoming copy/move constructor.
-	template<typename Type, typename = typename std::enable_if<NativeTypeList::has_type<Type>::value>::type>
-	BuiltinValue(Type&&);
-
-	template<>
-	BuiltinValue(Typedef::IntegerType::alias&& value)
-		: m_value{ std::forward<Typedef::IntegerType::storage_type>(value) }
+	template<typename Type, typename = typename std::enable_if<
+		!std::is_same<Type, std::add_lvalue_reference<BuiltinValue>::type>::value
+	>::type>
+	BuiltinValue(Type value)
+	 	: m_value{ static_cast<PrimitiveSelectorStorageType<Type>>(value) }
 	{
-	}
-
-	template<>
-	BuiltinValue(Typedef::UnsignedIntegerType::alias&& value)
-		: m_value{ std::forward<Typedef::UnsignedIntegerType::storage_type>(value) }
-	{
-	}
-
-	template<>
-	BuiltinValue(Typedef::FloatType::alias&& value)
-		: m_value{ std::forward<Typedef::FloatType::storage_type>(value) }
-	{
-	}
-
-	template<>
-	BuiltinValue(Typedef::DoubleType::alias&& value)
-		: m_value{ std::forward<Typedef::DoubleType::storage_type>(value) }
-	{
+		static_assert(NativeTypeList::has_type<PrimitiveSelectorStorageType<Type>>::value, "");
 	}
 
 	template<typename ReturnType>
-	auto As() const -> typename std::add_const<ReturnType>::type
+	auto As() const
 	{
 		try {
-			return boost::strict_get<ReturnType>(m_value);
+			return static_cast<ReturnType>(boost::strict_get<PrimitiveSelectorStorageType<ReturnType>>(m_value));
 		}
 		catch (const boost::bad_get&) {
 			throw InvalidTypeCastException{};
