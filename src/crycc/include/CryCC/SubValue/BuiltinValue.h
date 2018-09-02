@@ -19,11 +19,7 @@
 
 #include <cstdint>
 
-namespace CryCC
-{
-namespace SubValue
-{
-namespace Valuedef
+namespace CryCC::SubValue::Valuedef
 {
 
 class BuiltinValue : public AbstractValue<BuiltinValue>
@@ -51,9 +47,9 @@ public:
 	using value_category = ValueCategory::Plural;
 
 	// Expose the value variants that this category can process.
-	constexpr static const int value_variant_order = NativeTypeList::size;
+	inline constexpr static const int value_variant_order = NativeTypeList::size;
 	// Unique value identifier.
-	constexpr static const int value_category_identifier = 10;
+	inline constexpr static const int value_category_identifier = 10;
 
 	BuiltinValue(const BuiltinValue&) = default;
 	BuiltinValue(BuiltinValue&&) = default;
@@ -103,6 +99,4 @@ static_assert(std::is_move_constructible<BuiltinValue>::value, "BuiltinValue !is
 static_assert(std::is_copy_assignable<BuiltinValue>::value, "BuiltinValue !is_copy_assignable");
 static_assert(std::is_move_assignable<BuiltinValue>::value, "BuiltinValue !is_move_assignable");
 
-} // namespace Valuedef
-} // namespace SubValue
-} // namespace CryCC
+} // namespace CryCC::SubValue::Valuedef

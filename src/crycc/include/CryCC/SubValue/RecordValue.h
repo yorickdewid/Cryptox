@@ -23,11 +23,7 @@
 //FUTURE:
 // - Field class
 
-namespace CryCC
-{
-namespace SubValue
-{
-namespace Valuedef
+namespace CryCC::SubValue::Valuedef
 {
 
 class Value;
@@ -60,9 +56,9 @@ public:
 	using value_category = ValueCategory::Plural;
 
 	// Expose the value variants that this category can process.
-	constexpr static const int value_variant_order = 0;
+	inline constexpr static const int value_variant_order = 0;
 	// Unique value identifier.
-	constexpr static const int value_category_identifier = 13;
+	inline constexpr static const int value_category_identifier = 13;
 
 	virtual void ValueInit() override
 	{
@@ -84,19 +80,39 @@ public:
 		m_fields.emplace_back(std::forward<ArgsType>(args)...);
 	}
 
-	// Return number of fields.
-	inline size_t Size() const noexcept { return m_fields.size(); } //TODO: nope, only in type
 	// Get the fieldname by index.
-	inline const std::string FieldName(size_t idx) const { return m_fields.at(idx).first; }
+	inline const std::string FieldName(offset_type idx) const { return m_fields.at(idx).first; } //TODO: nope, only in type
 	// Get the value by index.
-	inline std::shared_ptr<Value> At(size_t idx) const { return m_fields.at(idx).second; }
-	// Get the value by index.
-	inline std::shared_ptr<Value> operator[](size_t idx) const { return m_fields.at(idx).second; }
+	inline std::shared_ptr<Value> operator[](offset_type idx) const { return m_fields.at(idx).second; } //TODO: invalid accessor
 	
 	// Check if field with name already exists in this record.
 	bool HasField(const std::string&) const;
 	// Get the value by field name.
 	std::shared_ptr<Value> GetField(const std::string&) const;
+
+	//
+	// Implement iterable contract.
+	//
+
+	size_type Size() const { return m_fields.size(); }
+
+	// Get the value at offset.
+	auto At(offset_type offset) const -> std::shared_ptr<Value>
+	{
+		if (m_fields.size() < offset + 1) {
+			throw OutOfBoundsException{};
+		}
+		return m_fields.at(offset).second;
+	}
+
+	// Emplace value at offset.
+	void Emplace(offset_type offset, std::pair<std::string, std::shared_ptr<Value>>&& value)
+	{
+		if (m_fields.size() < offset + 1) {
+			throw OutOfBoundsException{};
+		}
+		m_fields.emplace(m_fields.begin() + offset, std::move(value));
+	}
 
 	//
 	// Implement value category contract.
@@ -126,6 +142,4 @@ static_assert(std::is_move_constructible<RecordValue>::value, "RecordValue !is_m
 static_assert(std::is_copy_assignable<RecordValue>::value, "RecordValue !is_copy_assignable");
 static_assert(std::is_move_assignable<RecordValue>::value, "RecordValue !is_move_assignable");
 
-} // namespace Valuedef
-} // namespace SubValue
-} // namespace CryCC
+} // namespace CryCC::SubValue::Valuedef

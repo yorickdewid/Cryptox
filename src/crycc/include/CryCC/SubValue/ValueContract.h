@@ -15,11 +15,7 @@
 
 #include <string>
 
-namespace CryCC
-{
-namespace SubValue
-{
-namespace Valuedef
+namespace CryCC::SubValue::Valuedef
 {
 
 struct ValueCategory
@@ -40,6 +36,9 @@ struct ValueContract
 struct IterableContract
 {
 	using offset_type = size_t;
+	using size_type = size_t;
+
+	virtual size_type Size() const = 0;
 };
 
 // Abstract value is a value category helper.
@@ -47,7 +46,6 @@ template<typename ValueType>
 struct AbstractValue : public ValueContract
 {
 	using self_type = ValueType;
-	using size_type = size_t;
 	using buffer_type = Cry::ByteArray;
 
 	// Value categories are encouraged to override this method and
@@ -125,7 +123,7 @@ class HasTypedefTypeImpl
 	constexpr static auto Test(...) -> std::false_type;
 
 public:
-	constexpr static const bool value = std::is_same<std::false_type, decltype(Test<Type>(int{}))>::value;
+	inline constexpr static const bool value = std::is_same<std::false_type, decltype(Test<Type>(int{}))>::value;
 	using type = typename std::bool_constant<!bool{ value }>::type;
 };
 
@@ -156,7 +154,7 @@ struct HasTypedefType : HasTypedefTypeImpl<Type>::type {};
 template<typename Type>
 struct IsValueContractCompliable
 {
-	constexpr static const bool value = std::is_base_of<AbstractValue<Type>, Type>::value
+	inline constexpr static const bool value = std::is_base_of<AbstractValue<Type>, Type>::value
 		&& std::is_copy_constructible<Type>::value
 		&& std::is_move_constructible<Type>::value
 		&& std::is_copy_assignable<Type>::value
@@ -169,17 +167,24 @@ struct IsValueContractCompliable
 };
 
 template<typename Type>
+inline constexpr bool IsValueContractCompliable_v = IsValueContractCompliable<Type>::value;
+
+template<typename Type>
 struct IsValueMultiOrdinal
 {
-	constexpr static const bool value = std::bool_constant<bool{ Type::value_variant_order > 0 }>::value;
+	inline constexpr static const bool value = std::bool_constant<bool{ Type::value_variant_order > 0 }>::value;
 };
+
+template<typename Type>
+inline constexpr bool IsValueMultiOrdinal_v = IsValueMultiOrdinal<Type>::value;
 
 template<typename Type>
 struct IsValueIterable
 {
-	constexpr static const bool value = std::is_base_of<IterableContract, Type>::value;
+	inline constexpr static const bool value = std::is_base_of<IterableContract, Type>::value;
 };
 
-} // namespace Valuedef
-} // namespace SubValue
-} // namespace CryCC
+template<typename Type>
+inline constexpr bool IsValueIterable_v = IsValueIterable<Type>::value;
+
+} // namespace CryCC::Valuedef::SubValue

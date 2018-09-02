@@ -21,11 +21,7 @@
 
 #include <cstdint>
 
-namespace CryCC
-{
-namespace SubValue
-{
-namespace Valuedef
+namespace CryCC::SubValue::Valuedef
 {
 
 class ArrayValue : public AbstractValue<ArrayValue>, public IterableContract
@@ -50,14 +46,16 @@ class ArrayValue : public AbstractValue<ArrayValue>, public IterableContract
 
 	friend struct ArrayAccess; //TODO: Still?
 
+	void ConstructFromType();
+
 public:
 	using typdef_type = Typedef::ArrayType;
 	using value_category = ValueCategory::Plural;
 
 	// Expose the value variants that this category can process.
-	constexpr static const int value_variant_order = ArrayTypeList::size;
+	inline constexpr static const int value_variant_order = ArrayTypeList::size;
 	// Unique value identifier.
-	constexpr static const int value_category_identifier = 11;
+	inline constexpr static const int value_category_identifier = 11;
 
 	ArrayValue(const ArrayValue&) = default;
 	ArrayValue(ArrayValue&&) = default;
@@ -92,6 +90,13 @@ public:
 	{
 	}
 
+	virtual void ValueInit() override
+	{
+		ConstructFromType();
+	}
+
+	virtual ~ArrayValue() {}
+
 	template<typename ReturnType>
 	auto As() const
 	{
@@ -107,6 +112,9 @@ public:
 	// Implement iterable contract.
 	//
 
+	size_type Size() const { return 0; }
+
+	// Get the value at offset.
 	template<typename ReturnType>
 	auto At(offset_type offset) const
 	{
@@ -122,6 +130,7 @@ public:
 		}
 	}
 
+	// Emplace value at offset.
 	template<typename PrimitiveType>
 	void Emplace(offset_type offset, PrimitiveType&& value)
 	{
@@ -158,6 +167,4 @@ static_assert(std::is_move_constructible<ArrayValue>::value, "ArrayValue !is_mov
 static_assert(std::is_copy_assignable<ArrayValue>::value, "ArrayValue !is_copy_assignable");
 static_assert(std::is_move_assignable<ArrayValue>::value, "ArrayValue !is_move_assignable");
 
-} // namespace Valuedef
-} // namespace SubValue
-} // namespace CryCC
+} // namespace CryCC::SubValue::Valuedef
