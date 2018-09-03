@@ -187,7 +187,7 @@ BOOST_AUTO_TEST_CASE(BAContainer)
 	buffer.Serialize(var_1);
 	buffer.Serialize(var_2);
 	buffer.SerializeAs<Cry::Short>(v.size());
-	buffer.insert(buffer.cend(), v.cbegin(), v.cend());
+	buffer.insert(buffer.end(), v.begin(), v.end());
 	buffer.Serialize(var_3);
 
 	buffer.StartOffset(0);

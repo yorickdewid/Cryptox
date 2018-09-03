@@ -9,12 +9,24 @@
 #include <Cry/Cry.h>
 #include <Cry/ByteStream.h>
 
+#include <algorithm>
+
 using namespace Cry;
 
 //
 // ByteInStream.
 //
 
+ByteInStream& ByteInStream::operator>>(char& v)
+{
+	v = static_cast<char>(Buffer().Deserialize<Cry::Byte>());
+	return (*this);
+}
+ByteInStream& ByteInStream::operator>>(unsigned char& v)
+{
+	v = static_cast<unsigned char>(Buffer().Deserialize<Cry::Byte>());
+	return (*this);
+}
 ByteInStream& ByteInStream::operator>>(short& v)
 {
 	v = static_cast<short>(Buffer().Deserialize<Short>());
@@ -78,14 +90,31 @@ ByteInStream& ByteInStream::operator>>(bool& v)
 	v = static_cast<bool>(Buffer().Deserialize<Byte>());
 	return (*this);
 }
+ByteInStream& ByteInStream::operator>>(std::byte& v)
+{
+	//FUTURE: remove temporary variable.
+	unsigned char va;
+	this->operator>>(va);
+	v = static_cast<std::byte>(va);
+	return (*this);
+}
+ByteInStream& ByteInStream::operator>>(std::string& va)
+{
+	const size_t vsz = static_cast<size_t>(Buffer().Deserialize<Word>());
+	va.resize(vsz);
+	for (auto& v : va) {
+		this->operator>>(v);
+	}
+	return (*this);
+}
 ByteInStream& ByteInStream::operator>>(ByteInStream& v)
 {
-	size_t vsz = static_cast<size_t>(Buffer().Deserialize<Word>());
+	const size_t vsz = static_cast<size_t>(Buffer().Deserialize<Word>());
 	std::copy(Buffer().begin() + Buffer().Offset(), Buffer().begin() + Buffer().Offset() + vsz, std::back_inserter(v.Buffer()));
 	//TODO: fix offset
 	return (*this);
 }
-ByteInStream& ByteInStream::operator>>(FlagType v)
+ByteInStream& ByteInStream::operator>>(FlagType v) //TODO:
 {
 	CRY_UNUSED(v);
 	return (*this);
@@ -95,6 +124,16 @@ ByteInStream& ByteInStream::operator>>(FlagType v)
 // ByteOutStream.
 //
 
+ByteOutStream& ByteOutStream::operator<<(char v)
+{
+	Buffer().SerializeAs<Cry::Byte>(v);
+	return (*this);
+}
+ByteOutStream& ByteOutStream::operator<<(unsigned char v)
+{
+	Buffer().SerializeAs<Cry::Byte>(v);
+	return (*this);
+}
 ByteOutStream& ByteOutStream::operator<<(short v)
 {
 	Buffer().SerializeAs<Cry::Short>(v);
@@ -155,13 +194,23 @@ ByteOutStream& ByteOutStream::operator<<(bool v)
 	Buffer().SerializeAs<Byte>(v);
 	return (*this);
 }
+ByteOutStream& ByteOutStream::operator<<(std::byte v)
+{
+	this->operator<<(static_cast<unsigned char>(v));
+	return (*this);
+}
+ByteOutStream& ByteOutStream::operator<<(const std::string& v)
+{
+	this->WriteIterator(v.begin(), v.end());
+	return (*this);
+}
 ByteOutStream& ByteOutStream::operator<<(ByteOutStream v)
 {
 	Buffer().SerializeAs<Word>(v.Buffer().size());
 	Buffer().insert(Buffer().cend(), v.Buffer().cbegin(), v.Buffer().cend());
 	return (*this);
 }
-ByteOutStream& ByteOutStream::operator<<(FlagType v)
+ByteOutStream& ByteOutStream::operator<<(FlagType v) //TODO:
 {
 	CRY_UNUSED(v);
 	return (*this);

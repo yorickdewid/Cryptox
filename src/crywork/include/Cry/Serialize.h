@@ -136,6 +136,9 @@ struct IsIterable<IterType, typename std::enable_if<
 {
 };
 
+template<typename IterType>
+inline constexpr bool IsIterable_v = IsIterable<IterType>::value;
+
 } // namespace Trait
 
 struct SerializableContract {};
@@ -148,26 +151,23 @@ struct SerializableContract {};
 template<typename VectorType>
 class BasicArrayBuffer : public VectorType
 {
-	static_assert(std::is_base_of<SerializableContract, VectorType>::value, "");
-	static_assert(Trait::IsIterable<VectorType>::value, "");
-	static_assert(std::is_copy_assignable<VectorType>::value, "");
-	static_assert(std::is_move_assignable<VectorType>::value, "");
+	static_assert(std::is_base_of_v<SerializableContract, VectorType>, "");
+	static_assert(Trait::IsIterable_v<VectorType>, "");
+	static_assert(std::is_copy_assignable_v<VectorType>, "");
+	static_assert(std::is_move_assignable_v<VectorType>, "");
 
-	const unsigned char flag0 = 1 << 0;      // 0000 0001
-	const unsigned char flagIs64 = 1 << 1;   // 0000 0010
-	const unsigned char flagIsWin = 1 << 2;  // 0000 0100
-	const unsigned char flagIsUnix = 1 << 3; // 0000 1000
-	const unsigned char flagisOSX = 1 << 4;  // 0001 0000
-	const unsigned char flag5 = 1 << 5;      // 0010 0000
-	const unsigned char flag6 = 1 << 6;      // 0100 0000
-	const unsigned char flagIsLE = 1 << 7;   // 1000 0000
-
-	template<typename>
-	friend struct DeserializeImpl;
+	constexpr static const unsigned char flag0 = 1 << 0;      // 0000 0001
+	constexpr static const unsigned char flagIs64 = 1 << 1;   // 0000 0010
+	constexpr static const unsigned char flagIsWin = 1 << 2;  // 0000 0100
+	constexpr static const unsigned char flagIsUnix = 1 << 3; // 0000 1000
+	constexpr static const unsigned char flagisOSX = 1 << 4;  // 0001 0000
+	constexpr static const unsigned char flag5 = 1 << 5;      // 0010 0000
+	constexpr static const unsigned char flag6 = 1 << 6;      // 0100 0000
+	constexpr static const unsigned char flagIsLE = 1 << 7;   // 1000 0000
 
 public:
 	using self_type = VectorType;
-	using BaseType = VectorType;
+	using BaseType = VectorType; //TODO: replace
 	using ValueType = typename self_type::value_type;
 	using SizeType = typename self_type::size_type;
 	using OffsetType = int;
@@ -188,7 +188,7 @@ public:
 	}
 
 	template<typename InputIt>
-	inline BasicArrayBuffer(InputIt first, InputIt last)
+	inline explicit BasicArrayBuffer(InputIt first, InputIt last)
 		: BaseType{ first, last }
 	{
 	}
@@ -400,6 +400,7 @@ template<typename Type, typename Allocator = std::allocator<Type>>
 class VectorBuffer : public std::vector<Type, Allocator>, public SerializableContract
 {
 	using Base = std::vector<Type, Allocator>;
+	using ByteType = Type;
 };
 
 // Default byte array type.

@@ -28,7 +28,7 @@ BOOST_AUTO_TEST_CASE(ByteStreamSimpleOut)
 	bs << 'X';
 
 	BOOST_REQUIRE(!bs.Empty());
-	BOOST_REQUIRE_EQUAL(bs.Size(), 8);
+	BOOST_REQUIRE_EQUAL(bs.Size(), 5);
 }
 
 BOOST_AUTO_TEST_CASE(ByteStreamSimpleIn)
@@ -50,23 +50,27 @@ BOOST_AUTO_TEST_CASE(ByteStreamSimpleIO)
 		bs << (short)896;
 		bs << 4223372036854775807LL;
 		bs << 18446744073709551614ULL;
+		bs << (std::byte)0x71;
 	}
 
 	BOOST_REQUIRE(!bs.Empty());
-	BOOST_REQUIRE_EQUAL(bs.Size(), 30);
+	BOOST_REQUIRE_EQUAL(bs.Size(), 28);
 
 	{
-		int i, j;
+		int i;
+		char j;
 		long x;
 		short s;
 		long long u;
 		unsigned long long o;
+		std::byte b;
 		bs >> i;
 		bs >> j;
 		bs >> x;
 		bs >> s;
 		bs >> u;
 		bs >> o;
+		bs >> b;
 
 		BOOST_REQUIRE_EQUAL(186721583, i);
 		BOOST_REQUIRE_EQUAL('X', j);
@@ -74,6 +78,7 @@ BOOST_AUTO_TEST_CASE(ByteStreamSimpleIO)
 		BOOST_REQUIRE_EQUAL((short)896, s);
 		BOOST_REQUIRE_EQUAL(4223372036854775807LL, u);
 		BOOST_REQUIRE_EQUAL(18446744073709551614ULL, o);
+		BOOST_REQUIRE((std::byte)0x71 == b);
 	}
 }
 
@@ -116,6 +121,33 @@ BOOST_AUTO_TEST_CASE(ByteStreamInByteStream)
 	int i;
 	bs3 >> i;
 	BOOST_REQUIRE_EQUAL(91, i);
+}
+
+BOOST_AUTO_TEST_CASE(ByteStreamVector)
+{
+	using namespace std::string_literals;
+
+	{
+		Cry::ByteStream bs;
+
+		auto list = { 1, 2, 3, 4 };
+		bs << list;
+
+		std::vector<int> list2;
+		bs >> list2;
+		BOOST_REQUIRE_EQUAL_COLLECTIONS(list.begin(), list.end(), list2.begin(), list2.end());
+	}
+
+	{
+		Cry::ByteStream bs;
+
+		bs << "kaas"s;
+
+		std::string str;
+		bs >> str;
+
+		BOOST_REQUIRE_EQUAL("kaas"s, str);
+	}
 }
 
 BOOST_AUTO_TEST_CASE(ByteStreamMethods)

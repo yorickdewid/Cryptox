@@ -17,9 +17,11 @@
 
 //TODO:
 // - Use primitive types
-// - string
-// - vectors
-// - iterators
+// - Test all primitives
+// - Allow all STL containers
+
+//FUTURE:
+// - string and vector can be optimized
 
 namespace Cry
 {
@@ -73,10 +75,10 @@ public:
 		FLAG_THROW_EXCEPTION = 0x04,
 	};
 
-	static constexpr FlagType ClearOptions = FLAG_NONE;
-	static constexpr FlagType PlatformCheck = FLAG_PLATFORM_CHECK;
-	static constexpr FlagType Checkpoint = FLAG_AUTO_CHECKPOINT;
-	static constexpr FlagType CanThrow = FLAG_THROW_EXCEPTION;
+	constexpr static const FlagType ClearOptions = FLAG_NONE;
+	constexpr static const FlagType PlatformCheck = FLAG_PLATFORM_CHECK;
+	constexpr static const FlagType Checkpoint = FLAG_AUTO_CHECKPOINT;
+	constexpr static const FlagType CanThrow = FLAG_THROW_EXCEPTION;
 
 	// Return the offset in the stream.
 	position_type Tell() const { return m_streambuffer.Offset(); }
@@ -87,10 +89,7 @@ public:
 	void UnSetFlag(FlagType f) { m_opts &= ~f; }
 
 	// Get the byte array from the stream base.
-	base_type& Buffer()
-	{
-		return m_streambuffer;
-	}
+	inline base_type& Buffer() { return m_streambuffer; }
 };
 
 } // namespace Detail
@@ -101,6 +100,8 @@ class ByteInStream : virtual public Detail::StreamIOBase
 	//
 
 public:
+	ByteInStream& operator>>(char&);
+	ByteInStream& operator>>(unsigned char&);
 	ByteInStream& operator>>(short&);
 	ByteInStream& operator>>(unsigned short&);
 	ByteInStream& operator>>(int&);
@@ -113,8 +114,21 @@ public:
 	ByteInStream& operator>>(double&);
 	ByteInStream& operator>>(long double&);
 	ByteInStream& operator>>(bool&);
+	ByteInStream& operator>>(std::byte&);
+	ByteInStream& operator>>(std::string&);
 	ByteInStream& operator>>(ByteInStream&);
 	ByteInStream& operator>>(FlagType);
+
+	template<typename Type>
+	ByteInStream& operator>>(std::vector<Type>& iterable)
+	{
+		const size_t vsz = static_cast<size_t>(Buffer().Deserialize<Word>());
+		iterable.resize(vsz);
+		for (auto& v : iterable) {
+			this->operator>>(v);
+		}
+		return (*this);
+	}
 
 	ByteInStream& Seek(position_type pos)
 	{
@@ -145,6 +159,8 @@ class ByteOutStream : virtual public Detail::StreamIOBase
 	//
 
 public:
+	ByteOutStream& operator<<(char);
+	ByteOutStream& operator<<(unsigned char);
 	ByteOutStream& operator<<(short);
 	ByteOutStream& operator<<(unsigned short);
 	ByteOutStream& operator<<(int);
@@ -157,8 +173,23 @@ public:
 	ByteOutStream& operator<<(double);
 	ByteOutStream& operator<<(long double);
 	ByteOutStream& operator<<(bool);
+	ByteOutStream& operator<<(std::byte);
+	ByteOutStream& operator<<(const std::string&);
 	ByteOutStream& operator<<(ByteOutStream);
 	ByteOutStream& operator<<(FlagType);
+
+	template<typename Type>
+	ByteOutStream& operator<<(const std::initializer_list<Type>& iterable)
+	{
+		this->WriteIterator(iterable.begin(), iterable.end());
+		return (*this);
+	}
+	template<typename Type>
+	ByteOutStream& operator<<(const std::vector<Type>& iterable)
+	{
+		this->WriteIterator(iterable.begin(), iterable.end());
+		return (*this);
+	}
 
 	ByteOutStream& Seek(position_type pos)
 	{
@@ -179,6 +210,13 @@ public:
 		for (StreamSizeType i = 0; i < count; ++i) {
 			this->operator<<(s[i]);
 		}
+		return (*this);
+	}
+	template<typename IterType>
+	ByteOutStream& WriteIterator(IterType first, IterType last)
+	{
+		Buffer().SerializeAs<Word>(std::distance(first, last));
+		std::for_each(first, last, [=](auto v) { this->operator<<(v); });
 		return (*this);
 	}
 };
