@@ -11,11 +11,7 @@
 #include <CryCC/SubValue/ValueContract.h>
 #include <CryCC/SubValue/NilType.h>
 
-namespace CryCC
-{
-namespace SubValue
-{
-namespace Valuedef
+namespace CryCC::SubValue::Valuedef
 {
 
 // The offset value is a value pointing to an element in a composed
@@ -33,9 +29,9 @@ public:
     using offset_type = decltype(m_offset);
 
     // Expose the value variants that this category can process.
-    constexpr static const int value_variant_order = 0;
+    inline constexpr static const int value_variant_order = 0;
     // Unique value identifier.
-    constexpr static const int value_category_identifier = 14;
+    inline constexpr static const int value_category_identifier = 14;
 
 	OffsetValue(const OffsetValue& other)
         : m_iterValue{ other.m_iterValue }
@@ -80,6 +76,4 @@ static_assert(std::is_move_constructible<OffsetValue>::value, "OffsetValue !is_m
 static_assert(std::is_copy_assignable<OffsetValue>::value, "OffsetValue !is_copy_assignable");
 static_assert(std::is_move_assignable<OffsetValue>::value, "OffsetValue !is_move_assignable");
 
-} // namespace Valuedef
-} // namespace SubValue
-} // namespace CryCC
+} // namespace CryCC::SubValue::Valuedef

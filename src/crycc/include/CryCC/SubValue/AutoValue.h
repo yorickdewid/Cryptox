@@ -11,13 +11,7 @@
 #include <CryCC/SubValue/TypeFacade.h>
 #include <CryCC/SubValue/Valuedef.h>
 
-namespace CryCC
-{
-namespace SubValue
-{
-namespace Valuedef
-{
-namespace Detail
+namespace CryCC::SubValue::Valuedef::Detail
 {
 
 using namespace Typedef;
@@ -125,7 +119,4 @@ inline Valuedef::Value ValueDeductor::ConvertNativeType(std::vector<bool> value)
 	return MakeMultiValue<BuiltinType::Specifier::BOOL>(value);
 }
 
-} // namespace Detail
-} // namespace Valuedef
-} // namespace SubValue
-} // namespace CryCC
+} // namespace CryCC::SubValue::Valuedef::Detail

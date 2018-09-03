@@ -13,11 +13,7 @@
 
 #define BITS_PER_BYTE 8
 
-namespace CryCC
-{
-namespace SubValue
-{
-namespace Typedef
+namespace CryCC::SubValue::Typedef
 {
 
 enum class PrimitiveSpecifier
@@ -135,6 +131,5 @@ static_assert(std::is_same<PrimitiveSelectorStorageType<double>, double>::value,
 // static_assert(std::is_same<PrimitiveSelectorStorageType<long double>, long double>::value, "invalid type translation");
 // static_assert(std::is_same<PrimitiveSelectorStorageType<unsigned long double>, unsigned long double>::value, "invalid type translation");
 
-} // namespace Typedef
-} // namespace SubValue
-} // namespace CryCC
+
+} // namespace CryCC::SubValue::Typedef

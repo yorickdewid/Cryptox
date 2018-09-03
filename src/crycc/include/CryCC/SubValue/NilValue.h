@@ -12,11 +12,7 @@
 #include <CryCC/SubValue/Typedef.h>
 #include <CryCC/SubValue/NilType.h>
 
-namespace CryCC
-{
-namespace SubValue
-{
-namespace Valuedef
+namespace CryCC::SubValue::Valuedef
 {
 
 class NilValue final : public AbstractValue<NilValue>
@@ -26,9 +22,9 @@ public:
     using value_category = ValueCategory::Singular;
 
     // Expose the value variants that this category can process.
-    constexpr static const int value_variant_order = 0;
+    inline constexpr static const int value_variant_order = 0;
     // Unique value identifier.
-    constexpr static const int value_category_identifier = 0;
+    inline constexpr static const int value_category_identifier = 0;
 
 	//
 	// Implement value category contract.
@@ -52,6 +48,4 @@ static_assert(std::is_move_constructible<NilValue>::value, "NilValue !is_move_co
 static_assert(std::is_copy_assignable<NilValue>::value, "NilValue !is_copy_assignable");
 static_assert(std::is_move_assignable<NilValue>::value, "NilValue !is_move_assignable");
 
-} // namespace Valuedef
-} // namespace SubValue
-} // namespace CryCC
+} // namespace CryCC::SubValue::Valuedef

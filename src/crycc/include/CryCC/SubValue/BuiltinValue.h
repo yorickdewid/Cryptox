@@ -57,21 +57,25 @@ public:
 	BuiltinValue& operator=(const BuiltinValue&) = default;
 	BuiltinValue& operator=(BuiltinValue&&) = default;
 
-	// Prevent template constructor from becoming copy/move constructor.
+	// Initialize the type variant with a primitive type.
 	template<typename Type, typename = typename std::enable_if<
 		!std::is_same<Type, std::add_lvalue_reference<BuiltinValue>::type>::value
 	>::type>
 	BuiltinValue(Type value)
-	 	: m_value{ static_cast<PrimitiveSelectorStorageType<Type>>(value) }
+	 	: m_value{ static_cast<Typedef::PrimitiveSelectorStorageType<Type>>(value) }
 	{
-		static_assert(NativeTypeList::has_type<PrimitiveSelectorStorageType<Type>>::value);
+		static_assert(NativeTypeList::has_type<Typedef::PrimitiveSelectorStorageType<Type>>::value);
 	}
+
+	//
+	// Implement multiordinal contract.
+	//
 
 	template<typename ReturnType>
 	auto As() const
 	{
 		try {
-			return static_cast<ReturnType>(boost::strict_get<PrimitiveSelectorStorageType<ReturnType>>(m_value));
+			return static_cast<ReturnType>(boost::strict_get<Typedef::PrimitiveSelectorStorageType<ReturnType>>(m_value));
 		}
 		catch (const boost::bad_get&) {
 			throw InvalidTypeCastException{};

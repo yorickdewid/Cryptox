@@ -13,11 +13,7 @@
 
 #include <Cry/Cry.h>
 
-namespace CryCC
-{
-namespace SubValue
-{
-namespace Valuedef
+namespace CryCC::SubValue::Valuedef
 {
 
 // A pointer value points to a memory chunk containing data.
@@ -28,9 +24,9 @@ public:
     using value_category = ValueCategory::Singular;
 
     // Expose the value variants that this category can process.
-    constexpr static const int value_variant_order = 0;
+    inline constexpr static const int value_variant_order = 0;
     // Unique value identifier.
-    constexpr static const int value_category_identifier = 12;
+    inline constexpr static const int value_category_identifier = 12;
 
 	//
 	// Implement value category contract.
@@ -53,6 +49,4 @@ static_assert(std::is_move_constructible<PointerValue>::value, "PointerValue !is
 static_assert(std::is_copy_assignable<PointerValue>::value, "PointerValue !is_copy_assignable");
 static_assert(std::is_move_assignable<PointerValue>::value, "PointerValue !is_move_assignable");
 
-} // namespace Valuedef
-} // namespace SubValue
-} // namespace CryCC
+} // namespace CryCC::SubValue::Valuedef

@@ -23,11 +23,7 @@
 #include <list>
 #include <bitset>
 
-namespace CryCC
-{
-namespace SubValue
-{
-namespace Typedef
+namespace CryCC::SubValue::Typedef
 {
 
 class TypeFacade;
@@ -440,6 +436,4 @@ private:
 	BaseType m_ptrType;
 };
 
-} // namespace Typedef
-} // namespace SubValue
-} // namespace CryCC
+} // namespace CryCC::SubValue::Typedef

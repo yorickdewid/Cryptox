@@ -14,11 +14,7 @@
 
 #include <Cry/Cry.h>
 
-namespace CryCC
-{
-namespace SubValue
-{
-namespace Valuedef
+namespace CryCC::SubValue::Valuedef
 {
 
 // A reference value contains another value.
@@ -31,9 +27,9 @@ public:
     using value_category = ValueCategory::Singular;
 
     // Expose the value variants that this category can process.
-    constexpr static const int value_variant_order = 0;
+    inline constexpr static const int value_variant_order = 0;
     // Unique value identifier.
-    constexpr static const int value_category_identifier = 9;
+    inline constexpr static const int value_category_identifier = 9;
 
 	ReferenceValue(const ReferenceValue&);
 	ReferenceValue(ReferenceValue&&) = default;
@@ -64,6 +60,4 @@ static_assert(std::is_move_constructible<ReferenceValue>::value, "ReferenceValue
 static_assert(std::is_copy_assignable<ReferenceValue>::value, "ReferenceValue !is_copy_assignable");
 static_assert(std::is_move_assignable<ReferenceValue>::value, "ReferenceValue !is_move_assignable");
 
-} // namespace Valuedef
-} // namespace SubValue
-} // namespace CryCC
+} // namespace CryCC::SubValue::Valuedef

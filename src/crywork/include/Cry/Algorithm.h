@@ -60,5 +60,14 @@ struct MatchOn
 	}
 };
 
+template<typename CastType, typename InputIt, typename OutputIt>
+OutputIt ContainerCast(InputIt first1, InputIt last1, OutputIt d_first)
+{
+    return std::transform(first1, last1, d_first, [](auto value)
+	{
+		return static_cast<CastType>(value);
+	});
+}
+
 } // namespace Algorithm
 } // namespace Cry

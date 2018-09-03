@@ -12,9 +12,7 @@
 
 #include <stack>
 
-namespace Cry
-{
-namespace TypeTrait
+namespace Cry::TypeTrait
 {
 
 template<typename Type>
@@ -35,11 +33,10 @@ struct TemplateHolder
 	template<typename Test>
 	using has_type = typename std::disjunction<std::is_same<Test, ArgTypes>...>::type;
 	
-	template<size_t Offset>
+	template<auto Offset>
 	using element_type = typename std::tuple_element<Offset, std::tuple<ArgTypes...>>::type;
 
-	constexpr static const auto size = sizeof...(ArgTypes);
+	inline constexpr static const auto size = sizeof...(ArgTypes);
 };
 
-} // namespace TypeTrait
-} // namespace Cry
+} // namespace Cry::TypeTrait
