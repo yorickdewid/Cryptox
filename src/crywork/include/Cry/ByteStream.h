@@ -13,11 +13,12 @@
 
 #include <fstream>
 #include <string>
+#include <bitset>
 
 //TODO:
+// - Use primitive types
 // - string
 // - vectors
-// - custom objects
 // - iterators
 
 namespace Cry
@@ -26,6 +27,7 @@ namespace Cry
 namespace Detail
 {
 
+#if 0
 struct BasicIOBuffer {};
 
 class ByteArrayBuffer
@@ -46,35 +48,59 @@ class FileWriteBuffer
 public:
 	FileWriteBuffer() = default;
 };
+#endif
 
 ////
 
-class StreamIOBase : public ByteArray
+class StreamIOBase
 {
+	ByteArray m_streambuffer;
+
+protected:
+	int m_opts;
+
 public:
-	using Type = ByteArray::BaseType::value_type;
-	using PositionType = ByteArray::OffsetType;
-	using OffsetType = ByteArray::OffsetType;
+	using base_type = ByteArray;
+	using value_type = typename base_type::BaseType::value_type;
+	using position_type = typename base_type::OffsetType;
+	using offset_type = typename base_type::OffsetType;
 
-	PositionType Tell() const { return this->Offset(); }
-
-	ByteArray Buffer()
+	enum FlagType
 	{
-		return dynamic_cast<ByteArray&>(*this);
+		FLAG_NONE = 0x0,
+		FLAG_PLATFORM_CHECK = 0x01,
+		FLAG_AUTO_CHECKPOINT = 0x02,
+		FLAG_THROW_EXCEPTION = 0x04,
+	};
+
+	static constexpr FlagType ClearOptions = FLAG_NONE;
+	static constexpr FlagType PlatformCheck = FLAG_PLATFORM_CHECK;
+	static constexpr FlagType Checkpoint = FLAG_AUTO_CHECKPOINT;
+	static constexpr FlagType CanThrow = FLAG_THROW_EXCEPTION;
+
+	// Return the offset in the stream.
+	position_type Tell() const { return m_streambuffer.Offset(); }
+	bool Empty() const noexcept { return m_streambuffer.empty(); }
+	size_t Size() const noexcept { return m_streambuffer.size(); }
+
+	void SetFlag(FlagType f) { m_opts |= f; }
+	void UnSetFlag(FlagType f) { m_opts &= ~f; }
+
+	// Get the byte array from the stream base.
+	base_type& Buffer()
+	{
+		return m_streambuffer;
 	}
 };
 
 } // namespace Detail
 
+// Stream native data in the byte array.
 class ByteInStream : virtual public Detail::StreamIOBase
 {
 	//
 
 public:
-	using Type = ByteArray::BaseType::value_type;
-	using PositionType = ByteArray::OffsetType;
-	using OffsetType = ByteArray::OffsetType;
-
 	ByteInStream& operator>>(short&);
 	ByteInStream& operator>>(unsigned short&);
 	ByteInStream& operator>>(int&);
@@ -88,10 +114,11 @@ public:
 	ByteInStream& operator>>(long double&);
 	ByteInStream& operator>>(bool&);
 	ByteInStream& operator>>(ByteInStream&);
+	ByteInStream& operator>>(FlagType);
 
-	ByteInStream& Seek(PositionType pos)
+	ByteInStream& Seek(position_type pos)
 	{
-		this->StartOffset(pos);
+		Buffer().StartOffset(pos);
 		return (*this);
 	}
 
@@ -102,25 +129,22 @@ public:
 		return (*this);
 	}
 
-	template<typename NativeType>
-	ByteInStream& Read(NativeType *s, std::streamsize count)
+	template<typename NativeType, typename StreamSizeType>
+	ByteInStream& Read(NativeType *s, StreamSizeType count)
 	{
-		for (std::streamsize i = 0; i < count; ++i) {
+		for (StreamSizeType i = 0; i < count; ++i) {
 			this->operator>>((*s)[i]);
 		}
 		return (*this);
 	}
 };
 
+// Stream native data out of the byte array.
 class ByteOutStream : virtual public Detail::StreamIOBase
 {
 	//
 
 public:
-	using Type = ByteArray::BaseType::value_type;
-	using PositionType = ByteArray::OffsetType;
-	using OffsetType = ByteArray::OffsetType;
-
 	ByteOutStream& operator<<(short);
 	ByteOutStream& operator<<(unsigned short);
 	ByteOutStream& operator<<(int);
@@ -134,10 +158,11 @@ public:
 	ByteOutStream& operator<<(long double);
 	ByteOutStream& operator<<(bool);
 	ByteOutStream& operator<<(ByteOutStream);
+	ByteOutStream& operator<<(FlagType);
 
-	ByteOutStream& Seek(PositionType pos)
+	ByteOutStream& Seek(position_type pos)
 	{
-		this->StartOffset(pos);
+		Buffer().StartOffset(pos);
 		return (*this);
 	}
 
@@ -148,16 +173,17 @@ public:
 		return (*this);
 	}
 
-	template<typename NativeType>
-	ByteOutStream& Write(const NativeType *s, std::streamsize count)
+	template<typename NativeType, typename StreamSizeType>
+	ByteOutStream& Write(const NativeType *s, StreamSizeType count)
 	{
-		for (std::streamsize i = 0; i < count; ++i) {
+		for (StreamSizeType i = 0; i < count; ++i) {
 			this->operator<<(s[i]);
 		}
 		return (*this);
 	}
 };
 
+// Combined in and out stream.
 class ByteStream
 	: public ByteInStream
 	, public ByteOutStream
@@ -166,6 +192,7 @@ public:
 	//
 };
 
+#if 0
 class FileStream
 	: public ByteInStream
 	, public ByteOutStream
@@ -187,5 +214,6 @@ public:
 private:
 	std::fstream m_stream;
 };
+#endif
 
 } // namespace Cry

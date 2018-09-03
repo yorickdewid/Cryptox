@@ -12,7 +12,7 @@
 #include <boost/test/unit_test.hpp>
 
 //
-// Key         : BS
+// Key         : ByteStream
 // Test        : ByteStream unittest
 // Type        : unit
 // Description : -
@@ -20,26 +20,26 @@
 
 BOOST_AUTO_TEST_SUITE(ByteStream)
 
-BOOST_AUTO_TEST_CASE(BSSimpleOut)
+BOOST_AUTO_TEST_CASE(ByteStreamSimpleOut)
 {
 	Cry::ByteOutStream bs;
 
 	bs << 186721583;
 	bs << 'X';
 
-	BOOST_REQUIRE(!bs.empty());
-	BOOST_REQUIRE_EQUAL(bs.size(), 8);
+	BOOST_REQUIRE(!bs.Empty());
+	BOOST_REQUIRE_EQUAL(bs.Size(), 8);
 }
 
-BOOST_AUTO_TEST_CASE(BSSimpleIn)
+BOOST_AUTO_TEST_CASE(ByteStreamSimpleIn)
 {
 	Cry::ByteInStream bs;
 
-	BOOST_REQUIRE(bs.empty());
-	BOOST_REQUIRE_EQUAL(bs.size(), 0);
+	BOOST_REQUIRE(bs.Empty());
+	BOOST_REQUIRE_EQUAL(bs.Size(), 0);
 }
 
-BOOST_AUTO_TEST_CASE(BSSimpleIO)
+BOOST_AUTO_TEST_CASE(ByteStreamSimpleIO)
 {
 	Cry::ByteStream bs;
 
@@ -47,13 +47,13 @@ BOOST_AUTO_TEST_CASE(BSSimpleIO)
 		bs << 186721583;
 		bs << 'X';
 		bs << 896127L;
-		bs << (short)896127;
+		bs << (short)896;
 		bs << 4223372036854775807LL;
 		bs << 18446744073709551614ULL;
 	}
 
-	BOOST_REQUIRE(!bs.empty());
-	BOOST_REQUIRE_EQUAL(bs.size(), 30);
+	BOOST_REQUIRE(!bs.Empty());
+	BOOST_REQUIRE_EQUAL(bs.Size(), 30);
 
 	{
 		int i, j;
@@ -71,13 +71,13 @@ BOOST_AUTO_TEST_CASE(BSSimpleIO)
 		BOOST_REQUIRE_EQUAL(186721583, i);
 		BOOST_REQUIRE_EQUAL('X', j);
 		BOOST_REQUIRE_EQUAL(896127l, x);
-		BOOST_REQUIRE_EQUAL((short)896127, s);
+		BOOST_REQUIRE_EQUAL((short)896, s);
 		BOOST_REQUIRE_EQUAL(4223372036854775807LL, u);
 		BOOST_REQUIRE_EQUAL(18446744073709551614ULL, o);
 	}
 }
 
-BOOST_AUTO_TEST_CASE(BSSimpleFloat)
+BOOST_AUTO_TEST_CASE(ByteStreamSimpleFloat)
 {
 	{
 		Cry::ByteStream bs;
@@ -102,7 +102,7 @@ BOOST_AUTO_TEST_CASE(BSSimpleFloat)
 	}
 }
 
-BOOST_AUTO_TEST_CASE(BSInByteStream)
+BOOST_AUTO_TEST_CASE(ByteStreamInByteStream)
 {
 	Cry::ByteStream bs;
 	Cry::ByteStream bs2;
@@ -118,7 +118,7 @@ BOOST_AUTO_TEST_CASE(BSInByteStream)
 	BOOST_REQUIRE_EQUAL(91, i);
 }
 
-BOOST_AUTO_TEST_CASE(BSMethods)
+BOOST_AUTO_TEST_CASE(ByteStreamMethods)
 {
 	Cry::ByteStream bs;
 
@@ -127,7 +127,7 @@ BOOST_AUTO_TEST_CASE(BSMethods)
 		bs.Write(k, sizeof(k) / sizeof(k[0]));
 		bs.Put((short)8672);
 
-		BOOST_REQUIRE_EQUAL(bs.size(), 18);
+		BOOST_REQUIRE_EQUAL(bs.Size(), 18);
 	}
 
 	{
@@ -174,7 +174,7 @@ private:
 	char m_c{ 'Y' };
 };
 
-BOOST_AUTO_TEST_CASE(BSCustomObject)
+BOOST_AUTO_TEST_CASE(ByteStreamCustomObject)
 {
 	Cry::ByteStream bs;
 	MyClass myclass{ 17 };

@@ -17,6 +17,12 @@
 #define CHECKPOINT_TAG_1 0xd6
 #define CHECKPOINT_TAG_2 0x9b
 
+//TODO:
+// - Float
+// - Double
+// - Long double
+// - Unsigned Long double
+
 namespace Cry
 {
 
@@ -125,7 +131,7 @@ struct IsIterable : std::false_type
 
 template<typename IterType>
 struct IsIterable<IterType, typename std::enable_if<
-	!std::is_same<typename std::iterator_traits<typename IterType::iterator>::value_type, void>::value
+	!std::is_same_v<typename std::iterator_traits<typename IterType::iterator>::value_type, void>
 >::type> : std::true_type
 {
 };
@@ -160,12 +166,13 @@ class BasicArrayBuffer : public VectorType
 	friend struct DeserializeImpl;
 
 public:
+	using self_type = VectorType;
 	using BaseType = VectorType;
-	using ValueType = typename BaseType::value_type;
-	using SizeType = typename BaseType::size_type;
+	using ValueType = typename self_type::value_type;
+	using SizeType = typename self_type::size_type;
 	using OffsetType = int;
 
-	static_assert(sizeof(ValueType) == sizeof(Byte), "");
+	static_assert(sizeof(ValueType) == sizeof(Byte), "Vector type must be byte size");
 
 public:
 	BasicArrayBuffer() = default;
@@ -192,12 +199,16 @@ public:
 
 	BasicArrayBuffer& operator=(const BasicArrayBuffer& other)
 	{
+		if (*this == other) { return (*this); }
+
 		m_offset = other.m_offset;
 		BaseType::operator=(other);
 		return (*this);
 	}
 	BasicArrayBuffer& operator=(BasicArrayBuffer&& other)
 	{
+		if (*this == other) { return (*this); }
+
 		m_offset = other.m_offset;
 		BaseType::operator=(std::move(other));
 		return (*this);
@@ -210,11 +221,13 @@ public:
 	enum { AUTO = -1 };
 
 	// Set start offset.
-	void SetOffset(OffsetType offset) { m_offset += offset; }
+	void SetOffset(OffsetType offset) { m_offset += offset; } //TODO: AppendOffset
 	// Set start offset.
 	void StartOffset(OffsetType offset) { m_offset = offset; }
 	// Get current offset.
 	int Offset() const noexcept { return m_offset; }
+	// Reset offset to zero.
+	void Reset() noexcept { m_offset = 0; }
 
 	BasicArrayBuffer& operator++()
 	{
@@ -239,13 +252,17 @@ public:
 		return (*copy);
 	}
 
+	//
+	// Validation and consistency.
+	//
+
 	// Set magic value.
 	void SetMagic(Byte magic)
 	{
 		BaseType::push_back(magic);
 	}
 
-	// Validate magic value.
+	// Validate magic value. Returns false if check fails.
 	bool ValidateMagic(Byte magic, OffsetType idx = -1)
 	{
 		if (idx == -1) {
@@ -261,7 +278,7 @@ public:
 		BaseType::insert(this->cend(), { CHECKPOINT_TAG_1, CHECKPOINT_TAG_2 });
 	}
 
-	// Validate checkpoint.
+	// Validate checkpoint. Returns false if check fails.
 	bool ValidateCheckpoint(OffsetType idx = -1)
 	{
 		if (idx == -1) {
@@ -295,6 +312,7 @@ public:
 	}
 
 	// Check if current platform is compatible.
+	// Returns false if check fails.
 	bool IsPlatformCompat();
 
 	void Serialize(Byte i)
@@ -356,10 +374,27 @@ private:
 template<typename VectorType>
 inline bool BasicArrayBuffer<VectorType>::IsPlatformCompat()
 {
-	//FUTURE: Do something with flags
-	Deserialize<Byte>();
+	const Byte flags = Deserialize<Byte>();
+#ifdef CRY_ARCH64
+	if (!(flags & flagIs64)) { return false; }
+#endif // CRY_ARCH64
+#ifdef CRY_WINDOWS
+	if (!(flags & flagIsWin)) { return false; }
+#endif // CRY_WINDOWS
+#ifdef CRY_UNIX
+	if (!(flags & flagIsUnix)) { return false; }
+#endif // CRY_UNIX
+#ifdef CRY_OSX
+	if (!(flags & flagisOSX)) { return false; }
+#endif // CRY_OSX
+#ifdef CRY_LITTLE_ENDIAN
+	if (!(flags & flagIsLE)) { return false; }
+#endif // CRY_LITTLE_ENDIAN
 	return true;
 }
+
+template<template<typename Type, typename Allocator = std::allocator<Type>> typename ContainerType, typename ByteType = Byte>
+using ByteArrayBuffer = BasicArrayBuffer<ContainerType<ByteType>>;
 
 template<typename Type, typename Allocator = std::allocator<Type>>
 class VectorBuffer : public std::vector<Type, Allocator>, public SerializableContract
@@ -367,8 +402,7 @@ class VectorBuffer : public std::vector<Type, Allocator>, public SerializableCon
 	using Base = std::vector<Type, Allocator>;
 };
 
-template<template<typename Type, typename Allocator = std::allocator<Type>> class ContainerType>
-using ByteArrayBuffer = BasicArrayBuffer<ContainerType<Byte>>;
+// Default byte array type.
 using ByteArray = ByteArrayBuffer<VectorBuffer>;
 
 } // namespace Cry
