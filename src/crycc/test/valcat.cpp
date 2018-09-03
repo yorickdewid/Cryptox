@@ -164,6 +164,35 @@ BOOST_AUTO_TEST_CASE(ValCatArrayValue)
 	BOOST_REQUIRE((std::vector<double>{8734.823123, 891.6418}) == valArDouble.As<double>());
 }
 
+BOOST_AUTO_TEST_CASE(ValCatArrayValueSerialize)
+{
+	Cry::ByteArray baArInt;
+	ArrayValue valArInt{ 1,2,3,4,5,6,7,8,9,0 };
+	ArrayValue::Serialize(valArInt, baArInt);
+	ArrayValue valArIntExp{ 0 };
+	ArrayValue::Deserialize(valArIntExp, baArInt);
+
+	Cry::ByteArray baArUint;
+	ArrayValue valArUint{ 1U,2U,3U,4U,5U,6U,7U,8U,9U };
+	ArrayValue::Serialize(valArUint, baArUint);
+	ArrayValue valArUintExp{ 0 };
+	ArrayValue::Deserialize(valArUintExp, baArUint);
+
+	BOOST_REQUIRE((std::vector<int>{1, 2, 3, 4, 5, 6, 7, 8, 9, 0}) == valArIntExp.As<int>());
+	BOOST_REQUIRE((std::vector<unsigned int>{1U, 2U, 3U, 4U, 5U, 6U, 7U, 8U, 9U}) == valArUintExp.As<unsigned int>());
+}
+
+BOOST_AUTO_TEST_CASE(ValCatArrayValueMisc)
+{
+	ArrayValue valArInt{ 1,2,3,4,5,6,7,8,9,0 };
+	ArrayValue valCopy{ valArInt };
+	ArrayValue valMove{ std::move(valCopy) };
+	valArInt = { 11,12,13,14,15,16,17,18,19 };
+
+	BOOST_REQUIRE((std::vector<int>{1, 2, 3, 4, 5, 6, 7, 8, 9, 0}) == valMove.As<int>());
+	BOOST_REQUIRE((std::vector<int>{11, 12, 13, 14, 15, 16, 17, 18, 19}) == valArInt.As<int>());
+}
+
 //
 // RecordValue.
 //

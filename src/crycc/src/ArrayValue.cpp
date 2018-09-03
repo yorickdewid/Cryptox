@@ -186,6 +186,11 @@ struct ArrayValue::PackerVisitor final : public boost::static_visitor<>
 	}
 };
 
+void ArrayValue::ConstructFromType()
+{
+	//
+}
+
 // Convert single value into data stream.
 void ArrayValue::Serialize(const ArrayValue& value, Cry::ByteArray& buffer)
 {

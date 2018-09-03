@@ -16,6 +16,7 @@
 #include <Cry/Cry.h>
 #include <Cry/TypeTrait.h>
 #include <Cry/Serialize.h>
+#include <Cry/Algorithm.h>
 
 #include <boost/variant.hpp>
 
@@ -63,32 +64,21 @@ public:
 	ArrayValue& operator=(const ArrayValue&) = default;
 	ArrayValue& operator=(ArrayValue&&) = default;
 
-	template<typename ValueType, typename = typename std::enable_if<ArrayTypeList::has_type<std::vector<ValueType>>::value>::type>
-	ArrayValue(std::initializer_list<ValueType>&&);
-
-	template<>
-	ArrayValue(std::initializer_list<Typedef::IntegerType::alias>&& valueList)
-		: m_value{ std::move(valueList) }
+	// Initialize the type variant with a primitive type.
+	template<typename Type, typename = typename std::enable_if<
+		!std::is_same<Type, std::add_lvalue_reference<ArrayValue>::type>::value
+	>::type>
+		ArrayValue(std::initializer_list<Type>&& value)
+		: m_value{ std::vector<Typedef::PrimitiveSelectorStorageType<Type>>{ value.begin(), value.end() } }
 	{
+		static_assert(ArrayTypeList::has_type<std::vector<Typedef::PrimitiveSelectorStorageType<Type>>>::value);
 	}
 
-	template<>
-	ArrayValue(std::initializer_list<Typedef::UnsignedIntegerType::alias>&& valueList)
-		: m_value{ std::move(valueList) }
-	{
-	}
-
-	template<>
-	ArrayValue(std::initializer_list<Typedef::FloatType::alias>&& valueList)
-		: m_value{ std::move(valueList) }
-	{
-	}
-
-	template<>
-	ArrayValue(std::initializer_list<Typedef::DoubleType::alias>&& valueList)
-		: m_value{ std::move(valueList) }
-	{
-	}
+	// template<>
+	// ArrayValue(std::initializer_list<Typedef::IntegerType::alias>&& valueList)
+	// 	: m_value{ std::move(valueList) }
+	// {
+	// }
 
 	virtual void ValueInit() override
 	{
@@ -97,11 +87,19 @@ public:
 
 	virtual ~ArrayValue() {}
 
+	//
+	// Implement multiordinal contract.
+	//
+
 	template<typename ReturnType>
-	auto As() const
+	auto As() const -> std::vector<ReturnType>
 	{
 		try {
-			return boost::strict_get<ReturnType>(m_value);
+			auto valueList = boost::strict_get<std::vector<Typedef::PrimitiveSelectorStorageType<ReturnType>>>(m_value);
+			std::vector<ReturnType> tmpVal;
+			tmpVal.reserve(valueList.size());
+			Cry::Algorithm::ContainerCast<ReturnType>(valueList.begin(), valueList.end(), std::back_inserter(tmpVal));
+			return tmpVal;
 		}
 		catch (const boost::bad_get&) {
 			throw InvalidTypeCastException{};
