@@ -98,7 +98,9 @@ struct HasArithmeticOps
 		&& std::is_same<Type, decltype(std::declval<Type>() - std::declval<Type>())>::value
 		&& std::is_same<Type, decltype(std::declval<Type>() * std::declval<Type>())>::value
 		&& std::is_same<Type, decltype(std::declval<Type>() / std::declval<Type>())>::value
-		&& std::is_same<Type, decltype(std::declval<Type>() % std::declval<Type>())>::value;
+		&& std::is_same<Type, decltype(std::declval<Type>() % std::declval<Type>())>::value
+		&& std::is_same<decltype(std::declval<Type>().operator++()), typename std::add_lvalue_reference<Type>::type>::value
+		&& std::is_same<decltype(std::declval<Type>().operator--()), typename std::add_lvalue_reference<Type>::type>::value;
 };
 
 template<typename Type>
@@ -184,7 +186,7 @@ struct IsValueContractCompliable
 		&& Trait::HasSerialize<Type>::value
 		&& Trait::HasDeserialize<Type>::value
 		&& Trait::HasEqualOperator<Type>::value
-        && Trait::HasTypedefType<Type>::value
+		&& Trait::HasTypedefType<Type>::value
 		&& Trait::HasArithmeticOps<Type>::value;
 };
 

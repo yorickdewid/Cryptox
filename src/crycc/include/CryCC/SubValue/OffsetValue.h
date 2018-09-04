@@ -33,17 +33,10 @@ public:
     // Unique value identifier.
     inline constexpr static const int value_category_identifier = 14;
 
-	OffsetValue(const OffsetValue& other)
-        : m_iterValue{ other.m_iterValue }
-        , m_offset{ other.m_offset }
-    {}
+	OffsetValue(const OffsetValue&);
 	OffsetValue(OffsetValue&&) = default;
 
-	OffsetValue& operator=(const OffsetValue& other)
-    {
-        m_iterValue = other.m_iterValue;
-        m_offset = other.m_offset;
-    }
+	OffsetValue& operator=(const OffsetValue&);
 	OffsetValue& operator=(OffsetValue&&) = default;
 
     template<typename ValueCategoryType, typename = typename std::enable_if<IsValueIterable<ValueCategoryType>::value>::type>
@@ -73,6 +66,11 @@ public:
     //
 	// Arithmetic operators.
 	//
+
+	OffsetValue& operator++();
+	OffsetValue& operator--();
+	OffsetValue operator++(int);
+	OffsetValue operator--(int);
 
 	friend OffsetValue operator+(const OffsetValue&, const OffsetValue&) { throw InvalidValueArithmeticException{}; }
 	friend OffsetValue operator-(const OffsetValue&, const OffsetValue&) { throw InvalidValueArithmeticException{}; }

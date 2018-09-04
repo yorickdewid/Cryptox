@@ -58,6 +58,11 @@ public:
 	// Arithmetic operators.
 	//
 
+	ReferenceValue& operator++();
+	ReferenceValue& operator--();
+	ReferenceValue operator++(int);
+	ReferenceValue operator--(int);
+
 	friend ReferenceValue operator+(const ReferenceValue&, const ReferenceValue&);
 	friend ReferenceValue operator-(const ReferenceValue&, const ReferenceValue&);
 	friend ReferenceValue operator*(const ReferenceValue&, const ReferenceValue&);

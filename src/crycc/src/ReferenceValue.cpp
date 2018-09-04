@@ -11,8 +11,6 @@
 namespace CryCC::SubValue::Valuedef
 {
 
-//using namespace CryCC::SubValue::Typedef;
-
 ReferenceValue::ReferenceValue(Value2&& value)
     : m_refValue{ std::make_unique<Value2>(std::move(value)) }
 {
@@ -50,7 +48,33 @@ bool ReferenceValue::operator==(const ReferenceValue& other) const
 // Convert current value to string.
 std::string ReferenceValue::ToString() const
 {
-	return "(ref)"; //TODO
+	return "(ref)"; //TODO:
+}
+
+ReferenceValue& ReferenceValue::operator++()
+{
+	// ++(*lhs.m_refValue);//TODO:
+	return (*this);
+}
+
+ReferenceValue& ReferenceValue::operator--()
+{
+	// --(*lhs.m_refValue);//TODO:
+	return (*this);
+}
+
+ReferenceValue ReferenceValue::operator++(int)
+{
+	ReferenceValue tmp = std::as_const(*this);
+	// (*lhs.m_refValue)++;//TODO:
+	return tmp;
+}
+
+ReferenceValue ReferenceValue::operator--(int)
+{
+	ReferenceValue tmp = std::as_const(*this);
+	// (*lhs.m_refValue)--;//TODO:
+	return tmp;
 }
 
 ReferenceValue operator+(const ReferenceValue& lhs, const ReferenceValue& rhs)

@@ -45,6 +45,11 @@ public:
 	// Arithmetic operators.
 	//
 
+	NilValue& operator++() { throw InvalidValueArithmeticException{}; }
+	NilValue& operator--() { throw InvalidValueArithmeticException{}; }
+	NilValue operator++(int) { throw InvalidValueArithmeticException{}; }
+	NilValue operator--(int) { throw InvalidValueArithmeticException{}; }
+
 	friend NilValue operator+(const NilValue&, const NilValue&) { throw InvalidValueArithmeticException{}; }
 	friend NilValue operator-(const NilValue&, const NilValue&) { throw InvalidValueArithmeticException{}; }
 	friend NilValue operator*(const NilValue&, const NilValue&) { throw InvalidValueArithmeticException{}; }

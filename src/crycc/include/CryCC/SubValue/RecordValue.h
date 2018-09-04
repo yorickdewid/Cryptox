@@ -133,6 +133,11 @@ public:
 	// Arithmetic operators.
 	//
 
+	RecordValue& operator++() { throw InvalidValueArithmeticException{}; }
+	RecordValue& operator--() { throw InvalidValueArithmeticException{}; }
+	RecordValue operator++(int) { throw InvalidValueArithmeticException{}; }
+	RecordValue operator--(int) { throw InvalidValueArithmeticException{}; }
+
 	friend RecordValue operator+(const RecordValue&, const RecordValue&) { throw InvalidValueArithmeticException{}; }
 	friend RecordValue operator-(const RecordValue&, const RecordValue&) { throw InvalidValueArithmeticException{}; }
 	friend RecordValue operator*(const RecordValue&, const RecordValue&) { throw InvalidValueArithmeticException{}; }

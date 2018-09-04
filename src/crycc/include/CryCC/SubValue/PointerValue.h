@@ -48,6 +48,11 @@ public:
 	// Arithmetic operators.
 	//
 
+	PointerValue& operator++() { return (*this); }
+	PointerValue& operator--() { return (*this); }
+	PointerValue operator++(int) { return PointerValue{}; }
+	PointerValue operator--(int) { return PointerValue{}; }
+
 	friend PointerValue operator+(const PointerValue&, const PointerValue&) { return PointerValue{}; }
 	friend PointerValue operator-(const PointerValue&, const PointerValue&) { return PointerValue{}; }
 	friend PointerValue operator*(const PointerValue&, const PointerValue&) { return PointerValue{}; }

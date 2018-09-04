@@ -167,6 +167,11 @@ public:
 	// Arithmetic operators.
 	//
 
+	ArrayValue& operator++() { throw InvalidValueArithmeticException{}; }
+	ArrayValue& operator--() { throw InvalidValueArithmeticException{}; }
+	ArrayValue operator++(int) { throw InvalidValueArithmeticException{}; }
+	ArrayValue operator--(int) { throw InvalidValueArithmeticException{}; }
+
 	friend ArrayValue operator+(const ArrayValue&, const ArrayValue&) { throw InvalidValueArithmeticException{}; }
 	friend ArrayValue operator-(const ArrayValue&, const ArrayValue&) { throw InvalidValueArithmeticException{}; }
 	friend ArrayValue operator*(const ArrayValue&, const ArrayValue&) { throw InvalidValueArithmeticException{}; }

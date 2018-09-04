@@ -165,14 +165,13 @@ std::string BuiltinValue::ToString() const
 	return "REPLACE ME"; //TODO:
 }
 
-template<template<typename> typename BinaryOperation>
+template<template<typename> typename BinaryOperation, auto Incr = 1>
 struct AlternateVisitor final : public boost::static_visitor<>
 {
 	template<typename Type>
 	void operator()(Type& value)
 	{
-		BinaryOperation<Type> op;
-		value = op(value, Type{ 1 });
+		value = std::invoke(BinaryOperation<Type>(), value, Type{ Incr });
 	}
 };
 
