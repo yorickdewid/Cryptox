@@ -8,11 +8,7 @@
 
 #include <CryCC/SubValue/ReferenceValue.h>
 
-namespace CryCC
-{
-namespace SubValue
-{
-namespace Valuedef
+namespace CryCC::SubValue::Valuedef
 {
 
 //using namespace CryCC::SubValue::Typedef;
@@ -57,6 +53,29 @@ std::string ReferenceValue::ToString() const
 	return "(ref)"; //TODO
 }
 
-} // namespace Valuedef
-} // namespace SubValue
-} // namespace CryCC
+ReferenceValue operator+(const ReferenceValue& lhs, const ReferenceValue& rhs)
+{
+	return (*lhs.m_refValue) + (*rhs.m_refValue);
+}
+
+ReferenceValue operator-(const ReferenceValue& lhs, const ReferenceValue& rhs)
+{
+	return (*lhs.m_refValue) - (*rhs.m_refValue);
+}
+
+ReferenceValue operator*(const ReferenceValue& lhs, const ReferenceValue& rhs)
+{
+	return (*lhs.m_refValue) * (*rhs.m_refValue);
+}
+
+ReferenceValue operator/(const ReferenceValue& lhs, const ReferenceValue& rhs)
+{
+	return (*lhs.m_refValue) / (*rhs.m_refValue);
+}
+
+ReferenceValue operator%(const ReferenceValue& lhs, const ReferenceValue& rhs)
+{
+	return (*lhs.m_refValue) % (*rhs.m_refValue);
+}
+
+} // namespace CryCC::SubValue::Valuedef

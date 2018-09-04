@@ -60,9 +60,10 @@ public:
 	// Initialize the type variant with a primitive type.
 	template<typename Type, typename = typename std::enable_if<
 		!std::is_same<Type, std::add_lvalue_reference<BuiltinValue>::type>::value
+		&& !std::is_same<Type, BuiltinValue>::value
 	>::type>
-	BuiltinValue(Type value)
-	 	: m_value{ static_cast<Typedef::PrimitiveSelectorStorageType<Type>>(value) }
+		BuiltinValue(Type value)
+		: m_value{ static_cast<Typedef::PrimitiveSelectorStorageType<Type>>(value) }
 	{
 		static_assert(NativeTypeList::has_type<Typedef::PrimitiveSelectorStorageType<Type>>::value);
 	}
@@ -96,6 +97,16 @@ public:
 
 	// Convert current value to string.
 	std::string ToString() const;
+
+	//
+	// Arithmetic operators.
+	//
+
+	friend BuiltinValue operator+(const BuiltinValue&, const BuiltinValue&);
+	friend BuiltinValue operator-(const BuiltinValue&, const BuiltinValue&);
+	friend BuiltinValue operator*(const BuiltinValue&, const BuiltinValue&);
+	friend BuiltinValue operator/(const BuiltinValue&, const BuiltinValue&);
+	friend BuiltinValue operator%(const BuiltinValue&, const BuiltinValue&);
 };
 
 static_assert(std::is_copy_constructible<BuiltinValue>::value, "BuiltinValue !is_copy_constructible");

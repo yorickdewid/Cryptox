@@ -39,6 +39,7 @@ BOOST_AUTO_TEST_CASE(ValCatNilValueSerialize)
 	NilValue::Serialize(valNil, ba);
 	NilValue valNilExp;
 	NilValue::Deserialize(valNilExp, ba);
+	//TODO:
 }
 
 BOOST_AUTO_TEST_CASE(ValCatNilValueMisc)
@@ -100,6 +101,16 @@ BOOST_AUTO_TEST_CASE(ValCatBuiltinValue)
 
 	BOOST_REQUIRE_EQUAL(692.834f, valFloat.As<float>());
 	BOOST_REQUIRE_EQUAL(97347.862341, valDouble.As<double>());
+}
+
+BOOST_AUTO_TEST_CASE(ValCatBuiltinValueArith)
+{
+	BuiltinValue valChar{ 'a' };
+	BuiltinValue valLong{ 8236912L };
+
+	BuiltinValue valAdd = valLong + valChar;
+
+	BOOST_REQUIRE_EQUAL(8237009L, valAdd.As<long>());
 }
 
 BOOST_AUTO_TEST_CASE(ValCatBuiltinValueSerialize)

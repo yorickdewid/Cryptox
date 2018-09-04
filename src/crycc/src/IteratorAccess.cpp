@@ -39,16 +39,16 @@ struct ArrayAccess
 		}
 	};
 
-	static void woei(ArrayValue& value, size_t offset)
-	{
-		VectorVisitor visit{ offset };
-		value.m_value.apply_visitor(visit);
-	}
+	// static void woei(ArrayValue& value, size_t offset)
+	// {
+	// 	VectorVisitor visit{ offset };
+	// 	value.m_value.apply_visitor(visit);
+	// }
 };
 
 std::shared_ptr<Value2> ArrayIndexValue(Value2& value, size_t offset)
 {
-	ArrayValue array{ 1,2,3,4,5,6,7,8,9,0 };
+	// ArrayValue array{ 1,2,3,4,5,6,7,8,9,0 };
 
 	CRY_UNUSED(value);
 	CRY_UNUSED(offset);

@@ -27,7 +27,7 @@ struct BuiltinValue::PackerVisitor final : public boost::static_visitor<>
 		: m_buffer{ buffer }
 	{
 	}
-	
+
 	template<typename PrimitiveType>
 	void EncodeValue(const typename PrimitiveType::storage_type& value) const
 	{
@@ -39,44 +39,54 @@ struct BuiltinValue::PackerVisitor final : public boost::static_visitor<>
 	{
 		EncodeValue<CharType>(value);
 	}
+
 	void operator()(const typename ShortType::storage_type& value) const
 	{
 		EncodeValue<ShortType>(value);
 	}
+
 	void operator()(const typename IntegerType::storage_type& value) const
 	{
 		EncodeValue<IntegerType>(value);
 	}
+
 	void operator()(const typename LongType::storage_type& value) const
 	{
 		EncodeValue<LongType>(value);
 	}
+
 	void operator()(const typename UnsignedCharType::storage_type& value) const
 	{
 		EncodeValue<UnsignedCharType>(value);
 	}
+
 	void operator()(const typename UnsignedShortType::storage_type& value) const
 	{
 		EncodeValue<UnsignedShortType>(value);
 	}
+
 	void operator()(const typename UnsignedIntegerType::storage_type& value) const
 	{
 		EncodeValue<UnsignedIntegerType>(value);
 	}
+
 	void operator()(const typename UnsignedLongType::storage_type& value) const
 	{
 		EncodeValue<UnsignedLongType>(value);
 	}
+
 	void operator()(const typename FloatType::storage_type& value) const
 	{
 		m_buffer.SerializeAs<Cry::Byte>(FloatType::specifier);
 		m_buffer.SerializeAs<Cry::Word>(value);
 	}
+
 	void operator()(const typename DoubleType::storage_type& value) const
 	{
 		m_buffer.SerializeAs<Cry::Byte>(DoubleType::specifier);
 		m_buffer.SerializeAs<Cry::DoubleWord>(value);
 	}
+
 	void operator()(const typename LongDoubleType::storage_type& value) const
 	{
 		m_buffer.SerializeAs<Cry::Byte>(LongDoubleType::specifier);
@@ -157,6 +167,62 @@ bool BuiltinValue::operator==(const BuiltinValue&) const
 std::string BuiltinValue::ToString() const
 {
 	return "REPLACE ME"; //TODO
+}
+
+struct Visitor final : public boost::static_visitor<>
+{
+	long int commonValue = 0;
+
+	template<typename Type>
+	void operator()(const Type& value)
+	{
+		commonValue = static_cast<long int>(value);
+	}
+};
+
+BuiltinValue operator+(const BuiltinValue& lhs, const BuiltinValue& rhs)
+{
+	Visitor valueVisitor;
+	lhs.m_value.apply_visitor(valueVisitor);
+	Visitor valueVisitor2;
+	rhs.m_value.apply_visitor(valueVisitor2);
+	return valueVisitor.commonValue + valueVisitor2.commonValue;
+}
+
+BuiltinValue operator-(const BuiltinValue& lhs, const BuiltinValue& rhs)
+{
+	Visitor valueVisitor;
+	lhs.m_value.apply_visitor(valueVisitor);
+	Visitor valueVisitor2;
+	rhs.m_value.apply_visitor(valueVisitor2);
+	return valueVisitor.commonValue - valueVisitor2.commonValue;
+}
+
+BuiltinValue operator*(const BuiltinValue& lhs, const BuiltinValue& rhs)
+{
+	Visitor valueVisitor;
+	lhs.m_value.apply_visitor(valueVisitor);
+	Visitor valueVisitor2;
+	rhs.m_value.apply_visitor(valueVisitor2);
+	return valueVisitor.commonValue * valueVisitor2.commonValue;
+}
+
+BuiltinValue operator/(const BuiltinValue& lhs, const BuiltinValue& rhs)
+{
+	Visitor valueVisitor;
+	lhs.m_value.apply_visitor(valueVisitor);
+	Visitor valueVisitor2;
+	rhs.m_value.apply_visitor(valueVisitor2);
+	return valueVisitor.commonValue / valueVisitor2.commonValue;
+}
+
+BuiltinValue operator%(const BuiltinValue& lhs, const BuiltinValue& rhs)
+{
+	Visitor valueVisitor;
+	lhs.m_value.apply_visitor(valueVisitor);
+	Visitor valueVisitor2;
+	rhs.m_value.apply_visitor(valueVisitor2);
+	return valueVisitor.commonValue % valueVisitor2.commonValue;
 }
 
 } // namespace Valuedef

@@ -42,6 +42,17 @@ public:
 
     // TODO:
 	std::string ToString() const { return "(ptr)"; }
+
+	//TODO:
+	//
+	// Arithmetic operators.
+	//
+
+	friend PointerValue operator+(const PointerValue&, const PointerValue&) { return PointerValue{}; }
+	friend PointerValue operator-(const PointerValue&, const PointerValue&) { return PointerValue{}; }
+	friend PointerValue operator*(const PointerValue&, const PointerValue&) { return PointerValue{}; }
+	friend PointerValue operator/(const PointerValue&, const PointerValue&) { return PointerValue{}; }
+	friend PointerValue operator%(const PointerValue&, const PointerValue&) { return PointerValue{}; }
 };
 
 static_assert(std::is_copy_constructible<PointerValue>::value, "PointerValue !is_copy_constructible");

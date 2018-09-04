@@ -129,6 +129,16 @@ public:
 	// Convert current value to string.
 	std::string ToString() const;
 
+	//
+	// Arithmetic operators.
+	//
+
+	friend RecordValue operator+(const RecordValue&, const RecordValue&) { throw InvalidValueArithmeticException{}; }
+	friend RecordValue operator-(const RecordValue&, const RecordValue&) { throw InvalidValueArithmeticException{}; }
+	friend RecordValue operator*(const RecordValue&, const RecordValue&) { throw InvalidValueArithmeticException{}; }
+	friend RecordValue operator/(const RecordValue&, const RecordValue&) { throw InvalidValueArithmeticException{}; }
+	friend RecordValue operator%(const RecordValue&, const RecordValue&) { throw InvalidValueArithmeticException{}; }
+
 	// Capture value and wrap inside a managed pointer.
 	template<typename Type>
 	inline static auto AutoValue(Type val) -> std::shared_ptr<Type>

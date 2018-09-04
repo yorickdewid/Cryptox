@@ -69,6 +69,14 @@ struct InvalidTypeCastException : public std::runtime_error
 	}
 };
 
+struct InvalidValueArithmeticException : public std::runtime_error
+{
+	explicit InvalidValueArithmeticException()
+		: runtime_error{ "" } //TODO:
+	{
+	}
+};
+
 struct OutOfBoundsException : public std::runtime_error
 {
 	explicit OutOfBoundsException()

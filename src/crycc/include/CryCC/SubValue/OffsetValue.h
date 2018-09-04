@@ -69,6 +69,16 @@ public:
 
     // Convert current value to string.
 	std::string ToString() const { return "(ofs)"; }
+
+    //
+	// Arithmetic operators.
+	//
+
+	friend OffsetValue operator+(const OffsetValue&, const OffsetValue&) { throw InvalidValueArithmeticException{}; }
+	friend OffsetValue operator-(const OffsetValue&, const OffsetValue&) { throw InvalidValueArithmeticException{}; }
+	friend OffsetValue operator*(const OffsetValue&, const OffsetValue&) { throw InvalidValueArithmeticException{}; }
+	friend OffsetValue operator/(const OffsetValue&, const OffsetValue&) { throw InvalidValueArithmeticException{}; }
+	friend OffsetValue operator%(const OffsetValue&, const OffsetValue&) { throw InvalidValueArithmeticException{}; }
 };
 
 static_assert(std::is_copy_constructible<OffsetValue>::value, "OffsetValue !is_copy_constructible");

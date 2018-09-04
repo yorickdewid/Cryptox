@@ -53,6 +53,16 @@ public:
 
     // Convert current value to string.
 	std::string ToString() const;
+
+	//
+	// Arithmetic operators.
+	//
+
+	friend ReferenceValue operator+(const ReferenceValue&, const ReferenceValue&);
+	friend ReferenceValue operator-(const ReferenceValue&, const ReferenceValue&);
+	friend ReferenceValue operator*(const ReferenceValue&, const ReferenceValue&);
+	friend ReferenceValue operator/(const ReferenceValue&, const ReferenceValue&);
+	friend ReferenceValue operator%(const ReferenceValue&, const ReferenceValue&);
 };
 
 static_assert(std::is_copy_constructible<ReferenceValue>::value, "ReferenceValue !is_copy_constructible");

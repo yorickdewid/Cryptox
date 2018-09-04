@@ -43,34 +43,42 @@ struct ArrayValue::PackerVisitor final : public boost::static_visitor<>
 	{
 		EncodeValue<CharType>(value);
 	}
+
 	void operator()(const std::vector<ShortType::storage_type>& value) const
 	{
 		EncodeValue<ShortType>(value);
 	}
+
 	void operator()(const std::vector<IntegerType::storage_type>& value) const
 	{
 		EncodeValue<IntegerType>(value);
 	}
+
 	void operator()(const std::vector<LongType::storage_type>& value) const
 	{
 		EncodeValue<LongType>(value);
 	}
+
 	void operator()(const std::vector<UnsignedCharType::storage_type>& value) const
 	{
 		EncodeValue<UnsignedCharType>(value);
 	}
+
 	void operator()(const std::vector<UnsignedShortType::storage_type>& value) const
 	{
 		EncodeValue<UnsignedShortType>(value);
 	}
+
 	void operator()(const std::vector<UnsignedIntegerType::storage_type>& value) const
 	{
 		EncodeValue<UnsignedIntegerType>(value);
 	}
+
 	void operator()(const std::vector<UnsignedLongType::storage_type>& value) const
 	{
 		EncodeValue<UnsignedLongType>(value);
 	}
+
 	void operator()(const std::vector<FloatType::storage_type>& value) const
 	{
 		m_buffer.SerializeAs<Cry::Byte>(FloatType::specifier);
@@ -79,6 +87,7 @@ struct ArrayValue::PackerVisitor final : public boost::static_visitor<>
 			m_buffer.SerializeAs<Cry::Word>(element);
 		}
 	}
+
 	void operator()(const std::vector<DoubleType::storage_type>& value) const
 	{
 		m_buffer.SerializeAs<Cry::Byte>(DoubleType::specifier);
@@ -87,6 +96,7 @@ struct ArrayValue::PackerVisitor final : public boost::static_visitor<>
 			m_buffer.SerializeAs<Cry::DoubleWord>(element);
 		}
 	}
+
 	void operator()(const std::vector<LongDoubleType::storage_type>& value) const
 	{
 		m_buffer.SerializeAs<Cry::Byte>(LongDoubleType::specifier);
@@ -95,6 +105,7 @@ struct ArrayValue::PackerVisitor final : public boost::static_visitor<>
 			m_buffer.SerializeAs<Cry::DoubleWord>(element);
 		}
 	}
+
 	void operator()(const std::vector<Value2>& value) const
 	{
 		m_buffer.SerializeAs<Cry::Byte>(PrimitiveSpecifier::PS_RESV1);

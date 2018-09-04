@@ -40,6 +40,16 @@ public:
 
     // Convert current value to string.
 	std::string ToString() const { return "(nil)"; }
+
+	//
+	// Arithmetic operators.
+	//
+
+	friend NilValue operator+(const NilValue&, const NilValue&) { throw InvalidValueArithmeticException{}; }
+	friend NilValue operator-(const NilValue&, const NilValue&) { throw InvalidValueArithmeticException{}; }
+	friend NilValue operator*(const NilValue&, const NilValue&) { throw InvalidValueArithmeticException{}; }
+	friend NilValue operator/(const NilValue&, const NilValue&) { throw InvalidValueArithmeticException{}; }
+	friend NilValue operator%(const NilValue&, const NilValue&) { throw InvalidValueArithmeticException{}; }
 };
 
 static_assert(sizeof(NilValue) == sizeof(AbstractValue<NilValue>), "NilValue should not hold data");

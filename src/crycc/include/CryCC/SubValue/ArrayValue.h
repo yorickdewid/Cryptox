@@ -67,6 +67,7 @@ public:
 	// Initialize the type variant with a primitive type.
 	template<typename Type, typename = typename std::enable_if<
 		!std::is_same<Type, std::add_lvalue_reference<ArrayValue>::type>::value
+		&& !std::is_same<Type, ArrayValue>::value
 	>::type>
 		ArrayValue(std::initializer_list<Type>&& value)
 		: m_value{ std::vector<Typedef::PrimitiveSelectorStorageType<Type>>{ value.begin(), value.end() } }
@@ -161,6 +162,16 @@ public:
 
 	// Convert current value to string.
 	std::string ToString() const;
+
+	//
+	// Arithmetic operators.
+	//
+
+	friend ArrayValue operator+(const ArrayValue&, const ArrayValue&) { throw InvalidValueArithmeticException{}; }
+	friend ArrayValue operator-(const ArrayValue&, const ArrayValue&) { throw InvalidValueArithmeticException{}; }
+	friend ArrayValue operator*(const ArrayValue&, const ArrayValue&) { throw InvalidValueArithmeticException{}; }
+	friend ArrayValue operator/(const ArrayValue&, const ArrayValue&) { throw InvalidValueArithmeticException{}; }
+	friend ArrayValue operator%(const ArrayValue&, const ArrayValue&) { throw InvalidValueArithmeticException{}; }
 };
 
 static_assert(std::is_copy_constructible<ArrayValue>::value, "ArrayValue !is_copy_constructible");
