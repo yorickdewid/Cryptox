@@ -74,11 +74,11 @@ public:
 		static_assert(ArrayTypeList::has_type<std::vector<Typedef::PrimitiveSelectorStorageType<Type>>>::value);
 	}
 
-	// template<>
-	// ArrayValue(std::initializer_list<Typedef::IntegerType::alias>&& valueList)
-	// 	: m_value{ std::move(valueList) }
-	// {
-	// }
+	template<>
+	ArrayValue(std::initializer_list<Value2>&& valueList)
+		: m_value{ std::move(valueList) }
+	{
+	}
 
 	virtual void ValueInit() override
 	{
@@ -110,7 +110,10 @@ public:
 	// Implement iterable contract.
 	//
 
-	size_type Size() const { return 0; }
+	size_type Size() const
+	{
+		return m_linkType->DataType<typdef_type>()->Order();
+	}
 
 	// Get the value at offset.
 	template<typename ReturnType>
