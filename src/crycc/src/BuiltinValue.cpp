@@ -143,84 +143,122 @@ struct BuiltinValue::PackerVisitor final : public boost::static_visitor<>
 	}
 };
 
-// Convert single value into data stream.
 void BuiltinValue::Serialize(const BuiltinValue& value, buffer_type& buffer)
 {
 	PackerVisitor valueVisitor{ buffer };
 	value.m_value.apply_visitor(valueVisitor);
 }
 
-// Convert data stream into single value.
 void BuiltinValue::Deserialize(BuiltinValue& value, buffer_type& buffer)
 {
 	PackerVisitor valueVisitor{ buffer };
 	valueVisitor(value.m_value);
 }
 
-// Compare to other BuiltinValue.
 bool BuiltinValue::operator==(const BuiltinValue&) const
 {
 	return false;
 }
 
-// Convert current value to string.
 std::string BuiltinValue::ToString() const
 {
-	return "REPLACE ME"; //TODO
+	return "REPLACE ME"; //TODO:
 }
 
-struct Visitor final : public boost::static_visitor<>
+template<template<typename> typename BinaryOperation>
+struct AlternateVisitor final : public boost::static_visitor<>
 {
-	long int commonValue = 0;
+	template<typename Type>
+	void operator()(Type& value)
+	{
+		BinaryOperation<Type> op;
+		value = op(value, Type{ 1 });
+	}
+};
+
+BuiltinValue& BuiltinValue::operator++()
+{
+	AlternateVisitor<std::plus> valueVisitor;
+	m_value.apply_visitor(valueVisitor);
+	return (*this);
+}
+
+BuiltinValue& BuiltinValue::operator--()
+{
+	AlternateVisitor<std::minus> valueVisitor;
+	m_value.apply_visitor(valueVisitor);
+	return (*this);
+}
+
+BuiltinValue BuiltinValue::operator++(int)
+{
+	BuiltinValue tmp = std::as_const(*this);
+	AlternateVisitor<std::plus> valueVisitor;
+	m_value.apply_visitor(valueVisitor);
+	return tmp;
+}
+
+BuiltinValue BuiltinValue::operator--(int)
+{
+	BuiltinValue tmp = std::as_const(*this);
+	AlternateVisitor<std::minus> valueVisitor;
+	m_value.apply_visitor(valueVisitor);
+	return tmp;
+}
+
+template<typename IntermediateType>
+struct CastVisitor final : public boost::static_visitor<>
+{
+	IntermediateType commonValue = 0;
 
 	template<typename Type>
 	void operator()(const Type& value)
 	{
-		commonValue = static_cast<long int>(value);
+		commonValue = static_cast<IntermediateType>(value);
 	}
 };
 
 BuiltinValue operator+(const BuiltinValue& lhs, const BuiltinValue& rhs)
 {
-	Visitor valueVisitor;
+	CastVisitor<long int> valueVisitor;
 	lhs.m_value.apply_visitor(valueVisitor);
-	Visitor valueVisitor2;
+	CastVisitor<long int> valueVisitor2;
 	rhs.m_value.apply_visitor(valueVisitor2);
 	return valueVisitor.commonValue + valueVisitor2.commonValue;
 }
 
 BuiltinValue operator-(const BuiltinValue& lhs, const BuiltinValue& rhs)
 {
-	Visitor valueVisitor;
+	CastVisitor<long int> valueVisitor;
 	lhs.m_value.apply_visitor(valueVisitor);
-	Visitor valueVisitor2;
+	CastVisitor<long int> valueVisitor2;
 	rhs.m_value.apply_visitor(valueVisitor2);
 	return valueVisitor.commonValue - valueVisitor2.commonValue;
 }
 
 BuiltinValue operator*(const BuiltinValue& lhs, const BuiltinValue& rhs)
 {
-	Visitor valueVisitor;
+	CastVisitor<long int> valueVisitor;
 	lhs.m_value.apply_visitor(valueVisitor);
-	Visitor valueVisitor2;
+	CastVisitor<long int> valueVisitor2;
 	rhs.m_value.apply_visitor(valueVisitor2);
 	return valueVisitor.commonValue * valueVisitor2.commonValue;
 }
 
 BuiltinValue operator/(const BuiltinValue& lhs, const BuiltinValue& rhs)
 {
-	Visitor valueVisitor;
+	CastVisitor<long int> valueVisitor;
 	lhs.m_value.apply_visitor(valueVisitor);
-	Visitor valueVisitor2;
+	CastVisitor<long int> valueVisitor2;
 	rhs.m_value.apply_visitor(valueVisitor2);
 	return valueVisitor.commonValue / valueVisitor2.commonValue;
 }
 
 BuiltinValue operator%(const BuiltinValue& lhs, const BuiltinValue& rhs)
 {
-	Visitor valueVisitor;
+	CastVisitor<long int> valueVisitor;
 	lhs.m_value.apply_visitor(valueVisitor);
-	Visitor valueVisitor2;
+	CastVisitor<long int> valueVisitor2;
 	rhs.m_value.apply_visitor(valueVisitor2);
 	return valueVisitor.commonValue % valueVisitor2.commonValue;
 }

@@ -105,12 +105,27 @@ BOOST_AUTO_TEST_CASE(ValCatBuiltinValue)
 
 BOOST_AUTO_TEST_CASE(ValCatBuiltinValueArith)
 {
-	BuiltinValue valChar{ 'a' };
-	BuiltinValue valLong{ 8236912L };
+	{
+		BuiltinValue valChar{ 'a' };
+		BuiltinValue valLong{ 8236912L };
 
-	BuiltinValue valAdd = valLong + valChar;
+		BuiltinValue valAdd = valLong + valChar;
 
-	BOOST_REQUIRE_EQUAL(8237009L, valAdd.As<long>());
+		BOOST_REQUIRE_EQUAL(8237009L, valAdd.As<long>());
+	}
+
+	{
+		BuiltinValue valInt{ 172441 };
+		++valInt;
+		valInt++;
+		
+		BuiltinValue valUlong{ 8613UL };
+		--valUlong;
+		valUlong--;
+
+		BOOST_REQUIRE_EQUAL(172443, valInt.As<int>());
+		BOOST_REQUIRE_EQUAL(8611UL, valUlong.As<unsigned long>());
+	}
 }
 
 BOOST_AUTO_TEST_CASE(ValCatBuiltinValueSerialize)

@@ -102,6 +102,11 @@ public:
 	// Arithmetic operators.
 	//
 
+	BuiltinValue& operator++();
+	BuiltinValue& operator--();
+	BuiltinValue operator++(int);
+	BuiltinValue operator--(int);
+
 	friend BuiltinValue operator+(const BuiltinValue&, const BuiltinValue&);
 	friend BuiltinValue operator-(const BuiltinValue&, const BuiltinValue&);
 	friend BuiltinValue operator*(const BuiltinValue&, const BuiltinValue&);

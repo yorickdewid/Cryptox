@@ -91,6 +91,19 @@ namespace Trait
 template<typename Type>
 using HasToString = std::is_same<decltype(std::declval<Type>().ToString()), std::string>;
 
+template<typename Type>
+struct HasArithmeticOps
+{
+	inline constexpr static const bool value = std::is_same<Type, decltype(std::declval<Type>() + std::declval<Type>())>::value
+		&& std::is_same<Type, decltype(std::declval<Type>() - std::declval<Type>())>::value
+		&& std::is_same<Type, decltype(std::declval<Type>() * std::declval<Type>())>::value
+		&& std::is_same<Type, decltype(std::declval<Type>() / std::declval<Type>())>::value
+		&& std::is_same<Type, decltype(std::declval<Type>() % std::declval<Type>())>::value;
+};
+
+template<typename Type>
+inline constexpr bool HasArithmeticOps_v = HasArithmeticOps<Type>::value;
+
 template<typename Type, typename ReturnType, typename... Args>
 using TestSerializeMethod = std::is_same<decltype(std::declval<Type>().Serialize(std::declval<Args>()...)), ReturnType>;
 
@@ -171,7 +184,8 @@ struct IsValueContractCompliable
 		&& Trait::HasSerialize<Type>::value
 		&& Trait::HasDeserialize<Type>::value
 		&& Trait::HasEqualOperator<Type>::value
-        && Trait::HasTypedefType<Type>::value;
+        && Trait::HasTypedefType<Type>::value
+		&& Trait::HasArithmeticOps<Type>::value;
 };
 
 template<typename Type>
