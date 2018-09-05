@@ -32,16 +32,6 @@ BOOST_AUTO_TEST_CASE(ValCatNilValue)
 	BOOST_REQUIRE_EQUAL("(nil)", valNil.ToString());
 }
 
-BOOST_AUTO_TEST_CASE(ValCatNilValueSerialize)
-{
-	Cry::ByteArray ba;
-	NilValue valNil;
-	NilValue::Serialize(valNil, ba);
-	NilValue valNilExp;
-	NilValue::Deserialize(valNilExp, ba);
-	//TODO:
-}
-
 BOOST_AUTO_TEST_CASE(ValCatNilValueMisc)
 {
 	NilValue valNil;
@@ -105,7 +95,7 @@ BOOST_AUTO_TEST_CASE(ValCatBuiltinValue)
 
 BOOST_AUTO_TEST_CASE(ValCatBuiltinValueArith)
 {
-	// Addition
+	// Addition.
 	{
 		BuiltinValue valChar{ 'a' };
 		BuiltinValue valLong{ 8236912L };
@@ -115,7 +105,7 @@ BOOST_AUTO_TEST_CASE(ValCatBuiltinValueArith)
 		BOOST_REQUIRE_EQUAL(8237009L, valAdd.As<long>());
 	}
 
-	// Subtraction
+	// Subtraction.
 	{
 		BuiltinValue valUlong{ 3341 };
 		BuiltinValue valShort{ (short)-19 };
@@ -125,7 +115,7 @@ BOOST_AUTO_TEST_CASE(ValCatBuiltinValueArith)
 		BOOST_REQUIRE_EQUAL(3360L, valSub.As<long>());
 	}
 
-	// Multiplication
+	// Multiplication.
 	{
 		BuiltinValue valFloat{ 23.348f };
 		BuiltinValue valLong{ 29L };
@@ -135,7 +125,7 @@ BOOST_AUTO_TEST_CASE(ValCatBuiltinValueArith)
 		BOOST_REQUIRE_EQUAL(667L, valSub.As<long>());
 	}
 
-	// Division
+	// Division.
 	{
 		BuiltinValue valUchar{ (unsigned char)'V' };
 		BuiltinValue valChar{ (unsigned char)0x4 };
@@ -145,7 +135,7 @@ BOOST_AUTO_TEST_CASE(ValCatBuiltinValueArith)
 		BOOST_REQUIRE_EQUAL(21L, valSub.As<long>());
 	}
 
-	// Modulo
+	// Modulo.
 	{
 		BuiltinValue valUint{ 82381271U };
 		BuiltinValue valInt{ 5 };
@@ -155,12 +145,12 @@ BOOST_AUTO_TEST_CASE(ValCatBuiltinValueArith)
 		BOOST_REQUIRE_EQUAL(1L, valSub.As<long>());
 	}
 
-	// Increase/decrease
+	// Increase/decrease.
 	{
 		BuiltinValue valInt{ 172441 };
 		++valInt;
 		valInt++;
-		
+
 		BuiltinValue valUlong{ 8613UL };
 		--valUlong;
 		valUlong--;

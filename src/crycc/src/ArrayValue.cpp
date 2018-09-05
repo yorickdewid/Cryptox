@@ -16,7 +16,7 @@ namespace SubValue
 namespace Valuedef
 {
 
-using namespace CryCC::SubValue::Typedef;
+using namespace Cry;
 
 //FUTURE: Wrap in template method
 //TODO: Encode/decode float/double fully

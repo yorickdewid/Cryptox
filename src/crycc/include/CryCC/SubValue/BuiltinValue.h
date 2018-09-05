@@ -25,17 +25,17 @@ namespace CryCC::SubValue::Valuedef
 class BuiltinValue : public AbstractValue<BuiltinValue>
 {
 	//TODO: missing UnsignedLongDoubleType ?
-	using NativeTypeList = Cry::TypeTrait::TemplateHolder<Typedef::CharType::storage_type
-		, Typedef::ShortType::storage_type
-		, Typedef::IntegerType::storage_type
-		, Typedef::LongType::storage_type
-		, Typedef::UnsignedCharType::storage_type
-		, Typedef::UnsignedShortType::storage_type
-		, Typedef::UnsignedIntegerType::storage_type
-		, Typedef::UnsignedLongType::storage_type
-		, Typedef::FloatType::storage_type
-		, Typedef::DoubleType::storage_type
-		, Typedef::LongDoubleType::storage_type>;
+	using NativeTypeList = Cry::TypeTrait::TemplateHolder<Cry::CharType::storage_type
+		, Cry::ShortType::storage_type
+		, Cry::IntegerType::storage_type
+		, Cry::LongType::storage_type
+		, Cry::UnsignedCharType::storage_type
+		, Cry::UnsignedShortType::storage_type
+		, Cry::UnsignedIntegerType::storage_type
+		, Cry::UnsignedLongType::storage_type
+		, Cry::FloatType::storage_type
+		, Cry::DoubleType::storage_type
+		, Cry::LongDoubleType::storage_type>;
 	using ValueVariant = NativeTypeList::template_apply<boost::variant>;
 
 	ValueVariant m_value;
@@ -76,7 +76,7 @@ public:
 	auto As() const
 	{
 		try {
-			return static_cast<ReturnType>(boost::strict_get<Typedef::PrimitiveSelectorStorageType<ReturnType>>(m_value));
+			return static_cast<ReturnType>(boost::strict_get<Cry::PrimitiveSelectorStorageType<ReturnType>>(m_value));
 		}
 		catch (const boost::bad_get&) {
 			throw InvalidTypeCastException{};

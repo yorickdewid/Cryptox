@@ -10,10 +10,10 @@
 
 #include <CryCC/SubValue/ValueContract.h>
 #include <CryCC/SubValue/ArrayType.h>
-#include <CryCC/SubValue/PrimitiveTypes.h>
 #include <CryCC/SubValue/Valuedef.h>
 
 #include <Cry/Cry.h>
+#include <Cry/Types.h>
 #include <Cry/TypeTrait.h>
 #include <Cry/Serialize.h>
 #include <Cry/Algorithm.h>
@@ -27,17 +27,17 @@ namespace CryCC::SubValue::Valuedef
 
 class ArrayValue : public AbstractValue<ArrayValue>, public IterableContract
 {
-	using ArrayTypeList = Cry::TypeTrait::TemplateHolder<std::vector<Typedef::CharType::storage_type>
-		, std::vector<Typedef::ShortType::storage_type>
-		, std::vector<Typedef::IntegerType::storage_type>
-		, std::vector<Typedef::LongType::storage_type>
-		, std::vector<Typedef::UnsignedCharType::storage_type>
-		, std::vector<Typedef::UnsignedShortType::storage_type>
-		, std::vector<Typedef::UnsignedIntegerType::storage_type>
-		, std::vector<Typedef::UnsignedLongType::storage_type>
-		, std::vector<Typedef::FloatType::storage_type>
-		, std::vector<Typedef::DoubleType::storage_type>
-		, std::vector<Typedef::LongDoubleType::storage_type>
+	using ArrayTypeList = Cry::TypeTrait::TemplateHolder<std::vector<Cry::CharType::storage_type>
+		, std::vector<Cry::ShortType::storage_type>
+		, std::vector<Cry::IntegerType::storage_type>
+		, std::vector<Cry::LongType::storage_type>
+		, std::vector<Cry::UnsignedCharType::storage_type>
+		, std::vector<Cry::UnsignedShortType::storage_type>
+		, std::vector<Cry::UnsignedIntegerType::storage_type>
+		, std::vector<Cry::UnsignedLongType::storage_type>
+		, std::vector<Cry::FloatType::storage_type>
+		, std::vector<Cry::DoubleType::storage_type>
+		, std::vector<Cry::LongDoubleType::storage_type>
 		, std::vector<Value2>>;
 	using ValueVariant = ArrayTypeList::template_apply<boost::variant>;
 
@@ -70,9 +70,9 @@ public:
 		&& !std::is_same<Type, ArrayValue>::value
 	>::type>
 		ArrayValue(std::initializer_list<Type>&& value)
-		: m_value{ std::vector<Typedef::PrimitiveSelectorStorageType<Type>>{ value.begin(), value.end() } }
+		: m_value{ std::vector<Cry::PrimitiveSelectorStorageType<Type>>{ value.begin(), value.end() } }
 	{
-		static_assert(ArrayTypeList::has_type<std::vector<Typedef::PrimitiveSelectorStorageType<Type>>>::value);
+		static_assert(ArrayTypeList::has_type<std::vector<Cry::PrimitiveSelectorStorageType<Type>>>::value);
 	}
 
 	template<>
@@ -96,7 +96,7 @@ public:
 	auto As() const -> std::vector<ReturnType>
 	{
 		try {
-			auto valueList = boost::strict_get<std::vector<Typedef::PrimitiveSelectorStorageType<ReturnType>>>(m_value);
+			auto valueList = boost::strict_get<std::vector<Cry::PrimitiveSelectorStorageType<ReturnType>>>(m_value);
 			std::vector<ReturnType> tmpVal;
 			tmpVal.reserve(valueList.size());
 			Cry::Algorithm::ContainerCast<ReturnType>(valueList.begin(), valueList.end(), std::back_inserter(tmpVal));

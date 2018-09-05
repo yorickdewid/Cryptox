@@ -8,8 +8,6 @@
 
 #pragma once
 
-#include <CryCC/SubValue/PrimitiveTypes.h> // TODO: remove with BuiltinType
-
 #include <Cry/Cry.h>
 #include <Cry/Except.h>
 
@@ -186,14 +184,14 @@ protected:
 	Qualifiers m_typeQualifier = { TypeQualifier::NONE, TypeQualifier::NONE };
 };
 
-constexpr uint8_t SetInteralType(TypedefBase::TypeVariation type)
+constexpr Cry::Byte SetInteralType(TypedefBase::TypeVariation type)
 {
-	return static_cast<uint8_t>(type);
+	return static_cast<Cry::Byte>(type);
 }
 
 #define REGISTER_TYPE(t)\
-	const uint8_t m_c_internalType = SetInteralType(TypedefBase::TypeVariation::t); \
-	inline uint8_t TypeIdentifier() const noexcept { return m_c_internalType; }
+	const Cry::Byte m_c_internalType = SetInteralType(TypedefBase::TypeVariation::t); \
+	inline Cry::Byte TypeIdentifier() const noexcept { return m_c_internalType; }
 
 // Builtin types.
 class BuiltinType : public TypedefBase
@@ -251,9 +249,6 @@ public:
 		using type = Type;
 		constexpr static const Specifier specifier = TypeSpecifier;
 	};
-
-	// TypeWrapper<Specifier::VOID_T, VoidType>;
-	// TypeWrapper<Specifier::BOOL_T, BoolType>;
 
 public:
 	BuiltinType(Specifier specifier);

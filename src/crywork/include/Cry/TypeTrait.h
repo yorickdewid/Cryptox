@@ -32,7 +32,7 @@ struct TemplateHolder
 	
 	template<typename Test>
 	using has_type = typename std::disjunction<std::is_same<Test, ArgTypes>...>::type;
-	
+
 	template<auto Offset>
 	using element_type = typename std::tuple_element<Offset, std::tuple<ArgTypes...>>::type;
 
