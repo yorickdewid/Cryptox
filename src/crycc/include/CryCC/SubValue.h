@@ -18,7 +18,6 @@
 //
 
 #include <CryCC/SubValue/UserData.h>
-#include <CryCC/SubValue/PrimitiveTypes.h>
 #include <CryCC/SubValue/OffsetValue.h>
 #include <CryCC/SubValue/NilValue.h>
 #include <CryCC/SubValue/ReferenceValue.h>

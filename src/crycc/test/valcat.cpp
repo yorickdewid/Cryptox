@@ -17,6 +17,14 @@
 // Description : -
 //
 
+// Testcases for the following value cateogies:
+//   1.) NilValue.
+//   2.) PointerValue.
+//   3.) ReferenceValue.
+//   4.) BuiltinValue.
+//   5.) ArrayValue.
+//   6.) RecordValue.
+
 using namespace CryCC::SubValue::Valuedef;
 
 BOOST_AUTO_TEST_SUITE(ValCat)
@@ -185,6 +193,7 @@ BOOST_AUTO_TEST_CASE(ValCatBuiltinValueMisc)
 	BuiltinValue valMove{ std::move(valCopy) };
 	valInt = 18;
 
+	BOOST_REQUIRE_EQUAL("17", valMove.ToString());
 	BOOST_REQUIRE_EQUAL(17, valMove.As<int>());
 	BOOST_REQUIRE_EQUAL(18, valInt.As<int>());
 }

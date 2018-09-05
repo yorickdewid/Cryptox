@@ -9,10 +9,10 @@
 #pragma once
 
 #include <CryCC/SubValue/ValueContract.h>
-#include <CryCC/SubValue/PrimitiveTypes.h>
 #include <CryCC/SubValue/Typedef.h>
 
 #include <Cry/Cry.h>
+#include <Cry/Types.h>
 #include <Cry/TypeTrait.h>
 
 #include <boost/variant.hpp>
@@ -42,6 +42,19 @@ class BuiltinValue : public AbstractValue<BuiltinValue>
 
 	struct PackerVisitor;
 
+	template<typename Type>
+	constexpr auto InitialConversion(Type value)
+	{
+		if constexpr (NativeTypeList::has_type<Type>::value) {
+			return value;
+		}
+		else {
+			static_assert(Cry::IsPrimitiveType_v<Type>,
+				"cannot convert type to value category inner-presentation");
+			return static_cast<Cry::PrimitiveSelectorStorageType<Type>>(value);
+		}
+	}
+
 public:
 	using typdef_type = Typedef::BuiltinType;
 	using value_category = ValueCategory::Plural;
@@ -63,9 +76,8 @@ public:
 		&& !std::is_same<Type, BuiltinValue>::value
 	>::type>
 		BuiltinValue(Type value)
-		: m_value{ static_cast<Typedef::PrimitiveSelectorStorageType<Type>>(value) }
+		: m_value{ InitialConversion(value) }
 	{
-		static_assert(NativeTypeList::has_type<Typedef::PrimitiveSelectorStorageType<Type>>::value);
 	}
 
 	//

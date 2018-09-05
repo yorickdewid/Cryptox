@@ -15,7 +15,7 @@ namespace SubValue
 namespace Valuedef
 {
 
-using namespace CryCC::SubValue::Typedef;
+using namespace Cry;
 
 //FUTURE: Wrap in template method
 //TODO: Encode/decode float/double fully
@@ -160,9 +160,22 @@ bool BuiltinValue::operator==(const BuiltinValue&) const
 	return false;
 }
 
+struct StringifyVisitor final : public boost::static_visitor<>
+{
+	std::string stringValue;
+
+	template<typename Type>
+	void operator()(const Type& value)
+	{
+		stringValue = std::to_string(value);
+	}
+};
+
 std::string BuiltinValue::ToString() const
 {
-	return "REPLACE ME"; //TODO:
+	StringifyVisitor valueVisitor;
+	m_value.apply_visitor(valueVisitor);
+	return valueVisitor.stringValue;
 }
 
 template<template<typename> typename BinaryOperation, auto Incr = 1>
