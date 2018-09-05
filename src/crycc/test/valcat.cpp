@@ -105,6 +105,7 @@ BOOST_AUTO_TEST_CASE(ValCatBuiltinValue)
 
 BOOST_AUTO_TEST_CASE(ValCatBuiltinValueArith)
 {
+	// Addition
 	{
 		BuiltinValue valChar{ 'a' };
 		BuiltinValue valLong{ 8236912L };
@@ -114,6 +115,47 @@ BOOST_AUTO_TEST_CASE(ValCatBuiltinValueArith)
 		BOOST_REQUIRE_EQUAL(8237009L, valAdd.As<long>());
 	}
 
+	// Subtraction
+	{
+		BuiltinValue valUlong{ 3341 };
+		BuiltinValue valShort{ (short)-19 };
+
+		BuiltinValue valSub = valUlong - valShort;
+
+		BOOST_REQUIRE_EQUAL(3360L, valSub.As<long>());
+	}
+
+	// Multiplication
+	{
+		BuiltinValue valFloat{ 23.348f };
+		BuiltinValue valLong{ 29L };
+
+		BuiltinValue valSub = valFloat * valLong;
+
+		BOOST_REQUIRE_EQUAL(667L, valSub.As<long>());
+	}
+
+	// Division
+	{
+		BuiltinValue valUchar{ (unsigned char)'V' };
+		BuiltinValue valChar{ (unsigned char)0x4 };
+
+		BuiltinValue valSub = valUchar / valChar;
+
+		BOOST_REQUIRE_EQUAL(21L, valSub.As<long>());
+	}
+
+	// Modulo
+	{
+		BuiltinValue valUint{ 82381271U };
+		BuiltinValue valInt{ 5 };
+
+		BuiltinValue valSub = valUint % valInt;
+
+		BOOST_REQUIRE_EQUAL(1L, valSub.As<long>());
+	}
+
+	// Increase/decrease
 	{
 		BuiltinValue valInt{ 172441 };
 		++valInt;
