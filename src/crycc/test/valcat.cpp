@@ -106,21 +106,23 @@ BOOST_AUTO_TEST_CASE(ValCatBuiltinValueArith)
 	// Addition.
 	{
 		BuiltinValue valChar{ 'a' };
+		BuiltinValue valShort{ (short)34 };
+		BuiltinValue valInt{ 81 };
 		BuiltinValue valLong{ 8236912L };
 
-		BuiltinValue valAdd = valLong + valChar;
+		BuiltinValue valAdd = valLong + valChar + valInt + valShort;
 
-		BOOST_REQUIRE_EQUAL(8237009L, valAdd.As<long>());
+		BOOST_REQUIRE_EQUAL(8237124L, valAdd.As<long>());
 	}
 
 	// Subtraction.
 	{
-		BuiltinValue valUlong{ 3341 };
+		BuiltinValue valInt{ 3341 };
 		BuiltinValue valShort{ (short)-19 };
 
-		BuiltinValue valSub = valUlong - valShort;
+		BuiltinValue valSub = valInt - valShort;
 
-		BOOST_REQUIRE_EQUAL(3360L, valSub.As<long>());
+		BOOST_REQUIRE_EQUAL(3360L, valSub.As<int>());
 	}
 
 	// Multiplication.
@@ -130,7 +132,7 @@ BOOST_AUTO_TEST_CASE(ValCatBuiltinValueArith)
 
 		BuiltinValue valSub = valFloat * valLong;
 
-		BOOST_REQUIRE_EQUAL(667L, valSub.As<long>());
+		BOOST_REQUIRE_EQUAL(677.09198f, valSub.As<float>());
 	}
 
 	// Division.

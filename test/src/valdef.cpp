@@ -369,7 +369,7 @@ BOOST_AUTO_TEST_CASE(ValDefReworkSerialize)
 	}
 
 	{
-		RecordValue record{ "struct" };
+		RecordValue record;
 		record.AddField({ "o", RecordValue::AutoValue(Util::MakeInt(82371)) });
 		record.AddField({ "p", RecordValue::AutoValue(Util::MakeInt(19)) });
 

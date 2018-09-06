@@ -217,61 +217,45 @@ BuiltinValue BuiltinValue::operator--(int)
 	return tmp;
 }
 
-template<typename IntermediateType>
-struct CastVisitor final : public boost::static_visitor<>
+template<template<typename, typename> typename BinaryOperation>
+struct BinaryArithVisitor final : public boost::static_visitor<BuiltinValue>
 {
-	IntermediateType commonValue = 0;
-
-	template<typename Type>
-	void operator()(const Type& value)
+	template<typename LHSType, typename RHSType>
+	BuiltinValue operator()(const LHSType& lhs, const RHSType& rhs) const
 	{
-		commonValue = static_cast<IntermediateType>(value);
+		return std::invoke(BinaryOperation<LHSType, RHSType>(), lhs, rhs);
 	}
 };
 
 BuiltinValue operator+(const BuiltinValue& lhs, const BuiltinValue& rhs)
 {
-	CastVisitor<long int> valueVisitor;
-	lhs.m_value.apply_visitor(valueVisitor);
-	CastVisitor<long int> valueVisitor2;
-	rhs.m_value.apply_visitor(valueVisitor2);
-	return valueVisitor.commonValue + valueVisitor2.commonValue;
+	BinaryArithVisitor<Functional::Plus> valueVisitor;
+	return boost::apply_visitor(valueVisitor, lhs.m_value, rhs.m_value);
 }
 
 BuiltinValue operator-(const BuiltinValue& lhs, const BuiltinValue& rhs)
 {
-	CastVisitor<long int> valueVisitor;
-	lhs.m_value.apply_visitor(valueVisitor);
-	CastVisitor<long int> valueVisitor2;
-	rhs.m_value.apply_visitor(valueVisitor2);
-	return valueVisitor.commonValue - valueVisitor2.commonValue;
+	BinaryArithVisitor<Functional::Minus> valueVisitor;
+	return boost::apply_visitor(valueVisitor, lhs.m_value, rhs.m_value);
 }
 
 BuiltinValue operator*(const BuiltinValue& lhs, const BuiltinValue& rhs)
 {
-	CastVisitor<long int> valueVisitor;
-	lhs.m_value.apply_visitor(valueVisitor);
-	CastVisitor<long int> valueVisitor2;
-	rhs.m_value.apply_visitor(valueVisitor2);
-	return valueVisitor.commonValue * valueVisitor2.commonValue;
+	BinaryArithVisitor<Functional::Multiplies> valueVisitor;
+	return boost::apply_visitor(valueVisitor, lhs.m_value, rhs.m_value);
 }
 
 BuiltinValue operator/(const BuiltinValue& lhs, const BuiltinValue& rhs)
 {
-	CastVisitor<long int> valueVisitor;
-	lhs.m_value.apply_visitor(valueVisitor);
-	CastVisitor<long int> valueVisitor2;
-	rhs.m_value.apply_visitor(valueVisitor2);
-	return valueVisitor.commonValue / valueVisitor2.commonValue;
+	BinaryArithVisitor<Functional::Divides> valueVisitor;
+	return boost::apply_visitor(valueVisitor, lhs.m_value, rhs.m_value);
 }
 
 BuiltinValue operator%(const BuiltinValue& lhs, const BuiltinValue& rhs)
 {
-	CastVisitor<long int> valueVisitor;
-	lhs.m_value.apply_visitor(valueVisitor);
-	CastVisitor<long int> valueVisitor2;
-	rhs.m_value.apply_visitor(valueVisitor2);
-	return valueVisitor.commonValue % valueVisitor2.commonValue;
+	/*BinaryArithVisitor<Functional::Modulus> valueVisitor;
+	return boost::apply_visitor(valueVisitor, lhs.m_value, rhs.m_value);*/
+	return { 0 };
 }
 
 } // namespace Valuedef
