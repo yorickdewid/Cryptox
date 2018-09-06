@@ -10,9 +10,7 @@
 
 #include <Cry/Cry.h>
 
-namespace Cry
-{
-namespace Functional
+namespace Cry::Functional
 {
 
 template<typename ArgumentType>
@@ -21,9 +19,9 @@ struct AllTrue
 	using argument_type = ArgumentType;
 	using result_type = bool;
 
-	constexpr bool operator()(const ArgumentType& _Left) const
+	constexpr bool operator()(const ArgumentType& value) const
 	{
-		CRY_UNUSED(_Left);
+		CRY_UNUSED(value);
 		return true;
 	}
 };
@@ -34,12 +32,141 @@ struct AllFalse
 	using argument_type = ArgumentType;
 	using result_type = bool;
 
-	constexpr bool operator()(const ArgumentType& _Left) const
+	constexpr bool operator()(const ArgumentType& value) const
 	{
-		CRY_UNUSED(_Left);
+		CRY_UNUSED(value);
 		return false;
 	}
 };
 
-} // namespace Functional
-} // namespace Cry
+template<typename LHSType, typename RHSType>
+struct Plus
+{
+	using first_argument_type = LHSType;
+	using second_argument_type = RHSType;
+	using result_type = decltype(std::declval<LHSType>() + std::declval<RHSType>());
+
+	constexpr auto operator()(const LHSType& lhs, const RHSType& rhs) const -> result_type
+	{
+		return (lhs + rhs);
+	}
+};
+
+template<typename Type>
+struct Plus<Type, Type>
+{
+	using first_argument_type = Type;
+	using second_argument_type = Type;
+	using result_type = decltype(std::declval<Type>() + std::declval<Type>());
+
+	constexpr auto operator()(const Type& lhs, const Type& rhs) const -> result_type
+	{
+		return (lhs + rhs);
+	}
+};
+
+template<typename LHSType, typename RHSType>
+struct Minus
+{
+	using first_argument_type = LHSType;
+	using second_argument_type = RHSType;
+	using result_type = decltype(std::declval<LHSType>() - std::declval<RHSType>());
+
+	constexpr auto operator()(const LHSType& lhs, const RHSType& rhs) const -> result_type
+	{
+		return (lhs - rhs);
+	}
+};
+
+template<typename Type>
+struct Minus<Type, Type>
+{
+	using first_argument_type = Type;
+	using second_argument_type = Type;
+	using result_type = decltype(std::declval<Type>() - std::declval<Type>());
+
+	constexpr auto operator()(const Type& lhs, const Type& rhs) const -> result_type
+	{
+		return (lhs - rhs);
+	}
+};
+
+template<typename LHSType, typename RHSType>
+struct Multiplies
+{
+	using first_argument_type = LHSType;
+	using second_argument_type = RHSType;
+	using result_type = decltype(std::declval<LHSType>() * std::declval<RHSType>());
+
+	constexpr auto operator()(const LHSType& lhs, const RHSType& rhs) const -> result_type
+	{
+		return (lhs * rhs);
+	}
+};
+
+template<typename Type>
+struct Multiplies<Type, Type>
+{
+	using first_argument_type = Type;
+	using second_argument_type = Type;
+	using result_type = decltype(std::declval<Type>() * std::declval<Type>());
+
+	constexpr auto operator()(const Type& lhs, const Type& rhs) const -> result_type
+	{
+		return (lhs * rhs);
+	}
+};
+
+template<typename LHSType, typename RHSType>
+struct Divides
+{
+	using first_argument_type = LHSType;
+	using second_argument_type = RHSType;
+	using result_type = decltype(std::declval<LHSType>() / std::declval<RHSType>());
+
+	constexpr auto operator()(const LHSType& lhs, const RHSType& rhs) const -> result_type
+	{
+		return (lhs / rhs);
+	}
+};
+
+template<typename Type>
+struct Divides<Type, Type>
+{
+	using first_argument_type = Type;
+	using second_argument_type = Type;
+	using result_type = decltype(std::declval<Type>() / std::declval<Type>());
+
+	constexpr auto operator()(const Type& lhs, const Type& rhs) const -> result_type
+	{
+		return (lhs / rhs);
+	}
+};
+
+template<typename LHSType, typename RHSType>
+struct Modulus
+{
+	using first_argument_type = LHSType;
+	using second_argument_type = RHSType;
+	using result_type = decltype(std::declval<LHSType>() % std::declval<RHSType>());
+
+	constexpr auto operator()(const LHSType& lhs, const RHSType& rhs) const -> result_type
+	{
+		return (lhs % rhs);
+	}
+};
+
+template<typename Type>
+struct Modulus<Type, Type>
+{
+	using first_argument_type = Type;
+	using second_argument_type = Type;
+	using result_type = decltype(std::declval<Type>() % std::declval<Type>());
+
+	constexpr auto operator()(const Type& lhs, const Type& rhs) const -> result_type
+	{
+		return (lhs % rhs);
+	}
+};
+
+} // namespace Cry::Functional

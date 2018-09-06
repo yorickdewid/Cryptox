@@ -8,6 +8,8 @@
 
 #include <CryCC/SubValue/BuiltinValue.h>
 
+#include <Cry/Functional.h>
+
 namespace CryCC
 {
 namespace SubValue
@@ -160,22 +162,19 @@ bool BuiltinValue::operator==(const BuiltinValue&) const
 	return false;
 }
 
-struct StringifyVisitor final : public boost::static_visitor<>
+struct StringifyVisitor final : public boost::static_visitor<std::string>
 {
-	std::string stringValue;
-
 	template<typename Type>
-	void operator()(const Type& value)
+	auto operator()(const Type& value)
 	{
-		stringValue = std::to_string(value);
+		return std::to_string(value);
 	}
 };
 
 std::string BuiltinValue::ToString() const
 {
 	StringifyVisitor valueVisitor;
-	m_value.apply_visitor(valueVisitor);
-	return valueVisitor.stringValue;
+	return m_value.apply_visitor(valueVisitor);
 }
 
 template<template<typename> typename BinaryOperation, auto Incr = 1>
