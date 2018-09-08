@@ -117,11 +117,11 @@ public:
 	}
 
 	// Get the value at offset.
-	template<typename ReturnType>
+	template<typename PrimitiveType>
 	auto At(offset_type offset) const
 	{
 		try {
-			const auto& elementList = boost::strict_get<std::vector<ReturnType>>(m_value);
+			const auto& elementList = boost::strict_get<std::vector<Cry::PrimitiveSelectorStorageType<PrimitiveType>>>(m_value);
 			if (elementList.size() < offset + 1) {
 				throw OutOfBoundsException{};
 			}
@@ -137,7 +137,7 @@ public:
 	void Emplace(offset_type offset, PrimitiveType&& value)
 	{
 		try {
-			auto& elementList = boost::strict_get<std::vector<PrimitiveType>>(m_value);
+			auto& elementList = boost::strict_get<std::vector<Cry::PrimitiveSelectorStorageType<PrimitiveType>>>(m_value);
 			if (elementList.size() < offset + 1) {
 				throw OutOfBoundsException{};
 			}

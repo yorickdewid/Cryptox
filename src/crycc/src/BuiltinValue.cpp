@@ -10,11 +10,7 @@
 
 #include <Cry/Functional.h>
 
-namespace CryCC
-{
-namespace SubValue
-{
-namespace Valuedef
+namespace CryCC::SubValue::Valuedef
 {
 
 using namespace Cry;
@@ -157,9 +153,9 @@ void BuiltinValue::Deserialize(BuiltinValue& value, buffer_type& buffer)
 	valueVisitor(value.m_value);
 }
 
-bool BuiltinValue::operator==(const BuiltinValue&) const
+bool BuiltinValue::operator==(const BuiltinValue& other) const
 {
-	return false;
+	return m_value == other.m_value;
 }
 
 struct StringifyVisitor final : public boost::static_visitor<std::string>
@@ -258,6 +254,4 @@ BuiltinValue operator%(const BuiltinValue& lhs, const BuiltinValue& rhs)
 	return { 0 };
 }
 
-} // namespace Valuedef
-} // namespace SubValue
-} // namespace CryCC
+} // namespace CryCC::SubValue::Valuedef

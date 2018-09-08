@@ -54,19 +54,19 @@ BOOST_AUTO_TEST_CASE(ValCatNilValueMisc)
 // PointerValue.
 //
 
-BOOST_AUTO_TEST_CASE(ValCatPointerValue)
-{
-	//TODO:
-}
+//BOOST_AUTO_TEST_CASE(ValCatPointerValue)
+//{
+//	//TODO:
+//}
 
 //
 // ReferenceValue.
 //
 
-BOOST_AUTO_TEST_CASE(ValCatReferenceValue)
-{
-	//TODO:
-}
+//BOOST_AUTO_TEST_CASE(ValCatReferenceValue)
+//{
+//	//TODO:
+//}
 
 //
 // BuiltinValue.

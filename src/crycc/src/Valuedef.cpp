@@ -14,11 +14,7 @@
 
 #define VALUE_MAGIC 0x7a
 
-namespace CryCC
-{
-namespace SubValue
-{
-namespace Valuedef
+namespace CryCC::SubValue::Valuedef
 {
 
 // Value declaration without initialization.
@@ -529,9 +525,6 @@ std::ostream& operator<<(std::ostream& os, const Value& value)
 	return os;
 }
 
-} // namespace Valuedef
-} // namespace SubValue
-} // namespace CryCC
 
 namespace Util
 {
