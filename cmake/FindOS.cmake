@@ -51,7 +51,7 @@ ELSE (PROJECT_OS_LINUX)
     message(STATUS "Operating system is generic Unix")
 endif(PROJECT_OS_LINUX)
 
-message(STATUS "Got System Processor ${CMAKE_SYSTEM_PROCESSOR}")
+message(STATUS "System Processor ${CMAKE_SYSTEM_PROCESSOR}")
 
 # 32 or 64 bit Linux
 if(PROJECT_OS_LINUX)

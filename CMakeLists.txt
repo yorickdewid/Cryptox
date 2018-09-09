@@ -11,6 +11,12 @@
 cmake_minimum_required(VERSION 3.8 FATAL_ERROR)
 project(Cryptox)
 
+message(STATUS "Compiler ${CMAKE_CXX_COMPILER_ID} version ${CMAKE_CXX_COMPILER_VERSION}")
+if(MSVC)
+	message(STATUS "Platform Toolset ${CMAKE_VS_PLATFORM_TOOLSET}")
+	message(STATUS "Windows SDK ${CMAKE_VS_WINDOWS_TARGET_PLATFORM_VERSION}")
+endif()
+
 # Define helper keywords
 set(${PROJECT_NAME}_ID Cry)
 set(${PROJECT_NAME}_CIL CIL)
@@ -82,7 +88,7 @@ elseif(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
         message(FATAL_ERROR "Compiler does not support C++17")
 	endif()
 else()
-    message(WARNING "Unknown compiler")
+    message(WARNING "Unknown compiler ${CMAKE_CXX_COMPILER_ID}")
 endif()
 
 # Options
@@ -287,9 +293,9 @@ execute_process(
 # Project consists of multiple subprojects
 add_subdirectory(src/crywork)
 add_subdirectory(src/crycc)
-add_subdirectory(src/cryprog)
 add_subdirectory(src/coilcex)
 add_subdirectory(src/coilcl)
+add_subdirectory(src/cryprog)
 add_subdirectory(src/cryevm)
 add_subdirectory(src/crycli)
 add_subdirectory(src/cexdump)
