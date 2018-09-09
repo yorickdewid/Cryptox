@@ -184,23 +184,23 @@ Value2 MakeDouble2(double v)
 // 	return Value{ TypeFacade{ builtin }, Value::ValueVariantMulti{ std::move(ve) }, ve.size() };
 // }
 
-// Value2 MakeIntArray2(std::initializer_list<int> v)
-// {
-// 	auto arrayElement = Util::MakeBuiltinType(BuiltinType::Specifier::INT_T);
-// 	return Value2{ std::make_shared<ArrayType>(v.size(), std::move(arrayElement)), ArrayValue{ v } };
-// }
+Value2 MakeIntArray2(const std::vector<int>& v)
+{
+	auto arrayElement = Util::MakeBuiltinType(BuiltinType::Specifier::INT_T);
+	return Value2{ std::make_shared<ArrayType>(v.size(), std::move(arrayElement)), ArrayValue{ v.cbegin(), v.cend() } };
+}
 
-// Value2 MakeFloatArray2(std::initializer_list<float> v)
-// {
-// 	auto arrayElement = Util::MakeBuiltinType(BuiltinType::Specifier::FLOAT_T);
-// 	return Value2{ std::make_shared<ArrayType>(v.size(), std::move(arrayElement)), ArrayValue{ v } };
-// }
+Value2 MakeFloatArray2(const std::vector<float>& v)
+{
+	auto arrayElement = Util::MakeBuiltinType(BuiltinType::Specifier::FLOAT_T);
+	return Value2{ std::make_shared<ArrayType>(v.size(), std::move(arrayElement)), ArrayValue{ v.cbegin(), v.cend() } };
+}
 
-// Value2 MakeDoubleArray2(std::initializer_list<double> v)
-// {
-// 	auto arrayElement = Util::MakeBuiltinType(BuiltinType::Specifier::DOUBLE_T);
-// 	return Value2{ std::make_shared<ArrayType>(v.size(), std::move(arrayElement)), ArrayValue{ v } };
-// }
+Value2 MakeDoubleArray2(const std::vector<double>& v)
+{
+	auto arrayElement = Util::MakeBuiltinType(BuiltinType::Specifier::DOUBLE_T);
+	return Value2{ std::make_shared<ArrayType>(v.size(), std::move(arrayElement)), ArrayValue{ v.cbegin(), v.cend() } };
+}
 
 // Evaluate value as boolean if conversion is possible. If the conversion
 // is not possible, an exception is thrown and caught here. In that case

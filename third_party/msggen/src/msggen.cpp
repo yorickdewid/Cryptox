@@ -35,6 +35,7 @@ R"(// Copyright (c) 2017 Quenza Inc. All rights reserved.
 
 #pragma once
 
+#include <iostream>
 #include <cstdio>
 #include <array>
 #include <string>

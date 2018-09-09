@@ -177,19 +177,19 @@ BOOST_AUTO_TEST_CASE(ValueRework2DeclarationArray)
 	std::vector<double> _valDoubleArray{ 1.8712, 873.655, 891.87316, 8712.8213 };
 	std::vector<bool> _valBoolArray{ true, true, false, true, false, false };
 
-	/*auto valIntArray = Util::MakeIntArray2(_valIntArray);
+	auto valIntArray = Util::MakeIntArray2(_valIntArray);
 	auto valFloatArray = Util::MakeFloatArray2(_valFloatArray);
-	auto valDoubleArray = Util::MakeDoubleArray2(_valDoubleArray);*/
+	auto valDoubleArray = Util::MakeDoubleArray2(_valDoubleArray);
 	//auto valBoolArray = Util::MakeBoolArray({ true, true, false, true, false, false });
 
-	//BOOST_CHECK_EQUAL(_valIntArray.size(), valIntArray.Type().ArraySize());
+	BOOST_CHECK_EQUAL(_valIntArray.size(), valIntArray.ElementCount<ArrayValue>());
 	//BOOST_CHECK_EQUAL(_valFloatArray.size(), valFloatArray.Type().ArraySize());
 	//BOOST_CHECK_EQUAL(_valDoubleArray.size(), valDoubleArray.Type().ArraySize());
 	//BOOST_CHECK_EQUAL(_valBoolArray.size(), valBoolArray.Type().ArraySize());
 
-	//BOOST_REQUIRE(_valIntArray == valIntArray.As<ArrayValue, int>());
-	//BOOST_REQUIRE(_valFloatArray == valFloatArray.As<float>());
-	//BOOST_REQUIRE(_valDoubleArray == valDoubleArray.As<double>());
+	BOOST_REQUIRE(_valIntArray == (valIntArray.As<ArrayValue, int>()));
+	BOOST_REQUIRE(_valFloatArray == (valFloatArray.As<ArrayValue, float>()));
+	BOOST_REQUIRE(_valDoubleArray == (valDoubleArray.As<ArrayValue, double>()));
 	//BOOST_REQUIRE(_valBoolArray == valBoolArray.As<bool>());
 }
 

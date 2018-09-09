@@ -72,13 +72,14 @@ Value2 MakeInt2(int);
 Value2 MakeFloat2(float);
 Value2 MakeDouble2(double);
 // Value2 MakeIntArray2(int v[]);
-// Value2 MakeIntArray2(std::vector<int>);
-// Value2 MakeFloatArray2(std::vector<float>);
-// Value2 MakeDoubleArray2(std::vector<double>);
+Value2 MakeIntArray2(const std::vector<int>&);
+Value2 MakeFloatArray2(const std::vector<float>&);
+Value2 MakeDoubleArray2(const std::vector<double>&);
 
 template<typename NativeType>
 inline NativeType ValueCast(const Value2& value)
 {
+	//TODO: Add other value categories
 	return value.As<BuiltinValue, NativeType>();
 }
 

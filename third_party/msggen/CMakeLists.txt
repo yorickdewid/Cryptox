@@ -9,7 +9,7 @@
 
 # Set project info
 project(MsgGen CXX)
-project_version(${PROJECT_NAME} 1)
+project_version(${PROJECT_NAME} 4)
 project_description(${PROJECT_NAME} "Event Message Generator")
 
 # Load project defaults
