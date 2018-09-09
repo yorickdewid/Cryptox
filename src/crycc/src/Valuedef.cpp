@@ -525,28 +525,163 @@ std::ostream& operator<<(std::ostream& os, const Value& value)
 	return os;
 }
 
+////////
+
+using namespace CryCC::SubValue::Typedef;
+
+// Initialize with type facade only, set value empty.
+Value2::Value2(TypeFacade&& type)
+	: m_internalType{ std::move(type) }
+	, m_valuePtr{ MakeValueProxy<default_value_type>(m_internalType) }
+{
+}
+
+// Initialize with base type only, set value empty.
+Value2::Value2(TypeFacade::base_type&& type)
+	: m_internalType{ TypeFacade{ std::move(type) } }
+	, m_valuePtr{ MakeValueProxy<default_value_type>(m_internalType) }
+{
+}
+
+Value2::Value2(const Value2& other)
+	: m_internalType{ other.m_internalType }
+	, m_valuePtr{ other.m_valuePtr->Clone() }
+{
+}
+
+const std::string Value2::ToString() const noexcept
+{
+	return m_valuePtr->ToString();
+}
+
+// The assignment will only copy the value and check for the type.
+Value2& Value2::operator=(const Value2& other)
+{
+	if (other == *this) { return (*this); }
+
+	//TODO: check same type
+	//m_internalType = other.m_internalType;
+	m_valuePtr = std::move(other.m_valuePtr->Clone());
+
+	return (*this);
+}
+
+// The assignment will only copy the value and check for the type.
+Value2& Value2::operator=(Value2&& other)
+{
+	if (other == *this) { return (*this); }
+
+	//TODO: check same type
+	m_valuePtr = std::move(other.m_valuePtr);
+
+	return (*this);
+}
+
+
+Value2& Value2::operator=(const iterator_helper_value_type&)
+{
+	return (*this);
+}
+
+Value2& Value2::operator=(iterator_helper_value_type&&)
+{
+	return (*this);
+}
+
+void Value2::Serialize(const Value2& value, Cry::ByteArray& buffer)
+{
+	// Write value identifier.
+	buffer.SetMagic(VALUE_MAGIC);
+	buffer.SetPlatformCompat();
+
+	// Serialize type.
+	TypeFacade::Serialize(value.m_internalType, buffer);
+
+	//TODO: m_valuePtr serialize
+}
+
+void Value2::Deserialize(Value2& value, Cry::ByteArray& buffer)
+{
+	// Test if this is a value.
+	if (!buffer.ValidateMagic(VALUE_MAGIC) || !buffer.IsPlatformCompat()) {
+		CryImplExcept(); //TODO
+	}
+
+	// Convert stream to type.
+	TypeFacade::Deserialize(value.m_internalType, buffer);
+
+	//TODO: m_valuePtr deserialize
+}
+
+// Comparison equal operator.
+bool Value2::operator==(const Value2& other) const
+{
+	return m_internalType == other.m_internalType
+		&& m_valuePtr->Compare((*other.m_valuePtr));
+}
+
+bool Value2::operator!=(const Value2& other) const
+{
+	return !operator==(other);
+}
+
+Value2& Value2::operator++()
+{
+	return (*this); //TODO:
+}
+
+Value2& Value2::operator--()
+{
+	return (*this); //TODO:
+}
+
+Value2 Value2::operator++(int)
+{
+	Value2 tmp = std::as_const(*this);
+	return tmp; //TODO:
+}
+
+Value2 Value2::operator--(int)
+{
+	Value2 tmp = std::as_const(*this);
+	return tmp; //TODO:
+}
+
+Value2 Value2::operator+(const Value2& other) const
+{
+	return other; //TODO:
+}
+
+Value2 Value2::operator-(const Value2& other) const
+{
+	return other; //TODO:
+}
+
+Value2 Value2::operator*(const Value2& other) const
+{
+	return other; //TODO:
+}
+
+Value2 Value2::operator/(const Value2& other) const
+{
+	return other; //TODO:
+}
+
+Value2 Value2::operator%(const Value2& other) const
+{
+	return other; //TODO:
+}
+
+std::ostream& operator<<(std::ostream& os, const Value2& value)
+{
+	os << value.ToString();
+	return os;
+}
+
+} // namespace CryCC::SubValue::Valuedef
 
 namespace Util
 {
-
-using namespace CryCC::SubValue::Valuedef;
-
-// Evaluate value as boolean if conversion is possible. If the conversion
-// is not possible, an exception is thrown and caught here. In that case
-// the evaluator returns with a negative result.
-bool EvaluateValueAsBoolean(const Value& value)
-{
-	try { return value.As<int>(); }
-	catch (const Value::InvalidTypeCastException&) {}
-	return false;
-}
-
-// Convert value as integer. If the conversion fails an exception
-// is thrown upwards to the caller.
-int EvaluateValueAsInteger(const Value& value)
-{
-	return value.As<int>();
-}
 
 Value ValueFactory::MakeValue(Cry::ByteArray& buffer)
 {

@@ -12,6 +12,7 @@
 #include <CryCC/SubValue/TypeFacade.h>
 #include <CryCC/SubValue/ValueContract.h>
 #include <CryCC/SubValue/NilValue.h>
+#include <CryCC/SubValue/OffsetValue.h>
 
 #include <Cry/Serialize.h>
 
@@ -336,6 +337,359 @@ static_assert(std::is_copy_constructible<Value>::value, "Value !is_copy_construc
 static_assert(std::is_move_constructible<Value>::value, "Value !is_move_constructible");
 static_assert(std::is_copy_assignable<Value>::value, "Value !is_copy_assignable");
 static_assert(std::is_move_assignable<Value>::value, "Value !is_move_assignable");
+
+// Compiler framework internal value representation.
+//
+// A value can be construed as a type specifier and an optional data block.
+// Value always points to a type, becuse values cannot be without context. There
+// are types that serve special perposes, such as empty types. The is always
+// of the type facade kind. This class utilizes the facade to request internal
+// type information. In addition to a type there is space for a value category.
+// The value category is optional from the caller perspective, but is always present
+// in the value intrinsics. A value category holds a block of data representing
+// the value. The value category is bound by a tight value category contract in
+// order for value category to be extendable.
+//
+// Is it not recommended to create the value directly, but to use a value helper
+// instead. The recommended solution is API sustainable.
+class Value2
+{
+	friend struct Util::ValueFactory;
+
+public:
+	using default_value_type = NilValue;
+	using iterator_helper_value_type = OffsetValue;
+
+private:
+	struct ProxyInterface : public ValueContract
+	{
+		// Check if value is set.
+		virtual bool IsInitialized() const noexcept = 0;
+		// Compare the proxy interface.
+		virtual bool Compare(ProxyInterface&) const = 0;
+		// Retrieve the value category identifier.
+		virtual int Id() const = 0;
+		// Clone the abstract proxy
+		virtual std::unique_ptr<ProxyInterface> Clone() const = 0;
+		// Attach type facade to value.
+		virtual void ReferenceType(const Typedef::TypeFacade*) = 0;
+		// Signal end of initialization.
+		virtual void ValueInit() = 0;
+	};
+
+	template<typename ValueType, typename = typename std::enable_if<IsValueContractCompliable<ValueType>::value>::type>
+	class AbstractValueProxy : public ProxyInterface
+	{
+	protected:
+		ValueType m_innerValue;
+
+	public:
+		using value_type = ValueType;
+		using compose_type = AbstractValueProxy<ValueType>;
+		using buffer_type = typename ValueType::buffer_type;
+		using typdef_type = typename ValueType::typdef_type;
+		using value_category = typename ValueType::value_category;
+
+		explicit AbstractValueProxy() = default;
+		AbstractValueProxy(const AbstractValueProxy&) = default;
+
+		template<typename... ArgTypes>
+		AbstractValueProxy(ValueType&& valueCategory, ArgTypes... args)
+			: m_innerValue{ std::forward<ValueType>(valueCategory) }
+		{
+		}
+
+		// Retrieve the value category identifier.
+		int Id() const { return ValueType::value_category_identifier; }
+		// Attach type facade to value.
+		void ReferenceType(const Typedef::TypeFacade *ptr) { m_innerValue.ReferenceType(ptr); }
+		// Signal end of initialization.
+		void ValueInit() { m_innerValue.ValueInit(); }
+
+		// Clone the abstract proxy.
+		std::unique_ptr<ProxyInterface> Clone() const
+		{
+			return std::make_unique<AbstractValueProxy<ValueType>>((*this));
+		}
+
+		//TODO:
+		void SerializeMock()
+		{
+			ValueType::buffer_type buffer;
+			buffer.SerializeAs<Cry::Byte>(ValueType::value_category_identifier);
+			ValueType::Serialize(m_innerValue, buffer);
+		}
+
+		//TODO:
+		void DeserializeMock()
+		{
+			ValueType::buffer_type buffer;
+			ValueType::Deserialize(m_innerValue, buffer);
+		}
+
+		// Forward the interface call to the value category.
+		std::string ToString() const
+		{
+			return m_innerValue.ToString();
+		}
+
+		// Check if value is set.
+		bool IsInitialized() const noexcept
+		{
+			return ValueType::value_category_identifier != default_value_type::value_category_identifier;
+		}
+
+		// Compare the proxy interface.
+		bool Compare(ProxyInterface& other) const
+		{
+			auto otherProxy = dynamic_cast<AbstractValueProxy<ValueType>&>(other);
+			return this->Id() == other.Id() && m_innerValue == otherProxy.m_innerValue;
+		}
+	};
+
+	template<typename ValueType>
+	class MultiOrderValueProxy : public AbstractValueProxy<ValueType>
+	{
+	public:
+		using base_type = AbstractValueProxy<ValueType>;
+		using self_type = MultiOrderValueProxy<ValueType>;
+
+		explicit MultiOrderValueProxy() = default;
+		MultiOrderValueProxy(const MultiOrderValueProxy&) = default;
+
+		template<typename... ArgTypes>
+		MultiOrderValueProxy(ValueType&& valueCategory, ArgTypes... args)
+			: base_type{ std::forward<ValueType>(valueCategory) }
+		{
+		}
+
+		// Forward type cast to value category.
+		template<typename... CastTypes>
+		auto As() const
+		{
+			return m_innerValue.As<CastTypes...>();
+		}
+	};
+
+	template<typename ValueType>
+	class IterableValueProxy : public MultiOrderValueProxy<ValueType>
+	{
+	public:
+		using base_type = MultiOrderValueProxy<ValueType>;
+		using self_type = IterableValueProxy<ValueType>;
+		using size_type = typename ValueType::size_type;
+
+		explicit IterableValueProxy() = default;
+		IterableValueProxy(const IterableValueProxy&) = default;
+
+		template<typename... ArgTypes>
+		IterableValueProxy(ValueType&& valueCategory, ArgTypes... args)
+			: base_type{ std::forward<ValueType>(valueCategory) }
+		{
+		}
+
+		size_type Size() const { return m_innerValue.Size(); }
+		bool Empty() const { return !this->Size(); }
+
+		template<typename ReturnType>
+		auto At(IterableContract::offset_type offset) const
+		{
+			return m_innerValue.At<ReturnType>(offset);
+		}
+
+		template<typename Type>
+		void Emplace(IterableContract::offset_type offset, Type&& value)
+		{
+			return m_innerValue.Emplace(offset, std::forward<Type>(value));
+		}
+	};
+
+	template<typename Type, typename = typename std::enable_if<IsValueContractCompliable<Type>::value>::type>
+	using ProxySelector = typename std::conditional<IsValueIterable<Type>::value
+		, IterableValueProxy<Type>
+		, typename std::conditional<IsValueMultiOrdinal<Type>::value
+		, MultiOrderValueProxy<Type>, AbstractValueProxy<Type>>::type
+		>::type;
+
+	template<typename ProxyType>
+	auto ProxyInit(const Typedef::TypeFacade& typeLink, const ProxyType* ptr)
+	{
+		ptr->get()->ReferenceType(std::addressof(typeLink));
+		ptr->get()->ValueInit();
+	}
+
+	template<typename ValueType, typename... ArgTypes>
+	auto MakeValueProxy(const Typedef::TypeFacade& typeLink, ValueType&& valueCategory, ArgTypes&&... args)
+	{
+		auto ptr = std::make_unique<ProxySelector<ValueType>>(std::forward<ValueType>(valueCategory), std::forward<ArgTypes>(args)...);
+		ProxyInit(typeLink, std::addressof(ptr));
+		return ptr;
+	}
+
+	template<typename ValueType>
+	auto MakeValueProxy(const Typedef::TypeFacade& typeLink)
+	{
+		auto ptr = std::make_unique<ProxySelector<ValueType>>();
+		ProxyInit(typeLink, std::addressof(ptr));
+		return ptr;
+	}
+
+public:
+	// Initialize with type facade only, set value empty.
+	Value2(Typedef::TypeFacade&& type);
+	// Initialize with base type only, set value empty.
+	Value2(Typedef::TypeFacade::base_type&& type);
+
+	// Initialize with type facade and base value.
+	template<typename ValueType, typename... ArgTypes>
+	explicit Value2(Typedef::TypeFacade&& type, ValueType&& valueCategory, ArgTypes&&... args)
+		: m_internalType{ std::move(type) }
+		, m_valuePtr{ MakeValueProxy<ValueType>(m_internalType, std::forward<ValueType>(valueCategory), std::forward<ArgTypes>(args)...) }
+	{
+	}
+
+	// Initialize with base type and base value.
+	template<typename ValueType, typename... ArgTypes>
+	explicit Value2(Typedef::TypeFacade::base_type&& type, ValueType&& valueCategory, ArgTypes&&... args)
+		: m_internalType{ Typedef::TypeFacade{ std::move(type) } }
+		, m_valuePtr{ MakeValueProxy<ValueType>(m_internalType, std::forward<ValueType>(valueCategory), std::forward<ArgTypes>(args)...) }
+	{
+	}
+
+	Value2(const Value2&);
+	Value2(Value2&&) = default;
+
+	// Copy other value into this value.
+	Value2& operator=(const Value2&);
+	// Move other value into this value.
+	Value2& operator=(Value2&&);
+
+	//TODO:
+	Value2& operator=(const iterator_helper_value_type&);
+	//TODO:
+	Value2& operator=(iterator_helper_value_type&&);
+
+	// Access type information.
+	Typedef::TypeFacade Type() const { return m_internalType; }
+
+	// Check if value is set.
+	inline bool Initialized() const noexcept { return m_valuePtr->IsInitialized(); }
+
+	// Cast to value category type and forward inner cast to value category.
+	template<typename ValueType, typename ReturnType, typename... CastTypes>
+	auto As() const -> decltype(auto)
+	{
+		static_assert(IsValueMultiOrdinal_v<ValueType>, "value type is not multiordinal");
+		using InnerProxyType = typename std::add_pointer<ProxySelector<ValueType>>::type;
+		auto proxy = dynamic_cast<InnerProxyType>(m_valuePtr.get());
+		if (!proxy) {
+			throw InvalidTypeCastException{};
+		}
+		return proxy->As<ReturnType, CastTypes...>();
+	}
+
+	// Cast to value category type. //TODO: NOPE
+	template<typename ValueType>
+	auto As() const -> decltype(auto)
+	{
+		using InnerProxyType = typename std::add_pointer<ProxySelector<ValueType>>::type;
+		return dynamic_cast<InnerProxyType>(m_valuePtr.get());
+	}
+
+	// Request if element vector is empty.
+	template<typename ValueType>
+	inline auto ElementEmpty() const
+	{
+		static_assert(IsValueIterable_v<ValueType>, "value type is not iterable");
+		using InnerProxyType = typename std::add_pointer<ProxySelector<ValueType>>::type;
+		return dynamic_cast<InnerProxyType>(m_valuePtr.get())->Empty();
+	}
+
+	// Request element vector size.
+	template<typename ValueType>
+	inline auto ElementCount() const
+	{
+		static_assert(IsValueIterable_v<ValueType>, "value type is not iterable");
+		using InnerProxyType = typename std::add_pointer<ProxySelector<ValueType>>::type;
+		return dynamic_cast<InnerProxyType>(m_valuePtr.get())->Size();
+	}
+
+	// Request value at offset.
+	template<typename ValueType, typename ReturnType, auto Offset>
+	inline auto At() const -> decltype(auto)
+	{
+		static_assert(IsValueIterable_v<ValueType>, "value type is not iterable");
+		using InnerProxyType = typename std::add_pointer<ProxySelector<ValueType>>::type;
+		return dynamic_cast<InnerProxyType>(m_valuePtr.get())->At<ReturnType>(Offset);
+	}
+	// Request value at offset.
+	template<typename ValueType, typename ReturnType, typename SizeType>
+	inline auto At(SizeType offset) const -> decltype(auto)
+	{
+		static_assert(IsValueIterable_v<ValueType>, "value type is not iterable");
+		using InnerProxyType = typename std::add_pointer<ProxySelector<ValueType>>::type;
+		return dynamic_cast<InnerProxyType>(m_valuePtr.get())->At<ReturnType>(offset);
+	}
+
+	// Replace value at offset.
+	template<typename ValueType, auto Offset, typename Type>
+	inline void Emplace(Type&& value) const
+	{
+		static_assert(IsValueIterable_v<ValueType>, "value type is not iterable");
+		using InnerProxyType = typename std::add_pointer<ProxySelector<ValueType>>::type;
+		dynamic_cast<InnerProxyType>(m_valuePtr.get())->Emplace(Offset, std::forward<Type>(value));
+	}
+	// Replace value at offset.
+	template<typename ValueType, typename SizeType, typename Type>
+	inline void Emplace(SizeType offset, Type&& value) const
+	{
+		static_assert(IsValueIterable_v<ValueType>, "value type is not iterable");
+		using InnerProxyType = typename std::add_pointer<ProxySelector<ValueType>>::type;
+		dynamic_cast<InnerProxyType>(m_valuePtr.get())->Emplace(offset, std::forward<Type>(value));
+	}
+
+	// Return value as string.
+	const std::string ToString() const noexcept;
+
+	// Serialize the value into byte array.
+	static void Serialize(const Value2&, Cry::ByteArray&);
+	// Serialize byte array into value.
+	static void Deserialize(Value2&, Cry::ByteArray&);
+
+	// Comparison equal operator.
+	bool operator==(const Value2&) const;
+	// Comparison not equal operator.
+	bool operator!=(const Value2&) const;
+
+	Value2& operator++();
+	Value2& operator--();
+	Value2 operator++(int);
+	Value2 operator--(int);
+	Value2 operator+(const Value2&) const;
+	Value2 operator-(const Value2&) const;
+	Value2 operator*(const Value2&) const;
+	Value2 operator/(const Value2&) const;
+	Value2 operator%(const Value2&) const;
+
+	// Check if an value was set.
+	inline operator bool() const { return Initialized(); }
+	// Check if an value was set.
+	inline bool operator!() const { return !Initialized(); }
+
+	// Stream value to ostream.
+	friend std::ostream& operator<<(std::ostream&, const Value2&);
+
+private:
+	// Value type front.
+	Typedef::TypeFacade m_internalType;
+	// Polymorphic value interface adopting the value category.
+	std::unique_ptr<ProxyInterface> m_valuePtr;
+};
+
+static_assert(std::is_copy_constructible<Value2>::value, "Value !is_copy_constructible");
+static_assert(std::is_move_constructible<Value2>::value, "Value !is_move_constructible");
+static_assert(std::is_copy_assignable<Value2>::value, "Value !is_copy_assignable");
+static_assert(std::is_move_assignable<Value2>::value, "Value !is_move_assignable");
 
 } // namespace Valuedef
 } // namespace SubValue

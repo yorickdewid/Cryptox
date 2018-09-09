@@ -105,6 +105,103 @@ Value MakeUnion(RecordValue&& v, const std::string structName)
 	return Value{ TypeFacade{ MakeRecordType(structName, RecordType::Specifier::UNION) }, std::move(v) };
 }
 
+////////
+
+Value2 MakeUninitialized()
+{
+	return Value2{ std::make_shared<NilType>() };
+}
+
+Value2 MakeVoid()
+{
+	return Value2{ MakeBuiltinType(BuiltinType::Specifier::VOID_T) };
+}
+
+Value2 MakeSignedChar(signed char v)
+{
+	return Value2{ MakeBuiltinType(BuiltinType::Specifier::SIGNED_CHAR_T), BuiltinValue{ v } };
+}
+
+Value2 MakeUnsignedChar(unsigned char v)
+{
+	return Value2{ MakeBuiltinType(BuiltinType::Specifier::UNSIGNED_CHAR_T), BuiltinValue{ v } };
+}
+
+Value2 MakeShort(short v)
+{
+	return Value2{ MakeBuiltinType(BuiltinType::Specifier::SHORT_T), BuiltinValue{ v } };
+}
+
+Value2 MakeUnsignedShort(unsigned short v)
+{
+	return Value2{ MakeBuiltinType(BuiltinType::Specifier::UNSIGNED_SHORT_T), BuiltinValue{ v } };
+}
+
+Value2 MakeUnsignedInt(unsigned int v)
+{
+	return Value2{ MakeBuiltinType(BuiltinType::Specifier::UNSIGNED_INT_T), BuiltinValue{ v } };
+}
+
+Value2 MakeLong(long v)
+{
+	return Value2{ MakeBuiltinType(BuiltinType::Specifier::LONG_T), BuiltinValue{ v } };
+}
+
+Value2 MakeUnsignedLong(unsigned long v)
+{
+	return Value2{ MakeBuiltinType(BuiltinType::Specifier::UNSIGNED_LONG_T), BuiltinValue{ v } };
+}
+
+// Value2 MakeBool2(bool v)
+// {
+// 	return Value2{ MakeBuiltinType(BuiltinType::Specifier::BOOL_T), BuiltinValue{ v } };
+// }
+
+Value2 MakeChar2(char v)
+{
+	return Value2{ MakeBuiltinType(BuiltinType::Specifier::CHAR_T), BuiltinValue{ v } };
+}
+
+Value2 MakeInt2(int v)
+{
+	return Value2{ MakeBuiltinType(BuiltinType::Specifier::INT_T), BuiltinValue{ v } };
+}
+
+Value2 MakeFloat2(float v)
+{
+	return Value2{ MakeBuiltinType(BuiltinType::Specifier::FLOAT_T), BuiltinValue{ v } };
+}
+
+Value2 MakeDouble2(double v)
+{
+	return Value2{ MakeBuiltinType(BuiltinType::Specifier::DOUBLE_T), BuiltinValue{ v } };
+}
+
+// Value2 MakeIntArray2(int v[])
+// {
+// 	const auto builtin = MakeBuiltinType(BuiltinType::Specifier::INT);
+// 	std::vector<int> ve(v, v + sizeof(v) / sizeof(v[0]));
+// 	return Value{ TypeFacade{ builtin }, Value::ValueVariantMulti{ std::move(ve) }, ve.size() };
+// }
+
+// Value2 MakeIntArray2(std::initializer_list<int> v)
+// {
+// 	auto arrayElement = Util::MakeBuiltinType(BuiltinType::Specifier::INT_T);
+// 	return Value2{ std::make_shared<ArrayType>(v.size(), std::move(arrayElement)), ArrayValue{ v } };
+// }
+
+// Value2 MakeFloatArray2(std::initializer_list<float> v)
+// {
+// 	auto arrayElement = Util::MakeBuiltinType(BuiltinType::Specifier::FLOAT_T);
+// 	return Value2{ std::make_shared<ArrayType>(v.size(), std::move(arrayElement)), ArrayValue{ v } };
+// }
+
+// Value2 MakeDoubleArray2(std::initializer_list<double> v)
+// {
+// 	auto arrayElement = Util::MakeBuiltinType(BuiltinType::Specifier::DOUBLE_T);
+// 	return Value2{ std::make_shared<ArrayType>(v.size(), std::move(arrayElement)), ArrayValue{ v } };
+// }
+
 // Evaluate value as boolean if conversion is possible. If the conversion
 // is not possible, an exception is thrown and caught here. In that case
 // the evaluator returns with a negative result.

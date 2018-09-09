@@ -39,18 +39,18 @@ namespace Util
 using namespace CryCC::SubValue::Valuedef;
 using namespace CryCC::SubValue::Typedef;
 
-// Value MakeUninitialized();
-// Value MakeVoid();
+Value2 MakeUninitialized();
+Value2 MakeVoid();
 Value MakeBool(bool);
 Value MakeChar(char);
-// Value MakeSignedChar(signed char);
-// Value MakeUnsignedChar(unsigned char);
-// Value MakeShort(short);
-// Value MakeUnsignedShort(unsigned short);
+Value2 MakeSignedChar(signed char);
+Value2 MakeUnsignedChar(unsigned char);
+Value2 MakeShort(short);
+Value2 MakeUnsignedShort(unsigned short);
 Value MakeInt(int);
-// Value MakeUnsignedInt(unsigned int);
-// Value MakeLong(long);
-// Value MakeUnsignedLong(unsigned long);
+Value2 MakeUnsignedInt(unsigned int);
+Value2 MakeLong(long);
+Value2 MakeUnsignedLong(unsigned long);
 Value MakeFloat(float);
 Value MakeDouble(double);
 // Value MakeLongDouble(double);
@@ -65,6 +65,22 @@ Value MakeBoolArray(std::vector<bool>);
 Value MakePointer(Value&&);
 Value MakeStruct(RecordValue&&, const std::string structName = {});
 Value MakeUnion(RecordValue&&, const std::string structName = {});
+
+// Value MakeBool2(bool);
+Value2 MakeChar2(char);
+Value2 MakeInt2(int);
+Value2 MakeFloat2(float);
+Value2 MakeDouble2(double);
+// Value2 MakeIntArray2(int v[]);
+// Value2 MakeIntArray2(std::vector<int>);
+// Value2 MakeFloatArray2(std::vector<float>);
+// Value2 MakeDoubleArray2(std::vector<double>);
+
+template<typename NativeType>
+inline NativeType ValueCast(const Value2& value)
+{
+	return value.As<BuiltinValue, NativeType>();
+}
 
 //
 // Create implicit value with automatic type.
