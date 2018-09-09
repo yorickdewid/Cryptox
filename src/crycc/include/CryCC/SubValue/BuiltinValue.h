@@ -71,10 +71,10 @@ public:
 	BuiltinValue& operator=(BuiltinValue&&) = default;
 
 	// Initialize the type variant with a primitive type.
-	template<typename Type, typename = typename std::enable_if<
+	template<typename Type, typename = typename std::enable_if_t<
 		!std::is_same<Type, std::add_lvalue_reference<BuiltinValue>::type>::value
 		&& !std::is_same<Type, BuiltinValue>::value
-	>::type>
+	>>
 		BuiltinValue(Type value)
 		: m_value{ InitialConversion(value) }
 	{

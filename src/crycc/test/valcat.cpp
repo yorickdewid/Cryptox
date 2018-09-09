@@ -223,6 +223,9 @@ BOOST_AUTO_TEST_CASE(ValCatArrayValue)
 	ArrayValue valArFloat{ 84.8748f, 948.847f };
 	ArrayValue valArDouble{ 8734.823123, 891.6418 };
 
+	std::vector<int> vector{ 12, 34,45 };
+	ArrayValue valArInt2{ vector.cbegin(), vector.cend() };
+
 	BOOST_REQUIRE((std::vector<char>{'k', 'a', 'a', 's'}) == valArChar.As<char>());
 	BOOST_REQUIRE((std::vector<short>{(short)2, (short)4, (short)8, (short)913}) == valArShort.As<short>());
 	BOOST_REQUIRE((std::vector<int>{1, 2, 3, 4, 5, 6, 7, 8, 9, 0}) == valArInt.As<int>());
@@ -235,6 +238,8 @@ BOOST_AUTO_TEST_CASE(ValCatArrayValue)
 
 	BOOST_REQUIRE((std::vector<float>{84.8748f, 948.847f}) == valArFloat.As<float>());
 	BOOST_REQUIRE((std::vector<double>{8734.823123, 891.6418}) == valArDouble.As<double>());
+
+	BOOST_REQUIRE((std::vector<int>{12, 34, 45}) == valArInt2.As<int>());
 }
 
 BOOST_AUTO_TEST_CASE(ValCatArrayValueSerialize)

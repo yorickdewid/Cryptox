@@ -22,9 +22,6 @@
 
 #include <cstdint>
 
-//FUTURE:
-// - Accept arrays in the constructor
-
 namespace CryCC::SubValue::Valuedef
 {
 
@@ -52,6 +49,19 @@ class ArrayValue : public AbstractValue<ArrayValue>, public IterableContract
 
 	void ConstructFromType();
 
+	template<typename ContainerType>
+	constexpr auto InitialConversion(ContainerType&& value)
+	{
+		using Type = typename ContainerType::value_type;
+
+		if constexpr (ArrayTypeList::has_type<ContainerType>::value) {
+			return value;
+		}
+		else {
+			return std::vector<Cry::PrimitiveSelectorStorageType<Type>>{ value.begin(), value.end() };
+		}
+	}
+
 public:
 	using typdef_type = Typedef::ArrayType;
 	using value_category = ValueCategory::Plural;
@@ -68,19 +78,20 @@ public:
 	ArrayValue& operator=(ArrayValue&&) = default;
 
 	// Initialize the type variant with a primitive type.
-	template<typename Type, typename = typename std::enable_if<
-		!std::is_same<Type, std::add_lvalue_reference<ArrayValue>::type>::value
-		&& !std::is_same<Type, ArrayValue>::value
-	>::type>
+	template<typename Type, typename = typename std::enable_if_t<
+		!std::is_same_v<Type, std::add_lvalue_reference<ArrayValue>::type>
+		&& !std::is_same_v<Type, ArrayValue>
+	>, typename = typename std::enable_if_t<ArrayTypeList::has_type<Type>::value
+		|| Cry::IsPrimitiveType_v<Type>>>
 		ArrayValue(std::initializer_list<Type>&& value)
-		: m_value{ std::vector<Cry::PrimitiveSelectorStorageType<Type>>{ value.begin(), value.end() } }
+		: m_value{ InitialConversion(std::forward<std::initializer_list<Type>>(value)) }
 	{
-		static_assert(ArrayTypeList::has_type<std::vector<Cry::PrimitiveSelectorStorageType<Type>>>::value);
 	}
 
-	template<>
-	ArrayValue(std::initializer_list<Value2>&& valueList)
-		: m_value{ std::move(valueList) }
+	// Initialize the type variant with iterator.
+	template<typename InputIt>
+	ArrayValue(InputIt first1, InputIt last1)
+		: m_value{ std::vector<Cry::PrimitiveSelectorStorageType<typename InputIt::value_type>>{ first1, last1 } }
 	{
 	}
 
