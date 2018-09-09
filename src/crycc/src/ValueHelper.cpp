@@ -8,6 +8,14 @@
 
 #include <CryCC/SubValue/ValueHelper.h>
 
+#include <CryCC/SubValue/OffsetValue.h>
+#include <CryCC/SubValue/NilValue.h>
+#include <CryCC/SubValue/ReferenceValue.h>
+#include <CryCC/SubValue/PointerValue.h>
+#include <CryCC/SubValue/BuiltinValue.h>
+#include <CryCC/SubValue/ArrayValue.h>
+#include <CryCC/SubValue/RecordValue.h>
+
 namespace Util
 {
 

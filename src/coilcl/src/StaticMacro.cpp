@@ -17,9 +17,7 @@
 
 static int g_staticTokenProcessorCounter = 0;
 
-namespace CoilCl
-{
-namespace MacroHelper
+namespace CoilCl::MacroHelper
 {
 
 // Keep global counter throughout the entire code processing.
@@ -27,7 +25,7 @@ namespace MacroHelper
 TokenProcessor::DataType DynamicGlobalCounter()
 {
 	int counter = g_staticTokenProcessorCounter++;
-	return CaptureValue(counter);
+	return Util::MakeAutoValue(std::move(counter));
 }
 
 TokenProcessor::DataType DynamicSourceFile()
@@ -36,13 +34,14 @@ TokenProcessor::DataType DynamicSourceFile()
 	return Util::MakeString("somefile.c");
 }
 
+// Return the current source code line.
 TokenProcessor::DataType DynamicSourceLine()
 {
 	//TODO:
 	return Util::MakeInt(0);
 }
 
-// Return the current local date
+// Return the current local date.
 TokenProcessor::DataType DynamicDate()
 {
 	struct tm timeinfo;
@@ -53,7 +52,7 @@ TokenProcessor::DataType DynamicDate()
 	return Util::MakeString(buffer);
 }
 
-// Return the current local time
+// Return the current local time.
 TokenProcessor::DataType DynamicTime()
 {
 	struct tm timeinfo;
@@ -64,5 +63,4 @@ TokenProcessor::DataType DynamicTime()
 	return Util::MakeString(buffer);
 }
 
-} // namespace MacroHelper
-} // namespace CoilCl
+} // namespace CoilCl::MacroHelper

@@ -18,22 +18,13 @@
 	std::cout << v.Type()->TypeName() << " >> " << v.Print() << std::endl;
 #endif
 
-//TODO: remove
-#define CaptureValue(s) Util::CaptureValueRaw(std::move(s))
-
-namespace CryCC
-{
-namespace SubValue
-{
-namespace Valuedef
+namespace CryCC::SubValue::Valuedef
 {
 	
 // Request the value at the record field with 'name'.
 std::shared_ptr<Value> RecordMemberValue(Value& value, const std::string& name);
 
-} // namespace Valuedef
-} // namespace SubValue
-} // namespace CryCC
+} // namespace CryCC::SubValue::Valuedef
 
 // The value helper functions ease the creation and modification of the
 // value objects as well as some functions to query specific properties.
@@ -80,15 +71,9 @@ Value MakeUnion(RecordValue&&, const std::string structName = {});
 //
 
 template<typename NativeType>
-inline Value CaptureValueRaw(NativeType&& v) //TODO: remove
-{
-	return Detail::ValueDeductor{}(std::forward<NativeType>(v));
-}
-template<typename NativeType>
 inline Value MakeAutoValue(NativeType&& v)
 {
-	Detail::ValueDeductor v;
-	return v(std::forward<NativeType>(v));
+	return std::invoke(Detail::ValueDeductor{}, std::forward<NativeType>(v));
 }
 
 //

@@ -11,7 +11,7 @@
 #include <boost/test/unit_test.hpp>
 
 //
-// Key         : ValDef
+// Key         : Value
 // Test        : Value definition unitttest
 // Type        : unit
 // Description : Unit test of the value type system. Since the value definition 
@@ -167,14 +167,14 @@ BOOST_AUTO_TEST_CASE(ValDefReworkCaptureValue)
 	volatile float _valFloat2 = 7812.8612f;
 	const char _valChar2 = 'J';
 
-	auto valInt = CaptureValue(_valInt);
-	auto valFloat = CaptureValue(_valFloat);
-	auto valDouble = CaptureValue(_valDouble);
-	auto valChar = CaptureValue(_valChar);
-	auto valBool = CaptureValue(_valBool);
+	auto valInt = Util::MakeAutoValue(std::move(_valInt));
+	auto valFloat = Util::MakeAutoValue(std::move(_valFloat));
+	auto valDouble = Util::MakeAutoValue(std::move(_valDouble));
+	auto valChar = Util::MakeAutoValue(std::move(_valChar));
+	auto valBool = Util::MakeAutoValue(std::move(_valBool));
 
-	auto valFloat2 = CaptureValue(_valFloat2);
-	auto valChar2 = CaptureValue(_valChar2);
+	auto valFloat2 = Util::MakeAutoValue(std::move(_valFloat2));
+	auto valChar2 = Util::MakeAutoValue(std::move(_valChar2));
 
 	BOOST_REQUIRE_EQUAL(_valInt, valInt.As<int>());
 	BOOST_REQUIRE_EQUAL(_valFloat, valFloat.As<float>());
@@ -198,13 +198,13 @@ BOOST_AUTO_TEST_CASE(ValDefReworkCaptureMultiValue)
 	volatile std::vector<float> _valFloatArray2 = { 9.812f, 87234.21f, 12.1872f, 9.2873f, 7.71628f };
 	const std::vector<bool> _valBoolArray2 = { true, true, false, false, true, false, true };
 
-	auto valIntArray = CaptureValue(_valIntArray);
-	auto valFloatArray = CaptureValue(_valFloatArray);
-	auto valDoubleArray = CaptureValue(_valDoubleArray);
-	auto valBoolArray = CaptureValue(_valBoolArray);
+	auto valIntArray = Util::MakeAutoValue(std::move(_valIntArray));
+	auto valFloatArray = Util::MakeAutoValue(std::move(_valFloatArray));
+	auto valDoubleArray = Util::MakeAutoValue(std::move(_valDoubleArray));
+	auto valBoolArray = Util::MakeAutoValue(std::move(_valBoolArray));
 
-	auto valFloatArray2 = CaptureValue(_valFloatArray2);
-	auto valBoolArray2 = CaptureValue(_valBoolArray2);
+	auto valFloatArray2 = Util::MakeAutoValue(std::move(_valFloatArray2));
+	auto valBoolArray2 = Util::MakeAutoValue(std::move(_valBoolArray2));
 
 	BOOST_REQUIRE(_valIntArray == valIntArray.As<std::vector<int>>());
 	BOOST_REQUIRE(_valFloatArray == valFloatArray.As<std::vector<float>>());
@@ -230,8 +230,8 @@ BOOST_AUTO_TEST_CASE(ValDefReworkPointer)
 
 	{
 		std::vector<double> _valDoubleArray{ 923, 1192.23, 7.873123, 9.716289 };
-		auto valDoubleArray = CaptureValue(_valDoubleArray);
-		auto valPtr = CaptureValue(valDoubleArray);
+		auto valDoubleArray = Util::MakeAutoValue(std::move(_valDoubleArray));
+		auto valPtr = Util::MakeAutoValue(std::move(valDoubleArray));
 
 		BOOST_CHECK(!valPtr.Empty());
 		BOOST_REQUIRE(valPtr.IsReference());
@@ -273,7 +273,7 @@ BOOST_AUTO_TEST_CASE(ValDefReworkReplace)
 	}
 
 	{
-		auto valDouble = CaptureValue(8273.87123);
+		auto valDouble = Util::MakeAutoValue(8273.87123);
 		Value val2 = valDouble;
 		BOOST_CHECK(valDouble);
 		BOOST_REQUIRE_EQUAL(8273.87123, val2.As<double>());
@@ -337,7 +337,7 @@ BOOST_AUTO_TEST_CASE(ValDefReworkSerialize)
 	using namespace Util;
 
 	{
-		const Value val = CaptureValue(7962193);
+		const Value val = Util::MakeAutoValue(7962193);
 		Cry::ByteArray buffer = val.Serialize();
 
 		const Value val2 = ValueFactory::MakeValue(buffer);
@@ -345,7 +345,7 @@ BOOST_AUTO_TEST_CASE(ValDefReworkSerialize)
 	}
 
 	{
-		const Value val = CaptureValue('O');
+		const Value val = Util::MakeAutoValue('O');
 		Cry::ByteArray buffer = val.Serialize();
 
 		const Value val2 = ValueFactory::MakeValue(buffer);

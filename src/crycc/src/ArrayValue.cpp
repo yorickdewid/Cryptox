@@ -9,11 +9,7 @@
 #include <CryCC/SubValue/ArrayValue.h>
 #include <CryCC/SubValue/BuiltinValue.h>
 
-namespace CryCC
-{
-namespace SubValue
-{
-namespace Valuedef
+namespace CryCC::SubValue::Valuedef
 {
 
 using namespace Cry;
@@ -217,9 +213,9 @@ void ArrayValue::Deserialize(ArrayValue& value, Cry::ByteArray& buffer)
 }
 
 // Compare to other ArrayValue.
-bool ArrayValue::operator==(const ArrayValue&) const
+bool ArrayValue::operator==(const ArrayValue& other) const
 {
-	return false;
+	return m_value == other.m_value;
 }
 
 // Convert current value to string.
@@ -228,6 +224,4 @@ std::string ArrayValue::ToString() const
 	return "REPLACE ME"; //TODO
 }
 
-} // namespace Valuedef
-} // namespace SubValue
-} // namespace CryCC
+} // namespace CryCC::SubValue::Valuedef

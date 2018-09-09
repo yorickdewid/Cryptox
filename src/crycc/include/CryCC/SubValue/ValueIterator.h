@@ -25,13 +25,14 @@ class ValueIterator
     IterableContract& m_iterValue;
 
 public:
+	// Initialize with iterator helper.
 	ValueIterator(const typename Value2::iterator_helper_value_type& offsetValue)
         : m_iterValue{ offsetValue.m_iterValue }
         , m_offset{ offsetValue.Offset() }
 	{
 	}
 	
-    // Initialize with type facade and base value.
+    // Initialize with iterable value.
     template<typename ValueCategoryType, typename = typename std::enable_if<IsValueIterable<ValueCategoryType>::value>::type>
 	ValueIterator(ValueCategoryType& value, size_t offset = 0)
 		: m_iterValue{ value }

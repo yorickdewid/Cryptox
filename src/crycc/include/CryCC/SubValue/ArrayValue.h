@@ -22,6 +22,9 @@
 
 #include <cstdint>
 
+//FUTURE:
+// - Accept arrays in the constructor
+
 namespace CryCC::SubValue::Valuedef
 {
 
