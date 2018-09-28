@@ -11,16 +11,9 @@
 #include <CryCC/SubValue/Valuedef.h>
 #include <CryCC/SubValue/AutoValue.h>
 
-//TODO: replace with function.
-#ifdef CRY_DEBUG
-#include <iostream>
-#define DUMP_VALUE(v) \
-	std::cout << v.Type()->TypeName() << " >> " << v.Print() << std::endl;
-#endif
-
 namespace CryCC::SubValue::Valuedef
 {
-	
+
 // Request the value at the record field with 'name'.
 std::shared_ptr<Value> RecordMemberValue(Value& value, const std::string& name);
 

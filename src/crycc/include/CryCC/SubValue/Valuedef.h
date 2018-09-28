@@ -25,6 +25,7 @@
 //TODO:
 // - Cleanup old obsolete code
 // - IsConvertable/Converter
+// - Replace value with Value2
 
 namespace Util
 {

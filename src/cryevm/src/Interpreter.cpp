@@ -339,7 +339,7 @@ struct DeclarationRegistry
 		if (!var.lock()) { printf("%s -> (null)", key.c_str()); }
 		else {
 			printf("%s -> ", key.c_str());
-			DUMP_VALUE((*var.lock().get()));
+			//DUMP_VALUE((*var.lock().get()));
 		}
 	}
 #endif

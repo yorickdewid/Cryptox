@@ -19,6 +19,10 @@
 //               full test coverage.
 //
 
+//TODO:
+// - Make Bool
+// - Autovalue
+
 using namespace CryCC::SubValue::Typedef;
 using namespace CryCC::SubValue::Valuedef;
 
@@ -183,9 +187,9 @@ BOOST_AUTO_TEST_CASE(ValueRework2DeclarationArray)
 	//auto valBoolArray = Util::MakeBoolArray({ true, true, false, true, false, false });
 
 	BOOST_CHECK_EQUAL(_valIntArray.size(), valIntArray.ElementCount<ArrayValue>());
-	//BOOST_CHECK_EQUAL(_valFloatArray.size(), valFloatArray.Type().ArraySize());
-	//BOOST_CHECK_EQUAL(_valDoubleArray.size(), valDoubleArray.Type().ArraySize());
-	//BOOST_CHECK_EQUAL(_valBoolArray.size(), valBoolArray.Type().ArraySize());
+	BOOST_CHECK_EQUAL(_valFloatArray.size(), valFloatArray.ElementCount<ArrayValue>());
+	BOOST_CHECK_EQUAL(_valDoubleArray.size(), valDoubleArray.ElementCount<ArrayValue>());
+	//BOOST_CHECK_EQUAL(_valBoolArray.size(), valBoolArray.Type().ElementCount<ArrayValue>());
 
 	BOOST_REQUIRE(_valIntArray == (valIntArray.As<ArrayValue, int>()));
 	BOOST_REQUIRE(_valFloatArray == (valFloatArray.As<ArrayValue, float>()));

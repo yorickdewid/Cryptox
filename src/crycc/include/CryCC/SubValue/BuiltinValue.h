@@ -24,7 +24,7 @@ namespace CryCC::SubValue::Valuedef
 
 class BuiltinValue : public AbstractValue<BuiltinValue>
 {
-	//TODO: missing UnsignedLongDoubleType ?
+	//TODO: missing UnsignedLongDoubleType, bool? ?
 	using NativeTypeList = Cry::TypeTrait::TemplateHolder<Cry::CharType::storage_type
 		, Cry::ShortType::storage_type
 		, Cry::IntegerType::storage_type
