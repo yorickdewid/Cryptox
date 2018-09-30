@@ -95,4 +95,28 @@ bool EvaluateValueAsBoolean(const Value&);
 // Evaluate the 'value' as an integer or throw exception.
 int EvaluateValueAsInteger(const Value&);
 
+//
+// Type facade forwarders
+//
+
+inline bool IsVoid(const Value2& value) noexcept { return IsVoid(value.Type()); }
+inline bool IsIntegral(const Value2& value) noexcept { return IsIntegral(value.Type()); }
+inline bool IsFloatingPoint(const Value2& value) noexcept { return IsFloatingPoint(value.Type()); }
+inline bool IsArray(const Value2& value) noexcept { return IsArray(value.Type()); }
+inline bool IsEnum(const Value2& value) noexcept { return IsEnum(value.Type()); }
+inline bool IsStruct(const Value2& value) noexcept { return IsStruct(value.Type()); }
+inline bool IsUnion(const Value2& value) noexcept { return IsUnion(value.Type()); }
+inline bool IsClass(const Value2& value) noexcept { return IsClass(value.Type()); }
+inline bool IsRecord(const Value2& value) noexcept { return IsRecord(value.Type()); }
+inline bool IsPointer(const Value2& value) noexcept { return IsPointer(value.Type()); }
+inline bool IsInline(const Value2& value) noexcept { return IsInline(value.Type()); }
+inline bool IsSensitive(const Value2& value) noexcept { return IsSensitive(value.Type()); }
+inline bool IsStatic(const Value2& value) noexcept { return IsStatic(value.Type()); }
+inline bool IsExtern(const Value2& value) noexcept { return IsExtern(value.Type()); }
+inline bool IsRegister(const Value2& value) noexcept { return IsRegister(value.Type()); }
+inline bool IsConst(const Value2& value) noexcept { return IsConst(value.Type()); }
+inline bool IsVolatile(const Value2& value) noexcept { return IsVolatile(value.Type()); }
+inline bool IsSigned(const Value2& value) noexcept { return IsSigned(value.Type()); }
+inline bool IsUnsigned(const Value2& value) noexcept { return IsUnsigned(value.Type()); }
+
 } // namespace Util

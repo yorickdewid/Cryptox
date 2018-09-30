@@ -13,6 +13,8 @@
 
 #include <Cry/Cry.h>
 
+//FUTURE: Impl. dependent on VM reqs
+
 namespace CryCC::SubValue::Valuedef
 {
 
