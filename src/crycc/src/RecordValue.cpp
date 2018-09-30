@@ -51,6 +51,11 @@ void RecordValue::AddField(std::pair<std::string, std::shared_ptr<Value>>&& val)
 	m_fields.push_back(std::move(val));
 }
 
+void RecordValue::AddField(int index, Value2&& val)
+{
+	m_fields2.emplace(index, std::move(val));
+}
+
 bool RecordValue::HasField(const std::string& name) const
 {
 	return std::any_of(m_fields.cbegin(), m_fields.cend(), [=](const auto& pair)
@@ -65,6 +70,26 @@ std::shared_ptr<Value> RecordValue::GetField(const std::string& name) const
 	{
 		return pair.first == name;
 	})->second;
+}
+
+// Get the value at offset.
+Value2 RecordValue::At(offset_type offset) const
+{
+	if (m_fields2.size() < offset + 1) {
+		throw OutOfBoundsException{};
+	}
+	return m_fields2.at(offset);
+}
+
+// Emplace value at offset.
+void RecordValue::Emplace(offset_type offset, Value2&& value)
+{
+	if (m_fields2.size() < offset + 1) {
+		throw OutOfBoundsException{};
+	}
+	m_fields2.at(offset) = std::move(value);
+
+	//TODO: trigger type update
 }
 
 // Convert record value into data stream.

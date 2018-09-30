@@ -64,7 +64,7 @@ Value2 MakeChar2(char);
 Value2 MakeInt2(int);
 Value2 MakeFloat2(float);
 Value2 MakeDouble2(double);
-// Value2 MakeIntArray2(int v[]);
+// Value2 MakeIntArray2(int v[]); //TODO: need?
 Value2 MakeIntArray2(const std::vector<int>&);
 Value2 MakeFloatArray2(const std::vector<float>&);
 Value2 MakeDoubleArray2(const std::vector<double>&);
@@ -116,6 +116,11 @@ inline Value MakeAutoValue(NativeType&& v)
 bool EvaluateValueAsBoolean(const Value&);
 // Evaluate the 'value' as an integer or throw exception.
 int EvaluateValueAsInteger(const Value&);
+
+// Evaluate the 'value' as either true or false.
+bool EvaluateValueAsBoolean(const Value2&);
+// Evaluate the 'value' as an integer or throw exception.
+int EvaluateValueAsInteger(const Value2&);
 
 //
 // Type facade forwarders.

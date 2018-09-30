@@ -219,4 +219,21 @@ int EvaluateValueAsInteger(const Value& value)
 	return value.As<int>();
 }
 
+// Evaluate value as boolean if conversion is possible. If the conversion
+// is not possible, an exception is thrown and caught here. In that case
+// the evaluator returns with a negative result.
+bool EvaluateValueAsBoolean(const Value2& value)
+{
+	try { return Util::ValueCast<int>(value); }
+	catch (const InvalidTypeCastException&) {}
+	return false;
+}
+
+// Convert value as integer. If the conversion fails an exception
+// is thrown upwards to the caller.
+int EvaluateValueAsInteger(const Value2& value)
+{
+	return Util::ValueCast<int>(value);
+}
+
 } // namespace Util

@@ -266,25 +266,34 @@ BOOST_AUTO_TEST_CASE(ValueRework2AutoMultiValue)
 
 BOOST_AUTO_TEST_CASE(ValueRework2Record)
 {
-	auto valInt = Util::MakeInt2(4234761);
-	auto valFloatArray = Util::MakeFloatArray2({ 125.233f, 1.9812f, 89.8612f });
-	auto valDoubleArray = Util::MakeDoubleArray2({ 1.8712, 873.655, 891.87316, 8712.8213 });
-	auto valDoubleArrayCheck = Value2{ valDoubleArray };
+	{
+		auto valInt = Util::MakeInt2(4234761);
+		auto valFloatArray = Util::MakeFloatArray2({ 125.233f, 1.9812f, 89.8612f });
+		auto valDoubleArray = Util::MakeDoubleArray2({ 1.8712, 873.655, 891.87316, 8712.8213 });
+		auto valDoubleArrayCheck = Value2{ valDoubleArray };
 
-	auto valStruct = Util::MakeStruct2("struct", valInt, valFloatArray);
-	BOOST_REQUIRE(Util::IsStruct(valStruct));
+		auto valStruct = Util::MakeStruct2("struct", valInt, valFloatArray);
+		BOOST_REQUIRE(Util::IsStruct(valStruct));
 
-	BOOST_REQUIRE(valStruct);
-	BOOST_REQUIRE(valInt == (valStruct.As<RecordValue>()->At(0)));
+		BOOST_REQUIRE(valStruct);
+		BOOST_REQUIRE(valInt == (valStruct.As<RecordValue>()->At(0)));
 
-	valStruct.As<RecordValue>()->Emplace(1, std::move(valDoubleArray));
-	BOOST_REQUIRE(valDoubleArrayCheck == (valStruct.As<RecordValue>()->At(1)));
+		valStruct.As<RecordValue>()->Emplace(1, std::move(valDoubleArray));
+		BOOST_REQUIRE(valDoubleArrayCheck == (valStruct.As<RecordValue>()->At(1)));
+	}
+
+	{
+		auto valInt = Util::MakeInt2(1);
+		auto valInt2 = Util::MakeInt2(-29);
+		auto valUnion = Util::MakeUnion2("", valInt, valInt2);
+		BOOST_REQUIRE(Util::IsUnion(valUnion));
+	}
 }
 
 BOOST_AUTO_TEST_CASE(ValueRework2Replace)
 {
 	//{
-	//	auto valInt = Util::MakeInt(982734);
+	//	auto valInt = Util::MakeInt2(982734);
 	//	valInt = Util::MakeInt(17);
 	//	BOOST_REQUIRE_EQUAL(17, valInt.As<int>());
 	//	BOOST_REQUIRE(BuiltinType::Specifier::INT == valInt.Type().DataType<BuiltinType>()->TypeSpecifier());
@@ -313,53 +322,19 @@ BOOST_AUTO_TEST_CASE(ValueRework2Misc)
 		BOOST_REQUIRE(Util::IsFloatingPoint(Util::MakeFloat2(8.851283f)));
 	}
 
-	//{
-	//	BOOST_REQUIRE(Util::EvaluateValueAsBoolean(Util::MakeInt(722)));
-	//	BOOST_REQUIRE(!Util::EvaluateValueAsBoolean(Util::MakeInt(0)));
-	//	BOOST_REQUIRE_EQUAL(762386, Util::EvaluateValueAsInteger(Util::MakeInt(762386)));
-	//	BOOST_REQUIRE_EQUAL(0, Util::EvaluateValueAsInteger(Util::MakeInt(0)));
-	//	BOOST_REQUIRE_THROW(Util::EvaluateValueAsInteger(Util::MakeIntArray({ 12,23 })), Value::UninitializedValueException);
-	//	BOOST_REQUIRE_THROW(Util::EvaluateValueAsInteger(Util::MakeFloat(8.12f)), Value::InvalidTypeCastException);
-	//}
-}
-
-BOOST_AUTO_TEST_CASE(ValDefRecordMemberValue)
-{
-	//// Test if existing value can be accessed via 'RecordMemberValue'.
-	//{
-	//	auto valInt = Util::MakeInt(7261);
-	//	auto valString = Util::MakeString("teststring");
-
-	//	RecordValue record;
-	//	record.AddField({ "int", RecordValue::AutoValue(valInt) });
-	//	record.AddField({ "str", RecordValue::AutoValue(valString) });
-
-	//	auto valUnion = Util::MakeUnion(std::move(record));
-
-	//	auto valMemInt = RecordMemberValue(valUnion, "int");
-	//	BOOST_REQUIRE(valInt == (*valMemInt));
-	//}
-
-	//// Create record value and member in value.
-	//{
-	//	auto record = Util::MakeRecordType("union", RecordType::Specifier::UNION);
-	//	record->AddField("int", std::make_shared<BaseType2::element_type>(Util::MakeBuiltinType(BuiltinType::Specifier::INT)));
-	//	record->AddField("char", std::make_shared<BaseType2::element_type>(Util::MakeBuiltinType(BuiltinType::Specifier::CHAR)));
-
-	//	Value valUninit{ TypeFacade{ record } };
-
-	//	auto valMemInt = RecordMemberValue(valUninit, "int");
-	//	BOOST_CHECK(valMemInt->Empty());
-	//	(*valMemInt) = Util::MakeInt(17);
-
-	//	auto valMemInt2 = RecordMemberValue(valUninit, "int");
-	//	BOOST_REQUIRE_EQUAL(Util::MakeInt(17), (*valMemInt2));
-	//}
+	{
+		BOOST_REQUIRE(Util::EvaluateValueAsBoolean(Util::MakeInt2(722)));
+		BOOST_REQUIRE(!Util::EvaluateValueAsBoolean(Util::MakeInt2(0)));
+		BOOST_REQUIRE_EQUAL(762386, Util::EvaluateValueAsInteger(Util::MakeInt2(762386)));
+		BOOST_REQUIRE_EQUAL(0, Util::EvaluateValueAsInteger(Util::MakeInt2(0)));
+		//BOOST_REQUIRE_THROW(Util::EvaluateValueAsInteger(Util::MakeIntArray2({ 12,23 })), UninitializedValueException);
+		BOOST_REQUIRE_THROW(Util::EvaluateValueAsInteger(Util::MakeFloat2(8.12f)), InvalidTypeCastException);
+	}
 }
 
 BOOST_AUTO_TEST_CASE(ValDefReworkSerialize)
 {
-	//using namespace Util;
+	using namespace Util;
 
 	//{
 	//	const Value val = CaptureValue(7962193);
