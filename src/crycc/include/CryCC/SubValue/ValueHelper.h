@@ -69,6 +69,28 @@ Value2 MakeIntArray2(const std::vector<int>&);
 Value2 MakeFloatArray2(const std::vector<float>&);
 Value2 MakeDoubleArray2(const std::vector<double>&);
 
+template<typename... ValueType>
+Value2 MakeStruct2(const std::string name, ValueType&&... args)
+{
+	RecordValue record;
+	int i = 0;
+	for (auto v : { args... }) {
+		record.AddField(i++, std::move(v));
+	}
+	return Value2{ MakeRecordType(name, RecordType::Specifier::STRUCT), std::move(record) };
+}
+
+template<typename... ValueType>
+Value2 MakeUnion2(const std::string name, ValueType&&... args)
+{
+	RecordValue record;
+	int i = 0;
+	for (auto v : { args... }) {
+		record.AddField(i++, std::move(v));
+	}
+	return Value2{ MakeRecordType(name, RecordType::Specifier::UNION), std::move(record) };
+}
+
 template<typename NativeType>
 inline NativeType ValueCast(const Value2& value)
 {
@@ -96,7 +118,7 @@ bool EvaluateValueAsBoolean(const Value&);
 int EvaluateValueAsInteger(const Value&);
 
 //
-// Type facade forwarders
+// Type facade forwarders.
 //
 
 inline bool IsVoid(const Value2& value) noexcept { return IsVoid(value.Type()); }

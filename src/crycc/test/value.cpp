@@ -258,47 +258,27 @@ BOOST_AUTO_TEST_CASE(ValueRework2AutoMultiValue)
 	//BOOST_REQUIRE(_valBoolArray2 == valBoolArray2.As<std::vector<bool>>());
 }
 
-BOOST_AUTO_TEST_CASE(ValueRework2Pointer)
-{
-	//{
-	//	auto valInt = Util::MakeInt(1547483642);
-	//	auto valPtr = Util::MakePointer(std::move(valInt));
-
-	//	BOOST_CHECK(!valPtr.Empty());
-	//	BOOST_REQUIRE(valPtr.IsReference());
-	//	BOOST_REQUIRE_EQUAL(1547483642, valPtr.As<Value>().As<int>());
-	//}
-
-	//{
-	//	std::vector<double> _valDoubleArray{ 923, 1192.23, 7.873123, 9.716289 };
-	//	auto valDoubleArray = CaptureValue(_valDoubleArray);
-	//	auto valPtr = CaptureValue(valDoubleArray);
-
-	//	BOOST_CHECK(!valPtr.Empty());
-	//	BOOST_REQUIRE(valPtr.IsReference());
-	//	BOOST_REQUIRE(!valPtr.IsArray());
-	//	BOOST_REQUIRE(Util::IsArray(valPtr.As<Value>().Type()));
-	//	BOOST_REQUIRE(_valDoubleArray == valPtr.As<Value>().As<std::vector<double>>());
-	//}
-}
+//FUTURE: based on the pointer value features
+//BOOST_AUTO_TEST_CASE(ValueRework2Pointer)
+//{
+	// 
+//}
 
 BOOST_AUTO_TEST_CASE(ValueRework2Record)
 {
-	//auto valInt = Util::MakeInt(4234761);
-	//auto valFloatArray = Util::MakeFloatArray({ 125.233f, 1.9812f, 89.8612f });
+	auto valInt = Util::MakeInt2(4234761);
+	auto valFloatArray = Util::MakeFloatArray2({ 125.233f, 1.9812f, 89.8612f });
+	auto valDoubleArray = Util::MakeDoubleArray2({ 1.8712, 873.655, 891.87316, 8712.8213 });
+	auto valDoubleArrayCheck = Value2{ valDoubleArray };
 
-	//RecordValue record;
-	//record.AddField({ "i", RecordValue::AutoValue(valInt) });
-	//record.AddField({ "j", RecordValue::AutoValue(valFloatArray) });
+	auto valStruct = Util::MakeStruct2("struct", valInt, valFloatArray);
+	BOOST_REQUIRE(Util::IsStruct(valStruct));
 
-	//RecordValue record2{ record };
+	BOOST_REQUIRE(valStruct);
+	BOOST_REQUIRE(valInt == (valStruct.As<RecordValue>()->At(0)));
 
-	//auto valStruct = Util::MakeStruct(std::move(record));
-	//BOOST_REQUIRE(Util::IsStruct(valStruct.Type()));
-
-	//BOOST_CHECK(!valStruct.Empty());
-	//BOOST_CHECK(valInt == (*valStruct.As<RecordValue>().GetField("i")));
-	//BOOST_REQUIRE(record2 == valStruct.As<RecordValue>());
+	valStruct.As<RecordValue>()->Emplace(1, std::move(valDoubleArray));
+	BOOST_REQUIRE(valDoubleArrayCheck == (valStruct.As<RecordValue>()->At(1)));
 }
 
 BOOST_AUTO_TEST_CASE(ValueRework2Replace)
@@ -327,11 +307,11 @@ BOOST_AUTO_TEST_CASE(ValueRework2Misc)
 
 	BOOST_REQUIRE(!valNil.Initialized());
 
-	//{
-	//	BOOST_REQUIRE(Util::IsIntegral(Util::MakeInt(722).Type()));
-	//	BOOST_REQUIRE(!Util::IsIntegral(Util::MakeFloat(8.851283f).Type()));
-	//	BOOST_REQUIRE(Util::IsFloatingPoint(Util::MakeFloat(8.851283f).Type()));
-	//}
+	{
+		BOOST_REQUIRE(Util::IsIntegral(Util::MakeInt2(722)));
+		BOOST_REQUIRE(!Util::IsIntegral(Util::MakeFloat2(8.851283f)));
+		BOOST_REQUIRE(Util::IsFloatingPoint(Util::MakeFloat2(8.851283f)));
+	}
 
 	//{
 	//	BOOST_REQUIRE(Util::EvaluateValueAsBoolean(Util::MakeInt(722)));

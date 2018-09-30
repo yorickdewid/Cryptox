@@ -27,6 +27,7 @@ namespace CryCC::SubValue::Valuedef
 {
 
 class Value;
+class Value2;
 
 //FUTURE: initialize all fields in one go.
 // Pointer to the value since value is not yet defined. The fields are kept in
@@ -34,7 +35,7 @@ class Value;
 class RecordValue : public AbstractValue<RecordValue>, public IterableContract
 {
 	std::vector<std::pair<std::string, std::shared_ptr<Value>>> m_fields; //TODO: only use offsets
-	//std::map<int, Value2> m_fields2;
+	std::map<offset_type, Value2> m_fields2;
 
 	bool Compare(const RecordValue&) const;
 	void ConstructFromType();
@@ -69,7 +70,8 @@ public:
 
 	// Add field to record.
 	void AddField(std::pair<std::string, std::shared_ptr<Value>>&&); //TODO: replace with next line.
-	//void AddField(int, Value2&&);
+	// Add field to record.
+	void AddField(int, Value2&&);
 
 	// Add field to record directly. Although this method can benefit
 	// from forwarding semantics it is recommended to use the 'AddField'
@@ -94,10 +96,11 @@ public:
 	// Implement iterable contract.
 	//
 
-	size_type Size() const { return m_fields.size(); }
+	size_type Size() const { return m_fields2.size(); }
 
+	// TODO: OBSOLETE
 	// Get the value at offset.
-	auto At(offset_type offset) const -> std::shared_ptr<Value>
+	auto At(offset_type offset, int) const -> std::shared_ptr<Value>
 	{
 		if (m_fields.size() < offset + 1) {
 			throw OutOfBoundsException{};
@@ -105,14 +108,11 @@ public:
 		return m_fields.at(offset).second;
 	}
 
+	// Get the value at offset.
+	Value2 At(offset_type offset) const;
+
 	// Emplace value at offset.
-	void Emplace(offset_type offset, std::pair<std::string, std::shared_ptr<Value>>&& value)
-	{
-		if (m_fields.size() < offset + 1) {
-			throw OutOfBoundsException{};
-		}
-		m_fields.emplace(m_fields.begin() + offset, std::move(value));
-	}
+	void Emplace(offset_type offset, Value2&& value);
 
 	//
 	// Implement value category contract.

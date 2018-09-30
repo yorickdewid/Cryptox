@@ -498,6 +498,11 @@ private:
 			return m_innerValue.At<ReturnType>(offset);
 		}
 
+		auto At(IterableContract::offset_type offset) const
+		{
+			return m_innerValue.At(offset);
+		}
+
 		template<typename Type>
 		void Emplace(IterableContract::offset_type offset, Type&& value)
 		{

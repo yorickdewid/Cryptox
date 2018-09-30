@@ -87,14 +87,16 @@ bool IsIntegral(const TypeFacade& other) noexcept
 {
 	const auto builtin = other.DataType<BuiltinType>();
 	if (!builtin) { return false; }
-	return builtin->TypeSpecifier() == BuiltinType::Specifier::INT;
+	return builtin->TypeSpecifier() == BuiltinType::Specifier::INT
+		|| builtin->TypeSpecifier() == BuiltinType::Specifier::INT_T;
 }
 
 bool IsFloatingPoint(const TypeFacade& other) noexcept
 {
 	const auto builtin = other.DataType<BuiltinType>();
 	if (!builtin) { return false; }
-	return builtin->TypeSpecifier() == BuiltinType::Specifier::FLOAT;
+	return builtin->TypeSpecifier() == BuiltinType::Specifier::FLOAT
+		|| builtin->TypeSpecifier() == BuiltinType::Specifier::FLOAT_T;
 }
 
 bool IsArray(const TypeFacade& other) noexcept

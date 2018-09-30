@@ -51,7 +51,7 @@ Value::Value(Typedef::TypeFacade typeBase, RecordValue&& value)
 	//FUTURE: Improve this structure and copy the record with transform to recordtype.
 	const auto recordValue = this->As<RecordValue>();
 	for (size_t i = 0; i < recordValue.Size(); ++i) {
-		const auto fieldTypeFacade = std::make_shared<Typedef::TypeFacade>(recordValue.At(i)->Type());
+		const auto fieldTypeFacade = std::make_shared<Typedef::TypeFacade>(recordValue.At(i, int{})->Type());
 		record->AddField(recordValue.FieldName(i), fieldTypeFacade);
 	}
 }
