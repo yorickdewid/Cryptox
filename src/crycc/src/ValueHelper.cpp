@@ -177,6 +177,11 @@ Value2 MakeDouble2(double v)
 	return Value2{ MakeBuiltinType(BuiltinType::Specifier::DOUBLE_T), BuiltinValue{ v } };
 }
 
+Value2 MakeLongDouble(long double v)
+{
+	return Value2{ MakeBuiltinType(BuiltinType::Specifier::LONG_DOUBLE_T), BuiltinValue{ v } };
+}
+
 // Value2 MakeIntArray2(int v[])
 // {
 // 	const auto builtin = MakeBuiltinType(BuiltinType::Specifier::INT);

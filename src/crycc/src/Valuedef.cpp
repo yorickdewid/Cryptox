@@ -554,37 +554,42 @@ const std::string Value2::ToString() const noexcept
 	return m_valuePtr->ToString();
 }
 
-// The assignment will only copy the value and check for the type.
+// NOTE: The assignment will only copy the value and check for the type.
 Value2& Value2::operator=(const Value2& other)
 {
 	if (other == *this) { return (*this); }
 
-	//TODO: check same type
-	//m_internalType = other.m_internalType;
-	m_valuePtr = std::move(other.m_valuePtr->Clone());
+	if (m_internalType != other.m_internalType) {
+		throw InvalidTypeCastException{};
+	}
 
+	m_valuePtr = std::move(other.m_valuePtr->Clone());
 	return (*this);
 }
 
-// The assignment will only copy the value and check for the type.
+// NOTE: The assignment will only copy the value and check for the type.
 Value2& Value2::operator=(Value2&& other)
 {
 	if (other == *this) { return (*this); }
 
-	//TODO: check same type
-	m_valuePtr = std::move(other.m_valuePtr);
+	if (m_internalType != other.m_internalType) {
+		throw InvalidTypeCastException{};
+	}
 
+	m_valuePtr = std::move(other.m_valuePtr);
 	return (*this);
 }
 
 
 Value2& Value2::operator=(const iterator_helper_value_type&)
 {
+	//TODO:
 	return (*this);
 }
 
 Value2& Value2::operator=(iterator_helper_value_type&&)
 {
+	//TODO:
 	return (*this);
 }
 

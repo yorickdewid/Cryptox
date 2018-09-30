@@ -199,14 +199,14 @@ BOOST_AUTO_TEST_CASE(ValueRework2DeclarationArray)
 
 BOOST_AUTO_TEST_CASE(ValueRework2AutoValue)
 {
-	//int _valInt = 8712;
-	//float _valFloat = 7812.8612f;
-	//double _valDouble = 91.72634813;
-	//char _valChar = 'J';
-	//bool _valBool = false;
+	int _valInt = 8712;
+	float _valFloat = 7812.8612f;
+	double _valDouble = 91.72634813;
+	char _valChar = 'J';
+	bool _valBool = false;
 
-	//volatile float _valFloat2 = 7812.8612f;
-	//const char _valChar2 = 'J';
+	volatile float _valFloat2 = 7812.8612f;
+	const char _valChar2 = 'J';
 
 	//auto valInt = CaptureValue(_valInt);
 	//auto valFloat = CaptureValue(_valFloat);
@@ -258,14 +258,9 @@ BOOST_AUTO_TEST_CASE(ValueRework2AutoMultiValue)
 	//BOOST_REQUIRE(_valBoolArray2 == valBoolArray2.As<std::vector<bool>>());
 }
 
-//FUTURE: based on the pointer value features
-//BOOST_AUTO_TEST_CASE(ValueRework2Pointer)
-//{
-	// 
-//}
-
 BOOST_AUTO_TEST_CASE(ValueRework2Record)
 {
+	// Make struct with values.
 	{
 		auto valInt = Util::MakeInt2(4234761);
 		auto valFloatArray = Util::MakeFloatArray2({ 125.233f, 1.9812f, 89.8612f });
@@ -282,6 +277,7 @@ BOOST_AUTO_TEST_CASE(ValueRework2Record)
 		BOOST_REQUIRE(valDoubleArrayCheck == (valStruct.As<RecordValue>()->At(1)));
 	}
 
+	// Make union.
 	{
 		auto valInt = Util::MakeInt2(1);
 		auto valInt2 = Util::MakeInt2(-29);
@@ -292,22 +288,21 @@ BOOST_AUTO_TEST_CASE(ValueRework2Record)
 
 BOOST_AUTO_TEST_CASE(ValueRework2Replace)
 {
-	//{
-	//	auto valInt = Util::MakeInt2(982734);
-	//	valInt = Util::MakeInt(17);
-	//	BOOST_REQUIRE_EQUAL(17, valInt.As<int>());
-	//	BOOST_REQUIRE(BuiltinType::Specifier::INT == valInt.Type().DataType<BuiltinType>()->TypeSpecifier());
-	//	valInt = Util::MakeInt(7862138);
-	//	BOOST_REQUIRE(BuiltinType::Specifier::INT == valInt.Type().DataType<BuiltinType>()->TypeSpecifier());
-	//	BOOST_REQUIRE_THROW(valInt = Util::MakeFloat(12.23f), Value::InvalidTypeCastException);
-	//}
+	// Replace builtin value.
+	{
+		auto valInt = Util::MakeInt2(982734);
+		valInt = Util::MakeInt2(17);
+		BOOST_REQUIRE_EQUAL(17, Util::ValueCast<int>(valInt));
+		valInt = Util::MakeInt2(7862138);
+		BOOST_REQUIRE_THROW(valInt = Util::MakeFloat2(12.23f), InvalidTypeCastException);
+	}
 
-	//{
-	//	auto valDouble = CaptureValue(8273.87123);
-	//	Value val2 = valDouble;
-	//	BOOST_CHECK(valDouble);
-	//	BOOST_REQUIRE_EQUAL(8273.87123, val2.As<double>());
-	//}
+	{
+		/*auto valDouble = CaptureValue(8273.87123);
+		Value val2 = valDouble;
+		BOOST_CHECK(valDouble);
+		BOOST_REQUIRE_EQUAL(8273.87123, val2.As<double>());*/
+	}
 }
 
 BOOST_AUTO_TEST_CASE(ValueRework2Misc)
