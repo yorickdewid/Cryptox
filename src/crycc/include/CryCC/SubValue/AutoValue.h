@@ -21,14 +21,14 @@ struct ValueDeductor
 	template<BuiltinType::Specifier Specifier, typename NativeRawType>
 	Valuedef::Value MakeValue(NativeRawType value)
 	{
-		return Valuedef::Value{TypeFacade{ Util::MakeBuiltinType(Specifier) }
+		return Valuedef::Value{ TypeFacade{ Util::MakeBuiltinType(Specifier) }
 			, Valuedef::Value::ValueVariantSingle{ value } };
 	}
 
 	template<BuiltinType::Specifier Specifier, typename NativeRawType>
 	Valuedef::Value MakeMultiValue(NativeRawType&& value)
 	{
-		return Valuedef::Value{TypeFacade{ Util::MakeBuiltinType(Specifier) }
+		return Valuedef::Value{ TypeFacade{ Util::MakeBuiltinType(Specifier) }
 			, Valuedef::Value::ValueVariantMulti{ std::move(value) }, value.size() };
 	}
 

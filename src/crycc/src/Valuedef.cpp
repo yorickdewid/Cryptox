@@ -554,6 +554,22 @@ const std::string Value2::ToString() const noexcept
 	return m_valuePtr->ToString();
 }
 
+void Value2::Swap(Value2& other) noexcept
+{
+	if (other == *this) { return; }
+
+	m_internalType = other.m_internalType;
+	m_valuePtr = std::move(other.m_valuePtr->Clone());
+}
+
+void Value2::Swap(Value2&& other) noexcept
+{
+	if (other == *this) { return; }
+
+	m_internalType = std::move(other.m_internalType);
+	m_valuePtr = std::move(other.m_valuePtr);
+}
+
 // NOTE: The assignment will only copy the value and check for the type.
 Value2& Value2::operator=(const Value2& other)
 {

@@ -10,7 +10,6 @@
 
 #include <CryCC/SubValue/ValueContract.h>
 #include <CryCC/SubValue/Typedef.h>
-// #include <CryCC/SubValue/Valuedef.h>
 
 #include <Cry/Cry.h>
 
@@ -144,6 +143,7 @@ public:
 	friend RecordValue operator/(const RecordValue&, const RecordValue&) { throw InvalidValueArithmeticException{}; }
 	friend RecordValue operator%(const RecordValue&, const RecordValue&) { throw InvalidValueArithmeticException{}; }
 
+	//TODO: OBSOLETE
 	// Capture value and wrap inside a managed pointer.
 	template<typename Type>
 	inline static auto AutoValue(Type val) -> std::shared_ptr<Type>

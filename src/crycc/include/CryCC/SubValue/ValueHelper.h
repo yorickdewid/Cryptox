@@ -95,6 +95,7 @@ template<typename NativeType>
 inline NativeType ValueCast(const Value2& value)
 {
 	//TODO: Add other value categories
+	//TODO: Test if NativeType is BuiltinValue then:
 	return value.As<BuiltinValue, NativeType>();
 }
 

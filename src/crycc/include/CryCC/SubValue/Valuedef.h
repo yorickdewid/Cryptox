@@ -565,9 +565,7 @@ public:
 	Value2(const Value2&);
 	Value2(Value2&&) = default;
 
-	// Copy other value into this value.
 	Value2& operator=(const Value2&);
-	// Move other value into this value.
 	Value2& operator=(Value2&&);
 
 	//TODO:
@@ -657,6 +655,11 @@ public:
 	// Return value as string.
 	const std::string ToString() const noexcept;
 
+	// Swap this with another value.
+	void Swap(Value2&) noexcept;
+	// Swap this with another value.
+	void Swap(Value2&&) noexcept;
+
 	// Serialize the value into byte array.
 	static void Serialize(const Value2&, Cry::ByteArray&);
 	// Serialize byte array into value.
@@ -671,6 +674,7 @@ public:
 	Value2& operator--();
 	Value2 operator++(int);
 	Value2 operator--(int);
+
 	Value2 operator+(const Value2&) const;
 	Value2 operator-(const Value2&) const;
 	Value2 operator*(const Value2&) const;
