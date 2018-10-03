@@ -49,7 +49,9 @@ Value MakeDouble(double);
 Value2 MakeLongDouble(double);
 //Value2 MakeUnsignedLongDouble(double);
 Value MakeString(const std::string&);
+//Value2 MakeString2(const std::string&); //TODO:
 //Value2 MakeStringArray(std::vector<std::string>);
+//Value2 MakeStringArray2(std::vector<std::string>); //TODO:
 Value MakeIntArray(int v[]);
 Value MakeIntArray(std::vector<int>);
 Value MakeFloatArray(std::vector<float>);
@@ -59,12 +61,11 @@ Value MakePointer(Value&&);
 Value MakeStruct(RecordValue&&, const std::string structName = {});
 Value MakeUnion(RecordValue&&, const std::string structName = {});
 
-// Value MakeBool2(bool);
+// Value MakeBool2(bool); //TODO
 Value2 MakeChar2(char);
 Value2 MakeInt2(int);
 Value2 MakeFloat2(float);
 Value2 MakeDouble2(double);
-// Value2 MakeIntArray2(int v[]); //TODO: need?
 Value2 MakeIntArray2(const std::vector<int>&);
 Value2 MakeFloatArray2(const std::vector<float>&);
 Value2 MakeDoubleArray2(const std::vector<double>&);

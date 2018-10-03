@@ -372,6 +372,8 @@ private:
 		virtual int Id() const = 0;
 		// Clone the abstract proxy
 		virtual std::unique_ptr<ProxyInterface> Clone() const = 0;
+		// Serialize the value.
+		virtual void Serialize(Cry::ByteArray& buffer) const = 0;
 		// Attach type facade to value.
 		virtual void ReferenceType(const Typedef::TypeFacade*) = 0;
 		// Signal end of initialization.
@@ -413,19 +415,11 @@ private:
 			return std::make_unique<AbstractValueProxy<ValueType>>((*this));
 		}
 
-		//TODO:
-		void SerializeMock()
+		// Serialize the value.
+		virtual void Serialize(buffer_type& buffer) const
 		{
-			ValueType::buffer_type buffer;
 			buffer.SerializeAs<Cry::Byte>(ValueType::value_category_identifier);
 			ValueType::Serialize(m_innerValue, buffer);
-		}
-
-		//TODO:
-		void DeserializeMock()
-		{
-			ValueType::buffer_type buffer;
-			ValueType::Deserialize(m_innerValue, buffer);
 		}
 
 		// Forward the interface call to the value category.
@@ -710,6 +704,7 @@ namespace Util
 
 using namespace CryCC::SubValue::Valuedef;
 
+//TODO: Obsolete?
 struct ValueFactory
 {
 	static Value MakeValue(Cry::ByteArray&);

@@ -21,6 +21,7 @@
 
 //TODO:
 // - Make Bool
+// - Make String
 // - Autovalue
 
 using namespace CryCC::SubValue::Typedef;
@@ -298,25 +299,33 @@ BOOST_AUTO_TEST_CASE(ValueRework2Replace)
 	}
 
 	{
-		/*auto valDouble = CaptureValue(8273.87123);
+		/*
+		auto valDouble = CaptureValue(8273.87123);
 		Value val2 = valDouble;
 		BOOST_CHECK(valDouble);
-		BOOST_REQUIRE_EQUAL(8273.87123, val2.As<double>());*/
+		BOOST_REQUIRE_EQUAL(8273.87123, val2.As<double>());
+		*/
 	}
 }
 
 BOOST_AUTO_TEST_CASE(ValueRework2Misc)
 {
-	auto valNil = Util::MakeUninitialized();
+	// Unitialized values.
+	{
+		auto valNil = Util::MakeUninitialized();
 
-	BOOST_REQUIRE(!valNil.Initialized());
+		BOOST_REQUIRE(!valNil.Initialized());
+		BOOST_REQUIRE(!valNil);
+	}
 
+	// Integer value helpers.
 	{
 		BOOST_REQUIRE(Util::IsIntegral(Util::MakeInt2(722)));
 		BOOST_REQUIRE(!Util::IsIntegral(Util::MakeFloat2(8.851283f)));
 		BOOST_REQUIRE(Util::IsFloatingPoint(Util::MakeFloat2(8.851283f)));
 	}
 
+	// Value evaluation.
 	{
 		BOOST_REQUIRE(Util::EvaluateValueAsBoolean(Util::MakeInt2(722)));
 		BOOST_REQUIRE(!Util::EvaluateValueAsBoolean(Util::MakeInt2(0)));
@@ -325,67 +334,87 @@ BOOST_AUTO_TEST_CASE(ValueRework2Misc)
 		//BOOST_REQUIRE_THROW(Util::EvaluateValueAsInteger(Util::MakeIntArray2({ 12,23 })), UninitializedValueException);
 		BOOST_REQUIRE_THROW(Util::EvaluateValueAsInteger(Util::MakeFloat2(8.12f)), InvalidTypeCastException);
 	}
+
+	// Value streaming.
+	{
+		auto valInt = Util::MakeInt2(9471);
+
+		std::stringstream ss;
+		ss << valInt;
+		BOOST_REQUIRE_EQUAL("9471", ss.str());
+	}
 }
 
 BOOST_AUTO_TEST_CASE(ValDefReworkSerialize)
 {
 	using namespace Util;
 
-	//{
-	//	const Value val = CaptureValue(7962193);
-	//	Cry::ByteArray buffer = val.Serialize();
+	// Serialize builtin int.
+	{
+		const Value2 val = Util::MakeInt2(10);
 
-	//	const Value val2 = ValueFactory::MakeValue(buffer);
+		Cry::ByteArray buffer;
+		Value2::Serialize(val, buffer);
+
+		Value2 val2 = MakeUninitialized();
+		Value2::Deserialize(val2, buffer);
+
+		BOOST_REQUIRE_EQUAL(val, val2);
+	}
+
+	// Serialize builtin double.
+	{
+		const Value2 val = Util::MakeDouble2(23.34143);
+
+		Cry::ByteArray buffer;
+		Value2::Serialize(val, buffer);
+
+		Value2 val2 = MakeUninitialized();
+		Value2::Deserialize(val2, buffer);
+
+		//BOOST_REQUIRE_EQUAL(val, val2);
+	}
+
+	// Serialize array with integers.
+	{
+		const Value2 val = Util::MakeIntArray2({ 722, 81, 86131, 71 });
+
+		Cry::ByteArray buffer;
+		Value2::Serialize(val, buffer);
+
+		Value2 val2 = MakeUninitialized();
+		Value2::Deserialize(val2, buffer);
+
+		//BOOST_REQUIRE_EQUAL(val, val2);
+	}
+
+	// Serialize array composed string.
+	//{
+	//	const Value2 val = Util::MakeString2("teststring");
+
+	//	Cry::ByteArray buffer;
+	//	Value2::Serialize(val, buffer);
+
+	//	Value2 val2 = MakeUninitialized();
+	//	Value2::Deserialize(val2, buffer);
+
 	//	BOOST_REQUIRE_EQUAL(val, val2);
 	//}
 
-	//{
-	//	const Value val = CaptureValue('O');
-	//	Cry::ByteArray buffer = val.Serialize();
+	// Serialize record.
+	{
+		const Value2 valInt = Util::MakeInt2(1);
+		const Value2 valInt2 = Util::MakeInt2(-29);
+		const Value2 val = Util::MakeUnion2("", valInt, valInt2);
 
-	//	const Value val2 = ValueFactory::MakeValue(buffer);
-	//	BOOST_REQUIRE_EQUAL(val, val2);
-	//}
+		Cry::ByteArray buffer;
+		Value2::Serialize(val, buffer);
 
-	//{
-	//	const Value val = MakeIntArray({ 722, 81, 86131, 71 });
-	//	Cry::ByteArray buffer = val.Serialize();
+		Value2 val2 = MakeUninitialized();
+		Value2::Deserialize(val2, buffer);
 
-	//	const Value val2 = ValueFactory::MakeValue(buffer);
-	//	BOOST_REQUIRE_EQUAL(val, val2);
-	//}
-
-	//{
-	//	const Value val = Util::MakeString("teststring");
-	//	Cry::ByteArray buffer = val.Serialize();
-
-	//	const Value val2 = ValueFactory::MakeValue(buffer);
-	//	BOOST_REQUIRE_EQUAL("teststring", val2.As<std::string>());
-	//}
-
-	//{
-	//	RecordValue record;
-	//	record.AddField({ "o", RecordValue::AutoValue(Util::MakeInt(82371)) });
-	//	record.AddField({ "p", RecordValue::AutoValue(Util::MakeInt(19)) });
-
-	//	RecordValue record2{ record };
-
-	//	auto val = Util::MakeStruct(std::move(record));
-	//	Cry::ByteArray buffer = val.Serialize();
-
-	//	const Value val2 = ValueFactory::MakeValue(buffer);
-	//	BOOST_REQUIRE_EQUAL(val, val2);
-	//}
-
-	//{
-	//	auto valInt = Util::MakeInt(796162);
-	//	auto val = Util::MakePointer(std::move(valInt));
-	//	Cry::ByteArray buffer = val.Serialize();
-
-	//	const Value val2 = ValueFactory::MakeValue(buffer);
-	//	BOOST_REQUIRE(val2.IsReference());
-	//	BOOST_REQUIRE_EQUAL(796162, val2.As<Value>().As<int>());
-	//}
+		BOOST_REQUIRE_EQUAL(val, val2);
+	}
 }
 
 BOOST_AUTO_TEST_SUITE_END()
