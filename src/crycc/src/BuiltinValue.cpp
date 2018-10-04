@@ -141,6 +141,12 @@ struct BuiltinValue::PackerVisitor final : public boost::static_visitor<>
 	}
 };
 
+BuiltinValue::BuiltinValue(buffer_type& buffer)
+{
+	PackerVisitor valueVisitor{ buffer };
+	valueVisitor(m_value);
+}
+
 void BuiltinValue::Serialize(const BuiltinValue& value, buffer_type& buffer)
 {
 	PackerVisitor valueVisitor{ buffer };

@@ -26,6 +26,9 @@ public:
     // Unique value identifier.
     inline constexpr static const int value_category_identifier = 0;
 
+	NilValue() = default;
+	NilValue(buffer_type&) {}
+
 	//
 	// Implement value category contract.
 	//

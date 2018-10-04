@@ -385,7 +385,7 @@ BOOST_AUTO_TEST_CASE(ValDefReworkSerialize)
 		Value2 val2 = MakeUninitialized();
 		Value2::Deserialize(val2, buffer);
 
-		//BOOST_REQUIRE_EQUAL(val, val2);
+		BOOST_REQUIRE_EQUAL(val, val2);
 	}
 
 	// Serialize array composed string.

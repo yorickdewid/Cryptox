@@ -529,6 +529,13 @@ std::ostream& operator<<(std::ostream& os, const Value& value)
 
 using namespace CryCC::SubValue::Typedef;
 
+namespace Detail
+{
+
+Value2 ValueCategoryDeserialise(Cry::ByteArray&);
+
+} // namespace Detail
+
 // Initialize with type facade only, set value empty.
 Value2::Value2(TypeFacade&& type)
 	: m_internalType{ std::move(type) }
@@ -618,7 +625,8 @@ void Value2::Serialize(const Value2& value, Cry::ByteArray& buffer)
 	// Serialize type.
 	TypeFacade::Serialize(value.m_internalType, buffer);
 
-	//TODO: m_valuePtr serialize
+	// Serialize via value proxy.
+	value.m_valuePtr->Serialize(buffer);
 }
 
 void Value2::Deserialize(Value2& value, Cry::ByteArray& buffer)
@@ -628,10 +636,7 @@ void Value2::Deserialize(Value2& value, Cry::ByteArray& buffer)
 		CryImplExcept(); //TODO
 	}
 
-	// Convert stream to type.
-	TypeFacade::Deserialize(value.m_internalType, buffer);
-
-	//TODO: m_valuePtr deserialize
+	value.Swap(Detail::ValueCategoryDeserialise(buffer));
 }
 
 // Comparison equal operator.

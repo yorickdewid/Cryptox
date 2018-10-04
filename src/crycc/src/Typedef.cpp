@@ -73,6 +73,7 @@ namespace Util
 
 using namespace CryCC::SubValue::Typedef;
 
+//TODO: Refactor, not portable
 //TODO: This needs more strucutre
 //TODO: THIS IS ONE F*CKED UP MESS!
 BaseType MakeType(std::vector<uint8_t>&& in)
@@ -122,8 +123,7 @@ BaseType MakeType(std::vector<uint8_t>&& in)
 		break;
 	}
 	case TypedefBase::TypeVariation::ARRAY: {
-		//TODO:
-		//type = std::make_shared<PointerType>();
+		type = std::make_shared<ArrayType>(1, std::make_shared<NilType>());
 		break;
 	}
 	case TypedefBase::TypeVariation::VARIANT: {

@@ -193,6 +193,12 @@ struct ArrayValue::PackerVisitor final : public boost::static_visitor<>
 	}
 };
 
+ArrayValue::ArrayValue(buffer_type& buffer)
+{
+	PackerVisitor visitor{ buffer };
+	visitor(m_value);
+}
+
 void ArrayValue::ConstructFromType()
 {
 	//

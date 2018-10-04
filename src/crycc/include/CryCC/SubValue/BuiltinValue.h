@@ -80,6 +80,8 @@ public:
 	{
 	}
 
+	explicit BuiltinValue(buffer_type&);
+
 	//
 	// Implement multiordinal contract.
 	//

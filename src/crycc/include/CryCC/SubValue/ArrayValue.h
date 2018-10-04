@@ -95,6 +95,8 @@ public:
 	{
 	}
 
+	explicit ArrayValue(buffer_type&);
+
 	virtual void ValueInit() override
 	{
 		ConstructFromType();
