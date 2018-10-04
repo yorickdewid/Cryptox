@@ -17,11 +17,12 @@ namespace SubValue
 namespace Typedef
 {
 
+// FUTURE: not portable, use byte stream helper
 TypedefBase::buffer_type TypedefBase::TypeEnvelope() const
 {
 	buffer_type buffer;
 
-	// Typedef base generic options
+	// Typedef base generic options.
 	buffer.push_back(static_cast<uint8_t>(m_isInline));
 	buffer.push_back(static_cast<uint8_t>(m_isSensitive));
 	buffer.push_back(static_cast<uint8_t>(m_storageClass));
@@ -73,6 +74,7 @@ namespace Util
 using namespace CryCC::SubValue::Typedef;
 
 //TODO: This needs more strucutre
+//TODO: THIS IS ONE F*CKED UP MESS!
 BaseType MakeType(std::vector<uint8_t>&& in)
 {
 	assert(in.size() > 0);
@@ -136,7 +138,7 @@ BaseType MakeType(std::vector<uint8_t>&& in)
 	}
 	case TypedefBase::TypeVariation::INVAL:
 	default:
-		throw 1; //TODO: or something else
+		CryImplExcept(); //TODO:
 	}
 
 	{

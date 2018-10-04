@@ -18,10 +18,10 @@ namespace Typedef
 BuiltinType::BuiltinType(Specifier specifier)
 	: m_specifier{ specifier }
 {
-    // Convert specifiers into type options.
 	SpecifierToOptions();
 }
 
+// Convert specifiers into type options.
 void BuiltinType::SpecifierToOptions()
 {
 	switch (m_specifier) {
@@ -93,15 +93,13 @@ size_t BuiltinType::UnboxedSize() const
 	default:					break;
 	}
 
-	throw std::exception{};//TODO
+	CryImplExcept(); //TODO:
 }
 
 bool BuiltinType::Equals(TypedefBase* other) const
 {
 	auto self = dynamic_cast<BuiltinType*>(other);
-	if (self == nullptr) {
-		return false;
-	}
+	if (!self) { return false; }
 
 	return m_specifier == self->m_specifier
 		&& m_typeOptions == self->m_typeOptions;
@@ -122,11 +120,11 @@ void BuiltinType::Consolidate(BaseType& type)
 
 	auto otherType = std::dynamic_pointer_cast<BuiltinType>(type);
 	if (otherType->Unsigned()) {
-        m_typeOptions.set(IS_UNSIGNED);
-    }
+		m_typeOptions.set(IS_UNSIGNED);
+	}
 	if (otherType->Short()) {
-        m_typeOptions.set(IS_SHORT);
-    }
+		m_typeOptions.set(IS_SHORT);
+	}
 	if (otherType->Long()) {
 		if (this->Long()) {
 			m_typeOptions.set(IS_LONG_LONG);

@@ -20,6 +20,8 @@ namespace CryCC::SubValue::Valuedef::Detail
 // Construct a value from the serialized byte array. The operation
 // is only to be used from the value class object and must supply
 // an serialized byte array created by the value proxy serializer.
+//
+// Any new value category should be apended to the swtich case below.
 Value2 ValueCategoryDeserialise(Cry::ByteArray& buffer)
 {
 	// Convert stream to type.
@@ -32,28 +34,23 @@ Value2 ValueCategoryDeserialise(Cry::ByteArray& buffer)
 	{
 	case NilValue::value_category_identifier:
 	{
-		return Value2{ std::move(type), NilValue{} };
+		return Value2{ std::move(type), NilValue{ buffer } };
 	}
-	//TODO:
 	//case ReferenceValue::value_category_identifier:
 	//{
-	//	//
+	//	return Value2{ std::move(type), ReferenceValue{ buffer } };
 	//}
-	//TODO:
 	//case PointerValue::value_category_identifier:
 	//{
-	//	//
+	//	return Value2{ std::move(type), PointerValue{ buffer } };
 	//}
 	case BuiltinValue::value_category_identifier:
 	{
-		//TODO: BuiltinValue{ buffer };
-		return Value2{ std::move(type), BuiltinValue{ 10 } };
+		return Value2{ std::move(type), BuiltinValue{ buffer } };
 	}
 	case ArrayValue::value_category_identifier:
 	{
-		std::vector<int> v{ 12,34,456 };
-		//TODO: ArrayValue{ buffer };
-		return Value2{ std::move(type), ArrayValue{ v.cbegin(), v.cend() } };
+		return Value2{ std::move(type), ArrayValue{ buffer } };
 	}
 	case RecordValue::value_category_identifier:
 	{

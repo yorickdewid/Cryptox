@@ -30,6 +30,8 @@ std::string TypeFacade::TypeName() const
 void TypeFacade::Serialize(const TypeFacade& type, Cry::ByteArray& buffer)
 {
 	const auto typePack = type->TypeEnvelope();
+	assert(typePack.size() > 0);
+
 	buffer.SerializeAs<Cry::Byte>(type.PointerCount());
 	buffer.SerializeAs<Cry::Word>(typePack.size());
 	buffer.insert(buffer.cend(), typePack.begin(), typePack.end());
@@ -40,11 +42,13 @@ void TypeFacade::Deserialize(TypeFacade& type, Cry::ByteArray& buffer)
 {
 	size_t ptrCount = buffer.Deserialize<Cry::Byte>();
 	size_t typePackSize = buffer.Deserialize<Cry::Word>();
+	assert(typePackSize > 0);
 
 	Cry::ByteArray tempBuffer;
 	std::copy(buffer.cbegin() + buffer.Offset(), buffer.cbegin() + buffer.Offset() + typePackSize, std::back_inserter(tempBuffer));
 	buffer.SetOffset(static_cast<int>(typePackSize));
 	Typedef::BaseType ptr = Util::MakeType(std::move(tempBuffer));
+	assert(ptr);
 
 	// Set type facade options.
 	type = TypeFacade{ ptr };
