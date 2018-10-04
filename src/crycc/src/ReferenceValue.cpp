@@ -16,6 +16,11 @@ ReferenceValue::ReferenceValue(Value2&& value)
 {
 }
 
+ReferenceValue::ReferenceValue(buffer_type&)
+{
+	// TODO:
+}
+
 ReferenceValue::ReferenceValue(const ReferenceValue& other)
 {
 	CRY_UNUSED(other);
@@ -30,13 +35,13 @@ ReferenceValue& ReferenceValue::operator=(const ReferenceValue& other)
 // Convert reference value into data stream.
 void ReferenceValue::Serialize(const ReferenceValue&, buffer_type&)
 {
-	//
+	// TODO:
 }
 
 // Convert data stream into reference value.
 void ReferenceValue::Deserialize(ReferenceValue&, buffer_type&)
 {
-	//
+	// TODO:
 }
 
 // Compare to other ReferenceValue.

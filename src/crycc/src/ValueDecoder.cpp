@@ -21,41 +21,32 @@ namespace CryCC::SubValue::Valuedef::Detail
 // is only to be used from the value class object and must supply
 // an serialized byte array created by the value proxy serializer.
 //
-// Any new value category should be apended to the swtich case below.
+// NOTE: Any new value category should be apended to the swtich
+//       case below.
 Value2 ValueCategoryDeserialise(Cry::ByteArray& buffer)
 {
 	// Convert stream to type.
 	Typedef::TypeFacade type;
 	Typedef::TypeFacade::Deserialize(type, buffer);
 
-	// Deserialize via value proxy.
-	const int identifier = static_cast<int>(buffer.Deserialize<Cry::Byte>());
+	// Identify the value category and then pass the byte array as constructor
+	// parameter. This lets the value category itself determine how to rebuild
+	// the values from the inside.
+	const auto identifier = static_cast<int>(buffer.Deserialize<Cry::Byte>());
 	switch (identifier)
 	{
 	case NilValue::value_category_identifier:
-	{
 		return Value2{ std::move(type), NilValue{ buffer } };
-	}
-	//case ReferenceValue::value_category_identifier:
-	//{
-	//	return Value2{ std::move(type), ReferenceValue{ buffer } };
-	//}
-	//case PointerValue::value_category_identifier:
-	//{
-	//	return Value2{ std::move(type), PointerValue{ buffer } };
-	//}
+	case ReferenceValue::value_category_identifier:
+		return Value2{ std::move(type), ReferenceValue{ buffer } };
+	case PointerValue::value_category_identifier:
+		return Value2{ std::move(type), PointerValue{ buffer } };
 	case BuiltinValue::value_category_identifier:
-	{
 		return Value2{ std::move(type), BuiltinValue{ buffer } };
-	}
 	case ArrayValue::value_category_identifier:
-	{
 		return Value2{ std::move(type), ArrayValue{ buffer } };
-	}
 	case RecordValue::value_category_identifier:
-	{
-		//return Value2{ std::move(type), RecordValue{ buffer } };
-	}
+		return Value2{ std::move(type), RecordValue{ buffer } };
 	}
 
 	CryImplExcept(); //TODO:

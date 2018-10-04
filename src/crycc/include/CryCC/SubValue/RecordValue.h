@@ -65,6 +65,8 @@ public:
 		ConstructFromType();
 	}
 
+	RecordValue() = default;
+	explicit RecordValue(buffer_type&) {} //TODO:
 	virtual ~RecordValue() {}
 
 	// Add field to record.

@@ -30,6 +30,9 @@ public:
     // Unique value identifier.
     inline constexpr static const int value_category_identifier = 12;
 
+	PointerValue() = default;
+	PointerValue(buffer_type&) {}
+
 	//
 	// Implement value category contract.
 	//

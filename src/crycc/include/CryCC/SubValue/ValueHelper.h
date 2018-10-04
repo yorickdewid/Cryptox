@@ -70,6 +70,7 @@ Value2 MakeIntArray2(const std::vector<int>&);
 Value2 MakeFloatArray2(const std::vector<float>&);
 Value2 MakeDoubleArray2(const std::vector<double>&);
 
+// FUTURE: Take name as optional
 template<typename... ValueType>
 Value2 MakeStruct2(const std::string name, ValueType&&... args)
 {
@@ -81,6 +82,7 @@ Value2 MakeStruct2(const std::string name, ValueType&&... args)
 	return Value2{ MakeRecordType(name, RecordType::Specifier::STRUCT), std::move(record) };
 }
 
+// FUTURE: Take name as optional
 template<typename... ValueType>
 Value2 MakeUnion2(const std::string name, ValueType&&... args)
 {

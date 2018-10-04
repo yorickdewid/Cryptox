@@ -38,6 +38,7 @@ public:
 	ReferenceValue& operator=(ReferenceValue&&) = default;
 
 	ReferenceValue(Value2&&);
+	explicit ReferenceValue(buffer_type&);
 
 	//
 	// Implement value category contract.
