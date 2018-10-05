@@ -1,3 +1,11 @@
+// Copyright (c) 2017 Quenza Inc. All rights reserved.
+//
+// This file is part of the Cryptox project.
+//
+// Use of this source code is governed by a private license
+// that can be found in the LICENSE file. Content can not be 
+// copied and/or distributed without the express of the author.
+
 #include "DirectiveScanner.h"
 
 std::string Keyword::Print()
@@ -100,10 +108,10 @@ std::string CoilCl::DirectiveKeyword::Print()
 {
 	switch (m_token) {
 	case CoilCl::TK_PREPROCESS:	return std::string{ "TK_PREPROCESS" };
-		
+
 	case CoilCl::TK_LINE_CONT:	return std::string{ "TK_LINE_CONT" };
 	case CoilCl::TK_LINE_NEW:	return std::string{ "TK_LINE_NEW" };
-	
+
 	case CoilCl::TK_PP_INCLUDE:	return std::string{ "TK_PP_INCLUDE" };
 	case CoilCl::TK_PP_DEFINE:	return std::string{ "TK_PP_DEFINE" };
 	case CoilCl::TK_PP_UNDEF:	return std::string{ "TK_PP_UNDEF" };
@@ -115,7 +123,7 @@ std::string CoilCl::DirectiveKeyword::Print()
 	case CoilCl::TK_PP_LINE:	return std::string{ "TK_PP_LINE" };
 	case CoilCl::TK_PP_WARNING:	return std::string{ "TK_PP_WARNING" };
 	case CoilCl::TK_PP_ERROR:	return std::string{ "TK_PP_ERROR" };
-	
+
 	case CoilCl::TK___LINE__:	return std::string{ "TK___LINE__" };
 	case CoilCl::TK___FILE__:	return std::string{ "TK___FILE__" };
 

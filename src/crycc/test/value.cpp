@@ -266,16 +266,12 @@ BOOST_AUTO_TEST_CASE(ValueRework2Record)
 		auto valInt = Util::MakeInt2(4234761);
 		auto valFloatArray = Util::MakeFloatArray2({ 125.233f, 1.9812f, 89.8612f });
 		auto valDoubleArray = Util::MakeDoubleArray2({ 1.8712, 873.655, 891.87316, 8712.8213 });
-		auto valDoubleArrayCheck = Value2{ valDoubleArray };
 
 		auto valStruct = Util::MakeStruct2("struct", valInt, valFloatArray);
 		BOOST_REQUIRE(Util::IsStruct(valStruct));
 
 		BOOST_REQUIRE(valStruct);
 		BOOST_REQUIRE(valInt == (valStruct.As<RecordValue>()->At(0)));
-
-		valStruct.As<RecordValue>()->Emplace(1, std::move(valDoubleArray));
-		BOOST_REQUIRE(valDoubleArrayCheck == (valStruct.As<RecordValue>()->At(1)));
 	}
 
 	// Make union.
@@ -289,7 +285,7 @@ BOOST_AUTO_TEST_CASE(ValueRework2Record)
 
 BOOST_AUTO_TEST_CASE(ValueRework2Replace)
 {
-	// Replace builtin value.
+	// Replace builtin integer.
 	{
 		auto valInt = Util::MakeInt2(982734);
 		valInt = Util::MakeInt2(17);
@@ -298,6 +294,7 @@ BOOST_AUTO_TEST_CASE(ValueRework2Replace)
 		BOOST_REQUIRE_THROW(valInt = Util::MakeFloat2(12.23f), InvalidTypeCastException);
 	}
 
+	// Replace builtin double.
 	{
 		/*
 		auto valDouble = CaptureValue(8273.87123);
@@ -305,6 +302,29 @@ BOOST_AUTO_TEST_CASE(ValueRework2Replace)
 		BOOST_CHECK(valDouble);
 		BOOST_REQUIRE_EQUAL(8273.87123, val2.As<double>());
 		*/
+	}
+
+	// Replace array item.
+	{
+		auto valIntArray = Util::MakeIntArray2({ 9,81,74,71,613,73 });
+		valIntArray = Util::MakeIntArray2({ 23,45,67 });
+		BOOST_REQUIRE_EQUAL(23, (valIntArray.At<ArrayValue, int, 0>()));
+		valIntArray.Emplace<ArrayValue, 1>(8361);
+		BOOST_REQUIRE_EQUAL(8361, (valIntArray.At<ArrayValue, int, 1>()));
+	}
+
+	// Replace record item.
+	{
+		auto valInt = Util::MakeInt2(4234761);
+		auto valChar = Util::MakeChar2('O');
+		auto valChar2 = Util::MakeChar2('Y');
+
+		auto valCharCheck = Value2{ valChar2 };
+		auto valStruct = Util::MakeStruct2("struct", valInt, valChar);
+
+		BOOST_REQUIRE(valChar == (valStruct.As<RecordValue>()->At(1)));
+		valStruct.As<RecordValue>()->Emplace(1, std::move(valChar2));
+		BOOST_REQUIRE(valCharCheck == (valStruct.As<RecordValue>()->At(1)));
 	}
 }
 
@@ -348,6 +368,19 @@ BOOST_AUTO_TEST_CASE(ValueRework2Misc)
 BOOST_AUTO_TEST_CASE(ValDefReworkSerialize)
 {
 	using namespace Util;
+
+	// Serialize nil value.
+	{
+		const Value2 val = Util::MakeUninitialized();
+
+		Cry::ByteArray buffer;
+		Value2::Serialize(val, buffer);
+
+		Value2 val2 = Util::MakeInt2(1);
+		Value2::Deserialize(val2, buffer);
+
+		BOOST_REQUIRE_EQUAL(val, val2);
+	}
 
 	// Serialize builtin int.
 	{
@@ -415,6 +448,11 @@ BOOST_AUTO_TEST_CASE(ValDefReworkSerialize)
 
 		BOOST_REQUIRE_EQUAL(val, val2);
 	}
+
+	//TODO:
+	// - Serialize NilValue
+	// - Serialize ReferenceValue
+	// - Serialize PointerValue
 }
 
 BOOST_AUTO_TEST_SUITE_END()

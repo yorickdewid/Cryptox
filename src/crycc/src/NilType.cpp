@@ -9,6 +9,8 @@
 #include <CryCC/SubValue/Typedef.h>
 #include <CryCC/SubValue/NilType.h>
 
+#include <Cry/Serialize.h>
+
 #include <string>
 
 namespace CryCC
@@ -20,28 +22,32 @@ namespace Typedef
 
 const std::string NilType::TypeName() const
 {
-    return "(nil)";
+	return "(nil)";
 }
 
 NilType::size_type NilType::UnboxedSize() const
 {
-    return 0;
+	return 0;
 }
 
 //TODO:
 bool NilType::Equals(BasePointer other) const
 {
 	auto self = dynamic_cast<NilType*>(other);
-	if (self == nullptr) {
-		return false;
-	}
+	if (self == nullptr) { return false; }
 
-    return true;
+	return true;
 }
 
 NilType::buffer_type NilType::TypeEnvelope() const
 {
-    return {};
+	Cry::ByteArray buffer;
+
+	buffer.SerializeAs<Cry::Byte>(m_c_internalType);
+
+	const auto base = TypedefBase::TypeEnvelope();
+	buffer.insert(buffer.cend(), base.cbegin(), base.cend());
+	return buffer;
 }
 
 } // namespace Typedef
