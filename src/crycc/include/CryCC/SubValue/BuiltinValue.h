@@ -60,7 +60,8 @@ public:
 	using value_category = ValueCategory::Plural;
 
 	template<typename Type>
-	using has_type = typename NativeTypeList::has_type<Type>::type;
+	inline constexpr static const bool has_type_v = std::disjunction_v<NativeTypeList::has_type<Type>
+		, Cry::IsPrimitiveType<Type>>;
 
 	// Expose the value variants that this category can process.
 	inline constexpr static const int value_variant_order = NativeTypeList::size;

@@ -132,8 +132,7 @@ BaseType MakeType(std::vector<uint8_t>&& in)
 		break;
 	}
 	case TypedefBase::TypeVariation::NIL: {
-		//TODO:
-		//type = std::make_shared<NilType>();
+		type = std::make_shared<NilType>();
 		break;
 	}
 	case TypedefBase::TypeVariation::INVAL:

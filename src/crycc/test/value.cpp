@@ -11,12 +11,16 @@
 #include <boost/test/unit_test.hpp>
 
 //
-// Key         : Value
-// Test        : Value definition unitttest
-// Type        : unit
-// Description : Unit test of the value type system. Since the value definition 
-//               system is the backbone of the compiler it demands for almost
-//               full test coverage.
+// Key          : Value
+// Test         : Value definition unitttest
+// Type         : unit
+// Description  : Unit test of the value type system. Since the value definition 
+//                system is the backbone of the compiler it demands for almost
+//                full test coverage.
+// Requirements : - Value must be assignable, copyable
+//                - Value must be serializable,deserialiable
+//                - Value must be replacable or item emplacable
+//                - Value must be easy constructable
 //
 
 //TODO:
@@ -28,7 +32,7 @@ using namespace CryCC::SubValue::Valuedef;
 
 BOOST_AUTO_TEST_SUITE(ValueDefinition)
 
-BOOST_AUTO_TEST_CASE(ValueRework2Dissected)
+BOOST_AUTO_TEST_CASE(ValueReworkDissected)
 {
 	// Basic value construction.
 	{
@@ -150,7 +154,7 @@ BOOST_AUTO_TEST_CASE(ValueRework2Dissected)
 	}
 }
 
-BOOST_AUTO_TEST_CASE(ValueRework2Declaration)
+BOOST_AUTO_TEST_CASE(ValueReworkDeclaration)
 {
 	//auto valStr = Util::MakeString("teststring");
 	auto valInt = Util::MakeInt2(12);
@@ -174,7 +178,7 @@ BOOST_AUTO_TEST_CASE(ValueRework2Declaration)
 	//BOOST_REQUIRE_EQUAL(true, valBool.As<BuiltinValue, bool>());
 }
 
-BOOST_AUTO_TEST_CASE(ValueRework2DeclarationArray)
+BOOST_AUTO_TEST_CASE(ValueReworkDeclarationArray)
 {
 	std::vector<int> _valIntArray{ 9, 12, 7612, 8, 112, 8 };
 	std::vector<float> _valFloatArray{ 125.233f, 1.9812f, 89.8612f };
@@ -197,7 +201,7 @@ BOOST_AUTO_TEST_CASE(ValueRework2DeclarationArray)
 	//BOOST_REQUIRE(_valBoolArray == valBoolArray.As<bool>());
 }
 
-BOOST_AUTO_TEST_CASE(ValueRework2Record)
+BOOST_AUTO_TEST_CASE(ValueReworkRecord)
 {
 	// Make struct with values.
 	{
@@ -221,7 +225,7 @@ BOOST_AUTO_TEST_CASE(ValueRework2Record)
 	}
 }
 
-BOOST_AUTO_TEST_CASE(ValueRework2Replace)
+BOOST_AUTO_TEST_CASE(ValueReworkReplace)
 {
 	// Replace builtin integer.
 	{
@@ -237,7 +241,7 @@ BOOST_AUTO_TEST_CASE(ValueRework2Replace)
 		auto valDouble = Util::MakeDouble2(8273.87123);
 		Value2 val2 = valDouble;
 		BOOST_CHECK(valDouble);
-		BOOST_REQUIRE_EQUAL(8273.87123, Util::ValueCast<double>(val2));
+		BOOST_REQUIRE_EQUAL(8273.87123, Util::ValueCast<double>(valDouble));
 	}
 
 	// Replace array item.
@@ -264,7 +268,7 @@ BOOST_AUTO_TEST_CASE(ValueRework2Replace)
 	}
 }
 
-BOOST_AUTO_TEST_CASE(ValueRework2Misc)
+BOOST_AUTO_TEST_CASE(ValueReworkMisc)
 {
 	// Unitialized values.
 	{
@@ -303,7 +307,7 @@ BOOST_AUTO_TEST_CASE(ValueRework2Misc)
 	}
 }
 
-BOOST_AUTO_TEST_CASE(ValDefReworkSerialize)
+BOOST_AUTO_TEST_CASE(ValueReworkSerialize)
 {
 	using namespace Util;
 
