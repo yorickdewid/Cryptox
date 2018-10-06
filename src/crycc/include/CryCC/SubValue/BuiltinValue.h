@@ -59,6 +59,9 @@ public:
 	using typdef_type = Typedef::BuiltinType;
 	using value_category = ValueCategory::Plural;
 
+	template<typename Type>
+	using has_type = typename NativeTypeList::has_type<Type>::type;
+
 	// Expose the value variants that this category can process.
 	inline constexpr static const int value_variant_order = NativeTypeList::size;
 	// Unique value identifier.
@@ -74,7 +77,7 @@ public:
 	template<typename Type, typename = typename std::enable_if_t<
 		!std::is_same_v<Type, std::add_lvalue_reference<BuiltinValue>::type>
 		&& !std::is_same_v<Type, BuiltinValue>
-	>>
+		>>
 		BuiltinValue(Type value)
 		: m_value{ InitialConversion(value) }
 	{

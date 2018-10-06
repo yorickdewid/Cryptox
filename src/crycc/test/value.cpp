@@ -22,7 +22,6 @@
 //TODO:
 // - Make Bool
 // - Make String
-// - Autovalue
 
 using namespace CryCC::SubValue::Typedef;
 using namespace CryCC::SubValue::Valuedef;
@@ -198,67 +197,6 @@ BOOST_AUTO_TEST_CASE(ValueRework2DeclarationArray)
 	//BOOST_REQUIRE(_valBoolArray == valBoolArray.As<bool>());
 }
 
-BOOST_AUTO_TEST_CASE(ValueRework2AutoValue)
-{
-	int _valInt = 8712;
-	float _valFloat = 7812.8612f;
-	double _valDouble = 91.72634813;
-	char _valChar = 'J';
-	bool _valBool = false;
-
-	volatile float _valFloat2 = 7812.8612f;
-	const char _valChar2 = 'J';
-
-	//auto valInt = CaptureValue(_valInt);
-	//auto valFloat = CaptureValue(_valFloat);
-	//auto valDouble = CaptureValue(_valDouble);
-	//auto valChar = CaptureValue(_valChar);
-	//auto valBool = CaptureValue(_valBool);
-
-	//auto valFloat2 = CaptureValue(_valFloat2);
-	//auto valChar2 = CaptureValue(_valChar2);
-
-	//BOOST_REQUIRE_EQUAL(_valInt, valInt.As<int>());
-	//BOOST_REQUIRE_EQUAL(_valFloat, valFloat.As<float>());
-	//BOOST_REQUIRE_EQUAL(_valDouble, valDouble.As<double>());
-	//BOOST_REQUIRE_EQUAL(_valChar, valChar.As<char>());
-	//BOOST_REQUIRE_EQUAL(_valBool, valBool.As<bool>());
-
-	//BOOST_REQUIRE(Util::IsVolatile(valFloat2.Type()));
-	//BOOST_REQUIRE(Util::IsConst(valChar2.Type()));
-	//BOOST_REQUIRE_EQUAL(_valFloat2, valFloat2.As<float>());
-	//BOOST_REQUIRE_EQUAL(_valChar2, valChar2.As<char>());
-}
-
-BOOST_AUTO_TEST_CASE(ValueRework2AutoMultiValue)
-{
-	//std::vector<int> _valIntArray{ 12, 89, 761, 86712, 7, 71, 99 };
-	//std::vector<float> _valFloatArray{ 12.341f, 99.1672f, 1184.812f, 1.7263f };
-	//std::vector<double> _valDoubleArray{ 923, 1192.23, 7.873123, 9.716289 };
-	//std::vector<bool> _valBoolArray{ false, false, false, false, true, false, true };
-
-	//volatile std::vector<float> _valFloatArray2 = { 9.812f, 87234.21f, 12.1872f, 9.2873f, 7.71628f };
-	//const std::vector<bool> _valBoolArray2 = { true, true, false, false, true, false, true };
-
-	//auto valIntArray = CaptureValue(_valIntArray);
-	//auto valFloatArray = CaptureValue(_valFloatArray);
-	//auto valDoubleArray = CaptureValue(_valDoubleArray);
-	//auto valBoolArray = CaptureValue(_valBoolArray);
-
-	//auto valFloatArray2 = CaptureValue(_valFloatArray2);
-	//auto valBoolArray2 = CaptureValue(_valBoolArray2);
-
-	//BOOST_REQUIRE(_valIntArray == valIntArray.As<std::vector<int>>());
-	//BOOST_REQUIRE(_valFloatArray == valFloatArray.As<std::vector<float>>());
-	//BOOST_REQUIRE(_valDoubleArray == valDoubleArray.As<std::vector<double>>());
-	//BOOST_REQUIRE(_valBoolArray == valBoolArray.As<std::vector<bool>>());
-
-	//BOOST_REQUIRE(Util::IsVolatile(valFloatArray2.Type()));
-	//BOOST_REQUIRE(Util::IsConst(valBoolArray2.Type()));
-	//BOOST_REQUIRE(const_cast<std::vector<float>&>(_valFloatArray2) == valFloatArray2.As<std::vector<float>>());
-	//BOOST_REQUIRE(_valBoolArray2 == valBoolArray2.As<std::vector<bool>>());
-}
-
 BOOST_AUTO_TEST_CASE(ValueRework2Record)
 {
 	// Make struct with values.
@@ -296,12 +234,10 @@ BOOST_AUTO_TEST_CASE(ValueRework2Replace)
 
 	// Replace builtin double.
 	{
-		/*
-		auto valDouble = CaptureValue(8273.87123);
-		Value val2 = valDouble;
+		auto valDouble = Util::MakeDouble2(8273.87123);
+		Value2 val2 = valDouble;
 		BOOST_CHECK(valDouble);
-		BOOST_REQUIRE_EQUAL(8273.87123, val2.As<double>());
-		*/
+		BOOST_REQUIRE_EQUAL(8273.87123, Util::ValueCast<double>(val2));
 	}
 
 	// Replace array item.
@@ -342,6 +278,8 @@ BOOST_AUTO_TEST_CASE(ValueRework2Misc)
 	{
 		BOOST_REQUIRE(Util::IsIntegral(Util::MakeInt2(722)));
 		BOOST_REQUIRE(!Util::IsIntegral(Util::MakeFloat2(8.851283f)));
+		//BOOST_REQUIRE(!Util::IsSigned(Util::MakeInt2(-82361)));
+		BOOST_REQUIRE(!Util::IsUnsigned(Util::MakeUnsignedInt(928)));
 		BOOST_REQUIRE(Util::IsFloatingPoint(Util::MakeFloat2(8.851283f)));
 	}
 
@@ -450,7 +388,6 @@ BOOST_AUTO_TEST_CASE(ValDefReworkSerialize)
 	}
 
 	//TODO:
-	// - Serialize NilValue
 	// - Serialize ReferenceValue
 	// - Serialize PointerValue
 }
