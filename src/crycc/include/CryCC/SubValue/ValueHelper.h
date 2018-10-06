@@ -98,8 +98,12 @@ template<typename NativeType>
 inline NativeType ValueCast(const Value2& value)
 {
 	//TODO: Add other value categories
-	//TODO: Test if NativeType is BuiltinValue then:
-	return value.As<BuiltinValue, NativeType>();
+	if constexpr (BuiltinValue::has_type_v<std::decay_t<NativeType>>) {
+		return value.As<BuiltinValue, NativeType>();
+	}
+	else {
+		static_assert(0, "Not an castable type");
+	}
 }
 
 //

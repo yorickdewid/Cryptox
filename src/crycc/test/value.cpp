@@ -282,7 +282,7 @@ BOOST_AUTO_TEST_CASE(ValueReworkMisc)
 	{
 		BOOST_REQUIRE(Util::IsIntegral(Util::MakeInt2(722)));
 		BOOST_REQUIRE(!Util::IsIntegral(Util::MakeFloat2(8.851283f)));
-		//BOOST_REQUIRE(!Util::IsSigned(Util::MakeInt2(-82361)));
+		BOOST_REQUIRE(Util::IsSigned(Util::MakeInt2(-82361)));
 		BOOST_REQUIRE(!Util::IsUnsigned(Util::MakeUnsignedInt(928)));
 		BOOST_REQUIRE(Util::IsFloatingPoint(Util::MakeFloat2(8.851283f)));
 	}

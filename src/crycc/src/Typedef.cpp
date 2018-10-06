@@ -96,9 +96,9 @@ BaseType MakeType(std::vector<uint8_t>&& in)
 		const auto nameSize = static_cast<size_t>(in.at(1));
 		name.resize(nameSize);
 		CRY_MEMCPY(static_cast<void*>(&(name[0])), name.size(), &(in.at(2)), nameSize);
-		//TODO: m_specifier
+		RecordType::Specifier specifier = static_cast<RecordType::Specifier>(in.at(2 + nameSize));
 		//TODO: envelopeOffset = 99;
-		type = std::make_shared<RecordType>(name, RecordType::Specifier::STRUCT);
+		type = std::make_shared<RecordType>(name, specifier);
 		break;
 	}
 	case TypedefBase::TypeVariation::TYPEDEF: {
