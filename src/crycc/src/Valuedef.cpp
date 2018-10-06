@@ -709,6 +709,7 @@ std::ostream& operator<<(std::ostream& os, const Value2& value)
 namespace Util
 {
 
+//TODO: remove ?
 Value ValueFactory::MakeValue(Cry::ByteArray& buffer)
 {
 	Value value = Util::MakeInt(0); //TODO: Make uninitialized

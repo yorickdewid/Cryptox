@@ -410,7 +410,7 @@ private:
 		void ValueInit() { m_innerValue.ValueInit(); }
 
 		// Clone the abstract proxy.
-		std::unique_ptr<ProxyInterface> Clone() const
+		virtual std::unique_ptr<ProxyInterface> Clone() const
 		{
 			return std::make_unique<AbstractValueProxy<ValueType>>((*this));
 		}
@@ -458,6 +458,11 @@ private:
 		{
 		}
 
+		virtual std::unique_ptr<ProxyInterface> Clone() const override
+		{
+			return std::make_unique<MultiOrderValueProxy<ValueType>>((*this));
+		}
+
 		// Forward type cast to value category.
 		template<typename... CastTypes>
 		auto As() const
@@ -481,6 +486,11 @@ private:
 		IterableValueProxy(ValueType&& valueCategory, ArgTypes... args)
 			: base_type{ std::forward<ValueType>(valueCategory) }
 		{
+		}
+
+		virtual std::unique_ptr<ProxyInterface> Clone() const override
+		{
+			return std::make_unique<IterableValueProxy<ValueType>>((*this));
 		}
 
 		size_type Size() const { return m_innerValue.Size(); }
