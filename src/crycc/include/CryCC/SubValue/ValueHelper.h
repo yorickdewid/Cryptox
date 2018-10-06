@@ -9,7 +9,7 @@
 #pragma once
 
 #include <CryCC/SubValue/Valuedef.h>
-#include <CryCC/SubValue/AutoValue.h>
+#include <CryCC/SubValue/AutoValue.h> // TODO: remove
 
 namespace CryCC::SubValue::Valuedef
 {
@@ -49,7 +49,7 @@ Value MakeDouble(double);
 Value2 MakeLongDouble(double);
 //Value2 MakeUnsignedLongDouble(double);
 Value MakeString(const std::string&);
-//Value2 MakeString2(const std::string&); //TODO:
+Value2 MakeString2(const std::string&);
 //Value2 MakeStringArray(std::vector<std::string>);
 //Value2 MakeStringArray2(std::vector<std::string>); //TODO:
 Value MakeIntArray(int v[]);
@@ -66,6 +66,7 @@ Value2 MakeChar2(char);
 Value2 MakeInt2(int);
 Value2 MakeFloat2(float);
 Value2 MakeDouble2(double);
+Value2 MakeCharArray2(const std::vector<char>&);
 Value2 MakeIntArray2(const std::vector<int>&);
 Value2 MakeFloatArray2(const std::vector<float>&);
 Value2 MakeDoubleArray2(const std::vector<double>&);
@@ -76,9 +77,11 @@ Value2 MakeStruct2(const std::string name, ValueType&&... args)
 {
 	RecordValue record;
 	int i = 0;
+
 	for (auto v : { args... }) {
 		record.AddField(i++, std::move(v));
 	}
+
 	return Value2{ MakeRecordType(name, RecordType::Specifier::STRUCT), std::move(record) };
 }
 
@@ -88,23 +91,41 @@ Value2 MakeUnion2(const std::string name, ValueType&&... args)
 {
 	RecordValue record;
 	int i = 0;
+
 	for (auto v : { args... }) {
 		record.AddField(i++, std::move(v));
 	}
+
 	return Value2{ MakeRecordType(name, RecordType::Specifier::UNION), std::move(record) };
 }
 
-template<typename NativeType>
-inline NativeType ValueCast(const Value2& value)
+namespace Detail
 {
-	//TODO: Add other value categories
-	if constexpr (BuiltinValue::has_type_v<std::decay_t<NativeType>>) {
-		return value.As<BuiltinValue, NativeType>();
-	}
-	else {
-		static_assert(0, "Not an castable type");
-	}
+
+template<typename NativeType, typename ValueCategory>
+auto ValueCastNativeImpl(const Value2& value)
+{
+	return value.As<ValueCategory, NativeType>();
 }
+
+} // namespace Detail
+
+// Extract native value from value.
+template<typename NativeType>
+auto ValueCastNative(const Value2& value)
+{
+	return Detail::ValueCastNativeImpl<NativeType, BuiltinValue>(value);
+}
+
+// Extract array from value.
+template<typename NativeType>
+auto ValueCastArray(const Value2& value)
+{
+	return Detail::ValueCastNativeImpl<NativeType, ArrayValue>(value);
+}
+
+// Extract string from value.
+std::string ValueCastString(const Value2&);
 
 //
 // Create implicit value with automatic type.

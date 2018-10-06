@@ -25,7 +25,6 @@
 
 //TODO:
 // - Make Bool
-// - Make String
 
 using namespace CryCC::SubValue::Typedef;
 using namespace CryCC::SubValue::Valuedef;
@@ -156,26 +155,26 @@ BOOST_AUTO_TEST_CASE(ValueReworkDissected)
 
 BOOST_AUTO_TEST_CASE(ValueReworkDeclaration)
 {
-	//auto valStr = Util::MakeString("teststring");
 	auto valInt = Util::MakeInt2(12);
 	auto valFloat = Util::MakeFloat2(92.123f);
 	auto valDouble = Util::MakeDouble2(87341.78263);
 	auto valChar = Util::MakeChar2('K');
 	//auto valBool = Util::MakeBool(true);
+	auto valStr = Util::MakeString2("teststring");
 
-	//BOOST_CHECK(!valStr.Initialized());
 	BOOST_CHECK(valInt.Initialized());
 	BOOST_CHECK(valFloat.Initialized());
 	BOOST_CHECK(valDouble.Initialized());
 	BOOST_CHECK(valChar.Initialized());
 	//BOOST_CHECK(!valBool.Initialized());
+	BOOST_CHECK(valStr.Initialized());
 
-	//BOOST_REQUIRE_EQUAL("teststring", valStr.As<ArrayType, char>());
-	BOOST_REQUIRE_EQUAL(12, Util::ValueCast<int>(valInt));
-	BOOST_REQUIRE_EQUAL(92.123f, Util::ValueCast<float>(valFloat));
-	BOOST_REQUIRE_EQUAL(87341.78263, Util::ValueCast<double>(valDouble));
-	BOOST_REQUIRE_EQUAL('K', Util::ValueCast<char>(valChar));
+	BOOST_REQUIRE_EQUAL(12, Util::ValueCastNative<int>(valInt));
+	BOOST_REQUIRE_EQUAL(92.123f, Util::ValueCastNative<float>(valFloat));
+	BOOST_REQUIRE_EQUAL(87341.78263, Util::ValueCastNative<double>(valDouble));
+	BOOST_REQUIRE_EQUAL('K', Util::ValueCastNative<char>(valChar));
 	//BOOST_REQUIRE_EQUAL(true, valBool.As<BuiltinValue, bool>());
+	BOOST_REQUIRE_EQUAL("teststring", Util::ValueCastString(valStr));
 }
 
 BOOST_AUTO_TEST_CASE(ValueReworkDeclarationArray)
@@ -195,10 +194,10 @@ BOOST_AUTO_TEST_CASE(ValueReworkDeclarationArray)
 	BOOST_CHECK_EQUAL(_valDoubleArray.size(), valDoubleArray.ElementCount<ArrayValue>());
 	//BOOST_CHECK_EQUAL(_valBoolArray.size(), valBoolArray.Type().ElementCount<ArrayValue>());
 
-	BOOST_REQUIRE(_valIntArray == (valIntArray.As<ArrayValue, int>()));
-	BOOST_REQUIRE(_valFloatArray == (valFloatArray.As<ArrayValue, float>()));
-	BOOST_REQUIRE(_valDoubleArray == (valDoubleArray.As<ArrayValue, double>()));
-	//BOOST_REQUIRE(_valBoolArray == valBoolArray.As<bool>());
+	BOOST_REQUIRE(_valIntArray == Util::ValueCastArray<int>(valIntArray));
+	BOOST_REQUIRE(_valFloatArray == Util::ValueCastArray<float>(valFloatArray));
+	BOOST_REQUIRE(_valDoubleArray == Util::ValueCastArray<double>(valDoubleArray));
+	//BOOST_REQUIRE(_valBoolArray == Util::ValueCastArray<bool>(valBoolArray));
 }
 
 BOOST_AUTO_TEST_CASE(ValueReworkRecord)
@@ -231,7 +230,7 @@ BOOST_AUTO_TEST_CASE(ValueReworkReplace)
 	{
 		auto valInt = Util::MakeInt2(982734);
 		valInt = Util::MakeInt2(17);
-		BOOST_REQUIRE_EQUAL(17, Util::ValueCast<int>(valInt));
+		BOOST_REQUIRE_EQUAL(17, Util::ValueCastNative<int>(valInt));
 		valInt = Util::MakeInt2(7862138);
 		BOOST_REQUIRE_THROW(valInt = Util::MakeFloat2(12.23f), InvalidTypeCastException);
 	}
@@ -241,7 +240,7 @@ BOOST_AUTO_TEST_CASE(ValueReworkReplace)
 		auto valDouble = Util::MakeDouble2(8273.87123);
 		Value2 val2 = valDouble;
 		BOOST_CHECK(valDouble);
-		BOOST_REQUIRE_EQUAL(8273.87123, Util::ValueCast<double>(valDouble));
+		BOOST_REQUIRE_EQUAL(8273.87123, Util::ValueCastNative<double>(valDouble));
 	}
 
 	// Replace array item.

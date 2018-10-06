@@ -182,12 +182,11 @@ Value2 MakeLongDouble(long double v)
 	return Value2{ MakeBuiltinType(BuiltinType::Specifier::LONG_DOUBLE_T), BuiltinValue{ v } };
 }
 
-// Value2 MakeIntArray2(int v[])
-// {
-// 	const auto builtin = MakeBuiltinType(BuiltinType::Specifier::INT);
-// 	std::vector<int> ve(v, v + sizeof(v) / sizeof(v[0]));
-// 	return Value{ TypeFacade{ builtin }, Value::ValueVariantMulti{ std::move(ve) }, ve.size() };
-// }
+Value2 MakeCharArray2(const std::vector<char>& v)
+{
+	auto arrayElement = Util::MakeBuiltinType(BuiltinType::Specifier::CHAR_T);
+	return Value2{ std::make_shared<ArrayType>(v.size(), std::move(arrayElement)), ArrayValue{ v.cbegin(), v.cend() } };
+}
 
 Value2 MakeIntArray2(const std::vector<int>& v)
 {
@@ -205,6 +204,18 @@ Value2 MakeDoubleArray2(const std::vector<double>& v)
 {
 	auto arrayElement = Util::MakeBuiltinType(BuiltinType::Specifier::DOUBLE_T);
 	return Value2{ std::make_shared<ArrayType>(v.size(), std::move(arrayElement)), ArrayValue{ v.cbegin(), v.cend() } };
+}
+
+Value2 MakeString2(const std::string& v)
+{
+	auto arrayElement = Util::MakeBuiltinType(BuiltinType::Specifier::CHAR_T);
+	return Value2{ std::make_shared<ArrayType>(v.size(), std::move(arrayElement)), ArrayValue{ v.cbegin(), v.cend() } };
+}
+
+std::string ValueCastString(const Value2& value)
+{
+	const auto strArr = ValueCastArray<char>(value);
+	return { strArr.begin(), strArr.end() };
 }
 
 // Evaluate value as boolean if conversion is possible. If the conversion
@@ -229,7 +240,7 @@ int EvaluateValueAsInteger(const Value& value)
 // the evaluator returns with a negative result.
 bool EvaluateValueAsBoolean(const Value2& value)
 {
-	try { return Util::ValueCast<int>(value); }
+	try { return Util::ValueCastNative<int>(value); }
 	catch (const InvalidTypeCastException&) {}
 	return false;
 }
@@ -238,7 +249,7 @@ bool EvaluateValueAsBoolean(const Value2& value)
 // is thrown upwards to the caller.
 int EvaluateValueAsInteger(const Value2& value)
 {
-	return Util::ValueCast<int>(value);
+	return Util::ValueCastNative<int>(value);
 }
 
 } // namespace Util
