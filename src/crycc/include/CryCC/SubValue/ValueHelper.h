@@ -67,7 +67,13 @@ Value2 MakeInt2(int);
 Value2 MakeFloat2(float);
 Value2 MakeDouble2(double);
 Value2 MakeCharArray2(const std::vector<char>&);
+Value2 MakeShortArray2(const std::vector<short>&);
 Value2 MakeIntArray2(const std::vector<int>&);
+Value2 MakeLongArray2(const std::vector<long>&);
+Value2 MakeUnsignedCharArray2(const std::vector<unsigned char>&);
+Value2 MakeUnsignedShortArray2(const std::vector<unsigned short>&);
+Value2 MakeUnsignedIntArray2(const std::vector<unsigned int>&);
+Value2 MakeUnsignedLongArray2(const std::vector<unsigned long>&);
 Value2 MakeFloatArray2(const std::vector<float>&);
 Value2 MakeDoubleArray2(const std::vector<double>&);
 

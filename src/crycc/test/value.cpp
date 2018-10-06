@@ -296,7 +296,7 @@ BOOST_AUTO_TEST_CASE(ValueReworkMisc)
 		BOOST_REQUIRE_THROW(Util::EvaluateValueAsInteger(Util::MakeFloat2(8.12f)), InvalidTypeCastException);
 	}
 
-	// Value streaming.
+	// Value string streaming.
 	{
 		auto valInt = Util::MakeInt2(9471);
 

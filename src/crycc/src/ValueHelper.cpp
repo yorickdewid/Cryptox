@@ -182,34 +182,71 @@ Value2 MakeLongDouble(long double v)
 	return Value2{ MakeBuiltinType(BuiltinType::Specifier::LONG_DOUBLE_T), BuiltinValue{ v } };
 }
 
+namespace Detail
+{
+
+template<BuiltinType::Specifier Specifier, typename Type>
+Value2 MakeCharArrayImpl(const Type& value)
+{
+	auto arrayElement = Util::MakeBuiltinType(Specifier);
+	return Value2{ std::make_shared<ArrayType>(value.size(), std::move(arrayElement)), ArrayValue{ value.cbegin(), value.cend() } };
+}
+
+} // namespace Detail
+
 Value2 MakeCharArray2(const std::vector<char>& v)
 {
-	auto arrayElement = Util::MakeBuiltinType(BuiltinType::Specifier::CHAR_T);
-	return Value2{ std::make_shared<ArrayType>(v.size(), std::move(arrayElement)), ArrayValue{ v.cbegin(), v.cend() } };
+	return Detail::MakeCharArrayImpl<BuiltinType::Specifier::CHAR_T>(v);
+}
+
+Value2 MakeShortArray2(const std::vector<short>& v)
+{
+	return Detail::MakeCharArrayImpl<BuiltinType::Specifier::SHORT_T>(v);
 }
 
 Value2 MakeIntArray2(const std::vector<int>& v)
 {
-	auto arrayElement = Util::MakeBuiltinType(BuiltinType::Specifier::INT_T);
-	return Value2{ std::make_shared<ArrayType>(v.size(), std::move(arrayElement)), ArrayValue{ v.cbegin(), v.cend() } };
+	return Detail::MakeCharArrayImpl<BuiltinType::Specifier::INT_T>(v);
+}
+
+Value2 MakeLongArray2(const std::vector<long>& v)
+{
+	return Detail::MakeCharArrayImpl<BuiltinType::Specifier::LONG_T>(v);
+}
+
+Value2 MakeUnsignedCharArray2(const std::vector<unsigned char>& v)
+{
+	return Detail::MakeCharArrayImpl<BuiltinType::Specifier::UNSIGNED_CHAR_T>(v);
+}
+
+Value2 MakeUnsignedShortArray2(const std::vector<unsigned short>& v)
+{
+	return Detail::MakeCharArrayImpl<BuiltinType::Specifier::UNSIGNED_SHORT_T>(v);
+}
+
+Value2 MakeUnsignedIntArray2(const std::vector<unsigned int>& v)
+{
+	return Detail::MakeCharArrayImpl<BuiltinType::Specifier::UNSIGNED_INT_T>(v);
+}
+
+Value2 MakeUnsignedLongArray2(const std::vector<unsigned long>& v)
+{
+	return Detail::MakeCharArrayImpl<BuiltinType::Specifier::UNSIGNED_LONG_T>(v);
 }
 
 Value2 MakeFloatArray2(const std::vector<float>& v)
 {
-	auto arrayElement = Util::MakeBuiltinType(BuiltinType::Specifier::FLOAT_T);
-	return Value2{ std::make_shared<ArrayType>(v.size(), std::move(arrayElement)), ArrayValue{ v.cbegin(), v.cend() } };
+	return Detail::MakeCharArrayImpl<BuiltinType::Specifier::FLOAT_T>(v);
 }
 
 Value2 MakeDoubleArray2(const std::vector<double>& v)
 {
-	auto arrayElement = Util::MakeBuiltinType(BuiltinType::Specifier::DOUBLE_T);
-	return Value2{ std::make_shared<ArrayType>(v.size(), std::move(arrayElement)), ArrayValue{ v.cbegin(), v.cend() } };
+	return Detail::MakeCharArrayImpl<BuiltinType::Specifier::DOUBLE_T>(v);
 }
 
 Value2 MakeString2(const std::string& v)
 {
-	auto arrayElement = Util::MakeBuiltinType(BuiltinType::Specifier::CHAR_T);
-	return Value2{ std::make_shared<ArrayType>(v.size(), std::move(arrayElement)), ArrayValue{ v.cbegin(), v.cend() } };
+	return Detail::MakeCharArrayImpl<BuiltinType::Specifier::CHAR_T>(v);
 }
 
 std::string ValueCastString(const Value2& value)
