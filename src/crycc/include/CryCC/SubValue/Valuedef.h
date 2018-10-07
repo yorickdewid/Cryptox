@@ -582,6 +582,8 @@ public:
 
 	// Check if value is set.
 	inline bool Initialized() const noexcept { return m_valuePtr->IsInitialized(); }
+	// Inner value identifier.
+	inline int Identifier() const { return m_valuePtr->Id(); }
 
 	// Cast to value category type and forward inner cast to value category.
 	template<typename ValueType, typename ReturnType, typename... CastTypes>

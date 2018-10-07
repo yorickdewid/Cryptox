@@ -32,26 +32,12 @@ namespace Util
 using namespace CryCC::SubValue::Valuedef;
 using namespace CryCC::SubValue::Typedef;
 
-Value2 MakeUninitialized();
-Value2 MakeVoid();
 Value MakeBool(bool);
 Value MakeChar(char);
-Value2 MakeSignedChar(signed char);
-Value2 MakeUnsignedChar(unsigned char);
-Value2 MakeShort(short);
-Value2 MakeUnsignedShort(unsigned short);
 Value MakeInt(int);
-Value2 MakeUnsignedInt(unsigned int);
-Value2 MakeLong(long);
-Value2 MakeUnsignedLong(unsigned long);
 Value MakeFloat(float);
 Value MakeDouble(double);
-Value2 MakeLongDouble(double);
-//Value2 MakeUnsignedLongDouble(double);
 Value MakeString(const std::string&);
-Value2 MakeString2(const std::string&);
-//Value2 MakeStringArray(std::vector<std::string>);
-//Value2 MakeStringArray2(std::vector<std::string>); //TODO:
 Value MakeIntArray(int v[]);
 Value MakeIntArray(std::vector<int>);
 Value MakeFloatArray(std::vector<float>);
@@ -61,7 +47,21 @@ Value MakePointer(Value&&);
 Value MakeStruct(RecordValue&&, const std::string structName = {});
 Value MakeUnion(RecordValue&&, const std::string structName = {});
 
-// Value MakeBool2(bool); //TODO
+Value2 MakeUninitialized();
+Value2 MakeVoid();
+Value2 MakeOffset(Value2&, size_t);
+Value2 MakeSignedChar(signed char);
+Value2 MakeUnsignedChar(unsigned char);
+Value2 MakeShort(short);
+Value2 MakeUnsignedShort(unsigned short);
+Value2 MakeUnsignedInt(unsigned int);
+Value2 MakeLong(long);
+Value2 MakeUnsignedLong(unsigned long);
+Value2 MakeLongDouble(double);
+//Value2 MakeUnsignedLongDouble(double);
+Value2 MakeString2(const std::string&);
+
+// Value2 MakeBool2(bool); //TODO
 Value2 MakeChar2(char);
 Value2 MakeInt2(int);
 Value2 MakeFloat2(float);
@@ -133,10 +133,31 @@ auto ValueCastArray(const Value2& value)
 // Extract string from value.
 std::string ValueCastString(const Value2&);
 
+// Retrieve multi element value at position.
+template<typename ReturnType, auto Offset>
+ReturnType MultiElementAt(const Value2& value)
+{
+	return value.At<ArrayValue, ReturnType, Offset>();
+}
+
+// Retrieve multi element size.
+size_t MultiElementSize(const Value2&);
+
+// Test if multi element value is empty.
+bool MultiElementEmpty(const Value2&);
+
+// Replace item in multi element value.
+template<auto Offset, typename Type>
+void MultiElementEmplace(const Value2& value, Type&& newval)
+{
+	value.Emplace<ArrayValue, Offset>(std::forward<Type>(newval));
+}
+
 //
 // Create implicit value with automatic type.
 //
 
+//TODO: Remove
 template<typename NativeType>
 inline Value MakeAutoValue(NativeType&& v)
 {

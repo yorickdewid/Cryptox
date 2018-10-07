@@ -25,6 +25,8 @@
 
 //TODO:
 // - Make Bool
+// - Offset value
+// - Arithmetic?
 
 using namespace CryCC::SubValue::Typedef;
 using namespace CryCC::SubValue::Valuedef;
@@ -160,12 +162,14 @@ BOOST_AUTO_TEST_CASE(ValueReworkDeclaration)
 	auto valDouble = Util::MakeDouble2(87341.78263);
 	auto valChar = Util::MakeChar2('K');
 	//auto valBool = Util::MakeBool(true);
+	auto valULong = Util::MakeUnsignedLong(8273ULL);
 	auto valStr = Util::MakeString2("teststring");
 
 	BOOST_CHECK(valInt.Initialized());
 	BOOST_CHECK(valFloat.Initialized());
 	BOOST_CHECK(valDouble.Initialized());
 	BOOST_CHECK(valChar.Initialized());
+	BOOST_CHECK(valULong.Initialized());
 	//BOOST_CHECK(!valBool.Initialized());
 	BOOST_CHECK(valStr.Initialized());
 
@@ -173,6 +177,7 @@ BOOST_AUTO_TEST_CASE(ValueReworkDeclaration)
 	BOOST_REQUIRE_EQUAL(92.123f, Util::ValueCastNative<float>(valFloat));
 	BOOST_REQUIRE_EQUAL(87341.78263, Util::ValueCastNative<double>(valDouble));
 	BOOST_REQUIRE_EQUAL('K', Util::ValueCastNative<char>(valChar));
+	BOOST_REQUIRE_EQUAL(8273ULL, Util::ValueCastNative<unsigned long>(valULong));
 	//BOOST_REQUIRE_EQUAL(true, valBool.As<BuiltinValue, bool>());
 	BOOST_REQUIRE_EQUAL("teststring", Util::ValueCastString(valStr));
 }
@@ -189,15 +194,25 @@ BOOST_AUTO_TEST_CASE(ValueReworkDeclarationArray)
 	auto valDoubleArray = Util::MakeDoubleArray2(_valDoubleArray);
 	//auto valBoolArray = Util::MakeBoolArray({ true, true, false, true, false, false });
 
-	BOOST_CHECK_EQUAL(_valIntArray.size(), valIntArray.ElementCount<ArrayValue>());
-	BOOST_CHECK_EQUAL(_valFloatArray.size(), valFloatArray.ElementCount<ArrayValue>());
-	BOOST_CHECK_EQUAL(_valDoubleArray.size(), valDoubleArray.ElementCount<ArrayValue>());
-	//BOOST_CHECK_EQUAL(_valBoolArray.size(), valBoolArray.Type().ElementCount<ArrayValue>());
+	BOOST_CHECK(!Util::MultiElementEmpty(valIntArray));
+	BOOST_CHECK(!Util::MultiElementEmpty(valFloatArray));
+	BOOST_CHECK(!Util::MultiElementEmpty(valDoubleArray));
+	//BOOST_CHECK(!Util::MultiElementEmpty(valBoolArray));
+
+	BOOST_CHECK_EQUAL(_valIntArray.size(), Util::MultiElementSize(valIntArray));
+	BOOST_CHECK_EQUAL(_valFloatArray.size(), Util::MultiElementSize(valFloatArray));
+	BOOST_CHECK_EQUAL(_valDoubleArray.size(), Util::MultiElementSize(valDoubleArray));
+	//BOOST_CHECK_EQUAL(_valBoolArray.size(), Util::MultiElementSize(valBoolArray));
 
 	BOOST_REQUIRE(_valIntArray == Util::ValueCastArray<int>(valIntArray));
 	BOOST_REQUIRE(_valFloatArray == Util::ValueCastArray<float>(valFloatArray));
 	BOOST_REQUIRE(_valDoubleArray == Util::ValueCastArray<double>(valDoubleArray));
 	//BOOST_REQUIRE(_valBoolArray == Util::ValueCastArray<bool>(valBoolArray));
+
+	BOOST_REQUIRE_EQUAL(12, (Util::MultiElementAt<int, 1>(valIntArray)));
+	BOOST_REQUIRE_EQUAL(89.8612f, (Util::MultiElementAt<float, 2>(valFloatArray)));
+	BOOST_REQUIRE_EQUAL(891.87316, (Util::MultiElementAt<double, 2>(valDoubleArray)));
+	//BOOST_REQUIRE_EQUAL(false, (Util::MultiElementAt<bool, 4>(valBoolArray)));
 }
 
 BOOST_AUTO_TEST_CASE(ValueReworkRecord)
@@ -211,11 +226,13 @@ BOOST_AUTO_TEST_CASE(ValueReworkRecord)
 		auto valStruct = Util::MakeStruct2("struct", valInt, valFloatArray);
 		BOOST_REQUIRE(Util::IsStruct(valStruct));
 
+		BOOST_CHECK_EQUAL(2, valStruct.As<RecordValue>()->Size());
+
 		BOOST_REQUIRE(valStruct);
 		BOOST_REQUIRE(valInt == (valStruct.As<RecordValue>()->At(0)));
 	}
 
-	// Make union.
+	// Make union with values.
 	{
 		auto valInt = Util::MakeInt2(1);
 		auto valInt2 = Util::MakeInt2(-29);
@@ -247,9 +264,9 @@ BOOST_AUTO_TEST_CASE(ValueReworkReplace)
 	{
 		auto valIntArray = Util::MakeIntArray2({ 9,81,74,71,613,73 });
 		valIntArray = Util::MakeIntArray2({ 23,45,67 });
-		BOOST_REQUIRE_EQUAL(23, (valIntArray.At<ArrayValue, int, 0>()));
-		valIntArray.Emplace<ArrayValue, 1>(8361);
-		BOOST_REQUIRE_EQUAL(8361, (valIntArray.At<ArrayValue, int, 1>()));
+		BOOST_REQUIRE_EQUAL(23, (Util::MultiElementAt<int, 0>(valIntArray)));
+		Util::MultiElementEmplace<1>(valIntArray, 8361);
+		BOOST_REQUIRE_EQUAL(8361, (Util::MultiElementAt<int, 1>(valIntArray)));
 	}
 
 	// Replace record item.

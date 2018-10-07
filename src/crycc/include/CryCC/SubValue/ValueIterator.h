@@ -11,12 +11,10 @@
 #include <CryCC/SubValue/ValueContract.h>
 #include <CryCC/SubValue/Valuedef.h>
 
-namespace CryCC
+namespace CryCC::SubValue::Valuedef
 {
-namespace SubValue
-{
-namespace Valuedef
-{
+
+#if 0
 
 //TODO: make iterator
 class ValueIterator
@@ -45,6 +43,6 @@ public:
 	void operator*() {}
 };
 
-} // namespace Valuedef
-} // namespace SubValue
-} // namespace CryCC
+#endif
+
+} // namespace namespace CryCC::SubValue::Valuedef
