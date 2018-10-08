@@ -14,24 +14,28 @@
 namespace CryCC::SubValue::Valuedef
 {
 
+class Value2;
+
 // The offset value is a value pointing to an element in a composed
 // value. The offset is always integral based.
 class OffsetValue final : public AbstractValue<OffsetValue>
 {
-    size_t m_offset;
-    IterableContract& m_iterValue;
+	size_t m_offset;
+	Value2& m_iterValue;
 
-    friend class ValueIterator;
+	friend class ValueIterator;
 
 public:
-    using typdef_type = Typedef::NilType;
-    using value_category = ValueCategory::Singular;
-    using offset_type = decltype(m_offset);
+	using typdef_type = Typedef::NilType;
+	using value_category = ValueCategory::Singular;
+	using offset_type = decltype(m_offset);
 
-    // Expose the value variants that this category can process.
-    inline constexpr static const int value_variant_order = 0;
-    // Unique value identifier.
-    inline constexpr static const int value_category_identifier = 14;
+	// Expose the value variants that this category can process.
+	inline constexpr static const int value_variant_order = 0;
+	// Unique value identifier.
+	inline constexpr static const int value_category_identifier = 14;
+
+	OffsetValue(Value2& value, offset_type offset = 0);
 
 	OffsetValue(const OffsetValue&);
 	OffsetValue(OffsetValue&&) = default;
@@ -39,14 +43,11 @@ public:
 	OffsetValue& operator=(const OffsetValue&);
 	OffsetValue& operator=(OffsetValue&&) = default;
 
-    template<typename ValueCategoryType, typename = typename std::enable_if<IsValueIterable<ValueCategoryType>::value>::type>
-    OffsetValue(ValueCategoryType& value, offset_type offset = 0)
-        : m_iterValue{ value }
-        , m_offset{ offset }
-    {
-    }
+	//
+	// Implement singular contract.
+	//
 
-    inline size_t Offset() const { return m_offset; }
+	auto Get() const { return m_offset; }
 
 	//
 	// Implement value category contract.
@@ -57,13 +58,13 @@ public:
 	// NOTE: NilValue holds no data, thus deserialization can be ignored.
 	static void Deserialize(OffsetValue&, buffer_type&) {}
 
-    // All the nil values are the same.
+	// All the nil values are the same.
 	bool operator==(const OffsetValue&) const { return true; }
 
-    // Convert current value to string.
+	// Convert current value to string.
 	std::string ToString() const { return "(ofs)"; }
 
-    //
+	//
 	// Arithmetic operators.
 	//
 

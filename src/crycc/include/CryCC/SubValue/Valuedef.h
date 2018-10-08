@@ -12,7 +12,6 @@
 #include <CryCC/SubValue/TypeFacade.h>
 #include <CryCC/SubValue/ValueContract.h>
 #include <CryCC/SubValue/NilValue.h>
-#include <CryCC/SubValue/OffsetValue.h>
 
 #include <Cry/Serialize.h>
 
@@ -34,11 +33,7 @@ struct ValueFactory;
 
 } // namespace Util
 
-namespace CryCC
-{
-namespace SubValue
-{
-namespace Valuedef
+namespace CryCC::SubValue::Valuedef
 {
 
 namespace Trait {
@@ -359,7 +354,6 @@ class Value2
 
 public:
 	using default_value_type = NilValue;
-	using iterator_helper_value_type = OffsetValue;
 
 private:
 	struct ProxyInterface : public ValueContract
@@ -402,6 +396,8 @@ private:
 		{
 		}
 
+		virtual ~AbstractValueProxy() {}
+
 		// Retrieve the value category identifier.
 		int Id() const { return ValueType::value_category_identifier; }
 		// Attach type facade to value.
@@ -443,6 +439,40 @@ private:
 	};
 
 	template<typename ValueType>
+	class SingularValueProxy : public AbstractValueProxy<ValueType>
+	{
+	public:
+		using base_type = AbstractValueProxy<ValueType>;
+		using self_type = SingularValueProxy<ValueType>;
+
+		explicit SingularValueProxy() = default;
+		SingularValueProxy(const SingularValueProxy&) = default;
+
+		template<typename... ArgTypes>
+		SingularValueProxy(ValueType&& valueCategory, ArgTypes... args)
+			: base_type{ std::forward<ValueType>(valueCategory) }
+		{
+		}
+
+		// Clone the abstract proxy.
+		virtual std::unique_ptr<ProxyInterface> Clone() const override
+		{
+			return std::make_unique<SingularValueProxy<ValueType>>((*this));
+		}
+
+		//
+		// Proxy specific methods.
+		//
+
+		// Forward type cast to value category.
+		//template<typename... CastTypes>
+		auto Get() const
+		{
+			return m_innerValue.Get();
+		}
+	};
+
+	template<typename ValueType>
 	class MultiOrderValueProxy : public AbstractValueProxy<ValueType>
 	{
 	public:
@@ -458,10 +488,15 @@ private:
 		{
 		}
 
+		// Clone the abstract proxy.
 		virtual std::unique_ptr<ProxyInterface> Clone() const override
 		{
 			return std::make_unique<MultiOrderValueProxy<ValueType>>((*this));
 		}
+
+		//
+		// Proxy specific methods.
+		//
 
 		// Forward type cast to value category.
 		template<typename... CastTypes>
@@ -488,10 +523,15 @@ private:
 		{
 		}
 
+		// Clone the abstract proxy.
 		virtual std::unique_ptr<ProxyInterface> Clone() const override
 		{
 			return std::make_unique<IterableValueProxy<ValueType>>((*this));
 		}
+
+		//
+		// Proxy specific methods.
+		//
 
 		size_type Size() const { return m_innerValue.Size(); }
 		bool Empty() const { return !this->Size(); }
@@ -518,7 +558,7 @@ private:
 	using ProxySelector = typename std::conditional<IsValueIterable<Type>::value
 		, IterableValueProxy<Type>
 		, typename std::conditional<IsValueMultiOrdinal<Type>::value
-		, MultiOrderValueProxy<Type>, AbstractValueProxy<Type>>::type
+		, MultiOrderValueProxy<Type>, SingularValueProxy<Type>>::type
 		>::type;
 
 	template<typename ProxyType>
@@ -571,11 +611,6 @@ public:
 
 	Value2& operator=(const Value2&);
 	Value2& operator=(Value2&&);
-
-	//TODO:
-	Value2& operator=(const iterator_helper_value_type&);
-	//TODO:
-	Value2& operator=(iterator_helper_value_type&&);
 
 	// Access type information.
 	Typedef::TypeFacade Type() const { return m_internalType; }
@@ -707,9 +742,7 @@ static_assert(std::is_move_constructible<Value2>::value, "Value !is_move_constru
 static_assert(std::is_copy_assignable<Value2>::value, "Value !is_copy_assignable");
 static_assert(std::is_move_assignable<Value2>::value, "Value !is_move_assignable");
 
-} // namespace Valuedef
-} // namespace SubValue
-} // namespace CryCC
+} // namespace CryCC::SubValue::Valuedef
 
 namespace Util
 {

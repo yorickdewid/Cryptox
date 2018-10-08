@@ -603,19 +603,6 @@ Value2& Value2::operator=(Value2&& other)
 	return (*this);
 }
 
-
-Value2& Value2::operator=(const iterator_helper_value_type&)
-{
-	//TODO:
-	return (*this);
-}
-
-Value2& Value2::operator=(iterator_helper_value_type&&)
-{
-	//TODO:
-	return (*this);
-}
-
 void Value2::Serialize(const Value2& value, Cry::ByteArray& buffer)
 {
 	// Write value identifier.
