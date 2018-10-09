@@ -153,6 +153,13 @@ BOOST_AUTO_TEST_CASE(ValueReworkDissected)
 		BOOST_REQUIRE_EQUAL(183L, (val.At<ArrayValue, long, 2>()));
 		BOOST_REQUIRE_EQUAL(8974L, (val.At<ArrayValue, long>(3)));
 	}
+
+	// Value offset.
+	{
+		auto valIntArray = Util::MakeIntArray2({ -823,823,1,-5,12963 });
+		auto valOff = Value2{ std::make_shared<NilType>(), OffsetValue{ valIntArray, 4 } };
+		BOOST_REQUIRE(valOff.Initialized());
+	}
 }
 
 BOOST_AUTO_TEST_CASE(ValueReworkDeclaration)
@@ -320,6 +327,47 @@ BOOST_AUTO_TEST_CASE(ValueReworkMisc)
 		std::stringstream ss;
 		ss << valInt;
 		BOOST_REQUIRE_EQUAL("9471", ss.str());
+	}
+}
+
+BOOST_AUTO_TEST_CASE(ValueOffsetValue)
+{
+	// Replace array item.
+	{
+		auto valUShortArray = Util::MakeUnsignedShortArray2({ 82,84,714,957,1764,85,1 });
+
+		auto valOffset = Util::MakeOffset(valUShortArray, 4);
+
+		BOOST_REQUIRE_EQUAL(84, (Util::MultiElementAt<unsigned short, 1>(valUShortArray)));
+
+		BOOST_REQUIRE_EQUAL(4, valOffset.As<OffsetValue>()->Get());
+		BOOST_REQUIRE_EQUAL(1764, Util::MultiElementAt<unsigned short>(valOffset));
+
+		Util::MultiElementEmplace(valOffset, (unsigned short)6969);
+		BOOST_REQUIRE_EQUAL(6969, Util::MultiElementAt<unsigned short>(valOffset));
+
+		// ** elements **
+
+		//Util::MultiElementAt();
+		//Util::MultiElementSize();
+		//Util::MultiElementEmpty();
+		//Util::MultiElementEmplace();
+
+		// > Access
+		// VAL.At<ArrayValue, unsigned short, 0>();
+		// > Size
+		// VAL.ElementCount<ArrayValue>()
+		// > Empty
+		// VAL.ElementEmpty<ArrayValue>()
+		// > Emplace
+		// VAL.Emplace<ArrayValue, 1>(NATIVEVAL);
+
+		// > Access
+		// VAL.As<RecordValue>()->At(1))
+		// > Size
+		// VAL.As<RecordValue>()->Size())
+		// > Emplace
+		// VAL.As<RecordValue>()->Emplace(1, std::move(VAL));
 	}
 }
 

@@ -405,6 +405,8 @@ private:
 		// Signal end of initialization.
 		void ValueInit() { m_innerValue.ValueInit(); }
 
+		auto NativeValue() const { return m_innerValue; }
+
 		// Clone the abstract proxy.
 		virtual std::unique_ptr<ProxyInterface> Clone() const
 		{

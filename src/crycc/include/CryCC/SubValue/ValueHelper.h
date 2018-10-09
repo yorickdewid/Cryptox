@@ -134,9 +134,16 @@ auto ValueCastArray(const Value2& value)
 std::string ValueCastString(const Value2&);
 
 // Retrieve multi element value at position.
-template<typename ReturnType, auto Offset>
+template<typename ReturnType, auto Offset = 0>
 ReturnType MultiElementAt(const Value2& value)
 {
+	// Passed an offset value.
+	if (value.Identifier() == OffsetValue::value_category_identifier) {
+		const auto offset = value.As<OffsetValue>()->NativeValue().Offset();
+		auto& refValue = value.As<OffsetValue>()->NativeValue().Value();
+		return refValue.At<ArrayValue, ReturnType>(offset);
+	}
+
 	return value.At<ArrayValue, ReturnType, Offset>();
 }
 
@@ -147,9 +154,17 @@ size_t MultiElementSize(const Value2&);
 bool MultiElementEmpty(const Value2&);
 
 // Replace item in multi element value.
-template<auto Offset, typename Type>
+template<auto Offset = 0, typename Type>
 void MultiElementEmplace(const Value2& value, Type&& newval)
 {
+	// Passed an offset value.
+	if (value.Identifier() == OffsetValue::value_category_identifier) {
+		const auto offset = value.As<OffsetValue>()->NativeValue().Offset();
+		auto& refValue = value.As<OffsetValue>()->NativeValue().Value();
+		refValue.Emplace<ArrayValue>(offset, std::forward<Type>(newval));
+		return;
+	}
+
 	value.Emplace<ArrayValue, Offset>(std::forward<Type>(newval));
 }
 

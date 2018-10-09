@@ -43,11 +43,14 @@ public:
 	OffsetValue& operator=(const OffsetValue&);
 	OffsetValue& operator=(OffsetValue&&) = default;
 
+	inline offset_type Offset() const { return m_offset; }
+	inline Value2& Value() const { return m_iterValue; }
+
 	//
 	// Implement singular contract.
 	//
 
-	auto Get() const { return m_offset; }
+	auto Get() const { return Offset(); }
 
 	//
 	// Implement value category contract.
