@@ -342,33 +342,35 @@ BOOST_AUTO_TEST_CASE(ValueOffsetValue)
 
 		BOOST_REQUIRE_EQUAL(4, valOffset.As<OffsetValue>()->Get());
 		BOOST_REQUIRE_EQUAL(1764, Util::MultiElementAt<unsigned short>(valOffset));
+		BOOST_REQUIRE(!Util::MultiElementEmpty(valOffset));
+		BOOST_REQUIRE_EQUAL(7, Util::MultiElementSize(valOffset));
 
 		Util::MultiElementEmplace(valOffset, (unsigned short)6969);
 		BOOST_REQUIRE_EQUAL(6969, Util::MultiElementAt<unsigned short>(valOffset));
-
-		// ** elements **
-
-		//Util::MultiElementAt();
-		//Util::MultiElementSize();
-		//Util::MultiElementEmpty();
-		//Util::MultiElementEmplace();
-
-		// > Access
-		// VAL.At<ArrayValue, unsigned short, 0>();
-		// > Size
-		// VAL.ElementCount<ArrayValue>()
-		// > Empty
-		// VAL.ElementEmpty<ArrayValue>()
-		// > Emplace
-		// VAL.Emplace<ArrayValue, 1>(NATIVEVAL);
-
-		// > Access
-		// VAL.As<RecordValue>()->At(1))
-		// > Size
-		// VAL.As<RecordValue>()->Size())
-		// > Emplace
-		// VAL.As<RecordValue>()->Emplace(1, std::move(VAL));
 	}
+
+	// ** elements **
+
+	//Util::MultiElementAt();
+	//Util::MultiElementSize();
+	//Util::MultiElementEmpty();
+	//Util::MultiElementEmplace();
+
+	// > Access
+	// VAL.At<ArrayValue, unsigned short, 0>();
+	// > Size
+	// VAL.ElementCount<ArrayValue>()
+	// > Empty
+	// VAL.ElementEmpty<ArrayValue>()
+	// > Emplace
+	// VAL.Emplace<ArrayValue, 1>(NATIVEVAL);
+
+	// > Access
+	// VAL.As<RecordValue>()->At(1))
+	// > Size
+	// VAL.As<RecordValue>()->Size())
+	// > Emplace
+	// VAL.As<RecordValue>()->Emplace(1, std::move(VAL));
 }
 
 BOOST_AUTO_TEST_CASE(ValueReworkSerialize)

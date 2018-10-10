@@ -273,11 +273,23 @@ std::string ValueCastString(const Value2& value)
 
 size_t MultiElementSize(const Value2& value)
 {
+	// Passed an offset value.
+	if (value.Identifier() == OffsetValue::value_category_identifier) {
+		const auto& refValue = value.As<OffsetValue>()->NativeValue().Value();
+		return refValue.ElementCount<ArrayValue>();
+	}
+
 	return value.ElementCount<ArrayValue>();
 }
 
 bool MultiElementEmpty(const Value2& value)
 {
+	// Passed an offset value.
+	if (value.Identifier() == OffsetValue::value_category_identifier) {
+		const auto& refValue = value.As<OffsetValue>()->NativeValue().Value();
+		return refValue.ElementEmpty<ArrayValue>();
+	}
+
 	return value.ElementEmpty<ArrayValue>();
 }
 
