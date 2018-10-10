@@ -253,6 +253,7 @@ BuiltinValue operator/(const BuiltinValue& lhs, const BuiltinValue& rhs)
 	return boost::apply_visitor(valueVisitor, lhs.m_value, rhs.m_value);
 }
 
+//TODO:
 BuiltinValue operator%(const BuiltinValue& lhs, const BuiltinValue& rhs)
 {
 	/*BinaryArithVisitor<Functional::Modulus> valueVisitor;

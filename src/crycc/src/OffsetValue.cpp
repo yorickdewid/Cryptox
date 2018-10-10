@@ -7,17 +7,24 @@
 // copied and/or distributed without the express of the author.
 
 #include <CryCC/SubValue/Valuedef.h>
+#include <CryCC/SubValue/ArrayValue.h>
 #include <CryCC/SubValue/OffsetValue.h>
 
 namespace CryCC::SubValue::Valuedef
 {
 
+size_t SizeFromValue(const Value2& value)
+{
+	return value.ElementCount<ArrayValue>();
+}
+
 OffsetValue::OffsetValue(Value2& value, offset_type offset)
 	: m_iterValue{ value }
 	, m_offset{ offset }
 {
-	//TODO: Check if out of bounds
-	//CryImplExcept();
+	if (SizeFromValue(m_iterValue) <= m_offset) {
+		CryImplExcept();
+	}
 }
 
 OffsetValue::OffsetValue(const OffsetValue& other)
@@ -34,35 +41,35 @@ OffsetValue& OffsetValue::operator=(const OffsetValue& other)
 
 OffsetValue& OffsetValue::operator++()
 {
-	/*if (m_iterValue.Size() > m_offset) {
-	}*/
-	++m_offset;
+	if (SizeFromValue(m_iterValue) > m_offset) {
+		++m_offset;
+	}
 	return (*this);
 }
 
 OffsetValue& OffsetValue::operator--()
 {
-	/*if (m_iterValue.Size() > m_offset) {
-	}*/
-	--m_offset;
+	if (SizeFromValue(m_iterValue) > m_offset) {
+		--m_offset;
+	}
 	return (*this);
 }
 
 OffsetValue OffsetValue::operator++(int)
 {
 	OffsetValue tmp = std::as_const(*this);
-	/*if (m_iterValue.Size() > m_offset) {
-	}*/
-	m_offset++;
+	if (SizeFromValue(m_iterValue) > m_offset) {
+		m_offset++;
+	}
 	return tmp;
 }
 
 OffsetValue OffsetValue::operator--(int)
 {
 	OffsetValue tmp = std::as_const(*this);
-	/*if (m_iterValue.Size() > m_offset) {
-	}*/
-	m_offset--;
+	if (SizeFromValue(m_iterValue) > m_offset) {
+		m_offset--;
+	}
 	return tmp;
 }
 

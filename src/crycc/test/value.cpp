@@ -25,7 +25,6 @@
 
 //TODO:
 // - Make Bool
-// - Offset value
 // - Arithmetic?
 
 using namespace CryCC::SubValue::Typedef;
@@ -371,6 +370,64 @@ BOOST_AUTO_TEST_CASE(ValueOffsetValue)
 	// VAL.As<RecordValue>()->Size())
 	// > Emplace
 	// VAL.As<RecordValue>()->Emplace(1, std::move(VAL));
+}
+
+BOOST_AUTO_TEST_CASE(ValueArithOperators)
+{
+	// Addition.
+	{
+		auto valDouble = Util::MakeDouble2(283.69964);
+		auto valDouble2 = Util::MakeDouble2(9.71352);
+		auto valResult = valDouble + valDouble2;
+
+		BOOST_REQUIRE_EQUAL(293.413160, Util::ValueCastNative<double>(valResult));
+	}
+
+	// Subtraction.
+	{
+		auto valFloat = Util::MakeFloat2(92.816f);
+		auto valFloat2 = Util::MakeFloat2(91325.4f);
+		auto valResult = valFloat - valFloat2;
+
+		BOOST_CHECK_CLOSE(-91232.5859, Util::ValueCastNative<float>(valResult), 0.0001);
+	}
+
+	// Multiplication.
+	{
+		auto valFloat = Util::MakeFloat2(23.348f);
+		auto valLong = Util::MakeLong(29L);
+		auto valResult = valFloat * valLong;
+
+		BOOST_REQUIRE_EQUAL(677.09198f, Util::ValueCastNative<float>(valResult));
+	}
+
+	// Division.
+	{
+		auto valUchar = Util::MakeUnsignedChar((unsigned char)'V');
+		auto valChar = Util::MakeChar2((unsigned char)0x4);
+		auto valResult = valUchar / valChar;
+
+		BOOST_REQUIRE_EQUAL(21, Util::ValueCastNative<int>(valResult));
+	}
+
+	// Modulo.
+	{
+
+	}
+
+	// Increase/decrease.
+	{
+		auto valInt = Util::MakeInt2(12423891);
+		++valInt;
+		valInt++;
+
+		auto valLong = Util::MakeLong(-7623L);
+		--valLong;
+		valLong--;
+
+		BOOST_REQUIRE_EQUAL(12423893, Util::ValueCastNative<int>(valInt));
+		BOOST_REQUIRE_EQUAL(-7625L, Util::ValueCastNative<long>(valLong));
+	}
 }
 
 BOOST_AUTO_TEST_CASE(ValueReworkSerialize)

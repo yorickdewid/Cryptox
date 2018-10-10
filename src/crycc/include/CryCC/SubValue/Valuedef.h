@@ -372,11 +372,32 @@ private:
 		virtual void ReferenceType(const Typedef::TypeFacade*) = 0;
 		// Signal end of initialization.
 		virtual void ValueInit() = 0;
+		// Trigger addition on the value.
+		virtual void Increment(int inc = 1) = 0;
+		// Trigger subtraction on the value.
+		virtual void Decrement(int dec = 1) = 0;
+
+		//
+		// Arithmetic operations.
+		//
+
+		enum ArithOperation { PLUS, MINUS, MULTIPLIES, DIVIDES, MODULUS };
+
+		virtual Value2 ArithOperationValue(ArithOperation, const Typedef::TypeFacade&, ProxyInterface&) const = 0;
 	};
 
 	template<typename ValueType, typename = typename std::enable_if<IsValueContractCompliable<ValueType>::value>::type>
 	class AbstractValueProxy : public ProxyInterface
 	{
+		template<template<typename> typename BinaryOperation>
+		auto ConstructValueFromOperator(Typedef::TypeFacade type, ProxyInterface& other) const
+		{
+			if (this->Id() != other.Id()) { CryImplExcept(); }
+			auto& otherProxy = dynamic_cast<AbstractValueProxy<ValueType>&>(other);
+			ValueType value = std::invoke(BinaryOperation<ValueType>(), m_innerValue, otherProxy.m_innerValue);
+			return Value2{ std::move(type), std::move(value) };
+		}
+
 	protected:
 		ValueType m_innerValue;
 
@@ -404,8 +425,10 @@ private:
 		void ReferenceType(const Typedef::TypeFacade *ptr) { m_innerValue.ReferenceType(ptr); }
 		// Signal end of initialization.
 		void ValueInit() { m_innerValue.ValueInit(); }
-
-		auto NativeValue() const { return m_innerValue; }
+		// Return the inner-value category.
+		const ValueType& NativeValue() const { return m_innerValue; }
+		// Return the inner-value category.
+		ValueType& NativeValue() { return m_innerValue; }
 
 		// Clone the abstract proxy.
 		virtual std::unique_ptr<ProxyInterface> Clone() const
@@ -426,6 +449,11 @@ private:
 			return m_innerValue.ToString();
 		}
 
+		// Trigger addition on the value.
+		void Increment(int inc) final { if (inc == 1) { m_innerValue++; } }
+		// Trigger subtraction on the value.
+		void Decrement(int dec) final { if (dec == 1) { m_innerValue--; } }
+
 		// Check if value is set.
 		bool IsInitialized() const noexcept
 		{
@@ -433,10 +461,30 @@ private:
 		}
 
 		// Compare the proxy interface.
-		bool Compare(ProxyInterface& other) const
+		virtual bool Compare(ProxyInterface& other) const
 		{
-			auto otherProxy = dynamic_cast<AbstractValueProxy<ValueType>&>(other);
-			return this->Id() == other.Id() && m_innerValue == otherProxy.m_innerValue;
+			if (this->Id() != other.Id()) { return false; }
+			auto& otherProxy = dynamic_cast<AbstractValueProxy<ValueType>&>(other);
+			return m_innerValue == otherProxy.m_innerValue;
+		}
+
+		// Arithmetic operations.
+		Value2 ArithOperationValue(ArithOperation op, const Typedef::TypeFacade& type, ProxyInterface& other) const final
+		{
+			switch (op)
+			{
+			case PLUS:
+				return ConstructValueFromOperator<std::plus>(type, other);
+			case MINUS:
+				return ConstructValueFromOperator<std::minus>(type, other);
+			case MULTIPLIES:
+				return ConstructValueFromOperator<std::multiplies>(type, other);
+			case DIVIDES:
+				return ConstructValueFromOperator<std::divides>(type, other);
+			case MODULUS:
+				return ConstructValueFromOperator<std::modulus>(type, other);
+			}
+			CryImplExcept();
 		}
 	};
 
@@ -718,11 +766,11 @@ public:
 	Value2 operator++(int);
 	Value2 operator--(int);
 
-	Value2 operator+(const Value2&) const;
-	Value2 operator-(const Value2&) const;
-	Value2 operator*(const Value2&) const;
-	Value2 operator/(const Value2&) const;
-	Value2 operator%(const Value2&) const;
+	friend Value2 operator+(const Value2&, const Value2&);
+	friend Value2 operator-(const Value2&, const Value2&);
+	friend Value2 operator*(const Value2&, const Value2&);
+	friend Value2 operator/(const Value2&, const Value2&);
+	friend Value2 operator%(const Value2&, const Value2&);
 
 	// Check if an value was set.
 	inline operator bool() const { return Initialized(); }

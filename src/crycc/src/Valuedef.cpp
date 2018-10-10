@@ -640,49 +640,73 @@ bool Value2::operator!=(const Value2& other) const
 
 Value2& Value2::operator++()
 {
-	return (*this); //TODO:
+	m_valuePtr->Increment();
+	return (*this);
 }
 
 Value2& Value2::operator--()
 {
-	return (*this); //TODO:
+	m_valuePtr->Decrement();
+	return (*this);
 }
 
 Value2 Value2::operator++(int)
 {
 	Value2 tmp = std::as_const(*this);
-	return tmp; //TODO:
+	m_valuePtr->Increment();
+	return tmp;
 }
 
 Value2 Value2::operator--(int)
 {
 	Value2 tmp = std::as_const(*this);
-	return tmp; //TODO:
+	m_valuePtr->Decrement();
+	return tmp;
 }
 
-Value2 Value2::operator+(const Value2& other) const
+Value2 operator+(const Value2& lhs, const Value2& rhs)
 {
-	return other; //TODO:
+	using Op = Value2::ProxyInterface::ArithOperation;
+	if (lhs.m_internalType != rhs.m_internalType) {
+		throw InvalidValueArithmeticException{};
+	}
+	return lhs.m_valuePtr->ArithOperationValue(Op::PLUS, lhs.m_internalType, *rhs.m_valuePtr.get());
 }
 
-Value2 Value2::operator-(const Value2& other) const
+Value2 operator-(const Value2& lhs, const Value2& rhs)
 {
-	return other; //TODO:
+	using Op = Value2::ProxyInterface::ArithOperation;
+	if (lhs.m_valuePtr->Id() != rhs.m_valuePtr->Id()) {
+		throw InvalidValueArithmeticException{};
+	}
+	return lhs.m_valuePtr->ArithOperationValue(Op::MINUS, lhs.m_internalType, *rhs.m_valuePtr.get());
 }
 
-Value2 Value2::operator*(const Value2& other) const
+Value2 operator*(const Value2& lhs, const Value2& rhs)
 {
-	return other; //TODO:
+	using Op = Value2::ProxyInterface::ArithOperation;
+	if (lhs.m_valuePtr->Id() != rhs.m_valuePtr->Id()) {
+		throw InvalidValueArithmeticException{};
+	}
+	return lhs.m_valuePtr->ArithOperationValue(Op::MULTIPLIES, lhs.m_internalType, *rhs.m_valuePtr.get());
 }
 
-Value2 Value2::operator/(const Value2& other) const
+Value2 operator/(const Value2& lhs, const Value2& rhs)
 {
-	return other; //TODO:
+	using Op = Value2::ProxyInterface::ArithOperation;
+	if (lhs.m_valuePtr->Id() != rhs.m_valuePtr->Id()) {
+		throw InvalidValueArithmeticException{};
+	}
+	return lhs.m_valuePtr->ArithOperationValue(Op::DIVIDES, lhs.m_internalType, *rhs.m_valuePtr.get());
 }
 
-Value2 Value2::operator%(const Value2& other) const
+Value2 operator%(const Value2& lhs, const Value2& rhs)
 {
-	return other; //TODO:
+	using Op = Value2::ProxyInterface::ArithOperation;
+	if (lhs.m_valuePtr->Id() != rhs.m_valuePtr->Id()) {
+		throw InvalidValueArithmeticException{};
+	}
+	return lhs.m_valuePtr->ArithOperationValue(Op::MODULUS, lhs.m_internalType, *rhs.m_valuePtr.get());
 }
 
 std::ostream& operator<<(std::ostream& os, const Value2& value)
