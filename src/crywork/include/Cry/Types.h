@@ -12,6 +12,7 @@
 
 #include <type_traits>
 #include <cstdint>
+#include <cstddef>
 
 #define BITS_PER_BYTE 8
 
@@ -51,21 +52,22 @@ enum class PrimitiveSpecifier
 	PS_UNSIGNED_LONG_DOUBLE,
 };
 
-template<PrimitiveSpecifier Specifier, typename TypeAlias, typename StorageType>
+template<PrimitiveSpecifier Specifier, typename TypeAlias, typename StorageType, typename SerializeType = StorageType>
 struct PrimitiveType
 {
 	static_assert(sizeof(StorageType) <= 8, "independent platform overflow");
 	static_assert(std::is_fundamental<StorageType>::value, "storage type must be fundamental");
 
 	using storage_type = StorageType;
+	using serialize_type = std::make_unsigned_t<SerializeType>;
 	using alias = typename std::remove_reference<typename std::remove_cv<TypeAlias>::type>::type;
 	static const PrimitiveSpecifier specifier = Specifier;
 	static const bool is_unsigned = std::is_unsigned<TypeAlias>::value;
-	static const int bit_count = sizeof(StorageType) * BITS_PER_BYTE;
+	static const int bit_count = sizeof(serialize_type) * BITS_PER_BYTE;
 };
 
 using VoidType = PrimitiveType<PrimitiveSpecifier::PS_VOID, void, nullptr_t>;
-using BoolType = PrimitiveType<PrimitiveSpecifier::PS_BOOL, bool, bool>;
+using BoolType = PrimitiveType<PrimitiveSpecifier::PS_BOOL, bool, bool, int8_t>;
 using CharType = PrimitiveType<PrimitiveSpecifier::PS_CHAR, char, int8_t>;
 using SignedCharType = PrimitiveType<PrimitiveSpecifier::PS_SIGNED_CHAR, signed char, int8_t>;
 using UnsignedCharType = PrimitiveType<PrimitiveSpecifier::PS_UNSIGNED_CHAR, unsigned char, uint8_t>;
@@ -75,10 +77,10 @@ using IntegerType = PrimitiveType<PrimitiveSpecifier::PS_INT, int, int32_t>;
 using UnsignedIntegerType = PrimitiveType<PrimitiveSpecifier::PS_UNSIGNED_INT, unsigned int, uint32_t>;
 using LongType = PrimitiveType<PrimitiveSpecifier::PS_LONG, long, int64_t>;
 using UnsignedLongType = PrimitiveType<PrimitiveSpecifier::PS_UNSIGNED_LONG, unsigned long, uint64_t>;
-using FloatType = PrimitiveType<PrimitiveSpecifier::PS_FLOAT, float, float>;
-using DoubleType = PrimitiveType<PrimitiveSpecifier::PS_DOUBLE, double, double>;
-using LongDoubleType = PrimitiveType<PrimitiveSpecifier::PS_LONG_DOUBLE, long double, long double>;
-using UnsignedLongDoubleType = PrimitiveType<PrimitiveSpecifier::PS_UNSIGNED_LONG_DOUBLE, unsigned long double, unsigned long double>;
+using FloatType = PrimitiveType<PrimitiveSpecifier::PS_FLOAT, float, float, int32_t>;
+using DoubleType = PrimitiveType<PrimitiveSpecifier::PS_DOUBLE, double, double, int64_t>;
+using LongDoubleType = PrimitiveType<PrimitiveSpecifier::PS_LONG_DOUBLE, long double, long double, int64_t>;
+using UnsignedLongDoubleType = PrimitiveType<PrimitiveSpecifier::PS_UNSIGNED_LONG_DOUBLE, unsigned long double, unsigned long double, int64_t>;
 
 static_assert(FloatType::bit_count == 32, "requires set number of bits");
 static_assert(DoubleType::bit_count == 64, "requires set number of bits");
