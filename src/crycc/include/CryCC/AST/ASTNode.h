@@ -473,17 +473,20 @@ class Literal
 {
 	NODE_ID(NodeID::LITERAL_ID);
 
+public:
+	using value_type = Valuedef::Value2;
+
 protected:
-	Valuedef::Value m_value;
+	value_type m_value;
 
 public:
-	const Valuedef::Value& Value() const noexcept { return m_value; }
+	const value_type& Value() const noexcept { return m_value; }
 
 protected:
 	virtual ~Literal() = 0;
 
-	Literal(const Valuedef::Value&);
-	Literal(Valuedef::Value&&);
+	Literal(const value_type&);
+	Literal(value_type&&);
 
 	explicit Literal(Serializable::VisitorInterface&);
 
@@ -492,7 +495,8 @@ protected:
 	{
 		pack << NodeId;
 
-		Cry::ByteArray buffer = m_value.Serialize();
+		Cry::ByteArray buffer;
+		value_type::Serialize(m_value, buffer);
 		pack << buffer;
 
 		Literal::Serialize(pack);
@@ -509,7 +513,7 @@ protected:
 		Cry::ByteArray buffer;
 		pack >> buffer;
 		//TODO: validate buffer
-		m_value = Util::ValueFactory::MakeValue(buffer);
+		value_type::Deserialize(m_value, buffer);
 
 		Literal::Deserialize(pack);
 	}
@@ -535,8 +539,8 @@ class CharacterLiteral
 	NODE_ID(NodeID::CHARACTER_LITERAL_ID);
 
 public:
-	CharacterLiteral(const Valuedef::Value&);
-	CharacterLiteral(Valuedef::Value&&);
+	CharacterLiteral(const Valuedef::Value2&);
+	CharacterLiteral(Valuedef::Value2&&);
 
 	CharacterLiteral(char);
 
@@ -560,8 +564,8 @@ class StringLiteral
 	NODE_ID(NodeID::STRING_LITERAL_ID);
 
 public:
-	StringLiteral(const Valuedef::Value&);
-	StringLiteral(Valuedef::Value&&);
+	StringLiteral(const Valuedef::Value2&);
+	StringLiteral(Valuedef::Value2&&);
 
 	StringLiteral(const std::string&);
 
@@ -585,8 +589,8 @@ class IntegerLiteral
 	NODE_ID(NodeID::INTEGER_LITERAL_ID);
 
 public:
-	IntegerLiteral(const Valuedef::Value&);
-	IntegerLiteral(Valuedef::Value&&);
+	IntegerLiteral(const Valuedef::Value2&);
+	IntegerLiteral(Valuedef::Value2&&);
 
 	IntegerLiteral(int);
 
@@ -610,8 +614,8 @@ class FloatingLiteral
 	NODE_ID(NodeID::FLOAT_LITERAL_ID);
 
 public:
-	FloatingLiteral(const Valuedef::Value&);
-	FloatingLiteral(Valuedef::Value&&);
+	FloatingLiteral(const Valuedef::Value2&);
+	FloatingLiteral(Valuedef::Value2&&);
 
 	FloatingLiteral(float);
 

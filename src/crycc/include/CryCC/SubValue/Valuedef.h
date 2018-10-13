@@ -75,6 +75,8 @@ static_assert(Trait::IsNativeMultiType<std::vector<float>>::value, "IsNativeMult
 static_assert(Trait::IsNativeMultiType<std::vector<double>>::value, "IsNativeMultiType failed");
 static_assert(Trait::IsNativeMultiType<std::vector<bool>>::value, "IsNativeMultiType failed");
 
+#ifdef _OBSOLETE_
+
 class Value //TODO: mark each value with an unique id
 {
 	friend struct Util::ValueFactory;
@@ -333,6 +335,8 @@ static_assert(std::is_copy_constructible<Value>::value, "Value !is_copy_construc
 static_assert(std::is_move_constructible<Value>::value, "Value !is_move_constructible");
 static_assert(std::is_copy_assignable<Value>::value, "Value !is_copy_assignable");
 static_assert(std::is_move_assignable<Value>::value, "Value !is_move_assignable");
+
+#endif // _OBSOLETE_
 
 // Compiler framework internal value representation.
 //
@@ -605,11 +609,10 @@ private:
 	};
 
 	template<typename Type, typename = typename std::enable_if<IsValueContractCompliable<Type>::value>::type>
-	using ProxySelector = typename std::conditional<IsValueIterable<Type>::value
-		, IterableValueProxy<Type>
-		, typename std::conditional<IsValueMultiOrdinal<Type>::value
-		, MultiOrderValueProxy<Type>, SingularValueProxy<Type>>::type
-		>::type;
+	using ProxySelector =
+		typename std::conditional_t<IsValueIterable_v<Type>, IterableValueProxy<Type>,
+		typename std::conditional_t<IsValueMultiOrdinal_v<Type>, MultiOrderValueProxy<Type>, SingularValueProxy<Type>
+		>>;
 
 	template<typename ProxyType>
 	auto ProxyInit(const Typedef::TypeFacade& typeLink, const ProxyType* ptr)
@@ -794,6 +797,8 @@ static_assert(std::is_move_assignable<Value2>::value, "Value !is_move_assignable
 
 } // namespace CryCC::SubValue::Valuedef
 
+#ifdef _OBSOLETE_
+
 namespace Util
 {
 
@@ -806,3 +811,5 @@ struct ValueFactory
 };
 
 } // namespace Util
+
+#endif // _OBSOLETE_

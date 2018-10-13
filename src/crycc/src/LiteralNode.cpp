@@ -19,20 +19,20 @@ namespace AST
 // Literal.
 //
 
-Literal::Literal(const Valuedef::Value& value)
+Literal::Literal(const value_type& value)
 	: Returnable{ value.Type() }
 	, m_value{ value }
 {
 }
 
-Literal::Literal(Valuedef::Value&& value)
+Literal::Literal(value_type&& value)
 	: Returnable{ value.Type() }
 	, m_value{ std::move(value) }
 {
 }
 
 Literal::Literal(Serializable::VisitorInterface&)
-	: m_value{ Util::MakeInt(0) } //TODO: temporary fix
+	: m_value{ Util::MakeInt2(0) } //TODO: temporary fix
 {
 }
 
@@ -77,25 +77,25 @@ const std::string Literal::NodeNameImpl(const char *className) const
 		% m_state.Alteration()
 		% m_location.Line() % m_location.Column()
 		% ReturnType()->TypeName()
-		% m_value.Print());
+		% m_value.ToString());
 }
 
 //
 // CharacterLiteral.
 //
 
-CharacterLiteral::CharacterLiteral(const Valuedef::Value& value)
+CharacterLiteral::CharacterLiteral(const Valuedef::Value2& value)
 	: Literal{ value }
 {
 }
 
-CharacterLiteral::CharacterLiteral(Valuedef::Value&& value)
+CharacterLiteral::CharacterLiteral(Valuedef::Value2&& value)
 	: Literal{ std::move(value) }
 {
 }
 
 CharacterLiteral::CharacterLiteral(char value)
-	: Literal{ Util::MakeChar(value) }
+	: Literal{ Util::MakeChar2(value) }
 {
 }
 
@@ -123,18 +123,18 @@ const std::string CharacterLiteral::NodeName() const
 // StringLiteral.
 //
 
-StringLiteral::StringLiteral(const Valuedef::Value& value)
+StringLiteral::StringLiteral(const Valuedef::Value2& value)
 	: Literal{ value }
 {
 }
 
-StringLiteral::StringLiteral(Valuedef::Value&& value)
+StringLiteral::StringLiteral(Valuedef::Value2&& value)
 	: Literal{ std::move(value) }
 {
 }
 
 StringLiteral::StringLiteral(const std::string& value)
-	: Literal{ Util::MakeString(value) }
+	: Literal{ Util::MakeString2(value) }
 {
 }
 
@@ -162,18 +162,18 @@ const std::string StringLiteral::NodeName() const
 // IntegerLiteral.
 //
 
-IntegerLiteral::IntegerLiteral(const Valuedef::Value& value)
+IntegerLiteral::IntegerLiteral(const Valuedef::Value2& value)
 	: Literal{ value }
 {
 }
 
-IntegerLiteral::IntegerLiteral(Valuedef::Value&& value)
+IntegerLiteral::IntegerLiteral(Valuedef::Value2&& value)
 	: Literal{ std::move(value) }
 {
 }
 
 IntegerLiteral::IntegerLiteral(int value)
-	: Literal{ Util::MakeInt(value) }
+	: Literal{ Util::MakeInt2(value) }
 {
 }
 
@@ -201,18 +201,18 @@ const std::string IntegerLiteral::NodeName() const
 // FloatingLiteral.
 //
 
-FloatingLiteral::FloatingLiteral(const Valuedef::Value& value)
+FloatingLiteral::FloatingLiteral(const Valuedef::Value2& value)
 	: Literal{ value }
 {
 }
 
-FloatingLiteral::FloatingLiteral(Valuedef::Value&& value)
+FloatingLiteral::FloatingLiteral(Valuedef::Value2&& value)
 	: Literal{ std::move(value) }
 {
 }
 
 FloatingLiteral::FloatingLiteral(float value)
-	: Literal{ Util::MakeFloat(value) }
+	: Literal{ Util::MakeFloat2(value) }
 {
 }
 

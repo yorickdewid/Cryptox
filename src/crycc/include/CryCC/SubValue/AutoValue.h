@@ -16,6 +16,8 @@ namespace CryCC::SubValue::Valuedef::Detail
 
 using namespace Typedef;
 
+#ifdef _OBSOLETE_
+
 struct ValueDeductor
 {
 	template<BuiltinType::Specifier Specifier, typename NativeRawType>
@@ -118,5 +120,7 @@ inline Valuedef::Value ValueDeductor::ConvertNativeType(std::vector<bool> value)
 {
 	return MakeMultiValue<BuiltinType::Specifier::BOOL>(value);
 }
+
+#endif // _OBSOLETE_
 
 } // namespace CryCC::SubValue::Valuedef::Detail

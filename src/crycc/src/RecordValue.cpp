@@ -21,9 +21,12 @@ namespace SubValue
 namespace Valuedef
 {
 
+//TODO:
 bool RecordValue::Compare(const RecordValue& other) const
 {
-	if (m_fields.size() != other.m_fields.size()) { return false; }
+	CRY_UNUSED(other);
+	return true;
+	/*if (m_fields.size() != other.m_fields.size()) { return false; }
 	if (m_fields.empty() || other.m_fields.empty()) {
 		return m_fields.empty() == other.m_fields.empty();
 	}
@@ -34,7 +37,7 @@ bool RecordValue::Compare(const RecordValue& other) const
 	{
 		return itFirst.first == itEnd.first
 			&& ((*itFirst.second) == (*itEnd.second));
-	});
+	});*/
 }
 
 void RecordValue::ConstructFromType()
@@ -111,7 +114,7 @@ void RecordValue::Serialize(const RecordValue& value, buffer_type& buffer)
 		buffer.insert(buffer.cend(), field.first.cbegin(), field.first.cend());
 
 		// Field value
-		Value::Serialize((*field.second), buffer);
+		//Value2::Serialize((*field.second), buffer);
 	}
 }
 
@@ -139,10 +142,11 @@ void RecordValue::Deserialize(RecordValue& value, buffer_type& buffer)
 		std::copy(buffer.cbegin() + buffer.Offset(), buffer.cbegin() + buffer.Offset() + fieldNameSize, std::back_inserter(fieldName));
 		buffer.SetOffset(static_cast<int>(fieldNameSize)); //TODO: Make ByteArray do this automatically
 
+		//TODO:
 		// Field value
-		Valuedef::Value tmp = Util::MakeInt(0); //TODO: make uninitialized value
-		Value::Deserialize(tmp, buffer);
-		tempRecord.AddField({ fieldName, RecordValue::AutoValue(tmp) });
+		//Valuedef::Value tmp = Util::MakeInt(0); //TODO: make uninitialized value
+		//Value::Deserialize(tmp, buffer);
+		//tempRecord.AddField({ fieldName, RecordValue::AutoValue(tmp) });
 	}
 
 	std::swap(value, tempRecord);

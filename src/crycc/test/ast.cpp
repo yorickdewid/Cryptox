@@ -79,7 +79,7 @@ BOOST_AUTO_TEST_CASE(ASTLiteral)
 	static const std::string lstr{ "string" };
 	auto str = Util::MakeASTNode<StringLiteral>(lstr);
 	BOOST_REQUIRE(Util::IsNodeLiteral(str));
-	BOOST_REQUIRE_EQUAL(lstr, str->Value().As<std::string>());
+	BOOST_REQUIRE_EQUAL(lstr, Util::ValueCastString(str->Value()));
 }
 
 BOOST_AUTO_TEST_CASE(ASTIterator)

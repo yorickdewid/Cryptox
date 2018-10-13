@@ -32,6 +32,8 @@ namespace Util
 using namespace CryCC::SubValue::Valuedef;
 using namespace CryCC::SubValue::Typedef;
 
+#ifdef _OBSOLETE_
+
 Value MakeBool(bool);
 Value MakeChar(char);
 Value MakeInt(int);
@@ -46,6 +48,8 @@ Value MakeBoolArray(std::vector<bool>);
 Value MakePointer(Value&&);
 Value MakeStruct(RecordValue&&, const std::string structName = {});
 Value MakeUnion(RecordValue&&, const std::string structName = {});
+
+#endif // _OBSOLETE_
 
 Value2 MakeUninitialized();
 Value2 MakeVoid();
@@ -172,12 +176,16 @@ void MultiElementEmplace(const Value2& value, Type&& newval)
 // Create implicit value with automatic type.
 //
 
+#ifdef _OBSOLETE_
+
 //TODO: Remove
 template<typename NativeType>
 inline Value MakeAutoValue(NativeType&& v)
 {
 	return std::invoke(Detail::ValueDeductor{}, std::forward<NativeType>(v));
 }
+
+#endif // _OBSOLETE_
 
 //
 // Query value and type properties.

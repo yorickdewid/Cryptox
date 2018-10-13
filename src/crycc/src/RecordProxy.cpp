@@ -19,6 +19,8 @@ namespace Valuedef
 
 using namespace CryCC::SubValue::Typedef;
 
+#ifdef _OBSOLETE_
+
 // The record proxy implements a assignment-on-access pattern.
 //
 // Access record as a single entity value, and do either of the following:
@@ -97,6 +99,8 @@ std::shared_ptr<Value> RecordMemberValue(Value& value, const std::string& name)
 {
 	return RecordProxy::MemberValue(value, name);
 }
+
+#endif // _OBSOLETE_
 
 } // namespace Valuedef
 } // namespace SubValue

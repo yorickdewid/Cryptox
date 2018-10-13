@@ -17,6 +17,8 @@
 namespace CryCC::SubValue::Valuedef
 {
 
+#ifdef _OBSOLETE_
+
 // Value declaration without initialization.
 Value::Value(Typedef::TypeFacade typeBase)
 	: m_internalType{ typeBase }
@@ -525,6 +527,8 @@ std::ostream& operator<<(std::ostream& os, const Value& value)
 	return os;
 }
 
+#endif // _OBSOLETE_
+
 ////////
 
 using namespace CryCC::SubValue::Typedef;
@@ -717,6 +721,8 @@ std::ostream& operator<<(std::ostream& os, const Value2& value)
 
 } // namespace CryCC::SubValue::Valuedef
 
+#ifdef _OBSOLETE_
+
 namespace Util
 {
 
@@ -729,3 +735,5 @@ Value ValueFactory::MakeValue(Cry::ByteArray& buffer)
 }
 
 } // namespace Util
+
+#endif // _OBSOLETE_

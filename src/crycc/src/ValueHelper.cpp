@@ -21,6 +21,8 @@ namespace Util
 
 using namespace CryCC::SubValue::Valuedef;
 
+#ifdef _OBSOLETE_
+
 Value MakeString(const std::string& v)
 {
 	std::vector<char> ve(v.begin(), v.end());
@@ -104,6 +106,8 @@ Value MakeUnion(RecordValue&& v, const std::string structName)
 {
 	return Value{ TypeFacade{ MakeRecordType(structName, RecordType::Specifier::UNION) }, std::move(v) };
 }
+
+#endif // _OBSOLETE_
 
 ////////
 
@@ -293,6 +297,8 @@ bool MultiElementEmpty(const Value2& value)
 	return value.ElementEmpty<ArrayValue>();
 }
 
+#ifdef _OBSOLETE_
+
 // Evaluate value as boolean if conversion is possible. If the conversion
 // is not possible, an exception is thrown and caught here. In that case
 // the evaluator returns with a negative result.
@@ -308,7 +314,10 @@ bool EvaluateValueAsBoolean(const Value& value)
 int EvaluateValueAsInteger(const Value& value)
 {
 	return value.As<int>();
+
 }
+
+#endif // _OBSOLETE_
 
 // Evaluate value as boolean if conversion is possible. If the conversion
 // is not possible, an exception is thrown and caught here. In that case
