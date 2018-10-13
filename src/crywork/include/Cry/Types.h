@@ -27,6 +27,56 @@ using UShort = std::make_unsigned_t<Short>;
 using UWord = std::make_unsigned_t<DoubleWord>;
 using UDoubleWord = std::make_unsigned_t<DoubleWord>;
 
+namespace Detail
+{
+
+template<typename Type>
+struct ChangeSignness final
+{
+	static_assert(std::is_integral_v<Type>, "Type must be an interal type");
+
+	using UnsignedType =
+		std::conditional_t<std::is_same_v<Type, int8_t>, uint8_t,
+		std::conditional_t<std::is_same_v<Type, int16_t>, uint16_t,
+		std::conditional_t<std::is_same_v<Type, int32_t>, uint32_t, uint64_t
+		>>>;
+	using SignedType =
+		std::conditional_t<std::is_same_v<Type, uint8_t>, int8_t,
+		std::conditional_t<std::is_same_v<Type, uint16_t>, int16_t,
+		std::conditional_t<std::is_same_v<Type, uint32_t>, int32_t, int64_t
+		>>>;
+};
+
+} // namespace Detail
+
+template<typename Type>
+struct MakeSigned
+{
+	using type = typename Detail::ChangeSignness<Type>::SignedType;
+};
+
+template<typename Type>
+using MakeSigned_t = typename MakeSigned<Type>::type;
+
+template<typename Type>
+struct MakeUnsigned
+{
+	using type = typename Detail::ChangeSignness<Type>::UnsignedType;
+};
+
+template<typename Type>
+using MakeUnsigned_t = typename MakeUnsigned<Type>::type;
+
+static_assert(std::is_same<MakeSigned_t<uint8_t>, int8_t>::value, "invalid type translation");
+static_assert(std::is_same<MakeSigned_t<uint16_t>, int16_t>::value, "invalid type translation");
+static_assert(std::is_same<MakeSigned_t<uint32_t>, int32_t>::value, "invalid type translation");
+static_assert(std::is_same<MakeSigned_t<uint64_t>, int64_t>::value, "invalid type translation");
+
+static_assert(std::is_same<MakeUnsigned_t<int8_t>, uint8_t>::value, "invalid type translation");
+static_assert(std::is_same<MakeUnsigned_t<int16_t>, uint16_t>::value, "invalid type translation");
+static_assert(std::is_same<MakeUnsigned_t<int32_t>, uint32_t>::value, "invalid type translation");
+static_assert(std::is_same<MakeUnsigned_t<int64_t>, uint64_t>::value, "invalid type translation");
+
 enum class PrimitiveSpecifier
 {
 	PS_INVAL = 0,
@@ -59,8 +109,8 @@ struct PrimitiveType
 	static_assert(std::is_fundamental<StorageType>::value, "storage type must be fundamental");
 
 	using storage_type = StorageType;
-	using serialize_type = std::make_unsigned_t<SerializeType>;
-	using alias = typename std::remove_reference<typename std::remove_cv<TypeAlias>::type>::type;
+	using serialize_type = MakeUnsigned_t<SerializeType>;
+	using alias = typename std::remove_reference_t<typename std::remove_cv_t<TypeAlias>>;
 	static const PrimitiveSpecifier specifier = Specifier;
 	static const bool is_unsigned = std::is_unsigned<TypeAlias>::value;
 	static const int bit_count = sizeof(serialize_type) * BITS_PER_BYTE;
