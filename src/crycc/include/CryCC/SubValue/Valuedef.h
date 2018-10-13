@@ -26,6 +26,8 @@
 // - IsConvertable/Converter
 // - Replace value with Value2
 
+#ifdef _OBSOLETE_
+
 namespace Util
 {
 
@@ -33,8 +35,12 @@ struct ValueFactory;
 
 } // namespace Util
 
+#endif // _OBSOLETE_
+
 namespace CryCC::SubValue::Valuedef
 {
+
+#ifdef _OBSOLETE_
 
 namespace Trait {
 
@@ -74,6 +80,8 @@ static_assert(Trait::IsNativeMultiType<std::vector<char>>::value, "IsNativeMulti
 static_assert(Trait::IsNativeMultiType<std::vector<float>>::value, "IsNativeMultiType failed");
 static_assert(Trait::IsNativeMultiType<std::vector<double>>::value, "IsNativeMultiType failed");
 static_assert(Trait::IsNativeMultiType<std::vector<bool>>::value, "IsNativeMultiType failed");
+
+#endif // _OBSOLETE_
 
 #ifdef _OBSOLETE_
 
@@ -354,7 +362,9 @@ static_assert(std::is_move_assignable<Value>::value, "Value !is_move_assignable"
 // instead. The recommended solution is API sustainable.
 class Value2
 {
+#ifdef _OBSOLETE_
 	friend struct Util::ValueFactory;
+#endif // _OBSOLETE_
 
 public:
 	using default_value_type = NilValue;
