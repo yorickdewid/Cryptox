@@ -246,7 +246,7 @@ BOOST_AUTO_TEST_SUITE(Loc)
 // Description : -.
 //
 
-BOOST_AUTO_TEST_CASE(LocAll)
+BOOST_AUTO_TEST_CASE(SourceLocation)
 {
 	// Equal operator / not equal operator.
 	{

@@ -25,7 +25,6 @@
 
 //TODO:
 // - Make Bool
-// - Arithmetic?
 
 using namespace CryCC::SubValue::Typedef;
 using namespace CryCC::SubValue::Valuedef;
@@ -348,28 +347,18 @@ BOOST_AUTO_TEST_CASE(ValueOffsetValue)
 		BOOST_REQUIRE_EQUAL(6969, Util::MultiElementAt<unsigned short>(valOffset));
 	}
 
-	// ** elements **
+	// Offset increment operator.
+	{
+		auto valFloatArray = Util::MakeFloatArray2({ 72.4f,23.9f,914.3f,786.7213f });
 
-	//Util::MultiElementAt();
-	//Util::MultiElementSize();
-	//Util::MultiElementEmpty();
-	//Util::MultiElementEmplace();
-
-	// > Access
-	// VAL.At<ArrayValue, unsigned short, 0>();
-	// > Size
-	// VAL.ElementCount<ArrayValue>()
-	// > Empty
-	// VAL.ElementEmpty<ArrayValue>()
-	// > Emplace
-	// VAL.Emplace<ArrayValue, 1>(NATIVEVAL);
-
-	// > Access
-	// VAL.As<RecordValue>()->At(1))
-	// > Size
-	// VAL.As<RecordValue>()->Size())
-	// > Emplace
-	// VAL.As<RecordValue>()->Emplace(1, std::move(VAL));
+		auto valOffset = Util::MakeOffset(valFloatArray, 1);
+		BOOST_REQUIRE_EQUAL(23.9f, Util::MultiElementAt<float>(valOffset));
+		valOffset++;
+		BOOST_REQUIRE_EQUAL(914.3f, Util::MultiElementAt<float>(valOffset));
+		--valOffset;
+		valOffset--;
+		BOOST_REQUIRE_EQUAL(72.4f, Util::MultiElementAt<float>(valOffset));
+	}
 }
 
 BOOST_AUTO_TEST_CASE(ValueArithOperators)
@@ -412,7 +401,7 @@ BOOST_AUTO_TEST_CASE(ValueArithOperators)
 
 	// Modulo.
 	{
-
+		// TODO:
 	}
 
 	// Increase/decrease.
@@ -514,7 +503,7 @@ BOOST_AUTO_TEST_CASE(ValueReworkSerialize)
 		BOOST_REQUIRE_EQUAL(val, val2);
 	}
 
-	//TODO:
+	// FUTURE:
 	// - Serialize ReferenceValue
 	// - Serialize PointerValue
 }

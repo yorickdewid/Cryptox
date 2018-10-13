@@ -96,6 +96,8 @@ enum class PrimitiveSpecifier
 	PS_UNSIGNED_INT,
 	PS_LONG,
 	PS_UNSIGNED_LONG,
+	PS_LONG_LONG,
+	PS_UNSIGNED_LONG_LONG,
 	PS_FLOAT,
 	PS_DOUBLE,
 	PS_LONG_DOUBLE,
@@ -127,6 +129,8 @@ using IntegerType = PrimitiveType<PrimitiveSpecifier::PS_INT, int, int32_t>;
 using UnsignedIntegerType = PrimitiveType<PrimitiveSpecifier::PS_UNSIGNED_INT, unsigned int, uint32_t>;
 using LongType = PrimitiveType<PrimitiveSpecifier::PS_LONG, long, int64_t>;
 using UnsignedLongType = PrimitiveType<PrimitiveSpecifier::PS_UNSIGNED_LONG, unsigned long, uint64_t>;
+//using LongLongType = PrimitiveType<PrimitiveSpecifier::PS_LONG_LONG, long long, int64_t>;
+//using UnsignedLongLongType = PrimitiveType<PrimitiveSpecifier::PS_UNSIGNED_LONG_LONG, unsigned long long, uint64_t>;
 using FloatType = PrimitiveType<PrimitiveSpecifier::PS_FLOAT, float, float, int32_t>;
 using DoubleType = PrimitiveType<PrimitiveSpecifier::PS_DOUBLE, double, double, int64_t>;
 using LongDoubleType = PrimitiveType<PrimitiveSpecifier::PS_LONG_DOUBLE, long double, long double, int64_t>;
@@ -191,6 +195,9 @@ struct PrimitiveSelector : public Detail::PrimitiveSelectorImpl<Type>::type
 
 template<typename Type>
 using PrimitiveSelectorStorageType = typename PrimitiveSelector<Type>::storage_type;
+
+template<typename Type>
+using PrimitiveSelectorSerializerType = typename PrimitiveSelector<Type>::serialize_type;
 
 template<typename Type>
 struct IsPrimitiveType
