@@ -13,12 +13,12 @@
 namespace CryCC::SubValue::Valuedef
 {
 
-size_t SizeFromValue(const Value2& value)
+size_t SizeFromValue(const Value& value)
 {
 	return value.ElementCount<ArrayValue>();
 }
 
-OffsetValue::OffsetValue(Value2& value, offset_type offset)
+OffsetValue::OffsetValue(Valuedef::Value& value, offset_type offset)
 	: m_iterValue{ value }
 	, m_offset{ offset }
 {

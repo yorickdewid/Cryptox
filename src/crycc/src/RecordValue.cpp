@@ -6,13 +6,16 @@
 // that can be found in the LICENSE file. Content can not be 
 // copied and/or distributed without the express of the author.
 
+// Project includes.
 #include <CryCC/SubValue/RecordValue.h>
 #include <CryCC/SubValue/Valuedef.h>
 #include <CryCC/SubValue/ValueHelper.h>
 
+// Language includes.
 #include <algorithm>
 
-#define VALUE_MAGIC 0x8d
+// Magic value for serialization and deserialization.
+inline constexpr static const Cry::Byte valueMagic{ 0x8d };
 
 namespace CryCC::SubValue::Valuedef
 {
@@ -99,7 +102,7 @@ void RecordValue::Serialize(const RecordValue& value, buffer_type& buffer)
 	// functions in a different manner. If the buffer is empty write the magic
 	// value and platform settings. Otherwise append to current buffer.
 	if (buffer.empty()) {
-		buffer.SetMagic(VALUE_MAGIC);
+		buffer.SetMagic(valueMagic);
 		buffer.SetPlatformCompat();
 	}
 
@@ -119,7 +122,7 @@ void RecordValue::Serialize(const RecordValue& value, buffer_type& buffer)
 // initialized on zero or an existing buffer configured on an offset.
 void RecordValue::Deserialize(RecordValue& value, buffer_type& buffer)
 {
-	if (buffer.ValidateMagic(VALUE_MAGIC)) {
+	if (buffer.ValidateMagic(valueMagic)) {
 		if (!buffer.IsPlatformCompat()) {
 			CryImplExcept(); //TODO
 		}

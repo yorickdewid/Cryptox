@@ -10,18 +10,17 @@
 
 #include <CryCC/SubValue/ValueContract.h>
 #include <CryCC/SubValue/NilType.h>
+#include <CryCC/SubValue/Valuedef.h>
 
 namespace CryCC::SubValue::Valuedef
 {
-
-class Value2;
 
 // The offset value is a value pointing to an element in a composed
 // value. The offset is always integral based.
 class OffsetValue final : public AbstractValue<OffsetValue>
 {
 	size_t m_offset;
-	Value2& m_iterValue;
+	Value& m_iterValue;
 
 	friend class ValueIterator;
 
@@ -35,7 +34,7 @@ public:
 	// Unique value identifier.
 	inline constexpr static const int value_category_identifier = 14;
 
-	OffsetValue(Value2& value, offset_type offset = 0);
+	OffsetValue(Value& value, offset_type offset = 0);
 
 	OffsetValue(const OffsetValue&);
 	OffsetValue(OffsetValue&&) = default;
@@ -43,14 +42,14 @@ public:
 	OffsetValue& operator=(const OffsetValue&);
 	OffsetValue& operator=(OffsetValue&&) = default;
 
-	inline offset_type Offset() const { return m_offset; }
-	inline Value2& Value() const { return m_iterValue; }
+	inline offset_type Offset() const noexcept { return m_offset; }
+	inline Value& Value() const noexcept { return m_iterValue; }
 
 	//
 	// Implement singular contract.
 	//
 
-	auto Get() const { return Offset(); }
+	auto Get() const noexcept { return Offset(); }
 
 	//
 	// Implement value category contract.
@@ -83,9 +82,9 @@ public:
 	friend OffsetValue operator%(const OffsetValue&, const OffsetValue&) { throw InvalidValueArithmeticException{}; }
 };
 
-static_assert(std::is_copy_constructible<OffsetValue>::value, "OffsetValue !is_copy_constructible");
-static_assert(std::is_move_constructible<OffsetValue>::value, "OffsetValue !is_move_constructible");
-static_assert(std::is_copy_assignable<OffsetValue>::value, "OffsetValue !is_copy_assignable");
-static_assert(std::is_move_assignable<OffsetValue>::value, "OffsetValue !is_move_assignable");
+static_assert(std::is_copy_constructible_v<OffsetValue>, "OffsetValue !is_copy_constructible");
+static_assert(std::is_move_constructible_v<OffsetValue>, "OffsetValue !is_move_constructible");
+static_assert(std::is_copy_assignable_v<OffsetValue>, "OffsetValue !is_copy_assignable");
+static_assert(std::is_move_assignable_v<OffsetValue>, "OffsetValue !is_move_assignable");
 
 } // namespace CryCC::SubValue::Valuedef

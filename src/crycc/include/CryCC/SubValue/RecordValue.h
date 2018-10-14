@@ -8,11 +8,14 @@
 
 #pragma once
 
+// Project includes.
 #include <CryCC/SubValue/ValueContract.h>
 #include <CryCC/SubValue/Typedef.h>
 
+// Framework includes.
 #include <Cry/Cry.h>
 
+// Language includes.
 #include <map>
 #include <vector>
 #include <memory>

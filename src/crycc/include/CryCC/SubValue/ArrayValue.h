@@ -8,10 +8,12 @@
 
 #pragma once
 
+// Project includes.
 #include <CryCC/SubValue/ValueContract.h>
 #include <CryCC/SubValue/ArrayType.h>
 #include <CryCC/SubValue/Valuedef.h>
 
+// Framework includes.
 #include <Cry/Cry.h>
 #include <Cry/Types.h>
 #include <Cry/TypeTrait.h>
@@ -20,6 +22,7 @@
 
 #include <boost/variant.hpp>
 
+// Language includes.
 #include <cstdint>
 
 namespace CryCC::SubValue::Valuedef
@@ -38,7 +41,7 @@ class ArrayValue : public AbstractValue<ArrayValue>, public IterableContract
 		, std::vector<Cry::FloatType::storage_type>
 		, std::vector<Cry::DoubleType::storage_type>
 		, std::vector<Cry::LongDoubleType::storage_type>
-		, std::vector<Value2>>;
+		, std::vector<Value>>;
 	using ValueVariant = ArrayTypeList::template_apply<boost::variant>;
 
 	ValueVariant m_value;

@@ -11,8 +11,8 @@
 namespace CryCC::SubValue::Valuedef
 {
 
-ReferenceValue::ReferenceValue(Value2&& value)
-    : m_refValue{ std::make_unique<Value2>(std::move(value)) }
+ReferenceValue::ReferenceValue(Value&& value)
+    : m_refValue{ std::make_unique<Value>(std::move(value)) }
 {
 }
 

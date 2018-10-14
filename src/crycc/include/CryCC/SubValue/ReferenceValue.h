@@ -20,7 +20,7 @@ namespace CryCC::SubValue::Valuedef
 // A reference value contains another value.
 class ReferenceValue final : public AbstractValue<ReferenceValue>
 {
-    std::unique_ptr<Value2> m_refValue;
+    std::unique_ptr<Value> m_refValue;
 
 public:
     using typdef_type = nullptr_t;
@@ -37,7 +37,7 @@ public:
 	ReferenceValue& operator=(const ReferenceValue&);
 	ReferenceValue& operator=(ReferenceValue&&) = default;
 
-	ReferenceValue(Value2&&);
+	ReferenceValue(Value&&);
 	explicit ReferenceValue(buffer_type&);
 
 	//
@@ -71,9 +71,9 @@ public:
 	friend ReferenceValue operator%(const ReferenceValue&, const ReferenceValue&);
 };
 
-static_assert(std::is_copy_constructible<ReferenceValue>::value, "ReferenceValue !is_copy_constructible");
-static_assert(std::is_move_constructible<ReferenceValue>::value, "ReferenceValue !is_move_constructible");
-static_assert(std::is_copy_assignable<ReferenceValue>::value, "ReferenceValue !is_copy_assignable");
-static_assert(std::is_move_assignable<ReferenceValue>::value, "ReferenceValue !is_move_assignable");
+static_assert(std::is_copy_constructible_v<ReferenceValue>, "ReferenceValue !is_copy_constructible");
+static_assert(std::is_move_constructible_v<ReferenceValue>, "ReferenceValue !is_move_constructible");
+static_assert(std::is_copy_assignable_v<ReferenceValue>, "ReferenceValue !is_copy_assignable");
+static_assert(std::is_move_assignable_v<ReferenceValue>, "ReferenceValue !is_move_assignable");
 
 } // namespace CryCC::SubValue::Valuedef

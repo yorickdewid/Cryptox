@@ -102,12 +102,12 @@ struct ArrayValue::PackerVisitor final : public boost::static_visitor<>
 		}
 	}
 
-	void operator()(const std::vector<Value2>& value) const
+	void operator()(const std::vector<Value>& value) const
 	{
 		m_buffer.SerializeAs<Cry::Byte>(PrimitiveSpecifier::PS_RESV1);
 		m_buffer.SerializeAs<Cry::Word>(value.size());
 		for (const auto& element : value) {
-			Value2::Serialize(element, m_buffer);
+			Value::Serialize(element, m_buffer);
 		}
 	}
 
