@@ -10,7 +10,7 @@
 # Set project info
 project(CoilCl CXX)
 project_version(${PROJECT_NAME} 29)
-project_description(${PROJECT_NAME} "Compiler Core")
+project_description(${PROJECT_NAME} "Compiler")
 
 # Load project defaults
 include(ProjectPrep)
@@ -43,6 +43,9 @@ target_link_libraries(${PROJECT_NAME}
 	CryCC
 	${Boost_LIBRARIES}
 )
+
+# Enable tests on this target
+enable_auto_test("${Cryptox_ID} Compiler Test")
 
 # Set project options
 include(ProjectFin)

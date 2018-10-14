@@ -10,6 +10,8 @@
 
 #include <boost/test/unit_test.hpp>
 
+#ifdef _OBSOLETE_
+
 //
 // Key         : Value
 // Test        : Value definition unitttest
@@ -394,3 +396,5 @@ BOOST_AUTO_TEST_CASE(ValDefReworkSerialize)
 }
 
 BOOST_AUTO_TEST_SUITE_END()
+
+#endif // _OBSOLETE_

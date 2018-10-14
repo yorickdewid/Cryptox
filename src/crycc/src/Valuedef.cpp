@@ -12,7 +12,8 @@
 #include <Cry/Cry.h>
 #include <Cry/ByteOrder.h>
 
-#define VALUE_MAGIC 0x7a
+// Magic value for serialization and deserialization.
+inline constexpr static const Cry::Byte valueMagic{ 0x7a };
 
 namespace CryCC::SubValue::Valuedef
 {
@@ -610,7 +611,7 @@ Value& Value::operator=(Value&& other)
 void Value::Serialize(const Value& value, Cry::ByteArray& buffer)
 {
 	// Write value identifier.
-	buffer.SetMagic(VALUE_MAGIC);
+	buffer.SetMagic(valueMagic);
 	buffer.SetPlatformCompat();
 
 	// Serialize type.
@@ -623,7 +624,7 @@ void Value::Serialize(const Value& value, Cry::ByteArray& buffer)
 void Value::Deserialize(Value& value, Cry::ByteArray& buffer)
 {
 	// Test if this is a value.
-	if (!buffer.ValidateMagic(VALUE_MAGIC) || !buffer.IsPlatformCompat()) {
+	if (!buffer.ValidateMagic(valueMagic) || !buffer.IsPlatformCompat()) {
 		CryImplExcept(); //TODO
 	}
 
