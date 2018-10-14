@@ -13,6 +13,8 @@
 
 #include <list>
 
+//FUTURE: Forward decl. for SymbolIndex
+
 namespace EVM
 {
 

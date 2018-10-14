@@ -107,8 +107,8 @@ enum class PrimitiveSpecifier
 template<PrimitiveSpecifier Specifier, typename TypeAlias, typename StorageType, typename SerializeType = StorageType>
 struct PrimitiveType
 {
-	static_assert(sizeof(StorageType) <= 8, "independent platform overflow");
-	static_assert(std::is_fundamental<StorageType>::value, "storage type must be fundamental");
+	static_assert(sizeof(SerializeType) <= 8, "independent platform overflow");
+	static_assert(std::is_fundamental_v<StorageType>, "storage type must be fundamental");
 
 	using storage_type = StorageType;
 	using serialize_type = MakeUnsigned_t<SerializeType>;
@@ -134,12 +134,16 @@ using UnsignedLongType = PrimitiveType<PrimitiveSpecifier::PS_UNSIGNED_LONG, uns
 using FloatType = PrimitiveType<PrimitiveSpecifier::PS_FLOAT, float, float, int32_t>;
 using DoubleType = PrimitiveType<PrimitiveSpecifier::PS_DOUBLE, double, double, int64_t>;
 using LongDoubleType = PrimitiveType<PrimitiveSpecifier::PS_LONG_DOUBLE, long double, long double, int64_t>;
+#ifdef CRY_HAVE_ULD_TYPE
 using UnsignedLongDoubleType = PrimitiveType<PrimitiveSpecifier::PS_UNSIGNED_LONG_DOUBLE, unsigned long double, unsigned long double, int64_t>;
+#endif // CRY_HAVE_ULD_TYPE
 
 static_assert(FloatType::bit_count == 32, "requires set number of bits");
 static_assert(DoubleType::bit_count == 64, "requires set number of bits");
 static_assert(LongDoubleType::bit_count == 64, "requires set number of bits");
+#ifdef CRY_HAVE_ULD_TYPE
 static_assert(UnsignedLongDoubleType::bit_count == 64, "requires set number of bits");
+#endif // CRY_HAVE_ULD_TYPE
 
 namespace Detail
 {
@@ -177,8 +181,10 @@ class PrimitiveSelectorImpl
 	constexpr static auto Test(DoubleType::alias)->DoubleType;
 	template<typename>
 	constexpr static auto Test(LongDoubleType::alias)->LongDoubleType;
+#ifdef CRY_HAVE_ULD_TYPE
 	template<typename>
 	constexpr static auto Test(UnsignedLongDoubleType::alias)->UnsignedLongDoubleType;
+#endif // CRY_HAVE_ULD_TYPE
 
 public:
 	using type = decltype(Test<Type>(Type{}));
@@ -223,6 +229,5 @@ static_assert(std::is_same<PrimitiveSelectorStorageType<unsigned long>, uint64_t
 static_assert(std::is_same<PrimitiveSelectorStorageType<float>, float>::value, "invalid type translation");
 static_assert(std::is_same<PrimitiveSelectorStorageType<double>, double>::value, "invalid type translation");
 // static_assert(std::is_same<PrimitiveSelectorStorageType<long double>, long double>::value, "invalid type translation");
-// static_assert(std::is_same<PrimitiveSelectorStorageType<unsigned long double>, unsigned long double>::value, "invalid type translation");
 
 } // namespace Cry

@@ -58,4 +58,5 @@ std::string ParentMethod() { return ""; }
 std::string MainMethod() { return ""; }
 std::string CurrentUnit() { return ""; }
 std::string CurrentProgram() { return ""; }
+
 #endif
