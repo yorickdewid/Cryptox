@@ -14,11 +14,7 @@
 
 #define VALUE_MAGIC 0x8d
 
-namespace CryCC
-{
-namespace SubValue
-{
-namespace Valuedef
+namespace CryCC::SubValue::Valuedef
 {
 
 //TODO:
@@ -46,37 +42,37 @@ void RecordValue::ConstructFromType()
 	m_linkType->DataType<typdef_type>();
 }
 
-void RecordValue::AddField(std::pair<std::string, std::shared_ptr<Value>>&& val)
-{
-	if (HasField(val.first)) {
-		throw FieldExistException{ val.first };
-	}
-	m_fields.push_back(std::move(val));
-}
+//void RecordValue::AddField(std::pair<std::string, std::shared_ptr<Value>>&& val)
+//{
+//	if (HasField(val.first)) {
+//		throw FieldExistException{ val.first };
+//	}
+//	m_fields.push_back(std::move(val));
+//}
 
-void RecordValue::AddField(int index, Value2&& val)
+void RecordValue::AddField(int index, value_Type&& val)
 {
 	m_fields2.emplace(index, std::move(val));
 }
 
-bool RecordValue::HasField(const std::string& name) const
-{
-	return std::any_of(m_fields.cbegin(), m_fields.cend(), [=](const auto& pair)
-	{
-		return pair.first == name;
-	});
-}
+//bool RecordValue::HasField(const std::string& name) const
+//{
+//	return std::any_of(m_fields.cbegin(), m_fields.cend(), [=](const auto& pair)
+//	{
+//		return pair.first == name;
+//	});
+//}
 
-std::shared_ptr<Value> RecordValue::GetField(const std::string& name) const
-{
-	return std::find_if(m_fields.cbegin(), m_fields.cend(), [=](const auto& pair)
-	{
-		return pair.first == name;
-	})->second;
-}
+//std::shared_ptr<Value> RecordValue::GetField(const std::string& name) const
+//{
+//	return std::find_if(m_fields.cbegin(), m_fields.cend(), [=](const auto& pair)
+//	{
+//		return pair.first == name;
+//	})->second;
+//}
 
 // Get the value at offset.
-Value2 RecordValue::At(offset_type offset) const
+RecordValue::value_Type RecordValue::At(offset_type offset) const
 {
 	if (m_fields2.size() < offset + 1) {
 		throw OutOfBoundsException{};
@@ -85,7 +81,7 @@ Value2 RecordValue::At(offset_type offset) const
 }
 
 // Emplace value at offset.
-void RecordValue::Emplace(offset_type offset, Value2&& value)
+void RecordValue::Emplace(offset_type offset, value_Type&& value)
 {
 	if (m_fields2.size() < offset + 1) {
 		throw OutOfBoundsException{};
@@ -95,6 +91,7 @@ void RecordValue::Emplace(offset_type offset, Value2&& value)
 	//TODO: trigger type update
 }
 
+//TODO:
 // Convert record value into data stream.
 void RecordValue::Serialize(const RecordValue& value, buffer_type& buffer)
 {
@@ -107,15 +104,15 @@ void RecordValue::Serialize(const RecordValue& value, buffer_type& buffer)
 	}
 
 	// Write the fields
-	buffer.SerializeAs<Cry::Word>(value.m_fields.size());
-	for (const auto& field : value.m_fields) {
+	//buffer.SerializeAs<Cry::Word>(value.m_fields.size());
+	//for (const auto& field : value.m_fields) {
 		// Field name
-		buffer.SerializeAs<Cry::Word>(field.first.size());
-		buffer.insert(buffer.cend(), field.first.cbegin(), field.first.cend());
+		//buffer.SerializeAs<Cry::Word>(field.first.size());
+		//buffer.insert(buffer.cend(), field.first.cbegin(), field.first.cend());
 
 		// Field value
 		//Value2::Serialize((*field.second), buffer);
-	}
+	//}
 }
 
 // Convert data stream into record value. The passed buffer must be a subbuffer
@@ -164,6 +161,4 @@ std::string RecordValue::ToString() const
 	return "(record)";
 }
 
-} // namespace Valuedef
-} // namespace SubValue
-} // namespace CryCC
+} // namespace CryCC::SubValue::Valuedef
