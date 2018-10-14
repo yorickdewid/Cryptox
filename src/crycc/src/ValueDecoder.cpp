@@ -23,7 +23,7 @@ namespace CryCC::SubValue::Valuedef::Detail
 //
 // NOTE: Any new value category should be apended to the swtich
 //       case below.
-Value2 ValueCategoryDeserialise(Cry::ByteArray& buffer)
+Value ValueCategoryDeserialise(Cry::ByteArray& buffer)
 {
 	// Convert stream to type.
 	Typedef::TypeFacade type;
@@ -36,17 +36,17 @@ Value2 ValueCategoryDeserialise(Cry::ByteArray& buffer)
 	switch (identifier)
 	{
 	case NilValue::value_category_identifier:
-		return Value2{ std::move(type), NilValue{ buffer } };
+		return Value{ std::move(type), NilValue{ buffer } };
 	case ReferenceValue::value_category_identifier:
-		return Value2{ std::move(type), ReferenceValue{ buffer } };
+		return Value{ std::move(type), ReferenceValue{ buffer } };
 	case PointerValue::value_category_identifier:
-		return Value2{ std::move(type), PointerValue{ buffer } };
+		return Value{ std::move(type), PointerValue{ buffer } };
 	case BuiltinValue::value_category_identifier:
-		return Value2{ std::move(type), BuiltinValue{ buffer } };
+		return Value{ std::move(type), BuiltinValue{ buffer } };
 	case ArrayValue::value_category_identifier:
-		return Value2{ std::move(type), ArrayValue{ buffer } };
+		return Value{ std::move(type), ArrayValue{ buffer } };
 	case RecordValue::value_category_identifier:
-		return Value2{ std::move(type), RecordValue{ buffer } };
+		return Value{ std::move(type), RecordValue{ buffer } };
 	}
 
 	CryImplExcept(); //TODO:

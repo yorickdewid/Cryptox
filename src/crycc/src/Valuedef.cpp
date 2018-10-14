@@ -536,36 +536,36 @@ using namespace CryCC::SubValue::Typedef;
 namespace Detail
 {
 
-Value2 ValueCategoryDeserialise(Cry::ByteArray&);
+Value ValueCategoryDeserialise(Cry::ByteArray&);
 
 } // namespace Detail
 
 // Initialize with type facade only, set value empty.
-Value2::Value2(TypeFacade&& type)
+Value::Value(TypeFacade&& type)
 	: m_internalType{ std::move(type) }
 	, m_valuePtr{ MakeValueProxy<default_value_type>(m_internalType) }
 {
 }
 
 // Initialize with base type only, set value empty.
-Value2::Value2(TypeFacade::base_type&& type)
+Value::Value(TypeFacade::base_type&& type)
 	: m_internalType{ TypeFacade{ std::move(type) } }
 	, m_valuePtr{ MakeValueProxy<default_value_type>(m_internalType) }
 {
 }
 
-Value2::Value2(const Value2& other)
+Value::Value(const Value& other)
 	: m_internalType{ other.m_internalType }
 	, m_valuePtr{ other.m_valuePtr->Clone() }
 {
 }
 
-const std::string Value2::ToString() const noexcept
+const std::string Value::ToString() const noexcept
 {
 	return m_valuePtr->ToString();
 }
 
-void Value2::Swap(Value2& other) noexcept
+void Value::Swap(Value& other) noexcept
 {
 	if (other == *this) { return; }
 
@@ -573,7 +573,7 @@ void Value2::Swap(Value2& other) noexcept
 	m_valuePtr = std::move(other.m_valuePtr->Clone());
 }
 
-void Value2::Swap(Value2&& other) noexcept
+void Value::Swap(Value&& other) noexcept
 {
 	if (other == *this) { return; }
 
@@ -582,7 +582,7 @@ void Value2::Swap(Value2&& other) noexcept
 }
 
 // NOTE: The assignment will only copy the value and check for the type.
-Value2& Value2::operator=(const Value2& other)
+Value& Value::operator=(const Value& other)
 {
 	if (other == *this) { return (*this); }
 
@@ -595,7 +595,7 @@ Value2& Value2::operator=(const Value2& other)
 }
 
 // NOTE: The assignment will only copy the value and check for the type.
-Value2& Value2::operator=(Value2&& other)
+Value& Value::operator=(Value&& other)
 {
 	if (other == *this) { return (*this); }
 
@@ -607,7 +607,7 @@ Value2& Value2::operator=(Value2&& other)
 	return (*this);
 }
 
-void Value2::Serialize(const Value2& value, Cry::ByteArray& buffer)
+void Value::Serialize(const Value& value, Cry::ByteArray& buffer)
 {
 	// Write value identifier.
 	buffer.SetMagic(VALUE_MAGIC);
@@ -620,7 +620,7 @@ void Value2::Serialize(const Value2& value, Cry::ByteArray& buffer)
 	value.m_valuePtr->Serialize(buffer);
 }
 
-void Value2::Deserialize(Value2& value, Cry::ByteArray& buffer)
+void Value::Deserialize(Value& value, Cry::ByteArray& buffer)
 {
 	// Test if this is a value.
 	if (!buffer.ValidateMagic(VALUE_MAGIC) || !buffer.IsPlatformCompat()) {
@@ -631,89 +631,89 @@ void Value2::Deserialize(Value2& value, Cry::ByteArray& buffer)
 }
 
 // Comparison equal operator.
-bool Value2::operator==(const Value2& other) const
+bool Value::operator==(const Value& other) const
 {
 	return m_internalType == other.m_internalType
 		&& m_valuePtr->Compare((*other.m_valuePtr));
 }
 
-bool Value2::operator!=(const Value2& other) const
+bool Value::operator!=(const Value& other) const
 {
 	return !operator==(other);
 }
 
-Value2& Value2::operator++()
+Value& Value::operator++()
 {
 	m_valuePtr->Increment();
 	return (*this);
 }
 
-Value2& Value2::operator--()
+Value& Value::operator--()
 {
 	m_valuePtr->Decrement();
 	return (*this);
 }
 
-Value2 Value2::operator++(int)
+Value Value::operator++(int)
 {
-	Value2 tmp = std::as_const(*this);
+	Value tmp = std::as_const(*this);
 	m_valuePtr->Increment();
 	return tmp;
 }
 
-Value2 Value2::operator--(int)
+Value Value::operator--(int)
 {
-	Value2 tmp = std::as_const(*this);
+	Value tmp = std::as_const(*this);
 	m_valuePtr->Decrement();
 	return tmp;
 }
 
-Value2 operator+(const Value2& lhs, const Value2& rhs)
+Value operator+(const Value& lhs, const Value& rhs)
 {
-	using Op = Value2::ProxyInterface::ArithOperation;
+	using Op = Value::ProxyInterface::ArithOperation;
 	if (lhs.m_internalType != rhs.m_internalType) {
 		throw InvalidValueArithmeticException{};
 	}
 	return lhs.m_valuePtr->ArithOperationValue(Op::PLUS, lhs.m_internalType, *rhs.m_valuePtr.get());
 }
 
-Value2 operator-(const Value2& lhs, const Value2& rhs)
+Value operator-(const Value& lhs, const Value& rhs)
 {
-	using Op = Value2::ProxyInterface::ArithOperation;
+	using Op = Value::ProxyInterface::ArithOperation;
 	if (lhs.m_valuePtr->Id() != rhs.m_valuePtr->Id()) {
 		throw InvalidValueArithmeticException{};
 	}
 	return lhs.m_valuePtr->ArithOperationValue(Op::MINUS, lhs.m_internalType, *rhs.m_valuePtr.get());
 }
 
-Value2 operator*(const Value2& lhs, const Value2& rhs)
+Value operator*(const Value& lhs, const Value& rhs)
 {
-	using Op = Value2::ProxyInterface::ArithOperation;
+	using Op = Value::ProxyInterface::ArithOperation;
 	if (lhs.m_valuePtr->Id() != rhs.m_valuePtr->Id()) {
 		throw InvalidValueArithmeticException{};
 	}
 	return lhs.m_valuePtr->ArithOperationValue(Op::MULTIPLIES, lhs.m_internalType, *rhs.m_valuePtr.get());
 }
 
-Value2 operator/(const Value2& lhs, const Value2& rhs)
+Value operator/(const Value& lhs, const Value& rhs)
 {
-	using Op = Value2::ProxyInterface::ArithOperation;
+	using Op = Value::ProxyInterface::ArithOperation;
 	if (lhs.m_valuePtr->Id() != rhs.m_valuePtr->Id()) {
 		throw InvalidValueArithmeticException{};
 	}
 	return lhs.m_valuePtr->ArithOperationValue(Op::DIVIDES, lhs.m_internalType, *rhs.m_valuePtr.get());
 }
 
-Value2 operator%(const Value2& lhs, const Value2& rhs)
+Value operator%(const Value& lhs, const Value& rhs)
 {
-	using Op = Value2::ProxyInterface::ArithOperation;
+	using Op = Value::ProxyInterface::ArithOperation;
 	if (lhs.m_valuePtr->Id() != rhs.m_valuePtr->Id()) {
 		throw InvalidValueArithmeticException{};
 	}
 	return lhs.m_valuePtr->ArithOperationValue(Op::MODULUS, lhs.m_internalType, *rhs.m_valuePtr.get());
 }
 
-std::ostream& operator<<(std::ostream& os, const Value2& value)
+std::ostream& operator<<(std::ostream& os, const Value& value)
 {
 	os << value.ToString();
 	return os;

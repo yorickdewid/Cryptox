@@ -111,171 +111,171 @@ Value MakeUnion(RecordValue&& v, const std::string structName)
 
 ////////
 
-Value2 MakeUninitialized()
+Value MakeUninitialized()
 {
-	return Value2{ std::make_shared<NilType>() };
+	return Value{ std::make_shared<NilType>() };
 }
 
-Value2 MakeVoid()
+Value MakeVoid()
 {
-	return Value2{ MakeBuiltinType(BuiltinType::Specifier::VOID_T) };
+	return Value{ MakeBuiltinType(BuiltinType::Specifier::VOID_T) };
 }
 
-Value2 MakeOffset(Value2& value, size_t offset)
+Value MakeOffset(Value& value, size_t offset)
 {
-	return Value2{ std::make_shared<NilType>(), OffsetValue{ value, offset } };
+	return Value{ std::make_shared<NilType>(), OffsetValue{ value, offset } };
 }
 
 namespace Detail
 {
 
 template<BuiltinType::Specifier Specifier, typename Type>
-Value2 MakeBuiltinImpl(const Type& value)
+Value MakeBuiltinImpl(const Type& value)
 {
-	return Value2{ MakeBuiltinType(Specifier), BuiltinValue{ value } };
+	return Value{ MakeBuiltinType(Specifier), BuiltinValue{ value } };
 }
 
 } // namespace Detail
 
-Value2 MakeSignedChar(signed char v)
+Value MakeSignedChar(signed char v)
 {
 	return Detail::MakeBuiltinImpl<BuiltinType::Specifier::SIGNED_CHAR_T>(v);
 }
 
-Value2 MakeUnsignedChar(unsigned char v)
+Value MakeUnsignedChar(unsigned char v)
 {
 	return Detail::MakeBuiltinImpl<BuiltinType::Specifier::UNSIGNED_CHAR_T>(v);
 }
 
-Value2 MakeShort(short v)
+Value MakeShort(short v)
 {
 	return Detail::MakeBuiltinImpl<BuiltinType::Specifier::SHORT_T>(v);
 }
 
-Value2 MakeUnsignedShort(unsigned short v)
+Value MakeUnsignedShort(unsigned short v)
 {
 	return Detail::MakeBuiltinImpl<BuiltinType::Specifier::UNSIGNED_SHORT_T>(v);
 }
 
-Value2 MakeUnsignedInt(unsigned int v)
+Value MakeUnsignedInt(unsigned int v)
 {
 	return Detail::MakeBuiltinImpl<BuiltinType::Specifier::UNSIGNED_INT_T>(v);
 }
 
-Value2 MakeLong(long v)
+Value MakeLong(long v)
 {
 	return Detail::MakeBuiltinImpl<BuiltinType::Specifier::LONG_T>(v);
 }
 
-Value2 MakeUnsignedLong(unsigned long v)
+Value MakeUnsignedLong(unsigned long v)
 {
 	return Detail::MakeBuiltinImpl<BuiltinType::Specifier::UNSIGNED_LONG_T>(v);
 }
 
-// Value2 MakeBool2(bool v)
+// Value MakeBool(bool v)
 // {
 //  return Detail::MakeBuiltinImpl<BuiltinType::Specifier::BOOL_T>(v);
 // }
 
-Value2 MakeChar2(char v)
+Value MakeChar(char v)
 {
-	return Value2{ MakeBuiltinType(BuiltinType::Specifier::CHAR_T), BuiltinValue{ v } };
+	return Value{ MakeBuiltinType(BuiltinType::Specifier::CHAR_T), BuiltinValue{ v } };
 }
 
-Value2 MakeInt2(int v)
+Value MakeInt(int v)
 {
-	return Value2{ MakeBuiltinType(BuiltinType::Specifier::INT_T), BuiltinValue{ v } };
+	return Value{ MakeBuiltinType(BuiltinType::Specifier::INT_T), BuiltinValue{ v } };
 }
 
-Value2 MakeFloat2(float v)
+Value MakeFloat(float v)
 {
-	return Value2{ MakeBuiltinType(BuiltinType::Specifier::FLOAT_T), BuiltinValue{ v } };
+	return Value{ MakeBuiltinType(BuiltinType::Specifier::FLOAT_T), BuiltinValue{ v } };
 }
 
-Value2 MakeDouble2(double v)
+Value MakeDouble(double v)
 {
-	return Value2{ MakeBuiltinType(BuiltinType::Specifier::DOUBLE_T), BuiltinValue{ v } };
+	return Value{ MakeBuiltinType(BuiltinType::Specifier::DOUBLE_T), BuiltinValue{ v } };
 }
 
-Value2 MakeLongDouble(long double v)
+Value MakeLongDouble(long double v)
 {
-	return Value2{ MakeBuiltinType(BuiltinType::Specifier::LONG_DOUBLE_T), BuiltinValue{ v } };
+	return Value{ MakeBuiltinType(BuiltinType::Specifier::LONG_DOUBLE_T), BuiltinValue{ v } };
 }
 
 namespace Detail
 {
 
 template<BuiltinType::Specifier Specifier, typename Type>
-Value2 MakeArrayImpl(const Type& value)
+Value MakeArrayImpl(const Type& value)
 {
 	auto arrayElement = Util::MakeBuiltinType(Specifier);
-	return Value2{ std::make_shared<ArrayType>(value.size(), std::move(arrayElement)), ArrayValue{ value.cbegin(), value.cend() } };
+	return Value{ std::make_shared<ArrayType>(value.size(), std::move(arrayElement)), ArrayValue{ value.cbegin(), value.cend() } };
 }
 
 } // namespace Detail
 
-Value2 MakeCharArray2(const std::vector<char>& v)
+Value MakeCharArray(const std::vector<char>& v)
 {
 	return Detail::MakeArrayImpl<BuiltinType::Specifier::CHAR_T>(v);
 }
 
-Value2 MakeShortArray2(const std::vector<short>& v)
+Value MakeShortArray(const std::vector<short>& v)
 {
 	return Detail::MakeArrayImpl<BuiltinType::Specifier::SHORT_T>(v);
 }
 
-Value2 MakeIntArray2(const std::vector<int>& v)
+Value MakeIntArray(const std::vector<int>& v)
 {
 	return Detail::MakeArrayImpl<BuiltinType::Specifier::INT_T>(v);
 }
 
-Value2 MakeLongArray2(const std::vector<long>& v)
+Value MakeLongArray(const std::vector<long>& v)
 {
 	return Detail::MakeArrayImpl<BuiltinType::Specifier::LONG_T>(v);
 }
 
-Value2 MakeUnsignedCharArray2(const std::vector<unsigned char>& v)
+Value MakeUnsignedCharArray(const std::vector<unsigned char>& v)
 {
 	return Detail::MakeArrayImpl<BuiltinType::Specifier::UNSIGNED_CHAR_T>(v);
 }
 
-Value2 MakeUnsignedShortArray2(const std::vector<unsigned short>& v)
+Value MakeUnsignedShortArray(const std::vector<unsigned short>& v)
 {
 	return Detail::MakeArrayImpl<BuiltinType::Specifier::UNSIGNED_SHORT_T>(v);
 }
 
-Value2 MakeUnsignedIntArray2(const std::vector<unsigned int>& v)
+Value MakeUnsignedIntArray(const std::vector<unsigned int>& v)
 {
 	return Detail::MakeArrayImpl<BuiltinType::Specifier::UNSIGNED_INT_T>(v);
 }
 
-Value2 MakeUnsignedLongArray2(const std::vector<unsigned long>& v)
+Value MakeUnsignedLongArray(const std::vector<unsigned long>& v)
 {
 	return Detail::MakeArrayImpl<BuiltinType::Specifier::UNSIGNED_LONG_T>(v);
 }
 
-Value2 MakeFloatArray2(const std::vector<float>& v)
+Value MakeFloatArray(const std::vector<float>& v)
 {
 	return Detail::MakeArrayImpl<BuiltinType::Specifier::FLOAT_T>(v);
 }
 
-Value2 MakeDoubleArray2(const std::vector<double>& v)
+Value MakeDoubleArray(const std::vector<double>& v)
 {
 	return Detail::MakeArrayImpl<BuiltinType::Specifier::DOUBLE_T>(v);
 }
 
-Value2 MakeString2(const std::string& v)
+Value MakeString(const std::string& v)
 {
 	return Detail::MakeArrayImpl<BuiltinType::Specifier::CHAR_T>(v);
 }
 
-std::string ValueCastString(const Value2& value)
+std::string ValueCastString(const Value& value)
 {
 	const auto strArr = ValueCastArray<char>(value);
 	return { strArr.begin(), strArr.end() };
 }
 
-size_t MultiElementSize(const Value2& value)
+size_t MultiElementSize(const Value& value)
 {
 	// Passed an offset value.
 	if (value.Identifier() == OffsetValue::value_category_identifier) {
@@ -286,7 +286,7 @@ size_t MultiElementSize(const Value2& value)
 	return value.ElementCount<ArrayValue>();
 }
 
-bool MultiElementEmpty(const Value2& value)
+bool MultiElementEmpty(const Value& value)
 {
 	// Passed an offset value.
 	if (value.Identifier() == OffsetValue::value_category_identifier) {
@@ -322,7 +322,7 @@ int EvaluateValueAsInteger(const Value& value)
 // Evaluate value as boolean if conversion is possible. If the conversion
 // is not possible, an exception is thrown and caught here. In that case
 // the evaluator returns with a negative result.
-bool EvaluateValueAsBoolean(const Value2& value)
+bool EvaluateValueAsBoolean(const Value& value)
 {
 	try { return Util::ValueCastNative<int>(value); }
 	catch (const InvalidTypeCastException&) {}
@@ -331,7 +331,7 @@ bool EvaluateValueAsBoolean(const Value2& value)
 
 // Convert value as integer. If the conversion fails an exception
 // is thrown upwards to the caller.
-int EvaluateValueAsInteger(const Value2& value)
+int EvaluateValueAsInteger(const Value& value)
 {
 	return Util::ValueCastNative<int>(value);
 }

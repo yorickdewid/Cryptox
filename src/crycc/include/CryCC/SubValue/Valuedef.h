@@ -360,7 +360,7 @@ static_assert(std::is_move_assignable<Value>::value, "Value !is_move_assignable"
 //
 // Is it not recommended to create the value directly, but to use a value helper
 // instead. The recommended solution is API sustainable.
-class Value2
+class Value
 {
 #ifdef _OBSOLETE_
 	friend struct Util::ValueFactory;
@@ -397,7 +397,7 @@ private:
 
 		enum ArithOperation { PLUS, MINUS, MULTIPLIES, DIVIDES, MODULUS };
 
-		virtual Value2 ArithOperationValue(ArithOperation, const Typedef::TypeFacade&, ProxyInterface&) const = 0;
+		virtual Value ArithOperationValue(ArithOperation, const Typedef::TypeFacade&, ProxyInterface&) const = 0;
 	};
 
 	template<typename ValueType, typename = typename std::enable_if<IsValueContractCompliable<ValueType>::value>::type>
@@ -409,7 +409,7 @@ private:
 			if (this->Id() != other.Id()) { CryImplExcept(); }
 			auto& otherProxy = dynamic_cast<AbstractValueProxy<ValueType>&>(other);
 			ValueType value = std::invoke(BinaryOperation<ValueType>(), m_innerValue, otherProxy.m_innerValue);
-			return Value2{ std::move(type), std::move(value) };
+			return Value{ std::move(type), std::move(value) };
 		}
 
 	protected:
@@ -483,7 +483,7 @@ private:
 		}
 
 		// Arithmetic operations.
-		Value2 ArithOperationValue(ArithOperation op, const Typedef::TypeFacade& type, ProxyInterface& other) const final
+		Value ArithOperationValue(ArithOperation op, const Typedef::TypeFacade& type, ProxyInterface& other) const final
 		{
 			switch (op)
 			{
@@ -624,6 +624,7 @@ private:
 		typename std::conditional_t<IsValueMultiOrdinal_v<Type>, MultiOrderValueProxy<Type>, SingularValueProxy<Type>
 		>>;
 
+	// Initialize the value category with corresponing type reference.
 	template<typename ProxyType>
 	auto ProxyInit(const Typedef::TypeFacade& typeLink, const ProxyType* ptr)
 	{
@@ -649,13 +650,13 @@ private:
 
 public:
 	// Initialize with type facade only, set value empty.
-	Value2(Typedef::TypeFacade&& type);
+	Value(Typedef::TypeFacade&& type);
 	// Initialize with base type only, set value empty.
-	Value2(Typedef::TypeFacade::base_type&& type);
+	Value(Typedef::TypeFacade::base_type&& type);
 
 	// Initialize with type facade and base value.
 	template<typename ValueType, typename... ArgTypes>
-	explicit Value2(Typedef::TypeFacade&& type, ValueType&& valueCategory, ArgTypes&&... args)
+	explicit Value(Typedef::TypeFacade&& type, ValueType&& valueCategory, ArgTypes&&... args)
 		: m_internalType{ std::move(type) }
 		, m_valuePtr{ MakeValueProxy<ValueType>(m_internalType, std::forward<ValueType>(valueCategory), std::forward<ArgTypes>(args)...) }
 	{
@@ -663,17 +664,17 @@ public:
 
 	// Initialize with base type and base value.
 	template<typename ValueType, typename... ArgTypes>
-	explicit Value2(Typedef::TypeFacade::base_type&& type, ValueType&& valueCategory, ArgTypes&&... args)
+	explicit Value(Typedef::TypeFacade::base_type&& type, ValueType&& valueCategory, ArgTypes&&... args)
 		: m_internalType{ Typedef::TypeFacade{ std::move(type) } }
 		, m_valuePtr{ MakeValueProxy<ValueType>(m_internalType, std::forward<ValueType>(valueCategory), std::forward<ArgTypes>(args)...) }
 	{
 	}
 
-	Value2(const Value2&);
-	Value2(Value2&&) = default;
+	Value(const Value&);
+	Value(Value&&) = default;
 
-	Value2& operator=(const Value2&);
-	Value2& operator=(Value2&&);
+	Value& operator=(const Value&);
+	Value& operator=(Value&&);
 
 	// Access type information.
 	Typedef::TypeFacade Type() const { return m_internalType; }
@@ -760,30 +761,30 @@ public:
 	const std::string ToString() const noexcept;
 
 	// Swap this with another value.
-	void Swap(Value2&) noexcept;
+	void Swap(Value&) noexcept;
 	// Swap this with another value.
-	void Swap(Value2&&) noexcept;
+	void Swap(Value&&) noexcept;
 
 	// Serialize the value into byte array.
-	static void Serialize(const Value2&, Cry::ByteArray&);
+	static void Serialize(const Value&, Cry::ByteArray&);
 	// Serialize byte array into value.
-	static void Deserialize(Value2&, Cry::ByteArray&);
+	static void Deserialize(Value&, Cry::ByteArray&);
 
 	// Comparison equal operator.
-	bool operator==(const Value2&) const;
+	bool operator==(const Value&) const;
 	// Comparison not equal operator.
-	bool operator!=(const Value2&) const;
+	bool operator!=(const Value&) const;
 
-	Value2& operator++();
-	Value2& operator--();
-	Value2 operator++(int);
-	Value2 operator--(int);
+	Value& operator++();
+	Value& operator--();
+	Value operator++(int);
+	Value operator--(int);
 
-	friend Value2 operator+(const Value2&, const Value2&);
-	friend Value2 operator-(const Value2&, const Value2&);
-	friend Value2 operator*(const Value2&, const Value2&);
-	friend Value2 operator/(const Value2&, const Value2&);
-	friend Value2 operator%(const Value2&, const Value2&);
+	friend Value operator+(const Value&, const Value&);
+	friend Value operator-(const Value&, const Value&);
+	friend Value operator*(const Value&, const Value&);
+	friend Value operator/(const Value&, const Value&);
+	friend Value operator%(const Value&, const Value&);
 
 	// Check if an value was set.
 	inline operator bool() const { return Initialized(); }
@@ -791,7 +792,7 @@ public:
 	inline bool operator!() const { return !Initialized(); }
 
 	// Stream value to ostream.
-	friend std::ostream& operator<<(std::ostream&, const Value2&);
+	friend std::ostream& operator<<(std::ostream&, const Value&);
 
 private:
 	// Value type front.
@@ -800,10 +801,10 @@ private:
 	std::unique_ptr<ProxyInterface> m_valuePtr;
 };
 
-static_assert(std::is_copy_constructible<Value2>::value, "Value !is_copy_constructible");
-static_assert(std::is_move_constructible<Value2>::value, "Value !is_move_constructible");
-static_assert(std::is_copy_assignable<Value2>::value, "Value !is_copy_assignable");
-static_assert(std::is_move_assignable<Value2>::value, "Value !is_move_assignable");
+static_assert(std::is_copy_constructible_v<Value>, "Value !is_copy_constructible");
+static_assert(std::is_move_constructible_v<Value>, "Value !is_move_constructible");
+static_assert(std::is_copy_assignable_v<Value>, "Value !is_copy_assignable");
+static_assert(std::is_move_assignable_v<Value>, "Value !is_move_assignable");
 
 } // namespace CryCC::SubValue::Valuedef
 
