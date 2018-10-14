@@ -12,8 +12,8 @@
 
 #include <cassert>
 
-#define CIL_DATE_FORMAT "%b %d %Y"
-#define CIL_TIME_FORMAT "%R:%S"
+inline constexpr static const char *CILDateFormat{ "%b %d %Y" };
+inline constexpr static const char *CILTimeFormat{ "%R:%S" };
 
 static int g_staticTokenProcessorCounter = 0;
 
@@ -25,7 +25,7 @@ namespace CoilCl::MacroHelper
 TokenProcessor::DataType DynamicGlobalCounter()
 {
 	int counter = g_staticTokenProcessorCounter++;
-	return Util::MakeAutoValue(std::move(counter));
+	return Util::MakeInt(counter);
 }
 
 TokenProcessor::DataType DynamicSourceFile()
@@ -48,7 +48,7 @@ TokenProcessor::DataType DynamicDate()
 	CRY_LOCALTIME(&timeinfo);
 	char buffer[12];
 
-	strftime(buffer, sizeof(buffer), CIL_DATE_FORMAT, &timeinfo);
+	strftime(buffer, sizeof(buffer), CILDateFormat, &timeinfo);
 	return Util::MakeString(buffer);
 }
 
@@ -59,7 +59,7 @@ TokenProcessor::DataType DynamicTime()
 	CRY_LOCALTIME(&timeinfo);
 	char buffer[12];
 
-	strftime(buffer, sizeof(buffer), CIL_TIME_FORMAT, &timeinfo);
+	strftime(buffer, sizeof(buffer), CILTimeFormat, &timeinfo);
 	return Util::MakeString(buffer);
 }
 

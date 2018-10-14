@@ -30,7 +30,7 @@
 #include <iostream>
 #include <functional>
 
-// Current compiler limitations
+// NOTE: Current compiler limitations
 // - Lexer does not check on end of literal char or end of string literal
 // FUTURE:
 // - Multiple translation units
@@ -47,8 +47,6 @@
 		c = callback; \
 		return (*this); \
 	}
-
-#define CAPTURE(s) std::move(s)
 
 CoilCl::DefaultNoticeList CoilCl::g_warningQueue;
 
@@ -69,7 +67,7 @@ class Compiler final
 	void *backreferencePointer{ nullptr };
 
 	template<typename StructAccessor>
-	class StageOptions
+	class StageOptions final
 	{
 		const StructAccessor opt;
 
@@ -151,8 +149,8 @@ public:
 	template<typename PointerType>
 	void CaptureBackRefPtr(PointerType ptr)
 	{
-		static_assert(std::is_pointer<PointerType>::value
-			&& std::is_pod<PointerType>::value, "Backref must be pointer to POD");
+		static_assert(std::is_pointer_v<PointerType>
+			&& std::is_pod_v<PointerType>, "Backref must be pointer to POD");
 		backreferencePointer = static_cast<void*>(ptr);
 	}
 
@@ -190,7 +188,7 @@ public:
 				.DumpAST();
 
 			// Move abstract syntax tree into program.
-			Program::Program::Bind(program, CAPTURE(ast));
+			Program::Program::Bind(program, std::move(ast));
 
 #ifdef CRY_DEBUG_TRACE
 			// In trace mode dump the contents to screen.
@@ -200,7 +198,7 @@ public:
 			// The semantic analyzer checks the object tree against the language
 			// specification and decorates the object tree to improve the informational
 			// context of the program.
-			Semer{ profile, CAPTURE(program->Ast()), tracker }
+			Semer{ profile, std::move(program->Ast()), tracker }
 				.MoveStage()
 				.PreliminaryAssert()
 				.StandardCompliance()
@@ -210,7 +208,7 @@ public:
 			// The optimizer removes unused objects, replaces tree substructures and
 			// rewrites processing orders to improve overal execution speed. This step
 			// is optional.
-			Optimizer{ profile, CAPTURE(program->Ast()), tracker }
+			Optimizer{ profile, std::move(program->Ast()), tracker }
 				.MoveStage()
 				.TrivialReduction()
 				.DeepInflation();
@@ -241,7 +239,7 @@ public:
 			AIIPXModule.AddStream(memoryStream);
 
 			// Run the emitting sequence.
-			Emit::Emitter{ profile, CAPTURE(program->Ast()), tracker }
+			Emit::Emitter{ profile, std::move(program->Ast()), tracker }
 				.MoveStage()
 				.AddModule(AIIPXModule)
 				.Process();
@@ -269,7 +267,7 @@ public:
 		// Clear all warnings for this session.
 		g_warningQueue.Clear();
 
-		return CAPTURE(program);
+		return std::move(program);
 	}
 };
 
@@ -293,7 +291,7 @@ ResultType CaptureChunk(const datachunk_t *dataPtrStrct)
 	}
 
 	delete dataPtrStrct;
-	return std::move(sdata);
+	return sdata;
 }
 
 template<typename WrapperPointerType>
@@ -313,8 +311,6 @@ void AssimilateProgram(program_t *out_program, CoilCl::Compiler::ProgramPtr&& in
 }
 
 } // namespace InterOpHelper
-
-#define USER_DATA(u) u->user_data
 
 // [ API ENTRY ]
 // Compiler backend interface.
@@ -337,17 +333,17 @@ COILCLAPI void Compile(compiler_info_t *cl_info) NOTHROW
 	// chained inline.
 	auto coilcl = std::make_shared<Compiler>()->SetReaderHandler([&cl_info]() -> std::string
 	{
-		auto data = cl_info->streamReaderVPtr(USER_DATA(cl_info));
+		auto data = cl_info->streamReaderVPtr(cl_info->user_data);
 		return data == nullptr ? "" : InterOpHelper::CaptureChunk<std::string>(data);
 	}).SetIncludeHandler([&cl_info](const std::string& source) -> bool
 	{
-		return static_cast<bool>(cl_info->loadStreamRequestVPtr(USER_DATA(cl_info), source.c_str()));
+		return static_cast<bool>(cl_info->loadStreamRequestVPtr(cl_info->user_data, source.c_str()));
 	}).SetMetaHandler([&cl_info]() -> std::shared_ptr<metainfo_t>
 	{
-		return InterOpHelper::WrapMeta(cl_info->streamMetaVPtr(USER_DATA(cl_info)));
+		return InterOpHelper::WrapMeta(cl_info->streamMetaVPtr(cl_info->user_data));
 	}).SetErrorHandler([&cl_info](const std::string& message, bool isFatal)
 	{
-		cl_info->error_handler(USER_DATA(cl_info), message.c_str(), isFatal);
+		cl_info->error_handler(cl_info->user_data, message.c_str(), isFatal);
 	}).Object();
 
 	// Store pointer to original object.

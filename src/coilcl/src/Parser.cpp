@@ -25,8 +25,6 @@
 #define MATCH_TOKEN(t) (CURRENT_TOKEN() == t)
 #define NOT_TOKEN(t) (CURRENT_TOKEN() != t)
 
-#define AST_ROOT() m_ast
-
 #define MAKE_RESV_REF() Util::MakeASTNode<DeclRefExpr>(m_identifierStack.top()); m_identifierStack.pop();
 
 using namespace CryCC::Program;
@@ -398,12 +396,10 @@ bool Parser::DeclarationSpecifiers()
 bool Parser::TypenameSpecifier()
 {
 	if (MATCH_TOKEN(TK_IDENTIFIER)) {
-		const auto& name = CURRENT_DATA().As<std::string>();
+		const auto& name = Util::ValueCastString(CURRENT_DATA());
 
 		auto& res = m_typedefList[name];
-		if (res == nullptr) {
-			return false;
-		}
+		if (!res) { return false; }
 
 		m_typeStack.push(Util::MakeTypedefType(name, res));
 		return true;
@@ -431,7 +427,7 @@ bool Parser::StructOrUnionSpecifier()
 
 	std::string name;
 	if (MATCH_TOKEN(TK_IDENTIFIER)) {
-		name = CURRENT_DATA().As<std::string>();
+		name = Util::ValueCastString(CURRENT_DATA());
 		NextToken();
 	}
 
@@ -500,7 +496,7 @@ bool Parser::StructOrUnionSpecifier()
 	}
 
 	//TODO: Build record type?
-	m_typeStack.push(Util::MakeRecordType(name, isUnion ?  Specifier::UNION : Specifier::STRUCT));
+	m_typeStack.push(Util::MakeRecordType(name, isUnion ? Specifier::UNION : Specifier::STRUCT));
 
 	return true;
 }
@@ -551,7 +547,7 @@ bool Parser::EnumSpecifier()
 		enm->SetLocation(CURRENT_LOCATION());
 
 		if (MATCH_TOKEN(TK_IDENTIFIER)) {
-			enm->SetName(CURRENT_DATA().As<std::string>());
+			enm->SetName(Util::ValueCastString(CURRENT_DATA()));
 			NextToken();
 		}
 
@@ -560,7 +556,7 @@ bool Parser::EnumSpecifier()
 				NextToken();
 
 				if (MATCH_TOKEN(TK_IDENTIFIER)) {
-					auto enmConst = Util::MakeASTNode<EnumConstantDecl>(CURRENT_DATA().As<std::string>());
+					auto enmConst = Util::MakeASTNode<EnumConstantDecl>(Util::ValueCastString(CURRENT_DATA()));
 					enmConst->SetLocation(CURRENT_LOCATION());
 
 					NextToken();
@@ -852,7 +848,7 @@ void Parser::PrimaryExpression()
 {
 	switch (CURRENT_TOKEN()) {
 	case TK_IDENTIFIER:
-		m_identifierStack.push(CURRENT_DATA().As<std::string>());
+		m_identifierStack.push(Util::ValueCastString(CURRENT_DATA()));
 		NextToken();
 		break;
 
@@ -1023,7 +1019,7 @@ void Parser::PostfixExpression()
 			NextToken();
 			//ExpectIdentifier();
 
-			auto member = CURRENT_DATA().As<std::string>();
+			auto member = Util::ValueCastString(CURRENT_DATA());
 			auto expr = Util::MakeASTNode<MemberExpr>(MemberExpr::MemberType::REFERENCE, member, resv);
 			expr->SetLocation(CURRENT_LOCATION());
 			m_elementDescentPipe.push(expr);
@@ -1038,7 +1034,7 @@ void Parser::PostfixExpression()
 			NextToken();
 			//ExpectIdentifier();
 
-			auto member = CURRENT_DATA().As<std::string>();
+			auto member = Util::ValueCastString(CURRENT_DATA());
 			auto expr = Util::MakeASTNode<MemberExpr>(MemberExpr::MemberType::POINTER, member, resv);
 			expr->SetLocation(CURRENT_LOCATION());
 			m_elementDescentPipe.push(expr);
@@ -1607,7 +1603,7 @@ bool Parser::JumpStatement()
 
 		//ExpectIdentifier();//XXX: possible optimization
 
-		auto stmt = Util::MakeASTNode<GotoStmt>(CURRENT_DATA().As<std::string>());
+		auto stmt = Util::MakeASTNode<GotoStmt>(Util::ValueCastString(CURRENT_DATA()));
 		stmt->SetLocation(CURRENT_LOCATION());
 		m_elementDescentPipe.push(stmt);
 		NextToken();
@@ -1877,7 +1873,7 @@ bool Parser::LabeledStatement()
 		// Snapshot current state in case of rollback.
 		m_comm.Snapshot();
 		try {
-			auto lblName = CURRENT_DATA().As<std::string>();
+			auto lblName = Util::ValueCastString(CURRENT_DATA());
 			NextToken();
 			ExpectToken(TK_COLON);
 
@@ -2215,7 +2211,7 @@ bool Parser::IdentifierListDecl()
 	bool rs = false;
 	for (;;) {
 		if (MATCH_TOKEN(TK_IDENTIFIER)) {
-			auto name = CURRENT_DATA().As<std::string>();
+			auto name = Util::ValueCastString(CURRENT_DATA());
 			m_identifierStack.push(name);
 			rs = true;
 			NextToken();
@@ -2251,7 +2247,7 @@ bool Parser::DirectDeclarator()
 	bool foundDecl = false;
 
 	if (MATCH_TOKEN(TK_IDENTIFIER)) {
-		auto name = CURRENT_DATA().As<std::string>();
+		auto name = Util::ValueCastString(CURRENT_DATA());
 		m_identifierStack.push(name);
 		foundDecl = true;
 		NextToken();
@@ -2576,8 +2572,8 @@ void Parser::TranslationUnit()
 	localAst->SetLocation(0, 0);
 
 	// Set translation unit as top level tree root.
-	if (!AST_ROOT()) {
-		AST_ROOT() = localAst;
+	if (!m_ast) {
+		m_ast = localAst;
 	}
 
 	do {
@@ -2586,7 +2582,7 @@ void Parser::TranslationUnit()
 
 		// Move elements from list into AST root.
 		while (!m_elementDescentPipe.empty()) {
-			AST_ROOT()->AppendChild(m_elementDescentPipe.next());
+			m_ast->AppendChild(m_elementDescentPipe.next());
 			m_elementDescentPipe.pop();
 		}
 

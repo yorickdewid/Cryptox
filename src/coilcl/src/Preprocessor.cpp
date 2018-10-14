@@ -182,9 +182,9 @@ void RegisterMacros()
 
 	// Limit to big and little endian only
 #ifdef CRY_BIG_ENDIAN
-		DEFINE_MACRO_INT("__BIG_ENDIAN__", 1);
+	DEFINE_MACRO_INT("__BIG_ENDIAN__", 1);
 #else
-		DEFINE_MACRO_INT("__LITTLE_ENDIAN__", 1);
+	DEFINE_MACRO_INT("__LITTLE_ENDIAN__", 1);
 #endif
 
 #ifdef _WIN32
@@ -268,12 +268,6 @@ protected:
 		}
 	};
 
-	template<typename CastType>
-	static inline CastType ConvertDataAs(const TokenProcessor::DataType& data)
-	{
-		return data.As<CastType>();
-	}
-
 	void RequireToken(int expectedToken, int token)
 	{
 		//TODO:
@@ -322,7 +316,7 @@ public:
 			break;
 		case TK_CONSTANT: // Local include
 			RequireData(tokenData);
-			Import(ConvertDataAs<std::string>(tokenData.Data()));
+			Import(Util::ValueCastString(tokenData.Data()));
 			break;
 		default:
 			if (hasBegin) {
@@ -342,7 +336,7 @@ public:
 					break;
 				}
 
-				tempSource.append(ConvertDataAs<std::string>(tokenData.Data()));
+				tempSource.append(Util::ValueCastString(tokenData.Data()));
 				break;
 			}
 
@@ -364,7 +358,7 @@ public:
 		// First item must be the definition name
 		if (m_definitionName.empty()) {
 			RequireData(tokenData);
-			const auto definitionName = ConvertDataAs<std::string>(tokenData.Data());
+			const auto definitionName = Util::ValueCastString(tokenData.Data());
 			if (g_definitionList.find(definitionName) != g_definitionList.end()) {
 				throw DirectiveException{ "define", "'" + definitionName + "' already defined" };
 			}
@@ -386,14 +380,14 @@ public:
 		// Do not interfere with preprocessor lines
 		if (isDirective) { return; }
 
-		auto mit = g_macroList.find(ConvertDataAs<std::string>(dataPair.Data()));
+		auto mit = g_macroList.find(Util::ValueCastString(dataPair.Data()));
 		if (mit != g_macroList.end()) {
 			dataPair.AssignToken(TK_CONSTANT);
 			dataPair.AssignData(mit->second());
 			return;
 		}
 
-		auto it = g_definitionList.find(ConvertDataAs<std::string>(dataPair.Data()));
+		auto it = g_definitionList.find(Util::ValueCastString(dataPair.Data()));
 		if (it == g_definitionList.end()) { return; }
 
 		// Definition without body, reset all
@@ -438,7 +432,7 @@ public:
 	void Dispence(TokenProcessor::DefaultTokenDataPair& tokenData)
 	{
 		RequireData(tokenData);
-		auto it = g_definitionList.find(ConvertDataAs<std::string>(tokenData.Data()));
+		auto it = g_definitionList.find(Util::ValueCastString(tokenData.Data()));
 		if (it == g_definitionList.end()) { return; }
 
 		// Remove definition from global define list
@@ -522,15 +516,16 @@ class ConditionalStatement : public AbstractDirective
 				switch (it->Data().Type().DataType<BuiltinType>()->TypeSpecifier()) {
 				case BuiltinType::Specifier::INT:
 				{
-					stack[0] = it->Data().As<int>();
+					stack[0] = Util::ValueCastNative<int>(it->Data());
 					consensusAction.Consolidate(stack[0]);
 					break;
 				}
 				case BuiltinType::Specifier::CHAR:
 				{
+					//TODO: Still the case?
 					const std::string definition = Util::IsArray(it->Data().Type())
-						? it->Data().As<std::string>()
-						: std::string{ it->Data().As<char>() };
+						? Util::ValueCastString(it->Data())
+						: std::string{ Util::ValueCastNative<char>(it->Data()) };
 					bool hasDefinition = g_definitionList.find(definition) != g_definitionList.end();
 					consensusAction.Consolidate(hasDefinition);
 					break;
@@ -556,7 +551,7 @@ class ConditionalStatement : public AbstractDirective
 						throw ConditionalStatementException{ "expected identifier" };
 					}
 					assert(it->HasData());
-					const std::string definition = it->Data().As<std::string>();
+					const std::string definition = Util::ValueCastString(it->Data());
 					++it;
 					if (it->Token() != TK_PARENTHESE_CLOSE) {
 						throw ConditionalStatementException{ "expected )" };
@@ -568,7 +563,7 @@ class ConditionalStatement : public AbstractDirective
 					throw ConditionalStatementException{ "expected identifier" };
 				}
 				assert(it->HasData());
-				const std::string definition = it->Data().As<std::string>();
+				const std::string definition = Util::ValueCastString(it->Data());
 				consensusAction.Consolidate(g_definitionList.find(definition) != g_definitionList.end());
 				continue;
 			}
@@ -594,7 +589,7 @@ class ConditionalStatement : public AbstractDirective
 			++it; \
 			if (it->Token() != TK_CONSTANT) {  throw ConditionalStatementException{ "expected constant" }; } \
 			assert(it->HasData()); \
-			stack[1] = it->Data().As<int>(); \
+			stack[1] = Util::ValueCastNative<int>(it->Data()); \
 			consensusAction.Consolidate(stack[0] o stack[1]); \
 			stack[0] = 0; stack[1] = 0;
 
@@ -634,7 +629,7 @@ class ConditionalStatement : public AbstractDirective
 			++it; \
 			if (it->Token() != TK_CONSTANT) { throw ConditionalStatementException{ "expected constant" }; } \
 			assert(it->HasData()); \
-			stack[0] = stack[0] o it->Data().As<int>();
+			stack[0] = stack[0] o Util::ValueCastNative<int>(it->Data());
 
 			// Integral arithmetic
 			case TK_PLUS:
@@ -804,7 +799,7 @@ public:
 	void Dispence(TokenProcessor::DefaultTokenDataPair& tokenData)
 	{
 		RequireToken(TK_IDENTIFIER, tokenData.Token());
-		if (HandleTrivialCase(ConvertDataAs<std::string>(tokenData.Data()))) { return; }
+		if (HandleTrivialCase(Util::ValueCastString(tokenData.Data()))) { return; }
 	}
 };
 
@@ -831,7 +826,7 @@ public:
 		}
 
 		// For now print to terminal
-		std::cout << ConvertDataAs<std::string>(tokenData.Data()) << std::endl;
+		std::cout << Util::ValueCastString(tokenData.Data()) << std::endl;
 	}
 };
 
@@ -854,7 +849,7 @@ public:
 
 		// Throw if message was fatal, this wil halt all operations
 		if (m_isFatal) {
-			throw DirectiveException{ ConvertDataAs<std::string>(tokenData.Data()) };
+			throw DirectiveException{ Util::ValueCastString(tokenData.Data()) };
 		}
 	}
 };
