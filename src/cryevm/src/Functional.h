@@ -16,6 +16,8 @@
 namespace EVM
 {
 
-std::list<EVM::ExternalMethod> SymbolIndex();
+using ExternalMethodRegistry = std::list<ExternalMethod>;
+
+ExternalMethodRegistry SymbolIndex();
 
 } // namespace EVM

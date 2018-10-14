@@ -8,33 +8,55 @@
 
 #include "Functional.h"
 
-#include <list>
+// Functional routines.
+//
+// The functional unit is the designated place for any external
+// routines which are not part of any language standard, but are
+// universal enough to incorporate them in the module. The methods
+// behave in the same manner as an external method would.
+//
+// NOTE: The anonymous namespace must inhibit all the external
+//       methods. Any new methods *must* be appended to this namespace.
+//       The methods itself are unrelated to any of the other methods.
+//
+// NOTE: External methods must me registered in the external method
+//       registry down at the bottom. Registered methods become
+//       automatically available to all the language environments.
 
 namespace
 {
 
+// The pause method.
+// CALL:    pause()
 CRY_METHOD(pause)
 {
 	CRY_UNUSED(ctx);
 }
 
+// The blub method.
+// CALL:    blub(i -> int, j -> int)
+// RETURN:  int
 CRY_METHOD(blub)
 {
-	int i = ctx.GetParameter<int>("i");
-	int j = ctx.GetParameter<int>("j");
+	int i = Util::ValueCastNative<int>((*ctx.GetParameter("i")));
+	int j = Util::ValueCastNative<int>(*ctx.GetParameter("j"));
 	i += j;
 	ctx.SetReturn(Util::MakeInt(i));
 }
 
+// Heap allocation method.
+// CALL:    heap_alloc(size -> int)
 CRY_METHOD(heap_alloc)
 {
-	unsigned int size = ctx.GetParameter<int>("size");
+	unsigned int size = Util::ValueCastNative<int>(*ctx.GetParameter("size"));
 	CRY_UNUSED(size);
 }
 
+// Heap free method.
+// CALL:    heap_alloc(ptr -> int)
 CRY_METHOD(heap_free)
 {
-	intptr_t ptr = ctx.GetParameter<int>("ptr");
+	intptr_t ptr = Util::ValueCastNative<int>(*ctx.GetParameter("ptr"));
 	CRY_UNUSED(ptr);
 }
 
@@ -43,7 +65,13 @@ CRY_METHOD(heap_free)
 namespace EVM
 {
 
-std::list<ExternalMethod> SymbolIndex()
+// Register external methods in the registry below. Each 
+// of the entries is supposted to have:
+//
+//   1.) A method name (required).
+//   2.) Link to the method routine (required).
+//   3.) Variable number of parameter pairs.
+ExternalMethodRegistry SymbolIndex()
 {
 	return {
 		REGISTER_METHOD("pause", pause),

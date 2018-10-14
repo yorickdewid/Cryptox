@@ -9,10 +9,14 @@
 #pragma once
 
 #include <CryCC/AST.h>
+#include <CryCC/SubValue.h>
 
 #include <string>
 #include <functional>
 #include <memory>
+
+// FUTURE:
+// - More boilerplating
 
 #define CRY_METHOD(c) void cry_##c(EVM::ExternalFunctionContext& ctx)
 
@@ -38,31 +42,37 @@ namespace EVM
 class ExternalFunctionContext
 {
 	std::unique_ptr<Valuedef::Value> m_returnValue;
-	std::function<std::shared_ptr<Valuedef::Value>(const std::string&)> m_ctxCallback;
+	std::function<std::shared_ptr<Valuedef::Value>(const std::string&)> m_ctxCallback; //FUTURE: Get rid of the ptr?
 
 public:
+	// The constructor is initialized with a callback to the context. The context is queryable from
+	// this class. The context is the runtime environment in which this method is executed.
 	ExternalFunctionContext(std::function<std::shared_ptr<Valuedef::Value>(const std::string&)> cb)
 		: m_ctxCallback{ cb }
 	{
 	}
 
-	template<typename CastType>
-	CastType GetParameter(const std::string& name)
+	auto GetParameter(const std::string& name)
 	{
-		auto valuePtr = m_ctxCallback(name);
-		return valuePtr->As<CastType>();
+		return m_ctxCallback(name);
 	}
 
+	// Set routine return value.
 	void SetReturn(Valuedef::Value& value)
 	{
 		m_returnValue = std::make_unique<Valuedef::Value>(value);
 	}
 
+	// Set routine return value.
 	void SetReturn(Valuedef::Value&& value)
 	{
 		m_returnValue = std::make_unique<Valuedef::Value>(std::move(value));
 	}
 
+	// Check if a return type was set in this context.
+	inline bool HasReturn() const noexcept { return m_returnValue != nullptr; }
+
+	// Get the return, if set.
 	std::unique_ptr<Valuedef::Value> GetReturn()
 	{
 		return std::move(m_returnValue);
