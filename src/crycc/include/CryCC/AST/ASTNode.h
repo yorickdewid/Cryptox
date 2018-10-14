@@ -474,7 +474,7 @@ class Literal
 	NODE_ID(NodeID::LITERAL_ID);
 
 public:
-	using value_type = Valuedef::Value2;
+	using value_type = Valuedef::Value;
 
 protected:
 	value_type m_value;
@@ -539,8 +539,8 @@ class CharacterLiteral
 	NODE_ID(NodeID::CHARACTER_LITERAL_ID);
 
 public:
-	CharacterLiteral(const Valuedef::Value2&);
-	CharacterLiteral(Valuedef::Value2&&);
+	CharacterLiteral(const Literal::value_type&);
+	CharacterLiteral(Literal::value_type&&);
 
 	CharacterLiteral(char);
 
@@ -564,8 +564,8 @@ class StringLiteral
 	NODE_ID(NodeID::STRING_LITERAL_ID);
 
 public:
-	StringLiteral(const Valuedef::Value2&);
-	StringLiteral(Valuedef::Value2&&);
+	StringLiteral(const Literal::value_type&);
+	StringLiteral(Literal::value_type&&);
 
 	StringLiteral(const std::string&);
 
@@ -589,8 +589,8 @@ class IntegerLiteral
 	NODE_ID(NodeID::INTEGER_LITERAL_ID);
 
 public:
-	IntegerLiteral(const Valuedef::Value2&);
-	IntegerLiteral(Valuedef::Value2&&);
+	IntegerLiteral(const Literal::value_type&);
+	IntegerLiteral(Literal::value_type&&);
 
 	IntegerLiteral(int);
 
@@ -614,8 +614,8 @@ class FloatingLiteral
 	NODE_ID(NodeID::FLOAT_LITERAL_ID);
 
 public:
-	FloatingLiteral(const Valuedef::Value2&);
-	FloatingLiteral(Valuedef::Value2&&);
+	FloatingLiteral(const Literal::value_type&);
+	FloatingLiteral(Literal::value_type&&);
 
 	FloatingLiteral(float);
 

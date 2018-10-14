@@ -10,9 +10,7 @@
 
 #include <boost/format.hpp>
 
-namespace CryCC
-{
-namespace AST
+namespace CryCC::AST
 {
 
 //
@@ -32,7 +30,7 @@ Literal::Literal(value_type&& value)
 }
 
 Literal::Literal(Serializable::VisitorInterface&)
-	: m_value{ Util::MakeInt2(0) } //TODO: temporary fix
+	: m_value{ Util::MakeInt(0) } //TODO: temporary fix
 {
 }
 
@@ -84,18 +82,18 @@ const std::string Literal::NodeNameImpl(const char *className) const
 // CharacterLiteral.
 //
 
-CharacterLiteral::CharacterLiteral(const Valuedef::Value2& value)
+CharacterLiteral::CharacterLiteral(const Literal::value_type& value)
 	: Literal{ value }
 {
 }
 
-CharacterLiteral::CharacterLiteral(Valuedef::Value2&& value)
+CharacterLiteral::CharacterLiteral(Literal::value_type&& value)
 	: Literal{ std::move(value) }
 {
 }
 
 CharacterLiteral::CharacterLiteral(char value)
-	: Literal{ Util::MakeChar2(value) }
+	: Literal{ Util::MakeChar(value) }
 {
 }
 
@@ -123,18 +121,18 @@ const std::string CharacterLiteral::NodeName() const
 // StringLiteral.
 //
 
-StringLiteral::StringLiteral(const Valuedef::Value2& value)
+StringLiteral::StringLiteral(const Literal::value_type& value)
 	: Literal{ value }
 {
 }
 
-StringLiteral::StringLiteral(Valuedef::Value2&& value)
+StringLiteral::StringLiteral(Literal::value_type&& value)
 	: Literal{ std::move(value) }
 {
 }
 
 StringLiteral::StringLiteral(const std::string& value)
-	: Literal{ Util::MakeString2(value) }
+	: Literal{ Util::MakeString(value) }
 {
 }
 
@@ -162,18 +160,18 @@ const std::string StringLiteral::NodeName() const
 // IntegerLiteral.
 //
 
-IntegerLiteral::IntegerLiteral(const Valuedef::Value2& value)
+IntegerLiteral::IntegerLiteral(const Literal::value_type& value)
 	: Literal{ value }
 {
 }
 
-IntegerLiteral::IntegerLiteral(Valuedef::Value2&& value)
+IntegerLiteral::IntegerLiteral(Literal::value_type&& value)
 	: Literal{ std::move(value) }
 {
 }
 
 IntegerLiteral::IntegerLiteral(int value)
-	: Literal{ Util::MakeInt2(value) }
+	: Literal{ Util::MakeInt(value) }
 {
 }
 
@@ -201,18 +199,18 @@ const std::string IntegerLiteral::NodeName() const
 // FloatingLiteral.
 //
 
-FloatingLiteral::FloatingLiteral(const Valuedef::Value2& value)
+FloatingLiteral::FloatingLiteral(const Literal::value_type& value)
 	: Literal{ value }
 {
 }
 
-FloatingLiteral::FloatingLiteral(Valuedef::Value2&& value)
+FloatingLiteral::FloatingLiteral(Literal::value_type&& value)
 	: Literal{ std::move(value) }
 {
 }
 
 FloatingLiteral::FloatingLiteral(float value)
-	: Literal{ Util::MakeFloat2(value) }
+	: Literal{ Util::MakeFloat(value) }
 {
 }
 
@@ -236,5 +234,4 @@ const std::string FloatingLiteral::NodeName() const
 	return Literal::NodeName<FloatingLiteral>();
 }
 
-} // namespace CryCC
-} // namespace AST
+} // namespace CryCC::AST
