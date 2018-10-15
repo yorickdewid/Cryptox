@@ -9,6 +9,7 @@
 #pragma once
 
 #include <Cry/Cry.h>
+#include <Cry/Types.h>
 #include <Cry/Serialize.h>
 
 #include <fstream>
@@ -18,7 +19,6 @@
 //TODO:
 // - Use primitive types
 // - Test all primitives
-// - Allow all STL containers
 
 //FUTURE:
 // - string and vector can be optimized
@@ -29,40 +29,19 @@ namespace Cry
 namespace Detail
 {
 
-#if 0
-struct BasicIOBuffer {};
-
-class ByteArrayBuffer
-	: public BasicIOBuffer
-{
-	ByteArray ba;
-
-public:
-	ByteArrayBuffer() = default;
-};
-
-class FileWriteBuffer
-	: public BasicIOBuffer
-{
-	ByteArray ba;
-	std::fstream m_stream;
-
-public:
-	FileWriteBuffer() = default;
-};
-#endif
-
-////
-
+// Base class for all streaming objects. Provide basics
+// such as ownership of the container, container capacity
+// methods and stream bookkeeping.
+template<template<typename Type, typename Allocator = std::allocator<Type>> typename ContainerType = VectorBuffer>
 class StreamIOBase
 {
-	ByteArray m_streambuffer;
+	ByteArrayBuffer<ContainerType> m_streambuffer;
 
 protected:
 	int m_opts;
 
 public:
-	using base_type = ByteArray;
+	using base_type = ByteArrayBuffer<ContainerType>;
 	using value_type = typename base_type::BaseType::value_type;
 	using position_type = typename base_type::OffsetType;
 	using offset_type = typename base_type::OffsetType;
@@ -95,25 +74,23 @@ public:
 } // namespace Detail
 
 // Stream native data in the byte array.
-class ByteInStream : virtual public Detail::StreamIOBase
+class ByteInStream : virtual public Detail::StreamIOBase<>
 {
-	//
-
 public:
-	ByteInStream& operator>>(char&);
-	ByteInStream& operator>>(unsigned char&);
-	ByteInStream& operator>>(short&);
-	ByteInStream& operator>>(unsigned short&);
-	ByteInStream& operator>>(int&);
-	ByteInStream& operator>>(unsigned int&);
-	ByteInStream& operator>>(long&);
-	ByteInStream& operator>>(unsigned long&);
+	ByteInStream& operator>>(CharType::alias&);
+	ByteInStream& operator>>(UnsignedCharType::alias&);
+	ByteInStream& operator>>(ShortType::alias&);
+	ByteInStream& operator>>(UnsignedShortType::alias&);
+	ByteInStream& operator>>(IntegerType::alias&);
+	ByteInStream& operator>>(UnsignedIntegerType::alias&);
+	ByteInStream& operator>>(LongType::alias&);
+	ByteInStream& operator>>(UnsignedLongType::alias&);
 	ByteInStream& operator>>(long long&);
 	ByteInStream& operator>>(unsigned long long&);
-	ByteInStream& operator>>(float&);
-	ByteInStream& operator>>(double&);
-	ByteInStream& operator>>(long double&);
-	ByteInStream& operator>>(bool&);
+	ByteInStream& operator>>(FloatType::alias&);
+	ByteInStream& operator>>(DoubleType::alias&);
+	ByteInStream& operator>>(LongDoubleType::alias&);
+	ByteInStream& operator>>(BoolType::alias&);
 	ByteInStream& operator>>(std::byte&);
 	ByteInStream& operator>>(std::string&);
 	ByteInStream& operator>>(ByteInStream&);
@@ -154,25 +131,23 @@ public:
 };
 
 // Stream native data out of the byte array.
-class ByteOutStream : virtual public Detail::StreamIOBase
+class ByteOutStream : virtual public Detail::StreamIOBase<>
 {
-	//
-
 public:
-	ByteOutStream& operator<<(char);
-	ByteOutStream& operator<<(unsigned char);
-	ByteOutStream& operator<<(short);
-	ByteOutStream& operator<<(unsigned short);
-	ByteOutStream& operator<<(int);
-	ByteOutStream& operator<<(unsigned int);
-	ByteOutStream& operator<<(long);
-	ByteOutStream& operator<<(unsigned long);
+	ByteOutStream& operator<<(CharType::alias);
+	ByteOutStream& operator<<(UnsignedCharType::alias);
+	ByteOutStream& operator<<(ShortType::alias);
+	ByteOutStream& operator<<(UnsignedShortType::alias);
+	ByteOutStream& operator<<(IntegerType::alias);
+	ByteOutStream& operator<<(UnsignedIntegerType::alias);
+	ByteOutStream& operator<<(LongType::alias);
+	ByteOutStream& operator<<(UnsignedLongType::alias);
 	ByteOutStream& operator<<(long long);
 	ByteOutStream& operator<<(unsigned long long);
-	ByteOutStream& operator<<(float);
-	ByteOutStream& operator<<(double);
-	ByteOutStream& operator<<(long double);
-	ByteOutStream& operator<<(bool);
+	ByteOutStream& operator<<(FloatType::alias);
+	ByteOutStream& operator<<(DoubleType::alias);
+	ByteOutStream& operator<<(LongDoubleType::alias);
+	ByteOutStream& operator<<(BoolType::alias);
 	ByteOutStream& operator<<(std::byte);
 	ByteOutStream& operator<<(const std::string&);
 	ByteOutStream& operator<<(ByteOutStream);
@@ -184,6 +159,7 @@ public:
 		this->WriteIterator(iterable.begin(), iterable.end());
 		return (*this);
 	}
+
 	template<typename Type>
 	ByteOutStream& operator<<(const std::vector<Type>& iterable)
 	{
@@ -212,6 +188,7 @@ public:
 		}
 		return (*this);
 	}
+
 	template<typename IterType>
 	ByteOutStream& WriteIterator(IterType first, IterType last)
 	{
@@ -226,11 +203,8 @@ class ByteStream
 	: public ByteInStream
 	, public ByteOutStream
 {
-public:
-	//
 };
 
-#if 0
 class FileStream
 	: public ByteInStream
 	, public ByteOutStream
@@ -252,6 +226,5 @@ public:
 private:
 	std::fstream m_stream;
 };
-#endif
 
 } // namespace Cry

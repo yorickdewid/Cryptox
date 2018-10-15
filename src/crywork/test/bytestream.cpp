@@ -15,7 +15,10 @@
 // Key         : ByteStream
 // Test        : ByteStream unittest
 // Type        : unit
-// Description : -
+// Description : Stream native datatypes and other objects
+//               in the byte stream. The byte stream must be
+//               able to convert the stream back to the original
+//               objects.
 //
 
 BOOST_AUTO_TEST_SUITE(ByteStream)
@@ -24,8 +27,8 @@ BOOST_AUTO_TEST_CASE(ByteStreamSimpleOut)
 {
 	Cry::ByteOutStream bs;
 
-	bs << 186721583;
-	bs << 'X';
+	bs << 186721583;  // int
+	bs << 'X';        // char
 
 	BOOST_REQUIRE(!bs.Empty());
 	BOOST_REQUIRE_EQUAL(bs.Size(), 5);
@@ -44,17 +47,16 @@ BOOST_AUTO_TEST_CASE(ByteStreamSimpleIO)
 	Cry::ByteStream bs;
 
 	{
-		bs << 186721583;
-		bs << 'X';
-		bs << 896127L;
-		bs << (short)896;
-		bs << 4223372036854775807LL;
-		bs << 18446744073709551614ULL;
-		bs << (std::byte)0x71;
+		bs << 186721583;                // int
+		bs << 'X';                      // char
+		bs << 896127L;                  // long
+		bs << (short)896;               // short
+		bs << 4223372036854775807LL;    // long long
+		bs << 18446744073709551614ULL;  // unsigned long long
+		bs << (std::byte)0x71;          // std::byte
 	}
 
 	BOOST_REQUIRE(!bs.Empty());
-	BOOST_REQUIRE_EQUAL(bs.Size(), 28);
 
 	{
 		int i;
@@ -64,13 +66,13 @@ BOOST_AUTO_TEST_CASE(ByteStreamSimpleIO)
 		long long u;
 		unsigned long long o;
 		std::byte b;
-		bs >> i;
-		bs >> j;
-		bs >> x;
-		bs >> s;
-		bs >> u;
-		bs >> o;
-		bs >> b;
+		bs >> i;   // int
+		bs >> j;   // char
+		bs >> x;   // long
+		bs >> s;   // short
+		bs >> u;   // long long
+		bs >> o;   // unsigned long long
+		bs >> b;   // std::byte
 
 		BOOST_REQUIRE_EQUAL(186721583, i);
 		BOOST_REQUIRE_EQUAL('X', j);
@@ -130,7 +132,7 @@ BOOST_AUTO_TEST_CASE(ByteStreamVector)
 	{
 		Cry::ByteStream bs;
 
-		auto list = { 1, 2, 3, 4 };
+		auto list = { 1, 2, 3, 4 };   // initializer list of integers
 		bs << list;
 
 		std::vector<int> list2;
@@ -141,7 +143,7 @@ BOOST_AUTO_TEST_CASE(ByteStreamVector)
 	{
 		Cry::ByteStream bs;
 
-		bs << "kaas"s;
+		bs << "kaas"s;   // std::string
 
 		std::string str;
 		bs >> str;
@@ -154,6 +156,7 @@ BOOST_AUTO_TEST_CASE(ByteStreamMethods)
 {
 	Cry::ByteStream bs;
 
+	// Write direct bytes.
 	{
 		int k[] = { 121,23,12,34 };
 		bs.Write(k, sizeof(k) / sizeof(k[0]));
@@ -162,6 +165,7 @@ BOOST_AUTO_TEST_CASE(ByteStreamMethods)
 		BOOST_REQUIRE_EQUAL(bs.Size(), 18);
 	}
 
+	// Read direct bytes.
 	{
 		int x[] = { 0,0,0,0 };
 		bs.Read(&x, sizeof(x) / sizeof(x[0]));

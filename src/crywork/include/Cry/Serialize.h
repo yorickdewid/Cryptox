@@ -394,7 +394,7 @@ inline bool BasicArrayBuffer<VectorType>::IsPlatformCompat()
 }
 
 template<template<typename Type, typename Allocator = std::allocator<Type>> typename ContainerType, typename ByteType = Byte>
-using ByteArrayBuffer = BasicArrayBuffer<ContainerType<ByteType>>;
+using ByteArrayBuffer = BasicArrayBuffer<ContainerType<std::decay_t<ByteType>>>;
 
 template<typename Type, typename Allocator = std::allocator<Type>>
 class VectorBuffer : public std::vector<Type, Allocator>, public SerializableContract
