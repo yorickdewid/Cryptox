@@ -85,8 +85,8 @@ public:
 	ByteInStream& operator>>(UnsignedIntegerType::alias&);
 	ByteInStream& operator>>(LongType::alias&);
 	ByteInStream& operator>>(UnsignedLongType::alias&);
-	ByteInStream& operator>>(long long&);
-	ByteInStream& operator>>(unsigned long long&);
+	ByteInStream& operator>>(LongLongType::alias&);
+	ByteInStream& operator>>(UnsignedLongLongType::alias&);
 	ByteInStream& operator>>(FloatType::alias&);
 	ByteInStream& operator>>(DoubleType::alias&);
 	ByteInStream& operator>>(LongDoubleType::alias&);
@@ -142,8 +142,8 @@ public:
 	ByteOutStream& operator<<(UnsignedIntegerType::alias);
 	ByteOutStream& operator<<(LongType::alias);
 	ByteOutStream& operator<<(UnsignedLongType::alias);
-	ByteOutStream& operator<<(long long);
-	ByteOutStream& operator<<(unsigned long long);
+	ByteOutStream& operator<<(LongLongType::alias);
+	ByteOutStream& operator<<(UnsignedLongLongType::alias);
 	ByteOutStream& operator<<(FloatType::alias);
 	ByteOutStream& operator<<(DoubleType::alias);
 	ByteOutStream& operator<<(LongDoubleType::alias);

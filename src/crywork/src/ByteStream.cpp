@@ -57,14 +57,14 @@ ByteInStream& ByteInStream::operator>>(UnsignedLongType::alias& v)
 	v = static_cast<unsigned long>(Buffer().Deserialize<std::make_unsigned_t<UnsignedLongType::storage_type>>());
 	return (*this);
 }
-ByteInStream& ByteInStream::operator>>(long long& v)
+ByteInStream& ByteInStream::operator>>(LongLongType::alias& v)
 {
-	v = static_cast<long long>(Buffer().Deserialize<DoubleWord>());
+	v = static_cast<long long>(Buffer().Deserialize<LongLongType::serialize_type>());
 	return (*this);
 }
-ByteInStream& ByteInStream::operator>>(unsigned long long& v)
+ByteInStream& ByteInStream::operator>>(UnsignedLongLongType::alias& v)
 {
-	v = static_cast<unsigned long long>(Buffer().Deserialize<DoubleWord>());
+	v = static_cast<unsigned long long>(Buffer().Deserialize<UnsignedLongLongType::serialize_type>());
 	return (*this);
 }
 ByteInStream& ByteInStream::operator>>(FloatType::alias& v)
@@ -164,14 +164,14 @@ ByteOutStream& ByteOutStream::operator<<(UnsignedLongType::alias v)
 	Buffer().SerializeAs<UnsignedLongType::serialize_type>(v);
 	return (*this);
 }
-ByteOutStream& ByteOutStream::operator<<(long long v)
+ByteOutStream& ByteOutStream::operator<<(LongLongType::alias v)
 {
-	Buffer().SerializeAs<Cry::DoubleWord>(v);
+	Buffer().SerializeAs<LongLongType::serialize_type>(v);
 	return (*this);
 }
-ByteOutStream& ByteOutStream::operator<<(unsigned long long v)
+ByteOutStream& ByteOutStream::operator<<(UnsignedLongLongType::alias v)
 {
-	Buffer().SerializeAs<Cry::DoubleWord>(v);
+	Buffer().SerializeAs<UnsignedLongLongType::serialize_type>(v);
 	return (*this);
 }
 ByteOutStream& ByteOutStream::operator<<(FloatType::alias v)

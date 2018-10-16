@@ -36,15 +36,17 @@ struct ChangeSignness final
 	static_assert(std::is_integral_v<Type>, "Type must be an interal type");
 
 	using UnsignedType =
+		std::conditional_t<std::is_unsigned_v<Type>, Type,
 		std::conditional_t<std::is_same_v<Type, int8_t>, uint8_t,
 		std::conditional_t<std::is_same_v<Type, int16_t>, uint16_t,
 		std::conditional_t<std::is_same_v<Type, int32_t>, uint32_t, uint64_t
-		>>>;
+		>>>>;
 	using SignedType =
+		std::conditional_t<std::is_signed_v<Type>, Type,
 		std::conditional_t<std::is_same_v<Type, uint8_t>, int8_t,
 		std::conditional_t<std::is_same_v<Type, uint16_t>, int16_t,
 		std::conditional_t<std::is_same_v<Type, uint32_t>, int32_t, int64_t
-		>>>;
+		>>>>;
 };
 
 } // namespace Detail
@@ -67,11 +69,13 @@ struct MakeUnsigned
 template<typename Type>
 using MakeUnsigned_t = typename MakeUnsigned<Type>::type;
 
+static_assert(std::is_same<MakeSigned_t<int8_t>, int8_t>::value, "invalid type translation");
 static_assert(std::is_same<MakeSigned_t<uint8_t>, int8_t>::value, "invalid type translation");
 static_assert(std::is_same<MakeSigned_t<uint16_t>, int16_t>::value, "invalid type translation");
 static_assert(std::is_same<MakeSigned_t<uint32_t>, int32_t>::value, "invalid type translation");
 static_assert(std::is_same<MakeSigned_t<uint64_t>, int64_t>::value, "invalid type translation");
 
+static_assert(std::is_same<MakeUnsigned_t<uint8_t>, uint8_t>::value, "invalid type translation");
 static_assert(std::is_same<MakeUnsigned_t<int8_t>, uint8_t>::value, "invalid type translation");
 static_assert(std::is_same<MakeUnsigned_t<int16_t>, uint16_t>::value, "invalid type translation");
 static_assert(std::is_same<MakeUnsigned_t<int32_t>, uint32_t>::value, "invalid type translation");
@@ -129,8 +133,8 @@ using IntegerType = PrimitiveType<PrimitiveSpecifier::PS_INT, int, int32_t>;
 using UnsignedIntegerType = PrimitiveType<PrimitiveSpecifier::PS_UNSIGNED_INT, unsigned int, uint32_t>;
 using LongType = PrimitiveType<PrimitiveSpecifier::PS_LONG, long, int64_t>;
 using UnsignedLongType = PrimitiveType<PrimitiveSpecifier::PS_UNSIGNED_LONG, unsigned long, uint64_t>;
-//using LongLongType = PrimitiveType<PrimitiveSpecifier::PS_LONG_LONG, long long, int64_t>;
-//using UnsignedLongLongType = PrimitiveType<PrimitiveSpecifier::PS_UNSIGNED_LONG_LONG, unsigned long long, uint64_t>;
+using LongLongType = PrimitiveType<PrimitiveSpecifier::PS_LONG_LONG, long long, int64_t>;
+using UnsignedLongLongType = PrimitiveType<PrimitiveSpecifier::PS_UNSIGNED_LONG_LONG, unsigned long long, uint64_t>;
 using FloatType = PrimitiveType<PrimitiveSpecifier::PS_FLOAT, float, float, int32_t>;
 using DoubleType = PrimitiveType<PrimitiveSpecifier::PS_DOUBLE, double, double, int64_t>;
 using LongDoubleType = PrimitiveType<PrimitiveSpecifier::PS_LONG_DOUBLE, long double, long double, int64_t>;
@@ -175,6 +179,10 @@ class PrimitiveSelectorImpl
 	constexpr static auto Test(LongType::alias)->LongType;
 	template<typename>
 	constexpr static auto Test(UnsignedLongType::alias)->UnsignedLongType;
+	template<typename>
+	constexpr static auto Test(LongLongType::alias)->LongLongType;
+	template<typename>
+	constexpr static auto Test(UnsignedLongLongType::alias)->UnsignedLongLongType;
 	template<typename>
 	constexpr static auto Test(FloatType::alias)->FloatType;
 	template<typename>
@@ -226,6 +234,8 @@ static_assert(std::is_same<PrimitiveSelectorStorageType<int>, int32_t>::value, "
 static_assert(std::is_same<PrimitiveSelectorStorageType<unsigned int>, uint32_t>::value, "invalid type translation");
 static_assert(std::is_same<PrimitiveSelectorStorageType<long>, int64_t>::value, "invalid type translation");
 static_assert(std::is_same<PrimitiveSelectorStorageType<unsigned long>, uint64_t>::value, "invalid type translation");
+static_assert(std::is_same<PrimitiveSelectorStorageType<long long>, int64_t>::value, "invalid type translation");
+static_assert(std::is_same<PrimitiveSelectorStorageType<unsigned long long>, uint64_t>::value, "invalid type translation");
 static_assert(std::is_same<PrimitiveSelectorStorageType<float>, float>::value, "invalid type translation");
 static_assert(std::is_same<PrimitiveSelectorStorageType<double>, double>::value, "invalid type translation");
 // static_assert(std::is_same<PrimitiveSelectorStorageType<long double>, long double>::value, "invalid type translation");
