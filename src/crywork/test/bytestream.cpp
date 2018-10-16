@@ -21,11 +21,13 @@
 //               objects.
 //
 
+using namespace Cry::ByteStream;
+
 BOOST_AUTO_TEST_SUITE(ByteStream)
 
 BOOST_AUTO_TEST_CASE(ByteStreamSimpleOut)
 {
-	Cry::ByteOutStream bs;
+	ByteOutStream bs;
 
 	bs << 186721583;  // int
 	bs << 'X';        // char
@@ -36,7 +38,7 @@ BOOST_AUTO_TEST_CASE(ByteStreamSimpleOut)
 
 BOOST_AUTO_TEST_CASE(ByteStreamSimpleIn)
 {
-	Cry::ByteInStream bs;
+	ByteInStream bs;
 
 	BOOST_REQUIRE(bs.Empty());
 	BOOST_REQUIRE_EQUAL(bs.Size(), 0);
@@ -44,8 +46,9 @@ BOOST_AUTO_TEST_CASE(ByteStreamSimpleIn)
 
 BOOST_AUTO_TEST_CASE(ByteStreamSimpleIO)
 {
-	Cry::ByteStream bs;
+	VectorStream bs;
 
+	// Write to stream.
 	{
 		bs << 186721583;                // int
 		bs << 'X';                      // char
@@ -58,6 +61,7 @@ BOOST_AUTO_TEST_CASE(ByteStreamSimpleIO)
 
 	BOOST_REQUIRE(!bs.Empty());
 
+	// Read from stream.
 	{
 		int i;
 		char j;
@@ -86,8 +90,9 @@ BOOST_AUTO_TEST_CASE(ByteStreamSimpleIO)
 
 BOOST_AUTO_TEST_CASE(ByteStreamSimpleFloat)
 {
+	// Test float.
 	{
-		Cry::ByteStream bs;
+		VectorStream bs;
 
 		bs << 129.872f;
 
@@ -97,8 +102,9 @@ BOOST_AUTO_TEST_CASE(ByteStreamSimpleFloat)
 		BOOST_REQUIRE_EQUAL(129.872f, f);
 	}
 
+	// Test double.
 	{
-		Cry::ByteStream bs;
+		VectorStream bs;
 
 		bs << 612873.71536272997;
 
@@ -107,13 +113,25 @@ BOOST_AUTO_TEST_CASE(ByteStreamSimpleFloat)
 
 		BOOST_REQUIRE_EQUAL(612873.715362729971, d);
 	}
+
+	// Test long double.
+	{
+		VectorStream bs;
+
+		bs << (long double)874.274624352;
+
+		long double ld;
+		bs >> ld;
+
+		BOOST_REQUIRE_EQUAL(874.27462435200005, ld);
+	}
 }
 
 BOOST_AUTO_TEST_CASE(ByteStreamInByteStream)
 {
-	Cry::ByteStream bs;
-	Cry::ByteStream bs2;
-	Cry::ByteStream bs3;
+	VectorStream bs;
+	VectorStream bs2;
+	VectorStream bs3;
 
 	bs << 91;
 
@@ -129,8 +147,9 @@ BOOST_AUTO_TEST_CASE(ByteStreamVector)
 {
 	using namespace std::string_literals;
 
+	// Test vector.
 	{
-		Cry::ByteStream bs;
+		VectorStream bs;
 
 		auto list = { 1, 2, 3, 4 };   // initializer list of integers
 		bs << list;
@@ -140,8 +159,9 @@ BOOST_AUTO_TEST_CASE(ByteStreamVector)
 		BOOST_REQUIRE_EQUAL_COLLECTIONS(list.begin(), list.end(), list2.begin(), list2.end());
 	}
 
+	// Test std::string.
 	{
-		Cry::ByteStream bs;
+		VectorStream bs;
 
 		bs << "kaas"s;   // std::string
 
@@ -154,7 +174,7 @@ BOOST_AUTO_TEST_CASE(ByteStreamVector)
 
 BOOST_AUTO_TEST_CASE(ByteStreamMethods)
 {
-	Cry::ByteStream bs;
+	VectorStream bs;
 
 	// Write direct bytes.
 	{
@@ -188,12 +208,12 @@ public:
 	{
 	}
 
-	explicit MyClass(Cry::ByteStream& bs)
+	explicit MyClass(VectorStream& bs)
 	{
 		bs >> m_i;
 	}
 
-	friend Cry::ByteStream& operator<<(Cry::ByteStream& s, const MyClass& other)
+	friend VectorStream& operator<<(VectorStream& s, const MyClass& other)
 	{
 		s << other.m_i << other.m_c;
 		return s;
@@ -212,12 +232,22 @@ private:
 
 BOOST_AUTO_TEST_CASE(ByteStreamCustomObject)
 {
-	Cry::ByteStream bs;
+	VectorStream bs;
 	MyClass myclass{ 17 };
 
 	bs << myclass;
 
 	BOOST_REQUIRE(myclass == MyClass{ bs });
+}
+
+BOOST_AUTO_TEST_CASE(ByteStreamFlag)
+{
+	VectorStream bs;
+
+	bs << VectorStream::PlatformCheck;
+	bs << 2738ULL;
+
+	//BOOST_REQUIRE(bs. myclass == MyClass{ bs });
 }
 
 BOOST_AUTO_TEST_SUITE_END()

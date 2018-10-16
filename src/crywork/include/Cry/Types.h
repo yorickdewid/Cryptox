@@ -14,7 +14,7 @@
 #include <cstdint>
 #include <cstddef>
 
-#define BITS_PER_BYTE 8
+inline constexpr static const auto BITS_PER_BYTE = 8;
 
 namespace Cry
 {

@@ -8,5 +8,17 @@
 
 #pragma once
 
-#include <Cry/ByteStream/VectorStream.h>
-#include <Cry/ByteStream/FileStream.h>
+#include <Cry/ByteStream/ByteInStream.h>
+#include <Cry/ByteStream/ByteOutStream.h>
+
+namespace Cry::ByteStream
+{
+
+// Combined in and out stream.
+class VectorStream
+	: public ByteInStream<>
+	, public ByteOutStream<>
+{
+};
+
+} // namespace Cry::ByteStream
