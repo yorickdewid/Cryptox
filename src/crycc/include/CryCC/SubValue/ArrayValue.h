@@ -30,7 +30,8 @@ namespace CryCC::SubValue::Valuedef
 
 class ArrayValue : public AbstractValue<ArrayValue>, public IterableContract
 {
-	using ArrayTypeList = Cry::TypeTrait::TemplateHolder<std::vector<Cry::CharType::storage_type>
+	using ArrayTypeList = Cry::TypeTrait::TemplateHolder<std::vector<Cry::BoolType::storage_type>
+		, std::vector<Cry::CharType::storage_type>
 		, std::vector<Cry::ShortType::storage_type>
 		, std::vector<Cry::IntegerType::storage_type>
 		, std::vector<Cry::LongType::storage_type>
@@ -61,7 +62,10 @@ class ArrayValue : public AbstractValue<ArrayValue>, public IterableContract
 			return value;
 		}
 		else {
-			return std::vector<Cry::PrimitiveSelectorStorageType<Type>>{ value.begin(), value.end() };
+			using storage_type = Cry::PrimitiveSelectorStorageType<Type>;
+			std::vector<storage_type> val;
+			Cry::Algorithm::ContainerCast<storage_type>(value.begin(), value.end(), std::back_inserter(val));
+			return val;
 		}
 	}
 
@@ -82,7 +86,7 @@ public:
 
 	// Initialize the type variant with a primitive type.
 	template<typename Type, typename = typename std::enable_if_t<
-		!std::is_same_v<Type, std::add_lvalue_reference<ArrayValue>::type>
+		!std::is_same_v<Type, std::add_lvalue_reference_t<ArrayValue>>
 		&& !std::is_same_v<Type, ArrayValue>
 	>, typename = typename std::enable_if_t<ArrayTypeList::has_type<Type>::value
 		|| Cry::IsPrimitiveType_v<Type>>>
@@ -116,10 +120,10 @@ public:
 	{
 		try {
 			auto valueList = boost::strict_get<std::vector<Cry::PrimitiveSelectorStorageType<ReturnType>>>(m_value);
-			std::vector<ReturnType> tmpVal;
-			tmpVal.reserve(valueList.size());
-			Cry::Algorithm::ContainerCast<ReturnType>(valueList.begin(), valueList.end(), std::back_inserter(tmpVal));
-			return tmpVal;
+			std::vector<ReturnType> val;
+			val.reserve(valueList.size());
+			Cry::Algorithm::ContainerCast<ReturnType>(valueList.begin(), valueList.end(), std::back_inserter(val));
+			return val;
 		}
 		catch (const boost::bad_get&) {
 			throw InvalidTypeCastException{};

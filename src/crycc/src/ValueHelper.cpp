@@ -172,10 +172,10 @@ Value MakeUnsignedLong(unsigned long v)
 	return Detail::MakeBuiltinImpl<BuiltinType::Specifier::UNSIGNED_LONG_T>(v);
 }
 
-// Value MakeBool(bool v)
-// {
-//  return Detail::MakeBuiltinImpl<BuiltinType::Specifier::BOOL_T>(v);
-// }
+Value MakeBool(bool v)
+{
+	return Value{ MakeBuiltinType(BuiltinType::Specifier::BOOL_T), BuiltinValue{ v } };
+}
 
 Value MakeChar(char v)
 {
@@ -213,6 +213,11 @@ Value MakeArrayImpl(const Type& value)
 }
 
 } // namespace Detail
+
+Value MakeBoolArray(const std::vector<bool>& v)
+{
+	return Detail::MakeArrayImpl<BuiltinType::Specifier::BOOL_T>(v);
+}
 
 Value MakeCharArray(const std::vector<char>& v)
 {

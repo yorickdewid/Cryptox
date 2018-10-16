@@ -8,15 +8,18 @@
 
 #pragma once
 
+// Project includes.
 #include <CryCC/SubValue/ValueContract.h>
 #include <CryCC/SubValue/Typedef.h>
 
+// Framework includes.
 #include <Cry/Cry.h>
 #include <Cry/Types.h>
 #include <Cry/TypeTrait.h>
 
 #include <boost/variant.hpp>
 
+// Language includes.
 #include <cstdint>
 
 namespace CryCC::SubValue::Valuedef
@@ -24,8 +27,8 @@ namespace CryCC::SubValue::Valuedef
 
 class BuiltinValue : public AbstractValue<BuiltinValue>
 {
-	//TODO: missing UnsignedLongDoubleType, bool? ?
-	using NativeTypeList = Cry::TypeTrait::TemplateHolder<Cry::CharType::storage_type
+	using NativeTypeList = Cry::TypeTrait::TemplateHolder<Cry::BoolType::storage_type
+		, Cry::CharType::storage_type
 		, Cry::ShortType::storage_type
 		, Cry::IntegerType::storage_type
 		, Cry::LongType::storage_type

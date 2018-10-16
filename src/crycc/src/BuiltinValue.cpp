@@ -30,7 +30,12 @@ struct BuiltinValue::PackerVisitor final : public boost::static_visitor<>
 	void EncodeValue(const typename PrimitiveType::storage_type& value) const
 	{
 		m_buffer.SerializeAs<Cry::Byte>(PrimitiveType::specifier);
-		m_buffer.SerializeAs<std::make_unsigned<PrimitiveType::storage_type>::type>(value);
+		m_buffer.SerializeAs<PrimitiveType::serialize_type>(value);
+	}
+
+	void operator()(const typename BoolType::storage_type& value) const
+	{
+		EncodeValue<BoolType>(value);
 	}
 
 	void operator()(const typename CharType::storage_type& value) const
@@ -94,7 +99,9 @@ struct BuiltinValue::PackerVisitor final : public boost::static_visitor<>
 	template<typename PrimitiveType>
 	auto DecodeValue() const
 	{
-		return static_cast<PrimitiveType::storage_type>(m_buffer.Deserialize<std::make_unsigned<PrimitiveType::storage_type>::type>(Cry::ByteArray::AUTO));
+		return static_cast<PrimitiveType::storage_type>(
+			m_buffer.Deserialize<PrimitiveType::serialize_type>(Cry::ByteArray::AUTO)
+		);
 	}
 
 	void operator()(BuiltinValue::ValueVariant& variantValue) const
@@ -102,6 +109,9 @@ struct BuiltinValue::PackerVisitor final : public boost::static_visitor<>
 		PrimitiveSpecifier specifier = static_cast<PrimitiveSpecifier>(m_buffer.Deserialize<Cry::Byte>(Cry::ByteArray::AUTO));
 		switch (specifier)
 		{
+		case BoolType::specifier:
+			variantValue = DecodeValue<BoolType>();
+			break;
 		case CharType::specifier:
 			variantValue = DecodeValue<CharType>();
 			break;
@@ -225,7 +235,18 @@ struct BinaryArithVisitor final : public boost::static_visitor<BuiltinValue>
 	template<typename LHSType, typename RHSType>
 	BuiltinValue operator()(const LHSType& lhs, const RHSType& rhs) const
 	{
-		return std::invoke(BinaryOperation<LHSType, RHSType>(), lhs, rhs);
+		if constexpr (std::is_same_v<LHSType, bool> && std::is_same_v<RHSType, bool>) {
+			return std::invoke(BinaryOperation<int, int>(), lhs, rhs);
+		}
+		else if constexpr (std::is_same_v<LHSType, bool>) {
+			return std::invoke(BinaryOperation<int, RHSType>(), lhs, rhs);
+		}
+		else if constexpr (std::is_same_v<RHSType, bool>) {
+			return std::invoke(BinaryOperation<LHSType, int>(), lhs, rhs);
+		}
+		else {
+			return std::invoke(BinaryOperation<LHSType, RHSType>(), lhs, rhs);
+		}
 	}
 };
 
@@ -256,6 +277,8 @@ BuiltinValue operator/(const BuiltinValue& lhs, const BuiltinValue& rhs)
 //TODO:
 BuiltinValue operator%(const BuiltinValue& lhs, const BuiltinValue& rhs)
 {
+	CRY_UNUSED(lhs);
+	CRY_UNUSED(rhs);
 	/*BinaryArithVisitor<Functional::Modulus> valueVisitor;
 	return boost::apply_visitor(valueVisitor, lhs.m_value, rhs.m_value);*/
 	return { 0 };

@@ -84,6 +84,7 @@ BOOST_AUTO_TEST_CASE(ValCatBuiltinValue)
 	BuiltinValue valUint{ 92U };
 	BuiltinValue valUlong{ 100UL };
 
+	BuiltinValue valBool{ true };
 	BuiltinValue valFloat{ 692.834f };
 	BuiltinValue valDouble{ 97347.862341 };
 
@@ -97,6 +98,7 @@ BOOST_AUTO_TEST_CASE(ValCatBuiltinValue)
 	BOOST_REQUIRE_EQUAL(92U, valUint.As<unsigned int>());
 	BOOST_REQUIRE_EQUAL(100UL, valUlong.As<unsigned long>());
 
+	BOOST_REQUIRE_EQUAL(true, valBool.As<bool>());
 	BOOST_REQUIRE_EQUAL(692.834f, valFloat.As<float>());
 	BOOST_REQUIRE_EQUAL(97347.862341, valDouble.As<double>());
 }
@@ -220,6 +222,7 @@ BOOST_AUTO_TEST_CASE(ValCatArrayValue)
 	ArrayValue valArUint{ 91U,8U,12U,3713U };
 	ArrayValue valArUlong{ 100UL,400UL,900260UL };
 
+	ArrayValue valArBool{ false,true,true,false };
 	ArrayValue valArFloat{ 84.8748f, 948.847f };
 	ArrayValue valArDouble{ 8734.823123, 891.6418 };
 
@@ -236,6 +239,7 @@ BOOST_AUTO_TEST_CASE(ValCatArrayValue)
 	BOOST_REQUIRE((std::vector<unsigned int>{91U, 8U, 12U, 3713U}) == valArUint.As<unsigned int>());
 	BOOST_REQUIRE((std::vector<unsigned long>{100UL, 400UL, 900260UL}) == valArUlong.As<unsigned long>());
 
+	BOOST_REQUIRE((std::vector<bool>{false, true, true, false}) == valArBool.As<bool>());
 	BOOST_REQUIRE((std::vector<float>{84.8748f, 948.847f}) == valArFloat.As<float>());
 	BOOST_REQUIRE((std::vector<double>{8734.823123, 891.6418}) == valArDouble.As<double>());
 

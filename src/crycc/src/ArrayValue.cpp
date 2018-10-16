@@ -31,8 +31,13 @@ struct ArrayValue::PackerVisitor final : public boost::static_visitor<>
 		m_buffer.SerializeAs<Cry::Byte>(PrimitiveType::specifier);
 		m_buffer.SerializeAs<Cry::Word>(value.size());
 		for (const auto& element : value) {
-			m_buffer.SerializeAs<std::make_unsigned<PrimitiveType::storage_type>::type>(element);
+			m_buffer.SerializeAs<PrimitiveType::serialize_type>(element);
 		}
+	}
+
+	void operator()(const std::vector<BoolType::storage_type>& value) const
+	{
+		EncodeValue<BoolType>(value);
 	}
 
 	void operator()(const std::vector<CharType::storage_type>& value) const
@@ -116,7 +121,9 @@ struct ArrayValue::PackerVisitor final : public boost::static_visitor<>
 	{
 		std::vector<PrimitiveType::storage_type> value;
 		for (size_t i = 0; i < size; ++i) {
-			value.push_back(static_cast<PrimitiveType::storage_type>(m_buffer.Deserialize<std::make_unsigned<PrimitiveType::storage_type>::type>(Cry::ByteArray::AUTO)));
+			value.push_back(static_cast<PrimitiveType::storage_type>(
+				m_buffer.Deserialize<PrimitiveType::serialize_type>(Cry::ByteArray::AUTO)
+			));
 		}
 
 		return value;
@@ -128,6 +135,9 @@ struct ArrayValue::PackerVisitor final : public boost::static_visitor<>
 		size_t arraySize = m_buffer.Deserialize<Cry::Word>(Cry::ByteArray::AUTO);
 		switch (specifier)
 		{
+		case BoolType::specifier:
+			variantValue = DecodeValue<BoolType>(arraySize);
+			break;
 		case CharType::specifier:
 			variantValue = DecodeValue<CharType>(arraySize);
 			break;

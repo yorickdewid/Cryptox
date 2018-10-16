@@ -65,11 +65,12 @@ Value MakeLongDouble(double);
 //Value MakeUnsignedLongDouble(double);
 Value MakeString(const std::string&);
 
-// Value MakeBool(bool); //TODO
+Value MakeBool(bool);
 Value MakeChar(char);
 Value MakeInt(int);
 Value MakeFloat(float);
 Value MakeDouble(double);
+Value MakeBoolArray(const std::vector<bool>&);
 Value MakeCharArray(const std::vector<char>&);
 Value MakeShortArray(const std::vector<short>&);
 Value MakeIntArray(const std::vector<int>&);
