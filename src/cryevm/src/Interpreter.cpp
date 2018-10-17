@@ -8,14 +8,17 @@
 
 #include "Interpreter.h"
 
+// Project includes.
 #include <CryEVM/ExternalMethod.h>
 
 #include <CryCC/AST.h>
 #include <CryCC/SubValue.h>
 
+// Framework includes.
 #include <Cry/Cry.h>
 #include <Cry/Except.h>
 
+// Language includes.
 #include <numeric>
 #include <set>
 
@@ -90,6 +93,8 @@ class UnitContext;
 class CompoundContext;
 class FunctionContext;
 
+#if 0
+
 // Access record as a single entity value. If the record value is not initialized, create a new record value and
 // assign it to the value. If the member values does not exist in the record value, create a new member value, add
 // it to the record value and return the member value as writable value. If the member value already exist in the
@@ -151,6 +156,8 @@ public:
 		}
 	}
 };
+
+#endif // 0
 
 namespace Context
 {
@@ -911,7 +918,7 @@ void Evaluator::Unit(const TranslationUnitDecl& node)
 using Parameters = std::vector<Value>;
 
 template<typename Type>
-struct BitLeftShift
+struct BitLeftShift final
 {
 	constexpr Type operator()(const Type& left, const Type& right) const
 	{
@@ -920,7 +927,7 @@ struct BitLeftShift
 };
 
 template<typename Type>
-struct BitRightShift
+struct BitRightShift final
 {
 	constexpr Type operator()(const Type& left, const Type& right) const
 	{
@@ -928,86 +935,81 @@ struct BitRightShift
 	}
 };
 
-template<typename Type>
-struct OperandFactory
+struct OperandFactory final
 {
-	using result_type = Type;
-
 	BinaryOperator::BinOperand operand;
 	inline OperandFactory(BinaryOperator::BinOperand operand)
 		: operand{ operand }
 	{
 	}
 
-	constexpr Type operator()(const Type& left, const Type& right) const
+	Value operator()(const Value& left, const Value& right) const
 	{
 		switch (operand) {
 
-			{
-				//
-				// Arithmetic operations.
-				//
-			}
+
+			//
+			// Arithmetic operations.
+			//
+
 
 		case BinaryOperator::BinOperand::PLUS:
-			return std::plus<Type>()(left, right);
+			return std::plus{}(left, right);
 		case BinaryOperator::BinOperand::MINUS:
-			return std::minus<Type>()(left, right);
+			return std::minus{}(left, right);
 		case BinaryOperator::BinOperand::MUL:
-			return std::multiplies<Type>()(left, right);
+			return std::multiplies{}(left, right);
 		case BinaryOperator::BinOperand::DIV:
-			return std::divides<Type>()(left, right);
+			return std::divides{}(left, right);
 		case BinaryOperator::BinOperand::MOD:
-			return std::modulus<Type>()(left, right);
+			return std::modulus{}(left, right);
 
-			{
-				//
-				// Bitwise operations.
-				//
-			}
+
+			//
+			// Bitwise operations.
+			//
+
 
 		case BinaryOperator::BinOperand::XOR:
-			return std::bit_xor<Type>()(left, right);
+			return Util::MakeInt(std::bit_xor{}(left, right));
 		case BinaryOperator::BinOperand::OR:
-			return std::bit_or<Type>()(left, right);
+			return Util::MakeInt(std::bit_or{}(left, right));
 		case BinaryOperator::BinOperand::AND:
-			return std::bit_and<Type>()(left, right);
-		case BinaryOperator::BinOperand::SLEFT:
-			return BitLeftShift<Type>()(left, right);
+			return Util::MakeInt(std::bit_and{}(left, right));
+		/*case BinaryOperator::BinOperand::SLEFT:
+			return Util::MakeInt(BitLeftShift{}(left, right));
 		case BinaryOperator::BinOperand::SRIGHT:
-			return BitRightShift<Type>()(left, right);
+			return Util::MakeInt(BitRightShift{}(left, right));*/
 
-			{
-				//
-				// Comparisons.
-				//
-			}
+
+			//
+			// Comparisons.
+			//
+
 
 		case BinaryOperator::BinOperand::EQ:
-			return std::equal_to<Type>()(left, right);
+			return Util::MakeBool(std::equal_to{}(left, right));
 		case BinaryOperator::BinOperand::NEQ:
-			return std::not_equal_to<Type>()(left, right);
+			return Util::MakeBool(std::not_equal_to{}(left, right));
 		case BinaryOperator::BinOperand::LT:
-			return std::less<Type>()(left, right);
+			return Util::MakeBool(std::less{}(left, right));
 		case BinaryOperator::BinOperand::GT:
-			return std::greater<Type>()(left, right);
+			return Util::MakeBool(std::greater{}(left, right));
 		case BinaryOperator::BinOperand::LE:
-			return std::less_equal<Type>()(left, right);
+			return Util::MakeBool(std::less_equal{}(left, right));
 		case BinaryOperator::BinOperand::GE:
-			return std::greater_equal<Type>()(left, right);
+			return Util::MakeBool(std::greater_equal{}(left, right));
 
-			{
-				//
-				// Logical operations.
-				//
-			}
+			//
+			// Logical operations.
+			//
 
 			//TODO: missing negate?
 
 		case BinaryOperator::BinOperand::LAND:
-			return std::logical_and<Type>()(left, right);
+			return Util::MakeBool(std::logical_and{}(left, right));
 		case BinaryOperator::BinOperand::LOR:
-			return std::logical_or<Type>()(left, right);
+			return Util::MakeBool(std::logical_or{}(left, right));
 		}
 
 		CryImplExcept();
@@ -1050,42 +1052,59 @@ enum { RETURN_NORMAL, RETURN_BREAK, RETURN_RETURN };
 
 int ExecuteStatement(const std::shared_ptr<ASTNode>&, Context::Compound&);
 
+// Fetch the value from context by declaration.
+//
+// Get the declaration from the context and return the corresponding value. Depending on the
+// type of declaration some additional work needs to be done to retrieve the value from the
+// context. The value must be present in the context at this point, or a runtime error will
+// occur.
 template<typename ContextType>
 std::shared_ptr<Value> DeclarationReference(const std::shared_ptr<ASTNode>& node, ContextType& ctx)
 {
-	std::shared_ptr<DeclRefExpr> declRef;
-
 	switch (node->Label()) {
-	case NodeID::DECL_REF_EXPR_ID: {
-		declRef = Util::NodeCast<DeclRefExpr>(node);
-		return ctx->ValueByIdentifier(declRef->Identifier()).lock();
+
+		// Retrieve value via reference declaration.
+	case NodeID::DECL_REF_EXPR_ID:
+	{
+		const auto reference = Util::NodeCast<DeclRefExpr>(node);
+		return ctx->ValueByIdentifier(reference->Identifier()).lock();
 	}
-	case NodeID::MEMBER_EXPR_ID: {
+
+	// Retrieve member value via member declaration.
+	case NodeID::MEMBER_EXPR_ID:
+	{
 		const auto member = Util::NodeCast<MemberExpr>(node);
 		std::shared_ptr<Value> value = ctx->ValueByIdentifier(member->RecordRef()->Identifier()).lock(); //TODO: RecordRef -> RecordDeclaration
-		return RecordProxy::MemberValue(value, member->FieldName());
+		//return RecordProxy::MemberValue(value, member->FieldName()); //TODO
+		return nullptr;
 	}
-	case NodeID::ARRAY_SUBSCRIPT_EXPR_ID: {
+
+	// Retrieve array item value via subscript declaration.
+	case NodeID::ARRAY_SUBSCRIPT_EXPR_ID:
+	{
 		const auto subscr = Util::NodeCast<ArraySubscriptExpr>(node);
 		std::shared_ptr<Value> value = ctx->ValueByIdentifier(subscr->ArrayDeclaration()->Identifier()).lock();
 		Value offset = ResolveExpression(subscr->OffsetExpression(), ctx);
-		auto array = value->As<std::vector<int>>(); //TODO: could be any type
-		return std::make_shared<Value>(Util::MakeInt(array[offset.As<int>()])); //TODO: could be any integral type
+
+		//auto array = Util::ValueCastNative<int>(*value);//value->As<std::vector<int>>(); //TODO: could be any type
+		//return std::make_shared<Value>(Util::MakeInt(array[Util::ValueCastNative<int>(offset)])); //TODO: could be any integral type
+		return nullptr;
 	}
+
 	}
 
 	CryImplExcept(); //TODO
 }
 
-template<typename OperandPred, typename ContainerType = Valuedef::Value>
-static Value BinaryOperation(OperandPred predicate, ContainerType&& valuesLHS, ContainerType&& valuesRHS)
-{
-	typename OperandPred::result_type result = predicate(
-		valuesLHS.As<OperandPred::result_type>(),
-		valuesRHS.As<OperandPred::result_type>());
-
-	return Util::MakeInt(result); //TODO: not always an integer
-}
+//template<typename OperandPred, typename ContainerType = Valuedef::Value>
+//static Value BinaryOperation(OperandPred predicate, ContainerType&& valuesLHS, ContainerType&& valuesRHS)
+//{
+//	typename OperandPred::result_type result = predicate(
+//		valuesLHS.As<OperandPred::result_type>(),
+//		valuesRHS.As<OperandPred::result_type>());
+//
+//	return Util::MakeInt(result); //TODO: not always an integer
+//}
 
 // Inverse the boolean result.
 Value EvaluateInverse(const Value& value)
@@ -1098,7 +1117,7 @@ template<int Increment, typename OperandPred, typename ContextType>
 Value ValueAlteration(OperandPred predicate, UnaryOperator::OperandSide side, std::shared_ptr<ASTNode> node, ContextType& ctx)
 {
 	std::shared_ptr<Value> value = DeclarationReference(node, ctx);
-	int result = predicate(value->As<int>(), Increment); //TODO: not always an integer
+	int result = predicate(Util::ValueCastNative<int>(*value), Increment); //TODO: not always an integer
 
 	// On postfix operand, copy the original first.
 	if (side == UnaryOperator::OperandSide::POSTFIX) {
@@ -1151,7 +1170,7 @@ Value ResolveExpression(std::shared_ptr<ASTNode> node, ContextType& ctx)
 		const auto list = Util::NodeCast<InitListExpr>(node)->List();
 		std::transform(list.cbegin(), list.cend(), std::back_inserter(dummyArray), [&ctx](const std::shared_ptr<ASTNode>& value) -> int
 		{
-			return ResolveExpression(value, ctx).As<int>();
+			return Util::ValueCastNative<int>(ResolveExpression(value, ctx));
 		});
 
 		return Util::MakeIntArray(dummyArray);
@@ -1181,7 +1200,8 @@ Value ResolveExpression(std::shared_ptr<ASTNode> node, ContextType& ctx)
 
 		auto lhsValue = ResolveExpression(op->LHS(), ctx);
 		auto rhsValue = ResolveExpression(op->RHS(), ctx);
-		return BinaryOperation(OperandFactory<int>(op->Operand()), lhsValue, rhsValue); //TODO: not always an integer
+		//return BinaryOperation(OperandFactory<int>(op->Operand()), lhsValue, rhsValue); //TODO: not always an integer
+		return std::invoke(OperandFactory{ op->Operand() }, lhsValue, rhsValue);
 	}
 	case NodeID::CONDITIONAL_OPERATOR_ID: {
 		const auto op = std::dynamic_pointer_cast<ConditionalOperator>(node);
@@ -1430,7 +1450,8 @@ void ProcessDeclaration(std::shared_ptr<DeclStmt>& declNode, Context::Compound& 
 			ctx->PushVar(node->Identifier(), std::move(value));
 		}
 		else {
-			Valuedef::Value value = Valuedef::Value{ node->ReturnType() };
+			auto returnType = node->ReturnType();
+			Valuedef::Value value = Valuedef::Value{ std::move(returnType) };
 			ctx->PushVar(node->Identifier(), std::move(value));
 		}
 	}
@@ -1668,7 +1689,7 @@ Parameters ConvertToValueDef(const ArgumentList&& args)
 	}
 
 	return params;
-} // namespace
+}
 
 // Warp startup parameters in program arguments format. To If no arguments are
 // passed to the startup the parameters are ignored. The program contract
@@ -1735,7 +1756,7 @@ int Evaluator::YieldResult()
 	try {
 		auto globalCtx = m_unitContext->ParentAs<EVM::GlobalContext>();
 		if (globalCtx->HasReturnValue()) {
-			return globalCtx->ReturnValue().As<int>();
+			return Util::ValueCastNative<int>(globalCtx->ReturnValue());
 		}
 	}
 	// On casting faillure, return faillure all the way.
@@ -1767,20 +1788,21 @@ void Interpreter::PreliminaryCheck(const std::string& entry)
 
 std::string Interpreter::EntryPoint(const char *entry)
 {
-	if (!entry) {
-		return ENTRY_SYMBOL;
-	}
-	return entry;
+	return entry ? entry : ENTRY_SYMBOL;
 }
 
-// Run the program with current strategy.
-Interpreter::ReturnCode Interpreter::Execute(const std::string& entry, const ArgumentList& args, const ArgumentList& envs)
+// Run the program with current strategy. This is the starting point
+// for any program executed with the interpreter executor.
+Interpreter::ReturnCode Interpreter::Execute(const std::string& entry
+	, const ArgumentList& args
+	, const ArgumentList& envs)
 {
 	CRY_UNUSED(envs);
 
-	// Check if entry exists in this program.
+	// Check if program can be run by this executor.
 	PreliminaryCheck(entry);
 
+	// Call entry point routine.
 	return Evaluator::CallFunction(Program()->Ast(), entry, args);
 }
 

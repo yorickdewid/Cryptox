@@ -11,7 +11,7 @@
 #include <Cry/MemoryMap/BasicMMap.h>
 
 #ifdef CRY_LINUX
-# include <sys/mmap.h>
+# include <sys/mman.h>
 # include <sys/stat.h>
 #endif
 
