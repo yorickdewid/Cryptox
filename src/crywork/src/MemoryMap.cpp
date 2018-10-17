@@ -10,6 +10,11 @@
 #include <Cry/MemoryMap/Page.h>
 #include <Cry/MemoryMap/BasicMMap.h>
 
+#ifdef CRY_LINUX
+# include <sys/mmap.h>
+# include <sys/stat.h>
+#endif
+
 namespace Cry
 {
 namespace MemoryMap
@@ -70,7 +75,7 @@ size_t FileSizeHandle(file_handle_type handle, std::error_code& error)
 #else
 	struct stat sbuf;
 	if (::fstat(handle, &sbuf) < 0) {
-		error = last_error();
+		error = LastNativeError();
 		return 0;
 	}
 
@@ -119,12 +124,12 @@ MMapRawResult MMapRaw(const file_handle_type file_handle, const int64_t offset, 
 	char* mapping_start = static_cast<char*>(::mmap(
 		0, // Don't give hint as to where to map.
 		length_to_map,
-		mode == access_mode::read ? PROT_READ : PROT_WRITE,
+		mode == AccessModeType::READ ? PROT_READ : PROT_WRITE,
 		MAP_SHARED,
 		file_handle,
 		aligned_offset));
 	if (mapping_start == MAP_FAILED) {
-		error = last_error();
+		error = LastNativeError();
 		return {};
 	}
 #endif

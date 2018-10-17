@@ -15,11 +15,7 @@
 #include <string>
 #include <system_error>
 
-namespace Cry
-{
-namespace MemoryMap
-{
-namespace Detail
+namespace Cry::MemoryMap::Detail
 {
 
 enum { MAP_ENTIRE_FILE = 0, };
@@ -28,6 +24,7 @@ enum { MAP_ENTIRE_FILE = 0, };
 using file_handle_type = HANDLE;
 #else
 using file_handle_type = int;
+constexpr static const int INVALID_HANDLE_VALUE{ -1 };
 #endif
 
 struct BasicMMap
@@ -124,7 +121,7 @@ public:
 	void map(String& path, size_type offset, size_type length, AccessModeType mode, std::error_code& error)
 	{
 		error.clear();
-		if (detail::empty(path)) {
+		if (!path) {
 			error = std::make_error_code(std::errc::invalid_argument);
 			return;
 		}
@@ -156,6 +153,4 @@ bool operator<(const BasicMMap&, const BasicMMap&);
 bool operator>(const BasicMMap&, const BasicMMap&);
 //bool operator>=(const BasicMMap&, const BasicMMap&);
 
-} // namespace Detail
-} // namespace MemoryMap
-} // namespace Cry
+} // namespace Cry::MemoryMap::Detail

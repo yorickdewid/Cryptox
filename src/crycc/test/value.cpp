@@ -23,9 +23,6 @@
 //                - Value must be easy constructable
 //
 
-//TODO:
-// - Make Bool
-
 using namespace CryCC::SubValue::Typedef;
 using namespace CryCC::SubValue::Valuedef;
 
@@ -314,7 +311,7 @@ BOOST_AUTO_TEST_CASE(ValueReworkMisc)
 		BOOST_REQUIRE(!Util::EvaluateValueAsBoolean(Util::MakeInt(0)));
 		BOOST_REQUIRE_EQUAL(762386, Util::EvaluateValueAsInteger(Util::MakeInt(762386)));
 		BOOST_REQUIRE_EQUAL(0, Util::EvaluateValueAsInteger(Util::MakeInt(0)));
-		//BOOST_REQUIRE_THROW(Util::EvaluateValueAsInteger(Util::MakeIntArray({ 12,23 })), UninitializedValueException);
+		//BOOST_REQUIRE_THROW(Util::EvaluateValueAsInteger(Util::MakeIntArray({ 12,23 })), UninitializedValueException); //TODO:
 		BOOST_REQUIRE_THROW(Util::EvaluateValueAsInteger(Util::MakeFloat(8.12f)), InvalidTypeCastException);
 	}
 
@@ -459,6 +456,7 @@ BOOST_AUTO_TEST_CASE(ValueReworkSerialize)
 		Value val2 = MakeUninitialized();
 		Value::Deserialize(val2, buffer);
 
+		//TODO: 23.341430 != 23.000000
 		//BOOST_REQUIRE_EQUAL(val, val2);
 	}
 
@@ -476,17 +474,17 @@ BOOST_AUTO_TEST_CASE(ValueReworkSerialize)
 	}
 
 	// Serialize array composed string.
-	//{
-	//	const Value2 val = Util::MakeString("teststring");
+	{
+		const Value val = Util::MakeString("teststring");
 
-	//	Cry::ByteArray buffer;
-	//	Value2::Serialize(val, buffer);
+		Cry::ByteArray buffer;
+		Value::Serialize(val, buffer);
 
-	//	Value val2 = MakeUninitialized();
-	//	Value::Deserialize(val2, buffer);
+		Value val2 = MakeUninitialized();
+		Value::Deserialize(val2, buffer);
 
-	//	BOOST_REQUIRE_EQUAL(val, val2);
-	//}
+		BOOST_REQUIRE_EQUAL(val, val2);
+	}
 
 	// Serialize record.
 	{
