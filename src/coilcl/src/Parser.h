@@ -8,19 +8,23 @@
 
 #pragma once
 
+// Local includes.
 #include "Profile.h"
 #include "Tokenizer.h"
 #include "Lexer.h"
 
+// Project includes.
 #include <CryCC/AST.h>
 #include <CryCC/Program.h>
 
+// Framework includes.
 #include <Cry/Cry.h>
 #include <Cry/TypeTrait.h>
 #include <Cry/LockPipe.h>
 
 #include <boost/optional.hpp>
 
+// Language includes.
 #include <deque>
 #include <stack>
 #include <map>
@@ -29,9 +33,10 @@ namespace Typedef = CryCC::SubValue::Typedef;
 namespace Valuedef = CryCC::SubValue::Valuedef;
 
 // Pop all stack values as long as the stack contains elements.
-template<typename Type, typename = typename std::enable_if<Cry::TypeTrait::IsStack<Type>::value>::type>
+template<typename Type>
 inline void ClearStack(Type& c)
 {
+	static_assert(Cry::TypeTrait::IsStack<Type>::value, "Type must be stack");
 	while (!c.empty()) { c.pop(); }
 }
 
@@ -49,6 +54,7 @@ class TokenState
 public:
 	using TokenType = decltype(m_currentToken);
 	using ValueType = decltype(m_currentData)::value_type;
+	using LocationType = std::pair<int, int>;
 
 public:
 	TokenState(Token currentToken)
@@ -76,22 +82,22 @@ public:
 	TokenState(TokenState&& other) = default;
 
 	// Test if current token state contains data.
-	inline bool HasData() const { return (!!m_currentData); }
+	inline bool HasData() const noexcept { return (!!m_currentData); }
 
 	// Fetch data from current token state.
-	inline const Valuedef::Value& FetchData() { return m_currentData.get(); }
+	inline const ValueType& FetchData() { return m_currentData.get(); }
 
 	// Fetch token from current token state.
-	inline auto FetchToken() const { return m_currentToken; }
+	inline TokenType FetchToken() const noexcept { return m_currentToken; }
 
 	// Fetch source line from current token state.
-	inline auto FetchLine() const { return m_line; }
+	inline int FetchLine() const noexcept { return m_line; }
 
 	// Fetch source column from current token state.
-	inline auto FetchColumn() const { return m_column; }
+	inline int FetchColumn() const noexcept { return m_column; }
 
 	// Fetch source location as pair.
-	inline auto FetchLocation() const { return std::make_pair(m_line, m_column); }
+	inline LocationType FetchLocation() const { return std::make_pair(m_line, m_column); }
 };
 
 //TODO: iterator, check StateType
@@ -218,13 +224,14 @@ public:
 	}
 };
 
+//TODO: std::less ?
 struct CompareStringPair
 {
 	using type = std::pair<std::string, int>;
 
-	auto operator()(const type& a, const type& b) const
+	auto operator()(const type& lhs, const type& rhs) const
 	{
-		return a.first < b.first;
+		return lhs.first < rhs.first;
 	}
 };
 
@@ -249,12 +256,34 @@ public:
 	}
 
 protected:
+
+	//
+	// Token state operations.
+	//
+
+	TokenState::TokenType CurrentToken();
+	TokenState::TokenType PreviousToken();
+	const TokenState::ValueType& CurrentData();
+	const TokenState::ValueType& PreviousData();
+	TokenState::LocationType CurrentLocation();
+	TokenState::LocationType PreviousLocation();
+
+	//
+	// Generic token operations.
+	//
+
 	void Error(const char *err, Token token);
+	bool MatchToken(Token);
 	void ExpectToken(Token token);
 	void ExpectIdentifier();
 	void NextToken();
 
 private:
+
+	//
+	// Types and operators.
+	//
+
 	auto StorageClassSpecifier();
 	auto TypeQualifier();
 	bool TypeSpecifier();
@@ -267,7 +296,10 @@ private:
 	bool AssignmentOperator();
 	void CompoundLiteral();
 
-private: // Expressions
+	//
+	// Expressions.
+	//
+
 	void PrimaryExpression();
 	void ArgumentExpressionList();
 	void PostfixExpression();
@@ -288,7 +320,10 @@ private: // Expressions
 	void Expression();
 	void ConstantExpression();
 
-private: // Statements
+	//
+	// Statements.
+	//
+
 	bool JumpStatement();
 	bool LabeledStatement();
 	bool CompoundStatement();
@@ -297,7 +332,10 @@ private: // Statements
 	bool IterationStatement();
 	void Statement();
 
-private: // Declarations
+	//
+	// Declarations.
+	//
+
 	void BlockItems();
 	void Declaration();
 	void InitDeclaratorList();

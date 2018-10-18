@@ -18,13 +18,6 @@
 #include <exception>
 #include <sstream>
 
-#define CURRENT_DATA() m_comm.Current().FetchData()
-#define PREVIOUS_TOKEN() m_comm.Previous().FetchToken()
-#define CURRENT_TOKEN() m_comm.Current().FetchToken()
-#define CURRENT_LOCATION() m_comm.Current().FetchLocation()
-#define MATCH_TOKEN(t) (CURRENT_TOKEN() == t)
-#define NOT_TOKEN(t) (CURRENT_TOKEN() != t)
-
 #define MAKE_RESV_REF() Util::MakeASTNode<DeclRefExpr>(m_identifierStack.top()); m_identifierStack.pop();
 
 using namespace CryCC::Program;
@@ -169,6 +162,36 @@ Parser& Parser::CheckCompatibility()
 	return (*this);
 }
 
+TokenState::TokenType Parser::CurrentToken()
+{
+	return m_comm.Current().FetchToken();
+}
+
+TokenState::TokenType Parser::PreviousToken()
+{
+	return m_comm.Previous().FetchToken();
+}
+
+const TokenState::ValueType& Parser::CurrentData()
+{
+	return m_comm.Current().FetchData();
+}
+
+const TokenState::ValueType& Parser::PreviousData()
+{
+	return m_comm.Previous().FetchData();
+}
+
+TokenState::LocationType Parser::CurrentLocation()
+{
+	return m_comm.Current().FetchLocation();
+}
+
+TokenState::LocationType Parser::PreviousLocation()
+{
+	return m_comm.Previous().FetchLocation();
+}
+
 void Parser::Error(const char* err, Token token)
 {
 	throw UnexpectedTokenException{ err, m_comm.Current().FetchLine(), m_comm.Current().FetchColumn(), token };
@@ -194,11 +217,16 @@ void Parser::NextToken()
 	}
 }
 
+bool Parser::MatchToken(Token token)
+{
+	return CurrentToken() == token;
+}
+
 // Expect next token to be provided token, if so
 // Move lexer forward. If not report error and bail.
 void Parser::ExpectToken(Token token)
 {
-	if (NOT_TOKEN(token)) {
+	if (MatchToken(token)) {
 		Error("expected token", token);
 	}
 
@@ -208,7 +236,7 @@ void Parser::ExpectToken(Token token)
 //TODO: remove ?
 void Parser::ExpectIdentifier()
 {
-	if (NOT_TOKEN(TK_IDENTIFIER)) {
+	if (!MatchToken(TK_IDENTIFIER)) {
 		Error("expected identifier", TK_IDENTIFIER);
 	}
 
@@ -220,7 +248,7 @@ void Parser::ExpectIdentifier()
 // Storage class specifiers determine the lifetime and scope of the object
 auto Parser::StorageClassSpecifier()
 {
-	switch (CURRENT_TOKEN()) {
+	switch (CurrentToken()) {
 	case TK_EXTERN:
 		return TypedefBase::StorageClassSpecifier::EXTERN;
 	case TK_REGISTER:
@@ -239,7 +267,7 @@ auto Parser::StorageClassSpecifier()
 // Type specifiers determine size of the object in memory.
 bool Parser::TypeSpecifier()
 {
-	switch (CURRENT_TOKEN()) {
+	switch (CurrentToken()) {
 	case TK_VOID:
 		m_typeStack.push(Util::MakeBuiltinType(BuiltinType::Specifier::VOID_T));
 		return true;
@@ -297,7 +325,7 @@ bool Parser::TypeSpecifier()
 // Specifying type correctness
 auto Parser::TypeQualifier()
 {
-	switch (CURRENT_TOKEN()) {
+	switch (CurrentToken()) {
 	case TK_CONST:
 		return TypedefBase::TypeQualifier::CONST_T;
 	case TK_VOLATILE:
@@ -350,7 +378,7 @@ bool Parser::DeclarationSpecifiers()
 		}
 
 		// Function inline specifier.
-		if (MATCH_TOKEN(TK_INLINE)) {
+		if (MatchToken(TK_INLINE)) {
 			NextToken();
 			isInline = true;
 			cont = true;
@@ -395,8 +423,8 @@ bool Parser::DeclarationSpecifiers()
 
 bool Parser::TypenameSpecifier()
 {
-	if (MATCH_TOKEN(TK_IDENTIFIER)) {
-		const auto& name = Util::ValueCastString(CURRENT_DATA());
+	if (MatchToken(TK_IDENTIFIER)) {
+		const auto& name = Util::ValueCastString(CurrentData());
 
 		auto& res = m_typedefList[name];
 		if (!res) { return false; }
@@ -413,7 +441,7 @@ bool Parser::StructOrUnionSpecifier()
 	using Specifier = RecordType::Specifier;
 	auto isUnion = false;
 
-	switch (CURRENT_TOKEN()) {
+	switch (CurrentToken()) {
 	case TK_STRUCT:
 		NextToken();
 		break;
@@ -426,17 +454,17 @@ bool Parser::StructOrUnionSpecifier()
 	}
 
 	std::string name;
-	if (MATCH_TOKEN(TK_IDENTIFIER)) {
-		name = Util::ValueCastString(CURRENT_DATA());
+	if (MatchToken(TK_IDENTIFIER)) {
+		name = Util::ValueCastString(CurrentData());
 		NextToken();
 	}
 
-	if (MATCH_TOKEN(TK_BRACE_OPEN)) {
+	if (MatchToken(TK_BRACE_OPEN)) {
 		using RecType = RecordDecl::RecordType;
 
 		NextToken();
 		auto rec = Util::MakeASTNode<RecordDecl>(isUnion ? RecType::UNION : RecType::STRUCT);
-		rec->SetLocation(CURRENT_LOCATION());
+		rec->SetLocation(CurrentLocation());
 
 		if (!name.empty()) {
 			rec->SetName(name);
@@ -452,11 +480,11 @@ bool Parser::StructOrUnionSpecifier()
 				const auto decl = m_identifierStack.top();
 				m_identifierStack.pop();
 				auto field = Util::MakeASTNode<FieldDecl>(decl, m_typeStack.top());
-				field->SetLocation(CURRENT_LOCATION());
+				field->SetLocation(CurrentLocation());
 				field->UpdateReturnType().SetPointer(m_pointerCounter);
 				m_pointerCounter = 0;
 
-				if (MATCH_TOKEN(TK_COLON)) {
+				if (MatchToken(TK_COLON)) {
 					NextToken();
 					ConstantExpression();
 					field->SetBitField(Util::NodeCast<IntegerLiteral>(m_elementDescentPipe.next()));
@@ -467,7 +495,7 @@ bool Parser::StructOrUnionSpecifier()
 
 				rec->AddField(field);
 
-				if (NOT_TOKEN(TK_COMMA)) {
+				if (!MatchToken(TK_COMMA)) {
 					break;
 				}
 
@@ -475,11 +503,11 @@ bool Parser::StructOrUnionSpecifier()
 			}
 
 			ExpectToken(TK_COMMIT);
-		} while (NOT_TOKEN(TK_BRACE_CLOSE));
+		} while (!MatchToken(TK_BRACE_CLOSE));
 		ExpectToken(TK_BRACE_CLOSE);
 
 		// Possible declaration after record.
-		if (NOT_TOKEN(TK_COMMIT)) {
+		if (!MatchToken(TK_COMMIT)) {
 			m_comm.ShiftBackward();
 		}
 
@@ -540,27 +568,27 @@ void Parser::SpecifierQualifierList()
 
 bool Parser::EnumSpecifier()
 {
-	if (MATCH_TOKEN(TK_ENUM)) {
+	if (MatchToken(TK_ENUM)) {
 		NextToken();
 
 		auto enm = Util::MakeASTNode<EnumDecl>();
-		enm->SetLocation(CURRENT_LOCATION());
+		enm->SetLocation(CurrentLocation());
 
-		if (MATCH_TOKEN(TK_IDENTIFIER)) {
-			enm->SetName(Util::ValueCastString(CURRENT_DATA()));
+		if (MatchToken(TK_IDENTIFIER)) {
+			enm->SetName(Util::ValueCastString(CurrentData()));
 			NextToken();
 		}
 
-		if (MATCH_TOKEN(TK_BRACE_OPEN)) {
+		if (MatchToken(TK_BRACE_OPEN)) {
 			for (;;) {
 				NextToken();
 
-				if (MATCH_TOKEN(TK_IDENTIFIER)) {
-					auto enmConst = Util::MakeASTNode<EnumConstantDecl>(Util::ValueCastString(CURRENT_DATA()));
-					enmConst->SetLocation(CURRENT_LOCATION());
+				if (MatchToken(TK_IDENTIFIER)) {
+					auto enmConst = Util::MakeASTNode<EnumConstantDecl>(Util::ValueCastString(CurrentData()));
+					enmConst->SetLocation(CurrentLocation());
 
 					NextToken();
-					if (MATCH_TOKEN(TK_ASSIGN)) {
+					if (MatchToken(TK_ASSIGN)) {
 						NextToken();
 						ConstantExpression();
 						enmConst->SetAssignment(m_elementDescentPipe.next());
@@ -570,7 +598,7 @@ bool Parser::EnumSpecifier()
 					enm->AddConstant(enmConst);
 				}
 
-				if (NOT_TOKEN(TK_COMMA)) {
+				if (!MatchToken(TK_COMMA)) {
 					break;
 				}
 			}
@@ -589,7 +617,7 @@ bool Parser::UnaryOperator()
 {
 	using UnaryOperatorNode = CryCC::AST::UnaryOperator;
 
-	switch (CURRENT_TOKEN()) {
+	switch (CurrentToken()) {
 	case TK_AMPERSAND:
 	{
 		NextToken();
@@ -598,7 +626,7 @@ bool Parser::UnaryOperator()
 		auto resv = m_elementDescentPipe.next();
 		m_elementDescentPipe.pop();
 		auto unaryOp = Util::MakeASTNode<UnaryOperatorNode>(UnaryOperator::UnaryOperator::ADDR, UnaryOperator::OperandSide::PREFIX, resv);
-		unaryOp->SetLocation(CURRENT_LOCATION());
+		unaryOp->SetLocation(CurrentLocation());
 		m_elementDescentPipe.push(unaryOp);
 		break;
 	}
@@ -610,7 +638,7 @@ bool Parser::UnaryOperator()
 		auto resv = m_elementDescentPipe.next();
 		m_elementDescentPipe.pop();
 		auto unaryOp = Util::MakeASTNode<UnaryOperatorNode>(UnaryOperator::UnaryOperator::PTRVAL, UnaryOperator::OperandSide::PREFIX, resv);
-		unaryOp->SetLocation(CURRENT_LOCATION());
+		unaryOp->SetLocation(CurrentLocation());
 		m_elementDescentPipe.push(unaryOp);
 		break;
 	}
@@ -622,7 +650,7 @@ bool Parser::UnaryOperator()
 		auto resv = m_elementDescentPipe.next();
 		m_elementDescentPipe.pop();
 		auto unaryOp = Util::MakeASTNode<UnaryOperatorNode>(UnaryOperator::UnaryOperator::INTPOS, UnaryOperator::OperandSide::PREFIX, resv);
-		unaryOp->SetLocation(CURRENT_LOCATION());
+		unaryOp->SetLocation(CurrentLocation());
 		m_elementDescentPipe.push(unaryOp);
 		break;
 	}
@@ -634,7 +662,7 @@ bool Parser::UnaryOperator()
 		auto resv = m_elementDescentPipe.next();
 		m_elementDescentPipe.pop();
 		auto unaryOp = Util::MakeASTNode<UnaryOperatorNode>(UnaryOperator::UnaryOperator::INTNEG, UnaryOperator::OperandSide::PREFIX, resv);
-		unaryOp->SetLocation(CURRENT_LOCATION());
+		unaryOp->SetLocation(CurrentLocation());
 		m_elementDescentPipe.push(unaryOp);
 		break;
 	}
@@ -646,7 +674,7 @@ bool Parser::UnaryOperator()
 		auto resv = m_elementDescentPipe.next();
 		m_elementDescentPipe.pop();
 		auto unaryOp = Util::MakeASTNode<UnaryOperatorNode>(UnaryOperator::UnaryOperator::BITNOT, UnaryOperator::OperandSide::PREFIX, resv);
-		unaryOp->SetLocation(CURRENT_LOCATION());
+		unaryOp->SetLocation(CurrentLocation());
 		m_elementDescentPipe.push(unaryOp);
 		break;
 	}
@@ -658,7 +686,7 @@ bool Parser::UnaryOperator()
 		auto resv = m_elementDescentPipe.next();
 		m_elementDescentPipe.pop();
 		auto unaryOp = Util::MakeASTNode<UnaryOperatorNode>(UnaryOperator::UnaryOperator::BOOLNOT, UnaryOperator::OperandSide::PREFIX, resv);
-		unaryOp->SetLocation(CURRENT_LOCATION());
+		unaryOp->SetLocation(CurrentLocation());
 		m_elementDescentPipe.push(unaryOp);
 		break;
 	}
@@ -671,11 +699,11 @@ bool Parser::UnaryOperator()
 
 bool Parser::AssignmentOperator()
 {
-	switch (CURRENT_TOKEN()) {
+	switch (CurrentToken()) {
 	case TK_ASSIGN:
 	{
 		auto binOp = Util::MakeASTNode<BinaryOperator>(BinaryOperator::BinOperand::ASSGN, m_elementDescentPipe.next());
-		binOp->SetLocation(CURRENT_LOCATION());
+		binOp->SetLocation(CurrentLocation());
 		m_elementDescentPipe.pop();
 
 		NextToken();
@@ -690,7 +718,7 @@ bool Parser::AssignmentOperator()
 	{
 		auto resv = Util::NodeCast<DeclRefExpr>(m_elementDescentPipe.next());
 		auto comOp = Util::MakeASTNode<CompoundAssignOperator>(CompoundAssignOperator::CompoundAssignOperand::MUL, resv);
-		comOp->SetLocation(CURRENT_LOCATION());
+		comOp->SetLocation(CurrentLocation());
 		m_elementDescentPipe.pop();
 
 		NextToken();
@@ -705,7 +733,7 @@ bool Parser::AssignmentOperator()
 	{
 		auto resv = Util::NodeCast<DeclRefExpr>(m_elementDescentPipe.next());
 		auto comOp = Util::MakeASTNode<CompoundAssignOperator>(CompoundAssignOperator::CompoundAssignOperand::DIV, resv);
-		comOp->SetLocation(CURRENT_LOCATION());
+		comOp->SetLocation(CurrentLocation());
 		m_elementDescentPipe.pop();
 
 		NextToken();
@@ -720,7 +748,7 @@ bool Parser::AssignmentOperator()
 	{
 		auto resv = Util::NodeCast<DeclRefExpr>(m_elementDescentPipe.next());
 		auto comOp = Util::MakeASTNode<CompoundAssignOperator>(CompoundAssignOperator::CompoundAssignOperand::MOD, resv);
-		comOp->SetLocation(CURRENT_LOCATION());
+		comOp->SetLocation(CurrentLocation());
 		m_elementDescentPipe.pop();
 
 		NextToken();
@@ -735,7 +763,7 @@ bool Parser::AssignmentOperator()
 	{
 		auto resv = Util::NodeCast<DeclRefExpr>(m_elementDescentPipe.next());
 		auto comOp = Util::MakeASTNode<CompoundAssignOperator>(CompoundAssignOperator::CompoundAssignOperand::ADD, resv);
-		comOp->SetLocation(CURRENT_LOCATION());
+		comOp->SetLocation(CurrentLocation());
 		m_elementDescentPipe.pop();
 
 		NextToken();
@@ -750,7 +778,7 @@ bool Parser::AssignmentOperator()
 	{
 		auto resv = Util::NodeCast<DeclRefExpr>(m_elementDescentPipe.next());
 		auto comOp = Util::MakeASTNode<CompoundAssignOperator>(CompoundAssignOperator::CompoundAssignOperand::SUB, resv);
-		comOp->SetLocation(CURRENT_LOCATION());
+		comOp->SetLocation(CurrentLocation());
 		m_elementDescentPipe.pop();
 
 		NextToken();
@@ -765,7 +793,7 @@ bool Parser::AssignmentOperator()
 	{
 		auto resv = Util::NodeCast<DeclRefExpr>(m_elementDescentPipe.next());
 		auto comOp = Util::MakeASTNode<CompoundAssignOperator>(CompoundAssignOperator::CompoundAssignOperand::LEFT, resv);
-		comOp->SetLocation(CURRENT_LOCATION());
+		comOp->SetLocation(CurrentLocation());
 		m_elementDescentPipe.pop();
 
 		m_elementDescentPipe.pop();
@@ -781,7 +809,7 @@ bool Parser::AssignmentOperator()
 	{
 		auto resv = Util::NodeCast<DeclRefExpr>(m_elementDescentPipe.next());
 		auto comOp = Util::MakeASTNode<CompoundAssignOperator>(CompoundAssignOperator::CompoundAssignOperand::RIGHT, resv);
-		comOp->SetLocation(CURRENT_LOCATION());
+		comOp->SetLocation(CurrentLocation());
 		m_elementDescentPipe.pop();
 
 		NextToken();
@@ -796,7 +824,7 @@ bool Parser::AssignmentOperator()
 	{
 		auto resv = Util::NodeCast<DeclRefExpr>(m_elementDescentPipe.next());
 		auto comOp = Util::MakeASTNode<CompoundAssignOperator>(CompoundAssignOperator::CompoundAssignOperand::AND, resv);
-		comOp->SetLocation(CURRENT_LOCATION());
+		comOp->SetLocation(CurrentLocation());
 		m_elementDescentPipe.pop();
 
 		NextToken();
@@ -811,7 +839,7 @@ bool Parser::AssignmentOperator()
 	{
 		auto resv = Util::NodeCast<DeclRefExpr>(m_elementDescentPipe.next());
 		auto comOp = Util::MakeASTNode<CompoundAssignOperator>(CompoundAssignOperator::CompoundAssignOperand::XOR, resv);
-		comOp->SetLocation(CURRENT_LOCATION());
+		comOp->SetLocation(CurrentLocation());
 		m_elementDescentPipe.pop();
 
 		NextToken();
@@ -826,7 +854,7 @@ bool Parser::AssignmentOperator()
 	{
 		auto resv = Util::NodeCast<DeclRefExpr>(m_elementDescentPipe.next());
 		auto comOp = Util::MakeASTNode<CompoundAssignOperator>(CompoundAssignOperator::CompoundAssignOperand::OR, resv);
-		comOp->SetLocation(CURRENT_LOCATION());
+		comOp->SetLocation(CurrentLocation());
 		m_elementDescentPipe.pop();
 
 		NextToken();
@@ -846,9 +874,9 @@ bool Parser::AssignmentOperator()
 
 void Parser::PrimaryExpression()
 {
-	switch (CURRENT_TOKEN()) {
+	switch (CurrentToken()) {
 	case TK_IDENTIFIER:
-		m_identifierStack.push(Util::ValueCastString(CURRENT_DATA()));
+		m_identifierStack.push(Util::ValueCastString(CurrentData()));
 		NextToken();
 		break;
 
@@ -884,7 +912,7 @@ void Parser::PrimaryExpression()
 		Expression();
 
 		auto parenthesis = Util::MakeASTNode<ParenExpr>(m_elementDescentPipe.next());
-		parenthesis->SetLocation(CURRENT_LOCATION());
+		parenthesis->SetLocation(CurrentLocation());
 		m_elementDescentPipe.pop();
 		m_elementDescentPipe.push(parenthesis);
 		ExpectToken(TK_PARENTHESE_CLOSE);
@@ -900,7 +928,7 @@ void Parser::ArgumentExpressionList()
 			m_elementDescentPipe.lock();
 		}
 
-		if (NOT_TOKEN(TK_COMMA)) {
+		if (!MatchToken(TK_COMMA)) {
 			break;
 		}
 
@@ -910,7 +938,7 @@ void Parser::ArgumentExpressionList()
 
 void Parser::CompoundLiteral()
 {
-	if (MATCH_TOKEN(TK_PARENTHESE_OPEN)) {
+	if (MatchToken(TK_PARENTHESE_OPEN)) {
 		// Snapshot current state in case of rollback
 		m_comm.Snapshot();
 		try {
@@ -923,7 +951,7 @@ void Parser::CompoundLiteral()
 			m_comm.DisposeSnapshot();
 
 			auto list = Util::MakeASTNode<InitListExpr>();
-			list->SetLocation(CURRENT_LOCATION());
+			list->SetLocation(CurrentLocation());
 
 			for (;;) {
 				Initializer();
@@ -931,7 +959,7 @@ void Parser::CompoundLiteral()
 				list->AddListItem(m_elementDescentPipe.next());
 				m_elementDescentPipe.pop();
 
-				if (NOT_TOKEN(TK_COMMA)) {
+				if (!MatchToken(TK_COMMA)) {
 					break;
 				}
 
@@ -940,7 +968,7 @@ void Parser::CompoundLiteral()
 			ExpectToken(TK_BRACE_CLOSE);
 
 			auto comp = Util::MakeASTNode<CompoundLiteralExpr>(list);
-			comp->SetLocation(CURRENT_LOCATION());
+			comp->SetLocation(CurrentLocation());
 			m_elementDescentPipe.push(comp);
 		}
 
@@ -962,19 +990,19 @@ void Parser::PostfixExpression()
 	PrimaryExpression();
 
 	for (;;) {
-		switch (CURRENT_TOKEN()) {
+		switch (CurrentToken()) {
 		case TK_BRACKET_OPEN:
 		{
 			NextToken();
 
 			auto resv = MAKE_RESV_REF();
-			resv->SetLocation(CURRENT_LOCATION());
+			resv->SetLocation(CurrentLocation());
 
 			Expression();
 			ExpectToken(TK_BRACKET_CLOSE);
 
 			auto arrsub = Util::MakeASTNode<ArraySubscriptExpr>(resv, m_elementDescentPipe.next());
-			arrsub->SetLocation(CURRENT_LOCATION());
+			arrsub->SetLocation(CurrentLocation());
 			m_elementDescentPipe.pop();
 			m_elementDescentPipe.push(arrsub);
 			break;
@@ -984,12 +1012,12 @@ void Parser::PostfixExpression()
 			NextToken();
 
 			auto resv = MAKE_RESV_REF();
-			resv->SetLocation(CURRENT_LOCATION());
+			resv->SetLocation(CurrentLocation());
 
-			if (MATCH_TOKEN(TK_PARENTHESE_CLOSE)) {
+			if (MatchToken(TK_PARENTHESE_CLOSE)) {
 				NextToken();
 				auto call = Util::MakeASTNode<CallExpr>(resv);
-				call->SetLocation(CURRENT_LOCATION());
+				call->SetLocation(CurrentLocation());
 				m_elementDescentPipe.push(call);
 			}
 			else {
@@ -999,14 +1027,14 @@ void Parser::PostfixExpression()
 				ExpectToken(TK_PARENTHESE_CLOSE);
 
 				auto arg = Util::MakeASTNode<ArgumentStmt>();
-				arg->SetLocation(CURRENT_LOCATION());
+				arg->SetLocation(CurrentLocation());
 				while (!m_elementDescentPipe.empty()) {
 					arg->AppendArgument(m_elementDescentPipe.next());
 					m_elementDescentPipe.pop();
 				}
 
 				auto call = Util::MakeASTNode<CallExpr>(resv, arg);
-				call->SetLocation(CURRENT_LOCATION());
+				call->SetLocation(CurrentLocation());
 				m_elementDescentPipe.push(call);
 			}
 			break;
@@ -1014,14 +1042,14 @@ void Parser::PostfixExpression()
 		case TK_DOT:
 		{
 			auto resv = MAKE_RESV_REF();
-			resv->SetLocation(CURRENT_LOCATION());
+			resv->SetLocation(CurrentLocation());
 
 			NextToken();
 			//ExpectIdentifier();
 
-			auto member = Util::ValueCastString(CURRENT_DATA());
+			auto member = Util::ValueCastString(CurrentData());
 			auto expr = Util::MakeASTNode<MemberExpr>(MemberExpr::MemberType::REFERENCE, member, resv);
-			expr->SetLocation(CURRENT_LOCATION());
+			expr->SetLocation(CurrentLocation());
 			m_elementDescentPipe.push(expr);
 			NextToken();
 			break;
@@ -1029,14 +1057,14 @@ void Parser::PostfixExpression()
 		case TK_PTR_OP:
 		{
 			auto resv = MAKE_RESV_REF();
-			resv->SetLocation(CURRENT_LOCATION());
+			resv->SetLocation(CurrentLocation());
 
 			NextToken();
 			//ExpectIdentifier();
 
-			auto member = Util::ValueCastString(CURRENT_DATA());
+			auto member = Util::ValueCastString(CurrentData());
 			auto expr = Util::MakeASTNode<MemberExpr>(MemberExpr::MemberType::POINTER, member, resv);
-			expr->SetLocation(CURRENT_LOCATION());
+			expr->SetLocation(CurrentLocation());
 			m_elementDescentPipe.push(expr);
 			NextToken();
 			break;
@@ -1049,9 +1077,9 @@ void Parser::PostfixExpression()
 
 			//auto resv = Util::MakeASTNode<DeclRefExpr>(m_identifierStack.top()); m_identifierStack.pop();
 			auto resv = MAKE_RESV_REF();
-			resv->SetLocation(CURRENT_LOCATION());
+			resv->SetLocation(CurrentLocation());
 			auto unaryOp = Util::MakeASTNode<UnaryOperatorNode>(UnaryOperator::UnaryOperator::INC, UnaryOperator::OperandSide::POSTFIX, std::dynamic_pointer_cast<ASTNode>(resv));
-			unaryOp->SetLocation(CURRENT_LOCATION());
+			unaryOp->SetLocation(CurrentLocation());
 			m_elementDescentPipe.push(unaryOp);
 
 			NextToken();
@@ -1064,9 +1092,9 @@ void Parser::PostfixExpression()
 			}
 
 			auto resv = MAKE_RESV_REF();
-			resv->SetLocation(CURRENT_LOCATION());
+			resv->SetLocation(CurrentLocation());
 			auto unaryOp = Util::MakeASTNode<UnaryOperatorNode>(UnaryOperator::UnaryOperator::DEC, UnaryOperator::OperandSide::POSTFIX, std::dynamic_pointer_cast<ASTNode>(resv));
-			unaryOp->SetLocation(CURRENT_LOCATION());
+			unaryOp->SetLocation(CurrentLocation());
 			m_elementDescentPipe.push(unaryOp);
 
 			NextToken();
@@ -1080,7 +1108,7 @@ void Parser::PostfixExpression()
 			if (m_identifierStack.size() > startSz) {
 				if (m_typedefList[m_identifierStack.top()] == nullptr) {
 					auto resv = MAKE_RESV_REF();
-					resv->SetLocation(CURRENT_LOCATION());
+					resv->SetLocation(CurrentLocation());
 					m_elementDescentPipe.push(resv);
 				}
 				// Identifier is typedef specifier, shift back and pop identifier
@@ -1101,7 +1129,7 @@ void Parser::UnaryExpression()
 
 	//auto startSz = m_identifierStack.size();
 
-	switch (CURRENT_TOKEN()) {
+	switch (CurrentToken()) {
 	case TK_INC_OP:
 	{
 		NextToken();
@@ -1112,7 +1140,7 @@ void Parser::UnaryExpression()
 		}*/
 
 		auto unaryOp = Util::MakeASTNode<UnaryOperatorNode>(UnaryOperator::UnaryOperator::INC, UnaryOperator::OperandSide::PREFIX, m_elementDescentPipe.next());
-		unaryOp->SetLocation(CURRENT_LOCATION());
+		unaryOp->SetLocation(CurrentLocation());
 		m_elementDescentPipe.pop();
 		m_elementDescentPipe.push(unaryOp);
 
@@ -1128,7 +1156,7 @@ void Parser::UnaryExpression()
 		}*/
 
 		auto unaryOp = Util::MakeASTNode<UnaryOperatorNode>(UnaryOperator::UnaryOperator::DEC, UnaryOperator::OperandSide::PREFIX, m_elementDescentPipe.next());
-		unaryOp->SetLocation(CURRENT_LOCATION());
+		unaryOp->SetLocation(CurrentLocation());
 		m_elementDescentPipe.pop();
 		m_elementDescentPipe.push(unaryOp);
 
@@ -1139,14 +1167,14 @@ void Parser::UnaryExpression()
 		NextToken();
 
 		auto ref = Util::MakeASTNode<DeclRefExpr>("sizeof");
-		ref->SetLocation(CURRENT_LOCATION());
+		ref->SetLocation(CurrentLocation());
 		auto func = Util::MakeASTNode<BuiltinExpr>(ref);
-		func->SetLocation(CURRENT_LOCATION());
+		func->SetLocation(CurrentLocation());
 
 		// Snapshot current state in case of rollback
 		m_comm.Snapshot();
 		try {
-			if (MATCH_TOKEN(TK_PARENTHESE_OPEN)) {
+			if (MatchToken(TK_PARENTHESE_OPEN)) {
 				NextToken();
 				TypeName();
 				ExpectToken(TK_PARENTHESE_CLOSE);
@@ -1181,7 +1209,7 @@ void Parser::UnaryExpression()
 
 void Parser::CastExpression()
 {
-	if (MATCH_TOKEN(TK_PARENTHESE_OPEN)) {
+	if (MatchToken(TK_PARENTHESE_OPEN)) {
 		// Snapshot current state in case of rollback.
 		m_comm.Snapshot();
 		try {
@@ -1200,7 +1228,7 @@ void Parser::CastExpression()
 			m_comm.DisposeSnapshot();
 
 			auto cast = Util::MakeASTNode<CastExpr>(m_elementDescentPipe.next(), m_typeStack.top());
-			cast->SetLocation(CURRENT_LOCATION());
+			cast->SetLocation(CurrentLocation());
 			m_elementDescentPipe.pop();
 			m_typeStack.pop();
 			m_elementDescentPipe.push(cast);
@@ -1220,11 +1248,11 @@ void Parser::MultiplicativeExpression()
 	CastExpression();
 
 	for (;;) {
-		switch (CURRENT_TOKEN()) {
+		switch (CurrentToken()) {
 		case TK_ASTERISK:
 		{
 			auto binOp = Util::MakeASTNode<BinaryOperator>(BinaryOperator::BinOperand::MUL, m_elementDescentPipe.next());
-			binOp->SetLocation(CURRENT_LOCATION());
+			binOp->SetLocation(CurrentLocation());
 			m_elementDescentPipe.pop();
 
 			NextToken();
@@ -1238,7 +1266,7 @@ void Parser::MultiplicativeExpression()
 		case TK_SLASH:
 		{
 			auto binOp = Util::MakeASTNode<BinaryOperator>(BinaryOperator::BinOperand::DIV, m_elementDescentPipe.next());
-			binOp->SetLocation(CURRENT_LOCATION());
+			binOp->SetLocation(CurrentLocation());
 			m_elementDescentPipe.pop();
 
 			NextToken();
@@ -1252,7 +1280,7 @@ void Parser::MultiplicativeExpression()
 		case TK_PERCENT:
 		{
 			auto binOp = Util::MakeASTNode<BinaryOperator>(BinaryOperator::BinOperand::MOD, m_elementDescentPipe.next());
-			binOp->SetLocation(CURRENT_LOCATION());
+			binOp->SetLocation(CurrentLocation());
 			m_elementDescentPipe.pop();
 
 			NextToken();
@@ -1274,11 +1302,11 @@ void Parser::AdditiveExpression()
 	MultiplicativeExpression();
 
 	for (;;) {
-		switch (CURRENT_TOKEN()) {
+		switch (CurrentToken()) {
 		case TK_PLUS:
 		{
 			auto binOp = Util::MakeASTNode<BinaryOperator>(BinaryOperator::BinOperand::PLUS, m_elementDescentPipe.next());
-			binOp->SetLocation(CURRENT_LOCATION());
+			binOp->SetLocation(CurrentLocation());
 			m_elementDescentPipe.pop();
 
 			NextToken();
@@ -1292,7 +1320,7 @@ void Parser::AdditiveExpression()
 		case TK_MINUS:
 		{
 			auto binOp = Util::MakeASTNode<BinaryOperator>(BinaryOperator::BinOperand::MINUS, m_elementDescentPipe.next());
-			binOp->SetLocation(CURRENT_LOCATION());
+			binOp->SetLocation(CurrentLocation());
 			m_elementDescentPipe.pop();
 
 			NextToken();
@@ -1314,11 +1342,11 @@ void Parser::ShiftExpression()
 	AdditiveExpression();
 
 	for (;;) {
-		switch (CURRENT_TOKEN()) {
+		switch (CurrentToken()) {
 		case TK_LEFT_OP:
 		{
 			auto binOp = Util::MakeASTNode<BinaryOperator>(BinaryOperator::BinOperand::SLEFT, m_elementDescentPipe.next());
-			binOp->SetLocation(CURRENT_LOCATION());
+			binOp->SetLocation(CurrentLocation());
 			m_elementDescentPipe.pop();
 
 			NextToken();
@@ -1332,7 +1360,7 @@ void Parser::ShiftExpression()
 		case TK_RIGHT_OP:
 		{
 			auto binOp = Util::MakeASTNode<BinaryOperator>(BinaryOperator::BinOperand::SRIGHT, m_elementDescentPipe.next());
-			binOp->SetLocation(CURRENT_LOCATION());
+			binOp->SetLocation(CurrentLocation());
 			m_elementDescentPipe.pop();
 
 			NextToken();
@@ -1354,11 +1382,11 @@ void Parser::RelationalExpression()
 	ShiftExpression();
 
 	for (;;) {
-		switch (CURRENT_TOKEN()) {
+		switch (CurrentToken()) {
 		case TK_LESS_THAN:
 		{
 			auto binOp = Util::MakeASTNode<BinaryOperator>(BinaryOperator::BinOperand::LT, m_elementDescentPipe.next());
-			binOp->SetLocation(CURRENT_LOCATION());
+			binOp->SetLocation(CurrentLocation());
 			m_elementDescentPipe.pop();
 
 			NextToken();
@@ -1372,7 +1400,7 @@ void Parser::RelationalExpression()
 		case TK_GREATER_THAN:
 		{
 			auto binOp = Util::MakeASTNode<BinaryOperator>(BinaryOperator::BinOperand::GT, m_elementDescentPipe.next());
-			binOp->SetLocation(CURRENT_LOCATION());
+			binOp->SetLocation(CurrentLocation());
 			m_elementDescentPipe.pop();
 
 			NextToken();
@@ -1386,7 +1414,7 @@ void Parser::RelationalExpression()
 		case TK_LE_OP:
 		{
 			auto binOp = Util::MakeASTNode<BinaryOperator>(BinaryOperator::BinOperand::LE, m_elementDescentPipe.next());
-			binOp->SetLocation(CURRENT_LOCATION());
+			binOp->SetLocation(CurrentLocation());
 			m_elementDescentPipe.pop();
 
 			NextToken();
@@ -1400,7 +1428,7 @@ void Parser::RelationalExpression()
 		case TK_GE_OP:
 		{
 			auto binOp = Util::MakeASTNode<BinaryOperator>(BinaryOperator::BinOperand::GE, m_elementDescentPipe.next());
-			binOp->SetLocation(CURRENT_LOCATION());
+			binOp->SetLocation(CurrentLocation());
 			m_elementDescentPipe.pop();
 
 			NextToken();
@@ -1422,11 +1450,11 @@ void Parser::EqualityExpression()
 	RelationalExpression();
 
 	for (;;) {
-		switch (CURRENT_TOKEN()) {
+		switch (CurrentToken()) {
 		case TK_EQ_OP:
 		{
 			auto binOp = Util::MakeASTNode<BinaryOperator>(BinaryOperator::BinOperand::EQ, m_elementDescentPipe.next());
-			binOp->SetLocation(CURRENT_LOCATION());
+			binOp->SetLocation(CurrentLocation());
 			m_elementDescentPipe.pop();
 
 			NextToken();
@@ -1440,7 +1468,7 @@ void Parser::EqualityExpression()
 		case TK_NE_OP:
 		{
 			auto binOp = Util::MakeASTNode<BinaryOperator>(BinaryOperator::BinOperand::NEQ, m_elementDescentPipe.next());
-			binOp->SetLocation(CURRENT_LOCATION());
+			binOp->SetLocation(CurrentLocation());
 			m_elementDescentPipe.pop();
 
 			NextToken();
@@ -1461,9 +1489,9 @@ void Parser::AndExpression()
 {
 	EqualityExpression();
 
-	while (MATCH_TOKEN(TK_AMPERSAND)) {
+	while (MatchToken(TK_AMPERSAND)) {
 		auto binOp = Util::MakeASTNode<BinaryOperator>(BinaryOperator::BinOperand::AND, m_elementDescentPipe.next());
-		binOp->SetLocation(CURRENT_LOCATION());
+		binOp->SetLocation(CurrentLocation());
 		m_elementDescentPipe.pop();
 
 		NextToken();
@@ -1479,9 +1507,9 @@ void Parser::ExclusiveOrExpression()
 {
 	AndExpression();
 
-	while (MATCH_TOKEN(TK_CARET)) {
+	while (MatchToken(TK_CARET)) {
 		auto binOp = Util::MakeASTNode<BinaryOperator>(BinaryOperator::BinOperand::XOR, m_elementDescentPipe.next());
-		binOp->SetLocation(CURRENT_LOCATION());
+		binOp->SetLocation(CurrentLocation());
 		m_elementDescentPipe.pop();
 
 		NextToken();
@@ -1497,9 +1525,9 @@ void Parser::InclusiveOrExpression()
 {
 	ExclusiveOrExpression();
 
-	while (MATCH_TOKEN(TK_VERTIAL_BAR)) {
+	while (MatchToken(TK_VERTIAL_BAR)) {
 		auto binOp = Util::MakeASTNode<BinaryOperator>(BinaryOperator::BinOperand::OR, m_elementDescentPipe.next());
-		binOp->SetLocation(CURRENT_LOCATION());
+		binOp->SetLocation(CurrentLocation());
 		m_elementDescentPipe.pop();
 
 		NextToken();
@@ -1515,9 +1543,9 @@ void Parser::LogicalAndExpression()
 {
 	InclusiveOrExpression();
 
-	while (MATCH_TOKEN(TK_AND_OP)) {
+	while (MatchToken(TK_AND_OP)) {
 		auto binOp = Util::MakeASTNode<BinaryOperator>(BinaryOperator::BinOperand::LAND, m_elementDescentPipe.next());
-		binOp->SetLocation(CURRENT_LOCATION());
+		binOp->SetLocation(CurrentLocation());
 		m_elementDescentPipe.pop();
 
 		NextToken();
@@ -1533,9 +1561,9 @@ void Parser::LogicalOrExpression()
 {
 	LogicalAndExpression();
 
-	while (MATCH_TOKEN(TK_OR_OP)) {
+	while (MatchToken(TK_OR_OP)) {
 		auto binOp = Util::MakeASTNode<BinaryOperator>(BinaryOperator::BinOperand::LOR, m_elementDescentPipe.next());
-		binOp->SetLocation(CURRENT_LOCATION());
+		binOp->SetLocation(CurrentLocation());
 		m_elementDescentPipe.pop();
 
 		NextToken();
@@ -1551,9 +1579,9 @@ void Parser::ConditionalExpression()
 {
 	LogicalOrExpression();
 
-	if (MATCH_TOKEN(TK_QUESTION_MARK)) {
+	if (MatchToken(TK_QUESTION_MARK)) {
 		auto conOp = Util::MakeASTNode<ConditionalOperator>(m_elementDescentPipe.next());
-		conOp->SetLocation(CURRENT_LOCATION());
+		conOp->SetLocation(CurrentLocation());
 		m_elementDescentPipe.pop();
 
 		NextToken();
@@ -1581,7 +1609,7 @@ void Parser::Expression()
 	for (;;) {
 		AssignmentExpression();
 
-		if (NOT_TOKEN(TK_COMMA)) {
+		if (!MatchToken(TK_COMMA)) {
 			break;
 		}
 
@@ -1596,15 +1624,15 @@ void Parser::ConstantExpression()
 
 bool Parser::JumpStatement()
 {
-	switch (CURRENT_TOKEN()) {
+	switch (CurrentToken()) {
 	case TK_GOTO:
 	{
 		NextToken();
 
 		//ExpectIdentifier();//XXX: possible optimization
 
-		auto stmt = Util::MakeASTNode<GotoStmt>(Util::ValueCastString(CURRENT_DATA()));
-		stmt->SetLocation(CURRENT_LOCATION());
+		auto stmt = Util::MakeASTNode<GotoStmt>(Util::ValueCastString(CurrentData()));
+		stmt->SetLocation(CurrentLocation());
 		m_elementDescentPipe.push(stmt);
 		NextToken();
 		break;
@@ -1613,7 +1641,7 @@ bool Parser::JumpStatement()
 	{
 		NextToken();
 		auto stmt = Util::MakeASTNode<ContinueStmt>();
-		stmt->SetLocation(CURRENT_LOCATION());
+		stmt->SetLocation(CurrentLocation());
 		m_elementDescentPipe.push(stmt);
 		break;
 	}
@@ -1621,23 +1649,23 @@ bool Parser::JumpStatement()
 	{
 		NextToken();
 		auto stmt = Util::MakeASTNode<BreakStmt>();
-		stmt->SetLocation(CURRENT_LOCATION());
+		stmt->SetLocation(CurrentLocation());
 		m_elementDescentPipe.push(stmt);
 		break;
 	}
 	case TK_RETURN:
 	{
 		NextToken();
-		if (MATCH_TOKEN(TK_COMMIT)) {
+		if (MatchToken(TK_COMMIT)) {
 			auto stmt = Util::MakeASTNode<ReturnStmt>();
-			stmt->SetLocation(CURRENT_LOCATION());
+			stmt->SetLocation(CurrentLocation());
 			m_elementDescentPipe.push(stmt);
 		}
 		else {
 			Expression();
 
 			auto returnStmt = Util::MakeASTNode<ReturnStmt>();
-			returnStmt->SetLocation(CURRENT_LOCATION());
+			returnStmt->SetLocation(CurrentLocation());
 			while (!m_elementDescentPipe.empty()) {
 				returnStmt->SetReturnNode(m_elementDescentPipe.next());
 				m_elementDescentPipe.pop();
@@ -1658,14 +1686,14 @@ bool Parser::JumpStatement()
 // For, do and while loop
 bool Parser::IterationStatement()
 {
-	switch (CURRENT_TOKEN()) {
+	switch (CurrentToken()) {
 	case TK_WHILE:
 	{
 		NextToken();
 		ExpectToken(TK_PARENTHESE_OPEN);
 		Expression();
 		auto stmt = Util::MakeASTNode<WhileStmt>(m_elementDescentPipe.next());
-		stmt->SetLocation(CURRENT_LOCATION());
+		stmt->SetLocation(CurrentLocation());
 		ExpectToken(TK_PARENTHESE_CLOSE);
 		m_elementDescentPipe.pop();
 
@@ -1685,7 +1713,7 @@ bool Parser::IterationStatement()
 		Statement();
 
 		auto stmt = Util::MakeASTNode<DoStmt>(m_elementDescentPipe.next());
-		stmt->SetLocation(CURRENT_LOCATION());
+		stmt->SetLocation(CurrentLocation());
 		m_elementDescentPipe.pop();
 
 		ExpectToken(TK_WHILE);
@@ -1742,7 +1770,7 @@ bool Parser::IterationStatement()
 		ExpectToken(TK_PARENTHESE_CLOSE);
 
 		auto stmt = Util::MakeASTNode<ForStmt>(node1, node2, node3);
-		stmt->SetLocation(CURRENT_LOCATION());
+		stmt->SetLocation(CurrentLocation());
 
 		Statement();
 
@@ -1762,7 +1790,7 @@ bool Parser::IterationStatement()
 // If and switch statements
 bool Parser::SelectionStatement()
 {
-	switch (CURRENT_TOKEN()) {
+	switch (CurrentToken()) {
 	case TK_IF:
 	{
 		NextToken();
@@ -1771,7 +1799,7 @@ bool Parser::SelectionStatement()
 		ExpectToken(TK_PARENTHESE_CLOSE);
 
 		auto stmt = Util::MakeASTNode<IfStmt>(m_elementDescentPipe.next());
-		stmt->SetLocation(CURRENT_LOCATION());
+		stmt->SetLocation(CurrentLocation());
 		m_elementDescentPipe.pop();
 
 		Statement();
@@ -1782,7 +1810,7 @@ bool Parser::SelectionStatement()
 			stmt->SetTruthCompound(m_elementDescentPipe.next());
 			m_elementDescentPipe.pop();
 
-			if (MATCH_TOKEN(TK_ELSE)) {
+			if (MatchToken(TK_ELSE)) {
 				NextToken();
 				Statement();
 
@@ -1804,7 +1832,7 @@ bool Parser::SelectionStatement()
 		ExpectToken(TK_PARENTHESE_CLOSE);
 
 		auto stmt = Util::MakeASTNode<SwitchStmt>(m_elementDescentPipe.next());
-		stmt->SetLocation(CURRENT_LOCATION());
+		stmt->SetLocation(CurrentLocation());
 		m_elementDescentPipe.pop();
 
 		Statement();
@@ -1827,7 +1855,7 @@ void Parser::ExpressionStatement()
 {
 	Expression();
 
-	if (MATCH_TOKEN(TK_COMMIT)) {
+	if (MatchToken(TK_COMMIT)) {
 		NextToken();
 		return;
 	}
@@ -1836,9 +1864,9 @@ void Parser::ExpressionStatement()
 // Compound statements contain code block
 bool Parser::CompoundStatement()
 {
-	if (MATCH_TOKEN(TK_BRACE_OPEN)) {
+	if (MatchToken(TK_BRACE_OPEN)) {
 		NextToken();
-		if (MATCH_TOKEN(TK_BRACE_CLOSE)) {
+		if (MatchToken(TK_BRACE_CLOSE)) {
 			NextToken();
 		}
 		else {
@@ -1851,7 +1879,7 @@ bool Parser::CompoundStatement()
 		// Squash all stack elements in compound statment
 		// body and push compound on the stack.
 		auto stmt = Util::MakeASTNode<CompoundStmt>();
-		stmt->SetLocation(CURRENT_LOCATION());
+		stmt->SetLocation(CurrentLocation());
 		while (!m_elementDescentPipe.empty()) {
 			stmt->AppendChild(m_elementDescentPipe.next());
 			m_elementDescentPipe.pop();
@@ -1867,13 +1895,13 @@ bool Parser::CompoundStatement()
 // Labeled statements.
 bool Parser::LabeledStatement()
 {
-	switch (CURRENT_TOKEN()) {
+	switch (CurrentToken()) {
 	case TK_IDENTIFIER:
 	{
 		// Snapshot current state in case of rollback.
 		m_comm.Snapshot();
 		try {
-			auto lblName = Util::ValueCastString(CURRENT_DATA());
+			auto lblName = Util::ValueCastString(CurrentData());
 			NextToken();
 			ExpectToken(TK_COLON);
 
@@ -1886,7 +1914,7 @@ bool Parser::LabeledStatement()
 			}
 
 			auto stmt = Util::MakeASTNode<LabelStmt>(lblName, m_elementDescentPipe.next());
-			stmt->SetLocation(CURRENT_LOCATION());
+			stmt->SetLocation(CurrentLocation());
 			m_elementDescentPipe.pop();
 			m_elementDescentPipe.push(stmt);
 		}
@@ -1913,7 +1941,7 @@ bool Parser::LabeledStatement()
 		}
 
 		auto stmt = Util::MakeASTNode<CaseStmt>(lblLiteral, m_elementDescentPipe.next());
-		stmt->SetLocation(CURRENT_LOCATION());
+		stmt->SetLocation(CurrentLocation());
 		m_elementDescentPipe.pop();
 		m_elementDescentPipe.push(stmt);
 		return true;
@@ -1930,7 +1958,7 @@ bool Parser::LabeledStatement()
 		}
 
 		auto stmt = Util::MakeASTNode<DefaultStmt>(m_elementDescentPipe.next());
-		stmt->SetLocation(CURRENT_LOCATION());
+		stmt->SetLocation(CurrentLocation());
 		m_elementDescentPipe.pop();
 		m_elementDescentPipe.push(stmt);
 		return true;
@@ -1960,7 +1988,7 @@ void Parser::BlockItems()
 
 		// Test statement first.
 		Statement();
-		if (MATCH_TOKEN(TK_BRACE_CLOSE)) {
+		if (MatchToken(TK_BRACE_CLOSE)) {
 			break;
 		}
 
@@ -1974,7 +2002,7 @@ void Parser::BlockItems()
 		if (m_elementDescentPipe.is_changed(itemState)) {
 			m_elementDescentPipe.lock();
 		}
-	} while (NOT_TOKEN(TK_BRACE_CLOSE));
+	} while (!MatchToken(TK_BRACE_CLOSE));
 }
 
 void Parser::Declaration()
@@ -1983,7 +2011,7 @@ void Parser::Declaration()
 		return;
 	}
 
-	if (MATCH_TOKEN(TK_COMMIT)) {
+	if (MatchToken(TK_COMMIT)) {
 		NextToken();
 	}
 	// Check if the specifier results yield a typedef.
@@ -1993,7 +2021,7 @@ void Parser::Declaration()
 
 			auto name = m_identifierStack.top();
 			auto decl = Util::MakeASTNode<TypedefDecl>(name, m_typeStack.top());
-			decl->SetLocation(CURRENT_LOCATION());
+			decl->SetLocation(CurrentLocation());
 			decl->UpdateReturnType().SetPointer(m_pointerCounter);
 			m_pointerCounter = 0;
 			m_typedefList[name] = m_typeStack.top();
@@ -2011,7 +2039,7 @@ void Parser::Declaration()
 			m_elementDescentPipe.release_until(initState);
 
 			auto decl = Util::MakeASTNode<DeclStmt>();
-			decl->SetLocation(CURRENT_LOCATION());
+			decl->SetLocation(CurrentLocation());
 			while (!m_elementDescentPipe.empty()) {
 				decl->AddDeclaration(Util::NodeCast<VarDecl>(m_elementDescentPipe.next()));
 				m_elementDescentPipe.pop();
@@ -2020,7 +2048,7 @@ void Parser::Declaration()
 			m_elementDescentPipe.push(decl);
 		}
 
-		if (MATCH_TOKEN(TK_COMMIT)) {
+		if (MatchToken(TK_COMMIT)) {
 			NextToken();
 		}
 
@@ -2037,7 +2065,7 @@ void Parser::InitDeclaratorList()
 			return;
 		}
 
-		if (MATCH_TOKEN(TK_ASSIGN)) {
+		if (MatchToken(TK_ASSIGN)) {
 			NextToken();
 
 			auto startState = m_elementDescentPipe.state();
@@ -2045,7 +2073,7 @@ void Parser::InitDeclaratorList()
 			m_elementDescentPipe.release_until(startState);
 
 			auto decl = Util::MakeASTNode<VarDecl>(m_identifierStack.top(), m_typeStack.top(), m_elementDescentPipe.next());
-			decl->SetLocation(CURRENT_LOCATION());
+			decl->SetLocation(CurrentLocation());
 			decl->UpdateReturnType().SetPointer(m_pointerCounter);
 			m_pointerCounter = 0;
 			m_identifierStack.pop();
@@ -2056,14 +2084,14 @@ void Parser::InitDeclaratorList()
 		}
 		else {
 			auto decl = Util::MakeASTNode<VarDecl>(m_identifierStack.top(), m_typeStack.top());
-			decl->SetLocation(CURRENT_LOCATION());
+			decl->SetLocation(CurrentLocation());
 			decl->UpdateReturnType().SetPointer(m_pointerCounter);
 			m_pointerCounter = 0;
 			m_identifierStack.pop();
 			m_elementDescentPipe.push(decl);
 			m_elementDescentPipe.lock();
 
-			if (MATCH_TOKEN(TK_COMMA)) {
+			if (MatchToken(TK_COMMA)) {
 				cont = true;
 				NextToken();
 			}
@@ -2092,14 +2120,14 @@ void Parser::DirectAbstractDeclarator()
 	bool cont = false;
 	do {
 		cont = false;
-		switch (CURRENT_TOKEN()) {
+		switch (CurrentToken()) {
 
 			// Expect function
 		case TK_PARENTHESE_OPEN:
 			NextToken();
 
 			// Pointer to void
-			if (MATCH_TOKEN(TK_PARENTHESE_CLOSE)) {
+			if (MatchToken(TK_PARENTHESE_CLOSE)) {
 				NextToken();
 				cont = true;
 			}
@@ -2118,12 +2146,12 @@ void Parser::DirectAbstractDeclarator()
 			NextToken();
 
 			// Empty array declarator
-			if (MATCH_TOKEN(TK_BRACKET_CLOSE)) {
+			if (MatchToken(TK_BRACKET_CLOSE)) {
 				NextToken();
 				cont = true;
 			}
 			// Array of pointers
-			else if (MATCH_TOKEN(TK_ASTERISK)) {
+			else if (MatchToken(TK_ASTERISK)) {
 				NextToken();
 				ExpectToken(TK_BRACKET_CLOSE);
 				cont = true;
@@ -2143,7 +2171,7 @@ void Parser::DirectAbstractDeclarator()
 
 void Parser::Initializer()
 {
-	if (MATCH_TOKEN(TK_BRACE_OPEN)) {
+	if (MatchToken(TK_BRACE_OPEN)) {
 		auto startState = m_elementDescentPipe.state();
 
 		do {
@@ -2161,13 +2189,13 @@ void Parser::Initializer()
 			}
 
 			Initializer();
-		} while (MATCH_TOKEN(TK_COMMA));
+		} while (MatchToken(TK_COMMA));
 		ExpectToken(TK_BRACE_CLOSE);
 
 		m_elementDescentPipe.release_until(startState);
 
 		auto expr = Util::MakeASTNode<InitListExpr>();
-		expr->SetLocation(CURRENT_LOCATION());
+		expr->SetLocation(CurrentLocation());
 		while (!m_elementDescentPipe.empty()) {
 			expr->AddListItem(m_elementDescentPipe.next());
 			m_elementDescentPipe.pop();
@@ -2190,7 +2218,7 @@ void Parser::Designation()
 void Parser::Designators()
 {
 	for (;;) {
-		switch (CURRENT_TOKEN()) {
+		switch (CurrentToken()) {
 		case TK_BRACKET_OPEN:
 			NextToken();
 			ConstantExpression();
@@ -2210,14 +2238,14 @@ bool Parser::IdentifierListDecl()
 {
 	bool rs = false;
 	for (;;) {
-		if (MATCH_TOKEN(TK_IDENTIFIER)) {
-			auto name = Util::ValueCastString(CURRENT_DATA());
+		if (MatchToken(TK_IDENTIFIER)) {
+			auto name = Util::ValueCastString(CurrentData());
 			m_identifierStack.push(name);
 			rs = true;
 			NextToken();
 		}
 
-		if (NOT_TOKEN(TK_COMMA)) {
+		if (!MatchToken(TK_COMMA)) {
 			break;
 		}
 
@@ -2229,7 +2257,7 @@ bool Parser::IdentifierListDecl()
 // As long as we find pointers, continue.
 void Parser::Pointer()
 {
-	while (MATCH_TOKEN(TK_ASTERISK)) {
+	while (MatchToken(TK_ASTERISK)) {
 		m_pointerCounter++;
 		NextToken();
 		TypeQualifierList();
@@ -2246,13 +2274,13 @@ bool Parser::DirectDeclarator()
 {
 	bool foundDecl = false;
 
-	if (MATCH_TOKEN(TK_IDENTIFIER)) {
-		auto name = Util::ValueCastString(CURRENT_DATA());
+	if (MatchToken(TK_IDENTIFIER)) {
+		auto name = Util::ValueCastString(CurrentData());
 		m_identifierStack.push(name);
 		foundDecl = true;
 		NextToken();
 	}
-	else if (MATCH_TOKEN(TK_PARENTHESE_OPEN)) {
+	else if (MatchToken(TK_PARENTHESE_OPEN)) {
 		NextToken();
 		Declarator();
 		ExpectToken(TK_PARENTHESE_CLOSE);
@@ -2263,16 +2291,16 @@ bool Parser::DirectDeclarator()
 
 	// Declarations following an identifier
 	for (;;) {
-		switch (CURRENT_TOKEN()) {
+		switch (CurrentToken()) {
 
 			// Expect function
 		case TK_PARENTHESE_OPEN:
 			NextToken();
-			if (MATCH_TOKEN(TK_PARENTHESE_CLOSE)) {
+			if (MatchToken(TK_PARENTHESE_CLOSE)) {
 				NextToken();
 
 				auto decl = Util::MakeASTNode<FunctionDecl>(m_identifierStack.top(), m_typeStack.top());
-				decl->SetLocation(CURRENT_LOCATION());
+				decl->SetLocation(CurrentLocation());
 				decl->UpdateReturnType().SetPointer(m_pointerCounter);
 				m_pointerCounter = 0;
 				m_identifierStack.pop();
@@ -2297,7 +2325,7 @@ bool Parser::DirectDeclarator()
 				}
 
 				auto decl = Util::MakeASTNode<FunctionDecl>(m_identifierStack.top(), m_typeStack.top());
-				decl->SetLocation(CURRENT_LOCATION());
+				decl->SetLocation(CurrentLocation());
 				decl->SetParameterStatement(Util::NodeCast<ParamStmt>(m_elementDescentPipe.next()));
 				decl->UpdateReturnType().SetPointer(m_pointerCounter);
 				m_pointerCounter = 0;
@@ -2312,7 +2340,7 @@ bool Parser::DirectDeclarator()
 			// Expect array
 		case TK_BRACKET_OPEN:
 			NextToken();
-			switch (CURRENT_TOKEN()) {
+			switch (CurrentToken()) {
 			case TK_BRACKET_CLOSE:
 				m_pointerCounter++;
 				NextToken();
@@ -2330,12 +2358,12 @@ bool Parser::DirectDeclarator()
 			{
 				TypeQualifierList();
 
-				if (MATCH_TOKEN(TK_ASTERISK)) {
+				if (MatchToken(TK_ASTERISK)) {
 					NextToken();
 					return true;
 				}
 
-				if (MATCH_TOKEN(TK_STATIC)) {
+				if (MatchToken(TK_STATIC)) {
 					NextToken();
 				}
 
@@ -2381,7 +2409,7 @@ bool Parser::PostParameterTypeList()
 			rs = true;
 		}
 
-		if (NOT_TOKEN(TK_COMMIT)) {
+		if (!MatchToken(TK_COMMIT)) {
 			break;
 		}
 
@@ -2392,7 +2420,7 @@ bool Parser::PostParameterTypeList()
 
 	if (rs) {
 		auto stmt = Util::MakeASTNode<ParamStmt>();
-		stmt->SetLocation(CURRENT_LOCATION());
+		stmt->SetLocation(CurrentLocation());
 		while (!m_elementDescentPipe.empty()) {
 			stmt->AppendParamter(m_elementDescentPipe.next());
 			m_elementDescentPipe.pop();
@@ -2413,11 +2441,11 @@ bool Parser::ParameterTypeList()
 
 	for (;;) {
 		// Test parameter as ellipsis.
-		if (MATCH_TOKEN(TK_ELLIPSIS)) {
+		if (MatchToken(TK_ELLIPSIS)) {
 			NextToken();
 
 			auto decl = Util::MakeASTNode<VariadicDecl>();
-			decl->SetLocation(CURRENT_LOCATION());
+			decl->SetLocation(CurrentLocation());
 			m_elementDescentPipe.push(decl);
 			rs = true;
 		}
@@ -2427,7 +2455,7 @@ bool Parser::ParameterTypeList()
 			rs = true;
 		}
 
-		if (NOT_TOKEN(TK_COMMA)) {
+		if (!MatchToken(TK_COMMA)) {
 			break;
 		}
 
@@ -2438,7 +2466,7 @@ bool Parser::ParameterTypeList()
 
 	if (rs) {
 		auto stmt = Util::MakeASTNode<ParamStmt>();
-		stmt->SetLocation(CURRENT_LOCATION());
+		stmt->SetLocation(CurrentLocation());
 		while (!m_elementDescentPipe.empty()) {
 			stmt->AppendParamter(m_elementDescentPipe.next());
 			m_elementDescentPipe.pop();
@@ -2464,7 +2492,7 @@ bool Parser::ParameterDeclaration()
 	// since the next parameter cannot depend on this data.
 	if (Declarator()) {
 		auto decl = Util::MakeASTNode<ParamDecl>(m_identifierStack.top(), m_typeStack.top());
-		decl->SetLocation(CURRENT_LOCATION());
+		decl->SetLocation(CurrentLocation());
 		decl->UpdateReturnType().SetPointer(m_pointerCounter);
 		m_pointerCounter = 0;
 		m_identifierStack.pop();
@@ -2478,7 +2506,7 @@ bool Parser::ParameterDeclaration()
 	// Found a type, but no identifier. Add type as abstract declaration.
 	AbstractDeclarator();
 	auto decl = Util::MakeASTNode<ParamDecl>(m_typeStack.top());
-	decl->SetLocation(CURRENT_LOCATION());
+	decl->SetLocation(CurrentLocation());
 	decl->UpdateReturnType().SetPointer(m_pointerCounter);
 	m_pointerCounter = 0;
 	m_typeStack.pop();
@@ -2534,7 +2562,7 @@ void Parser::ExternalDeclaration()
 {
 	// Useless commits must be ignored, this saves as few trips
 	// into function or declaration statements.
-	if (MATCH_TOKEN(TK_COMMIT)) {
+	if (MatchToken(TK_COMMIT)) {
 		NextToken();
 	}
 
