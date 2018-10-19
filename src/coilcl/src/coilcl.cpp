@@ -136,10 +136,30 @@ public:
 	Compiler() = default;
 	Compiler(Compiler&&) = default;
 
-	SET_HANDLER(Reader, readHandler);
-	SET_HANDLER(Include, includeHandler);
-	SET_HANDLER(Meta, metaHandler);
-	SET_HANDLER(Error, errorHandler);
+	template<typename CallbackPrediate>
+	Compiler& SetReaderHandler(CallbackPrediate callback)
+	{
+		readHandler = callback;
+		return (*this);
+	}
+	template<typename CallbackPrediate>
+	Compiler& SetIncludeHandler(CallbackPrediate callback)
+	{
+		includeHandler = callback;
+		return (*this);
+	}
+	template<typename CallbackPrediate>
+	Compiler& SetMetaHandler(CallbackPrediate callback)
+	{
+		metaHandler = callback;
+		return (*this);
+	}
+	template<typename CallbackPrediate>
+	Compiler& SetErrorHandler(CallbackPrediate callback)
+	{
+		errorHandler = callback;
+		return (*this);
+	}
 
 	std::shared_ptr<Compiler> Object()
 	{
@@ -267,7 +287,7 @@ public:
 		// Clear all warnings for this session.
 		g_warningQueue.Clear();
 
-		return std::move(program);
+		return program;
 	}
 };
 
