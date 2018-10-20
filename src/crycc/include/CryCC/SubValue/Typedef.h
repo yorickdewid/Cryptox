@@ -257,12 +257,12 @@ public:
 	// Test type options.
 	//
 
-	inline auto Unsigned() const { return m_typeOptions.test(IS_UNSIGNED); }
-	inline auto Signed() const { return !Unsigned(); }
-	inline auto Short() const { return m_typeOptions.test(IS_SHORT); }
-	inline auto Long() const { return m_typeOptions.test(IS_LONG); }
-	inline auto Complex() const { return m_typeOptions.test(IS_COMPLEX); }
-	inline auto Imaginary() const { return m_typeOptions.test(IS_IMAGINARY); }
+	inline bool Unsigned() const { return m_typeOptions.test(IS_UNSIGNED); }
+	inline bool Signed() const { return !Unsigned(); }
+	inline bool Short() const { return m_typeOptions.test(IS_SHORT); }
+	inline bool Long() const { return m_typeOptions.test(IS_LONG); }
+	inline bool Complex() const { return m_typeOptions.test(IS_COMPLEX); }
+	inline bool Imaginary() const { return m_typeOptions.test(IS_IMAGINARY); }
 
 	// Return the type specifier.
 	Specifier TypeSpecifier() const { return m_specifier; }

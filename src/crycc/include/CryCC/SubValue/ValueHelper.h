@@ -9,7 +9,7 @@
 #pragma once
 
 #include <CryCC/SubValue/Valuedef.h>
-#include <CryCC/SubValue/AutoValue.h> // TODO: remove
+//#include <CryCC/SubValue/AutoValue.h> // TODO: remove
 
 namespace CryCC::SubValue::Valuedef
 {
@@ -31,25 +31,6 @@ namespace Util
 
 using namespace CryCC::SubValue::Valuedef;
 using namespace CryCC::SubValue::Typedef;
-
-#ifdef _OBSOLETE_
-
-Value MakeBool(bool);
-Value MakeChar(char);
-Value MakeInt(int);
-Value MakeFloat(float);
-Value MakeDouble(double);
-Value MakeString(const std::string&);
-Value MakeIntArray(int v[]);
-Value MakeIntArray(std::vector<int>);
-Value MakeFloatArray(std::vector<float>);
-Value MakeDoubleArray(std::vector<double>);
-Value MakeBoolArray(std::vector<bool>);
-Value MakePointer(Value&&);
-Value MakeStruct(RecordValue&&, const std::string structName = {});
-Value MakeUnion(RecordValue&&, const std::string structName = {});
-
-#endif // _OBSOLETE_
 
 Value MakeUninitialized();
 Value MakeVoid();
@@ -172,21 +153,6 @@ void MultiElementEmplace(const Value& value, Type&& newval)
 
 	value.Emplace<ArrayValue, Offset>(std::forward<Type>(newval));
 }
-
-//
-// Create implicit value with automatic type.
-//
-
-#ifdef _OBSOLETE_
-
-//TODO: Remove
-template<typename NativeType>
-inline Value MakeAutoValue(NativeType&& v)
-{
-	return std::invoke(Detail::ValueDeductor{}, std::forward<NativeType>(v));
-}
-
-#endif // _OBSOLETE_
 
 //
 // Query value and type properties.

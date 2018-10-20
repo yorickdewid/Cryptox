@@ -10,11 +10,7 @@
 
 #include <CryCC/SubValue/Typedef.h>
 
-namespace CryCC
-{
-namespace SubValue
-{
-namespace Typedef
+namespace CryCC::SubValue::Typedef
 {
 
 // Array of elements.
@@ -56,6 +52,4 @@ private:
 	BaseType m_elementType;
 };
 
-} // namespace Typedef
-} // namespace SubValue
-} // namespace CryCC
+} // namespace CryCC::SubValue::Typedef
