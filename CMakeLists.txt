@@ -8,8 +8,11 @@
 # copied and/or distributed without the express of the author.
 
 # At least this version of CMake but newer is better
-cmake_minimum_required(VERSION 3.8 FATAL_ERROR)
-project(Cryptox)
+cmake_minimum_required(VERSION 3.10 FATAL_ERROR)
+project(Cryptox
+    VERSION 0.9.2.0
+	DESCRIPTION "Cryptographic Toolkit"
+)
 
 message(STATUS "Compiler ${CMAKE_CXX_COMPILER_ID} version ${CMAKE_CXX_COMPILER_VERSION}")
 if(MSVC)
@@ -17,6 +20,7 @@ if(MSVC)
 	message(STATUS "Windows SDK ${CMAKE_VS_WINDOWS_TARGET_PLATFORM_VERSION}")
 endif()
 
+# TODO: DELETE
 # Define helper keywords
 set(${PROJECT_NAME}_ID Cry)
 set(${PROJECT_NAME}_CIL CIL)
@@ -31,6 +35,10 @@ endif()
 
 if(POLICY CMP0046)
   cmake_policy(SET CMP0046 NEW)
+endif()
+
+if(POLICY CMP0048)
+  cmake_policy(SET CMP0048 NEW)
 endif()
 
 if(POLICY CMP0051)
@@ -91,77 +99,49 @@ else()
     message(WARNING "Unknown compiler ${CMAKE_CXX_COMPILER_ID}")
 endif()
 
-# Options
-set(${${PROJECT_NAME}_ID}_RELEASE_ADD CACHE STRING "Version extension")
+# Build options
 option(${${PROJECT_NAME}_ID}_RELEASE_CE "Build community release" OFF)
 option(${${PROJECT_NAME}_ID}_BUILD_UNITTEST "Build Boost Unit Test" ON)
 option(${${PROJECT_NAME}_ID}_BUILD_LZ4XX "Build with LZ4" ON)
 option(${${PROJECT_NAME}_ID}_BUILD_MSGGEN "Build event message generator" ON)
 option(${${PROJECT_NAME}_ID}_BUILD_QUID "Build QUID identifier library" ON)
 option(${${PROJECT_NAME}_ID}_BUILD_WALL "Build with all warning options" OFF)
-set(${${PROJECT_NAME}_ID}_BRAND_NAME "Cryptox" CACHE STRING "Product name")
-set(${${PROJECT_NAME}_ID}_BRAND_NAME_FULL "Cryptox Cryptography Suite" CACHE STRING "Product full description name")
-set(${${PROJECT_NAME}_ID}_BRAND_AUTHOR "Blub Corp." CACHE STRING "Product vendor")
-
-# Copyright
-string(TIMESTAMP ${PROJECT_NAME}_YEAR "%Y")
-if (${${${PROJECT_NAME}_ID}_RELEASE_CE})
-	set(${PROJECT_NAME}_COPYRIGHT "Copyright (C) ${${PROJECT_NAME}_YEAR} Community Edition.")
-else()
-	set(${PROJECT_NAME}_COPYRIGHT "Copyright (C) ${${PROJECT_NAME}_YEAR} ${${${PROJECT_NAME}_ID}_BRAND_AUTHOR} All rights reserved.")
-endif()
 
 # -------------------------------
-# Project version control
+# Product characterstics
 # -------------------------------
 
-# Set version
-set(${PROJECT_NAME}_VERSION_MAJOR 0)
-set(${PROJECT_NAME}_VERSION_MINOR 19)
-set(${PROJECT_NAME}_VERSION_PATCH 2)
-set(${PROJECT_NAME}_VERSION ${${PROJECT_NAME}_VERSION_MAJOR}.${${PROJECT_NAME}_VERSION_MINOR}.${${PROJECT_NAME}_VERSION_PATCH})
-
-if (NOT ${${${PROJECT_NAME}_ID}_RELEASE_ADD} STREQUAL "")
-	set(${PROJECT_NAME}_VERSION "${${PROJECT_NAME}_VERSION}-${${${PROJECT_NAME}_ID}_RELEASE_ADD}")
-endif()
-
+# Get build number, and set as tweak number
 if($ENV{APPVEYOR_BUILD_NUMBER})
-	set(${PROJECT_NAME}_VERSION_BUILD $ENV{APPVEYOR_BUILD_NUMBER})
-	message(STATUS "Build nr ${${PROJECT_NAME}_VERSION_BUILD}")
+	set(PROJECT_VERSION_BUILD $ENV{APPVEYOR_BUILD_NUMBER})
+	set(PRODUCT_VERSION_TWEAK ${PROJECT_VERSION_BUILD})
 endif()
 
 # Get source control reference
 execute_process(
 	WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
 	COMMAND ${GIT_EXE} name-rev HEAD --tags --name-only --no-undefined --always
-	OUTPUT_VARIABLE ${PROJECT_NAME}_VERSION_REV
+	OUTPUT_VARIABLE PROJECT_VERSION_REV
 	OUTPUT_STRIP_TRAILING_WHITESPACE
 )
-message(STATUS "Build rev ${${PROJECT_NAME}_VERSION_REV}")
 
-# Static config exports
-string(TIMESTAMP ${PROJECT_NAME}_COMPILE_TIMESTAMP "%Y-%m-%d %H:%M:%S")
-set(PRODUCT_VERSION_MAJOR ${${PROJECT_NAME}_VERSION_MAJOR})
-set(PRODUCT_VERSION_MINOR ${${PROJECT_NAME}_VERSION_MINOR})
-set(PRODUCT_VERSION_PATCH ${${PROJECT_NAME}_VERSION_PATCH})
-set(PRODUCT_VERSION ${${PROJECT_NAME}_VERSION})
-set(PRODUCT_COMPILE_TIMESTAMP ${${PROJECT_NAME}_COMPILE_TIMESTAMP})
-set(PRODUCT_BRAND_NAME ${${${PROJECT_NAME}_ID}_BRAND_NAME})
-set(PRODUCT_BRAND_NAME_FULL ${${${PROJECT_NAME}_ID}_BRAND_NAME_FULL})
-set(PRODUCT_BRAND_AUTHOR ${${${PROJECT_NAME}_ID}_BRAND_AUTHOR})
+# Get compile timestamp
+string(TIMESTAMP PROJECT_COMPILE_TIMESTAMP "%Y-%m-%d %H:%M:%S")
+
+# Initialize product vars
+set(PRODUCT_BRAND_NAME ${PROJECT_NAME} CACHE STRING "Product name")
+set(PRODUCT_BRAND_NAME_FULL ${PROJECT_DESCRIPTION} CACHE STRING "Product description")
+set(PRODUCT_BRAND_AUTHOR "Blub Corp." CACHE STRING "Product author")
+set(PRODUCT_VERSION_MAJOR ${PROJECT_VERSION_MAJOR})
+set(PRODUCT_VERSION_MINOR ${PROJECT_VERSION_MINOR})
+set(PRODUCT_VERSION_PATCH ${PROJECT_VERSION_PATCH})
+set(PRODUCT_VERSION_TWEAK ${PROJECT_VERSION_TWEAK})
+set(PRODUCT_VERSION ${PROJECT_VERSION})
+set(PRODUCT_COMPILE_TIMESTAMP ${PROJECT_COMPILE_TIMESTAMP})
 set(PRODUCT_COPYRIGHT ${${PROJECT_NAME}_COPYRIGHT})
-
-if(${${PROJECT_NAME}_VERSION_BUILD})
-	set(PRODUCT_VERSION_BUILD ${PROJECT_NAME}_VERSION_BUILD)
-endif()
-
-if(${${PROJECT_NAME}_VERSION_REV})
-	set(PRODUCT_VERSION_REV ${PROJECT_NAME}_VERSION_REV)
-endif()
-
-if (NOT ${${${PROJECT_NAME}_ID}_RELEASE_ADD} STREQUAL "")
-	set(PRODUCT_VERSION_EXT ${${${PROJECT_NAME}_ID}_RELEASE_ADD})
-endif()
+set(PRODUCT_VERSION_BUILD ${PROJECT_VERSION_BUILD})
+set(PRODUCT_VERSION_REV ${PROJECT_VERSION_REV})
+set(PRODUCT_VERSION_NAME CACHE STRING "Product version name")
 
 if (${${${PROJECT_NAME}_ID}_RELEASE_CE})
 	set(PRODUCT_IS_CE 1)
@@ -169,8 +149,26 @@ else()
 	set(PRODUCT_IS_CE 0)
 endif()
 
-message(STATUS "${${${PROJECT_NAME}_ID}_BRAND_NAME_FULL} rel ${${PROJECT_NAME}_VERSION}")
-message(STATUS ${${PROJECT_NAME}_COPYRIGHT})
+# Get copyright string
+string(TIMESTAMP PROJECT_COMPILE_YEAR "%Y")
+if (${${${PROJECT_NAME}_ID}_RELEASE_CE})
+	set(PRODUCT_COPYRIGHT "Copyright (C) ${PROJECT_COMPILE_YEAR} Community Edition." CACHE STRING "Product copyright message")
+else()
+	set(PRODUCT_COPYRIGHT "Copyright (C) ${PROJECT_COMPILE_YEAR} ${PRODUCT_BRAND_AUTHOR} All rights reserved." CACHE STRING "Product copyright message")
+endif()
+
+message(STATUS "\n== PRODUCT ==")
+message(STATUS "Name\t${PRODUCT_BRAND_NAME}")
+message(STATUS "Descr.\t${PRODUCT_BRAND_NAME_FULL}")
+message(STATUS "Author\t${PRODUCT_BRAND_AUTHOR}")
+message(STATUS "Copyright\t${PRODUCT_COPYRIGHT}")
+message(STATUS "Version\t${PRODUCT_VERSION}")
+message(STATUS "Ver. Name\t${PRODUCT_VERSION_NAME}")
+message(STATUS "Timestamp\t${PRODUCT_COMPILE_TIMESTAMP}")
+message(STATUS "Build No.\t${PRODUCT_VERSION_BUILD}")
+message(STATUS "Revision\t${PRODUCT_VERSION_REV}")
+message(STATUS "CE Release\t${PRODUCT_IS_CE}")
+message(STATUS "== /PRODUCT ==\n")
 
 # -------------------------------
 # Installation package settings
