@@ -30,7 +30,6 @@
 #include <CryCC/SubValue/NilType.h>
 #include <CryCC/SubValue/TypeFacade.h>
 #include <CryCC/SubValue/Valuedef.h>
-#include <CryCC/SubValue/AutoValue.h>
 #include <CryCC/SubValue/Converter.h>
 #include <CryCC/SubValue/ValueIterator.h>
 #include <CryCC/SubValue/ValueHelper.h>
