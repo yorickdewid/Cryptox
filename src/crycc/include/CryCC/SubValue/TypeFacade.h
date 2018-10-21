@@ -12,20 +12,15 @@
 
 #include <Cry/Serialize.h>
 
-#include <vector>
-
-namespace CryCC
-{
-namespace SubValue
-{
-namespace Typedef
+namespace CryCC::SubValue::Typedef
 {
 
+#if _OBSOLETE_
 class TypeFacade
 {
-	BaseType m_type; //TODO: Remove pointer if possible at all
-	size_t m_ptrCount{ 0 }; //TODO: remove
-	size_t m_arrayElement{ 0 }; //TODO: remove
+	BaseType m_type; //FUTURE: Remove pointer if possible at all
+	size_t m_ptrCount{ 0 };
+	// size_t m_arrayElement{ 0 }; //TODO: remove
 
 public:
 	using base_type = decltype(m_type);

@@ -56,13 +56,6 @@ public:
 		UNSIGNED_LONG_DOUBLE_T,
 	};
 
-	template<Specifier TypeSpecifier, typename Type>
-	struct TypeWrapper //TODO: remove?
-	{
-		using type = Type;
-		constexpr static const Specifier specifier = TypeSpecifier;
-	};
-
 public:
 	// Unique type identifier.
 	inline constexpr static const TypeVariation type_identifier = TypeVariation::BUILTIN;

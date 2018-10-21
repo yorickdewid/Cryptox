@@ -19,6 +19,7 @@
 
 //TODO:
 // - serialize/deserialize
+// - equal ops
 
 namespace CryCC::SubValue::Typedef
 {
@@ -47,6 +48,8 @@ enum class TypeVariation
 	NIL,
 };
 
+// Abstract type base class.
+//
 // Each internal type must inherit form this abstract type base and
 // implement the mandatory methods. The type systemd is setup for
 // extension so that new types can be made available to the subvalue
@@ -142,7 +145,7 @@ public:
 	//
 
 	virtual TypeVariation TypeId() const = 0;
-	virtual const std::string TypeName() const = 0; //TODO: ToString();
+	virtual const std::string ToString() const = 0;
 	virtual bool AllowCoalescence() const { return false; }
 	virtual void Consolidate(InternalBaseType&) {};
 	virtual size_type UnboxedSize() const = 0;
