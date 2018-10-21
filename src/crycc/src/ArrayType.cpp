@@ -6,18 +6,13 @@
 // that can be found in the LICENSE file. Content can not be 
 // copied and/or distributed without the express of the author.
 
-#include <CryCC/SubValue/Typedef.h>
 #include <CryCC/SubValue/ArrayType.h>
 
 #include <Cry/Serialize.h>
 
 #include <string>
 
-namespace CryCC
-{
-namespace SubValue
-{
-namespace Typedef
+namespace CryCC::SubValue::Typedef
 {
 
 ArrayType::ArrayType(size_t elements, BaseType&& arrayType)
@@ -64,6 +59,4 @@ ArrayType::buffer_type ArrayType::TypeEnvelope() const
 	return buffer;
 }
 
-} // namespace Typedef
-} // namespace SubValue
-} // namespace CryCC
+} // namespace CryCC::SubValue::Typedef

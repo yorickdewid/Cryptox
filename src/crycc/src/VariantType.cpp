@@ -6,26 +6,21 @@
 // that can be found in the LICENSE file. Content can not be 
 // copied and/or distributed without the express of the author.
 
-#include <CryCC/SubValue/Typedef.h>
 #include <CryCC/SubValue/VariantType.h>
 
 #include <string>
 
-namespace CryCC
-{
-namespace SubValue
-{
-namespace Typedef
+namespace CryCC::SubValue::Typedef
 {
 
-VariantType::VariantType(size_t elements, std::vector<BaseType> variantType)
+VariantType::VariantType(size_type elements, std::vector<BaseType> variantType)
     : m_elements{ elements }
     , m_elementTypes{ variantType }
 {
     assert(elements == m_elementTypes.size()); //TODO also in release
 }
 
-VariantType::VariantType(size_t elements, std::vector<BaseType>&& variantType)
+VariantType::VariantType(size_type elements, std::vector<BaseType>&& variantType)
     : m_elements{ elements }
     , m_elementTypes{ std::move(variantType) }
 {
@@ -62,6 +57,4 @@ VariantType::buffer_type VariantType::TypeEnvelope() const
     return {}; //TODO:
 }
 
-} // namespace Typedef
-} // namespace SubValue
-} // namespace CryCC
+} // namespace CryCC::SubValue::Typedef

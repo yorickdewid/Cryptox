@@ -8,11 +8,12 @@
 
 #pragma once
 
+// Framework includes.
 #include <Cry/Cry.h>
 #include <Cry/Except.h>
+#include <Cry/Types.h> // << Cry::Byte
 
-#include <Cry/Types.h> // TODO: remove with BuiltinType
-
+// Language includes.
 #include <cassert>
 #include <array>
 #include <string>
@@ -25,42 +26,44 @@ namespace CryCC::SubValue::Typedef
 {
 
 class TypeFacade;
-class TypedefBase;
+class AbstractType;
 
-using BaseType = std::shared_ptr<Typedef::TypedefBase>;
-using BaseType2 = std::shared_ptr<TypeFacade>;
-using BasePointer = Typedef::TypedefBase*;
+//TODO: obsolete
+using BaseType = std::shared_ptr<AbstractType>;
+using InternalBaseType = std::shared_ptr<AbstractType>;
+//using BaseType2 = std::shared_ptr<TypeFacade>;
+using BasePointer = AbstractType*;
+
+// Envelope helper to identify type. For every specialization a
+// type variation must be defined in the base class. The variation
+// is primarily used for envelope operations. If the type system
+// is extended a new variation must be appended to this enum.
+enum class TypeVariation
+{
+	INVAL = 0,
+	BUILTIN = 100,
+	RECORD,
+	TYPEDEF,
+	VARIADIC,
+	POINTER,
+	ARRAY,
+	VARIANT,
+	NIL,
+};
 
 // Each internal type must inherit form this abstract type base and
 // implement the mandatory methods. The type systemd is setup for
 // extension so that new types can be made available to the subvalue
 // package without changing the depended structures. Types should only
 // hold type specific information, and must not include any value.
-class TypedefBase
+class AbstractType
 {
 public:
 	using size_type = size_t;
 	using buffer_type = std::vector<uint8_t>;
 
-	// Envelope helper to identify type. For every specialization a
-	// type variation must be defined in the base class. The variation
-	// is primarily used for envelope operations. If the type system
-	// is extended a new variation must be appended to this enum.
-	enum class TypeVariation : uint8_t
-	{
-		INVAL = 0,
-		BUILTIN = 100,
-		RECORD,
-		TYPEDEF,
-		VARIADIC,
-		POINTER,
-		ARRAY,
-		VARIANT,
-		NIL,
-	};
-
 	// Storage class specifier.
-	enum class StorageClassSpecifier
+	enum class StorageClassSpecifier //TODO: add _T
 	{
 		// TODO: rename to use _T
 		NONE,
@@ -71,7 +74,7 @@ public:
 		REGISTER,
 	};
 
-	// Type qualifier.
+	// Type qualifier. //TODO: add _T
 	enum class TypeQualifier
 	{
 		// TODO: rename to use _T
@@ -144,10 +147,10 @@ public:
 	// Abstract methods.
 	//
 
-	virtual int TypeId() const = 0;
-	virtual const std::string TypeName() const = 0;
+	virtual TypeVariation TypeId() const = 0;
+	virtual const std::string TypeName() const = 0; //TODO: ToString();
 	virtual bool AllowCoalescence() const { return false; }
-	virtual void Consolidate(BaseType&) {};
+	virtual void Consolidate(InternalBaseType&) {};
 	virtual size_type UnboxedSize() const = 0;
 	virtual bool Equals(BasePointer) const = 0;
 	virtual buffer_type TypeEnvelope() const;
@@ -184,251 +187,13 @@ protected:
 	Qualifiers m_typeQualifier = { TypeQualifier::NONE, TypeQualifier::NONE };
 };
 
-constexpr Cry::Byte SetInteralType(TypedefBase::TypeVariation type)
-{
-	return static_cast<Cry::Byte>(type);
-}
-
-#define REGISTER_TYPE(t)\
-	const Cry::Byte m_c_internalType = SetInteralType(TypedefBase::TypeVariation::t); \
-	inline Cry::Byte TypeIdentifier() const noexcept { return m_c_internalType; }
-
-// Builtin types.
-class BuiltinType : public TypedefBase
-{
-	REGISTER_TYPE(BUILTIN);
-
-	// Additional type options.
-	enum
-	{
-		IS_SIGNED, //TODO: remove, obsolete
-		IS_UNSIGNED, //TODO: remove, obsolete
-		IS_SHORT, //TODO: remove, obsolete
-		IS_LONG, //TODO: remove, obsolete
-		IS_LONG_LONG, //TODO: remove, obsolete
-		IS_COMPLEX,
-		IS_IMAGINARY,
-	};
-
-	// If specifier matches a type option, set the option bit
-	// and default the type to integer.
-	void SpecifierToOptions();
-
-public:
-	enum class Specifier : Cry::Byte
-	{
-		VOID_T = 200,
-		BOOL_T,
-		CHAR_T,
-		SIGNED_CHAR_T,
-		UNSIGNED_CHAR_T,
-		SHORT_T,
-		UNSIGNED_SHORT_T,
-		INT_T,
-		UNSIGNED_INT_T,
-		LONG_T,
-		UNSIGNED_LONG_T,
-		FLOAT_T,
-		DOUBLE_T,
-		LONG_DOUBLE_T,
-		UNSIGNED_LONG_DOUBLE_T,
-		CHAR, //TODO: remove, obsolete
-		SHORT, //TODO: remove, obsolete
-		INT, //TODO: remove, obsolete
-		LONG, //TODO: remove, obsolete
-		SIGNED, //TODO: remove, obsolete
-		UNSIGNED, //TODO: remove, obsolete
-		FLOAT, //TODO: remove, obsolete
-		DOUBLE, //TODO: remove, obsolete
-		BOOL, //TODO: remove, obsolete
-	};
-
-	template<Specifier TypeSpecifier, typename Type>
-	struct TypeWrapper
-	{
-		using type = Type;
-		constexpr static const Specifier specifier = TypeSpecifier;
-	};
-
-public:
-	BuiltinType(Specifier specifier);
-
-	//
-	// Test type options.
-	//
-
-	inline bool Unsigned() const { return m_typeOptions.test(IS_UNSIGNED); }
-	inline bool Signed() const { return !Unsigned(); }
-	inline bool Short() const { return m_typeOptions.test(IS_SHORT); }
-	inline bool Long() const { return m_typeOptions.test(IS_LONG); }
-	inline bool Complex() const { return m_typeOptions.test(IS_COMPLEX); }
-	inline bool Imaginary() const { return m_typeOptions.test(IS_IMAGINARY); }
-
-	// Return the type specifier.
-	Specifier TypeSpecifier() const { return m_specifier; }
-
-	//
-	// Implement abstract base type methods.
-	//
-
-	// Return type identifier.
-	int TypeId() const { return TypeIdentifier(); }
-	// Return type name string.
-	const std::string TypeName() const;
-	// If any type options are set, allow type coalescence.
-	bool AllowCoalescence() const override { return m_typeOptions.any(); }
-	// Return native size.
-	size_type UnboxedSize() const;
-	// Test if types are equal.
-	bool Equals(BasePointer) const;
-	// Pack the type into a byte stream.
-	buffer_type TypeEnvelope() const override;
-	// Consolidate multiple types into one.
-	void Consolidate(BaseType& type) override;
-
-private:
-	Specifier m_specifier;
-	std::bitset<8> m_typeOptions;
-};
-
-// Record types are types that consist of multiple types mapped to a name.
-class RecordType : public TypedefBase
-{
-	REGISTER_TYPE(RECORD);
-
-public:
-	enum class Specifier
-	{
-		STRUCT,
-		UNION,
-		CLASS,
-	};
-
-public:
-	RecordType(const std::string& name, Specifier specifier = Specifier::STRUCT);
-	//RecordType(const std::string& name, Specifier specifier, size_t elements, BaseType type);
-
-	void AddField(const std::string& field, const BaseType2& type)
-	{
-		m_fields.push_back({ field, type });
-	}
-
-	void AddField(std::string&& field, BaseType2&& type)
-	{
-		m_fields.emplace_back(std::move(field), std::move(type));
-	}
-
-	inline bool IsAligned() const noexcept { return m_aligned; }
-	inline bool IsAnonymous() const noexcept { return m_name.empty(); }
-	inline std::string Name() const noexcept { return m_name; }
-	inline size_t FieldSize() const noexcept { return m_fields.size(); }
-	inline auto Fields() const noexcept { return m_fields; }
-
-	// Return the record specifier.
-	Specifier TypeSpecifier() const { return m_specifier; }
-
-	//
-	// Implement abstract base type methods.
-	//
-
-	// Return type identifier.
-	int TypeId() const { return TypeIdentifier(); }
-	// Return type name string.
-	const std::string TypeName() const;
-	// Return native size.
-	size_type UnboxedSize() const;
-	// Test if types are equal.
-	bool Equals(BasePointer) const;
-	// Pack the type into a byte stream.
-	buffer_type TypeEnvelope() const override;
-
-private:
-	bool m_aligned{ false };
-	std::string m_name;
-	Specifier m_specifier;
-	std::vector<std::pair<std::string, BaseType2>> m_fields;
-};
-
-class TypedefType : public TypedefBase
-{
-	REGISTER_TYPE(TYPEDEF);
-
-public:
-	TypedefType(const std::string& name, BaseType& nativeType);
-	TypedefType(const std::string& name, BaseType&& nativeType);
-
-	// Return type referenced base type.
-	inline BaseType MarkType() const { return m_resolveType; }
-
-	//
-	// Implement abstract base type methods.
-	//
-
-	// Return type identifier.
-	int TypeId() const { return TypeIdentifier(); }
-	// Return type name string.
-	const std::string TypeName() const final;
-	// Return native size.
-	size_type UnboxedSize() const;
-	// Test if types are equal.
-	bool Equals(BasePointer) const;
-	// Pack the type into a byte stream.
-	buffer_type TypeEnvelope() const override;
-
-private:
-	std::string m_name;
-	BaseType m_resolveType;
-};
-
-class VariadicType : public TypedefBase
-{
-	REGISTER_TYPE(VARIADIC);
-
-public:
-	//
-	// Implement abstract base type methods.
-	//
-
-	// Return type identifier.
-	int TypeId() const { return TypeIdentifier(); }
-	// Return type name string.
-	const std::string TypeName() const final;
-	// Return native size.
-	size_type UnboxedSize() const;
-	// Test if types are equal.
-	bool Equals(BasePointer other) const;
-	// Pack the type into a byte stream.
-	buffer_type TypeEnvelope() const override;
-};
-
-class PointerType : public TypedefBase
-{
-	REGISTER_TYPE(POINTER);
-
-public:
-	PointerType(BaseType& nativeType);
-	PointerType(BaseType&& nativeType);
-
-	// Return pointer type.
-	inline BaseType Get() const { return m_ptrType; }
-
-	//
-	// Implement abstract base type methods.
-	//
-
-	// Return type identifier.
-	int TypeId() const { return TypeIdentifier(); }
-	// Return type name string.
-	const std::string TypeName() const final;
-	// Return native size.
-	size_type UnboxedSize() const;
-	// Test if types are equal.
-	bool Equals(BasePointer other) const;
-	// Pack the type into a byte stream.
-	buffer_type TypeEnvelope() const override;
-
-private:
-	BaseType m_ptrType;
-};
+//constexpr Cry::Byte SetInteralType(AbstractType::TypeVariation type)
+//{
+//	return static_cast<Cry::Byte>(type);
+//}
+//
+//#define REGISTER_TYPE(t)\
+//	const Cry::Byte m_c_internalType = SetInteralType(AbstractType::TypeVariation::t); \
+//	inline Cry::Byte TypeIdentifier() const noexcept { return m_c_internalType; }
 
 } // namespace CryCC::SubValue::Typedef

@@ -6,18 +6,11 @@
 // that can be found in the LICENSE file. Content can not be 
 // copied and/or distributed without the express of the author.
 
-#include <CryCC/SubValue/Typedef.h>
 #include <CryCC/SubValue/NilType.h>
 
 #include <Cry/Serialize.h>
 
-#include <string>
-
-namespace CryCC
-{
-namespace SubValue
-{
-namespace Typedef
+namespace CryCC::SubValue::Typedef
 {
 
 const std::string NilType::TypeName() const
@@ -50,6 +43,4 @@ NilType::buffer_type NilType::TypeEnvelope() const
 	return buffer;
 }
 
-} // namespace Typedef
-} // namespace SubValue
-} // namespace CryCC
+} // namespace CryCC::SubValue::Typedef

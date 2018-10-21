@@ -13,25 +13,17 @@
 namespace CryCC::SubValue::Typedef
 {
 
-// Array of elements.
-class ArrayType : public AbstractType
+class TypedefType : public AbstractType
 {
 public:
 	// Unique type identifier.
-	inline constexpr static const TypeVariation type_identifier = TypeVariation::ARRAY;
+	inline constexpr static const TypeVariation type_identifier = TypeVariation::TYPEDEF;
 
-	ArrayType(size_t elements, BaseType&& arrayType);
+	TypedefType(const std::string& name, BaseType& nativeType);
+	TypedefType(const std::string& name, BaseType&& nativeType);
 
-	template<size_t Elements>
-	ArrayType(BaseType&& arrayType)
-		: ArrayType{ Elements, std::move(arrayType) }
-	{
-	}
-
-	// Return the size of the array.
-	inline size_t Order() const noexcept { return m_elements; }
-	// Return array base type.
-	inline BaseType Type() const { return m_elementType; }
+	// Return type referenced base type.
+	inline BaseType MarkType() const { return m_resolveType; }
 
 	//
 	// Implement abstract base type methods.
@@ -49,8 +41,8 @@ public:
 	buffer_type TypeEnvelope() const override;
 
 private:
-	size_t m_elements;
-	BaseType m_elementType;
+	std::string m_name;
+	BaseType m_resolveType;
 };
 
 } // namespace CryCC::SubValue::Typedef

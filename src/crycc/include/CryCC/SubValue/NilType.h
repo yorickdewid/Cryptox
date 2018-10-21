@@ -10,28 +10,25 @@
 
 #include <CryCC/SubValue/Typedef.h>
 
-namespace CryCC
-{
-namespace SubValue
-{
-namespace Typedef
+namespace CryCC::SubValue::Typedef
 {
 
 // The Nil type is a type to test the completeness fo type system.
 // It has limited use in most languages and should be used with
 // causion. The Nil type is not the allocated type for uninitialized
 // values.
-class NilType : public TypedefBase
+class NilType : public AbstractType
 {
-	REGISTER_TYPE(NIL);
-
 public:
+	// Unique type identifier.
+	inline constexpr static const TypeVariation type_identifier = TypeVariation::NIL;
+
 	//
 	// Implement abstract base type methods.
 	//
 
 	// Return type identifier.
-	int TypeId() const { return TypeIdentifier(); }
+	TypeVariation TypeId() const { return type_identifier; }
 	// Return type name string.
 	const std::string TypeName() const final;
 	// Return native size.
@@ -42,6 +39,4 @@ public:
 	buffer_type TypeEnvelope() const override;
 };
 
-} // namespace Typedef
-} // namespace SubValue
-} // namespace CryCC
+} // namespace CryCC::SubValue::Typedef

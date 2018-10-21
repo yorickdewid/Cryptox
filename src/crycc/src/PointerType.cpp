@@ -6,13 +6,9 @@
 // that can be found in the LICENSE file. Content can not be 
 // copied and/or distributed without the express of the author.
 
-#include <CryCC/SubValue/Typedef.h>
+#include <CryCC/SubValue/PointerType.h>
 
-namespace CryCC
-{
-namespace SubValue
-{
-namespace Typedef
+namespace CryCC::SubValue::Typedef
 {
 
 PointerType::PointerType(BaseType& nativeType)
@@ -42,12 +38,11 @@ bool PointerType::Equals(BasePointer other) const
 
 PointerType::buffer_type PointerType::TypeEnvelope() const
 {
-	std::vector<uint8_t> buffer = { m_c_internalType };
-	const auto base = TypedefBase::TypeEnvelope();
+	/*std::vector<uint8_t> buffer = { m_c_internalType };
+	const auto base = AbstractType::TypeEnvelope();
 	buffer.insert(buffer.cend(), base.cbegin(), base.cend());
-	return buffer;
+	return buffer;*/
+	return {};
 }
 
-} // namespace Typedef
-} // namespace SubValue
-} // namespace CryCC
+} // namespace CryCC::SubValue::Typedef

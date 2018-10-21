@@ -13,25 +13,17 @@
 namespace CryCC::SubValue::Typedef
 {
 
-// Array of elements.
-class ArrayType : public AbstractType
+class PointerType : public AbstractType
 {
 public:
 	// Unique type identifier.
-	inline constexpr static const TypeVariation type_identifier = TypeVariation::ARRAY;
+	inline constexpr static const TypeVariation type_identifier = TypeVariation::POINTER;
 
-	ArrayType(size_t elements, BaseType&& arrayType);
+	PointerType(BaseType& nativeType);
+	PointerType(BaseType&& nativeType);
 
-	template<size_t Elements>
-	ArrayType(BaseType&& arrayType)
-		: ArrayType{ Elements, std::move(arrayType) }
-	{
-	}
-
-	// Return the size of the array.
-	inline size_t Order() const noexcept { return m_elements; }
-	// Return array base type.
-	inline BaseType Type() const { return m_elementType; }
+	// Return pointer type.
+	inline BaseType Get() const { return m_ptrType; }
 
 	//
 	// Implement abstract base type methods.
@@ -44,13 +36,12 @@ public:
 	// Return native size.
 	size_type UnboxedSize() const;
 	// Test if types are equal.
-	bool Equals(BasePointer) const;
+	bool Equals(BasePointer other) const;
 	// Pack the type into a byte stream.
 	buffer_type TypeEnvelope() const override;
 
 private:
-	size_t m_elements;
-	BaseType m_elementType;
+	BaseType m_ptrType;
 };
 
 } // namespace CryCC::SubValue::Typedef

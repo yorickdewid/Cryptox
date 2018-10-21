@@ -12,33 +12,30 @@
 
 #include <vector>
 
-namespace CryCC
-{
-namespace SubValue
-{
-namespace Typedef
+namespace CryCC::SubValue::Typedef
 {
 
 // The vaiant holds an array of elements all of which can have a
 // different type. The number of elements must match the number of
 // types.
-class VariantType : public TypedefBase
+class VariantType : public AbstractType
 {
-	REGISTER_TYPE(ARRAY);
-
 public:
-	VariantType(size_t elements, std::vector<BaseType> variantType);
-	VariantType(size_t elements, std::vector<BaseType>&& variantType);
+	// Unique type identifier.
+	inline constexpr static const TypeVariation type_identifier = TypeVariation::VARIANT;
+
+	VariantType(size_type elements, std::vector<BaseType> variantType);
+	VariantType(size_type elements, std::vector<BaseType>&& variantType);
 
 	// Return the size of the variant.
-	inline size_t Order() const noexcept { return m_elements; }
+	inline size_type Order() const noexcept { return m_elements; }
 
 	//
 	// Implement abstract base type methods.
 	//
 
 	// Return type identifier.
-	int TypeId() const { return TypeIdentifier(); }
+	TypeVariation TypeId() const { return type_identifier; }
 	// Return type name string.
 	const std::string TypeName() const final;
 	// Return native size.
@@ -49,10 +46,8 @@ public:
 	buffer_type TypeEnvelope() const override;
 
 private:
-	size_t m_elements;
+	size_type m_elements;
 	std::vector<BaseType> m_elementTypes;
 };
 
-} // namespace Typedef
-} // namespace SubValue
-} // namespace CryCC
+} // namespace CryCC::SubValue::Typedef

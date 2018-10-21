@@ -6,13 +6,9 @@
 // that can be found in the LICENSE file. Content can not be 
 // copied and/or distributed without the express of the author.
 
-#include <CryCC/SubValue/Typedef.h>
+#include <CryCC/SubValue/RecordType.h>
 
-namespace CryCC
-{
-namespace SubValue
-{
-namespace Typedef
+namespace CryCC::SubValue::Typedef
 {
 
 RecordType::RecordType(const std::string& name, Specifier specifier)
@@ -61,6 +57,4 @@ RecordType::buffer_type RecordType::TypeEnvelope() const
 	return buffer;
 }
 
-} // namespace Typedef
-} // namespace SubValue
-} // namespace CryCC
+} // namespace CryCC::SubValue::Typedef
