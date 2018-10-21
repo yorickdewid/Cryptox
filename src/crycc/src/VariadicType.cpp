@@ -11,7 +11,7 @@
 namespace CryCC::SubValue::Typedef
 {
 
-const std::string VariadicType::TypeName() const
+const std::string VariadicType::ToString() const
 {
 	return "...";
 }
@@ -21,17 +21,19 @@ VariadicType::size_type VariadicType::UnboxedSize() const
 	return 0;
 }
 
-bool VariadicType::Equals(BasePointer other) const
+bool VariadicType::Equals(InternalBaseType* /*other*/) const
 {
-    return dynamic_cast<VariadicType*>(other) != nullptr;
+    //return dynamic_cast<VariadicType*>(other) != nullptr;
+	return false;
 }
 
 VariadicType::buffer_type VariadicType::TypeEnvelope() const
 {
-	std::vector<uint8_t> buffer = { m_c_internalType };
+	/*std::vector<uint8_t> buffer = { m_c_internalType };
 	const auto base = TypedefBase::TypeEnvelope();
 	buffer.insert(buffer.cend(), base.cbegin(), base.cend());
-	return buffer;
+	return buffer;*/
+	return {};
 }
 
 } // namespace CryCC::SubValue::Typedef

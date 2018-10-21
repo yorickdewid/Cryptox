@@ -8,6 +8,8 @@
 
 #include <CryCC/SubValue/BuiltinType.h>
 
+#include <cassert>
+
 namespace CryCC::SubValue::Typedef
 {
 
@@ -17,59 +19,82 @@ BuiltinType::BuiltinType(Specifier specifier)
 	SpecifierToOptions();
 }
 
-// Convert specifiers into type options.
+// Extract specifier properties.
 void BuiltinType::SpecifierToOptions()
 {
 	switch (m_specifier) {
-	case Specifier::SIGNED:
+	case Specifier::CHAR_T:
+	case Specifier::SIGNED_CHAR_T:
+	case Specifier::SHORT_T:
+	case Specifier::INT_T:
+	case Specifier::LONG_T:
 		m_typeOptions.set(IS_SIGNED);
 		m_typeOptions.reset(IS_UNSIGNED);
-		m_specifier = Specifier::INT;
 		break;
-	case Specifier::UNSIGNED:
+	case Specifier::UNSIGNED_CHAR_T:
+	case Specifier::UNSIGNED_SHORT_T:
+	case Specifier::UNSIGNED_INT_T:
+	case Specifier::UNSIGNED_LONG_T:
+	case Specifier::UNSIGNED_LONG_DOUBLE_T:
 		m_typeOptions.set(IS_UNSIGNED);
-		m_typeOptions.set(IS_SIGNED);
-		m_specifier = Specifier::INT;
-		break;
-	case Specifier::SHORT:
-		m_typeOptions.set(IS_SHORT);
-		m_specifier = Specifier::INT;
-		break;
-	case Specifier::LONG:
-		m_typeOptions.set(IS_LONG);
-		m_specifier = Specifier::INT;
+		m_typeOptions.reset(IS_SIGNED);
 		break;
 	}
 }
 
-const std::string BuiltinType::TypeName() const
+const std::string BuiltinType::ToString() const
 {
 	auto qualifier = AbstractType::QualifierName();
 
-	std::string option;
-	if (m_typeOptions.test(IS_UNSIGNED)) {
-		option += "unsigned ";
-	}
-	if (m_typeOptions.test(IS_SHORT)) {
-		option += "short ";
-	}
-	if (m_typeOptions.test(IS_LONG_LONG)) {
-		option += "long long ";
-	}
-	else if (m_typeOptions.test(IS_LONG)) {
-		option += "long ";
-	}
-
 	switch (m_specifier) {
-	case Specifier::VOID_T:		qualifier += option + "void"; break;
-	case Specifier::CHAR:		qualifier += option + "char"; break;
-	case Specifier::LONG:		qualifier += option + "long"; break;
-	case Specifier::SHORT:		qualifier += option + "short"; break;
-	case Specifier::INT:		qualifier += option + "int"; break;
-	case Specifier::FLOAT:		qualifier += option + "float"; break;
-	case Specifier::DOUBLE:		qualifier += option + "double"; break;
-	case Specifier::BOOL:		qualifier += option + "_Bool"; break;
-	default:					qualifier += option + "<unknown>"; break;
+	case Specifier::VOID_T:
+		qualifier += "void";
+		break;
+	case Specifier::BOOL_T:
+		qualifier += "bool";
+		break;
+	case Specifier::CHAR_T:
+		qualifier += "char";
+		break;
+	case Specifier::SIGNED_CHAR_T:
+		qualifier += "signed char";
+		break;
+	case Specifier::UNSIGNED_CHAR_T:
+		qualifier += "unsigned char";
+		break;
+	case Specifier::SHORT_T:
+		qualifier += "short";
+		break;
+	case Specifier::UNSIGNED_SHORT_T:
+		qualifier += "unsigned short";
+		break;
+	case Specifier::INT_T:
+		qualifier += "int";
+		break;
+	case Specifier::UNSIGNED_INT_T:
+		qualifier += "unsigned int";
+		break;
+	case Specifier::LONG_T:
+		qualifier += "long";
+		break;
+	case Specifier::UNSIGNED_LONG_T:
+		qualifier += "unsigned long";
+		break;
+	case Specifier::FLOAT_T:
+		qualifier += "float";
+		break;
+	case Specifier::DOUBLE_T:
+		qualifier += "double";
+		break;
+	case Specifier::LONG_DOUBLE_T:
+		qualifier += "long double";
+		break;
+	case Specifier::UNSIGNED_LONG_DOUBLE_T:
+		qualifier += "unsigned long double";
+		break;
+	default:
+		qualifier += "<unknown>";
+		break;
 	}
 
 	return qualifier;
@@ -77,40 +102,50 @@ const std::string BuiltinType::TypeName() const
 
 size_t BuiltinType::UnboxedSize() const
 {
+	//TODO: use Cry::Types
 	switch (m_specifier) {
-	case Specifier::VOID_T:		throw std::exception{};//TODO
-	case Specifier::CHAR:		return sizeof(char);
-	case Specifier::LONG:		return sizeof(long);
-	case Specifier::SHORT:		return sizeof(short);
-	case Specifier::INT:		return sizeof(int);
-	case Specifier::FLOAT:		return sizeof(float);
-	case Specifier::DOUBLE:		return sizeof(double);
-	case Specifier::BOOL:		return sizeof(bool);
-	default:					break;
+	case Specifier::VOID_T:	return 0;
+	case Specifier::BOOL_T: return sizeof(bool);
+	case Specifier::CHAR_T: return sizeof(char);
+	case Specifier::SIGNED_CHAR_T: return sizeof(signed char);
+	case Specifier::UNSIGNED_CHAR_T: return sizeof(unsigned char);
+	case Specifier::SHORT_T: return sizeof(short);
+	case Specifier::UNSIGNED_SHORT_T: return sizeof(unsigned short);
+	case Specifier::INT_T: return sizeof(int);
+	case Specifier::UNSIGNED_INT_T: return sizeof(unsigned int);
+	case Specifier::LONG_T: return sizeof(long);
+	case Specifier::UNSIGNED_LONG_T: return sizeof(unsigned long);
+	case Specifier::FLOAT_T: return sizeof(float);
+	case Specifier::DOUBLE_T: return sizeof(double);
+	case Specifier::LONG_DOUBLE_T: return sizeof(long double);
+		//case Specifier::UNSIGNED_LONG_DOUBLE_T:		return sizeof(unsigned long double);
 	}
 
 	CryImplExcept(); //TODO:
 }
 
-bool BuiltinType::Equals(AbstractType* other) const
+bool BuiltinType::Equals(InternalBaseType* /*other*/) const
 {
-	auto self = dynamic_cast<BuiltinType*>(other);
+	return false;
+	/*auto self = dynamic_cast<BuiltinType*>(other);
 	if (!self) { return false; }
 
 	return m_specifier == self->m_specifier
-		&& m_typeOptions == self->m_typeOptions;
+		&& m_typeOptions == self->m_typeOptions;*/
 }
 
 BuiltinType::buffer_type BuiltinType::TypeEnvelope() const
 {
-	std::vector<uint8_t> buffer = { m_c_internalType };
+	//TODO:
+	/*std::vector<uint8_t> buffer = { m_c_internalType };
 	buffer.push_back(static_cast<uint8_t>(m_specifier));
 	const auto base = TypedefBase::TypeEnvelope();
 	buffer.insert(buffer.cend(), base.cbegin(), base.cend());
-	return buffer;
+	return buffer;*/
+	return {};
 }
 
-void BuiltinType::Consolidate(BaseType& type)
+void BuiltinType::Consolidate(InternalBaseType& type)
 {
 	assert(type->AllowCoalescence());
 

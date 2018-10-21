@@ -13,7 +13,7 @@
 namespace CryCC::SubValue::Typedef
 {
 
-const std::string NilType::TypeName() const
+const std::string NilType::ToString() const
 {
 	return "(nil)";
 }
@@ -24,23 +24,26 @@ NilType::size_type NilType::UnboxedSize() const
 }
 
 //TODO:
-bool NilType::Equals(BasePointer other) const
+bool NilType::Equals(InternalBaseType* /*other*/) const
 {
-	auto self = dynamic_cast<NilType*>(other);
+	/*auto self = dynamic_cast<NilType*>(other);
 	if (self == nullptr) { return false; }
 
-	return true;
+	return true;*/
+	return false;
 }
 
 NilType::buffer_type NilType::TypeEnvelope() const
 {
-	Cry::ByteArray buffer;
+	//TODO:
+	/*Cry::ByteArray buffer;
 
 	buffer.SerializeAs<Cry::Byte>(m_c_internalType);
 
 	const auto base = TypedefBase::TypeEnvelope();
 	buffer.insert(buffer.cend(), base.cbegin(), base.cend());
-	return buffer;
+	return buffer;*/
+	return {};
 }
 
 } // namespace CryCC::SubValue::Typedef

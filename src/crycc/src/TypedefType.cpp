@@ -23,9 +23,9 @@ TypedefType::TypedefType(const std::string& name, BaseType&& nativeType)
 {
 }
 
-const std::string TypedefType::TypeName() const
+const std::string TypedefType::ToString() const
 {
-    return m_name + ":" + m_resolveType->TypeName();
+    return m_name + ":" + m_resolveType->ToString();
 }
 
 TypedefType::size_type TypedefType::UnboxedSize() const
@@ -33,32 +33,34 @@ TypedefType::size_type TypedefType::UnboxedSize() const
     return m_resolveType->UnboxedSize();
 }
 
-bool TypedefType::Equals(BasePointer other) const
+bool TypedefType::Equals(InternalBaseType* /*other*/) const
 {
-	auto self = dynamic_cast<TypedefType*>(other);
+	return false;
+	/*auto self = dynamic_cast<TypedefType*>(other);
 	if (self == nullptr) {
 		return false;
 	}
 
 	return m_resolveType == self->m_resolveType
-		&& m_name == self->m_name;
+		&& m_name == self->m_name;*/
 }
 
 TypedefType::buffer_type TypedefType::TypeEnvelope() const
 {
-	std::vector<uint8_t> buffer = { m_c_internalType };
-	buffer.reserve(m_name.size());
-	buffer.push_back(static_cast<uint8_t>(m_name.size())); //FUTURE: Limited to 256
-	buffer.insert(buffer.cend(), m_name.cbegin(), m_name.cend());
+	//std::vector<uint8_t> buffer = { m_c_internalType };
+	//buffer.reserve(m_name.size());
+	//buffer.push_back(static_cast<uint8_t>(m_name.size())); //FUTURE: Limited to 256
+	//buffer.insert(buffer.cend(), m_name.cbegin(), m_name.cend());
 
-	if (m_resolveType) {
-		auto envelop = m_resolveType->TypeEnvelope();
-		buffer.insert(buffer.cend(), envelop.cbegin(), envelop.cend());
-	}
+	//if (m_resolveType) {
+	//	auto envelop = m_resolveType->TypeEnvelope();
+	//	buffer.insert(buffer.cend(), envelop.cbegin(), envelop.cend());
+	//}
 
-	const auto base = TypedefBase::TypeEnvelope();
-	buffer.insert(buffer.cend(), base.cbegin(), base.cend());
-	return buffer;
+	//const auto base = TypedefBase::TypeEnvelope();
+	//buffer.insert(buffer.cend(), base.cbegin(), base.cend());
+	//return buffer;
+	return {};
 }
 
 } // namespace CryCC::SubValue::Typedef

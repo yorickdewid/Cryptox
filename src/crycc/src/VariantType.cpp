@@ -8,6 +8,7 @@
 
 #include <CryCC/SubValue/VariantType.h>
 
+#include <cassert>
 #include <string>
 
 namespace CryCC::SubValue::Typedef
@@ -27,7 +28,7 @@ VariantType::VariantType(size_type elements, std::vector<BaseType>&& variantType
     assert(elements == m_elementTypes.size()); //TODO also in release
 }
 
-const std::string VariantType::TypeName() const
+const std::string VariantType::ToString() const
 {
     return "(" + std::to_string(m_elements) + ")";
 }
@@ -42,14 +43,15 @@ VariantType::size_type VariantType::UnboxedSize() const
 }
 
 //TODO:
-bool VariantType::Equals(BasePointer other) const
+bool VariantType::Equals(InternalBaseType* /*other*/) const
 {
-	auto self = dynamic_cast<VariantType*>(other);
+	/*auto self = dynamic_cast<VariantType*>(other);
 	if (self == nullptr) {
 		return false;
 	}
 
-    return true;
+    return true;*/
+	return false;
 }
 
 VariantType::buffer_type VariantType::TypeEnvelope() const

@@ -13,7 +13,7 @@
 namespace CryCC::SubValue::Typedef
 {
 
-class VariadicType : public AbstractType
+class VariadicType final : public AbstractType
 {
 public:
 	// Unique type identifier.
@@ -26,11 +26,11 @@ public:
 	// Return type identifier.
 	TypeVariation TypeId() const { return type_identifier; }
 	// Return type name string.
-	const std::string TypeName() const final;
+	const std::string ToString() const;
 	// Return native size.
 	size_type UnboxedSize() const;
 	// Test if types are equal.
-	bool Equals(BasePointer other) const;
+	bool Equals(InternalBaseType*) const;
 	// Pack the type into a byte stream.
 	buffer_type TypeEnvelope() const override;
 };

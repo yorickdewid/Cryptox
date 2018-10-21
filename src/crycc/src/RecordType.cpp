@@ -23,7 +23,7 @@ RecordType::RecordType(const std::string& name, Specifier specifier)
 //{
 //}
 
-const std::string RecordType::TypeName() const
+const std::string RecordType::ToString() const
 {
 	return (m_specifier == Specifier::UNION ? "union " : "struct ") + m_name;
 }
@@ -34,27 +34,29 @@ RecordType::size_type RecordType::UnboxedSize() const
 	return 0;
 }
 
-bool RecordType::Equals(TypedefBase* other) const
+bool RecordType::Equals(InternalBaseType* /*other*/) const
 {
-	auto self = dynamic_cast<RecordType*>(other);
-	if (self == nullptr) {
-		return false;
-	}
+	return false;
+	//auto self = dynamic_cast<RecordType*>(other);
+	//if (self == nullptr) {
+	//	return false;
+	//}
 
-	return m_specifier == self->m_specifier
-		&& m_name == self->m_name;
+	//return m_specifier == self->m_specifier
+	//	&& m_name == self->m_name;
 }
 
 RecordType::buffer_type RecordType::TypeEnvelope() const
 {
-	std::vector<uint8_t> buffer = { m_c_internalType };
-	buffer.reserve(m_name.size());
-	buffer.push_back(static_cast<uint8_t>(m_name.size())); //FUTURE: Limited to 256
-	buffer.insert(buffer.cend(), m_name.cbegin(), m_name.cend());
-	buffer.push_back(static_cast<uint8_t>(m_specifier));
-	const auto base = TypedefBase::TypeEnvelope();
-	buffer.insert(buffer.cend(), base.cbegin(), base.cend());
-	return buffer;
+	//std::vector<uint8_t> buffer = { m_c_internalType };
+	//buffer.reserve(m_name.size());
+	//buffer.push_back(static_cast<uint8_t>(m_name.size())); //FUTURE: Limited to 256
+	//buffer.insert(buffer.cend(), m_name.cbegin(), m_name.cend());
+	//buffer.push_back(static_cast<uint8_t>(m_specifier));
+	//const auto base = TypedefBase::TypeEnvelope();
+	//buffer.insert(buffer.cend(), base.cbegin(), base.cend());
+	//return buffer;
+	return {};
 }
 
 } // namespace CryCC::SubValue::Typedef

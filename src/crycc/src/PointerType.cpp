@@ -21,7 +21,7 @@ PointerType::PointerType(BaseType&& nativeType)
 {
 }
 
-const std::string PointerType::TypeName() const
+const std::string PointerType::ToString() const
 {
 	return "(ptr)";
 }
@@ -31,9 +31,10 @@ PointerType::size_type PointerType::UnboxedSize() const
 	return sizeof(intptr_t);
 }
 
-bool PointerType::Equals(BasePointer other) const
+bool PointerType::Equals(InternalBaseType* /*other*/) const
 {
-    return dynamic_cast<PointerType*>(other) != nullptr;
+    //return dynamic_cast<PointerType*>(other) != nullptr;
+	return false;
 }
 
 PointerType::buffer_type PointerType::TypeEnvelope() const

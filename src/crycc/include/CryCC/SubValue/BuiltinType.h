@@ -12,6 +12,8 @@
 
 #include <Cry/Types.h>
 
+#include <bitset>
+
 namespace CryCC::SubValue::Typedef
 {
 
@@ -52,15 +54,6 @@ public:
 		DOUBLE_T,
 		LONG_DOUBLE_T,
 		UNSIGNED_LONG_DOUBLE_T,
-		CHAR, //TODO: remove, obsolete
-		SHORT, //TODO: remove, obsolete
-		INT, //TODO: remove, obsolete
-		LONG, //TODO: remove, obsolete
-		SIGNED, //TODO: remove, obsolete
-		UNSIGNED, //TODO: remove, obsolete
-		FLOAT, //TODO: remove, obsolete
-		DOUBLE, //TODO: remove, obsolete
-		BOOL, //TODO: remove, obsolete
 	};
 
 	template<Specifier TypeSpecifier, typename Type>
@@ -97,17 +90,17 @@ public:
 	// Return type identifier.
 	TypeVariation TypeId() const { return type_identifier; }
 	// Return type name string.
-	const std::string TypeName() const;
+	const std::string ToString() const;
 	// If any type options are set, allow type coalescence.
 	bool AllowCoalescence() const override { return m_typeOptions.any(); }
 	// Return native size.
 	size_type UnboxedSize() const;
 	// Test if types are equal.
-	bool Equals(BasePointer) const;
+	bool Equals(InternalBaseType*) const;
 	// Pack the type into a byte stream.
 	buffer_type TypeEnvelope() const override;
 	// Consolidate multiple types into one.
-	void Consolidate(BaseType& type) override;
+	void Consolidate(InternalBaseType& type) override;
 
 private:
 	Specifier m_specifier;
