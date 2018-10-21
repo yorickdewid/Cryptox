@@ -24,7 +24,7 @@
 
 // Template for generated header. Edit the source below to update
 // the generated header.
-const std::string resultingSource =
+static const std::string resultingSource =
 R"(// Copyright (c) 2017 Quenza Inc. All rights reserved.
 //
 // This file is part of the Cryptox project.
@@ -74,7 +74,7 @@ struct EventLevel
 	{%s
 	};
 
-	// Get shortcode from level
+	// Get shortcode from level.
 	static char GetCharCode(Level level) noexcept
 	{
 		switch (level)
@@ -251,7 +251,7 @@ inline std::string GetDescription(const FatalException& ev) { return ev.Event().
 static void AssertVersion(int version)
 {
 	if (version != DEFUALT_VERSION) {
-		throw std::runtime_error{ "invalid manifest" };
+		throw std::runtime_error{ "invalid manifest version" };
 	}
 }
 
@@ -283,11 +283,20 @@ struct Manifest final
 	std::map<int, Level> m_levels;
 	std::map<int, Event> m_events;
 
+	std::string inputfile;
+	std::string namespacing;
+
+	Manifest() = default;
+	Manifest(const std::string& inputfile)
+		: inputfile{ inputfile }
+	{
+	}
+
 	// Load the manifest file.
-	void Load(const std::string&);
+	void Load();
 
 	// Dump the events into the resulting source.
-	void Dump(const std::string&, const std::string&);
+	void Dump(const std::string&);
 
 private:
 	int MinimumId();
@@ -351,7 +360,7 @@ std::string Manifest::ItemListStub()
 	return out;
 }
 
-void Manifest::Load(const std::string& filename)
+void Manifest::Load()
 {
 	using namespace boost::property_tree;
 
@@ -359,7 +368,7 @@ void Manifest::Load(const std::string& filename)
 	ptree tree;
 
 	// Parse the XML into the property tree.
-	read_xml(filename, tree);
+	read_xml(inputfile, tree);
 
 	// Assert manifest version.
 	AssertVersion(tree.get<int>("manifest.<xmlattr>.version"));
@@ -392,14 +401,14 @@ void Manifest::Load(const std::string& filename)
 	}
 }
 
-void Manifest::Dump(const std::string& inFile, const std::string& outFile)
+void Manifest::Dump(const std::string& outFile)
 {
 	std::ofstream sourceFile;
 	sourceFile.open(outFile);
 	sourceFile << boost::format{ resultingSource }
 		% DEFUALT_VERSION
 		% m_events.size()
-		% inFile
+		% inputfile
 		% DateTime()
 		% MinimumId()
 		% MaximumId()
@@ -413,18 +422,40 @@ void Manifest::Dump(const std::string& inFile, const std::string& outFile)
 	sourceFile.close();
 }
 
+void usage(const char *progname)
+{
+	std::cerr << PROGRAM_UTIL_HEADER << std::endl << std::endl;
+	std::cerr << progname << ": [MANIFEST] [OUTFILE]" << std::endl;
+	std::cerr << "\nOptions:" << std::endl;
+	std::cerr << "  -n,--namespace          Optional namespace" << std::endl;
+}
+
 int main(int argc, char *argv[])
 {
 	if (argc < 3) {
-		std::cerr << PROGRAM_UTIL_HEADER << std::endl << std::endl;
-		std::cerr << argv[0] << ": MANIFEST OUTFILE" << std::endl;
+		usage(argv[0]);
 		return 1;
 	}
 
+	Manifest manifest{ argv[1] };
+	std::string outputfile{ argv[2] };
+
+	if (argc > 2) {
+		const auto command = std::string{ argv[1] };
+		if (command == "/n" || command == "-n" || command == "--namespace") {
+			if (argc < 5) {
+				usage(argv[0]);
+				return 1;
+			}
+			manifest.namespacing = argv[2];
+			manifest.inputfile = argv[3];
+			outputfile = argv[4];
+		}
+	}
+
 	try {
-		Manifest manifest;
-		manifest.Load(argv[1]);
-		manifest.Dump(argv[1], argv[2]);
+		manifest.Load();
+		manifest.Dump(outputfile);
 	}
 	catch (const std::exception& e) {
 		std::cerr << e.what() << std::endl;
