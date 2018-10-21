@@ -279,9 +279,9 @@ set(GEN_SOURCE_DIR ${CMAKE_BINARY_DIR}/include)
 include(FindMsgGen)
 
 # Generate the event logging header
-file(MAKE_DIRECTORY ${GEN_SOURCE_DIR})
+file(MAKE_DIRECTORY ${GEN_SOURCE_DIR}/Cry)
 execute_process(
-	COMMAND ${MSGGEN_EXE} ${COMMON_DIR}/manifest.xml ${GEN_SOURCE_DIR}/EventLog.h
+	COMMAND ${MSGGEN_EXE} ${COMMON_DIR}/manifest.xml ${GEN_SOURCE_DIR}/Cry/EventLog.h
 )
 
 # -------------------------------

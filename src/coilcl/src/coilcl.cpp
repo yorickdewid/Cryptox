@@ -21,7 +21,7 @@
 #include <CryCC/AST.h>
 
 // Framework includes.
-#include <EventLog.h>
+#include <Cry/EventLog.h>
 #include <Cry/Cry.h>
 #include <Cry/Config.h>
 
