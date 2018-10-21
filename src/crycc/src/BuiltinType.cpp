@@ -44,7 +44,7 @@ void BuiltinType::SpecifierToOptions()
 
 const std::string BuiltinType::TypeName() const
 {
-	auto qualifier = TypedefBase::QualifierName();
+	auto qualifier = AbstractType::QualifierName();
 
 	std::string option;
 	if (m_typeOptions.test(IS_UNSIGNED)) {
@@ -92,7 +92,7 @@ size_t BuiltinType::UnboxedSize() const
 	CryImplExcept(); //TODO:
 }
 
-bool BuiltinType::Equals(TypedefBase* other) const
+bool BuiltinType::Equals(AbstractType* other) const
 {
 	auto self = dynamic_cast<BuiltinType*>(other);
 	if (!self) { return false; }

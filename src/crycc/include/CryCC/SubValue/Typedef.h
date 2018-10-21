@@ -14,13 +14,11 @@
 #include <Cry/Types.h> // << Cry::Byte
 
 // Language includes.
-#include <cassert>
 #include <array>
-#include <string>
-#include <memory>
 #include <vector>
-#include <list>
-#include <bitset>
+
+//TODO:
+// - serialize/deserialize
 
 namespace CryCC::SubValue::Typedef
 {
@@ -31,8 +29,6 @@ class AbstractType;
 //TODO: obsolete
 using BaseType = std::shared_ptr<AbstractType>;
 using InternalBaseType = std::shared_ptr<AbstractType>;
-//using BaseType2 = std::shared_ptr<TypeFacade>;
-using BasePointer = AbstractType*;
 
 // Envelope helper to identify type. For every specialization a
 // type variation must be defined in the base class. The variation
@@ -63,24 +59,22 @@ public:
 	using buffer_type = std::vector<uint8_t>;
 
 	// Storage class specifier.
-	enum class StorageClassSpecifier //TODO: add _T
+	enum class StorageClassSpecifier
 	{
-		// TODO: rename to use _T
-		NONE,
-		AUTO,
-		STATIC,
-		EXTERN,
-		TYPEDEF,
-		REGISTER,
+		NONE_T,
+		AUTO_T,
+		STATIC_T,
+		EXTERN_T,
+		TYPEDEF_T,
+		REGISTER_T,
 	};
 
-	// Type qualifier. //TODO: add _T
+	// Type qualifier.
 	enum class TypeQualifier
 	{
-		// TODO: rename to use _T
-		NONE,
+		NONE_T,
 		CONST_T,
-		VOLATILE,
+		VOLATILE_T,
 	};
 
 	template<typename ContainerType, size_type Size>
@@ -152,7 +146,7 @@ public:
 	virtual bool AllowCoalescence() const { return false; }
 	virtual void Consolidate(InternalBaseType&) {};
 	virtual size_type UnboxedSize() const = 0;
-	virtual bool Equals(BasePointer) const = 0;
+	virtual bool Equals(InternalBaseType*) const = 0;
 	virtual buffer_type TypeEnvelope() const;
 
 	//
@@ -183,17 +177,8 @@ public:
 protected:
 	bool m_isInline{ false };
 	bool m_isSensitive{ false };
-	StorageClassSpecifier m_storageClass = StorageClassSpecifier::NONE;
-	Qualifiers m_typeQualifier = { TypeQualifier::NONE, TypeQualifier::NONE };
+	StorageClassSpecifier m_storageClass = StorageClassSpecifier::NONE_T;
+	Qualifiers m_typeQualifier = { TypeQualifier::NONE_T, TypeQualifier::NONE_T };
 };
-
-//constexpr Cry::Byte SetInteralType(AbstractType::TypeVariation type)
-//{
-//	return static_cast<Cry::Byte>(type);
-//}
-//
-//#define REGISTER_TYPE(t)\
-//	const Cry::Byte m_c_internalType = SetInteralType(AbstractType::TypeVariation::t); \
-//	inline Cry::Byte TypeIdentifier() const noexcept { return m_c_internalType; }
 
 } // namespace CryCC::SubValue::Typedef

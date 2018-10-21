@@ -7,18 +7,12 @@
 // copied and/or distributed without the express of the author.
 
 #include <CryCC/SubValue/Typedef.h>
-#include <CryCC/SubValue/ArrayType.h>
-#include <CryCC/SubValue/NilType.h>
 
-namespace CryCC
-{
-namespace SubValue
-{
-namespace Typedef
+namespace CryCC::SubValue::Typedef
 {
 
 // FUTURE: not portable, use byte stream helper
-TypedefBase::buffer_type TypedefBase::TypeEnvelope() const
+AbstractType::buffer_type AbstractType::TypeEnvelope() const
 {
 	buffer_type buffer;
 
@@ -31,23 +25,23 @@ TypedefBase::buffer_type TypedefBase::TypeEnvelope() const
 	return buffer;
 }
 
-const std::string TypedefBase::StorageClassName() const
+const std::string AbstractType::StorageClassName() const
 {
 	switch (m_storageClass) {
-	case StorageClassSpecifier::AUTO:
+	case StorageClassSpecifier::AUTO_T:
 		return "auto";
-	case StorageClassSpecifier::STATIC:
+	case StorageClassSpecifier::STATIC_T:
 		return "static";
-	case StorageClassSpecifier::EXTERN:
+	case StorageClassSpecifier::EXTERN_T:
 		return "extern";
-	case StorageClassSpecifier::REGISTER:
+	case StorageClassSpecifier::REGISTER_T:
 		return "register";
-	default:
-		return "";
 	}
+
+	return {};
 }
 
-const std::string TypedefBase::QualifierName() const
+const std::string AbstractType::QualifierName() const
 {
 	std::string result;
 	for (const auto& qualifier : m_typeQualifier) {
@@ -55,7 +49,7 @@ const std::string TypedefBase::QualifierName() const
 		case TypeQualifier::CONST_T:
 			result += "const ";
 			break;
-		case TypeQualifier::VOLATILE:
+		case TypeQualifier::VOLATILE_T:
 			result += "volatile ";
 			break;
 		}
@@ -64,10 +58,9 @@ const std::string TypedefBase::QualifierName() const
 	return result;
 }
 
-} // namespace Typedef
-} // namespace SubValue
-} // namespace CryCC
+} // namespace CryCC::SubValue::Typedef
 
+#if _OBSOLETE_
 namespace Util
 {
 
@@ -78,19 +71,20 @@ using namespace CryCC::SubValue::Typedef;
 //TODO: THIS IS ONE F*CKED UP MESS!
 BaseType MakeType(std::vector<uint8_t>&& in)
 {
+	return nullptr;
 	assert(in.size() > 0);
 	size_t envelopeOffset = 0;
-	std::shared_ptr<TypedefBase> type;
-	switch (static_cast<TypedefBase::TypeVariation>(in.at(0)))
+	std::shared_ptr<AbstractType> type;
+	switch (static_cast<AbstractType::TypeVariation>(in.at(0)))
 	{
-	case TypedefBase::TypeVariation::BUILTIN: {
+	case AbstractType::TypeVariation::BUILTIN: {
 		assert(in.size() > 1);
 		const auto spec = static_cast<BuiltinType::Specifier>(in.at(1));
 		envelopeOffset = 2;
 		type = std::make_shared<BuiltinType>(spec);
 		break;
 	}
-	case TypedefBase::TypeVariation::RECORD: {
+	case AbstractType::TypeVariation::RECORD: {
 		assert(in.size() > 2);
 		std::string name;
 		const auto nameSize = static_cast<size_t>(in.at(1));
@@ -101,7 +95,7 @@ BaseType MakeType(std::vector<uint8_t>&& in)
 		type = std::make_shared<RecordType>(name, specifier);
 		break;
 	}
-	case TypedefBase::TypeVariation::TYPEDEF: {
+	case AbstractType::TypeVariation::TYPEDEF: {
 		assert(in.size() > 2);
 		std::string name;
 		const auto nameSize = static_cast<size_t>(in.at(1));
@@ -109,33 +103,33 @@ BaseType MakeType(std::vector<uint8_t>&& in)
 		CRY_MEMCPY(static_cast<void*>(&(name[0])), name.size(), &(in.at(2)), nameSize);
 		//TODO: m_resolveType
 		//TODO: envelopeOffset = 99;
-		std::shared_ptr<TypedefBase> q = std::make_shared<VariadicType>();
+		std::shared_ptr<AbstractType> q = std::make_shared<VariadicType>();
 		type = std::make_shared<TypedefType>(name, q);
 		break;
 	}
-	case TypedefBase::TypeVariation::VARIADIC: {
+	case AbstractType::TypeVariation::VARIADIC: {
 		type = std::make_shared<VariadicType>();
 		break;
 	}
-	case TypedefBase::TypeVariation::POINTER: {
+	case AbstractType::TypeVariation::POINTER: {
 		//TODO:
 		//type = std::make_shared<PointerType>();
 		break;
 	}
-	case TypedefBase::TypeVariation::ARRAY: {
+	case AbstractType::TypeVariation::ARRAY: {
 		type = std::make_shared<ArrayType>(1, std::make_shared<NilType>());
 		break;
 	}
-	case TypedefBase::TypeVariation::VARIANT: {
+	case AbstractType::TypeVariation::VARIANT: {
 		//TODO:
 		//type = std::make_shared<VariantType>();
 		break;
 	}
-	case TypedefBase::TypeVariation::NIL: {
+	case AbstractType::TypeVariation::NIL: {
 		type = std::make_shared<NilType>();
 		break;
 	}
-	case TypedefBase::TypeVariation::INVAL:
+	case AbstractType::TypeVariation::INVAL:
 	default:
 		CryImplExcept(); //TODO:
 	}
@@ -149,13 +143,14 @@ BaseType MakeType(std::vector<uint8_t>&& in)
 			type->SetSensitive();
 		}
 
-		auto spec = static_cast<TypedefBase::StorageClassSpecifier>(in.at(envelopeOffset + 2));
+		auto spec = static_cast<AbstractType::StorageClassSpecifier>(in.at(envelopeOffset + 2));
 		type->SetStorageClass(spec);
-		type->SetQualifier(static_cast<TypedefBase::TypeQualifier>(in.at(envelopeOffset + 3)));
-		type->SetQualifier(static_cast<TypedefBase::TypeQualifier>(in.at(envelopeOffset + 4)));
+		type->SetQualifier(static_cast<AbstractType::TypeQualifier>(in.at(envelopeOffset + 3)));
+		type->SetQualifier(static_cast<AbstractType::TypeQualifier>(in.at(envelopeOffset + 4)));
 	}
 
 	return type;
 }
 
 } // namespace Util
+#endif // _OBSOLETE_

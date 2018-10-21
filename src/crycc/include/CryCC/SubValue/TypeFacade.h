@@ -51,16 +51,18 @@ public:
 	// Array operations.
 	//
 
-	inline bool IsArray() const noexcept { return m_arrayElement > 0; }
-	inline size_type ArraySize() const noexcept { return m_arrayElement; }
-	inline void SetArraySize(size_type element) noexcept { m_arrayElement = element; }
+	// inline bool IsArray() const noexcept { return m_arrayElement > 0; }//TODO: remove
+	// inline size_type ArraySize() const noexcept { return m_arrayElement; }//TODO: remove
+	// inline void SetArraySize(size_type element) noexcept { m_arrayElement = element; }//TODO: remove
 
 	// Single type native allocation size.
 	Typedef::BaseType::element_type::size_type Size() const { return m_type->UnboxedSize(); }
 	// Size of entire value object in allocation space.
 	Typedef::BaseType::element_type::size_type ValuedSize() const
 	{
-		return IsArray() ? Size() * ArraySize() : Size();
+		//TODO:
+		// return IsArray() ? Size() * ArraySize() : Size();
+		return Size();
 	}
 
 	// Concat type base name and pointer counter for convenience.
@@ -77,6 +79,7 @@ public:
 	// zero is returned. The caller must check the value before use.
 	template<typename CastType>
 	auto DataType() const { return std::dynamic_pointer_cast<CastType>(m_type); }
+	// Retrieve base type as is.
 	auto BaseType() const { return m_type; }
 
 	// Convert type into data stream.
@@ -85,7 +88,7 @@ public:
 	static void Deserialize(TypeFacade&, Cry::ByteArray&);
 
 	//TODO: REMOVE: FIXME: DEPRECATED
-	const std::type_info& Type() const
+	const std::type_info& Type() const //TODO: remove
 	{
 		if (!HasValue()) { return typeid(nullptr); }
 		return typeid(*m_type.get());
@@ -100,69 +103,6 @@ private:
 	std::string PointerName() const;
 };
 
-} // namespace Typedef
-} // namespace SubValue
-} // namespace CryCC
+#endif // _OBSOLETE_
 
-namespace Util
-{
-
-using namespace CryCC::SubValue::Typedef;
-
-bool IsVoid(const TypeFacade&) noexcept;
-bool IsIntegral(const TypeFacade&) noexcept;
-bool IsFloatingPoint(const TypeFacade&) noexcept;
-bool IsArray(const TypeFacade&) noexcept;
-bool IsEnum(const TypeFacade&) noexcept;
-bool IsStruct(const TypeFacade&) noexcept;
-bool IsUnion(const TypeFacade&) noexcept;
-bool IsClass(const TypeFacade&) noexcept;
-bool IsRecord(const TypeFacade&) noexcept;
-bool IsPointer(const TypeFacade&) noexcept;
-bool IsInline(const TypeFacade&) noexcept;
-bool IsSensitive(const TypeFacade&) noexcept;
-bool IsStatic(const TypeFacade&) noexcept;
-bool IsExtern(const TypeFacade&) noexcept;
-bool IsRegister(const TypeFacade&) noexcept;
-bool IsConst(const TypeFacade&) noexcept;
-bool IsVolatile(const TypeFacade&) noexcept;
-bool IsSigned(const TypeFacade&) noexcept;
-bool IsUnsigned(const TypeFacade&) noexcept;
-
-//
-// Helpers to create types.
-//
-
-inline auto MakeBuiltinType(BuiltinType::Specifier specifier)
-{
-	return std::make_shared<BuiltinType>(specifier);
-}
-inline auto MakeRecordType(const std::string& name, RecordType::Specifier specifier)
-{
-	return std::make_shared<RecordType>(name, specifier);
-}
-inline auto MakeTypedefType(const std::string& name, BaseType& type)
-{
-	return std::make_shared<TypedefType>(name, type);
-}
-inline auto MakeTypedefType(const std::string& name, TypeFacade type)
-{
-	return std::make_shared<TypedefType>(name, type.BaseType());
-}
-inline auto MakeVariadicType()
-{
-	return std::make_shared<VariadicType>();
-}
-inline auto MakePointerType(BaseType& type)
-{
-	return std::make_shared<PointerType>(type);
-}
-inline auto MakePointerType(TypeFacade type)
-{
-	return std::make_shared<PointerType>(type.BaseType());
-}
-
-// Create type definition based on byte array.
-BaseType MakeType(std::vector<uint8_t>&&);
-
-} // namespace Util
+} // namespace CryCC::SubValue::Typedef

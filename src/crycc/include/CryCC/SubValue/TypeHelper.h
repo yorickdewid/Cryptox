@@ -29,7 +29,7 @@ namespace Util
 
 using namespace CryCC::SubValue::Typedef;
 
-BaseType MakeType(std::vector<uint8_t>&&); // TODO: OBSOLETE?
+//BaseType MakeType(std::vector<uint8_t>&&); // TODO: OBSOLETE?
 
 //
 // Type creation helpers.
@@ -68,6 +68,7 @@ bool IsRecord(const InternalBaseType&) noexcept;
 bool IsPointer(const InternalBaseType&) noexcept;
 bool IsInline(const InternalBaseType&) noexcept;
 bool IsSensitive(const InternalBaseType&) noexcept;
+bool IsAuto(const InternalBaseType& type) noexcept;
 bool IsStatic(const InternalBaseType&) noexcept;
 bool IsExtern(const InternalBaseType&) noexcept;
 bool IsRegister(const InternalBaseType&) noexcept;

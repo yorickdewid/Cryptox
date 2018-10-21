@@ -14,6 +14,7 @@
 namespace CryCC::SubValue::Valuedef
 {
 
+//TODO: OBSOLETE?
 // Request the value at the record field with 'name'.
 std::shared_ptr<Value> RecordMemberValue(Value& value, const std::string& name);
 
