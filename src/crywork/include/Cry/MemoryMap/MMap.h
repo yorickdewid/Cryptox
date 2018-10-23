@@ -13,15 +13,11 @@
 
 #include <system_error>
 
-namespace Cry
-{
-namespace MemoryMap
+namespace Cry::MemoryMap
 {
 
 // This value may be provided as the 'length' parameter to the constructor or
 // 'map', in which case a memory mapping of the entire file is created.
-//using Detail::map_entire_file;
-
 template<AccessModeType AccessMode, typename ByteType>
 class BasicMMap
 {
@@ -284,5 +280,4 @@ mmap_sink MakeMMapSink(const MappingToken& token, mmap_sink::size_type offset, m
 	return MakeMMap<mmap_sink>(token, offset, length, error);
 }
 
-} // namespace Cry
-} // namespace MemoryMap
+} // namespace Cry::MemoryMap

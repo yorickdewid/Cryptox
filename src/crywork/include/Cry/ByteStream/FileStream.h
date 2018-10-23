@@ -13,8 +13,13 @@
 
 #include <fstream>
 
+// FUTURE
+//  - Implementation
+
 namespace Cry::ByteStream
 {
+
+#if 0
 
 class FileStream
 	: public ByteInStream<>
@@ -41,5 +46,7 @@ public:
 private:
 	std::fstream m_stream;
 };
+
+#endif
 
 } // namespace Cry::ByteStream
