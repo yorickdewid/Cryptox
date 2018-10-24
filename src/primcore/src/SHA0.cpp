@@ -1,5 +1,5 @@
+#if 0
 #include "SHA0.h"
-
 #include <openssl\sha.h>
 
 Primitives::SHA0::SHA0()
@@ -33,3 +33,4 @@ std::string Primitives::SHA0::CalcHash(const std::string& data)
 {
 	return Primitives::SHA0::Calculate(data);
 }
+#endif

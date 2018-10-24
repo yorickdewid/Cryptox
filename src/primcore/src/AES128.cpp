@@ -1,3 +1,4 @@
+#if 0
 #include "AES128.h"
 
 #include <openssl/evp.h>
@@ -75,3 +76,4 @@ void Primitives::AES128::Decrypt(unsigned char *output,
 	auto result = Primitives::AES128::LocalEncrypt(sdata, siv, skey, false);
 	result.copy(reinterpret_cast<char *>(output), 16, 0);
 }
+#endif

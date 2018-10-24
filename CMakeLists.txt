@@ -305,7 +305,7 @@ add_subdirectory(src/modstub)
 add_subdirectory(src/entropysrv)
 add_subdirectory(src/crylib)
 add_subdirectory(src/quidex)
-#add_subdirectory(src/primcore)
+add_subdirectory(src/primcore)
 
 # UI parts are disabled
 #add_subdirectory(src/shapework)

@@ -1,5 +1,5 @@
+#if 0
 #include "MD4.h"
-
 #include <openssl\md4.h>
 
 Primitives::MD4::MD4()
@@ -33,3 +33,4 @@ std::string Primitives::MD4::CalcHash(const std::string& data)
 {
 	return Primitives::MD4::Calculate(data);
 }
+#endif

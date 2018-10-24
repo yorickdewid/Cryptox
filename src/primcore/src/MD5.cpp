@@ -1,5 +1,5 @@
+#if 0
 #include "MD5.h"
-
 #include <openssl\md5.h>
 
 Primitives::MD5::MD5()
@@ -33,3 +33,4 @@ std::string Primitives::MD5::CalcHash(const std::string& data)
 {
 	return Primitives::MD5::Calculate(data);
 }
+#endif

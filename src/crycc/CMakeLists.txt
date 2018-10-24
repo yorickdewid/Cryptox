@@ -15,6 +15,7 @@ project_description(${PROJECT_NAME} "Compiler Core")
 # Load project defaults
 include(ProjectPrep)
 
+#TODO: Why?
 # External includes
 include_directories(${LZ4xx_INCLUDE_DIRS})
 

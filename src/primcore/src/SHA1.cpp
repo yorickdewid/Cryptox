@@ -1,6 +1,6 @@
+#if 0
 #include "SHA0.h"
 #include "SHA1.h"
-
 #include <openssl\sha.h>
 
 Primitives::SHA1::SHA1()
@@ -34,3 +34,4 @@ std::string Primitives::SHA1::CalcHash(const std::string& data)
 {
 	return Primitives::SHA1::Calculate(data);
 }
+#endif
