@@ -12,6 +12,7 @@
 #include <Cry/Cry.h>
 #include <Cry/Except.h>
 #include <Cry/Types.h> // << Cry::Byte
+#include <Cry/ByteStream.h>
 
 // Language includes.
 #include <array>
@@ -59,7 +60,7 @@ class AbstractType
 {
 public:
 	using size_type = size_t;
-	using buffer_type = std::vector<uint8_t>;
+	using buffer_type = Cry::ByteStream::VectorStream;
 
 	// Storage class specifier.
 	enum class StorageClassSpecifier
@@ -138,6 +139,12 @@ public:
 	};
 
 	using Qualifiers = StaticArray<TypeQualifier, 2>;
+
+protected:
+	// Convert abstract type into data stream.
+	static void Serialize(const AbstractType&, buffer_type&);
+	// Convert data stream into abstract type.
+	static void Deserialize(AbstractType&, buffer_type&);
 
 public:
 	//

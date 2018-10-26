@@ -42,6 +42,24 @@ void BuiltinType::SpecifierToOptions()
 	}
 }
 
+void BuiltinType::Serialize(const BuiltinType& type, buffer_type& buffer)
+{
+	AbstractType::Serialize(dynamic_cast<const AbstractType&>(type), buffer);
+
+	buffer << static_cast<Cry::Byte>(type.m_specifier);
+	buffer << type.m_typeOptions.to_ulong();
+}
+
+void BuiltinType::Deserialize(BuiltinType& type, buffer_type& buffer)
+{
+	AbstractType::Deserialize(dynamic_cast<AbstractType&>(type), buffer);
+
+	buffer >> reinterpret_cast<Cry::Byte&>(type.m_specifier);
+	unsigned long typeOptions;
+	buffer >> typeOptions;
+	type.m_typeOptions = typeOptions;
+}
+
 const std::string BuiltinType::ToString() const
 {
 	auto qualifier = AbstractType::QualifierName();

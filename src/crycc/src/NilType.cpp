@@ -13,6 +13,16 @@
 namespace CryCC::SubValue::Typedef
 {
 
+void NilType::Serialize(const NilType& type, buffer_type& buffer)
+{
+	AbstractType::Serialize(dynamic_cast<const AbstractType&>(type), buffer);
+}
+
+void NilType::Deserialize(NilType& type, buffer_type& buffer)
+{
+	AbstractType::Deserialize(dynamic_cast<AbstractType&>(type), buffer);
+}
+
 const std::string NilType::ToString() const
 {
 	return "(nil)";

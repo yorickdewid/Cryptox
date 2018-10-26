@@ -77,6 +77,15 @@ public:
 	Specifier TypeSpecifier() const { return m_specifier; }
 
 	//
+	// Implement type category contract.
+	//
+
+	// Convert builtin type into data stream.
+	static void Serialize(const BuiltinType&, buffer_type&);
+	// Convert data stream into builtin type.
+	static void Deserialize(BuiltinType&, buffer_type&);
+
+	//
 	// Implement abstract base type methods.
 	//
 

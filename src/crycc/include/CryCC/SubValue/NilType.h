@@ -24,6 +24,15 @@ public:
 	inline constexpr static const TypeVariation type_identifier = TypeVariation::NIL;
 
 	//
+	// Implement type category contract.
+	//
+
+	// Convert builtin type into data stream.
+	static void Serialize(const NilType&, buffer_type&);
+	// Convert data stream into builtin type.
+	static void Deserialize(NilType&, buffer_type&);
+
+	//
 	// Implement abstract base type methods.
 	//
 
