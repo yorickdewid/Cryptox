@@ -99,7 +99,7 @@ namespace Util
 
 using namespace CryCC::SubValue;
 
-template<typename Type, typename = typename std::enable_if<std::is_base_of<UserDataInterface, Type>::value>::type>
+template<typename Type, typename = typename std::enable_if_t<std::is_base_of_v<UserDataInterface, Type>>>
 static auto MakeUserDataPtr()
 {
 	return { reinterpret_cast<UserDataInterface *>(new Type{}), true };

@@ -11,17 +11,46 @@
 namespace CryCC::SubValue::Typedef
 {
 
-// FUTURE: not portable, use byte stream helper
+AbstractType::buffer_type& operator<<(AbstractType::buffer_type& os, const AbstractType::StorageClassSpecifier& specifier)
+{
+	os << static_cast<Cry::Byte>(specifier);
+	return os;
+}
+
+AbstractType::buffer_type& operator>>(AbstractType::buffer_type& os, AbstractType::StorageClassSpecifier& specifier)
+{
+	os >> reinterpret_cast<Cry::Byte&>(specifier);
+	return os;
+}
+
+void AbstractType::Serialize(const AbstractType& type, buffer_type& buffer)
+{
+	//TODO:
+	//Qualifiers m_typeQualifier = { TypeQualifier::NONE_T, TypeQualifier::NONE_T };
+
+	buffer << type.m_isInline;
+	buffer << type.m_isSensitive;
+	buffer << type.m_storageClass;
+}
+
+void AbstractType::Deserialize(AbstractType& type, buffer_type& buffer)
+{
+	buffer >> type.m_isInline;
+	buffer >> type.m_isSensitive;
+	buffer >> type.m_storageClass;
+}
+
+// TODO: OBSOLETE: REMOVE
 AbstractType::buffer_type AbstractType::TypeEnvelope() const
 {
 	buffer_type buffer;
-
-	// Typedef base generic options.
-	buffer.push_back(static_cast<uint8_t>(m_isInline));
-	buffer.push_back(static_cast<uint8_t>(m_isSensitive));
-	buffer.push_back(static_cast<uint8_t>(m_storageClass));
-	buffer.push_back(static_cast<uint8_t>(m_typeQualifier[0]));
-	buffer.push_back(static_cast<uint8_t>(m_typeQualifier[1]));
+//
+//	// Typedef base generic options.
+//	/*buffer.push_back(static_cast<uint8_t>(m_isInline));
+//	buffer.push_back(static_cast<uint8_t>(m_isSensitive));
+//	buffer.push_back(static_cast<uint8_t>(m_storageClass));
+//	buffer.push_back(static_cast<uint8_t>(m_typeQualifier[0]));
+//	buffer.push_back(static_cast<uint8_t>(m_typeQualifier[1]));*/
 	return buffer;
 }
 
