@@ -53,7 +53,7 @@ void Decl::Deserialize(Serializable::VisitorInterface& pack)
 }
 
 
-VarDecl::VarDecl(const std::string& name, std::shared_ptr<Typedef::TypedefBase> type, std::shared_ptr<ASTNode> node)
+VarDecl::VarDecl(const std::string& name, std::shared_ptr<Typedef::AbstractType> type, std::shared_ptr<ASTNode> node)
 	: Decl{ name, type }
 	, m_body{ node }
 {
@@ -159,7 +159,7 @@ void VariadicDecl::Deserialize(Serializable::VisitorInterface& pack)
 }
 
 
-TypedefDecl::TypedefDecl(const std::string& name, std::shared_ptr<Typedef::TypedefBase> type)
+TypedefDecl::TypedefDecl(const std::string& name, std::shared_ptr<Typedef::AbstractType> type)
 	: Decl{ name, type }
 {
 }
@@ -191,7 +191,7 @@ const std::string TypedefDecl::NodeName() const
 }
 
 
-FieldDecl::FieldDecl(const std::string& name, std::shared_ptr<Typedef::TypedefBase> type)
+FieldDecl::FieldDecl(const std::string& name, std::shared_ptr<Typedef::AbstractType> type)
 	: Decl{ name, type }
 {
 }
@@ -447,7 +447,7 @@ FunctionDecl::FunctionDecl(const std::string& name, std::shared_ptr<CompoundStmt
 	ASTNode::AppendChild(NODE_UPCAST(node));
 }
 
-FunctionDecl::FunctionDecl(const std::string& name, std::shared_ptr<Typedef::TypedefBase> type)
+FunctionDecl::FunctionDecl(const std::string& name, std::shared_ptr<Typedef::AbstractType> type)
 	: Decl{ name, type }
 {
 }

@@ -668,7 +668,7 @@ protected:
 	{
 	}
 
-	Decl(const std::string& name, const std::shared_ptr<Typedef::TypedefBase>& specifier)
+	Decl(const std::string& name, const std::shared_ptr<Typedef::AbstractType>& specifier)
 		: Returnable{ Typedef::TypeFacade{ specifier } }
 		, m_identifier{ name }
 	{
@@ -692,7 +692,7 @@ public:
 		Deserialize(pack);
 	}
 
-	VarDecl(const std::string& name, std::shared_ptr<Typedef::TypedefBase> type, ASTNodeType node = nullptr);
+	VarDecl(const std::string& name, std::shared_ptr<Typedef::AbstractType> type, ASTNodeType node = nullptr);
 
 	bool HasExpression() const { return m_body != nullptr; }
 	auto& Expression() const { return m_body; }
@@ -722,12 +722,12 @@ public:
 		Deserialize(pack);
 	}
 
-	ParamDecl(const std::string& name, std::shared_ptr<Typedef::TypedefBase> type)
+	ParamDecl(const std::string& name, std::shared_ptr<Typedef::AbstractType> type)
 		: Decl{ name, type }
 	{
 	}
 
-	ParamDecl(const std::shared_ptr<Typedef::TypedefBase>& type)
+	ParamDecl(const std::shared_ptr<Typedef::AbstractType>& type)
 		: Decl{ "", type }
 	{
 	}
@@ -756,7 +756,7 @@ public:
 	}
 
 	VariadicDecl()
-		: Decl{ "", std::dynamic_pointer_cast<Typedef::TypedefBase>(Util::MakeVariadicType()) }
+		: Decl{ "", nullptr /*std::dynamic_pointer_cast<Typedef::AbstractType>(Util::MakeVariadicType())*/ } //TODO:
 	{
 	}
 
@@ -777,7 +777,7 @@ class TypedefDecl
 	NODE_ID(NodeID::TYPEDEF_DECL_ID);
 
 public:
-	TypedefDecl(const std::string& name, std::shared_ptr<Typedef::TypedefBase> type);
+	TypedefDecl(const std::string& name, std::shared_ptr<Typedef::AbstractType> type);
 
 	explicit TypedefDecl(Serializable::VisitorInterface& pack)
 		: Decl{ pack }
@@ -809,7 +809,7 @@ public:
 		Deserialize(pack);
 	}
 
-	FieldDecl(const std::string& name, std::shared_ptr<Typedef::TypedefBase> type);
+	FieldDecl(const std::string& name, std::shared_ptr<Typedef::AbstractType> type);
 
 	void SetBitField(const std::shared_ptr<IntegerLiteral>& node);
 
@@ -955,7 +955,7 @@ public:
 	}
 
 	FunctionDecl(const std::string& name, std::shared_ptr<CompoundStmt>& node);
-	FunctionDecl(const std::string& name, std::shared_ptr<Typedef::TypedefBase> type);
+	FunctionDecl(const std::string& name, std::shared_ptr<Typedef::AbstractType> type);
 
 	// If function declaration has a body, its not a prototype
 	void SetCompound(const std::shared_ptr<CompoundStmt>& node);
@@ -1179,7 +1179,7 @@ public:
 	void SetExpression(const ASTNodeType& node);
 
 	//TODO: move?
-	void SetTypename(std::shared_ptr<Typedef::TypedefBase>& type);
+	void SetTypename(std::shared_ptr<Typedef::AbstractType>& type);
 
 	///TODO: friends
 	bool HasExpression() const { return m_body != nullptr; }
@@ -1230,7 +1230,7 @@ public:
 		Deserialize(pack);
 	}
 
-	CastExpr(ASTNodeType& node, std::shared_ptr<Typedef::TypedefBase> type);
+	CastExpr(ASTNodeType& node, std::shared_ptr<Typedef::AbstractType> type);
 
 	auto& Expression() const { return m_body; }
 

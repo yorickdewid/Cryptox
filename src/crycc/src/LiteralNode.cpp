@@ -74,7 +74,7 @@ const std::string Literal::NodeNameImpl(const char *className) const
 		% RemoveClassFromName(className)
 		% m_state.Alteration()
 		% m_location.Line() % m_location.Column()
-		% ReturnType()->TypeName()
+		% ReturnType()->ToString()
 		% m_value.ToString());
 }
 

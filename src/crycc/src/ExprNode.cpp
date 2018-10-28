@@ -191,7 +191,7 @@ void BuiltinExpr::SetExpression(const std::shared_ptr<ASTNode>& node)
 	ASTNode::UpdateDelegate();
 }
 
-void BuiltinExpr::SetTypename(std::shared_ptr<Typedef::TypedefBase>& type)
+void BuiltinExpr::SetTypename(std::shared_ptr<Typedef::AbstractType>& type)
 {
 	m_typenameType = type;
 }
@@ -234,7 +234,7 @@ const std::string BuiltinExpr::NodeName() const
 }
 
 
-CastExpr::CastExpr(std::shared_ptr<ASTNode>& node, std::shared_ptr<Typedef::TypedefBase> type)
+CastExpr::CastExpr(std::shared_ptr<ASTNode>& node, std::shared_ptr<Typedef::AbstractType> type)
 {
 	SetReturnType(type);
 	ASTNode::AppendChild(node);
