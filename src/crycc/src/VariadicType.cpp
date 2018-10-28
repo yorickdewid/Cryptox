@@ -27,13 +27,4 @@ bool VariadicType::Equals(InternalBaseType* /*other*/) const
 	return false;
 }
 
-VariadicType::buffer_type VariadicType::TypeEnvelope() const
-{
-	/*std::vector<uint8_t> buffer = { m_c_internalType };
-	const auto base = TypedefBase::TypeEnvelope();
-	buffer.insert(buffer.cend(), base.cbegin(), base.cend());
-	return buffer;*/
-	return {};
-}
-
 } // namespace CryCC::SubValue::Typedef

@@ -152,17 +152,6 @@ bool BuiltinType::Equals(InternalBaseType* /*other*/) const
 		&& m_typeOptions == self->m_typeOptions;*/
 }
 
-BuiltinType::buffer_type BuiltinType::TypeEnvelope() const
-{
-	//TODO:
-	/*std::vector<uint8_t> buffer = { m_c_internalType };
-	buffer.push_back(static_cast<uint8_t>(m_specifier));
-	const auto base = TypedefBase::TypeEnvelope();
-	buffer.insert(buffer.cend(), base.cbegin(), base.cend());
-	return buffer;*/
-	return {};
-}
-
 void BuiltinType::Consolidate(InternalBaseType& type)
 {
 	assert(type->AllowCoalescence());

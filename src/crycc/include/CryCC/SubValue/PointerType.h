@@ -26,6 +26,18 @@ public:
 	inline BaseType Get() const { return m_ptrType; }
 
 	//
+	// Implement type category contract.
+	//
+
+	// Convert pointer type into data stream.
+	static void Serialize(const PointerType&, buffer_type&);
+	// Convert data stream into pointer type.
+	static void Deserialize(PointerType&, buffer_type&);
+
+	// Compare to other BuiltinType.
+	bool operator==(const PointerType&) const { return true; }
+
+	//
 	// Implement abstract base type methods.
 	//
 
@@ -38,7 +50,7 @@ public:
 	// Test if types are equal.
 	bool Equals(InternalBaseType*) const;
 	// Pack the type into a byte stream.
-	buffer_type TypeEnvelope() const override;
+	//buffer_type TypeEnvelope() const override;
 
 private:
 	BaseType m_ptrType;

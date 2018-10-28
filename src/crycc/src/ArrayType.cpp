@@ -15,10 +15,30 @@
 namespace CryCC::SubValue::Typedef
 {
 
-ArrayType::ArrayType(size_t elements, BaseType&& arrayType)
+ArrayType::ArrayType(size_t elements, InternalBaseType& arrayType)
+	: m_elements{ elements }
+	, m_elementType{ arrayType }
+{
+}
+
+ArrayType::ArrayType(size_t elements, InternalBaseType&& arrayType)
 	: m_elements{ elements }
 	, m_elementType{ std::move(arrayType) }
 {
+}
+
+void ArrayType::Serialize(const ArrayType& type, buffer_type& buffer)
+{
+	AbstractType::Serialize(dynamic_cast<const AbstractType&>(type), buffer);
+
+	//TODO:
+}
+
+void ArrayType::Deserialize(ArrayType& type, buffer_type& buffer)
+{
+	AbstractType::Deserialize(dynamic_cast<AbstractType&>(type), buffer);
+
+	//TODO:
 }
 
 const std::string ArrayType::ToString() const
@@ -40,26 +60,6 @@ bool ArrayType::Equals(InternalBaseType* /*other*/) const
 
 	return true;*/
 	return false;
-}
-
-ArrayType::buffer_type ArrayType::TypeEnvelope() const
-{
-	//TODO:
-	//Cry::ByteArray buffer;
-
-	//buffer.SerializeAs<Cry::Byte>(m_c_internalType);
-	//buffer.SerializeAs<Cry::Word>(m_elements);
-
-	//const auto typePack = m_elementType->TypeEnvelope();
-	//assert(typePack.size() > 0);
-	//
-	//buffer.SerializeAs<Cry::Word>(typePack.size());
-	//buffer.insert(buffer.cend(), typePack.begin(), typePack.end());
-
-	//const auto base = TypedefBase::TypeEnvelope();
-	//buffer.insert(buffer.cend(), base.cbegin(), base.cend());
-	//return buffer;
-	return {};
 }
 
 } // namespace CryCC::SubValue::Typedef

@@ -240,7 +240,7 @@ bool IsVolatile(const InternalBaseType& type) noexcept
 
 bool IsSigned(const InternalBaseType& type) noexcept
 {
-	if (!CheckVariant<TypeVariation::BUILTIN>(type)) { return; }
+	if (!CheckVariant<TypeVariation::BUILTIN>(type)) { return false; }
 	const auto builtin = InternalTypeCast<BuiltinType>(type);
 	assert(builtin);
 	return !builtin->Unsigned();

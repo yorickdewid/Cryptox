@@ -43,17 +43,4 @@ bool NilType::Equals(InternalBaseType* /*other*/) const
 	return false;
 }
 
-NilType::buffer_type NilType::TypeEnvelope() const
-{
-	//TODO:
-	/*Cry::ByteArray buffer;
-
-	buffer.SerializeAs<Cry::Byte>(m_c_internalType);
-
-	const auto base = TypedefBase::TypeEnvelope();
-	buffer.insert(buffer.cend(), base.cbegin(), base.cend());
-	return buffer;*/
-	return {};
-}
-
 } // namespace CryCC::SubValue::Typedef

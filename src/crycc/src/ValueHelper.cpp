@@ -7,6 +7,7 @@
 // copied and/or distributed without the express of the author.
 
 #include <CryCC/SubValue/ValueHelper.h>
+#include <CryCC/SubValue/TypeHelper.h>
 
 #include <CryCC/SubValue/OffsetValue.h>
 #include <CryCC/SubValue/NilValue.h>

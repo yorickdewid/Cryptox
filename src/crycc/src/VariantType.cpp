@@ -54,9 +54,4 @@ bool VariantType::Equals(InternalBaseType* /*other*/) const
 	return false;
 }
 
-VariantType::buffer_type VariantType::TypeEnvelope() const
-{
-    return {}; //TODO:
-}
-
 } // namespace CryCC::SubValue::Typedef

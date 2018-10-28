@@ -39,6 +39,7 @@
 #include <CryCC/SubValue/RecordValue.h>
 
 #include <CryCC/SubValue/Converter.h>
+#include <CryCC/SubValue/TypeHelper.h>
 #include <CryCC/SubValue/ValueIterator.h>
 #include <CryCC/SubValue/ValueHelper.h>
 

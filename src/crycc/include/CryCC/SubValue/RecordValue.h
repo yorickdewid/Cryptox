@@ -10,6 +10,7 @@
 
 // Project includes.
 #include <CryCC/SubValue/ValueContract.h>
+#include <CryCC/SubValue/RecordType.h>
 #include <CryCC/SubValue/Typedef.h>
 
 // Framework includes.

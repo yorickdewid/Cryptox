@@ -21,6 +21,20 @@ PointerType::PointerType(BaseType&& nativeType)
 {
 }
 
+void PointerType::Serialize(const PointerType& type, buffer_type& buffer)
+{
+	AbstractType::Serialize(dynamic_cast<const AbstractType&>(type), buffer);
+
+	//TODO:
+}
+
+void PointerType::Deserialize(PointerType& type, buffer_type& buffer)
+{
+	AbstractType::Deserialize(dynamic_cast<AbstractType&>(type), buffer);
+
+	//TODO:
+}
+
 const std::string PointerType::ToString() const
 {
 	return "(ptr)";
@@ -35,15 +49,6 @@ bool PointerType::Equals(InternalBaseType* /*other*/) const
 {
     //return dynamic_cast<PointerType*>(other) != nullptr;
 	return false;
-}
-
-PointerType::buffer_type PointerType::TypeEnvelope() const
-{
-	/*std::vector<uint8_t> buffer = { m_c_internalType };
-	const auto base = AbstractType::TypeEnvelope();
-	buffer.insert(buffer.cend(), base.cbegin(), base.cend());
-	return buffer;*/
-	return {};
 }
 
 } // namespace CryCC::SubValue::Typedef

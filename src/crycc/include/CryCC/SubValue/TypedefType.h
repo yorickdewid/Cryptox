@@ -38,7 +38,7 @@ public:
 	// Test if types are equal.
 	bool Equals(InternalBaseType*) const;
 	// Pack the type into a byte stream.
-	buffer_type TypeEnvelope() const override;
+	//buffer_type TypeEnvelope() const override;
 
 private:
 	std::string m_name;

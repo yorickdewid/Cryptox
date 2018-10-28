@@ -22,18 +22,29 @@
 #include <map>
 #include <vector>
 #include <memory>
+#include <cassert>
 
 #define CHECK_LOCK() if (m_locked) { throw AccessViolationException{}; }
 
-namespace CryCC
-{
-namespace Program
+namespace CryCC::Program
 {
 
+// Resulting program after compilation.
+//
 // Program is the resulting structure for all compiler stages.
 // Only stages are allowed to alter the program internals. The
 // program is passed to a program runner in which case the program
 // is run, or the program structure is dissected in an analyzer.
+//
+// The program holds the folling datda:
+//   1.) Reference to the abstract syntax tree
+//   2.) Symbol table with program symbols
+//   3.) Resultset pointing to the compiler state.
+//
+// Further the program locks on a compiler state and can only continue
+// when a state is finished. If anything happens while executing a
+// compiler state, the error message reported to the frontend will
+// include the failling state.
 class Program final
 {
 	struct AccessViolationException : public std::exception
@@ -52,10 +63,6 @@ public:
 	// Create program from other program and unit tree.
 	Program(Program&&, AST::ASTNodeType&&);
 
-	//
-	// Disable assignment operators.
-	//
-
 	Program& operator=(const Program&) = delete;
 	Program& operator=(Program&&) = delete;
 
@@ -63,10 +70,12 @@ public:
 	// AST operations.
 	//
 
+	//TODO: think of something else, this is super ugly
 	// Get reference to the AST tree.
-	inline auto Ast() { /*CHECK_LOCK();*/ return m_ast->tree_ref(); }
+	inline const AST::AST& Ast() { /*CHECK_LOCK();*/ return *m_ast; }
+	//TODO: think of something else, this is super ugly
 	// Access internal AST tree indirect.
-	inline auto AstPassthrough() const { return m_ast->operator->(); }
+	inline AST::ASTNode *AstPassthrough() const { return m_ast->operator->(); }
 
 	//
 	// Symbol operations.
@@ -152,5 +161,5 @@ private:
 	std::map<ResultInterface::slot_type, std::unique_ptr<ResultInterface>> m_resultSet;
 };
 
-} // namespace Program
-} // namespace CryCC
+} // namespace CryCC::Program
+
