@@ -32,6 +32,9 @@ public:
 	// Convert data stream into builtin type.
 	static void Deserialize(NilType&, buffer_type&);
 
+	// Compare to other NilType.
+	bool operator==(const NilType&) const { return true; }
+
 	//
 	// Implement abstract base type methods.
 	//

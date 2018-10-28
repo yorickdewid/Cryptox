@@ -15,9 +15,10 @@
 namespace Cry::ByteStream::Detail
 {
 
-// Base class for all streaming objects. Provide basics
-// such as ownership of the container, container capacity
-// methods and stream bookkeeping.
+// Base class for all streaming objects.
+//
+// Provide basics such as ownership of the container,
+// container capacity methods and stream bookkeeping.
 template<template<typename Type, typename Allocator = std::allocator<Type>> typename ContainerType>
 class StreamIOBase
 {

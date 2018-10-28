@@ -85,6 +85,9 @@ public:
 	// Convert data stream into builtin type.
 	static void Deserialize(BuiltinType&, buffer_type&);
 
+	// Compare to other BuiltinType.
+	bool operator==(const BuiltinType&) const { return true; }
+
 	//
 	// Implement abstract base type methods.
 	//

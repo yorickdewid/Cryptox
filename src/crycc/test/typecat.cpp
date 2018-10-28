@@ -47,7 +47,18 @@ BOOST_AUTO_TEST_CASE(TypeCatNilType)
 
 BOOST_AUTO_TEST_CASE(TypeCatNilTypeSerialize)
 {
-	//
+	using namespace Cry::ByteStream;
+
+	VectorStream veType;
+	NilType tyNil;
+	tyNil.SetQualifier(NilType::TypeQualifier::CONST_T);
+	tyNil.SetInline();
+	tyNil.SetSensitive();
+	NilType::Serialize(tyNil, veType);
+	NilType tyNilExp;
+	NilType::Deserialize(tyNilExp, veType);
+
+	BOOST_REQUIRE(tyNilExp == tyNil);
 }
 
 BOOST_AUTO_TEST_CASE(TypeCatNilTypeMisc)
@@ -141,20 +152,27 @@ BOOST_AUTO_TEST_CASE(TypeCatBuiltinType)
 
 BOOST_AUTO_TEST_CASE(TypeCatBuiltinTypeSerialize)
 {
-	//	Cry::ByteArray baInt;
-	//	BuiltinValue valInt{ 17 };
-	//	BuiltinValue::Serialize(valInt, baInt);
-	//	BuiltinValue valIntExp{ 0 };
-	//	BuiltinValue::Deserialize(valIntExp, baInt);
-	//
-	//	Cry::ByteArray baUint;
-	//	BuiltinValue valUint{ 92U };
-	//	BuiltinValue::Serialize(valUint, baUint);
-	//	BuiltinValue valUintExp{ 0U };
-	//	BuiltinValue::Deserialize(valUintExp, baUint);
-	//
-	//	BOOST_REQUIRE_EQUAL(17, valIntExp.As<int>());
-	//	BOOST_REQUIRE_EQUAL(92U, valUintExp.As<unsigned int>());
+	using namespace Cry::ByteStream;
+
+	{
+		VectorStream veType;
+		BuiltinType tyInt{ BuiltinType::Specifier::INT_T };
+		BuiltinType::Serialize(tyInt, veType);
+		BuiltinType tyIntExp{ BuiltinType::Specifier::INT_T };
+		BuiltinType::Deserialize(tyIntExp, veType);
+
+		BOOST_REQUIRE(tyIntExp == tyInt);
+	}
+
+	{
+		VectorStream veType;
+		BuiltinType tyUint{ BuiltinType::Specifier::UNSIGNED_INT_T };
+		BuiltinType::Serialize(tyUint, veType);
+		BuiltinType tyUintExp{ BuiltinType::Specifier::UNSIGNED_INT_T };
+		BuiltinType::Deserialize(tyUintExp, veType);
+
+		BOOST_REQUIRE(tyUintExp == tyUint);
+	}
 }
 
 BOOST_AUTO_TEST_CASE(TypeCatBuiltinTypeMisc)
@@ -290,8 +308,6 @@ BOOST_AUTO_TEST_CASE(TypeCatRecordType)
 
 BOOST_AUTO_TEST_CASE(TypeCatRecordTypeSerialize)
 {
-	//TODO: FIXME: 
-
 	//{
 	//	Cry::ByteArray ba;
 	//	RecordValue record;
@@ -339,17 +355,17 @@ BOOST_AUTO_TEST_CASE(TypeCatRecordTypeMisc)
 
 BOOST_AUTO_TEST_CASE(TypeCatVariadicType)
 {
-	//
+	//TODO:
 }
 
 BOOST_AUTO_TEST_CASE(TypeCatVariadicTypeSerialize)
 {
-	//
+	//TODO:
 }
 
 BOOST_AUTO_TEST_CASE(TypeCatVariadicTypeMisc)
 {
-	//
+	//TODO:
 }
 
 BOOST_AUTO_TEST_SUITE_END()
