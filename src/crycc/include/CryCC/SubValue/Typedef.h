@@ -86,6 +86,7 @@ public:
 	{
 	public:
 		using InternalArray = std::array<ContainerType, Size>;
+		using self_type = StaticArray<ContainerType, Size>;
 		using value_type = typename InternalArray::value_type;
 		using reference = typename InternalArray::reference;
 		using const_reference = typename InternalArray::const_reference;
@@ -133,6 +134,32 @@ public:
 			}
 		}
 
+		// Stream array into bytestream.
+		friend AbstractType::buffer_type& operator<<(AbstractType::buffer_type& os, const self_type& array)
+		{
+			os << array.m_offset;
+			os << static_cast<int>(Size);
+			for (const auto& item : array.m_array) {
+				os << item;
+			}
+			return os;
+		}
+
+		// Retrieve array from bytestream.
+		friend AbstractType::buffer_type& operator>>(AbstractType::buffer_type& os, self_type& array)
+		{
+			os >> array.m_offset;
+			int inputSize{ 0 };
+			os >> inputSize;
+			if (inputSize != Size) {
+				CryImplExcept(); //TODO: booboo!
+			}
+			for (auto& item : array.m_array) {
+				os >> item;
+			}
+			return os;
+		}
+
 	private:
 		InternalArray m_array = InternalArray{};
 		size_type m_offset{ 0 };
@@ -157,7 +184,6 @@ public:
 	virtual void Consolidate(InternalBaseType&) {};
 	virtual size_type UnboxedSize() const = 0;
 	virtual bool Equals(InternalBaseType*) const = 0;
-	virtual buffer_type TypeEnvelope() const;
 
 	//
 	// Type specifier inputs.
