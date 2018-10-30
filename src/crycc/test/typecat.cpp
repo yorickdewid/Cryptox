@@ -6,9 +6,7 @@
 // that can be found in the LICENSE file. Content can not be 
 // copied and/or distributed without the express of the author.
 
-//#include <CryCC/SubValue.h>
-#include <CryCC/SubValue/NilType.h>
-#include <CryCC/SubValue/BuiltinType.h>
+#include <CryCC/SubValue.h>
 
 #include <boost/test/unit_test.hpp>
 
@@ -64,10 +62,10 @@ BOOST_AUTO_TEST_CASE(TypeCatNilTypeSerialize)
 BOOST_AUTO_TEST_CASE(TypeCatNilTypeMisc)
 {
 	NilType tyNil;
-	//	NilType tyCopy{ tyNil };
-	//	NilType tyMove{ std::move(tyCopy) };
-	//
-	//	BOOST_REQUIRE(tyNil == tyMove);
+	NilType tyCopy{ tyNil };
+	NilType tyMove{ std::move(tyCopy) };
+
+	BOOST_REQUIRE(tyNil == tyMove);
 }
 
 //
@@ -158,7 +156,7 @@ BOOST_AUTO_TEST_CASE(TypeCatBuiltinTypeSerialize)
 		VectorStream veType;
 		BuiltinType tyInt{ BuiltinType::Specifier::INT_T };
 		BuiltinType::Serialize(tyInt, veType);
-		BuiltinType tyIntExp{ BuiltinType::Specifier::INT_T };
+		BuiltinType tyIntExp{ BuiltinType::Specifier::VOID_T };
 		BuiltinType::Deserialize(tyIntExp, veType);
 
 		BOOST_REQUIRE(tyIntExp == tyInt);
@@ -168,7 +166,7 @@ BOOST_AUTO_TEST_CASE(TypeCatBuiltinTypeSerialize)
 		VectorStream veType;
 		BuiltinType tyUint{ BuiltinType::Specifier::UNSIGNED_INT_T };
 		BuiltinType::Serialize(tyUint, veType);
-		BuiltinType tyUintExp{ BuiltinType::Specifier::UNSIGNED_INT_T };
+		BuiltinType tyUintExp{ BuiltinType::Specifier::VOID_T };
 		BuiltinType::Deserialize(tyUintExp, veType);
 
 		BOOST_REQUIRE(tyUintExp == tyUint);
@@ -196,38 +194,15 @@ BOOST_AUTO_TEST_CASE(TypeCatBuiltinTypeMisc)
 
 BOOST_AUTO_TEST_CASE(TypeCatArrayType)
 {
-	//	ArrayValue valArChar{ 'k','a','a','s' };
-	//	ArrayValue valArShort{ (short)2, (short)4, (short)8, (short)913 };
-	//	ArrayValue valArInt{ 1,2,3,4,5,6,7,8,9,0 };
-	//	ArrayValue valArLong{ 100L,200L,300L };
-	//
-	//	ArrayValue valArUchar{ (unsigned char)'Y', (unsigned char)'A', (unsigned char)'-' };
-	//	ArrayValue valArUshort{ (unsigned short)92, (unsigned short)15, (unsigned short)94, (unsigned short)3416 };
-	//	ArrayValue valArUint{ 91U,8U,12U,3713U };
-	//	ArrayValue valArUlong{ 100UL,400UL,900260UL };
-	//
-	//	ArrayValue valArBool{ false,true,true,false };
-	//	ArrayValue valArFloat{ 84.8748f, 948.847f };
-	//	ArrayValue valArDouble{ 8734.823123, 891.6418 };
-	//
-	//	std::vector<int> vector{ 12, 34,45 };
-	//	ArrayValue valArInt2{ vector.cbegin(), vector.cend() };
-	//
-	//	BOOST_REQUIRE((std::vector<char>{'k', 'a', 'a', 's'}) == valArChar.As<char>());
-	//	BOOST_REQUIRE((std::vector<short>{(short)2, (short)4, (short)8, (short)913}) == valArShort.As<short>());
-	//	BOOST_REQUIRE((std::vector<int>{1, 2, 3, 4, 5, 6, 7, 8, 9, 0}) == valArInt.As<int>());
-	//	BOOST_REQUIRE((std::vector<long>{100L, 200L, 300L}) == valArLong.As<long>());
-	//
-	//	BOOST_REQUIRE((std::vector<unsigned char>{(unsigned char)'Y', (unsigned char)'A', (unsigned char)'-'}) == valArUchar.As<unsigned char>());
-	//	BOOST_REQUIRE((std::vector<unsigned short>{(unsigned short)92, (unsigned short)15, (unsigned short)94, (unsigned short)3416}) == valArUshort.As<unsigned short>());
-	//	BOOST_REQUIRE((std::vector<unsigned int>{91U, 8U, 12U, 3713U}) == valArUint.As<unsigned int>());
-	//	BOOST_REQUIRE((std::vector<unsigned long>{100UL, 400UL, 900260UL}) == valArUlong.As<unsigned long>());
-	//
-	//	BOOST_REQUIRE((std::vector<bool>{false, true, true, false}) == valArBool.As<bool>());
-	//	BOOST_REQUIRE((std::vector<float>{84.8748f, 948.847f}) == valArFloat.As<float>());
-	//	BOOST_REQUIRE((std::vector<double>{8734.823123, 891.6418}) == valArDouble.As<double>());
-	//
-	//	BOOST_REQUIRE((std::vector<int>{12, 34, 45}) == valArInt2.As<int>());
+	ArrayType tyArNil{ 3, Util::MakeNilType() };
+	ArrayType tyArVoid{ 2, Util::MakeBuiltinType(BuiltinType::Specifier::VOID_T) };
+	ArrayType tyArBool{ 9, Util::MakeBuiltinType(BuiltinType::Specifier::BOOL_T) };
+	ArrayType tyArInt{ 24, Util::MakeBuiltinType(BuiltinType::Specifier::INT_T) };
+
+	BOOST_REQUIRE_EQUAL(3, tyArNil.Order());
+	BOOST_REQUIRE_EQUAL(2, tyArVoid.Order());
+	BOOST_REQUIRE_EQUAL(9, tyArBool.Order());
+	BOOST_REQUIRE_EQUAL(24, tyArInt.Order());
 }
 
 BOOST_AUTO_TEST_CASE(TypeCatArrayTypeSerialize)
