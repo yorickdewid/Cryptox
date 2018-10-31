@@ -80,18 +80,13 @@ public:
 	// Implement type category contract.
 	//
 
+protected:
 	// Convert builtin type into data stream.
-	static void Serialize(const BuiltinType&, buffer_type&);
+	void Pack(buffer_type& buffer) const override;
 	// Convert data stream into builtin type.
-	static void Deserialize(BuiltinType&, buffer_type&);
+	void Unpack(buffer_type&) override;
 
-	// Compare to other BuiltinType.
-	bool operator==(const BuiltinType&) const { return true; }
-
-	//
-	// Implement abstract base type methods.
-	//
-
+public:
 	// Return type identifier.
 	TypeVariation TypeId() const { return type_identifier; }
 	// Return type name string.
@@ -104,6 +99,9 @@ public:
 	bool Equals(InternalBaseType*) const;
 	// Consolidate multiple types into one.
 	void Consolidate(InternalBaseType& type) override;
+
+	// Compare to other BuiltinType.
+	bool operator==(const BuiltinType&) const { return true; }
 
 private:
 	Specifier m_specifier;

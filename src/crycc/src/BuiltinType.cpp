@@ -42,22 +42,22 @@ void BuiltinType::SpecifierToOptions()
 	}
 }
 
-void BuiltinType::Serialize(const BuiltinType& type, buffer_type& buffer)
+void BuiltinType::Pack(buffer_type& buffer) const
 {
-	AbstractType::Serialize(dynamic_cast<const AbstractType&>(type), buffer);
+	AbstractType::Pack(buffer);
 
-	buffer << static_cast<Cry::Byte>(type.m_specifier);
-	buffer << type.m_typeOptions.to_ulong();
+	buffer << static_cast<Cry::Byte>(m_specifier);
+	buffer << m_typeOptions.to_ulong();
 }
 
-void BuiltinType::Deserialize(BuiltinType& type, buffer_type& buffer)
+void BuiltinType::Unpack(buffer_type& buffer)
 {
-	AbstractType::Deserialize(dynamic_cast<AbstractType&>(type), buffer);
+	AbstractType::Unpack(buffer);
 
-	buffer >> reinterpret_cast<Cry::Byte&>(type.m_specifier);
-	unsigned long typeOptions;
+	buffer >> reinterpret_cast<Cry::Byte&>(m_specifier);
+	unsigned long typeOptions{ 0 };
 	buffer >> typeOptions;
-	type.m_typeOptions = typeOptions;
+	m_typeOptions = typeOptions;
 }
 
 const std::string BuiltinType::ToString() const

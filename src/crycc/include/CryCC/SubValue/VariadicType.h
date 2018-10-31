@@ -20,6 +20,19 @@ public:
 	inline constexpr static const TypeVariation type_identifier = TypeVariation::VARIADIC;
 
 	//
+	// Implement type category contract.
+	//
+
+	// Convert builtin type into data stream.
+	static void Serialize(const VariadicType&, buffer_type&);
+	// Convert data stream into builtin type.
+	static void Deserialize(VariadicType&, buffer_type&);
+
+	//TODO:
+	// Compare to other NilType.
+	bool operator==(const VariadicType&) const { return true; }
+
+	//
 	// Implement abstract base type methods.
 	//
 
@@ -31,8 +44,6 @@ public:
 	size_type UnboxedSize() const;
 	// Test if types are equal.
 	bool Equals(InternalBaseType*) const;
-	// Pack the type into a byte stream.
-	//buffer_type TypeEnvelope() const override;
 };
 
 } // namespace CryCC::SubValue::Typedef

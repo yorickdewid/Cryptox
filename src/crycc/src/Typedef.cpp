@@ -37,18 +37,28 @@ AbstractType::buffer_type& operator>>(AbstractType::buffer_type& os, AbstractTyp
 
 void AbstractType::Serialize(const AbstractType& type, buffer_type& buffer)
 {
-	buffer << type.m_isInline;
-	buffer << type.m_isSensitive;
-	buffer << type.m_storageClass;
-	buffer << type.m_typeQualifier;
+	type.Pack(buffer);
 }
 
 void AbstractType::Deserialize(AbstractType& type, buffer_type& buffer)
 {
-	buffer >> type.m_isInline;
-	buffer >> type.m_isSensitive;
-	buffer >> type.m_storageClass;
-	buffer >> type.m_typeQualifier;
+	type.Unpack(buffer);
+}
+
+void AbstractType::Pack(buffer_type& buffer) const
+{
+	buffer << m_isInline;
+	buffer << m_isSensitive;
+	buffer << m_storageClass;
+	buffer << m_typeQualifier;
+}
+
+void AbstractType::Unpack(buffer_type& buffer)
+{
+	buffer >> m_isInline;
+	buffer >> m_isSensitive;
+	buffer >> m_storageClass;
+	buffer >> m_typeQualifier;
 }
 
 const std::string AbstractType::StorageClassName() const

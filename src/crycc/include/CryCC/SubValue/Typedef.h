@@ -167,7 +167,7 @@ public:
 
 	using Qualifiers = StaticArray<TypeQualifier, 2>;
 
-protected:
+public:
 	// Convert abstract type into data stream.
 	static void Serialize(const AbstractType&, buffer_type&);
 	// Convert data stream into abstract type.
@@ -209,6 +209,9 @@ public:
 	inline Qualifiers TypeQualifiers() const noexcept { return m_typeQualifier; }
 	inline bool IsInline() const noexcept { return m_isInline; }
 	inline bool IsSensitive() const noexcept { return m_isSensitive; }
+
+	virtual void Pack(buffer_type&) const;
+	virtual void Unpack(buffer_type&);
 
 protected:
 	bool m_isInline{ false };

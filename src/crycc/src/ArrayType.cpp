@@ -27,18 +27,20 @@ ArrayType::ArrayType(size_t elements, InternalBaseType&& arrayType)
 {
 }
 
-void ArrayType::Serialize(const ArrayType& type, buffer_type& buffer)
+void ArrayType::Pack(buffer_type& buffer) const
 {
-	AbstractType::Serialize(dynamic_cast<const AbstractType&>(type), buffer);
+	AbstractType::Pack(buffer);
 
-	//TODO:
+	buffer << static_cast<int>(m_elements);
+	m_elementType->Pack(buffer);
 }
 
-void ArrayType::Deserialize(ArrayType& type, buffer_type& buffer)
+void ArrayType::Unpack(buffer_type& buffer)
 {
-	AbstractType::Deserialize(dynamic_cast<AbstractType&>(type), buffer);
+	AbstractType::Unpack(buffer);
 
-	//TODO:
+	buffer >> reinterpret_cast<int&>(m_elements);
+	m_elementType->Unpack(buffer);
 }
 
 const std::string ArrayType::ToString() const

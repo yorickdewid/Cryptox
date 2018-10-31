@@ -11,6 +11,16 @@
 namespace CryCC::SubValue::Typedef
 {
 
+void VariadicType::Serialize(const VariadicType& type, buffer_type& buffer)
+{
+	AbstractType::Serialize(dynamic_cast<const AbstractType&>(type), buffer);
+}
+
+void VariadicType::Deserialize(VariadicType& type, buffer_type& buffer)
+{
+	AbstractType::Deserialize(dynamic_cast<AbstractType&>(type), buffer);
+}
+
 const std::string VariadicType::ToString() const
 {
 	return "...";

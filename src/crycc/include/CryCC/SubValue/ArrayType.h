@@ -38,18 +38,13 @@ public:
 	// Implement type category contract.
 	//
 
+protected:
 	// Convert array type into data stream.
-	static void Serialize(const ArrayType&, buffer_type&);
+	void Pack(buffer_type& buffer) const override;
 	// Convert data stream into array type.
-	static void Deserialize(ArrayType&, buffer_type&);
+	void Unpack(buffer_type&) override;
 
-	// Compare to other BuiltinType.
-	bool operator==(const ArrayType&) const { return true; }
-
-	//
-	// Implement abstract base type methods.
-	//
-
+public:
 	// Return type identifier.
 	TypeVariation TypeId() const { return type_identifier; }
 	// Return type name string.
@@ -58,8 +53,9 @@ public:
 	size_type UnboxedSize() const;
 	// Test if types are equal.
 	bool Equals(InternalBaseType*) const;
-	// Pack the type into a byte stream.
-	//buffer_type TypeEnvelope() const override;
+
+	// Compare to other BuiltinType.
+	bool operator==(const ArrayType&) const { return true; }
 
 private:
 	size_t m_elements;
