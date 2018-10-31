@@ -74,17 +74,34 @@ BOOST_AUTO_TEST_CASE(TypeCatNilTypeMisc)
 
 BOOST_AUTO_TEST_CASE(TypeCatVariantType)
 {
-	//TODO:
+	VariadicType tyVa;
+
+	BOOST_REQUIRE_EQUAL("...", tyVa.ToString());
+	BOOST_REQUIRE_EQUAL(0, tyVa.UnboxedSize());
+	BOOST_REQUIRE(TypeVariation::VARIADIC == tyVa.TypeId());
 }
 
 BOOST_AUTO_TEST_CASE(TypeCatVariantTypeSerialize)
 {
-	//TODO:
+	using namespace Cry::ByteStream;
+
+	VectorStream veType;
+	VariadicType tyVa;
+	tyVa.SetQualifier(NilType::TypeQualifier::VOLATILE_T);
+	VariadicType::Serialize(tyVa, veType);
+	VariadicType tyVaExp;
+	VariadicType::Deserialize(tyVaExp, veType);
+
+	BOOST_REQUIRE(tyVaExp == tyVa);
 }
 
 BOOST_AUTO_TEST_CASE(TypeCatVariantTypeMisc)
 {
-	//TODO:
+	VariadicType tyVar;
+	VariadicType tyCopy{ tyVar };
+	VariadicType tyMove{ std::move(tyCopy) };
+
+	BOOST_REQUIRE(tyVar == tyMove);
 }
 
 //
@@ -175,17 +192,11 @@ BOOST_AUTO_TEST_CASE(TypeCatBuiltinTypeSerialize)
 
 BOOST_AUTO_TEST_CASE(TypeCatBuiltinTypeMisc)
 {
-	//	BuiltinValue valInt{ 17 };
-	//	BuiltinValue valInt2{ 18 };
-	//	BuiltinValue valCopy{ valInt };
-	//	BuiltinValue valMove{ std::move(valCopy) };
-	//	valInt = 18;
-	//
-	//	BOOST_REQUIRE_EQUAL("17", valMove.ToString());
-	//	BOOST_REQUIRE_EQUAL(17, valMove.As<int>());
-	//	BOOST_REQUIRE_EQUAL(18, valInt.As<int>());
-	//	BOOST_REQUIRE(valInt == valInt2);
-	//	BOOST_REQUIRE(!(valInt == valMove));
+	BuiltinType tyUInt{ BuiltinType::Specifier::UNSIGNED_INT_T };
+	BuiltinType tyCopy{ tyUInt };
+	BuiltinType tyMove{ std::move(tyCopy) };
+
+	BOOST_REQUIRE(tyUInt == tyMove);
 }
 
 //
@@ -207,35 +218,36 @@ BOOST_AUTO_TEST_CASE(TypeCatArrayType)
 
 BOOST_AUTO_TEST_CASE(TypeCatArrayTypeSerialize)
 {
-	//	Cry::ByteArray baArInt;
-	//	ArrayValue valArInt{ 1,2,3,4,5,6,7,8,9,0 };
-	//	ArrayValue::Serialize(valArInt, baArInt);
-	//	ArrayValue valArIntExp{ 0 };
-	//	ArrayValue::Deserialize(valArIntExp, baArInt);
-	//
-	//	Cry::ByteArray baArUint;
-	//	ArrayValue valArUint{ 1U,2U,3U,4U,5U,6U,7U,8U,9U };
-	//	ArrayValue::Serialize(valArUint, baArUint);
-	//	ArrayValue valArUintExp{ 0 };
-	//	ArrayValue::Deserialize(valArUintExp, baArUint);
-	//
-	//	BOOST_REQUIRE((std::vector<int>{1, 2, 3, 4, 5, 6, 7, 8, 9, 0}) == valArIntExp.As<int>());
-	//	BOOST_REQUIRE((std::vector<unsigned int>{1U, 2U, 3U, 4U, 5U, 6U, 7U, 8U, 9U}) == valArUintExp.As<unsigned int>());
+	using namespace Cry::ByteStream;
+
+	{
+		VectorStream veType;
+		ArrayType tyArInt{ 7, Util::MakeBuiltinType(BuiltinType::Specifier::INT_T) };
+		ArrayType::Serialize(tyArInt, veType);
+		ArrayType tyArIntExp{ 0, Util::MakeBuiltinType(BuiltinType::Specifier::VOID_T) };
+		ArrayType::Deserialize(tyArIntExp, veType);
+
+		BOOST_REQUIRE(tyArIntExp == tyArInt);
+	}
+
+	{
+		VectorStream veType;
+		ArrayType tyUint{ 4, Util::MakeBuiltinType(BuiltinType::Specifier::UNSIGNED_INT_T) };
+		ArrayType::Serialize(tyUint, veType);
+		ArrayType tyUintExp{ 0, Util::MakeBuiltinType(BuiltinType::Specifier::VOID_T) };
+		ArrayType::Deserialize(tyUintExp, veType);
+
+		BOOST_REQUIRE(tyUintExp == tyUint);
+	}
 }
 
 BOOST_AUTO_TEST_CASE(TypeCatArrayTypeMisc)
 {
-	//	ArrayValue valArInt{ 1,2,3,4,5,6,7,8,9,0 };
-	//	ArrayValue valArInt2{ 11,12,13,14,15,16,17,18,19 };
-	//	ArrayValue valCopy{ valArInt };
-	//	ArrayValue valMove{ std::move(valCopy) };
-	//	valArInt = { 11,12,13,14,15,16,17,18,19 };
-	//
-	//	BOOST_REQUIRE((std::vector<int>{1, 2, 3, 4, 5, 6, 7, 8, 9, 0}) == valMove.As<int>());
-	//	BOOST_REQUIRE((std::vector<int>{11, 12, 13, 14, 15, 16, 17, 18, 19}) == valArInt.As<int>());
-	//
-	//	BOOST_REQUIRE(valArInt == valArInt2);
-	//	BOOST_REQUIRE(!(valArInt == valMove));
+	ArrayType tyArUInt{ 5, Util::MakeBuiltinType(BuiltinType::Specifier::DOUBLE_T) };
+	ArrayType tyCopy{ tyArUInt };
+	ArrayType tyMove{ std::move(tyCopy) };
+
+	BOOST_REQUIRE(tyArUInt == tyMove);
 }
 
 //

@@ -9,7 +9,6 @@
 #pragma once
 
 // Project includes.
-#include <CryCC/SubValue/RecordValue.h> //TODO: can be removed
 #include <CryCC/SubValue/TypeFacade.h>
 #include <CryCC/SubValue/ValueContract.h>
 #include <CryCC/SubValue/NilValue.h>

@@ -23,19 +23,13 @@ public:
 	// Implement type category contract.
 	//
 
+protected:
 	// Convert builtin type into data stream.
-	static void Serialize(const VariadicType&, buffer_type&);
+	void Pack(buffer_type&) const override;
 	// Convert data stream into builtin type.
-	static void Deserialize(VariadicType&, buffer_type&);
+	void Unpack(buffer_type&) override;
 
-	//TODO:
-	// Compare to other NilType.
-	bool operator==(const VariadicType&) const { return true; }
-
-	//
-	// Implement abstract base type methods.
-	//
-
+public:
 	// Return type identifier.
 	TypeVariation TypeId() const { return type_identifier; }
 	// Return type name string.
@@ -44,6 +38,10 @@ public:
 	size_type UnboxedSize() const;
 	// Test if types are equal.
 	bool Equals(InternalBaseType*) const;
+
+	//TODO:
+// Compare to other NilType.
+	bool operator==(const VariadicType&) const { return true; }
 };
 
 } // namespace CryCC::SubValue::Typedef

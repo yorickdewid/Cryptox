@@ -11,14 +11,14 @@
 namespace CryCC::SubValue::Typedef
 {
 
-void VariadicType::Serialize(const VariadicType& type, buffer_type& buffer)
+void VariadicType::Pack(buffer_type& buffer) const
 {
-	AbstractType::Serialize(dynamic_cast<const AbstractType&>(type), buffer);
+	AbstractType::Pack(buffer);
 }
 
-void VariadicType::Deserialize(VariadicType& type, buffer_type& buffer)
+void VariadicType::Unpack(buffer_type& buffer)
 {
-	AbstractType::Deserialize(dynamic_cast<AbstractType&>(type), buffer);
+	AbstractType::Unpack(buffer);
 }
 
 const std::string VariadicType::ToString() const
@@ -33,7 +33,7 @@ VariadicType::size_type VariadicType::UnboxedSize() const
 
 bool VariadicType::Equals(InternalBaseType* /*other*/) const
 {
-    //return dynamic_cast<VariadicType*>(other) != nullptr;
+	//return dynamic_cast<VariadicType*>(other) != nullptr;
 	return false;
 }
 
