@@ -39,5 +39,8 @@ target_link_libraries(${PROJECT_NAME}
 	${Boost_LIBRARIES}
 )
 
+# Enable tests on this target
+enable_auto_test("Crypto Core Test")
+
 # Set project options
 include(ProjectFin)

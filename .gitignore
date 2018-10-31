@@ -12,3 +12,5 @@
 
 *.aps
 RC*
+Build/*
+Testing/

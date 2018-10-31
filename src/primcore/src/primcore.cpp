@@ -8,154 +8,60 @@
 
 // Local includes.
 #include <CryptoCore/primcore.h>
-//#include "Functional.h"
-//#include "State.h"
-//#include "Planner.h"
-//#include "UniquePreservePtr.h"
-
-// Project includes.
-//#include <CryCC/Program.h>
 
 // Framework includes.
 #include <Cry/Cry.h>
 #include <Cry/Config.h>
 #include <Cry/Loader.h>
 
-//#ifdef AUTO_CONVERT
-//#include <boost/lexical_cast.hpp>
-//#endif
-
-#include <memory>
-
-//#define AUTO_CONVERT 1
-
-//TODO:
-// - Involve planner and determine strategy
-//    - Check if local arch compile is required
-// - Run program in runner resulting from planner
-//    - Either Interpreter
-//    - Or Virtual machine
-//    - Or native
-
-//namespace Loader = Cry::Module;
-
-//using ProgramPtr = Detail::UniquePreservePtr<CryCC::Program::Program>;
-
-//#ifdef AUTO_CONVERT
-//bool has_digits(const std::string& s)
-//{
-//	return s.find_first_not_of("0123456789") == std::string::npos;
-//}
-//#endif
-
-//void ConvertToArgumentList(ArgumentList& list, const datalist_t pointerList)
-//{
-//	size_t sz = 0;
-//	if (!pointerList) { return; }
-//
-//	do {
-//		// Reconstruct parameters.
-//		datachunk_t *arg = pointerList[sz++];
-//		if (!arg) { return; }
-//		auto str = std::string{ arg->ptr, arg->size };
-//
-//#ifdef AUTO_CONVERT
-//		// Cast to builtin type.
-//		if (has_digits(str)) {
-//			list.emplace_back(boost::lexical_cast<int>(str));
-//		}
-//		else {
-//			list.push_back(std::move(str));
-//		}
-//#else
-//		list.push_back(std::move(str));
-//#endif
-//		// Free datachunk if required.
-//		datachunk_internal_release(arg);
-//	} while (pointerList[sz]);
-//}
-
-//class Configuration
-//{
-//
-//public:
-//	Configuration(struct vm_config *config)
-//		: m_config{ config }
-//	{
-//		Configuration::Assert(config);
-//	}
-//
-//	// Test the combination of configuration items.
-//	static void Assert(const struct vm_config *config)
-//	{
-//		CRY_UNUSED(config);
-//	}
-//
-//private:
-//	struct vm_config *m_config;
-//};
+// [ API ENTRY ]
+// Initialize the crypto core engine.s
+CRYPTCRAPI void InitCryptoCore(crypto_manager_t*) NOTHROW
+{
+	//
+}
 
 // [ API ENTRY ]
-// Program executor.
-CRYPTCRAPI void ExecuteProgram(runtime_settings_t *runtime) noexcept
+// Get cryptographic engine.
+CRYPTCRAPI void GetCryptoManager(crypto_manager_t*) NOTHROW
 {
-	//using namespace EVM;
+	//
+}
 
-	assert(runtime);
+// [ API ENTRY ]
+// Set cryptographic engine.
+CRYPTCRAPI void SetCryptoManager(crypto_manager_t*) NOTHROW
+{
+	//
+}
 
-	CHECK_API_VERSION(runtime, CRYPTCRAPIVER);
-#if 0
-	assert(runtime->error_handler);
-	assert(runtime->program.program_ptr);
+// [ API ENTRY ]
+// Use the default encryption algorithm regardless of crypto engine.
+CRYPTCRAPI int EasyBlockCipherEncrypt(const unsigned char *key, const unsigned char *in, unsigned char *out) NOTHROW
+{
+	CRY_UNUSED(key);
+	CRY_UNUSED(in);
+	CRY_UNUSED(out);
+	return 0;
+}
 
-	// Create a configuration object.
-	Configuration config{ &runtime->cfg };
+// [ API ENTRY ]
+// Use the default decryption algorithm regardless of crypto engine.
+CRYPTCRAPI int EasyBlockCipherDecrypt(const unsigned char *key, const unsigned char *in, unsigned char *out) NOTHROW
+{
+	CRY_UNUSED(key);
+	CRY_UNUSED(in);
+	CRY_UNUSED(out);
+	return 0;
+}
 
-	// Capture program pointer and cast into program structure.
-	ProgramPtr program = ProgramPtr{ runtime->program.program_ptr };
-
-	// Load modules to import external functionality.
-	auto runtimeModules = Loader::Load<RuntimeInterface>(DIST_BINARY_DIR);
-	Loader::ForEachLoad(runtimeModules);
-
-	// Collect all external symbols. Load the local symbols first, and give
-	// the external symbols loaded from modules the chance to override functions.
-	std::list<EVM::ExternalMethod> list;
-	list.merge(EVM::SymbolIndex(), [](auto, auto) { return false; });
-	for (auto& module : runtimeModules) {
-		module->LoadSymbolIndex(list);
-	}
-
-	// Set the execution options.
-	GlobalExecutionState::Set(list);
-	//GlobalExecutionState::Set(config);
-
-	// Determine strategy for program.
-	auto runner = Planner{ std::move(program), Planner::Plan::ALL }.DetermineStrategy();
-	if (!runner->IsRunnable()) {
-		return RETURN_NOT_RUNNABLE;
-	}
-
-	try {
-		ArgumentList args;
-		ConvertToArgumentList(args, runtime->args);
-
-		ArgumentList envs;
-		ConvertToArgumentList(envs, runtime->envs);
-
-		// Execute the program in the designated strategy.
-		runtime->return_code = runner->Execute(runner->EntryPoint(runtime->entry_point), args, envs);
-	}
-	// Catch any runtime errors.
-	catch (const std::exception& e) {
-		runtime->error_handler(runtime->user_data, e.what(), true);
-	}
-
-	// Unset the execution options.
-	GlobalExecutionState::UnsetAll();
-	Loader::ForEachUnload(runtimeModules);
-#endif
-	//return RETURN_OK;
+// [ API ENTRY ]
+// Use the default hash algorithm regardless of crypto engine.
+CRYPTCRAPI int EasyHash(const unsigned char *in, unsigned char *out) NOTHROW
+{
+	CRY_UNUSED(in);
+	CRY_UNUSED(out);
+	return 0;
 }
 
 // [ API ENTRY ]

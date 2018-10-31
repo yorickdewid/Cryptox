@@ -1,3 +1,4 @@
+#if 0
 #include "Util.h"
 #include "TestCase.h"
 
@@ -97,4 +98,4 @@ UNIT_TEST(AES128)
 	//auto result = Primitives::MD5::Calculate("3ea06253e100b0652a88d7d20356fdfb33b");
 	//TestCase::AssertString(Util::Hex(result).c_str(), "d90055c0387a3dfc0bcfec64d7d00529");
 }
-
+#endif
