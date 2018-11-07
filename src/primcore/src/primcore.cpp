@@ -18,15 +18,19 @@
 // Initialize the crypto core engine.s
 CRYPTCRAPI void InitCryptoCore(crypto_manager_t*) NOTHROW
 {
-	//
+	// TODO:
+	// - Which crypto engines are available?
+	// - Select one in deterministic order
+	// - Initialize and configure that crypto engine with the manager settings
+	// - Communicate via crypto engine adapter
 }
 
 // [ API ENTRY ]
 // Get cryptographic engine.
-CRYPTCRAPI void GetCryptoManager(crypto_manager_t*) NOTHROW
-{
-	//
-}
+//CRYPTCRAPI void GetCryptoManager(crypto_manager_t*) NOTHROW
+//{
+//	//
+//}
 
 // [ API ENTRY ]
 // Set cryptographic engine.
@@ -37,9 +41,10 @@ CRYPTCRAPI void SetCryptoManager(crypto_manager_t*) NOTHROW
 
 // [ API ENTRY ]
 // Use the default encryption algorithm regardless of crypto engine.
-CRYPTCRAPI int EasyBlockCipherEncrypt(const unsigned char *key, const unsigned char *in, unsigned char *out) NOTHROW
+CRYPTCRAPI int EasyBlockCipherEncrypt(const unsigned char *key, const unsigned char *iv, const unsigned char *in, unsigned char *out) NOTHROW
 {
 	CRY_UNUSED(key);
+	CRY_UNUSED(iv);
 	CRY_UNUSED(in);
 	CRY_UNUSED(out);
 	return 0;
@@ -47,9 +52,10 @@ CRYPTCRAPI int EasyBlockCipherEncrypt(const unsigned char *key, const unsigned c
 
 // [ API ENTRY ]
 // Use the default decryption algorithm regardless of crypto engine.
-CRYPTCRAPI int EasyBlockCipherDecrypt(const unsigned char *key, const unsigned char *in, unsigned char *out) NOTHROW
+CRYPTCRAPI int EasyBlockCipherDecrypt(const unsigned char *key, const unsigned char *iv, const unsigned char *in, unsigned char *out) NOTHROW
 {
 	CRY_UNUSED(key);
+	CRY_UNUSED(iv);
 	CRY_UNUSED(in);
 	CRY_UNUSED(out);
 	return 0;

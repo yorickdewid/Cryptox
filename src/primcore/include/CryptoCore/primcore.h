@@ -46,6 +46,9 @@ extern "C" {
 		// is an required function and *must* be set by the frontend.
 		error_handler_t error_handler;
 
+		// 
+		int allow_weak_crypto;
+
 		// User provided context.
 		void *user_data;
 	} crypto_manager_t;
@@ -54,16 +57,16 @@ extern "C" {
 	CRYPTCRAPI void InitCryptoCore(crypto_manager_t*) NOTHROW;
 	
 	// Get cryptographic engine.
-	CRYPTCRAPI void GetCryptoManager(crypto_manager_t*) NOTHROW;
+	//CRYPTCRAPI void GetCryptoManager(crypto_manager_t*) NOTHROW;
 
 	// Set cryptographic engine.
 	CRYPTCRAPI void SetCryptoManager(crypto_manager_t*) NOTHROW;
 
 	// Use the default encryption algorithm regardless of crypto engine.
-	CRYPTCRAPI int EasyBlockCipherEncrypt(const unsigned char *key, const unsigned char *in, unsigned char *out) NOTHROW;
+	CRYPTCRAPI int EasyBlockCipherEncrypt(const unsigned char *key, const unsigned char *iv, const unsigned char *in, unsigned char *out) NOTHROW;
 
 	// Use the default decryption algorithm regardless of crypto engine.
-	CRYPTCRAPI int EasyBlockCipherDecrypt(const unsigned char *key, const unsigned char *in, unsigned char *out) NOTHROW;
+	CRYPTCRAPI int EasyBlockCipherDecrypt(const unsigned char *key, const unsigned char *iv, const unsigned char *in, unsigned char *out) NOTHROW;
 
 	// Use the default hash algorithm regardless of crypto engine.
 	CRYPTCRAPI int EasyHash(const unsigned char *in, unsigned char *out) NOTHROW;
