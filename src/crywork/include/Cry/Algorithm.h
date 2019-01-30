@@ -60,6 +60,8 @@ struct MatchOn
 	}
 };
 
+// Cast each element of the input iterator to the cast type before insertion
+// in the output iterator.
 template<typename CastType, typename InputIt, typename OutputIt>
 OutputIt ContainerCast(InputIt first1, InputIt last1, OutputIt d_first)
 {

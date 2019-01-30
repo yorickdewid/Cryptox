@@ -8,6 +8,7 @@
 
 #include <Cry/Cry.h>
 #include <Cry/Serialize.h>
+#include <Cry/Algorithm.h>
 
 #include <boost/test/unit_test.hpp>
 
@@ -187,7 +188,8 @@ BOOST_AUTO_TEST_CASE(BAContainer)
 	buffer.Serialize(var_1);
 	buffer.Serialize(var_2);
 	buffer.SerializeAs<Cry::Short>(v.size());
-	buffer.insert(buffer.end(), v.begin(), v.end());
+	Cry::Algorithm::ContainerCast<Cry::ByteArray::ValueType>(v.begin(), v.end(), std::back_inserter(buffer));
+
 	buffer.Serialize(var_3);
 
 	buffer.StartOffset(0);
