@@ -27,10 +27,10 @@ class ByteInStream : virtual public Detail::StreamIOBase<ContainerType>
 	{
 		auto value = Buffer().Deserialize<Type::serialize_type>();
 		if constexpr (std::is_same_v<ReinType, nullptr_t>) {
-			return static_cast<Type::alias>(value);
+			return static_cast<typename Type::alias>(value);
 		}
 		else {
-			return static_cast<Type::alias>(reinterpret_cast<ReinType&>(value));
+			return static_cast<typename Type::alias>(reinterpret_cast<ReinType&>(value));
 		}
 	}
 
