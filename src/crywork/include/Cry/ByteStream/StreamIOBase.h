@@ -50,6 +50,7 @@ public:
 	position_type Tell() const { return m_streambuffer.Offset(); }
 	bool Empty() const noexcept { return m_streambuffer.empty(); }
 	size_t Size() const noexcept { return m_streambuffer.size(); }
+	void Reset() noexcept { m_streambuffer.Reset(); }
 
 	void SetFlag(FlagType f) { m_opts |= f; }
 	void UnSetFlag(FlagType f) { m_opts &= ~f; }

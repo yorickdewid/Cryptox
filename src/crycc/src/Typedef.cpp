@@ -11,6 +11,19 @@
 namespace CryCC::SubValue::Typedef
 {
 
+AbstractType::buffer_type& operator<<(AbstractType::buffer_type& os, const TypeVariation& type)
+{
+	os << static_cast<Cry::Byte>(type);
+	return os;
+}
+
+AbstractType::buffer_type& operator>>(AbstractType::buffer_type& os, TypeVariation& type)
+{
+	type = TypeVariation::INVAL;
+	os >> reinterpret_cast<Cry::Byte&>(type);
+	return os;
+}
+
 AbstractType::buffer_type& operator<<(AbstractType::buffer_type& os, const AbstractType::TypeQualifier& qualifier)
 {
 	os << static_cast<Cry::Byte>(qualifier);
@@ -19,6 +32,7 @@ AbstractType::buffer_type& operator<<(AbstractType::buffer_type& os, const Abstr
 
 AbstractType::buffer_type& operator>>(AbstractType::buffer_type& os, AbstractType::TypeQualifier& qualifier)
 {
+	qualifier = AbstractType::TypeQualifier::NONE_T;
 	os >> reinterpret_cast<Cry::Byte&>(qualifier);
 	return os;
 }
@@ -31,30 +45,48 @@ AbstractType::buffer_type& operator<<(AbstractType::buffer_type& os, const Abstr
 
 AbstractType::buffer_type& operator>>(AbstractType::buffer_type& os, AbstractType::StorageClassSpecifier& specifier)
 {
+	specifier = AbstractType::StorageClassSpecifier::NONE_T;
 	os >> reinterpret_cast<Cry::Byte&>(specifier);
 	return os;
 }
 
+// Pack type into reserved buffer. Call the packer method which can be overridden
+// by the derived type. This call will at least pack the abstract type properties.
 void AbstractType::Serialize(const AbstractType& type, buffer_type& buffer)
 {
 	type.Pack(buffer);
 }
 
+// Unpack type from reserved buffer. Call the unpacker method which can be overridden
+// by the derived type. This call will at least unpack the abstract type properties.
 void AbstractType::Deserialize(AbstractType& type, buffer_type& buffer)
 {
 	type.Unpack(buffer);
 }
 
+//TODO: Write checkpoint after typeid.
+// Store generic type properties into buffer.
+// This method should only be called from derived types.
+//
+// The type identifier is used only for
+// the deserialization phase or any other type
+// testing operation.
 void AbstractType::Pack(buffer_type& buffer) const
 {
+	buffer << TypeId();
 	buffer << m_isInline;
 	buffer << m_isSensitive;
 	buffer << m_storageClass;
 	buffer << m_typeQualifier;
 }
 
+// Retrieve generic type properties from buffer.
+// This method should only be called from derived types.
 void AbstractType::Unpack(buffer_type& buffer)
 {
+	TypeVariation _type; // TODO: for now, not used, but we need to skip 1
+
+	buffer >> _type;
 	buffer >> m_isInline;
 	buffer >> m_isSensitive;
 	buffer >> m_storageClass;
