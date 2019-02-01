@@ -13,6 +13,27 @@
 namespace CryCC::SubValue::Typedef
 {
 
+BuiltinType::buffer_type& operator<<(BuiltinType::buffer_type& os, const BuiltinType::Specifier& specifier)
+{
+	os << static_cast<Cry::Byte>(specifier);
+	return os;
+}
+
+BuiltinType::buffer_type& operator>>(BuiltinType::buffer_type& os, BuiltinType::Specifier& specifier)
+{
+	specifier = BuiltinType::Specifier::VOID_T;
+	os >> reinterpret_cast<Cry::Byte&>(specifier);
+	return os;
+}
+
+BuiltinType::buffer_type& operator>>(BuiltinType::buffer_type& os, std::bitset<8>& options)
+{
+	unsigned long _options{ 0 };
+	os >> _options;
+	options = _options;
+	return os;
+}
+
 BuiltinType::BuiltinType(Specifier specifier)
 	: m_specifier{ specifier }
 {
@@ -51,7 +72,7 @@ void BuiltinType::Pack(buffer_type& buffer) const
 {
 	AbstractType::Pack(buffer);
 
-	buffer << static_cast<Cry::Byte>(m_specifier);
+	buffer << m_specifier;
 	buffer << m_typeOptions.to_ulong();
 }
 
@@ -59,11 +80,8 @@ void BuiltinType::Unpack(buffer_type& buffer)
 {
 	AbstractType::Unpack(buffer);
 
-	// TODO: Bah!
-	buffer >> reinterpret_cast<Cry::Byte&>(m_specifier);
-	unsigned long typeOptions{ 0 };
-	buffer >> typeOptions;
-	m_typeOptions = typeOptions;
+	buffer >> m_specifier;
+	buffer >> m_typeOptions;
 }
 
 const std::string BuiltinType::ToString() const

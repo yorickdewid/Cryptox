@@ -17,7 +17,11 @@
 namespace CryCC::SubValue::Typedef
 {
 
-// Builtin types.
+// Builtin type structure.
+//
+// Represents a builtin type structure. Builtin types are types
+// which are native to the system and have a predefined size
+// in memory.
 class BuiltinType : public AbstractType
 {
 	// Additional type options.
