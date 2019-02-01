@@ -23,6 +23,9 @@ public:
 	// Unique type identifier.
 	inline constexpr static const TypeVariation type_identifier = TypeVariation::NIL;
 
+	NilType() = default;
+	NilType(buffer_type &);
+
 	//
 	// Implement type category contract.
 	//

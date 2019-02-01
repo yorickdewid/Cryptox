@@ -27,11 +27,16 @@ ArrayType::ArrayType(size_t elements, InternalBaseType&& arrayType)
 {
 }
 
+ArrayType::ArrayType(buffer_type& buffer)
+{
+	Unpack(buffer);
+}
+
 void ArrayType::Pack(buffer_type& buffer) const
 {
 	AbstractType::Pack(buffer);
 
-	buffer << static_cast<int>(m_elements);
+	buffer << m_elements;
 	m_elementType->Pack(buffer);
 }
 
@@ -39,7 +44,7 @@ void ArrayType::Unpack(buffer_type& buffer)
 {
 	AbstractType::Unpack(buffer);
 
-	buffer >> reinterpret_cast<int&>(m_elements);
+	buffer >> m_elements;
 	m_elementType = TypeCategoryDeserialise(buffer);
 }
 

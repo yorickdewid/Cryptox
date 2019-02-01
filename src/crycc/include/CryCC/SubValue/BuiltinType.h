@@ -61,6 +61,7 @@ public:
 	inline constexpr static const TypeVariation type_identifier = TypeVariation::BUILTIN;
 
 	BuiltinType(Specifier specifier);
+	BuiltinType(buffer_type&);
 
 	//
 	// Test type options.

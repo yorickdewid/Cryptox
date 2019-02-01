@@ -50,8 +50,7 @@ InternalBaseType MakeVariantType()
 }
 InternalBaseType MakeNilType()
 {
-	//TODO:
-	return nullptr;
+	return std::make_shared<NilType>();
 }
 InternalBaseType MakePointerType(InternalBaseType& type)
 {

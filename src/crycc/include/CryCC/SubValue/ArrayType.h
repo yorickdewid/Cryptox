@@ -29,6 +29,8 @@ public:
 	{
 	}
 
+	ArrayType(buffer_type&);
+
 	// Return the size of the array.
 	inline size_t Order() const noexcept { return m_elements; }
 	// Return array base type.

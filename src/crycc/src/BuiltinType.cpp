@@ -19,6 +19,11 @@ BuiltinType::BuiltinType(Specifier specifier)
 	SpecifierToOptions();
 }
 
+BuiltinType::BuiltinType(buffer_type& buffer)
+{
+	Unpack(buffer);
+}
+
 // Extract specifier properties.
 void BuiltinType::SpecifierToOptions()
 {
@@ -54,6 +59,7 @@ void BuiltinType::Unpack(buffer_type& buffer)
 {
 	AbstractType::Unpack(buffer);
 
+	// TODO: Bah!
 	buffer >> reinterpret_cast<Cry::Byte&>(m_specifier);
 	unsigned long typeOptions{ 0 };
 	buffer >> typeOptions;
