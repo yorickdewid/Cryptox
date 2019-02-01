@@ -64,16 +64,17 @@ void AbstractType::Deserialize(AbstractType& type, buffer_type& buffer)
 	type.Unpack(buffer);
 }
 
-//TODO: Write checkpoint after typeid.
 // Store generic type properties into buffer.
 // This method should only be called from derived types.
 //
-// The type identifier is used only for
-// the deserialization phase or any other type
-// testing operation.
+// The type identifier is used only for the deserialization
+// phase or any other type testing operation. The stream barrier
+// signals the beginning of the abstract type properties. This
+// makes it easiers to remove the type identifier if not done already.
 void AbstractType::Pack(buffer_type& buffer) const
 {
 	buffer << TypeId();
+	buffer << buffer_type::StreamBarrier;
 	buffer << m_isInline;
 	buffer << m_isSensitive;
 	buffer << m_storageClass;
@@ -84,9 +85,14 @@ void AbstractType::Pack(buffer_type& buffer) const
 // This method should only be called from derived types.
 void AbstractType::Unpack(buffer_type& buffer)
 {
-	TypeVariation _type; // TODO: for now, not used, but we need to skip 1
+	// If no stream barrier was found, remove the type identifier. 
+	if (!buffer.HasStreamBarrier()) {
+		buffer >> Cry::ByteStream::Ignore<buffer_type, TypeVariation>{};
+		if (!buffer.HasStreamBarrier()) {
+			CryImplExcept(); // TODO: 
+		}
+	}
 
-	buffer >> _type;
 	buffer >> m_isInline;
 	buffer >> m_isSensitive;
 	buffer >> m_storageClass;

@@ -17,6 +17,7 @@ using namespace Cry;
 
 //FUTURE: Wrap in template method
 //TODO: Encode/decode float/double fully
+//TODO: Let specifier be encoded in one of the base classes
 struct BuiltinValue::PackerVisitor final : public boost::static_visitor<>
 {
 	Cry::ByteArray& m_buffer;

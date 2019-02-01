@@ -40,7 +40,7 @@ void ArrayType::Unpack(buffer_type& buffer)
 	AbstractType::Unpack(buffer);
 
 	buffer >> reinterpret_cast<int&>(m_elements);
-	m_elementType->Unpack(buffer);
+	m_elementType = TypeCategoryDeserialise(buffer);
 }
 
 const std::string ArrayType::ToString() const

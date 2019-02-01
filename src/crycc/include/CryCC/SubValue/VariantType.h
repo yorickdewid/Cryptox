@@ -24,16 +24,23 @@ public:
 	// Unique type identifier.
 	inline constexpr static const TypeVariation type_identifier = TypeVariation::VARIANT;
 
-	VariantType(size_type elements, std::vector<BaseType> variantType);
+	VariantType(size_type elements, std::vector<BaseType>& variantType);
 	VariantType(size_type elements, std::vector<BaseType>&& variantType);
 
 	// Return the size of the variant.
-	inline size_type Order() const noexcept { return m_elements; }
+	inline size_type Order() const noexcept { return m_elementTypes.size(); }
 
 	//
-	// Implement abstract base type methods.
+	// Implement type category contract.
 	//
 
+protected:
+	// Convert builtin type into data stream.
+	void Pack(buffer_type& buffer) const override;
+	// Convert data stream into builtin type.
+	void Unpack(buffer_type&) override;
+
+public:
 	// Return type identifier.
 	TypeVariation TypeId() const { return type_identifier; }
 	// Return type name string.
@@ -42,11 +49,8 @@ public:
 	size_type UnboxedSize() const;
 	// Test if types are equal.
 	bool Equals(InternalBaseType*) const;
-	// Pack the type into a byte stream.
-	//buffer_type TypeEnvelope() const override;
 
 private:
-	size_type m_elements;
 	std::vector<BaseType> m_elementTypes;
 };
 
