@@ -278,15 +278,23 @@ public:
 		BaseType::insert(this->cend(), { CHECKPOINT_TAG_1, CHECKPOINT_TAG_2 });
 	}
 
-	// Validate checkpoint. Returns false if check fails.
-	bool ValidateCheckpoint(OffsetType idx = -1)
+	// TODO: check offset is within bounds
+	// Validate checkpoint. Returns false if check fails. Accepts an optional
+	// offset to read from and an rollback option. If the checkpoint is not found
+	// the offset can be reverted back. This is usefull when detecting a checkpoint
+	// without hard faillure.
+	bool ValidateCheckpoint(bool rollbackOnFaillure = true, OffsetType idx = -1)
 	{
 		if (idx == -1) {
 			idx = m_offset;
 		}
 		m_offset += (sizeof(Byte) * 2);
-		return this->at(idx) == CHECKPOINT_TAG_1
+		const bool rs = this->at(idx) == CHECKPOINT_TAG_1
 			&& this->at(idx + 1) == CHECKPOINT_TAG_2;
+		if (!rs && rollbackOnFaillure) {
+			m_offset = idx;
+		}
+		return rs;
 	}
 
 	// Encode platform characteristics.
