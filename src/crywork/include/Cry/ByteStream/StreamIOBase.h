@@ -33,6 +33,8 @@ public:
 	using position_type = typename base_type::OffsetType;
 	using offset_type = typename base_type::OffsetType;
 
+	enum Barrier { _BARRIER };
+
 	enum FlagType
 	{
 		FLAG_NONE = 0x0,
@@ -45,6 +47,7 @@ public:
 	constexpr static const FlagType PlatformCheck = FLAG_PLATFORM_CHECK;
 	constexpr static const FlagType Checkpoint = FLAG_AUTO_CHECKPOINT;
 	constexpr static const FlagType CanThrow = FLAG_THROW_EXCEPTION;
+	constexpr static const Barrier StreamBarrier = _BARRIER;
 
 	// Return the offset in the stream.
 	position_type Tell() const { return m_streambuffer.Offset(); }

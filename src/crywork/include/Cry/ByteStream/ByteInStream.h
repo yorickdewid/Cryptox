@@ -167,6 +167,11 @@ public:
 		}
 		return (*this);
 	}
+
+	inline bool HasStreamBarrier() noexcept
+	{
+		return Buffer().ValidateCheckpoint();
+	}
 };
 
 } // namespace Cry::ByteStream

@@ -122,6 +122,12 @@ public:
 		return (*this);
 	}
 
+	ByteOutStream& operator<<(Barrier)
+	{
+		Buffer().MakeCheckpoint();
+		return (*this);
+	}
+
 	template<typename Type>
 	ByteOutStream& operator<<(const std::initializer_list<Type>& iterable)
 	{

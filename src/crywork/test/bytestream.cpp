@@ -240,14 +240,24 @@ BOOST_AUTO_TEST_CASE(ByteStreamCustomObject)
 	BOOST_REQUIRE(myclass == MyClass{ bs });
 }
 
-BOOST_AUTO_TEST_CASE(ByteStreamFlag)
+BOOST_AUTO_TEST_CASE(ByteStreamStreamBarrier)
 {
 	VectorStream bs;
 
-	bs << VectorStream::PlatformCheck;
 	bs << 2738ULL;
+	bs << VectorStream::StreamBarrier;
+	bs << 'U';
 
-	//BOOST_REQUIRE(bs. myclass == MyClass{ bs });
+	unsigned long long t;
+	bs >> t;
+
+	BOOST_CHECK_EQUAL(2738ULL, t);
+	BOOST_REQUIRE(bs.HasStreamBarrier());
+	BOOST_REQUIRE(!bs.HasStreamBarrier());
+
+	char u;
+	bs >> u;
+	BOOST_CHECK_EQUAL('U', u);
 }
 
 BOOST_AUTO_TEST_SUITE_END()
