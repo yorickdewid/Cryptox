@@ -8,14 +8,14 @@
 
 #include <CryCC/SubValue/Typedef.h>
 
+#include <CryCC/SubValue/TypedefType.h>
+#include <CryCC/SubValue/NilType.h>
+#include <CryCC/SubValue/VariantType.h>
+#include <CryCC/SubValue/VariadicType.h>
+#include <CryCC/SubValue/PointerType.h>
 #include <CryCC/SubValue/BuiltinType.h>
-//#include <CryCC/SubValue/OffsetValue.h>
-//#include <CryCC/SubValue/NilValue.h>
-//#include <CryCC/SubValue/ReferenceValue.h>
-//#include <CryCC/SubValue/PointerValue.h>
-//#include <CryCC/SubValue/BuiltinValue.h>
 #include <CryCC/SubValue/ArrayType.h>
-//#include <CryCC/SubValue/RecordValue.h>
+#include <CryCC/SubValue/RecordType.h>
 
 namespace CryCC::SubValue::Typedef
 {
@@ -43,19 +43,19 @@ InternalBaseType AbstractType::TypeCategoryDeserialise(buffer_type& buffer)
 	case TypeVariation::BUILTIN:
 		return std::make_shared<BuiltinType>(buffer);
 	case TypeVariation::RECORD:
-		break;
+		return std::make_shared<RecordType>(buffer);
 	case TypeVariation::TYPEDEF:
-		break;
+		return std::make_shared<TypedefType>(buffer);
 	case TypeVariation::VARIADIC:
-		break;
+		return std::make_shared<VariadicType>(buffer);
 	case TypeVariation::POINTER:
-		break;
+		return std::make_shared<PointerType>(buffer);
 	case TypeVariation::ARRAY:
 		return std::make_shared<ArrayType>(buffer);
 	case TypeVariation::VARIANT:
-		break;
+		return std::make_shared<VariantType>(buffer);
 	case TypeVariation::NIL:
-		break;
+		return std::make_shared<NilType>(buffer);
 	default:
 		break;
 	}
