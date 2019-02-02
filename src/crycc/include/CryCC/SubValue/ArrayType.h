@@ -42,7 +42,7 @@ public:
 
 protected:
 	// Convert array type into data stream.
-	void Pack(buffer_type& buffer) const override;
+	void Pack(buffer_type&) const override;
 	// Convert data stream into array type.
 	void Unpack(buffer_type&) override;
 

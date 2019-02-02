@@ -13,22 +13,39 @@
 namespace CryCC::SubValue::Typedef
 {
 
+// Type definition is a named alias to another internal type
+// structure. All type properties as passed through to the
+// encapsulated type.
 class TypedefType : public AbstractType
 {
 public:
 	// Unique type identifier.
 	inline constexpr static const TypeVariation type_identifier = TypeVariation::TYPEDEF;
 
-	TypedefType(const std::string& name, BaseType& nativeType);
-	TypedefType(const std::string& name, BaseType&& nativeType);
+	TypedefType(const std::string& name, InternalBaseType& nativeType);
+	TypedefType(const std::string& name, InternalBaseType&& nativeType);
+	TypedefType(buffer_type&);
 
 	// Return type referenced base type.
-	inline BaseType MarkType() const { return m_resolveType; }
+	inline InternalBaseType MarkType() const noexcept { return m_resolveType; }
+	// Return alias type name.
+	inline std::string Name() const noexcept { return m_name; }
+
+	//
+	// Implement type category contract.
+	//
+
+protected:
+	// Convert array type into data stream.
+	void Pack(buffer_type&) const override;
+	// Convert data stream into array type.
+	void Unpack(buffer_type&) override;
 
 	//
 	// Implement abstract base type methods.
 	//
 
+public:
 	// Return type identifier.
 	TypeVariation TypeId() const { return type_identifier; }
 	// Return type name string.
@@ -37,8 +54,10 @@ public:
 	size_type UnboxedSize() const;
 	// Test if types are equal.
 	bool Equals(InternalBaseType*) const;
-	// Pack the type into a byte stream.
-	//buffer_type TypeEnvelope() const override;
+
+	// TODO:
+	// Compare to other TypedefType.
+	bool operator==(const TypedefType&) const { return true; }
 
 private:
 	std::string m_name;

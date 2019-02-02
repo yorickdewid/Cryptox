@@ -125,17 +125,33 @@ BOOST_AUTO_TEST_CASE(TypeCatVariantTypeMisc)
 
 BOOST_AUTO_TEST_CASE(TypeCatTypedefType)
 {
-	//TODO:
+	TypedefType tyDef{ "newtype", Util::MakeNilType() };
+
+	BOOST_REQUIRE_EQUAL("newtype", tyDef.Name());
+	BOOST_REQUIRE_EQUAL(0, tyDef.UnboxedSize());
+	BOOST_REQUIRE(TypeVariation::NIL == tyDef.MarkType()->TypeId());
 }
 
 BOOST_AUTO_TEST_CASE(TypeCatTypedefTypeSerialize)
 {
-	//TODO:
+	using namespace Cry::ByteStream;
+
+	VectorStream veType;
+	TypedefType tyDef{ "alias", Util::MakeBuiltinType(BuiltinType::Specifier::INT_T) };
+	TypedefType::Serialize(tyDef, veType);
+	TypedefType tyDefExp{ {}, Util::MakeNilType() };
+	TypedefType::Deserialize(tyDefExp, veType);
+
+	BOOST_REQUIRE(tyDefExp == tyDef);
 }
 
 BOOST_AUTO_TEST_CASE(TypeCatTypedefTypeMisc)
 {
-	//TODO:
+	TypedefType tyDef{ "pointer", Util::MakePointerType(Util::MakeNilType()) };
+	TypedefType tyCopy{ tyDef };
+	TypedefType tyMove{ std::move(tyCopy) };
+
+	BOOST_REQUIRE(tyDef == tyMove);
 }
 
 //

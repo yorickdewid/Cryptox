@@ -46,7 +46,8 @@ public:
 	// Test if types are equal.
 	bool Equals(InternalBaseType*) const;
 
-	// Compare to other NilType. This is always true.
+	// TODO: base does not need to be equal
+	// Compare to other NilType.
 	bool operator==(const NilType&) const { return true; }
 };
 

@@ -11,16 +11,37 @@
 namespace CryCC::SubValue::Typedef
 {
 
-TypedefType::TypedefType(const std::string& name, BaseType& nativeType)
+TypedefType::TypedefType(const std::string& name, InternalBaseType& nativeType)
 	: m_name{ name }
 	, m_resolveType{ nativeType }
 {
 }
 
-TypedefType::TypedefType(const std::string& name, BaseType&& nativeType)
+TypedefType::TypedefType(const std::string& name, InternalBaseType&& nativeType)
 	: m_name{ name }
 	, m_resolveType{ std::move(nativeType) }
 {
+}
+
+TypedefType::TypedefType(buffer_type& buffer)
+{
+	Unpack(buffer);
+}
+
+void TypedefType::Pack(buffer_type& buffer) const
+{
+	AbstractType::Pack(buffer);
+
+	buffer << m_name;
+	m_resolveType->Pack(buffer);
+}
+
+void TypedefType::Unpack(buffer_type& buffer)
+{
+	AbstractType::Unpack(buffer);
+
+	buffer >> m_name;
+	m_resolveType = TypeCategoryDeserialise(buffer);
 }
 
 const std::string TypedefType::ToString() const
