@@ -11,6 +11,11 @@
 namespace CryCC::SubValue::Typedef
 {
 
+VariadicType::VariadicType(buffer_type& buffer)
+{
+	Unpack(buffer);
+}
+
 void VariadicType::Pack(buffer_type& buffer) const
 {
 	AbstractType::Pack(buffer);

@@ -19,6 +19,9 @@ public:
 	// Unique type identifier.
 	inline constexpr static const TypeVariation type_identifier = TypeVariation::VARIADIC;
 
+	VariadicType() = default;
+	VariadicType(buffer_type&);
+
 	//
 	// Implement type category contract.
 	//
