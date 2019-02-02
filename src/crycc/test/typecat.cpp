@@ -74,34 +74,16 @@ BOOST_AUTO_TEST_CASE(TypeCatNilTypeMisc)
 
 BOOST_AUTO_TEST_CASE(TypeCatVariantType)
 {
-	VariadicType tyVa;
-
-	BOOST_REQUIRE_EQUAL("...", tyVa.ToString());
-	BOOST_REQUIRE_EQUAL(0, tyVa.UnboxedSize());
-	BOOST_REQUIRE(TypeVariation::VARIADIC == tyVa.TypeId());
+	//TODO:
 }
 
 BOOST_AUTO_TEST_CASE(TypeCatVariantTypeSerialize)
 {
-	using namespace Cry::ByteStream;
-
-	VectorStream veType;
-	VariadicType tyVa;
-	tyVa.SetQualifier(NilType::TypeQualifier::VOLATILE_T);
-	VariadicType::Serialize(tyVa, veType);
-	VariadicType tyVaExp;
-	VariadicType::Deserialize(tyVaExp, veType);
-
-	BOOST_REQUIRE(tyVaExp == tyVa);
+	//TODO:
 }
-
 BOOST_AUTO_TEST_CASE(TypeCatVariantTypeMisc)
 {
-	VariadicType tyVar;
-	VariadicType tyCopy{ tyVar };
-	VariadicType tyMove{ std::move(tyCopy) };
-
-	BOOST_REQUIRE(tyVar == tyMove);
+	//TODO:
 }
 
 //
@@ -224,7 +206,7 @@ BOOST_AUTO_TEST_CASE(TypeCatArrayTypeSerialize)
 		VectorStream veType;
 		ArrayType tyArInt{ 7, Util::MakeBuiltinType(BuiltinType::Specifier::INT_T) };
 		ArrayType::Serialize(tyArInt, veType);
-		ArrayType tyArIntExp{ 0, Util::MakeBuiltinType(BuiltinType::Specifier::VOID_T) };
+		ArrayType tyArIntExp{ 0, Util::MakeNilType() };
 		ArrayType::Deserialize(tyArIntExp, veType);
 
 		BOOST_REQUIRE(tyArIntExp == tyArInt);
@@ -342,17 +324,34 @@ BOOST_AUTO_TEST_CASE(TypeCatRecordTypeMisc)
 
 BOOST_AUTO_TEST_CASE(TypeCatVariadicType)
 {
-	//TODO:
+	VariadicType tyVa;
+
+	BOOST_REQUIRE_EQUAL("...", tyVa.ToString());
+	BOOST_REQUIRE_EQUAL(0, tyVa.UnboxedSize());
+	BOOST_REQUIRE(TypeVariation::VARIADIC == tyVa.TypeId());
 }
 
 BOOST_AUTO_TEST_CASE(TypeCatVariadicTypeSerialize)
 {
-	//TODO:
+	using namespace Cry::ByteStream;
+
+	VectorStream veType;
+	VariadicType tyVa;
+	tyVa.SetQualifier(NilType::TypeQualifier::VOLATILE_T);
+	VariadicType::Serialize(tyVa, veType);
+	VariadicType tyVaExp;
+	VariadicType::Deserialize(tyVaExp, veType);
+
+	BOOST_REQUIRE(tyVaExp == tyVa);
 }
 
 BOOST_AUTO_TEST_CASE(TypeCatVariadicTypeMisc)
 {
-	//TODO:
+	VariadicType tyVar;
+	VariadicType tyCopy{ tyVar };
+	VariadicType tyMove{ std::move(tyCopy) };
+
+	BOOST_REQUIRE(tyVar == tyMove);
 }
 
 BOOST_AUTO_TEST_SUITE_END()
