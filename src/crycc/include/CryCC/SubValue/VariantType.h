@@ -24,8 +24,10 @@ public:
 	// Unique type identifier.
 	inline constexpr static const TypeVariation type_identifier = TypeVariation::VARIANT;
 
-	VariantType(size_type elements, std::vector<BaseType>& variantType);
-	VariantType(size_type elements, std::vector<BaseType>&& variantType);
+	VariantType(std::vector<BaseType>& variantType);
+	VariantType(std::vector<BaseType>&& variantType);
+	VariantType(std::initializer_list<BaseType>&& variantType);
+	VariantType(buffer_type&);
 
 	// Return the size of the variant.
 	inline size_type Order() const noexcept { return m_elementTypes.size(); }
@@ -49,6 +51,10 @@ public:
 	size_type UnboxedSize() const;
 	// Test if types are equal.
 	bool Equals(InternalBaseType*) const;
+
+	// TODO:
+	// Compare to other BuiltinType.
+	bool operator==(const VariantType&) const { return true; }
 
 private:
 	std::vector<BaseType> m_elementTypes;

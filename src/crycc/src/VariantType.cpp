@@ -14,32 +14,59 @@
 namespace CryCC::SubValue::Typedef
 {
 
-VariantType::VariantType(size_type elements, std::vector<BaseType> variantType)
-    : m_elements{ elements }
-    , m_elementTypes{ variantType }
+VariantType::VariantType(std::vector<BaseType>& variantType)
+	: m_elementTypes{ variantType }
 {
-    assert(elements == m_elementTypes.size()); //TODO also in release
 }
 
-VariantType::VariantType(size_type elements, std::vector<BaseType>&& variantType)
-    : m_elements{ elements }
-    , m_elementTypes{ std::move(variantType) }
+VariantType::VariantType(std::vector<BaseType>&& variantType)
+	: m_elementTypes{ std::move(variantType) }
 {
-    assert(elements == m_elementTypes.size()); //TODO also in release
+}
+
+VariantType::VariantType(std::initializer_list<BaseType>&& variantType)
+	: m_elementTypes{ std::move(variantType) }
+{
+}
+
+VariantType::VariantType(buffer_type& buffer)
+{
+	Unpack(buffer);
+}
+
+void VariantType::Pack(buffer_type& buffer) const
+{
+	AbstractType::Pack(buffer);
+
+	buffer << m_elementTypes.size();
+	for (const auto& type : m_elementTypes) {
+		type->Pack(buffer);
+	}
+}
+
+void VariantType::Unpack(buffer_type& buffer)
+{
+	AbstractType::Unpack(buffer);
+
+	size_t elementCount{ 0 };
+	buffer >> elementCount;
+	for (size_t i = 0; i < elementCount; ++i) {
+		m_elementTypes.emplace_back(std::move(TypeCategoryDeserialise(buffer)));
+	}
 }
 
 const std::string VariantType::ToString() const
 {
-    return "(" + std::to_string(m_elements) + ")";
+	return "(" + std::to_string(m_elementTypes.size()) + ")";
 }
 
 VariantType::size_type VariantType::UnboxedSize() const
 {
-    VariantType::size_type size = 0;
-    for (const auto& type : m_elementTypes) {
-        size += type->UnboxedSize();
-    }
-    return size;
+	VariantType::size_type size = 0;
+	for (const auto& type : m_elementTypes) {
+		size += type->UnboxedSize(); // TODO: sum?
+	}
+	return size;
 }
 
 //TODO:
@@ -50,7 +77,7 @@ bool VariantType::Equals(InternalBaseType* /*other*/) const
 		return false;
 	}
 
-    return true;*/
+	return true;*/
 	return false;
 }
 

@@ -74,16 +74,49 @@ BOOST_AUTO_TEST_CASE(TypeCatNilTypeMisc)
 
 BOOST_AUTO_TEST_CASE(TypeCatVariantType)
 {
-	//TODO:
+	VariantType tyVar3{ Util::MakeNilType(), Util::MakePointerType(Util::MakeNilType()), Util::MakeBuiltinType(BuiltinType::Specifier::VOID_T) };
+	VariantType tyVar2{ Util::MakeBuiltinType(BuiltinType::Specifier::LONG_DOUBLE_T), Util::MakeNilType() };
+	VariantType tyVar1{ Util::MakeBuiltinType(BuiltinType::Specifier::INT_T) };
+
+	BOOST_REQUIRE_EQUAL(3, tyVar3.Order());
+	BOOST_REQUIRE_EQUAL(2, tyVar2.Order());
+	BOOST_REQUIRE_EQUAL(1, tyVar1.Order());
 }
 
 BOOST_AUTO_TEST_CASE(TypeCatVariantTypeSerialize)
 {
-	//TODO:
+	using namespace Cry::ByteStream;
+
+	{
+		VectorStream veType;
+		VariantType tyVar2{ Util::MakeBuiltinType(BuiltinType::Specifier::INT_T), Util::MakeBuiltinType(BuiltinType::Specifier::SIGNED_CHAR_T) };
+		VariantType::Serialize(tyVar2, veType);
+		VariantType tyVar2Exp{};
+		VariantType::Deserialize(tyVar2Exp, veType);
+
+		// TODO: 
+		BOOST_REQUIRE(tyVar2Exp == tyVar2);
+	}
+
+	{
+		VectorStream veType;
+		VariantType tyVar1{ Util::MakeBuiltinType(BuiltinType::Specifier::UNSIGNED_INT_T) };
+		VariantType::Serialize(tyVar1, veType);
+		VariantType tyVar1Exp{ };
+		VariantType::Deserialize(tyVar1Exp, veType);
+
+		// TODO: 
+		BOOST_REQUIRE(tyVar1Exp == tyVar1);
+	}
 }
 BOOST_AUTO_TEST_CASE(TypeCatVariantTypeMisc)
 {
-	//TODO:
+	VariantType tyVar2{ Util::MakeBuiltinType(BuiltinType::Specifier::DOUBLE_T), Util::MakeBuiltinType(BuiltinType::Specifier::SHORT_T) };
+	VariantType tyCopy{ tyVar2 };
+	VariantType tyMove{ std::move(tyCopy) };
+
+	// TODO: 
+	BOOST_REQUIRE(tyVar2 == tyMove);
 }
 
 //
@@ -158,6 +191,7 @@ BOOST_AUTO_TEST_CASE(TypeCatBuiltinTypeSerialize)
 		BuiltinType tyIntExp{ BuiltinType::Specifier::VOID_T };
 		BuiltinType::Deserialize(tyIntExp, veType);
 
+		// TODO: 
 		BOOST_REQUIRE(tyIntExp == tyInt);
 	}
 
@@ -168,6 +202,7 @@ BOOST_AUTO_TEST_CASE(TypeCatBuiltinTypeSerialize)
 		BuiltinType tyUintExp{ BuiltinType::Specifier::VOID_T };
 		BuiltinType::Deserialize(tyUintExp, veType);
 
+		// TODO: 
 		BOOST_REQUIRE(tyUintExp == tyUint);
 	}
 }
@@ -178,6 +213,7 @@ BOOST_AUTO_TEST_CASE(TypeCatBuiltinTypeMisc)
 	BuiltinType tyCopy{ tyUInt };
 	BuiltinType tyMove{ std::move(tyCopy) };
 
+	// TODO: 
 	BOOST_REQUIRE(tyUInt == tyMove);
 }
 
@@ -209,6 +245,7 @@ BOOST_AUTO_TEST_CASE(TypeCatArrayTypeSerialize)
 		ArrayType tyArIntExp{ 0, Util::MakeNilType() };
 		ArrayType::Deserialize(tyArIntExp, veType);
 
+		// TODO: 
 		BOOST_REQUIRE(tyArIntExp == tyArInt);
 	}
 
@@ -219,6 +256,7 @@ BOOST_AUTO_TEST_CASE(TypeCatArrayTypeSerialize)
 		ArrayType tyUintExp{ 0, Util::MakeBuiltinType(BuiltinType::Specifier::VOID_T) };
 		ArrayType::Deserialize(tyUintExp, veType);
 
+		// TODO: 
 		BOOST_REQUIRE(tyUintExp == tyUint);
 	}
 }
@@ -229,6 +267,7 @@ BOOST_AUTO_TEST_CASE(TypeCatArrayTypeMisc)
 	ArrayType tyCopy{ tyArUInt };
 	ArrayType tyMove{ std::move(tyCopy) };
 
+	// TODO: 
 	BOOST_REQUIRE(tyArUInt == tyMove);
 }
 

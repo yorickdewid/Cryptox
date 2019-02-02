@@ -56,7 +56,8 @@ public:
 	// Test if types are equal.
 	bool Equals(InternalBaseType*) const;
 
-	// Compare to other BuiltinType.
+	// TODO:
+	// Compare to other ArrayType.
 	bool operator==(const ArrayType&) const { return true; }
 
 private:

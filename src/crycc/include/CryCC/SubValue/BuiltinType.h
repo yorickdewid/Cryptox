@@ -105,6 +105,7 @@ public:
 	// Consolidate multiple types into one.
 	void Consolidate(InternalBaseType& type) override;
 
+	// TODO:
 	// Compare to other BuiltinType.
 	bool operator==(const BuiltinType&) const { return true; }
 
