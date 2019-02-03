@@ -166,14 +166,10 @@ size_t BuiltinType::UnboxedSize() const
 	CryImplExcept(); //TODO:
 }
 
-bool BuiltinType::Equals(InternalBaseType* /*other*/) const
+bool BuiltinType::Equals(const InternalBaseType& other) const
 {
-	return false;
-	/*auto self = dynamic_cast<BuiltinType*>(other);
-	if (!self) { return false; }
-
-	return m_specifier == self->m_specifier
-		&& m_typeOptions == self->m_typeOptions;*/
+	if (TypeId() != other->TypeId()) { return false; }
+	return operator==(dynamic_cast<const BuiltinType&>(*other));
 }
 
 void BuiltinType::Consolidate(InternalBaseType& type)
@@ -195,6 +191,18 @@ void BuiltinType::Consolidate(InternalBaseType& type)
 			m_typeOptions.set(IS_LONG);
 		}
 	}
+}
+
+bool BuiltinType::operator==(const BuiltinType& other) const
+{
+	return AbstractType::operator==(other)
+		&& m_specifier == other.m_specifier
+		&& m_typeOptions == other.m_typeOptions;
+}
+
+bool BuiltinType::operator!=(const BuiltinType& other) const
+{
+	return !operator==(other);
 }
 
 } // namespace CryCC::SubValue::Typedef

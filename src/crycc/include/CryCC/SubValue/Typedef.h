@@ -180,7 +180,7 @@ public:
 	virtual bool AllowCoalescence() const { return false; }
 	virtual void Consolidate(InternalBaseType&) {};
 	virtual size_type UnboxedSize() const = 0;
-	virtual bool Equals(InternalBaseType*) const = 0;
+	virtual bool Equals(const InternalBaseType&) const = 0;
 
 	//
 	// Type specifier inputs.
@@ -209,6 +209,9 @@ public:
 
 	virtual void Pack(buffer_type&) const;
 	virtual void Unpack(buffer_type&);
+
+	bool operator==(const AbstractType&) const;
+	bool operator!=(const AbstractType&) const;
 
 protected:
 	bool m_isInline{ false };

@@ -101,13 +101,14 @@ public:
 	// Return native size.
 	size_type UnboxedSize() const;
 	// Test if types are equal.
-	bool Equals(InternalBaseType*) const;
+	bool Equals(const InternalBaseType&) const;
 	// Consolidate multiple types into one.
 	void Consolidate(InternalBaseType& type) override;
 
-	// TODO:
 	// Compare to other BuiltinType.
-	bool operator==(const BuiltinType&) const { return true; }
+	bool operator==(const BuiltinType&) const;
+	// Compare to other BuiltinType.
+	bool operator!=(const BuiltinType&) const;
 
 private:
 	Specifier m_specifier;
