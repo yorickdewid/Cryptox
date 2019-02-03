@@ -19,7 +19,6 @@
 #include <vector>
 
 //TODO:
-// - serialize/deserialize
 // - equal ops
 
 namespace CryCC::SubValue::Typedef
@@ -27,8 +26,6 @@ namespace CryCC::SubValue::Typedef
 
 class AbstractType;
 
-//TODO: obsolete
-using BaseType = std::shared_ptr<AbstractType>;
 using InternalBaseType = std::shared_ptr<AbstractType>;
 
 // Envelope helper to identify type. For every specialization a

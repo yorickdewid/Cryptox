@@ -293,84 +293,73 @@ BOOST_AUTO_TEST_CASE(TypeCatArrayTypeMisc)
 
 BOOST_AUTO_TEST_CASE(TypeCatRecordType)
 {
-	// Test record size.
-	/*{
-		RecordValue record;
-		record.AddField(0, Util::MakeInt(12));
+	{
+		RecordType tyRec{ "somestruct" };
+		tyRec.AddField(RecordType::FieldType{ "someint", Util::MakeBuiltinType(BuiltinType::Specifier::INT_T) });
+		BOOST_REQUIRE(!tyRec.IsAligned());
+		BOOST_REQUIRE(!tyRec.IsAnonymous());
+		BOOST_REQUIRE_EQUAL(tyRec.Name(), "somestruct");
+		BOOST_REQUIRE_EQUAL(tyRec.FieldSize(), 1);
+		BOOST_REQUIRE_EQUAL(tyRec.UnboxedSize(), Util::MakeBuiltinType(BuiltinType::Specifier::INT_T)->UnboxedSize());
+	}
 
-		BOOST_REQUIRE_EQUAL(record.Size(), 1);
-	}*/
+	{
+		RecordType tyRec;
+		BOOST_REQUIRE(tyRec.IsAnonymous());
+		BOOST_REQUIRE_EQUAL(tyRec.FieldSize(), 0);
+		BOOST_REQUIRE_EQUAL(tyRec.UnboxedSize(), 0);
+	}
 
-	//TODO: FIXME: Rewrite the RecordValue::Compare()
-
-	// Compare records.
-	//{
-	//	auto valInt = Util::MakeInt2(12);
-	//	RecordValue anonRecord;
-	//	anonRecord.AddField(0, std::move(valInt));
-
-	//	BOOST_REQUIRE_EQUAL(anonRecord.Size(), 1);
-
-	//	auto valInt2 = Util::MakeInt2(12);
-	//	RecordValue anonRecord2;
-	//	anonRecord2.AddField(0, std::move(valInt2));
-	//	BOOST_REQUIRE(anonRecord == anonRecord2);
-	//}
-
-	// Compare inequal records.
-	//{
-	//	auto valDouble = Util::MakeDouble2(8723.7612);
-	//	RecordValue record;
-	//	record.AddField(0, std::move(valDouble));
-
-	//	auto valDouble2 = Util::MakeDouble2(81.7213);
-	//	RecordValue record2;
-	//	record2.AddField(0, std::move(valDouble2));
-	//	BOOST_REQUIRE(!(record == record2));
-	//}
+	{
+		RecordType tyRec{ RecordType::Specifier::UNION };
+		tyRec.AddField("null", Util::MakeNilType());
+		tyRec.AddField("null2", Util::MakeNilType());
+		tyRec.AddField("null3", Util::MakeNilType());
+		BOOST_REQUIRE(tyRec.TypeSpecifier() == RecordType::Specifier::UNION);
+		BOOST_REQUIRE_EQUAL(tyRec.FieldSize(), 3);
+		BOOST_REQUIRE_EQUAL(tyRec.UnboxedSize(), 0);
+	}
 }
 
 BOOST_AUTO_TEST_CASE(TypeCatRecordTypeSerialize)
 {
-	//{
-	//	Cry::ByteArray ba;
-	//	RecordValue record;
-	//	RecordValue::Serialize(record, ba);
+	using namespace Cry::ByteStream;
 
-	//	RecordValue record2;
-	//	RecordValue::Deserialize(record2, ba);
+	{
+		VectorStream veType;
+		RecordType tyRec{ "struct" };
+		tyRec.AddField("int", Util::MakeBuiltinType(BuiltinType::Specifier::INT_T));
+		tyRec.AddField("null", Util::MakeNilType());
+		RecordType::Serialize(tyRec, veType);
+		RecordType tyRecExp;
+		RecordType::Deserialize(tyRecExp, veType);
 
-	//	BOOST_REQUIRE(record == record2);
-	//}
+		// TODO: 
+		BOOST_REQUIRE(tyRecExp == tyRec);
+	}
 
-	//{
-	//	Cry::ByteArray ba;
-	//	RecordValue record;
-	//	record.AddField(0, std::move(Util::MakeInt2(834)));
-	//	record.AddField(1, std::move(Util::MakeChar2('Y')));
-	//	record.AddField(2, std::move(Util::MakeInt2(0)));
-	//	RecordValue::Serialize(record, ba);
+	{
+		VectorStream veType;
+		RecordType tyRec{ "union", RecordType::Specifier::UNION };
+		tyRec.AddField("int", Util::MakeBuiltinType(BuiltinType::Specifier::UNSIGNED_LONG_DOUBLE_T));
+		tyRec.AddField("null", Util::MakeNilType());
+		tyRec.AddField("null2", Util::MakeNilType());
+		RecordType::Serialize(tyRec, veType);
+		RecordType tyRecExp;
+		RecordType::Deserialize(tyRecExp, veType);
 
-	//	RecordValue record2;
-	//	RecordValue::Deserialize(record2, ba);
-
-	//	BOOST_REQUIRE_EQUAL(3, record2.Size());
-	//	BOOST_REQUIRE(record == record2);
-	//}
+		// TODO: 
+		BOOST_REQUIRE(tyRecExp == tyRec);
+	}
 }
 
 BOOST_AUTO_TEST_CASE(TypeCatRecordTypeMisc)
 {
-	//BOOST_REQUIRE_EQUAL(0, RecordValue{}.Size());
+	RecordType tyRec;
+	RecordType tyCopy{ tyRec };
+	RecordType tyMove{ std::move(tyCopy) };
 
-	/*{
-		auto value = RecordValue::AutoValue(Util::MakeInt(81827));
-
-		RecordValue record;
-		record.AddField({ "i", value });
-
-		BOOST_REQUIRE_THROW(record.AddField({ "i", value }), RecordValue::FieldExistException);
-	}*/
+	BOOST_REQUIRE(tyRec == tyMove);
 }
 
 //
