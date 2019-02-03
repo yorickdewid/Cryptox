@@ -8,23 +8,24 @@
 
 #include <CryCC/SubValue/VariantType.h>
 
+#include <numeric>
 #include <cassert>
 #include <string>
 
 namespace CryCC::SubValue::Typedef
 {
 
-VariantType::VariantType(std::vector<BaseType>& variantType)
+VariantType::VariantType(std::vector<InternalBaseType>& variantType)
 	: m_elementTypes{ variantType }
 {
 }
 
-VariantType::VariantType(std::vector<BaseType>&& variantType)
+VariantType::VariantType(std::vector<InternalBaseType>&& variantType)
 	: m_elementTypes{ std::move(variantType) }
 {
 }
 
-VariantType::VariantType(std::initializer_list<BaseType>&& variantType)
+VariantType::VariantType(std::initializer_list<InternalBaseType>&& variantType)
 	: m_elementTypes{ std::move(variantType) }
 {
 }
@@ -62,11 +63,11 @@ const std::string VariantType::ToString() const
 
 VariantType::size_type VariantType::UnboxedSize() const
 {
-	VariantType::size_type size = 0;
-	for (const auto& type : m_elementTypes) {
-		size += type->UnboxedSize(); // TODO: sum?
-	}
-	return size;
+	return std::accumulate(m_elementTypes.cbegin(), m_elementTypes.cend(), VariantType::size_type{ 0 },
+		[](VariantType::size_type total, const auto& element)
+	{
+		return std::move(total) + element->UnboxedSize();
+	});
 }
 
 //TODO:

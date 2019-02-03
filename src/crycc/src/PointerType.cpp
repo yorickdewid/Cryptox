@@ -11,33 +11,29 @@
 namespace CryCC::SubValue::Typedef
 {
 
-PointerType::PointerType(BaseType& nativeType)
+PointerType::PointerType(InternalBaseType& nativeType)
     : m_ptrType{ nativeType }
 {
 }
 
-PointerType::PointerType(BaseType&& nativeType)
+PointerType::PointerType(InternalBaseType&& nativeType)
     : m_ptrType{ std::move(nativeType) }
 {
 }
 
 PointerType::PointerType(buffer_type& buffer)
 {
+	Unpack(buffer);
+}
+
+void PointerType::Pack(buffer_type&) const
+{
 	//
 }
 
-void PointerType::Serialize(const PointerType& type, buffer_type& buffer)
+void PointerType::Unpack(buffer_type&)
 {
-	AbstractType::Serialize(dynamic_cast<const AbstractType&>(type), buffer);
-
-	//TODO:
-}
-
-void PointerType::Deserialize(PointerType& type, buffer_type& buffer)
-{
-	AbstractType::Deserialize(dynamic_cast<AbstractType&>(type), buffer);
-
-	//TODO:
+	//
 }
 
 const std::string PointerType::ToString() const

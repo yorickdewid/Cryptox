@@ -10,9 +10,7 @@
 
 #include <iostream>
 
-namespace CryCC
-{
-namespace AST
+namespace CryCC::AST
 {
 
 // Unique object counter initialization.
@@ -43,5 +41,4 @@ bool UniqueObj::operator>=(const UniqueObj& other) const noexcept
 	return m_id >= other.m_id;
 }
 
-} // namespace AST
-} // namespace CryCC
+} // namespace CryCC::AST

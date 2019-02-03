@@ -61,7 +61,7 @@ public:
 
 private:
 	std::string m_name;
-	BaseType m_resolveType;
+	InternalBaseType m_resolveType;
 };
 
 } // namespace CryCC::SubValue::Typedef

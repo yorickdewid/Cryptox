@@ -796,7 +796,7 @@ public:
 
 private:
 	// Value type front.
-	Typedef::TypeFacade m_internalType;
+	Typedef::TypeFacade m_internalType; //TODO: replace by InternalBaseType
 	// Polymorphic value interface adopting the value category.
 	std::unique_ptr<ProxyInterface> m_valuePtr;
 };

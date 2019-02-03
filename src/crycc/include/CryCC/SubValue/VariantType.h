@@ -24,9 +24,9 @@ public:
 	// Unique type identifier.
 	inline constexpr static const TypeVariation type_identifier = TypeVariation::VARIANT;
 
-	VariantType(std::vector<BaseType>& variantType);
-	VariantType(std::vector<BaseType>&& variantType);
-	VariantType(std::initializer_list<BaseType>&& variantType);
+	VariantType(std::vector<InternalBaseType>& variantType);
+	VariantType(std::vector<InternalBaseType>&& variantType);
+	VariantType(std::initializer_list<InternalBaseType>&& variantType);
 	VariantType(buffer_type&);
 
 	// Return the size of the variant.
@@ -57,7 +57,7 @@ public:
 	bool operator==(const VariantType&) const { return true; }
 
 private:
-	std::vector<BaseType> m_elementTypes;
+	std::vector<InternalBaseType> m_elementTypes;
 };
 
 } // namespace CryCC::SubValue::Typedef

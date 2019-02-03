@@ -25,7 +25,6 @@ namespace CryCC::SubValue::Typedef
 {
 
 class AbstractType;
-
 using InternalBaseType = std::shared_ptr<AbstractType>;
 
 // Envelope helper to identify type. For every specialization a

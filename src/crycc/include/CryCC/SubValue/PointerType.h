@@ -20,29 +20,24 @@ public:
 	// Unique type identifier.
 	inline constexpr static const TypeVariation type_identifier = TypeVariation::POINTER;
 
-	PointerType(BaseType& nativeType);
-	PointerType(BaseType&& nativeType);
+	PointerType(InternalBaseType& nativeType);
+	PointerType(InternalBaseType&& nativeType);
 	PointerType(buffer_type&);
 
 	// Return pointer type.
-	inline BaseType Get() const { return m_ptrType; }
+	inline InternalBaseType Get() const { return m_ptrType; }
 
 	//
 	// Implement type category contract.
 	//
 
-	// Convert pointer type into data stream.
-	static void Serialize(const PointerType&, buffer_type&);
-	// Convert data stream into pointer type.
-	static void Deserialize(PointerType&, buffer_type&);
+protected:
+	// Convert builtin type into data stream.
+	void Pack(buffer_type&) const override;
+	// Convert data stream into builtin type.
+	void Unpack(buffer_type&) override;
 
-	// Compare to other BuiltinType.
-	bool operator==(const PointerType&) const { return true; }
-
-	//
-	// Implement abstract base type methods.
-	//
-
+public:
 	// Return type identifier.
 	TypeVariation TypeId() const { return type_identifier; }
 	// Return type name string.
@@ -52,8 +47,12 @@ public:
 	// Test if types are equal.
 	bool Equals(InternalBaseType*) const;
 
+	// TODO:
+	// Compare to other BuiltinType.
+	bool operator==(const PointerType&) const { return true; }
+
 private:
-	BaseType m_ptrType;
+	InternalBaseType m_ptrType;
 };
 
 } // namespace CryCC::SubValue::Typedef
