@@ -21,6 +21,11 @@ PointerType::PointerType(BaseType&& nativeType)
 {
 }
 
+PointerType::PointerType(buffer_type& buffer)
+{
+	//
+}
+
 void PointerType::Serialize(const PointerType& type, buffer_type& buffer)
 {
 	AbstractType::Serialize(dynamic_cast<const AbstractType&>(type), buffer);

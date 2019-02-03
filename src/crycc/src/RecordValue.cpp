@@ -96,7 +96,7 @@ void RecordValue::Emplace(offset_type offset, value_Type&& value)
 
 //TODO:
 // Convert record value into data stream.
-void RecordValue::Serialize(const RecordValue& value, buffer_type& buffer)
+void RecordValue::Serialize(const RecordValue& /*value*/, buffer_type& buffer)
 {
 	// Since the record value can be used without value the serialize method
 	// functions in a different manner. If the buffer is empty write the magic
