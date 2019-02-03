@@ -3,7 +3,7 @@
 // This file is part of the Cryptox project.
 //
 // Use of this source code is governed by a private license
-// that can be found in the LICENSE file. Content can not be 
+// that can be found in the LICENSE file. Content can not be
 // copied and/or distributed without the express of the author.
 
 #ifndef CRYCC_SUBVALUE_H_
@@ -20,13 +20,13 @@
 #include <CryCC/SubValue/UserData.h>
 
 #include <CryCC/SubValue/Typedef.h>
+#include <CryCC/SubValue/NilType.h>
 #include <CryCC/SubValue/BuiltinType.h>
 #include <CryCC/SubValue/RecordType.h>
 #include <CryCC/SubValue/TypedefType.h>
 #include <CryCC/SubValue/VariadicType.h>
 #include <CryCC/SubValue/ArrayType.h>
 #include <CryCC/SubValue/VariantType.h>
-#include <CryCC/SubValue/NilType.h>
 #include <CryCC/SubValue/TypeFacade.h>
 
 #include <CryCC/SubValue/Valuedef.h>

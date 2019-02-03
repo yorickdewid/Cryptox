@@ -25,7 +25,6 @@
 namespace CryCC::SubValue::Typedef
 {
 
-class TypeFacade;
 class AbstractType;
 
 //TODO: obsolete
@@ -173,7 +172,9 @@ public:
 	// Convert data stream into abstract type.
 	static void Deserialize(AbstractType&, buffer_type&);
 
-public:
+	// Convert data stream into type category.
+	static InternalBaseType TypeCategoryDeserialise(buffer_type&);
+
 	//
 	// Abstract methods.
 	//
